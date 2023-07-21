@@ -101,7 +101,7 @@ generate_alpha_test_pair <-
     if (is.null(alpha.obj)) {
       if (!is_rarefied(data.obj)) {
         message(
-          "Diversity analysis needs rarefaction! Call “mStat_rarefy_data” to rarefy the data!"
+          "Diversity analysis needs rarefaction! Call 'mStat_rarefy_data' to rarefy the data!"
         )
         data.obj <- mStat_rarefy_data(data.obj)
       }
@@ -121,7 +121,6 @@ generate_alpha_test_pair <-
                  by = c("sample"))
 
     test.list <- lapply(alpha.name, function(index) {
-      # 创建公式为lme
       formula_str <- paste0(index, "~", time.var)
       if (!is.null(adj.vars)) {
         formula_str <-
@@ -132,7 +131,6 @@ generate_alpha_test_pair <-
       formula_str <- paste0(formula_str, " + (1|", subject.var, ")")
       formula <- as.formula(formula_str)
 
-      # 使用函数提取系数表
       lme.model <- lmerTest::lmer(formula, data = alpha_df)
       coef.tab <- extract_coef(lme.model)
 

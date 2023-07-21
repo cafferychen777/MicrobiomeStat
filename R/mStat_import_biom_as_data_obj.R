@@ -41,10 +41,10 @@ mStat_import_biom_as_data_obj <-
             ...)
   {
     data.obj <- list()
-    if (class(BIOMfilename) == "character") {
+    if (inherits(BIOMfilename, "character")) {
       x = read_biom(biom_file = BIOMfilename)
     }
-    else if (class(BIOMfilename) == "biom") {
+    else if (inherits(BIOMfilename, "biom")) {
       x = BIOMfilename
     }
     else {

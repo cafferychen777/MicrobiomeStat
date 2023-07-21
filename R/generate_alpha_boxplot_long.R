@@ -42,7 +42,7 @@
 #'   strata.var = NULL,
 #'   base.size = 20,
 #'   theme.choice = "bw",
-#'   palette = ggsci::pal_npg()(9),·
+#'   palette = ggsci::pal_npg()(9),
 #'   pdf = TRUE,
 #'   file.ann = NULL,
 #'   pdf.wid = 20,
@@ -113,7 +113,7 @@ generate_alpha_boxplot_long <- function (data.obj,
       mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
     if (!is_rarefied(data.obj)) {
       message(
-        "Diversity analysis needs rarefaction! Call “mStat_rarefy_data” to rarefy the data!"
+        "Diversity analysis needs rarefaction! Call \"mStat_rarefy_data\" to rarefy the data!"
       )
       data.obj <- mStat_rarefy_data(data.obj)
     }
@@ -153,9 +153,8 @@ generate_alpha_boxplot_long <- function (data.obj,
     gray = theme_gray(),
     bw = theme_bw(),
     ggprism::theme_prism()
-  ) # 根据用户选择设置主题
+  )
 
-  # 使用用户自定义主题（如果提供），否则使用默认主题
   theme_to_use <-
     if (!is.null(custom.theme))
       custom.theme
@@ -215,7 +214,6 @@ generate_alpha_boxplot_long <- function (data.obj,
       )
     }
 
-    # 在数据处理部分创建一个新的数据框
     average_alpha_df <- NULL
     if (length(unique(alpha_df[[time.var]])) > 10 ||
         length(unique(alpha_df[[subject.var]])) > 25) {
@@ -251,7 +249,6 @@ generate_alpha_boxplot_long <- function (data.obj,
         linewidth = 0.6,
         color = "black",
         linetype = "dashed",
-        # 更改线条类型为虚线
         data = if (!is.null(average_alpha_df))
           average_alpha_df
         else

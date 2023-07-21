@@ -26,7 +26,7 @@ is_continuous_numeric <- function(x) {
 #' This function generates a boxplot pair that shows the change in abundance of taxa at different levels (Phylum, Family, or Genus) between two time points.
 #' It allows users to compare the changes in abundance within and between different groups and strata.
 #'
-#' @name generate_taxa_indiv_lineplot_pair
+#' @name generate_taxa_indiv_change_scatterplot_pair
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
 #' @param subject.var A character string specifying the subject variable in the metadata.
 #' @param time.var A character string specifying the time variable in the metadata.
@@ -50,7 +50,10 @@ is_continuous_numeric <- function(x) {
 #' peerj32.obj <- list()
 #' peerj32.phy <- peerj32$phyloseq
 #' peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
-#' peerj32.obj$meta.dat <- peerj32.obj$meta.dat %>% select(all_of("subject")) %>% distinct() %>% mutate(cons = runif(n(),0,5)) %>% left_join(peerj32.obj$meta.dat,by = "subject") %>% column_to_rownames("sample")
+#' peerj32.obj$meta.dat <- peerj32.obj$meta.dat %>% select(all_of("subject")) %>%
+#' distinct() %>% mutate(cons = runif(n(),0,5)) %>%
+#' left_join(peerj32.obj$meta.dat,by = "subject") %>%
+#' column_to_rownames("sample")
 #' # Generate the boxplot pair
 #' plot_list_all <- generate_taxa_indiv_change_scatterplot_pair(
 #'   data.obj = peerj32.obj,

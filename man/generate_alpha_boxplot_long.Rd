@@ -84,7 +84,7 @@ generate_alpha_boxplot_long(
   strata.var = NULL,
   base.size = 20,
   theme.choice = "bw",
-  palette = ggsci::pal_npg()(9),·
+  palette = ggsci::pal_npg()(9),
   pdf = TRUE,
   file.ann = NULL,
   pdf.wid = 20,

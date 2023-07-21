@@ -92,7 +92,9 @@ generate_alpha_spaghettiplot_long <-
         mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
 
       if (!is_rarefied(data.obj)) {
-        message("Diversity analysis needs rarefaction! Call “mStat_rarefy_data” to rarefy the data!")
+        message(
+          "Diversity analysis needs rarefaction! Call 'mStat_rarefy_data' to rarefy the data!"
+        )
         data.obj <- mStat_rarefy_data(data.obj)
       }
 
@@ -134,9 +136,8 @@ generate_alpha_spaghettiplot_long <-
                              classic = theme_classic(),
                              gray = theme_gray(),
                              bw = theme_bw(),
-                             ggprism::theme_prism()) # 根据用户选择设置主题
+                             ggprism::theme_prism())
 
-    # 使用用户自定义主题（如果提供），否则使用默认主题
     theme_to_use <- if (!is.null(custom.theme)) custom.theme else theme_function
 
     if (is.null(palette)){
@@ -238,7 +239,6 @@ generate_alpha_spaghettiplot_long <-
           legend.text = element_text(size = legend.text.size)
         )
 
-      # 添加分面
       if (!is.null(strata.var)) {
         plot <- plot + facet_wrap(as.formula(paste0("~", strata.var)))
       }

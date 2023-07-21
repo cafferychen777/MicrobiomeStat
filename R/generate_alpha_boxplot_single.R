@@ -67,7 +67,7 @@ generate_alpha_boxplot_single <- function (data.obj,
                                          group.var = NULL,
                                          strata.var = NULL,
                                          base.size = 16,
-                                         theme.choice = "prism", 
+                                         theme.choice = "prism",
                                          custom.theme = NULL,
                                          palette = NULL,
                                          pdf = TRUE,
@@ -78,7 +78,9 @@ generate_alpha_boxplot_single <- function (data.obj,
 
   if (is.null(alpha.obj)) {
     if (!is_rarefied(data.obj)){
-      message("Diversity analysis needs rarefaction! Call “mStat_rarefy_data” to rarefy the data!")
+      message(
+        "Diversity analysis needs rarefaction! Call 'mStat_rarefy_data' to rarefy the data!"
+      )
       data.obj <- mStat_rarefy_data(data.obj)
     }
     otu_tab <- as.data.frame(load_data_obj_count(data.obj))
@@ -122,9 +124,8 @@ generate_alpha_boxplot_single <- function (data.obj,
                            classic = theme_classic(),
                            gray = theme_gray(),
                            bw = theme_bw(),
-                           ggprism::theme_prism()) # 根据用户选择设置主题
+                           ggprism::theme_prism())
 
-  # 使用用户自定义主题（如果提供），否则使用默认主题
   theme_to_use <- if (!is.null(custom.theme)) custom.theme else theme_function
 
   if (is.null(palette)){

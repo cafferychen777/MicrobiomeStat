@@ -74,7 +74,7 @@ generate_alpha_change_boxplot_pair <-
     if (is.null(alpha.obj)) {
       if (!is_rarefied(data.obj)) {
         message(
-          "Diversity analysis needs rarefaction! Call “mStat_rarefy_data” to rarefy the data!"
+          "Diversity analysis needs rarefaction! Call 'mStat_rarefy_data' to rarefy the data!"
         )
         data.obj <- mStat_rarefy_data(data.obj)
       }
@@ -100,15 +100,15 @@ generate_alpha_change_boxplot_pair <-
 
     change.after <-
       unique(alpha_df %>% select(all_of(c(time.var))))[unique(alpha_df %>% select(all_of(c(time.var)))) != change.base]
-    # 将 alpha_df 分组，并将其分成一个列表，每个 time 值都有一个独立的 tibble
+
     alpha_grouped <- alpha_df %>% group_by(time)
     alpha_split <- split(alpha_df, f = alpha_grouped$time)
 
-    # 提取 alpha_split 中的第一个和第二个表
+
     alpha_time_1 <- alpha_split[[change.base]]
     alpha_time_2 <- alpha_split[[change.after]]
 
-    # 计算多样性指数的变化
+
     combined_alpha <- alpha_time_1 %>%
       inner_join(
         alpha_time_2,
@@ -116,14 +116,14 @@ generate_alpha_change_boxplot_pair <-
         suffix = c("_time_1", "_time_2")
       )
 
-    # 使用 lapply 遍历 alpha.name 列表，为每个 alpha.name 计算差值
+
     diff_columns <- lapply(alpha.name, function(index) {
-      # 为每个 alpha.name 创建差值列名
+
       diff_col_name <- paste0(index, "_diff")
 
-      # 使用 mutate() 函数计算差值，并将其分配给新列
+
       if (is.function(change.func)) {
-        # 如果 change.func 是一个函数，我们将使用它来计算差值
+
         combined_alpha <- combined_alpha %>%
           mutate(!!diff_col_name := change.func(!!sym(paste0(
             index, "_time_2"
@@ -132,7 +132,7 @@ generate_alpha_change_boxplot_pair <-
           )))) %>%
           select(all_of(diff_col_name))
       } else {
-        # 否则，我们假定 change.func 是一个字符向量，我们将根据它的值来计算差值
+
         if (change.func == "lfc") {
           combined_alpha <- combined_alpha %>%
             mutate(!!diff_col_name := log(!!sym(paste0(
@@ -186,7 +186,7 @@ generate_alpha_change_boxplot_pair <-
         , by = c(subject.var, group.var)) %>% rename(group = group.var)
     }
 
-    # 若有strata.var，连接strata.var列
+
     if (!is.null(strata.var)) {
       combined_alpha <-
         combined_alpha %>% left_join(alpha_time_1 %>% select(all_of(c(
@@ -202,16 +202,14 @@ generate_alpha_change_boxplot_pair <-
       gray = theme_gray(),
       bw = theme_bw(),
       ggprism::theme_prism()
-    ) # 根据用户选择设置主题
+    )
 
-    # 使用用户自定义主题（如果提供），否则使用默认主题
     theme_to_use <-
       if (!is.null(custom.theme))
         custom.theme
     else
       theme_function
 
-    # 提前判断change.func的类型，如果是自定义函数则给出特定的标签，否则保持原样
     ylab_label <- if (is.function(change.func)) {
       paste0("Change from ", change.base, " (custom function)")
     } else {
@@ -236,7 +234,7 @@ generate_alpha_change_boxplot_pair <-
         ) +
         geom_jitter(width = 0.1,
                     alpha = 0.5,
-                    size = 1.5) + # 添加 jitter 散点
+                    size = 1.5) +
         scale_fill_manual(values = col) +
         ylab(ylab_label) +
         theme_to_use +
@@ -254,15 +252,12 @@ generate_alpha_change_boxplot_pair <-
           legend.title = ggplot2::element_text(size = 16)
         )
 
-      # 当 combined_alpha$group == "All" 时，隐藏x轴的text和title，隐藏图例，隐藏分面的title
       if (any(unique(combined_alpha$group) == "All")) {
         plot <- plot +
           theme(
             axis.text.x = element_blank(),
-            # 隐藏x轴text
             axis.title.x = element_blank(),
-            # 隐藏x轴title
-            legend.position = "none"  # 隐藏图例
+            legend.position = "none"
           )
       } else if (is.null(strata.var)) {
 
@@ -275,7 +270,6 @@ generate_alpha_change_boxplot_pair <-
       return(plot)
     })
 
-    # 提前判断change.func的类型，如果是自定义函数则给出特定的标签，否则保持原样
     change_func_label <- if (is.function(change.func)) {
       "custom_function"
     } else {

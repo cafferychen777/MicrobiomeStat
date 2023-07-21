@@ -43,7 +43,9 @@ generate_alpha_test_single <-
 
     if (is.null(alpha.obj)) {
       if (!is_rarefied(data.obj)) {
-        message("Diversity analysis needs rarefaction! Call “mStat_rarefy_data” to rarefy the data!")
+        message(
+          "Diversity analysis needs rarefaction! Call 'mStat_rarefy_data' to rarefy the data!"
+        )
         data.obj <- mStat_rarefy_data(data.obj)
       }
       otu_tab <- load_data_obj_count(data.obj)
