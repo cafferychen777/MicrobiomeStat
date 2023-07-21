@@ -1,0 +1,58 @@
+Package: MicrobiomeStat
+Type: Package
+Title: Comprehensive Statistical and Visualization Methods for Microbiome and Multi-Omics Data
+Version: 1.1.0.9000
+Authors@R: c(
+              person("Xianyang", "Zhang", role = "aut", email = "zhangxiany@stat.tamu.edu"),
+              person("Jun", "Chen", role = c("aut", "cre"),
+                     email = "chen.jun2@mayo.edu"),
+              person("Huijuan", "Zhou", role = "ctb"),
+              person("Caffery(Chen)", "Yang", role = "aut", email = "cafferychen7850@gmail.com"))
+Author: Xianyang Zhang [aut],
+  Jun Chen [aut, cre],
+  Huijuan Zhou [ctb],
+  Caffery(Chen) Yang [aut]
+Maintainer: Jun Chen <chen.jun2@mayo.edu>
+Description: MicrobiomeStat is a comprehensive R package for microbiome analysis, designed specifically for longitudinal studies. It provides solutions for longitudinal, paired, and cross-sectional analyses, and is capable of handling multi-omics data. The package aims to facilitate efficient and effective analysis of multi-omics data in longitudinal studies, making it suitable for a wide range of applications. MicrobiomeStat is designed with user-friendliness in mind, offering a range of features and practical use cases to support researchers in their work. Stay up-to-date with the latest updates and experience the benefits of using MicrobiomeStat for your microbiome analysis needs.
+Depends: 
+    R (>= 3.5.0),
+    tidyverse,
+    Biostrings, 
+    biomformat, 
+    gridGraphics, 
+    plyr, 
+    rlang, 
+    tibble, 
+    yaml,
+    edgeR
+Imports: 
+    ggplot2,
+    matrixStats,
+    Matrix,
+    parallel,
+    stats,
+    utils,
+    statmod,
+    MASS,
+    ggrepel,
+    lmerTest,
+    foreach,
+    modeest,
+    phyloseq,
+    microbiome,
+    vegan,
+    RColorBrewer,
+    dplyr,
+    ggprism,
+    magrittr,
+    pheatmap,
+    tidyr,
+    ggh4x,
+    ape,
+Suggests:
+    rmarkdown,
+    knitr
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.2.3
