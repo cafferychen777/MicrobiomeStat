@@ -13,6 +13,8 @@ table (`feature.tab`), feature names, a full feature name list, and a feature ag
 
 \item{samIDs}{A vector of sample IDs to subset by. This can be a logical vector, a numeric
 vector, or a character vector of sample IDs.}
+
+\item{condition}{A logical expression string describing rows to keep. This allows subsetting samples based on metadata, similarly to dplyr::filter. Only one of 'samIDs' and 'condition' should be provided.}
 }
 \value{
 A list that is the modified version of the input data object. It includes the subsetted

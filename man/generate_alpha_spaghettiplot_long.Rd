@@ -28,19 +28,37 @@ generate_alpha_spaghettiplot_long(
 \arguments{
 \item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
 
+\item{alpha.obj}{An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.}
+
 \item{alpha.name}{The alpha diversity index to be calculated (e.g., "Shannon").}
 
 \item{subject.var}{The name of the subject variable.}
 
 \item{time.var}{The name of the time variable.}
 
+\item{t0.level}{The level in the metadata table that represents the initial time point. This is used to determine the starting point for time series data.}
+
+\item{ts.levels}{The levels in the metadata table that represent the subsequent time points. These are used to determine the time points that follow the initial time point for time series data.}
+
 \item{group.var}{The name of the group variable.}
 
 \item{strata.var}{The name of the strata variable (default is NULL).}
 
+\item{base.size}{The base font size for the plot.}
+
+\item{palette}{An optional color palette for the plot. If not provided, a default color palette will be used. The palette should be a vector of color codes in a format accepted by ggplot2 (e.g., hexadecimal color codes). The number of colors in the palette should be at least as large as the number of groups being plotted.}
+
+\item{theme.choice}{A character string indicating the choice of pre-defined ggplot2 theme for the plot. Supported choices include "prism" (default), "classic", "gray", and "bw".}
+
+\item{custom.theme}{An optional custom ggplot2 theme. If provided, this theme will be used instead of the pre-defined themes.}
+
 \item{pdf}{Logical, whether to save the plot as a PDF (default is TRUE).}
 
 \item{file.ann}{The annotation to be added to the PDF file name (default is NULL).}
+
+\item{pdf.wid}{The width of the output PDF file. Default is 11.}
+
+\item{pdf.hei}{The height of the output PDF file. Default is 8.5.}
 
 \item{...}{Additional arguments passed to ggplot().}
 }

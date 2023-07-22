@@ -31,36 +31,61 @@ generate_taxa_indiv_spaghettiplot_long(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
+\item{data.obj}{A list object in a format specific to MicrobiomeStat. This can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list).}
 
-\item{subject.var}{A character string defining subject variable in meta_tab}
+\item{subject.var}{A character string defining the subject variable in meta_tab.}
 
-\item{time.var}{A character string defining time variable in meta_tab}
+\item{time.var}{A character string defining the time variable in meta_tab.}
 
-\item{group.var}{A character string defining group variable in meta_tab used for sorting and facetting}
+\item{t0.level}{The base level for time points in longitudinal data (optional).}
 
-\item{strata.var}{(Optional) A character string defining strata variable in meta_tab used for sorting and facetting}
+\item{ts.levels}{The levels for time points in longitudinal data (optional).}
 
-\item{prev.filter}{A numeric value defining the prevalence threshold to filter taxa, between 0 and 1}
+\item{group.var}{A character string defining the group variable in meta_tab used for sorting and facetting.}
 
-\item{abund.filter}{A numeric value defining the abundance threshold to filter taxa}
+\item{strata.var}{(Optional) A character string defining the strata variable in meta_tab used for sorting and facetting.}
 
-\item{pdf}{A logical value. If TRUE (default), saves the dotplot as a PDF file. If FALSE, the dotplot will be displayed interactively without creating a PDF}
+\item{feature.level}{A character string specifying the taxonomic level for the plot.}
 
-\item{file.ann}{(Optional) A character string specifying a file annotation to include in the generated PDF file's name}
+\item{features.plot}{A character vector specifying the taxa to be plotted. If NULL (default), the top k taxa by mean abundance will be plotted.}
 
-\item{...}{Additional parameters to be passed}
+\item{feature.dat.type}{A character string specifying the type of the data in feature.dat. Options are "count", "proportion", or "other".}
 
-\item{taxa.level}{A character string defining the taxonomic level to analyze ('Phylum', 'Family', or 'Genus')}
+\item{top.k.plot}{A numeric value specifying the number of top taxa to be plotted if features.plot is NULL. If NULL (default), all taxa will be plotted.}
+
+\item{top.k.func}{A function to compute the top k taxa if features.plot is NULL. If NULL (default), the mean function will be used.}
+
+\item{prev.filter}{A numeric value defining the prevalence threshold to filter taxa, between 0 and 1.}
+
+\item{abund.filter}{A numeric value defining the abundance threshold to filter taxa.}
+
+\item{base.size}{Base font size for the generated plots.}
+
+\item{theme.choice}{Plot theme choice (default: "bw").}
+
+\item{custom.theme}{Custom ggplot2 theme (optional).}
+
+\item{palette}{Color palette used for the plots.}
+
+\item{pdf}{A logical value. If TRUE (default), the plot is saved as a PDF file. If FALSE, the plot is displayed interactively without creating a PDF file.}
+
+\item{file.ann}{(Optional) A character string specifying a file annotation to include in the generated PDF file's name.}
+
+\item{pdf.wid}{Width of the PDF plots.}
+
+\item{pdf.hei}{Height of the PDF plots.}
+
+\item{...}{Additional parameters to be passed.}
 }
 \value{
 If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the final ggplot object. If `pdf` is set to FALSE, the function will return the final ggplot object without creating a PDF file.
 }
 \description{
-Generate longitudinal line plots of taxonomic composition
+This function generates longitudinal line plots for the taxonomic composition in microbiome data over time.
 }
 \examples{
-
+\dontrun{
+# Assuming ecam.obj is a pre-defined object
 plot_list_all <- generate_taxa_indiv_spaghettiplot_long(
   data.obj = ecam.obj,
   subject.var = "studyid",
@@ -69,9 +94,9 @@ plot_list_all <- generate_taxa_indiv_spaghettiplot_long(
   ts.levels = NULL,
   group.var = "diet",
   strata.var = "antiexposedall",
-  feature.level = "Phylum",
-  feature.dat.type = "other",
+  feature.level = c("Phylum"),
   features.plot = NULL,
+  feature.dat.type = "proportion",
   top.k.plot = 5,
   top.k.func = "mean",
   prev.filter = 0.01,
@@ -82,5 +107,5 @@ plot_list_all <- generate_taxa_indiv_spaghettiplot_long(
   pdf = TRUE,
   file.ann = "test"
 )
-
+}
 }

@@ -17,5 +17,5 @@ This function takes a list of taxonomy information and creates a taxonomic table
 }
 \examples{
 # Assume `taxlist` is a list of taxonomy information
-tax_table <- build_mStat_tax_table(taxlist)
+# tax_table <- build_mStat_tax_table(taxlist)
 }

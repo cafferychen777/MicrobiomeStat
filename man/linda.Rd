@@ -26,44 +26,43 @@ linda(
 )
 }
 \arguments{
-\item{formula}{character. For example: \code{formula = '~x1*x2+x3+(1|id)'}. At least one fixed effect is required.}
+\item{feature.dat}{A data frame or matrix representing observed OTU table. Rows represent taxa; columns represent samples.
+NAs are not expected in OTU tables so are not allowed in function linda.}
 
-\item{adaptive}{TRUE or FALSE. Default is TRUE. If TRUE, the parameter \code{imputation} will be treated as FALSE no matter
-what it is actually set to be. Then the significant correlations between the sequencing depth and explanatory variables will be tested
-via the linear regression between the log of the sequencing depths and \code{formula}. If any p-value is smaller than or equal to
-\code{corr.cut}, the imputation approach will be used; otherwise, the pseudo-count approach will be used.
-The information of whether the imputation or pseudo-count approach is used will be printed.}
-
-\item{pseudo.cnt}{a positive real value. Default is 0.5. If \code{adaptive} and \code{imputation} are both FALSE,
-then we use the pseudo-count approach, i.e., we add \code{pseudo.cnt} to each value in \code{otu.tab}.}
-
-\item{corr.cut}{a real value between 0 and 1; significance level of correlations between the sequencing depth and
-explanatory variables. Default is 0.1.}
-
-\item{p.adj.method}{character; p-value adjusting approach. See R function \code{p.adjust}. Default is 'BH'.}
-
-\item{alpha}{a real value between 0 and 1; significance level of differential abundance. Default is 0.05.}
-
-\item{n.cores}{a positive integer. If \code{n.cores > 1} and formula is in a form of mixed-effect model,
-\code{n.cores} parallels will be conducted. Default is 1.}
-
-\item{otu.tab}{data frame or matrix representing observed OTU table. Row: taxa; column: samples.
-NAs are not expected in OTU tables so are not allowed in function \code{linda}.}
-
-\item{meta}{data frame of covariates. The rows of \code{meta} correspond to the columns of \code{otu.tab}.
+\item{meta.dat}{A data frame of covariates. The rows of meta.dat correspond to the columns of feature.dat.
 NAs are allowed. If there are NAs, the corresponding samples will be removed in the analysis.}
 
-\item{imputation}{TRUE or FALSE. Default is FALSE. If TRUE, then we use the imputation approach, i.e., zeros in \code{otu.tab} will be
-imputed using the formula in the referenced paper.}
+\item{phyloseq.obj}{A phyloseq object (optional). If provided, the feature.dat and meta.dat will be extracted from this object.}
 
-\item{prev.cut}{a real value between 0 and 1; taxa with prevalence (percentage of nonzeros)
-less than prev.cut are excluded. Default is 0 (no taxa will be excluded).}
+\item{formula}{Character. For example: formula = '~x1*x2+x3+(1|id)'. At least one fixed effect is required.}
 
-\item{lib.cut}{a non-negative real value; samples with less than \code{lib.cut} read counts are excluded.
-Default is 1 (no samples will be excluded).}
+\item{feature.dat.type}{Character. Specifies the type of the data in feature.dat. Options are "count" (default) or "proportion".}
 
-\item{winsor.quan}{a real value between 0 and 1; winsorization cutoff (quantile) for \code{otu.tab}, e.g., 0.97. Default is NULL.
-If NULL, winsorization process will not be conducted.}
+\item{prev.filter}{A real value between 0 and 1; taxa with prevalence (percentage of nonzeros) less than prev.filter are excluded. Default is 0 (no taxa will be excluded).}
+
+\item{mean.abund.filter}{A real value; taxa with mean abundance less than mean.abund.filter are excluded. Default is 0 (no taxa will be excluded).}
+
+\item{max.abund.filter}{A real value; taxa with max abundance less than max.abund.filter are excluded. Default is 0 (no taxa will be excluded).}
+
+\item{is.winsor}{Boolean. If TRUE (default), the Winsorization process will be conducted for the OTU table.}
+
+\item{outlier.pct}{A real value between 0 and 1; Winsorization cutoff (percentile) for the OTU table, e.g., 0.03. Default is NULL. If NULL, Winsorization process will not be conducted.}
+
+\item{adaptive}{Boolean. Default is TRUE. If TRUE, the parameter imputation will be treated as FALSE no matter what it is actually set to be. Then the significant correlations between the sequencing depth and explanatory variables will be tested via the linear regression between the log of the sequencing depths and formula. If any p-value is smaller than or equal to corr.cut, the imputation approach will be used; otherwise, the pseudo-count approach will be used.}
+
+\item{zero.handling}{Character. Specifies the method to handle zeros in the OTU table. Options are "pseudo-count" or "imputation" (default is "pseudo-count"). If "imputation", zeros in the OTU table will be imputed using the formula in the referenced paper. If "pseudo-count", a small constant (pseudo.cnt) will be added to each value in the OTU table.}
+
+\item{pseudo.cnt}{A positive real value. Default is 0.5. If zero.handling is set to "pseudo-count", this constant will be added to each value in the OTU table.}
+
+\item{corr.cut}{A real value between 0 and 1; significance level of correlations between the sequencing depth and explanatory variables. Default is 0.1.}
+
+\item{p.adj.method}{Character; p-value adjusting approach. See R function p.adjust. Default is 'BH'.}
+
+\item{alpha}{A real value between 0 and 1; significance level of differential abundance. Default is 0.05.}
+
+\item{n.cores}{A positive integer. If n.cores > 1 and formula is in a form of mixed-effect model, n.cores parallels will be conducted. Default is 1.}
+
+\item{verbose}{A boolean; if TRUE, progress messages will be printed. Default is TRUE.}
 }
 \value{
 A list with the elements
@@ -96,7 +95,7 @@ and zeros are treated, i.e., imputed or pseudo-count added).}
 or have less than \code{lib.cut} read counts are removed; numerical variables are scaled).}
 }
 \description{
-The function implements a simple, robust and highly scalable approach to tackle
+This function implements a simple, robust, and highly scalable approach to tackle
 the compositional effects in differential abundance analysis. It fits linear regression models
 on the centered log2-ratio transformed data, identifies a bias term due to the transformation
 and compositional effect, and corrects the bias using the mode of the regression coefficients.

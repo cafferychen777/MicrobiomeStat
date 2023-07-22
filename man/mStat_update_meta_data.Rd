@@ -18,7 +18,7 @@ mStat_update_meta_data(
 
 \item{map.file}{a character string or dataframe. The path to the metadata file (CSV or TSV) or a dataframe containing the metadata.}
 
-\item{meta.sep}{a character string. The field separator character in the metadata file. Default is a tab ('\t').}
+\item{meta.sep}{a character string. The field separator character in the metadata file. Default is a tab ("\\t").}
 
 \item{quote}{a character string. The set of quoting characters for the metadata file. Default is a double quote ('"').}
 

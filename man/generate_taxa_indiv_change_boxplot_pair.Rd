@@ -59,15 +59,15 @@ generate_taxa_indiv_change_boxplot_pair(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
+\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list).}
 
-\item{subject.var}{A character string specifying the subject variable in the metadata.}
+\item{subject.var}{A character string defining the subject variable in the metadata.}
 
-\item{time.var}{A character string specifying the time variable in the metadata.}
+\item{time.var}{A character string defining the time variable in the metadata.}
 
-\item{group.var}{A character string specifying the grouping variable in the metadata. Default is NULL.}
+\item{group.var}{A character string defining the group variable in the metadata used for sorting and facetting.}
 
-\item{strata.var}{A character string specifying the stratification variable in the metadata. Default is NULL.}
+\item{strata.var}{(Optional) A character string defining strata variable in the metadata used for sorting and facetting.}
 
 \item{change.base}{A numeric value specifying the base time point for calculating the change in abundance.}
 
@@ -75,15 +75,35 @@ generate_taxa_indiv_change_boxplot_pair(
 
 \item{feature.level}{A character vector specifying the taxa level(s) to include in the analysis. Default is c('Phylum', 'Family', 'Genus').}
 
-\item{prev.filter}{A numeric value specifying the minimum prevalence threshold for filtering taxa.}
+\item{feature.dat.type}{A character string specifying the type of the data in feature.dat. Options are "count", "proportion", or "other".}
 
-\item{abund.filter}{A numeric value specifying the minimum abundance threshold for filtering taxa.}
+\item{features.plot}{A character vector specifying the taxa to be plotted. If NULL (default), the top k taxa by mean abundance will be plotted.}
 
-\item{pdf}{A logical value indicating whether to save the boxplot to a PDF file. Default is TRUE.}
+\item{top.k.plot}{A numeric value specifying the number of top taxa to be plotted if features.plot is NULL. If NULL (default), all taxa will be plotted.}
 
-\item{file.ann}{A character string specifying the file annotation. Default is NULL.}
+\item{top.k.func}{A function to compute the top k taxa if features.plot is NULL. If NULL (default), the mean function will be used.}
 
-\item{...}{Additional arguments passed to \code{ggplot2::ggsave()}.}
+\item{prev.filter}{A numeric value defining the prevalence threshold to filter taxa, between 0 and 1.}
+
+\item{abund.filter}{A numeric value defining the abundance threshold to filter taxa.}
+
+\item{base.size}{Base font size for the generated plots.}
+
+\item{theme.choice}{Plot theme choice (default: "bw").}
+
+\item{custom.theme}{Custom ggplot2 theme (optional).}
+
+\item{palette}{Color palette used for the plots.}
+
+\item{pdf}{A logical value. If TRUE (default), saves the plot as a PDF file. If FALSE, the plot will be displayed interactively without creating a PDF.}
+
+\item{file.ann}{(Optional) A character string specifying a file annotation to include in the generated PDF file's name.}
+
+\item{pdf.wid}{Width of the PDF plots.}
+
+\item{pdf.hei}{Height of the PDF plots.}
+
+\item{...}{Additional parameters to be passed.}
 
 \item{zero.handle}{A character string specifying the method to handle zero values. Default is 'pseudo'.}
 }
@@ -96,8 +116,9 @@ A ggplot object representing the taxa-level individual change boxplot pair.
 This function generates a boxplot pair that shows the change in abundance of taxa at different levels (Phylum, Family, or Genus) between two time points.
 It allows users to compare the changes in abundance within and between different groups and strata.
 
-This function generates a boxplot pair that shows the change in abundance of taxa at different levels (Phylum, Family, or Genus) between two time points.
-It allows users to compare the changes in abundance within and between different groups and strata.
+This function generates boxplot pairs showing the change in abundance of taxa at different taxonomic levels between two time points.
+It allows users to compare the changes in abundance within and between different groups (specified by the `group.var` parameter).
+If a stratification variable (`strata.var`) is provided, the function will also stratify the analysis by this variable.
 }
 \examples{
 # Load required libraries and data

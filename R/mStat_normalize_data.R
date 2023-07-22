@@ -27,7 +27,6 @@
 #' @details
 #' The function first checks if 'data.obj' is a list. It then retrieves the OTU table and estimates the normalization/scale factor based on the chosen method. The data object is then updated with the normalized OTU table and the chosen method is added as 'norm.status'. The function returns the normalized data object and the scale factor.
 #'
-#' @seealso \code{\link[Misc]{is.list}}, \code{\link[base]{match.arg}}, \code{\link[base]{stop}}, \code{\link[base]{apply}}, \code{\link[stats]{median}}, \code{\link[stats]{mean}}, \code{\link[stats]{exp}}, \code{\link[edgeR]{calcNormFactors}}
 #' @export
 mStat_normalize_data <-
   function(data.obj,

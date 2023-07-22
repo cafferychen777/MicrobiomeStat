@@ -15,6 +15,10 @@ mStat_summarize_data_obj(
 \item{data.obj}{A MicrobiomeStat data object to be summarized.}
 
 \item{time.var}{An optional time variable column name from meta.dat. If provided, the function will additionally summarize the temporal distribution of samples. Default is NULL.}
+
+\item{group.var}{An optional grouping variable column name from meta.dat. If provided together with time.var, the histogram of sample counts over time will be grouped by this variable. Default is NULL.}
+
+\item{palette}{A vector of colors to use for grouping in the histogram. Default is a preset color palette with 10 colors.}
 }
 \value{
 A list containing summaries for:
@@ -54,13 +58,4 @@ The function first checks if each component of the MicrobiomeStat data object is
   mStat_summarize_data_obj(T2D.obj, "visit_number", "subject_race")
 }
 
-}
-\references{
-Your references.
-}
-\seealso{
-\code{\link[MicrobiomeStat]{MicrobiomeStat-class}}
-}
-\author{
-Your Name
 }

@@ -28,7 +28,7 @@
 #' library("tidyverse")
 #' library(vegan)
 #' ecam.phy <- ecam
-#' ecam.obj <- mStat_convert_phyloseq_to_data_obj( = "TSS")
+#' ecam.obj <- mStat_convert_phyloseq_to_data_obj(ecam.phy)
 #'
 #' rownames(ecam.obj$meta.dat) <- ecam.obj$meta.dat$X.SampleID
 #' ecam.obj$meta.dat$subject.id <- substring(ecam.obj$meta.dat$X.SampleID, 1, 10)

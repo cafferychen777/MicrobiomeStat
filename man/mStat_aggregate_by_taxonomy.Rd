@@ -45,9 +45,6 @@ feature.level <- c("Phylum", "Family")
 peerj32.obj <- mStat_aggregate_by_taxonomy(peerj32.obj, feature.level)
 }
 }
-\seealso{
-\code{\link[dplyr]{select}}, \code{\link[dplyr]{gather}}, \code{\link[dplyr]{group_by_at}}, \code{\link[dplyr]{summarise}}, \code{\link[dplyr]{spread}}, \code{\link[tibble]{column_to_rownames}}
-}
 \author{
 Caffery(Chen) YANG
 }

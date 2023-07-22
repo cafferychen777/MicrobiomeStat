@@ -10,8 +10,6 @@ mStat_calculate_alpha_diversity(x, alpha.name)
 \item{x}{OTU table with taxa in rows and samples in columns.}
 
 \item{alpha.name}{character vector containing the names of alpha diversity indices to calculate. Possible values are: "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".}
-
-\item{parallel}{Logical; whether to use parallel processing for faster computation. Default is FALSE.}
 }
 \value{
 A list containing the requested alpha diversity indices.

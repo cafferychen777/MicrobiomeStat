@@ -31,13 +31,11 @@
 #' This function reads a BIOM file, which typically contains a biological observation matrix and its related metadata. It also optionally accepts a phylogenetic tree file. It creates a list object that follows the mStat data object structure for subsequent analysis. If any of the required elements are missing in the BIOM file, warnings will be issued, but the function will continue to run. Please ensure the BIOM file and optional phylogenetic tree file are properly formatted for successful conversion.
 #'
 #' @author Jun Chen
-#' @seealso \code{\link[biomformat]{biom-class}}, \code{\link[ape]{read_tree}}
 #' @references The Biological Observation Matrix (BIOM) format or: how I learned to stop worrying and love the ome-ome. Daniel McDonald et al. GigaScience 2012.
 mStat_import_biom_as_data_obj <-
   function (BIOMfilename,
             treefilename = NULL,
             parseFunction = parse_taxonomy_default,
-            parallel = FALSE,
             ...)
   {
     data.obj <- list()
@@ -106,7 +104,7 @@ mStat_import_biom_as_data_obj <-
 #' @export
 #' @examples
 #' # Assume `taxlist` is a list of taxonomy information
-#' tax_table <- build_mStat_tax_table(taxlist)
+#' # tax_table <- build_mStat_tax_table(taxlist)
 build_mStat_tax_table <- function(taxlist) {
   columns = unique(unlist(lapply(taxlist, names)))
   taxmat <-

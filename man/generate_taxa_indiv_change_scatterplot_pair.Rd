@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_taxa_indiv_change_scatterplot_pair.R
 \name{generate_taxa_indiv_change_scatterplot_pair}
 \alias{generate_taxa_indiv_change_scatterplot_pair}
-\title{Generate taxa-level individual change boxplot pairs}
+\title{Generate taxa-level individual change scatterplot pairs}
 \usage{
 generate_taxa_indiv_change_scatterplot_pair(
   data.obj,
@@ -31,71 +31,70 @@ generate_taxa_indiv_change_scatterplot_pair(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
+\item{data.obj}{A MicrobiomeStat data object containing the feature table, taxonomy table, and metadata.}
 
-\item{subject.var}{A character string specifying the subject variable in the metadata.}
+\item{subject.var}{Character string specifying the subject variable in the metadata.}
 
-\item{time.var}{A character string specifying the time variable in the metadata.}
+\item{time.var}{Character string specifying the time variable in the metadata.}
 
-\item{group.var}{A character string specifying the grouping variable in the metadata. Default is NULL.}
+\item{group.var}{Character string specifying the grouping variable in the metadata. Default is NULL.}
 
-\item{strata.var}{A character string specifying the stratification variable in the metadata. Default is NULL.}
+\item{strata.var}{Character string specifying the stratification variable in the metadata. Default is NULL.}
 
-\item{prev.filter}{A numeric value specifying the minimum prevalence threshold for filtering taxa.}
+\item{change.base}{Level of time variable to use as baseline for computing change.}
 
-\item{abund.filter}{A numeric value specifying the minimum abundance threshold for filtering taxa.}
+\item{change.func}{Function specifying how to compute change between time points. Default is "difference".}
 
-\item{pdf}{A logical value indicating whether to save the boxplot to a PDF file. Default is TRUE.}
+\item{features.plot}{Character vector of specific taxa names to plot. Default NULL plots top taxa.}
 
-\item{file.ann}{A character string specifying the file annotation. Default is NULL.}
+\item{top.k.plot}{Integer specifying number of top taxa to plot if features.plot is NULL. Default NULL plots all passing filters.}
 
-\item{...}{Additional arguments passed to \code{ggplot2::ggsave()}.}
+\item{top.k.func}{Function specifying metric for determining top k taxa. Default NULL uses row means.}
 
-\item{taxa.level}{A character vector specifying the taxa level(s) to include in the analysis. Default is c('Phylum', 'Family', 'Genus').}
+\item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering taxa.}
+
+\item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering taxa.}
+
+\item{pdf}{Logical, if TRUE save plots as a multi-page PDF file. Default is TRUE.}
+
+\item{file.ann}{Character string for file annotation to include in PDF file name. Default NULL.}
+
+\item{...}{Additional arguments passed to ggsave().}
+
+\item{taxa.level}{Character vector specifying the taxa level(s) to include. Default is c('Phylum', 'Family', 'Genus').}
 }
 \value{
-A ggplot object representing the taxa-level individual change boxplot pair.
+A list of ggplot objects, one for each taxa level.
 }
 \description{
-This function generates a boxplot pair that shows the change in abundance of taxa at different levels (Phylum, Family, or Genus) between two time points.
-It allows users to compare the changes in abundance within and between different groups and strata.
+This function generates scatterplot pairs showing the change in abundance of taxa at different levels (Phylum, Family, or Genus) between two time points.
+It allows users to compare the changes within and between different groups and strata.
 }
 \examples{
-# Load required libraries and data
-library(microbiome)
-library(vegan)
-library(tidyverse)
-data(peerj32)
-peerj32.obj <- list()
-peerj32.phy <- peerj32$phyloseq
-peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
-peerj32.obj$meta.dat <- peerj32.obj$meta.dat \%>\% select(all_of("subject")) \%>\%
-distinct() \%>\% mutate(cons = runif(n(),0,5)) \%>\%
-left_join(peerj32.obj$meta.dat,by = "subject") \%>\%
-column_to_rownames("sample")
-# Generate the boxplot pair
-plot_list_all <- generate_taxa_indiv_change_scatterplot_pair(
-  data.obj = peerj32.obj,
-  subject.var = "subject",
-  time.var = "time",
-  group.var = "cons",
-  strata.var = "sex",
-  change.base = "1",
-  change.func = "lfc",
-  feature.level = "Phylum",
-  feature.dat.type = "other",
-  features.plot = NULL,
-  top.k.plot = 3,
-  top.k.func = "mean",
-  prev.filter = 0.1,
-  abund.filter = 0.01,
-  base.size = 16,
-  theme.choice = "classic",
-  custom.theme = NULL,
-  palette = NULL,
-  pdf = TRUE,
-  file.ann = "test",
-  pdf.wid = 11,
-  pdf.hei = 8.5
-)
+\dontrun{
+ library(microbiome)
+ library(vegan)
+ library(tidyverse)
+
+ # Load example data
+ data(peerj32)
+ peerj32.obj <- list()
+ peerj32.phy <- peerj32$phyloseq
+ peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
+
+ # Generate the scatterplot pairs
+ plot_list <- generate_taxa_indiv_change_scatterplot_pair(
+   data.obj = peerj32.obj,
+   subject.var = "subject",
+   time.var = "time",
+   group.var = "cons",
+   strata.var = "sex",
+   change.base = "1",
+   taxa.level = "Phylum",
+   top.k.plot = 3,
+   prev.filter = 0.1,
+   abund.filter = 0.01
+ )
+}
+
 }

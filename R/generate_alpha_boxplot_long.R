@@ -7,6 +7,10 @@
 #' @param alpha.name The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".
 #' @param subject.var The variable in the metadata table that represents the subject.
 #' @param time.var The variable in the metadata table that represents the time.
+#' @param t0.level The level in the metadata table that represents the initial time point. This parameter is used to determine the starting point for time series data. If NULL, the first unique time point in the data will be used.
+#' @param ts.levels The levels in the metadata table that represent the subsequent time points.
+#' These parameters are used to determine the time points that follow the initial time point (t0.level) for time series data. If NULL, all unique time points in the data (except for the initial time point) will be used.
+#' @param palette An optional color palette for the plot. If not provided, a default color palette will be used. The palette should be a vector of color codes in a format accepted by ggplot2 (e.g., hexadecimal color codes). The number of colors in the palette should be at least as large as the number of groups being plotted.
 #' @param group.var An optional variable in the metadata table that represents the grouping factor.
 #' @param strata.var An optional variable in the metadata table that represents the stratification factor.
 #' @param base.size The base font size for the plot.

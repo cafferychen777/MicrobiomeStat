@@ -1,8 +1,7 @@
-#' Generate a report for microbial ecology analysis of paired data
+#' @title Generate a Comprehensive Report for Microbial Ecology Analysis of Longitudinal Data
 #'
-#' This function generates a comprehensive report for microbial ecology analysis,
-#' including changes in alpha diversity, beta diversity, and taxonomic features between paired data.
-#' The function is specifically designed for analysis of paired data.
+#' @description This function generates a comprehensive report for microbial ecology analysis,
+#'              including changes in alpha diversity, beta diversity, and taxonomic features in longitudinal data.
 #'
 #' @param data.obj A data object created by mStat_convert_phyloseq_to_data_obj.
 #' @param dist.obj A distance object created by mStat_calculate_beta_diversity.
@@ -11,11 +10,11 @@
 #' @param group.var Variable name used for grouping samples.
 #' @param adj.vars Variables to adjust for in the analysis.
 #' @param subject.var Variable name used for subject identification.
-#' @param time.var Variable name used for time points in paired data.
+#' @param time.var Variable name used for time points in longitudinal data.
 #' @param alpha.name Names of alpha diversity indices to include in the analysis.
 #' @param dist.name Names of beta diversity distance metrics to include in the analysis.
-#' @param change.base The base level for calculating changes in paired data.
-#' @param change.func The function for calculating changes in paired data.
+#' @param t0.level The base level for time points in longitudinal data.
+#' @param ts.levels The levels for time points in longitudinal data.
 #' @param strata.var Variable to stratify the analysis by (optional).
 #' @param base.size Base font size for the generated plots.
 #' @param theme.choice Plot theme choice (default: "prism").
@@ -29,47 +28,36 @@
 #' @param abund.filter Abundance filter for feature analysis.
 #' @param feature.level Taxonomic level for feature analysis.
 #' @param feature.dat.type Data type for feature analysis (count, proportion, or other).
+#' @param Transform The transformation function applied to the data (default: "log").
 #' @param output.file Output file name for the report.
 #' @param ... Additional arguments passed to internal functions.
 #'
-#' @return A report file containing the microbial ecology analysis results for paired data.
+#' @return A PDF report file containing the microbial ecology analysis results for longitudinal data.
 #'
 #' @examples
-#' library(tidyverse)
-#' library(GUniFrac)
-#' library(pheatmap)
-#' library(vegan)
-#' library(ggh4x)
-#'
-#' # Load example data
-#' data("peerj32")
-#'
-#' peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32$phyloseq)
-#'
-#' dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
-#'
-#' # Generate a report for microbial ecology analysis
+#' \dontrun{
+#' # Assuming peerj32.obj, dist.obj, alpha.obj are pre-defined objects
 #' mStat_generate_report_long(
 #'   data.obj = peerj32.obj,
-#'   dist.obj = NULL,
-#'   alpha.obj = NULL,
+#'   dist.obj = dist.obj,
+#'   alpha.obj = alpha.obj,
 #'   group.var = "group",
 #'   adj.vars = c("sex"),
 #'   subject.var = "subject",
 #'   time.var = "time",
-#'   t0.level = "1",
-#'   ts.levels = "2",
 #'   alpha.name = c("shannon","simpson"),
 #'   dist.name = c("BC",'Jaccard'),
+#'   t0.level = "1",
+#'   ts.levels = "2",
 #'   strata.var = "sex",
 #'   feature.level = c("Phylum"),
 #'   feature.dat.type = "count",
 #'   Transform = "log",
 #'   theme.choice = "bw",
 #'   base.size = 12,
-#'   output.file = "/Users/apple/Microbiome/Longitudinal/
-#'   MicrobiomeStat/mStat_generate_report_long_example.pdf"
+#'   output.file = "/path/to/report.pdf"
 #' )
+#' }
 #' @export
 mStat_generate_report_long <- function(data.obj,
                                        dist.obj = NULL,

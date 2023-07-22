@@ -1,23 +1,25 @@
-#' Generate boxplot pair of individual taxa abundance
+#' Generate boxplot of individual taxa abundance distribution
 #'
-#' This function creates a boxplot pair of individual taxa abundance at a specified
-#' taxonomic level between two or more time points. It takes a data object containing
-#' OTU, taxonomy, and metadata tables as input, along with metadata variables, and
-#' outputs a ggplot2 boxplot.
+#' This function creates a boxplot showing the abundance distribution of individual taxa at a specified
+#' taxonomic level at one or more time points from cross-sectional data. It takes a MicrobiomeStat data object as input.
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param subject.var A character string specifying the subject variable in the metadata.
-#' @param time.var A character string specifying the time variable in the metadata.
-#' @param group.var A character string specifying the group variable in the metadata. Default is NULL.
-#' @param strata.var A character string specifying the strata variable in the metadata. Default is NULL.
-#' @param feature.level A character string specifying the taxonomic level for the boxplot. Default is 'Phylum'.
-#' @param prev.filter A numeric value specifying the prevalence threshold for filtering taxa.
-#' @param abund.filter A numeric value specifying the abundance threshold for filtering taxa.
-#' @param pdf A logical value indicating whether to save the plot as a PDF file. Default is TRUE.
-#' @param file.ann An optional character string to be used as a file annotation when saving the PDF. Default is NULL.
+#' @param data.obj MicrobiomeStat data object containing OTU, taxonomy, and metadata.
+#' @param subject.var Character string specifying subject variable in metadata.
+#' @param time.var Character string specifying time variable in metadata.
+#' @param group.var Character string specifying optional group variable in metadata.
+#' @param strata.var Character string specifying optional strata variable in metadata.
+#' @param feature.level Character vector specifying taxonomic level(s) for boxplots. Default 'Phylum'.
+#' @param prev.filter Prevalence threshold for filtering taxa before plotting.
+#' @param abund.filter Abundance threshold for filtering taxa before plotting.
+#' @param Transform Transformation to apply to abundance data before plotting. Default is "log10".
+#' @param features.plot Character vector of specific taxa names to plot. Default NULL plots all.
+#' @param top.k.plot Integer specifying number of top taxa to plot if features.plot is NULL. Default NULL plots all.
+#' @param top.k.func Function specifying metric for determining top k taxa if features.plot is NULL. Default NULL uses row means.
+#' @param pdf Logical, if TRUE save plot as a multi-page PDF file. Default is TRUE.
+#' @param file.ann Optional character string to add to PDF file name.
 #' @param ... Additional arguments passed to ggplot2 functions.
 #'
-#' @return A ggplot2 boxplot of individual taxa abundance at the specified taxonomic level.
+#' @return A ggplot object showing the abundance distribution of taxa.
 #'
 #' @examples
 #' # Load required libraries and example data

@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_taxa_indiv_boxplot_long.R
 \name{generate_taxa_indiv_boxplot_long}
 \alias{generate_taxa_indiv_boxplot_long}
-\title{Generate boxplot pair of individual taxa abundance}
+\title{Generate Boxplot of Individual Taxa Abundance Over Time}
 \usage{
 generate_taxa_indiv_boxplot_long(
   data.obj,
@@ -32,36 +32,59 @@ generate_taxa_indiv_boxplot_long(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
+\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list).}
 
 \item{subject.var}{A character string specifying the subject variable in the metadata.}
 
 \item{time.var}{A character string specifying the time variable in the metadata.}
 
-\item{group.var}{A character string specifying the group variable in the metadata. Default is NULL.}
+\item{t0.level}{The base level for time points in longitudinal data.}
 
-\item{strata.var}{A character string specifying the strata variable in the metadata. Default is NULL.}
+\item{ts.levels}{The levels for time points in longitudinal data.}
 
-\item{feature.level}{A character string specifying the taxonomic level for the boxplot. Default is 'Phylum'.}
+\item{group.var}{Optional grouping variable in metadata.}
 
-\item{prev.filter}{A numeric value specifying the prevalence threshold for filtering taxa.}
+\item{strata.var}{Optional stratification variable in metadata.}
 
-\item{abund.filter}{A numeric value specifying the abundance threshold for filtering taxa.}
+\item{feature.level}{Taxonomic level(s) for boxplots.}
 
-\item{pdf}{A logical value indicating whether to save the plot as a PDF file. Default is TRUE.}
+\item{features.plot}{A character vector specifying the taxa to be plotted. If NULL (default), the top k taxa by mean abundance will be plotted.}
 
-\item{file.ann}{An optional character string to be used as a file annotation when saving the PDF. Default is NULL.}
+\item{feature.dat.type}{A character string specifying the type of the data in feature.dat. Options are "count", "proportion", or "other".}
+
+\item{top.k.plot}{A numeric value specifying the number of top taxa to be plotted if features.plot is NULL. If NULL (default), all taxa will be plotted.}
+
+\item{top.k.func}{A function to compute the top k taxa if features.plot is NULL. If NULL (default), the mean function will be used.}
+
+\item{Transform}{Transformation to apply before plotting. Default is "log10".}
+
+\item{prev.filter}{Prevalence threshold for filtering taxa. Default 0.05.}
+
+\item{abund.filter}{Abundance threshold for filtering taxa. Default 0.01.}
+
+\item{base.size}{Base font size for the generated plots.}
+
+\item{theme.choice}{Plot theme choice (default: "bw").}
+
+\item{custom.theme}{Custom ggplot2 theme (optional).}
+
+\item{palette}{Color palette used for the plots.}
+
+\item{pdf}{Logical, if TRUE save plot as a multi-page PDF file. Default is TRUE.}
+
+\item{file.ann}{Optional string for file annotation to add to PDF name.}
+
+\item{pdf.wid}{Width of the PDF plots.}
+
+\item{pdf.hei}{Height of the PDF plots.}
 
 \item{...}{Additional arguments passed to ggplot2 functions.}
 }
 \value{
-A ggplot2 boxplot of individual taxa abundance at the specified taxonomic level.
+A ggplot object showing the abundance distribution of taxa over time.
 }
 \description{
-This function creates a boxplot pair of individual taxa abundance at a specified
-taxonomic level between two or more time points. It takes a data object containing
-OTU, taxonomy, and metadata tables as input, along with metadata variables, and
-outputs a ggplot2 boxplot.
+This function creates a boxplot showing the abundance distribution of individual taxa at a specified taxonomic level over time from longitudinal data. It takes a MicrobiomeStat data object as input.
 }
 \examples{
 # Load required libraries and example data

@@ -4,7 +4,6 @@
 #' @name mStat_calculate_alpha_diversity
 #' @param x OTU table with taxa in rows and samples in columns.
 #' @param alpha.name character vector containing the names of alpha diversity indices to calculate. Possible values are: "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".
-#' @param parallel Logical; whether to use parallel processing for faster computation. Default is FALSE.
 #' @return A list containing the requested alpha diversity indices.
 #' @examples
 #' library(tidyverse)

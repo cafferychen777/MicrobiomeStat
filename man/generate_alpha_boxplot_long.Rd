@@ -36,6 +36,11 @@ generate_alpha_boxplot_long(
 
 \item{time.var}{The variable in the metadata table that represents the time.}
 
+\item{t0.level}{The level in the metadata table that represents the initial time point. This parameter is used to determine the starting point for time series data. If NULL, the first unique time point in the data will be used.}
+
+\item{ts.levels}{The levels in the metadata table that represent the subsequent time points.
+These parameters are used to determine the time points that follow the initial time point (t0.level) for time series data. If NULL, all unique time points in the data (except for the initial time point) will be used.}
+
 \item{group.var}{An optional variable in the metadata table that represents the grouping factor.}
 
 \item{strata.var}{An optional variable in the metadata table that represents the stratification factor.}
@@ -45,6 +50,8 @@ generate_alpha_boxplot_long(
 \item{theme.choice}{A character string indicating the choice of pre-defined ggplot2 theme for the plot. Supported choices include "prism" (default), "classic", "gray", and "bw".}
 
 \item{custom.theme}{An optional custom ggplot2 theme. If provided, this theme will be used instead of the pre-defined themes.}
+
+\item{palette}{An optional color palette for the plot. If not provided, a default color palette will be used. The palette should be a vector of color codes in a format accepted by ggplot2 (e.g., hexadecimal color codes). The number of colors in the palette should be at least as large as the number of groups being plotted.}
 
 \item{pdf}{A boolean indicating whether to save the output as a PDF file.}
 

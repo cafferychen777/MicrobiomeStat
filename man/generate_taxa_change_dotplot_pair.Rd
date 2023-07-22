@@ -31,7 +31,7 @@ generate_taxa_change_dotplot_pair(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
+\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list).}
 
 \item{subject.var}{A character string defining subject variable in meta_tab}
 
@@ -41,15 +41,39 @@ generate_taxa_change_dotplot_pair(
 
 \item{strata.var}{(Optional) A character string defining strata variable in meta_tab used for sorting and facetting}
 
+\item{change.base}{A numeric value setting base for the change (usually 1)}
+
+\item{change.func}{A function or character string specifying the method for computing the change. Default is "difference".}
+
 \item{feature.level}{A character string defining the taxonomic level to analyze ('Phylum', 'Family', or 'Genus')}
+
+\item{feature.dat.type}{A character string specifying the type of the data in feature.dat. Options are "count", "proportion", or "other".}
+
+\item{features.plot}{A character vector specifying the taxa to be plotted. If NULL (default), the top k taxa by mean abundance will be plotted.}
+
+\item{top.k.plot}{A numeric value specifying the number of top taxa to be plotted if features.plot is NULL. If NULL (default), all taxa will be plotted.}
+
+\item{top.k.func}{A function to compute the top k taxa if features.plot is NULL. If NULL (default), the mean function will be used.}
 
 \item{prev.filter}{A numeric value defining the prevalence threshold to filter taxa, between 0 and 1}
 
 \item{abund.filter}{A numeric value defining the abundance threshold to filter taxa}
 
-\item{pdf}{A logical value. If TRUE (default), saves the dotplot as a PDF file. If FALSE, the dotplot will be displayed interactively without creating a PDF}
+\item{base.size}{Base font size for the generated plots.}
+
+\item{theme.choice}{The choice of theme for the plot. Default is "bw".}
+
+\item{custom.theme}{Custom ggplot2 theme (optional).}
+
+\item{palette}{Color palette used for the plots.}
+
+\item{pdf}{If TRUE, save the plot as a PDF file (default: TRUE)}
 
 \item{file.ann}{(Optional) A character string specifying a file annotation to include in the generated PDF file's name}
+
+\item{pdf.wid}{Width of the PDF plots.}
+
+\item{pdf.hei}{Height of the PDF plots.}
 
 \item{...}{Additional parameters to be passed}
 }
@@ -70,7 +94,7 @@ data(peerj32)
 # Prepare data for the function
 peerj32.obj <- list()
 peerj32.phy <- peerj32$phyloseq
-peerj32.obj <- mStat_convert_phyloseq_to_data_obj(method = "Raw")
+peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
 
 # Call the function
 dotplot_result <- generate_taxa_change_dotplot_pair(

@@ -16,7 +16,6 @@
 #' The aggregated OTU tables are added to the data object as a list named 'feature.agg.list'.
 #'
 #' @author Caffery(Chen) YANG
-#' @seealso \code{\link[dplyr]{select}}, \code{\link[dplyr]{gather}}, \code{\link[dplyr]{group_by_at}}, \code{\link[dplyr]{summarise}}, \code{\link[dplyr]{spread}}, \code{\link[tibble]{column_to_rownames}}
 #' @examples
 #' \dontrun{
 #' # Load required libraries

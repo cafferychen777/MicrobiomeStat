@@ -15,7 +15,6 @@
 #' @details
 #' The function first checks if 'data.obj' is a list and contains 'norm.status'. It then checks if 'meta.dat' is a data frame and converts it to one if it isn't. The function then checks two rules: whether the row names of 'feature.tab' match the row names of 'feature.ann', and whether the column names of 'feature.tab' match the row names of 'meta.dat'. If either of these checks fail, the function adjusts the relevant parts of the data object to meet these rules.
 #'
-#' @seealso \code{\link[Misc]{is.list}}, \code{\link[Misc]{is.data.frame}}, \code{\link[base]{as.data.frame}}, \code{\link[base]{identical}}, \code{\link[base]{match}}, \code{\link[base]{stop}}, \code{\link[base]{message}}
 #' @export
 mStat_validate_data <- function(data.obj) {
   # Rule 1: Check if data.obj is the correct type

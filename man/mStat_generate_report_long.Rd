@@ -2,7 +2,7 @@
 % Please edit documentation in R/mStat_generate_report_long.R
 \name{mStat_generate_report_long}
 \alias{mStat_generate_report_long}
-\title{Generate a report for microbial ecology analysis of paired data}
+\title{Generate a Comprehensive Report for Microbial Ecology Analysis of Longitudinal Data}
 \usage{
 mStat_generate_report_long(
   data.obj,
@@ -50,11 +50,15 @@ mStat_generate_report_long(
 
 \item{subject.var}{Variable name used for subject identification.}
 
-\item{time.var}{Variable name used for time points in paired data.}
+\item{time.var}{Variable name used for time points in longitudinal data.}
 
 \item{alpha.name}{Names of alpha diversity indices to include in the analysis.}
 
 \item{dist.name}{Names of beta diversity distance metrics to include in the analysis.}
+
+\item{t0.level}{The base level for time points in longitudinal data.}
+
+\item{ts.levels}{The levels for time points in longitudinal data.}
 
 \item{strata.var}{Variable to stratify the analysis by (optional).}
 
@@ -82,56 +86,41 @@ mStat_generate_report_long(
 
 \item{feature.dat.type}{Data type for feature analysis (count, proportion, or other).}
 
+\item{Transform}{The transformation function applied to the data (default: "log").}
+
 \item{output.file}{Output file name for the report.}
 
 \item{...}{Additional arguments passed to internal functions.}
-
-\item{change.base}{The base level for calculating changes in paired data.}
-
-\item{change.func}{The function for calculating changes in paired data.}
 }
 \value{
-A report file containing the microbial ecology analysis results for paired data.
+A PDF report file containing the microbial ecology analysis results for longitudinal data.
 }
 \description{
 This function generates a comprehensive report for microbial ecology analysis,
-including changes in alpha diversity, beta diversity, and taxonomic features between paired data.
-The function is specifically designed for analysis of paired data.
+             including changes in alpha diversity, beta diversity, and taxonomic features in longitudinal data.
 }
 \examples{
-library(tidyverse)
-library(GUniFrac)
-library(pheatmap)
-library(vegan)
-library(ggh4x)
-
-# Load example data
-data("peerj32")
-
-peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32$phyloseq)
-
-dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
-
-# Generate a report for microbial ecology analysis
+\dontrun{
+# Assuming peerj32.obj, dist.obj, alpha.obj are pre-defined objects
 mStat_generate_report_long(
   data.obj = peerj32.obj,
-  dist.obj = NULL,
-  alpha.obj = NULL,
+  dist.obj = dist.obj,
+  alpha.obj = alpha.obj,
   group.var = "group",
   adj.vars = c("sex"),
   subject.var = "subject",
   time.var = "time",
-  t0.level = "1",
-  ts.levels = "2",
   alpha.name = c("shannon","simpson"),
   dist.name = c("BC",'Jaccard'),
+  t0.level = "1",
+  ts.levels = "2",
   strata.var = "sex",
   feature.level = c("Phylum"),
   feature.dat.type = "count",
   Transform = "log",
   theme.choice = "bw",
   base.size = 12,
-  output.file = "/Users/apple/Microbiome/Longitudinal/
-  MicrobiomeStat/mStat_generate_report_long_example.pdf"
+  output.file = "/path/to/report.pdf"
 )
+}
 }

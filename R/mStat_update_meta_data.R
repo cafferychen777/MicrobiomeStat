@@ -6,7 +6,7 @@
 #'
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
 #' @param map.file a character string or dataframe. The path to the metadata file (CSV or TSV) or a dataframe containing the metadata.
-#' @param meta.sep a character string. The field separator character in the metadata file. Default is a tab ('\t').
+#' @param meta.sep a character string. The field separator character in the metadata file. Default is a tab ("\\t").
 #' @param quote a character string. The set of quoting characters for the metadata file. Default is a double quote ('"').
 #' @param comment a character string. The comment character for the metadata file. Lines beginning with this character are ignored.
 #' @param ... further arguments to be passed to the read.csv or read.table function.

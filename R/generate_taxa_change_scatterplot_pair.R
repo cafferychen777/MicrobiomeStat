@@ -1,22 +1,33 @@
-#' Generate taxa-level individual change boxplot pairs
+#' Generate taxa-level difference scatterplot pairs
 #'
-#' This function generates a boxplot pair that shows the change in abundance of taxa at different levels (Phylum, Family, or Genus) between two time points.
-#' It allows users to compare the changes in abundance within and between different groups and strata.
+#' This function generates scatterplot pairs showing the difference in abundance of taxa
+
+#' at a specified taxonomic level between two time points, with grouping and stratification.
 #'
-#' @name generate_taxa_change_scatterplot_pair
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param subject.var A character string specifying the subject variable in the metadata.
-#' @param time.var A character string specifying the time variable in the metadata.
-#' @param group.var A character string specifying the grouping variable in the metadata. Default is NULL.
-#' @param strata.var A character string specifying the stratification variable in the metadata. Default is NULL.
-#' @param taxa.level A character vector specifying the taxa level(s) to include in the analysis. Default is c('Phylum', 'Family', 'Genus').
-#' @param prev.filter A numeric value specifying the minimum prevalence threshold for filtering taxa.
-#' @param abund.filter A numeric value specifying the minimum abundance threshold for filtering taxa.
-#' @param pdf A logical value indicating whether to save the boxplot to a PDF file. Default is TRUE.
-#' @param file.ann A character string specifying the file annotation. Default is NULL.
-#' @param ... Additional arguments passed to \code{ggplot2::ggsave()}.
+#' @param data.obj An object containing the OTU table, taxonomy table, and sample metadata.
+#' @param subject.var Character string specifying the subject variable in metadata.
+#' @param time.var Character string specifying the time variable in metadata.
+#' @param group.var Character string specifying the grouping variable in metadata. Default NULL.
+#' @param strata.var Character string specifying the stratification variable in metadata. Default NULL.
+#' @param change.base Character string specifying the baseline time point.
+#' @param change.func Function or character string specifying method to compute change ('difference', 'relative difference', 'lfc'). Default 'difference'.
+#' @param feature.level Character vector specifying taxonomic level(s) to include. Default c('Phylum', 'Family', 'Genus').
+#' @param feature.dat.type Character string specifying data type, one of "count", "proportion", or "other". Default "count".
+#' @param prev.filter Numeric specifying minimum prevalence threshold for filtering taxa.
+#' @param abund.filter Numeric specifying minimum abundance threshold for filtering taxa.
+#' @param features.plot Character vector specifying specific taxa names to plot. Default NULL.
+#' @param top.k.plot Numeric specifying number of top abundant taxa to plot if top.k.func is provided.
+#' @param top.k.func Function or character string specifying method to select top abundant taxa (mean, sd, custom function).
+#' @param base.size Numeric specifying base font size for plot text elements. Default 16.
+#' @param theme.choice Character string specifying ggplot2 theme to use. Default 'bw'.
+#' @param custom.theme A ggplot2 theme object to override default theme. Default NULL.
+#' @param palette Character vector specifying colors to use for plot. Defaults to RColorBrewer palette.
+#' @param pdf Logical, if TRUE, save plot(s) as PDF file(s). Default TRUE.
+#' @param file.ann Character string specifying file annotation to add to PDF file name. Default NULL.
+#' @param pdf.wid,pdf.hei Numeric specifying PDF width and height in inches. Default 11 x 8.5.
+#' @param ... Additional arguments passed to ggplot2::ggsave().
 #'
-#' @return A ggplot object representing the taxa-level individual change boxplot pair.
+#' @return A ggplot object containing the scatterplot pair(s).
 #'
 #' @examples
 #' # Load required libraries and data
@@ -27,8 +38,8 @@
 #' peerj32.obj <- list()
 #' peerj32.phy <- peerj32$phyloseq
 #' peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
-#' peerj32.obj$meta.dat <- peerj32.obj$meta.dat %>% select(all_of("subject")) %>% distinct()
-#' %>% mutate(cons = runif(n(),0,5)) %>% left_join(peerj32.obj$meta.dat,by = "subject") %>%
+#' peerj32.obj$meta.dat <- peerj32.obj$meta.dat %>% select(all_of("subject")) %>% distinct() %>%
+#' mutate(cons = runif(n(),0,5)) %>% left_join(peerj32.obj$meta.dat,by = "subject") %>%
 #' column_to_rownames("sample")
 #' # Generate the boxplot pair
 #' plot_list_all <- generate_taxa_change_scatterplot_pair(

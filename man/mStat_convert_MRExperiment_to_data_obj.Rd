@@ -41,9 +41,6 @@ The function first checks if each component (expression data, samples, feature a
 \references{
 Paulson JN, Stine OC, Bravo HC, Pop M. Differential abundance analysis for microbial marker-gene surveys. Nature Methods. 2013;10(12):1200-1202.
 }
-\seealso{
-\code{\link[MetagenomeSeq]{MRExperiment}}
-}
 \author{
 Chen Yang
 }

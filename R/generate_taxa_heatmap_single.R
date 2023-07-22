@@ -1,22 +1,36 @@
-#' Generate Taxonomic Heatmap Single
+#' @title Generate Taxonomic Heatmap Single
 #'
-#' This function performs hierarchical clustering on microbiome data based on grouping
+#' @description This function performs hierarchical clustering on microbiome data based on grouping
 #' variables and strata variables in sample metadata and generates stacked heatmaps
 #' using the “pheatmap” package. It can also save the resulting heatmap as a PDF file.
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
+#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list).
 #' @param subject.var The name of the subject variable in the samples
 #' @param time.var The name of the time variable in the samples
+#' @param t.level The base level for time points in longitudinal data.
 #' @param group.var The name of the grouping variable in the samples
 #' @param strata.var The name of the strata variable in the samples
 #' @param feature.level The taxonomic level to aggregate, can be “Phylum”, “Family” or “Genus”
+#' @param features.plot A character vector specifying the taxa to be plotted. If NULL (default), the top k taxa by mean abundance will be plotted.
+#' @param feature.dat.type A character string specifying the type of the data in feature.dat. Options are "count", "proportion", or "other".
+#' @param top.k.plot A numeric value specifying the number of top taxa to be plotted if features.plot is NULL. If NULL (default), all taxa will be plotted.
+#' @param top.k.func A function to compute the top k taxa if features.plot is NULL. If NULL (default), the mean function will be used.
 #' @param prev.filter The prevalence filter to apply
 #' @param abund.filter The abundance filter to apply
+#' @param base.size Base font size for the generated plots.
+#' @param palette Color palette used for the plots.
+#' @param cluster.cols A logical variable indicating if columns should be clustered. Default is NULL.
+#' @param cluster.rows A logical variable indicating if rows should be clustered. Default is NULL.
 #' @param pdf If TRUE, save the plot as a PDF file (default: TRUE)
 #' @param file.ann The file name annotation (default: NULL)
-#' @param … Additional arguments to be passed to the pheatmap() function from the “pheatmap” package. This can be used to customize the appearance and format of the generated heatmap. For example, you can pass specific color scales, clustering methods, or add annotations to the heatmap. For a full list of available arguments, refer to the documentation for pheatmap() function.
+#' @param pdf.wid Width of the PDF plots.
+#' @param pdf.hei Height of the PDF plots.
+#' @param ... Additional arguments passed to the pheatmap() function from the “pheatmap” package.
+#'
+#' @return An object of class pheatmap, the generated heatmap plot
 #'
 #' @examples
+#' \dontrun{
 #' # Load required libraries and example data
 #' library(microbiome)
 #' library(tidyverse)
@@ -25,7 +39,9 @@
 #' peerj32.obj <- list()
 #' peerj32.phy <- peerj32$phyloseq
 #' peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
-#' plot_list <- generate_taxa_heatmap_single(
+#'
+#' # Generate the boxplot pair
+#' generate_taxa_heatmap_single(
 #'   data.obj = peerj32.obj,
 #'   subject.var = "subject",
 #'   time.var = NULL,
@@ -46,8 +62,7 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
-#'
-#' @return An object of class pheatmap, the generated heatmap plot
+#' }
 #' @export
 #'
 #' @seealso \code{\link{pheatmap}}

@@ -1,19 +1,30 @@
-#' Generate Taxa Dotplot Single
+#' @title Generate Taxonomic Dotplot Single
 #'
-#' This function generates a stacked dotplot of specified taxa level with paired samples. The data used in this
+#' @description This function generates a stacked dotplot of specified taxa level with paired samples. The data used in this
 #' visualization will be first filtered based on prevalence and abundance thresholds. The plot can either be displayed
 #' interactively or saved as a PDF file.
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
+#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list).
 #' @param subject.var A character string defining subject variable in meta_tab
 #' @param time.var A character string defining time variable in meta_tab
+#' @param t.level The base level for time points in longitudinal data.
 #' @param group.var A character string defining group variable in meta_tab used for sorting and facetting
 #' @param strata.var (Optional) A character string defining strata variable in meta_tab used for sorting and facetting
-#' @param feature.level A character string defining the taxonomic level to analyze ('Phylum', 'Family', or 'Genus')
-#' @param prev.filter A numeric value defining the prevalence threshold to filter taxa, between 0 and 1
-#' @param abund.filter A numeric value defining the abundance threshold to filter taxa
-#' @param pdf A logical value. If TRUE (default), saves the dotplot as a PDF file. If FALSE, the dotplot will be displayed interactively without creating a PDF
-#' @param file.ann (Optional) A character string specifying a file annotation to include in the generated PDF file's name
+#' @param feature.level A character string defining the taxonomic level to analyze ('Phylum', 'Family' or 'Genus')
+#' @param features.plot A character vector specifying the taxa to be plotted. If NULL (default), the top k taxa by mean abundance will be plotted.
+#' @param feature.dat.type A character string specifying the type of data in feature.dat. Options are "count", "proportion", or "other".
+#' @param top.k.plot A numeric value specifying the number of top taxa to be plotted if features.plot is NULL. If NULL (default), all taxa will be plotted.
+#' @param top.k.func A function to compute the top k taxa if features.plot is NULL. If NULL (default), the mean function will be used.
+#' @param prev.filter A numeric value defining the prevalence threshold to filter taxa, between 0 and 1.
+#' @param abund.filter A numeric value defining the abundance threshold to filter taxa.
+#' @param base.size Base font size for the generated plots.
+#' @param theme.choice Plot theme choice (default: "bw").
+#' @param custom.theme Custom ggplot2 theme (optional).
+#' @param palette Color palette used for the plots.
+#' @param pdf If TRUE, save the plot as a PDF file (default: TRUE)
+#' @param file.ann The file name annotation (default: NULL)
+#' @param pdf.wid Width of the PDF plots.
+#' @param pdf.hei Height of the PDF plots.
 #' @param ... Additional parameters to be passed
 #' @return If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the final ggplot object. If `pdf` is set to FALSE, the function will return the final ggplot object without creating a PDF file.
 #' @examples
@@ -34,7 +45,7 @@
 #'   data.obj = peerj32.obj,
 #'   subject.var = "subject",
 #'   time.var = NULL,
-#'   t0.level = NULL,
+#'   t.level = NULL,
 #'   group.var = "group",
 #'   strata.var = NULL,
 #'   feature.level = c("Family"),
@@ -60,7 +71,7 @@
 generate_taxa_dotplot_single <- function(data.obj,
                                        subject.var,
                                        time.var = NULL,
-                                       t0.level = NULL,
+                                       t.level = NULL,
                                        group.var = NULL,
                                        strata.var = NULL,
                                        feature.level = NULL,

@@ -30,7 +30,6 @@
 #' The function first checks if each component (expression data, samples, feature annotations) of the MRExperiment object is not null. If a component is not null, it is converted to the appropriate format and added to the output list. The expression data and feature annotations are converted to a matrix, while the samples data is converted to a data frame. Note that only the rows (features) in the expression data that have a sum > 0 are retained.
 #'
 #' @author Chen Yang
-#' @seealso \code{\link[MetagenomeSeq]{MRExperiment}}
 #' @references Paulson JN, Stine OC, Bravo HC, Pop M. Differential abundance analysis for microbial marker-gene surveys. Nature Methods. 2013;10(12):1200-1202.
 #'
 #' @export

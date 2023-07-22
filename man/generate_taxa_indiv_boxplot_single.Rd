@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_taxa_indiv_boxplot_single.R
 \name{generate_taxa_indiv_boxplot_single}
 \alias{generate_taxa_indiv_boxplot_single}
-\title{Generate boxplot pair of individual taxa abundance}
+\title{Generate boxplot of individual taxa abundance distribution}
 \usage{
 generate_taxa_indiv_boxplot_single(
   data.obj,
@@ -31,36 +31,42 @@ generate_taxa_indiv_boxplot_single(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
+\item{data.obj}{MicrobiomeStat data object containing OTU, taxonomy, and metadata.}
 
-\item{subject.var}{A character string specifying the subject variable in the metadata.}
+\item{subject.var}{Character string specifying subject variable in metadata.}
 
-\item{time.var}{A character string specifying the time variable in the metadata.}
+\item{time.var}{Character string specifying time variable in metadata.}
 
-\item{group.var}{A character string specifying the group variable in the metadata. Default is NULL.}
+\item{group.var}{Character string specifying optional group variable in metadata.}
 
-\item{strata.var}{A character string specifying the strata variable in the metadata. Default is NULL.}
+\item{strata.var}{Character string specifying optional strata variable in metadata.}
 
-\item{feature.level}{A character string specifying the taxonomic level for the boxplot. Default is 'Phylum'.}
+\item{feature.level}{Character vector specifying taxonomic level(s) for boxplots. Default 'Phylum'.}
 
-\item{prev.filter}{A numeric value specifying the prevalence threshold for filtering taxa.}
+\item{features.plot}{Character vector of specific taxa names to plot. Default NULL plots all.}
 
-\item{abund.filter}{A numeric value specifying the abundance threshold for filtering taxa.}
+\item{top.k.plot}{Integer specifying number of top taxa to plot if features.plot is NULL. Default NULL plots all.}
 
-\item{pdf}{A logical value indicating whether to save the plot as a PDF file. Default is TRUE.}
+\item{top.k.func}{Function specifying metric for determining top k taxa if features.plot is NULL. Default NULL uses row means.}
 
-\item{file.ann}{An optional character string to be used as a file annotation when saving the PDF. Default is NULL.}
+\item{Transform}{Transformation to apply to abundance data before plotting. Default is "log10".}
+
+\item{prev.filter}{Prevalence threshold for filtering taxa before plotting.}
+
+\item{abund.filter}{Abundance threshold for filtering taxa before plotting.}
+
+\item{pdf}{Logical, if TRUE save plot as a multi-page PDF file. Default is TRUE.}
+
+\item{file.ann}{Optional character string to add to PDF file name.}
 
 \item{...}{Additional arguments passed to ggplot2 functions.}
 }
 \value{
-A ggplot2 boxplot of individual taxa abundance at the specified taxonomic level.
+A ggplot object showing the abundance distribution of taxa.
 }
 \description{
-This function creates a boxplot pair of individual taxa abundance at a specified
-taxonomic level between two or more time points. It takes a data object containing
-OTU, taxonomy, and metadata tables as input, along with metadata variables, and
-outputs a ggplot2 boxplot.
+This function creates a boxplot showing the abundance distribution of individual taxa at a specified
+taxonomic level at one or more time points from cross-sectional data. It takes a MicrobiomeStat data object as input.
 }
 \examples{
 # Load required libraries and example data

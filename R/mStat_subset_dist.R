@@ -57,7 +57,7 @@ is.na.null <- function (x) {
 #' # Convert peerj32 data to the necessary format
 #' peerj32.obj <- list()
 #' peerj32.phy <- peerj32$phyloseq
-#' peerj32.obj <- mStat_convert_phyloseq_to_data_obj( = "Raw")
+#' peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
 #'
 #' # Calculate beta diversity
 #' dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))

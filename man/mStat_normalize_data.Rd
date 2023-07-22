@@ -43,6 +43,3 @@ peerj32.obj <- mStat_aggregate_by_taxonomy(peerj32.obj, feature.level = c("Phylu
 }
 
 }
-\seealso{
-\code{\link[Misc]{is.list}}, \code{\link[base]{match.arg}}, \code{\link[base]{stop}}, \code{\link[base]{apply}}, \code{\link[stats]{median}}, \code{\link[stats]{mean}}, \code{\link[stats]{exp}}, \code{\link[edgeR]{calcNormFactors}}
-}

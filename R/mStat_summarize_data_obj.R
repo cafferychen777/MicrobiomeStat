@@ -6,7 +6,8 @@
 #' @name mStat_summarize_data_obj
 #' @param data.obj A MicrobiomeStat data object to be summarized.
 #' @param time.var An optional time variable column name from meta.dat. If provided, the function will additionally summarize the temporal distribution of samples. Default is NULL.
-#'
+#' @param group.var An optional grouping variable column name from meta.dat. If provided together with time.var, the histogram of sample counts over time will be grouped by this variable. Default is NULL.
+#' @param palette A vector of colors to use for grouping in the histogram. Default is a preset color palette with 10 colors.
 #' @return A list containing summaries for:
 #' \itemize{
 #'   \item feature.tab: The overall summary includes the number of features, number of samples, sparsity, and description of singleton features.
@@ -39,10 +40,6 @@
 #'
 #' @details
 #' The function first checks if each component of the MicrobiomeStat data object is not null. If a component is not null, it is summarized and added to the output list. For the feature.tab, it computes the sparsity and singleton features. For the meta.dat, it computes the number of samples and metadata fields, and the distribution of samples if a time variable is provided. The inclusion of a time variable allows the user to gain insights into how samples are distributed over time. For the feature.ann, it computes the number of features, annotations, and the proportion of NA values for each annotation. It also checks if a phylogenetic tree exists in the data object.
-#'
-#' @author Your Name
-#' @seealso \code{\link[MicrobiomeStat]{MicrobiomeStat-class}}
-#' @references Your references.
 #'
 #' @export
 mStat_summarize_data_obj <-

@@ -28,7 +28,7 @@
 #' data(peerj32)
 #' peerj32.obj <- list()
 #' peerj32.phy <- peerj32$phyloseq
-#' peerj32.obj <- mStat_convert_phyloseq_to_data_obj( = "Raw")
+#' peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
 #'
 #' plot_list_all <- generate_taxa_barplot_single(
 #'   data.obj = peerj32.obj,

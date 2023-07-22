@@ -25,6 +25,3 @@ validated_data <- validate_data(data.obj)
 }
 
 }
-\seealso{
-\code{\link[Misc]{is.list}}, \code{\link[Misc]{is.data.frame}}, \code{\link[base]{as.data.frame}}, \code{\link[base]{identical}}, \code{\link[base]{match}}, \code{\link[base]{stop}}, \code{\link[base]{message}}
-}

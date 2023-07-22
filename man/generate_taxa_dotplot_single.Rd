@@ -2,13 +2,13 @@
 % Please edit documentation in R/generate_taxa_dotplot_single.R
 \name{generate_taxa_dotplot_single}
 \alias{generate_taxa_dotplot_single}
-\title{Generate Taxa Dotplot Single}
+\title{Generate Taxonomic Dotplot Single}
 \usage{
 generate_taxa_dotplot_single(
   data.obj,
   subject.var,
   time.var = NULL,
-  t0.level = NULL,
+  t.level = NULL,
   group.var = NULL,
   strata.var = NULL,
   feature.level = NULL,
@@ -30,25 +30,47 @@ generate_taxa_dotplot_single(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
+\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list).}
 
 \item{subject.var}{A character string defining subject variable in meta_tab}
 
 \item{time.var}{A character string defining time variable in meta_tab}
 
+\item{t.level}{The base level for time points in longitudinal data.}
+
 \item{group.var}{A character string defining group variable in meta_tab used for sorting and facetting}
 
 \item{strata.var}{(Optional) A character string defining strata variable in meta_tab used for sorting and facetting}
 
-\item{feature.level}{A character string defining the taxonomic level to analyze ('Phylum', 'Family', or 'Genus')}
+\item{feature.level}{A character string defining the taxonomic level to analyze ('Phylum', 'Family' or 'Genus')}
 
-\item{prev.filter}{A numeric value defining the prevalence threshold to filter taxa, between 0 and 1}
+\item{feature.dat.type}{A character string specifying the type of data in feature.dat. Options are "count", "proportion", or "other".}
 
-\item{abund.filter}{A numeric value defining the abundance threshold to filter taxa}
+\item{features.plot}{A character vector specifying the taxa to be plotted. If NULL (default), the top k taxa by mean abundance will be plotted.}
 
-\item{pdf}{A logical value. If TRUE (default), saves the dotplot as a PDF file. If FALSE, the dotplot will be displayed interactively without creating a PDF}
+\item{top.k.plot}{A numeric value specifying the number of top taxa to be plotted if features.plot is NULL. If NULL (default), all taxa will be plotted.}
 
-\item{file.ann}{(Optional) A character string specifying a file annotation to include in the generated PDF file's name}
+\item{top.k.func}{A function to compute the top k taxa if features.plot is NULL. If NULL (default), the mean function will be used.}
+
+\item{prev.filter}{A numeric value defining the prevalence threshold to filter taxa, between 0 and 1.}
+
+\item{abund.filter}{A numeric value defining the abundance threshold to filter taxa.}
+
+\item{base.size}{Base font size for the generated plots.}
+
+\item{theme.choice}{Plot theme choice (default: "bw").}
+
+\item{custom.theme}{Custom ggplot2 theme (optional).}
+
+\item{palette}{Color palette used for the plots.}
+
+\item{pdf}{If TRUE, save the plot as a PDF file (default: TRUE)}
+
+\item{file.ann}{The file name annotation (default: NULL)}
+
+\item{pdf.wid}{Width of the PDF plots.}
+
+\item{pdf.hei}{Height of the PDF plots.}
 
 \item{...}{Additional parameters to be passed}
 }
@@ -78,7 +100,7 @@ dotplot_result <- generate_taxa_dotplot_single(
   data.obj = peerj32.obj,
   subject.var = "subject",
   time.var = NULL,
-  t0.level = NULL,
+  t.level = NULL,
   group.var = "group",
   strata.var = NULL,
   feature.level = c("Family"),

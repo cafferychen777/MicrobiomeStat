@@ -32,29 +32,57 @@ generate_taxa_change_heatmap_long(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
+\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list).}
 
-\item{subject.var}{The name of the subject variable in the samples}
+\item{subject.var}{A character string specifying the subject variable in the metadata.}
 
-\item{time.var}{The name of the time variable in the samples}
+\item{time.var}{A character string specifying the time variable in the metadata.}
 
-\item{group.var}{The name of the grouping variable in the samples}
+\item{t0.level}{The base level for time points in longitudinal data.}
 
-\item{strata.var}{The name of the strata variable in the samples}
+\item{ts.levels}{The levels for time points in longitudinal data.}
 
-\item{feature.level}{The taxonomic level to aggregate, can be “Phylum”, “Family” or “Genus”}
+\item{group.var}{A character string specifying the grouping variable in the metadata. Default is NULL.}
 
-\item{prev.filter}{The prevalence filter to apply}
+\item{strata.var}{(Optional) A character string specifying the stratification variable in the metadata. Default is NULL.}
 
-\item{abund.filter}{The abundance filter to apply}
+\item{feature.level}{A character string defining the taxonomic level to analyze ('Phylum', 'Family', or 'Genus').}
+
+\item{feature.dat.type}{A character string specifying the type of the data in feature.dat. Options are "count", "proportion", or "other".}
+
+\item{features.plot}{A character vector specifying the taxa to be plotted. If NULL (default), the top k taxa by mean abundance will be plotted.}
+
+\item{top.k.plot}{A numeric value specifying the number of top taxa to be plotted if features.plot is NULL. If NULL (default), all taxa will be plotted.}
+
+\item{top.k.func}{A function to compute the top k taxa if features.plot is NULL. If NULL (default), the mean function will be used.}
+
+\item{change.func}{A function or character string specifying the method for computing the change. Default is "difference".}
+
+\item{prev.filter}{A numeric value defining the prevalence threshold to filter taxa, between 0 and 1.}
+
+\item{abund.filter}{A numeric value defining the abundance threshold to filter taxa.}
+
+\item{base.size}{Base font size for the generated plots.}
+
+\item{palette}{Color palette used for the plots.}
+
+\item{cluster.rows}{A logical variable indicating if rows should be clustered. Default is TRUE.}
+
+\item{cluster.cols}{A logical variable indicating if columns should be clustered. Default is FALSE.}
 
 \item{pdf}{If TRUE, save the plot as a PDF file (default: TRUE)}
 
-\item{file.ann}{The file name annotation (default: NULL)}
+\item{file.ann}{(Optional) A character string specifying a file annotation to include in the generated PDF file's name.}
 
-\item{...}{Additional arguments to be passed to pheatmap (default: NULL)}
+\item{pdf.wid}{Width of the PDF plots.}
+
+\item{pdf.hei}{Height of the PDF plots.}
+
+\item{...}{Additional arguments to be passed}
 }
 \value{
+If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the pheatmap plot. If `pdf` is set to FALSE, the function will return the pheatmap plot without creating a PDF file.
+
 An object of class pheatmap, the generated heatmap plot
 }
 \description{
@@ -67,7 +95,7 @@ library("HMP2Data")
 library(tidyverse)
 library(pheatmap)
 momspi.phy <- momspi16S()
-momspi.obj <- mStat_convert_phyloseq_to_data_obj( = "Raw")
+momspi.obj <- mStat_convert_phyloseq_to_data_obj(momspi.phy)
 
 plot_list <- generate_taxa_change_heatmap_long(
   data.obj = ecam.obj,

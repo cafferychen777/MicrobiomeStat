@@ -8,7 +8,6 @@ mStat_import_biom_as_data_obj(
   BIOMfilename,
   treefilename = NULL,
   parseFunction = parse_taxonomy_default,
-  parallel = FALSE,
   ...
 )
 }
@@ -48,9 +47,6 @@ This function reads a BIOM file, which typically contains a biological observati
 }
 \references{
 The Biological Observation Matrix (BIOM) format or: how I learned to stop worrying and love the ome-ome. Daniel McDonald et al. GigaScience 2012.
-}
-\seealso{
-\code{\link[biomformat]{biom-class}}, \code{\link[ape]{read_tree}}
 }
 \author{
 Jun Chen

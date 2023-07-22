@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_taxa_change_scatterplot_pair.R
 \name{generate_taxa_change_scatterplot_pair}
 \alias{generate_taxa_change_scatterplot_pair}
-\title{Generate taxa-level individual change boxplot pairs}
+\title{Generate taxa-level difference scatterplot pairs}
 \usage{
 generate_taxa_change_scatterplot_pair(
   data.obj,
@@ -31,34 +31,56 @@ generate_taxa_change_scatterplot_pair(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
+\item{data.obj}{An object containing the OTU table, taxonomy table, and sample metadata.}
 
-\item{subject.var}{A character string specifying the subject variable in the metadata.}
+\item{subject.var}{Character string specifying the subject variable in metadata.}
 
-\item{time.var}{A character string specifying the time variable in the metadata.}
+\item{time.var}{Character string specifying the time variable in metadata.}
 
-\item{group.var}{A character string specifying the grouping variable in the metadata. Default is NULL.}
+\item{group.var}{Character string specifying the grouping variable in metadata. Default NULL.}
 
-\item{strata.var}{A character string specifying the stratification variable in the metadata. Default is NULL.}
+\item{strata.var}{Character string specifying the stratification variable in metadata. Default NULL.}
 
-\item{prev.filter}{A numeric value specifying the minimum prevalence threshold for filtering taxa.}
+\item{change.base}{Character string specifying the baseline time point.}
 
-\item{abund.filter}{A numeric value specifying the minimum abundance threshold for filtering taxa.}
+\item{change.func}{Function or character string specifying method to compute change ('difference', 'relative difference', 'lfc'). Default 'difference'.}
 
-\item{pdf}{A logical value indicating whether to save the boxplot to a PDF file. Default is TRUE.}
+\item{feature.level}{Character vector specifying taxonomic level(s) to include. Default c('Phylum', 'Family', 'Genus').}
 
-\item{file.ann}{A character string specifying the file annotation. Default is NULL.}
+\item{feature.dat.type}{Character string specifying data type, one of "count", "proportion", or "other". Default "count".}
 
-\item{...}{Additional arguments passed to \code{ggplot2::ggsave()}.}
+\item{features.plot}{Character vector specifying specific taxa names to plot. Default NULL.}
 
-\item{taxa.level}{A character vector specifying the taxa level(s) to include in the analysis. Default is c('Phylum', 'Family', 'Genus').}
+\item{top.k.plot}{Numeric specifying number of top abundant taxa to plot if top.k.func is provided.}
+
+\item{top.k.func}{Function or character string specifying method to select top abundant taxa (mean, sd, custom function).}
+
+\item{prev.filter}{Numeric specifying minimum prevalence threshold for filtering taxa.}
+
+\item{abund.filter}{Numeric specifying minimum abundance threshold for filtering taxa.}
+
+\item{base.size}{Numeric specifying base font size for plot text elements. Default 16.}
+
+\item{theme.choice}{Character string specifying ggplot2 theme to use. Default 'bw'.}
+
+\item{custom.theme}{A ggplot2 theme object to override default theme. Default NULL.}
+
+\item{palette}{Character vector specifying colors to use for plot. Defaults to RColorBrewer palette.}
+
+\item{pdf}{Logical, if TRUE, save plot(s) as PDF file(s). Default TRUE.}
+
+\item{file.ann}{Character string specifying file annotation to add to PDF file name. Default NULL.}
+
+\item{pdf.wid, pdf.hei}{Numeric specifying PDF width and height in inches. Default 11 x 8.5.}
+
+\item{...}{Additional arguments passed to ggplot2::ggsave().}
 }
 \value{
-A ggplot object representing the taxa-level individual change boxplot pair.
+A ggplot object containing the scatterplot pair(s).
 }
 \description{
-This function generates a boxplot pair that shows the change in abundance of taxa at different levels (Phylum, Family, or Genus) between two time points.
-It allows users to compare the changes in abundance within and between different groups and strata.
+This function generates scatterplot pairs showing the difference in abundance of taxa
+at a specified taxonomic level between two time points, with grouping and stratification.
 }
 \examples{
 # Load required libraries and data
@@ -69,8 +91,8 @@ data(peerj32)
 peerj32.obj <- list()
 peerj32.phy <- peerj32$phyloseq
 peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
-peerj32.obj$meta.dat <- peerj32.obj$meta.dat \%>\% select(all_of("subject")) \%>\% distinct()
-\%>\% mutate(cons = runif(n(),0,5)) \%>\% left_join(peerj32.obj$meta.dat,by = "subject") \%>\%
+peerj32.obj$meta.dat <- peerj32.obj$meta.dat \%>\% select(all_of("subject")) \%>\% distinct() \%>\%
+mutate(cons = runif(n(),0,5)) \%>\% left_join(peerj32.obj$meta.dat,by = "subject") \%>\%
 column_to_rownames("sample")
 # Generate the boxplot pair
 plot_list_all <- generate_taxa_change_scatterplot_pair(
