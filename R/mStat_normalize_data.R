@@ -52,7 +52,7 @@ mStat_normalize_data <-
       rarefy_depth <-
         ifelse(is.null(depth), min(colSums(otu_tab)), depth)
       rarefied_otu_tab <-
-        t(rrarefy(t(otu_tab), sample = rarefy_depth))
+        t(vegan::rrarefy(t(otu_tab), sample = rarefy_depth))
       rarefied_otu_tab <- rarefied_otu_tab / rarefy_depth
       scale_factor <- rarefy_depth
     } else if (method == "Rarefy") {
@@ -64,7 +64,7 @@ mStat_normalize_data <-
       rarefy_depth <-
         ifelse(is.null(depth), min(colSums(otu_tab)), depth)
       rarefied_otu_tab <-
-        t(rrarefy(t(otu_tab), sample = rarefy_depth))
+        t(vegan::rrarefy(t(otu_tab), sample = rarefy_depth))
       scale_factor <- rarefy_depth
     } else if (method == "TSS") {
       scale_factor <- colSums(otu_tab)

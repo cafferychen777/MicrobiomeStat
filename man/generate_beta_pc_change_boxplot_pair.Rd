@@ -84,7 +84,6 @@ The function also has options to customize the size, theme, and color palette of
 }
 \examples{
 # Load required libraries and example data
-library(tidyverse)
 library(vegan)
 library(ggh4x)
 data(peerj32.obj)

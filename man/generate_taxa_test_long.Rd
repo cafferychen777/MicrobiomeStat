@@ -57,7 +57,6 @@ library(GUniFrac)
 library(ape)
 library(philentropy)
 library(MicrobiomeStat)
-library(tidyverse)
 data(subset_T2D.obj)
 results <- generate_taxa_test_long(
   data.obj = subset_T2D.obj,

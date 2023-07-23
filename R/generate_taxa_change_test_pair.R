@@ -132,17 +132,17 @@ generate_taxa_change_test_pair <-
     test.list <- lapply(feature.level, function(feature.level) {
       # Filter taxa based on prevalence and abundance
       otu_tax_filtered <- otu_tax %>%
-        gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
+        tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
         group_by_at(vars(!!sym(feature.level))) %>%
         dplyr::summarise(total_count = mean(count),
                          prevalence = sum(count > 0) / dplyr::n()) %>%
         filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
         select(-total_count, -prevalence) %>%
-        left_join(otu_tax, by = feature.level)
+        dplyr::left_join(otu_tax, by = feature.level)
 
       # 聚合 OTU 表
       otu_tax_agg <- otu_tax_filtered %>%
-        gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
+        tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
         group_by_at(vars(sample, !!sym(feature.level))) %>%
         dplyr::summarise(count = sum(count)) %>%
         spread(key = "sample", value = "count")
@@ -153,7 +153,7 @@ generate_taxa_change_test_pair <-
 
       # 将otu_tax_agg_numeric从宽格式转换为长格式
       otu_tax_long <- otu_tax_agg_numeric %>%
-        gather(key = "sample", value = "value", -feature.level)
+        tidyr::gather(key = "sample", value = "value", -feature.level)
 
       # 将otu_tax_long和meta_tab按sample列连接
       merged_data <- otu_tax_long %>%
@@ -190,23 +190,23 @@ generate_taxa_change_test_pair <-
         half_nonzero_min_time_2 <- combined_data %>%
           filter(value_time_2 > 0) %>%
           dplyr::group_by(!!sym(feature.level)) %>%
-          summarize(half_nonzero_min = min(value_time_2) / 2,
+          dplyr::summarize(half_nonzero_min = min(value_time_2) / 2,
                     .groups = "drop")
         half_nonzero_min_time_1 <- combined_data %>%
           filter(value_time_1 > 0) %>%
           dplyr::group_by(!!sym(feature.level)) %>%
-          summarize(half_nonzero_min = min(value_time_1) / 2,
+          dplyr::summarize(half_nonzero_min = min(value_time_1) / 2,
                     .groups = "drop")
 
         combined_data <-
-          left_join(
+          dplyr::left_join(
             combined_data,
             half_nonzero_min_time_2,
             by = feature.level,
             suffix = c("_time_1", "_time_2")
           )
         combined_data <-
-          left_join(
+          dplyr::left_join(
             combined_data,
             half_nonzero_min_time_1,
             by = feature.level,
@@ -244,7 +244,7 @@ generate_taxa_change_test_pair <-
       unique_meta_tab <- meta_tab %>%
         filter(subject %in% colnames(value_diff_matrix)) %>%
         select(all_of(c(subject.var, group.var, adj.vars))) %>%
-        distinct(subject, .keep_all = TRUE) %>% as_tibble()
+        dplyr::distinct(subject, .keep_all = TRUE) %>% as_tibble()
 
       # 获取没有NA的value_diff_matrix的列名
       cols_order <- colnames(na.omit(value_diff_matrix))
@@ -278,14 +278,14 @@ generate_taxa_change_test_pair <-
       # 计算每个分组的平均丰度
       prop_prev_data <-
         value_diff_matrix %>% as.data.frame() %>% rownames_to_column(feature.level) %>%
-        gather(-!!sym(feature.level),
+        tidyr::gather(-!!sym(feature.level),
                key = !!sym(subject.var),
                value = "count") %>%
         dplyr::inner_join(meta_tab, by = c(subject.var), relationship = "many-to-many") %>%
         dplyr::group_by(!!sym(group.var), !!sym(feature.level)) %>% # Add time.var to dplyr::group_by
-        summarise(mean_proportion = mean(count),
+        dplyr::summarise(mean_proportion = mean(count),
                   sdev_count = sd(count),
-                  prevalence = sum(count > 0) / n(),
+                  prevalence = sum(count > 0) / dplyr::n(),
                   sdev_prevalence = sd(ifelse(count > 0, 1, 0)))
 
       # Initialize results table

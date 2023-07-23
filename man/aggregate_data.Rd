@@ -21,8 +21,6 @@ A new list object with aggregated data.
 This function aggregates data by a specified subject and optional strata.
 }
 \examples{
-# Load required libraries
-library(tidyverse)
 
 # Prepare data for the function
 data(peerj32.obj)

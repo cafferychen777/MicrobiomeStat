@@ -28,7 +28,6 @@
 #' @return If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the final ggplot object. If `pdf` is set to FALSE, the function will return the final ggplot object without creating a PDF file.
 #' @examples
 #' # Load required libraries
-#' library(tidyverse)
 #' data(peerj32.obj)
 #'
 #' # Call the function
@@ -150,19 +149,19 @@ generate_taxa_dotplot_pair <- function(data.obj,
 
     # Filter taxa based on prevalence and abundance
     otu_tax_filtered <- otu_tax %>%
-      gather(key = "sample", value = "count",-one_of(colnames(tax_tab))) %>%
+      tidyr::gather(key = "sample", value = "count",-one_of(colnames(tax_tab))) %>%
       group_by_at(vars(!!sym(feature.level))) %>%
-      summarise(total_count = mean(count),
-                prevalence = sum(count > 0) / n()) %>%
+      dplyr::summarise(total_count = mean(count),
+                prevalence = sum(count > 0) / dplyr::n()) %>%
       filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
       select(-total_count,-prevalence) %>%
-      left_join(otu_tax, by = feature.level)
+      dplyr::left_join(otu_tax, by = feature.level)
 
     # 聚合 OTU 表
     otu_tax_agg <- otu_tax_filtered %>%
-      gather(key = "sample", value = "count",-one_of(colnames(tax_tab))) %>%
+      tidyr::gather(key = "sample", value = "count",-one_of(colnames(tax_tab))) %>%
       group_by_at(vars(sample,!!sym(feature.level))) %>%
-      summarise(count = sum(count)) %>%
+      dplyr::summarise(count = sum(count)) %>%
       spread(key = "sample", value = "count")
 
     compute_function <- function(top.k.func) {
@@ -203,21 +202,21 @@ generate_taxa_dotplot_pair <- function(data.obj,
 
     # 计算每个分组的平均丰度
     otu_tab_norm_agg <- otu_tax_agg_numeric %>%
-      gather(-!!sym(feature.level), key = "sample", value = "count") %>%
+      tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
       dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
       dplyr::group_by(!!sym(group.var),!!sym(feature.level),!!sym(time.var)) %>% # Add time.var to dplyr::group_by
-      summarise(mean_abundance = sqrt(mean(count)))
+      dplyr::summarise(mean_abundance = sqrt(mean(count)))
 
     # 计算所有样本中的prevalence
     prevalence_all <- otu_tax_agg_numeric %>%
-      gather(-!!sym(feature.level), key = "sample", value = "count") %>%
+      tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
       dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
       dplyr::group_by(!!sym(group.var),!!sym(feature.level),!!sym(time.var)) %>% # Add time.var to dplyr::group_by
-      summarise(prevalence = sum(count > 0) / n()) %>% as.data.frame()
+      dplyr::summarise(prevalence = sum(count > 0) / dplyr::n()) %>% as.data.frame()
 
     # 将两个结果合并
     otu_tab_norm_agg <-
-      otu_tab_norm_agg %>% left_join(prevalence_all, c(feature.level,group.var,time.var))
+      otu_tab_norm_agg %>% dplyr::left_join(prevalence_all, c(feature.level,group.var,time.var))
 
     # Calculate the midpoint from data
     midpoint <- quantile(otu_tab_norm_agg$mean_abundance, 0.5)

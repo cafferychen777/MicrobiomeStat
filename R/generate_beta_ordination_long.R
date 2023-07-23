@@ -153,11 +153,11 @@ generate_beta_ordination_long <-
                x_end = NA,
                y_end = NA)
       Time_choices <-
-        df %>% select(all_of(time.var)) %>% pull() %>% unique()
+        df %>% select(all_of(time.var)) %>% dplyr::pull() %>% unique()
       df <- df %>%
         dplyr::group_by(.data[[subject.var]]) %>%
-        dplyr::mutate(x_end = dplyr::if_else(.data[[time.var]] == max(levels(Time_choices)), NA_real_, lead(PC1)),
-               y_end = dplyr::if_else(.data[[time.var]] == max(levels(Time_choices)), NA_real_, lead(PC2))) %>%
+        dplyr::mutate(x_end = dplyr::if_else(.data[[time.var]] == max(levels(Time_choices)), NA_real_, dplyr::lead(PC1)),
+               y_end = dplyr::if_else(.data[[time.var]] == max(levels(Time_choices)), NA_real_, dplyr::lead(PC2))) %>%
         dplyr::ungroup()
       p <- ggplot2::ggplot(df, ggplot2::aes(PC1, PC2)) +
         ggplot2::geom_point(

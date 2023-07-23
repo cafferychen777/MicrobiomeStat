@@ -10,8 +10,6 @@
 #'
 #'
 #' @examples
-#' # Load required libraries
-#' library(tidyverse)
 #'
 #' # Prepare data for the function
 #' data(peerj32.obj)
@@ -59,17 +57,17 @@ mStat_aggregate_data <- function (data.obj, subject.var, strata.var = NULL) {
   }
   abund <- data.obj$feature.tab
   if (is.null(strata.var)) {
-    obj <- dplyr::group_by(as.data.frame(t(abund)), data.obj$meta.dat %>% select(all_of(subject.var)) %>% pull()) %>%
+    obj <- dplyr::group_by(as.data.frame(t(abund)), data.obj$meta.dat %>% select(all_of(subject.var)) %>% dplyr::pull()) %>%
       dplyr::summarise(dplyr::across(everything(), list(~sum(.x, na.rm = TRUE))))
     feature.tab <- t(as.matrix(obj[, -1]))
     rownames(feature.tab) <- sub("\\._1$", "", rownames(feature.tab))
-    colnames(feature.tab) <- obj[, 1] %>% pull()
+    colnames(feature.tab) <- obj[, 1] %>% dplyr::pull()
   } else {
     if (!is.null(data.obj$meta.dat[, strata.var])) {
       obj <- dplyr::group_by(as.data.frame(t(abund)), data.obj$meta.dat[, subject.var], data.obj$meta.dat[, strata.var]) %>%
         dplyr::summarise(dplyr::across(everything(), list(~sum(.x, na.rm = TRUE))))
       feature.tab <- t(as.matrix(obj[, -(1:2)]))
-      colnames(feature.tab) <- paste(obj[, 1] %>% pull(), obj[, 2] %>% pull(), sep="_")
+      colnames(feature.tab) <- paste(obj[, 1] %>% dplyr::pull(), obj[, 2] %>% dplyr::pull(), sep="_")
       rownames(feature.tab) <- sub("\\_1$", "", rownames(feature.tab))
     } else {
       stop("Input data object does not contain strata variable.")

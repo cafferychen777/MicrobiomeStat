@@ -31,10 +31,6 @@
 #'
 #' @return A list containing the PERMANOVA results for each beta diversity index. The list includes two elements: "p.tab" - a table of p-values for the PERMANOVA tests dplyr::across all indices, and "aov.tab" - a table containing detailed PERMANOVA results for each index. The p.tab and aov.tab tables include columns for the terms in the PERMANOVA model, the degrees of freedom, sums of squares, mean squares, F statistics, R-squared values, and p-values.
 #' @export
-#' @seealso
-#' \code{\link[GUniFrac]{PermanovaG2}}
-#' \code{\link[microbiome]{peerj32}}
-#' \code{\link[vegan]{adonis2}}
 generate_beta_test_long <- function(data.obj,
                                     dist.obj = NULL,
                                     time.var,
@@ -66,10 +62,10 @@ generate_beta_test_long <- function(data.obj,
 
   # Create the formula for PermanovaG2
   if (is.null(adj.vars)) {
-    formula_str <- paste0("~ ", group.var)
+    formula_str <- paste0("dist.obj ~ ", group.var)
   } else {
     adj_vars_terms <- paste0(adj.vars, collapse = " + ")
-    formula_str <- paste0("~ ", adj_vars_terms, " + ", group.var)
+    formula_str <- paste0("dist.obj ~ ", adj_vars_terms, " + ", group.var)
   }
   # Add time.var to the formula
   formula_str <- paste0(formula_str, " + ", time.var)
@@ -91,14 +87,14 @@ generate_beta_test_long <- function(data.obj,
     )
 
   # Format aov.tab
-  aov.tab <- bind_rows(result$aov.tab.list) %>%
+  aov.tab <- dplyr::bind_rows(result$aov.tab.list) %>%
     as_tibble(rownames = "Variable") %>%
     dplyr::mutate(
       Variable = gsub("data.obj\\$meta.dat\\[\\[\"", "", Variable),
       Variable = gsub("\"\\]\\]", "", Variable),
       Variable = gsub("\\...\\d+$", "", Variable), # Remove "...1", "...2", etc.
       Variable = ifelse(Variable == group.var, group.var, Variable),
-      Distance = rep(dist.name, each = n() / length(dist.name))
+      Distance = rep(dist.name, each = dplyr::n() / length(dist.name))
     ) %>%
     dplyr::rename(
       `DF` = Df,

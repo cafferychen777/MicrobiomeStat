@@ -175,15 +175,15 @@ generate_alpha_spaghettiplot_long <-
       if (is.null(strata.var)) {
         sub_alpha.df.mean <- sub_alpha.df %>%
           dplyr::group_by(!!sym(time.var), !!sym(group.var)) %>%
-          summarize(mean_alpha = mean(!!sym(index), na.rm = TRUE))
+          dplyr::summarize(mean_alpha = mean(!!sym(index), na.rm = TRUE))
         sub_alpha.df <-
-          left_join(sub_alpha.df, sub_alpha.df.mean, by = c(time.var, group.var))
+          dplyr::left_join(sub_alpha.df, sub_alpha.df.mean, by = c(time.var, group.var))
       } else {
         sub_alpha.df.mean <- sub_alpha.df %>%
           dplyr::group_by(!!sym(time.var), !!sym(group.var), !!sym(strata.var)) %>%
-          summarize(mean_alpha = mean(!!sym(index), na.rm = TRUE))
+          dplyr::summarize(mean_alpha = mean(!!sym(index), na.rm = TRUE))
         sub_alpha.df <-
-          left_join(sub_alpha.df, sub_alpha.df.mean, by = c(time.var, group.var, strata.var))
+          dplyr::left_join(sub_alpha.df, sub_alpha.df.mean, by = c(time.var, group.var, strata.var))
       }
 
       # create a vector of time points

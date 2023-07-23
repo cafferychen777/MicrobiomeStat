@@ -25,7 +25,6 @@ If a matrix is `NA` or `NULL`, it remains unchanged.
 \examples{
 \dontrun{
 # Load required libraries
-library(tidyverse)
 library(vegan)
 data(peerj32.obj)
 

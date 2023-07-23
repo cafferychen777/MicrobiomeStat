@@ -85,7 +85,6 @@ using the “pheatmap” package. It can also save the resulting heatmap as a PD
 \examples{
 
 # Load required libraries and example data
-library(tidyverse)
 library(pheatmap)
 data(peerj32.obj)
 

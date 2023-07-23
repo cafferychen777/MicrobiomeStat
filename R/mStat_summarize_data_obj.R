@@ -5,7 +5,7 @@
 #'
 #' @name mStat_summarize_data_obj
 #' @param data.obj A MicrobiomeStat data object to be summarized.
-#' @param time.var An optional time variable column name from meta.dat. If provided, the function will additionally summarize the temporal distribution of samples. Default is NULL.
+#' @param time.var An optional time variable column name from meta.dat. If provided, the function will additionally dplyr::summarize the temporal distribution of samples. Default is NULL.
 #' @param group.var An optional grouping variable column name from meta.dat. If provided together with time.var, the histogram of sample counts over time will be grouped by this variable. Default is NULL.
 #' @param palette A vector of colors to use for grouping in the histogram. Default is a preset color palette with 10 colors.
 #' @return A list containing summaries for:
@@ -26,7 +26,7 @@
 #'   # summary_list <- mStat_summarize_data_obj(data.obj)
 #'
 #'   # If you have a microbiome data available as a MicrobiomeStat data object
-#'   # you can summarize it using:
+#'   # you can dplyr::summarize it using:
 #'   # library(MicrobiomeStat)
 #'   # data(data.obj)
 #'   # Summary with time variable
@@ -192,7 +192,7 @@ mStat_summarize_data_obj <-
           grouped_df <- data.obj$meta.dat %>%
             select(all_of(c(time.var, group.var))) %>%
             group_by_at(vars(time.var, group.var)) %>%
-            summarise(SampleCount = n(), .groups = "drop")
+            dplyr::summarise(SampleCount = dplyr::n(), .groups = "drop")
 
           # Print the grouped data frame
           print(grouped_df)

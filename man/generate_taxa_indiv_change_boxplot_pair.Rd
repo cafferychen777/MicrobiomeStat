@@ -93,7 +93,6 @@ The function also has options to customize the size, theme, and color palette of
 \examples{
 # Load required libraries and data
 library(vegan)
-library(tidyverse)
 library(ggh4x)
 data(peerj32.obj)
 

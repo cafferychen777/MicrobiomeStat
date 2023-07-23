@@ -31,7 +31,6 @@
 #' @return If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the pheatmap plot. If `pdf` is set to FALSE, the function will return the pheatmap plot without creating a PDF file.
 #'
 #' @examples
-#' library(tidyverse)
 #' library(pheatmap)
 #' data(ecam.obj)
 #'
@@ -159,19 +158,19 @@ generate_taxa_change_heatmap_long <- function(data.obj,
 
     # Filter taxa based on prevalence and abundance
     otu_tax_filtered <- otu_tax %>%
-      gather(key = "sample", value = "count",-one_of(feature.level)) %>%
+      tidyr::gather(key = "sample", value = "count",-one_of(feature.level)) %>%
       group_by_at(vars(!!sym(feature.level))) %>%
-      summarise(total_count = mean(count),
-                prevalence = sum(count > 0) / n()) %>%
+      dplyr::summarise(total_count = mean(count),
+                prevalence = sum(count > 0) / dplyr::n()) %>%
       filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
       select(-total_count,-prevalence) %>%
-      left_join(otu_tax, by = feature.level)
+      dplyr::left_join(otu_tax, by = feature.level)
 
     # Aggregate OTU table
     otu_tax_agg <- otu_tax_filtered %>%
-      gather(key = "sample", value = "count",-one_of(feature.level)) %>%
+      tidyr::gather(key = "sample", value = "count",-one_of(feature.level)) %>%
       group_by_at(vars(sample,!!sym(feature.level))) %>%
-      summarise(count = sum(count)) %>%
+      dplyr::summarise(count = sum(count)) %>%
       spread(key = "sample", value = "count")
 
     compute_function <- function(top.k.func) {
@@ -213,11 +212,11 @@ generate_taxa_change_heatmap_long <- function(data.obj,
     df_mean_value <- otu_tab_norm %>%
       as.data.frame() %>%
       rownames_to_column(var = feature.level) %>%
-      gather(key = "sample", value = "value",-one_of(feature.level)) %>%
-      left_join(meta_tab %>%
+      tidyr::gather(key = "sample", value = "value",-one_of(feature.level)) %>%
+      dplyr::left_join(meta_tab %>%
                   rownames_to_column("sample"), "sample") %>%
       dplyr::group_by(!!sym(feature.level),!!sym(group.var),!!sym(time.var)) %>%
-      summarise(mean_value = mean(value), .groups = "drop")
+      dplyr::summarise(mean_value = mean(value), .groups = "drop")
 
     # Spread the data to wide format
     df_wide <- df_mean_value %>%
@@ -340,7 +339,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
       select(!!sym(time.var), !!sym(group.var)) %>%
       filter(!!sym(time.var) != t0.level) %>%
       as_tibble() %>%
-      distinct() %>%
+      dplyr::distinct() %>%
       mutate(group_time = paste(!!sym(group.var), !!sym(time.var), sep = "_")) %>%
       filter(group_time %in% new_colnames) %>%
       column_to_rownames("group_time")

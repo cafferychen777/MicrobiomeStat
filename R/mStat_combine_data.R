@@ -45,7 +45,7 @@ mStat_combine_data <- function(data.obj1, data.obj2) {
     combined_data <- data1 %>%
       full_join(data2, by = "feature") %>%
       replace_na(setNames(as.list(rep(0, length(cols_to_replace))), cols_to_replace)) %>%
-      gather(key = "sample", value = "count", -feature) %>%
+      tidyr::gather(key = "sample", value = "count", -feature) %>%
       spread(key = "sample", value = "count") %>% column_to_rownames("feature")
 
     message("Data combined.")

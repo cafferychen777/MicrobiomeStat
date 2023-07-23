@@ -70,7 +70,6 @@ The function is flexible and allows for various modifications, including the cho
 }
 \examples{
 # Load required libraries and example data
-library(tidyverse)
 library(vegan)
 data(peerj32.obj)
 dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))

@@ -29,7 +29,6 @@
 #' The function also has options to customize the size, theme, and color palette of the plot, and to save the plot as a PDF.
 #'
 #' @examples
-#' library(tidyverse)
 #' library(ggh4x)
 #' library(vegan)
 #' data(peerj32.obj)
@@ -140,9 +139,9 @@ generate_taxa_barplot_pair <-
 
       # 聚合 OTU 表
       otu_tax_agg <- otu_tax %>%
-        gather(key = "sample", value = "value", -one_of(feature.level)) %>%
+        tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
         group_by_at(vars(sample, !!sym(feature.level))) %>%
-        summarise(value = sum(value)) %>%
+        dplyr::summarise(value = sum(value)) %>%
         tidyr::spread(key = "sample", value = "value")
 
       # 转换计数为数值类型
@@ -171,18 +170,18 @@ generate_taxa_barplot_pair <-
       otu_tab_long <- otu_tab_other %>%
         dplyr::group_by(!!sym(feature.level)) %>%
         summarize_all(sum) %>%
-        gather(key = "sample", value = "value", -feature.level)
+        tidyr::gather(key = "sample", value = "value", -feature.level)
 
       # 将 otu_tab_long 和 meta_tab_sorted 合并
       merged_long_df <- otu_tab_long %>%
         dplyr::inner_join(meta_tab_sorted  %>% rownames_to_column("sample"), by = "sample")
 
       sorted_merged_long_df <- merged_long_df %>%
-        arrange(!!sym(subject.var), !!sym(time.var))
+        dplyr::arrange(!!sym(subject.var), !!sym(time.var))
 
       last_sample_ids <- sorted_merged_long_df %>%
         dplyr::group_by(!!sym(subject.var)) %>%
-        summarize(last_sample_id = last(sample))
+        dplyr::summarize(last_sample_id = last(sample))
 
       sorted_merged_long_df <- sorted_merged_long_df %>% dplyr::mutate(!!sym(feature.level) := as.factor(!!sym(feature.level)))
       original_levels <- levels(sorted_merged_long_df[[feature.level]])
@@ -200,11 +199,11 @@ generate_taxa_barplot_pair <-
         dplyr::group_by(sample) %>%
         dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = original_levels)) %>%
         dplyr::mutate(!!sym(feature.level) := fct_relevel(!!sym(feature.level), new_levels)) %>%
-        arrange(match(!!sym(feature.level), new_levels)) %>%
+        dplyr::arrange(match(!!sym(feature.level), new_levels)) %>%
         dplyr::mutate(cumulative_value = (1-cumsum(value))) %>%
         dplyr::ungroup() %>%
         dplyr::group_by(!!sym(feature.level)) %>%
-        dplyr::mutate(next_cumulative_value = dplyr::if_else(sample %in% last_sample_ids$last_sample_id, NA_real_, lead(cumulative_value))) %>%
+        dplyr::mutate(next_cumulative_value = dplyr::if_else(sample %in% last_sample_ids$last_sample_id, NA_real_, dplyr::lead(cumulative_value))) %>%
         dplyr::ungroup()
 
       color_pal <- setNames(pal, as.matrix(unique(df %>% select(!!sym(feature.level)))))
@@ -216,11 +215,11 @@ generate_taxa_barplot_pair <-
         dplyr::mutate(x_offset = ifelse(cumulative_value == 0, (bar_width + bar_spacing) / 2, -(bar_width + bar_spacing) / 2))
 
       if (!is.null(group.var) && !is.null(strata.var)){
-        df <- df %>% arrange(!!sym(strata.var), !!sym(group.var), !!sym(subject.var))
+        df <- df %>% dplyr::arrange(!!sym(strata.var), !!sym(group.var), !!sym(subject.var))
       } else if (is.null(strata.var) && !is.null(group.var)){
-        df <- df %>% arrange(!!sym(group.var), !!sym(subject.var))
+        df <- df %>% dplyr::arrange(!!sym(group.var), !!sym(subject.var))
       } else if (is.null(group.var)){
-        df <- df %>% arrange(!!sym(subject.var))
+        df <- df %>% dplyr::arrange(!!sym(subject.var))
       }
 
       # 修改 subject.var 的因子水平
@@ -254,8 +253,8 @@ generate_taxa_barplot_pair <-
           }
         } +
         labs(x = NULL, y = NULL) +
-        scale_y_continuous(expand = c(0, 0), labels = percent) +
-        scale_x_continuous(expand = c(0.001, 0.001), breaks = result, labels = levels(df %>% select(all_of(c(subject.var))) %>% pull())) +
+        scale_y_continuous(expand = c(0, 0), labels = scales::percent) +
+        scale_x_continuous(expand = c(0.001, 0.001), breaks = result, labels = levels(df %>% select(all_of(c(subject.var))) %>% dplyr::pull())) +
         labs(fill = feature.level) +
         scale_fill_manual(values = color_pal) +
         scale_color_manual(values = color_pal) +
@@ -279,7 +278,7 @@ generate_taxa_barplot_pair <-
 
       # 以下为average barplot的绘制
       last_time_ids <- sorted_merged_long_df %>%
-        select(!!sym(time.var)) %>% pull() %>% as.factor() %>% levels() %>% last()
+        select(!!sym(time.var)) %>% dplyr::pull() %>% as.factor() %>% levels() %>% last()
 
       if (!is.null(strata.var)){
         if (is.null(group.var)){
@@ -296,15 +295,15 @@ generate_taxa_barplot_pair <-
 
       df_average <- sorted_merged_long_df %>%
         dplyr::group_by(!!sym(feature.level),!!sym(group.var),!!sym(time.var)) %>%
-        summarise(mean_value  = mean(value)) %>%
+        dplyr::summarise(mean_value  = mean(value)) %>%
         dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = original_levels)) %>%
         dplyr::mutate(!!sym(feature.level) := fct_relevel(!!sym(feature.level), new_levels)) %>%
-        arrange(match(!!sym(feature.level), new_levels)) %>%
+        dplyr::arrange(match(!!sym(feature.level), new_levels)) %>%
         dplyr::group_by(!!sym(group.var),!!sym(time.var)) %>%
         dplyr::mutate(cumulative_mean_value = (1-cumsum(mean_value))) %>%
         dplyr::ungroup() %>%
         dplyr::group_by(!!sym(feature.level)) %>%
-        dplyr::mutate(next_cumulative_mean_value = dplyr::if_else(!!sym(time.var) %in% last_time_ids, NA_real_, lead(cumulative_mean_value))) %>%
+        dplyr::mutate(next_cumulative_mean_value = dplyr::if_else(!!sym(time.var) %in% last_time_ids, NA_real_, dplyr::lead(cumulative_mean_value))) %>%
         dplyr::ungroup()
 
       df_average <- df_average %>%
@@ -325,7 +324,7 @@ generate_taxa_barplot_pair <-
         ggplot(aes(x = joint_factor_numeric, y = mean_value, fill = !!sym(feature.level))) +
         geom_bar(stat = "identity", position = "fill", width = bar_width) +
         geom_segment(aes(x = joint_factor_numeric + bar_spacing, xend = joint_factor_numeric + 1 - bar_spacing, y = cumulative_mean_value, yend = next_cumulative_mean_value, group = !!sym(feature.level), color = !!sym(feature.level)),linewidth = 1) +
-        scale_y_continuous(expand = c(0, 0), labels = percent) +
+        scale_y_continuous(expand = c(0, 0), labels = scales::percent) +
         {
           if (!is.null(group.var) & group.var != "ALL"){
             if (group.var == ""){

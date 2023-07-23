@@ -182,7 +182,7 @@ generate_alpha_change_boxplot_pair <-
       combined_alpha$group <- "All"
     } else{
       combined_alpha <-
-        combined_alpha %>% left_join(alpha_df %>% select(all_of(c(
+        combined_alpha %>% dplyr::left_join(alpha_df %>% select(all_of(c(
           subject.var, group.var
         )))
         , by = c(subject.var, group.var)) %>% dplyr::rename(group = group.var)
@@ -191,7 +191,7 @@ generate_alpha_change_boxplot_pair <-
 
     if (!is.null(strata.var)) {
       combined_alpha <-
-        combined_alpha %>% left_join(alpha_time_1 %>% select(all_of(c(
+        combined_alpha %>% dplyr::left_join(alpha_time_1 %>% select(all_of(c(
           subject.var, strata.var
         )))
         , by = c(subject.var))

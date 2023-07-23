@@ -69,8 +69,6 @@ A spaghetti plot displaying the beta diversity change over time, stratified by t
 This function generates a spaghetti plot visualizing the change in beta diversity over time for different groups and strata in longitudinal data. Optionally, a user can specify whether to save the plot as a PDF file.
 }
 \examples{
-library("MicrobiomeStat")
-library("tidyverse")
 library(vegan)
 
 data(ecam.obj)

@@ -72,7 +72,6 @@ Optionally, a user can specify whether to save the plot as a PDF file.
 }
 \examples{
 # Load required libraries and example data
-library(tidyverse)
 library(vegan)
 data(peerj32.obj)
 

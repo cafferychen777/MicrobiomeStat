@@ -28,7 +28,6 @@ The aggregated OTU tables are added to the data object as a list named 'feature.
 \examples{
 
 # Load required libraries
-library(tidyverse)
 library(vegan)
 data(peerj32.obj)
 

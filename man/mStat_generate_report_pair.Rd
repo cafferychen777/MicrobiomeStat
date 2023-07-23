@@ -98,7 +98,6 @@ including changes in alpha diversity, beta diversity, and taxonomic features bet
 The function is specifically designed for analysis of paired data.
 }
 \examples{
-library(tidyverse)
 library(GUniFrac)
 library(pheatmap)
 library(vegan)

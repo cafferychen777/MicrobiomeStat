@@ -34,7 +34,6 @@
 #' @examples
 #' # Load required libraries and data
 #' library(vegan)
-#' library(tidyverse)
 #' library(ggh4x)
 #' data(peerj32.obj)
 #'
@@ -192,19 +191,19 @@ generate_taxa_change_boxplot_pair <-
 
       # Filter taxa based on prevalence and abundance
       otu_tax_filtered <- otu_tax %>%
-        gather(key = "sample", value = "value", -one_of(feature.level)) %>%
+        tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
         group_by_at(vars(!!sym(feature.level))) %>%
-        summarise(total_value = mean(value),
-                  prevalence = sum(value > 0) / n()) %>%
+        dplyr::summarise(total_value = mean(value),
+                  prevalence = sum(value > 0) / dplyr::n()) %>%
         filter(prevalence >= prev.filter, total_value >= abund.filter) %>%
         select(-all_of(c("total_value", "prevalence"))) %>%
-        left_join(otu_tax, by = feature.level)
+        dplyr::left_join(otu_tax, by = feature.level)
 
       # Aggregate OTU table
       otu_tax_agg <- otu_tax_filtered %>%
-        gather(key = "sample", value = "value", -one_of(feature.level)) %>%
+        tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
         group_by_at(vars(sample, !!sym(feature.level))) %>%
-        summarise(value = sum(value)) %>%
+        dplyr::summarise(value = sum(value)) %>%
         spread(key = "sample", value = "value")
 
       compute_function <- function(top.k.func) {
@@ -237,12 +236,12 @@ generate_taxa_change_boxplot_pair <-
 
       # Convert values to numeric and add sample ID
       otu_tax_agg_numeric <- otu_tax_agg %>%
-        gather(key = "sample", value = "value", -one_of(feature.level)) %>%
+        tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
         mutate(value = as.numeric(value))
 
       # Add metadata to the aggregated OTU table
       otu_tax_agg_merged <-
-        left_join(otu_tax_agg_numeric, meta_tab, by = "sample") %>%
+        dplyr::left_join(otu_tax_agg_numeric, meta_tab, by = "sample") %>%
         select(all_of(
           c(
             "sample",
@@ -285,23 +284,23 @@ generate_taxa_change_boxplot_pair <-
         half_nonzero_min_time_2 <- combined_data %>%
           filter(value_time_2 > 0) %>%
           dplyr::group_by(!!sym(feature.level)) %>%
-          summarize(half_nonzero_min = min(value_time_2) / 2,
+          dplyr::summarize(half_nonzero_min = min(value_time_2) / 2,
                     .groups = "drop")
         half_nonzero_min_time_1 <- combined_data %>%
           filter(value_time_1 > 0) %>%
           dplyr::group_by(!!sym(feature.level)) %>%
-          summarize(half_nonzero_min = min(value_time_1) / 2,
+          dplyr::summarize(half_nonzero_min = min(value_time_1) / 2,
                     .groups = "drop")
 
         combined_data <-
-          left_join(
+          dplyr::left_join(
             combined_data,
             half_nonzero_min_time_2,
             by = feature.level,
             suffix = c("_time_1", "_time_2")
           )
         combined_data <-
-          left_join(
+          dplyr::left_join(
             combined_data,
             half_nonzero_min_time_1,
             by = feature.level,
@@ -331,10 +330,10 @@ generate_taxa_change_boxplot_pair <-
       }
 
       combined_data <-
-        combined_data %>% left_join(meta_tab %>% filter(!!sym(time.var) == change.after), by = subject.var)
+        combined_data %>% dplyr::left_join(meta_tab %>% filter(!!sym(time.var) == change.after), by = subject.var)
 
       taxa.levels <-
-        combined_data %>% select(all_of(c(feature.level))) %>% distinct() %>% pull()
+        combined_data %>% select(all_of(c(feature.level))) %>% dplyr::distinct() %>% dplyr::pull()
 
       if (is.null(group.var)) {
         group.var = "group"

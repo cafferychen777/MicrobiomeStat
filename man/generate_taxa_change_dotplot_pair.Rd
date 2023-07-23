@@ -87,7 +87,6 @@ interactively or saved as a PDF file.
 }
 \examples{
 # Load required libraries
-library(tidyverse)
 library(ggh4x)
 
 # Prepare data for the function

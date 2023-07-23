@@ -31,7 +31,6 @@
 #'
 #' @examples
 #' # Load required libraries and example data
-#' library(tidyverse)
 #' library(vegan)
 #' data(peerj32.obj)
 #'
@@ -129,9 +128,9 @@ generate_beta_change_boxplot_pair <-
         rownames_to_column("sample")
 
       long.df <- dist.df %>%
-        gather(key = "sample2", value = "distance", -sample) %>%
-        left_join(metadata, by = "sample") %>%
-        left_join(metadata, by = c("sample2" = "sample"), suffix = c(".subject", ".sample")) %>%
+        tidyr::gather(key = "sample2", value = "distance", -sample) %>%
+        dplyr::left_join(metadata, by = "sample") %>%
+        dplyr::left_join(metadata, by = c("sample2" = "sample"), suffix = c(".subject", ".sample")) %>%
         filter(!!sym(paste0(subject.var, ".subject")) == !!sym(paste0(subject.var, ".sample"))) %>%
         dplyr::group_by(!!sym(paste0(subject.var, ".subject"))) %>%
         filter(!!sym(paste0(time.var,".sample")) == change.base) %>%
@@ -140,7 +139,7 @@ generate_beta_change_boxplot_pair <-
         select(!!sym(paste0(subject.var, ".subject")), !!sym(paste0(time.var, ".subject")), distance) %>%
         dplyr::rename(!!sym(subject.var) := !!sym(paste0(subject.var, ".subject")), !!sym(time.var) := !!sym(paste0(time.var, ".subject")))
 
-      long.df <- long.df %>% left_join(metadata %>% select(-time.var) %>% distinct(), by = subject.var)
+      long.df <- long.df %>% dplyr::left_join(metadata %>% select(-time.var) %>% dplyr::distinct(), by = subject.var)
 
       facet_formula <-
         if (!is.null(strata.var)) {

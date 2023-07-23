@@ -58,7 +58,7 @@ generate_alpha_test_single <-
       df <- alpha.obj[[i]]
       # Join the alpha diversity index with metadata
       merged_df <-
-        left_join(
+        dplyr::left_join(
           df %>% rownames_to_column("sample"),
           data.obj$meta.dat %>% rownames_to_column("sample"),
           by = "sample"

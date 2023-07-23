@@ -95,7 +95,6 @@ The function also has options to customize the size, theme, and color palette of
 }
 \examples{
 # Load required libraries and example data
-library(tidyverse)
 data(peerj32.obj)
 # Generate the boxplot pair
 generate_taxa_boxplot_long(

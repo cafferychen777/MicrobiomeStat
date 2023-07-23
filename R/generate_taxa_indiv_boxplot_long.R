@@ -30,8 +30,6 @@
 #' @return A ggplot object showing the abundance distribution of taxa over time.
 #'
 #' @examples
-#' # Load required libraries and example data
-#' library(tidyverse)
 #'
 #' # Generate the boxplot pair
 #' data(ecam.obj)
@@ -217,18 +215,18 @@ generate_taxa_indiv_boxplot_long <-
           tax_tab %>% select(all_of(feature.level)))
 
       otu_tax_filtered <- otu_tax %>%
-        gather(key = "sample", value = "value", -one_of(feature.level)) %>%
+        tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
         group_by_at(vars(!!sym(feature.level))) %>%
-        summarise(total_count = mean(value),
-                  prevalence = sum(value > 0) / n()) %>%
+        dplyr::summarise(total_count = mean(value),
+                  prevalence = sum(value > 0) / dplyr::n()) %>%
         filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
         select(-total_count, -prevalence) %>%
-        left_join(otu_tax, by = feature.level)
+        dplyr::left_join(otu_tax, by = feature.level)
 
       otu_tax_agg <- otu_tax_filtered %>%
-        gather(key = "sample", value = "value", -one_of(feature.level)) %>%
+        tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
         group_by_at(vars(sample, !!sym(feature.level))) %>%
-        summarise(value = sum(value)) %>%
+        dplyr::summarise(value = sum(value)) %>%
         spread(key = "sample", value = "value")
 
       compute_function <- function(top.k.func) {
@@ -260,11 +258,11 @@ generate_taxa_indiv_boxplot_long <-
       }
 
       otu_tax_agg_numeric <- otu_tax_agg %>%
-        gather(key = "sample", value = "value", -one_of(feature.level)) %>%
+        tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
         mutate(value = as.numeric(value))
 
       otu_tax_agg_merged <-
-        left_join(otu_tax_agg_numeric, meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
+        dplyr::left_join(otu_tax_agg_numeric, meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
         select(one_of(c("sample",
                feature.level,
                subject.var,
@@ -285,11 +283,11 @@ generate_taxa_indiv_boxplot_long <-
             # Find the half of the minimum non-zero proportion for each taxon
             min_half_nonzero <- otu_tax_agg_merged %>%
               dplyr::group_by(!!sym(feature.level)) %>%
-              summarise(min_half_value = min(value[value > 0]) / 2) %>%
+              dplyr::summarise(min_half_value = min(value[value > 0]) / 2) %>%
               dplyr::ungroup()
             # Replace zeros with the log of the half minimum non-zero proportion
             otu_tax_agg_merged <- otu_tax_agg_merged %>%
-              left_join(min_half_nonzero, by = feature.level) %>%
+              dplyr::left_join(min_half_nonzero, by = feature.level) %>%
               mutate(value = ifelse(value == 0, log10(min_half_value), log10(value))) %>%
               select(-min_half_value)
           }
@@ -297,7 +295,7 @@ generate_taxa_indiv_boxplot_long <-
       }
 
       taxa.levels <-
-        otu_tax_agg_merged %>% select(feature.level) %>% distinct() %>% pull()
+        otu_tax_agg_merged %>% select(feature.level) %>% dplyr::distinct() %>% dplyr::pull()
 
       n_subjects <- length(unique(otu_tax_agg_merged[[subject.var]]))
       n_times <- length(unique(otu_tax_agg_merged[[time.var]]))
@@ -316,19 +314,19 @@ generate_taxa_indiv_boxplot_long <-
           if (!is.null(group.var) && !is.null(strata.var)) {
             average_sub_otu_tax_agg_merged <- sub_otu_tax_agg_merged %>%
               dplyr::group_by(!!sym(strata.var), !!sym(group.var), !!sym(time.var)) %>%
-              summarise(dplyr::across(value, \(x) mean(x, na.rm = TRUE)), .groups = "drop") %>%
+              dplyr::summarise(dplyr::across(value, \(x) mean(x, na.rm = TRUE)), .groups = "drop") %>%
               dplyr::ungroup() %>%
               mutate(!!sym(subject.var) := "ALL")
           } else if (!is.null(group.var)) {
             average_sub_otu_tax_agg_merged <- sub_otu_tax_agg_merged %>%
               dplyr::group_by(!!sym(group.var), !!sym(time.var)) %>%
-              summarise(dplyr::across(value, \(x) mean(x, na.rm = TRUE)), .groups = "drop") %>%
+              dplyr::summarise(dplyr::across(value, \(x) mean(x, na.rm = TRUE)), .groups = "drop") %>%
               dplyr::ungroup() %>%
               mutate(!!sym(subject.var) := "ALL")
           } else {
             average_sub_otu_tax_agg_merged <- sub_otu_tax_agg_merged %>%
               dplyr::group_by(!!sym(time.var)) %>%
-              summarise(dplyr::across(value, \(x) mean(x, na.rm = TRUE)), .groups = "drop") %>%
+              dplyr::summarise(dplyr::across(value, \(x) mean(x, na.rm = TRUE)), .groups = "drop") %>%
               dplyr::ungroup() %>%
               mutate(!!sym(subject.var) := "ALL")
           }

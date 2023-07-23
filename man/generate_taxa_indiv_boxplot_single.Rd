@@ -91,8 +91,6 @@ It allows for different taxonomic levels to be used and a specific number of fea
 The function also has options to customize the size, theme, and color palette of the plot, and to save the plot as a PDF.
 }
 \examples{
-# Load required libraries and example data
-library(tidyverse)
 # Generate the boxplot pair
 data(ecam.obj)
 generate_taxa_indiv_boxplot_single(

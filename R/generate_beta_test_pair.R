@@ -82,14 +82,14 @@ generate_beta_test_pair <- function(data.obj,
     )
 
   # Format aov.tab
-  aov.tab <- bind_rows(result$aov.tab.list) %>%
+  aov.tab <- dplyr::bind_rows(result$aov.tab.list) %>%
     as_tibble(rownames = "Variable") %>%
     dplyr::mutate(
       Variable = gsub("data.obj\\$meta.dat\\[\\[\"", "", Variable),
       Variable = gsub("\"\\]\\]", "", Variable),
       Variable = gsub("\\...\\d+$", "", Variable), # Remove "...1", "...2", etc.
       Variable = ifelse(Variable == group.var, group.var, Variable),
-      Distance = rep(dist.name, each = n() / length(dist.name))
+      Distance = rep(dist.name, each = dplyr::n() / length(dist.name))
     ) %>%
     dplyr::rename(
       `DF` = Df,

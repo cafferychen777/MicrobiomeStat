@@ -108,7 +108,7 @@ generate_beta_test_single <- function(data.obj,
     )
 
   # Format aov.tab
-  aov.tab <- bind_rows(permanova.results$aov.tab) %>%
+  aov.tab <- dplyr::bind_rows(permanova.results$aov.tab) %>%
     dplyr::mutate(dplyr::across(where(is.numeric), ~ ifelse(is.na(.), "NA", round(., 3))))  # round all numeric values to 3 decimal places, replace NA with "NA"
 
   return(list("p.tab" = p.tab, "aov.tab" = aov.tab))

@@ -30,7 +30,6 @@
 #' @return If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the pheatmap plot. If `pdf` is set to FALSE, the function will return the pheatmap plot without creating a PDF file.
 #' @examples
 #' # Load required libraries and example data
-#' library(tidyverse)
 #' library(pheatmap)
 #' data(peerj32.obj)
 #' plot_list <- generate_taxa_change_heatmap_pair(
@@ -110,7 +109,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
 
   if (is.null(cluster.cols)){
     if (!is.null(group.var)){
-      if (is.numeric(meta_tab %>% select(all_of(group.var)) %>% pull()) && !is.integer(meta_tab %>% select(all_of(group.var)) %>% pull())){
+      if (is.numeric(meta_tab %>% select(all_of(group.var)) %>% dplyr::pull()) && !is.integer(meta_tab %>% select(all_of(group.var)) %>% dplyr::pull())){
         cluster.cols = FALSE
       } else {
         cluster.cols = TRUE
@@ -139,19 +138,19 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
   plot_list <- lapply(feature.level, function(feature.level) {
     # Filter taxa based on prevalence and abundance
     otu_tax_filtered <- otu_tax %>%
-      gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
+      tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
       group_by_at(vars(!!sym(feature.level))) %>%
-      summarise(total_count = mean(count),
-                prevalence = sum(count > 0) / n()) %>%
+      dplyr::summarise(total_count = mean(count),
+                prevalence = sum(count > 0) / dplyr::n()) %>%
       filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
       select(-total_count, -prevalence) %>%
-      left_join(otu_tax, by = feature.level)
+      dplyr::left_join(otu_tax, by = feature.level)
 
     # Aggregate OTU table
     otu_tax_agg <- otu_tax_filtered %>%
-      gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
+      tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
       group_by_at(vars(sample, !!sym(feature.level))) %>%
-      summarise(count = sum(count)) %>%
+      dplyr::summarise(count = sum(count)) %>%
       spread(key = "sample", value = "count")
 
     compute_function <- function(top.k.func) {
@@ -188,7 +187,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
 
     # 将otu_tax_agg_numeric从宽格式转换为长格式
     otu_tax_long <- otu_tax_agg_numeric %>%
-      gather(key = "sample", value = "value", -feature.level)
+      tidyr::gather(key = "sample", value = "value", -feature.level)
 
     # 将otu_tax_long和meta_tab按sample列连接
     merged_data <- otu_tax_long %>%
@@ -224,16 +223,16 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
       half_nonzero_min_time_2 <- combined_data %>%
         filter(value_time_2 > 0) %>%
         dplyr::group_by(!!sym(feature.level)) %>%
-        summarize(half_nonzero_min = min(value_time_2) / 2,
+        dplyr::summarize(half_nonzero_min = min(value_time_2) / 2,
                   .groups = "drop")
       half_nonzero_min_time_1 <- combined_data %>%
         filter(value_time_1 > 0) %>%
         dplyr::group_by(!!sym(feature.level)) %>%
-        summarize(half_nonzero_min = min(value_time_1) / 2,
+        dplyr::summarize(half_nonzero_min = min(value_time_1) / 2,
                   .groups = "drop")
 
-      combined_data <- left_join(combined_data, half_nonzero_min_time_2, by = feature.level, suffix = c("_time_1", "_time_2"))
-      combined_data <- left_join(combined_data, half_nonzero_min_time_1, by = feature.level, suffix = c("_time_1", "_time_2"))
+      combined_data <- dplyr::left_join(combined_data, half_nonzero_min_time_2, by = feature.level, suffix = c("_time_1", "_time_2"))
+      combined_data <- dplyr::left_join(combined_data, half_nonzero_min_time_1, by = feature.level, suffix = c("_time_1", "_time_2"))
       combined_data$value_time_2[combined_data$value_time_2 == 0] <- combined_data$half_nonzero_min_time_2[combined_data$value_time_2 == 0]
       combined_data$value_time_1[combined_data$value_time_1 == 0] <- combined_data$half_nonzero_min_time_1[combined_data$value_time_1 == 0]
 
@@ -260,7 +259,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
     unique_meta_tab <- meta_tab %>%
       filter(subject %in% colnames(value_diff_matrix)) %>%
       select(all_of(c(subject.var, group.var, strata.var))) %>%
-      distinct(subject, .keep_all = TRUE) %>% as_tibble()
+      dplyr::distinct(subject, .keep_all = TRUE) %>% as_tibble()
 
     # 获取元素的顺序
     order_index <-

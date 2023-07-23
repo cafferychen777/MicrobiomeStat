@@ -123,7 +123,7 @@ generate_alpha_change_test_pair <-
 
     if (!is.null(adj.vars)) {
       combined_alpha <-
-        combined_alpha %>% left_join(alpha_time_1 %>% select(all_of(c(
+        combined_alpha %>% dplyr::left_join(alpha_time_1 %>% select(all_of(c(
           subject.var, adj.vars
         )))
         , by = c(subject.var))

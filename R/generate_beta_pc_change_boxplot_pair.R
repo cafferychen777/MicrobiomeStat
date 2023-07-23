@@ -33,7 +33,6 @@
 #'
 #' @examples
 #' # Load required libraries and example data
-#' library(tidyverse)
 #' library(vegan)
 #' library(ggh4x)
 #' data(peerj32.obj)
@@ -174,7 +173,7 @@ generate_beta_pc_change_boxplot_pair <-
         df <-
           df %>%
           as_tibble() %>%
-          gather(
+          tidyr::gather(
             key = "PC",
             value = "value",-one_of(subject.var, group.var, time.var, strata.var)
           )
@@ -205,7 +204,7 @@ generate_beta_pc_change_boxplot_pair <-
           })
 
         combined_data <-
-          combined_data %>% left_join(metadata %>% select(all_of(
+          combined_data %>% dplyr::left_join(metadata %>% select(all_of(
             c(subject.var, time.var, group.var, strata.var)
           )) %>% filter(!!sym(time.var) == change.after),
           by = subject.var)

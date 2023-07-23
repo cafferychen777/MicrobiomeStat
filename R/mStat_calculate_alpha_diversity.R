@@ -6,7 +6,6 @@
 #' @param alpha.name character vector containing the names of alpha diversity indices to calculate. Possible values are: "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".
 #' @return A list containing the requested alpha diversity indices.
 #' @examples
-#' library(tidyverse)
 #' # Create example OTU table
 #' otu.tab <- matrix(data = rpois(100, 5), nrow = 10, ncol = 10)
 #' rownames(otu.tab) <- paste0("Taxon_", 1:10)

@@ -34,7 +34,6 @@
 #' @return A report file containing the microbial ecology analysis results.
 #'
 #' @examples
-#' library(tidyverse)
 #' library(GUniFrac)
 #' library(pheatmap)
 #' library(vegan)

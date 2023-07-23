@@ -11,7 +11,6 @@
 #' @examples
 #' \dontrun{
 #' # Load the necessary libraries
-#' library(tidyverse)
 #'
 #' data(peerj32.obj)
 #'

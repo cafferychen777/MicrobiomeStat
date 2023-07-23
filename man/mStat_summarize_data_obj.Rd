@@ -14,7 +14,7 @@ mStat_summarize_data_obj(
 \arguments{
 \item{data.obj}{A MicrobiomeStat data object to be summarized.}
 
-\item{time.var}{An optional time variable column name from meta.dat. If provided, the function will additionally summarize the temporal distribution of samples. Default is NULL.}
+\item{time.var}{An optional time variable column name from meta.dat. If provided, the function will additionally dplyr::summarize the temporal distribution of samples. Default is NULL.}
 
 \item{group.var}{An optional grouping variable column name from meta.dat. If provided together with time.var, the histogram of sample counts over time will be grouped by this variable. Default is NULL.}
 
@@ -46,7 +46,7 @@ The function first checks if each component of the MicrobiomeStat data object is
   # summary_list <- mStat_summarize_data_obj(data.obj)
 
   # If you have a microbiome data available as a MicrobiomeStat data object
-  # you can summarize it using:
+  # you can dplyr::summarize it using:
   # library(MicrobiomeStat)
   # data(data.obj)
   # Summary with time variable

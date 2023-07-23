@@ -88,7 +88,6 @@ It also allows for a prevalence and abundance filter to be applied to the data, 
 \examples{
 # Load required libraries and data
 library(vegan)
-library(tidyverse)
 library(ggh4x)
 data(peerj32.obj)
 

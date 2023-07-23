@@ -25,7 +25,6 @@ The function first checks if the specified feature level is 'original'. If so, i
 \examples{
 \dontrun{
 # Load the necessary libraries
-library(tidyverse)
 
 data(peerj32.obj)
 

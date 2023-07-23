@@ -87,7 +87,6 @@ The plot can either be displayed interactively or saved as a PDF file.
 }
 \examples{
 # Load required libraries and example data
-library(tidyverse)
 library(pheatmap)
 data(peerj32.obj)
 plot_list <- generate_taxa_change_heatmap_pair(

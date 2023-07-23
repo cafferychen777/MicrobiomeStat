@@ -22,7 +22,6 @@
 #' library(ape)
 #' library(philentropy)
 #' library(MicrobiomeStat)
-#' library(tidyverse)
 #'
 #' data(peerj32.obj)
 #' results <- generate_taxa_test_pair(
@@ -94,17 +93,17 @@ generate_taxa_test_pair <-
     test.list <- lapply(feature.level, function(feature.level) {
       # Filter taxa based on prevalence and abundance
       otu_tax_filtered <- otu_tax %>%
-        gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
+        tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
         group_by_at(vars(!!sym(feature.level))) %>%
         dplyr::summarise(total_count = mean(count),
                          prevalence = sum(count > 0) / dplyr::n()) %>%
         filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
         select(-total_count, -prevalence) %>%
-        left_join(otu_tax, by = feature.level)
+        dplyr::left_join(otu_tax, by = feature.level)
 
       # 聚合 OTU 表
       otu_tax_agg <- otu_tax_filtered %>%
-        gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
+        tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
         group_by_at(vars(sample, !!sym(feature.level))) %>%
         dplyr::summarise(count = sum(count)) %>%
         spread(key = "sample", value = "count")
@@ -122,12 +121,12 @@ generate_taxa_test_pair <-
       # 计算每个分组的平均丰度
       prop_prev_data <-
         linda.obj$feature.dat.use %>% as.data.frame() %>% rownames_to_column(feature.level) %>%
-        gather(-!!sym(feature.level),
+        tidyr::gather(-!!sym(feature.level),
                key = "sample",
                value = "count") %>%
         dplyr::inner_join(linda.obj$meta.dat.use %>% rownames_to_column("sample"), by = "sample", relationship = "many-to-many") %>%
         dplyr::group_by(!!sym(group.var), !!sym(feature.level)) %>%
-        summarise(mean_abundance = mean(count),
+        dplyr::summarise(mean_abundance = mean(count),
                   prevalence = sum(count > 0) / dplyr::n())
 
       # Initialize results table

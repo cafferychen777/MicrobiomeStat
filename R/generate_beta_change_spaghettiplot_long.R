@@ -24,8 +24,6 @@
 #' @return A spaghetti plot displaying the beta diversity change over time, stratified by the specified grouping and/or strata variables (if provided). The plot will be saved as a PDF if `pdf` is set to `TRUE`.
 #'
 #' @examples
-#' library("MicrobiomeStat")
-#' library("tidyverse")
 #' library(vegan)
 #'
 #' data(ecam.obj)
@@ -177,9 +175,9 @@ generate_beta_change_spaghettiplot_long <-
 
       # 生成长格式数据框
       long.df <- dist.df %>%
-        gather(key = "sample2", value = "distance", -sample) %>%
-        left_join(meta_tab, by = "sample") %>%
-        left_join(meta_tab, by = c("sample2" = "sample"), suffix = c(".subject", ".sample")) %>%
+        tidyr::gather(key = "sample2", value = "distance", -sample) %>%
+        dplyr::left_join(meta_tab, by = "sample") %>%
+        dplyr::left_join(meta_tab, by = c("sample2" = "sample"), suffix = c(".subject", ".sample")) %>%
         filter(!!sym(paste0(subject.var, ".subject")) == !!sym(paste0(subject.var, ".sample"))) %>%
         dplyr::group_by(!!sym(paste0(subject.var, ".subject"))) %>%
         filter(!!sym(paste0(time.var,".sample")) == levels(meta_tab[,time.var])[1]) %>%
@@ -189,9 +187,9 @@ generate_beta_change_spaghettiplot_long <-
         dplyr::rename(!!sym(subject.var) := !!sym(paste0(subject.var, ".subject")), !!sym(time.var) := !!sym(paste0(time.var, ".subject")))
 
       if (!is.null(strata.var)&!is.null(group.var)){
-        long.df <- long.df %>% left_join(meta_tab %>% select(-all_of("sample")) %>% distinct(),by = c(subject.var,time.var))
+        long.df <- long.df %>% dplyr::left_join(meta_tab %>% select(-all_of("sample")) %>% dplyr::distinct(),by = c(subject.var,time.var))
       } else if (is.null(strata.var)&!is.null(group.var)){
-        long.df <- long.df %>% left_join(meta_tab %>% select(-all_of("sample")) %>% distinct(),by = c(subject.var,time.var))
+        long.df <- long.df %>% dplyr::left_join(meta_tab %>% select(-all_of("sample")) %>% dplyr::distinct(),by = c(subject.var,time.var))
       } else {
         long.df <- long.df
       }
@@ -204,23 +202,23 @@ generate_beta_change_spaghettiplot_long <-
       if (is.null(strata.var)) {
         long.df.mean <- long.df %>%
           dplyr::group_by(!!sym(time.var),!!sym(group.var)) %>%
-          summarize(mean_distance = mean(distance, na.rm = TRUE))
+          dplyr::summarize(mean_distance = mean(distance, na.rm = TRUE))
         long.df <-
-          left_join(long.df, long.df.mean, by = c(time.var, group.var))
+          dplyr::left_join(long.df, long.df.mean, by = c(time.var, group.var))
       } else {
         long.df.mean <- long.df %>%
           dplyr::group_by(!!sym(time.var),!!sym(group.var),!!sym(strata.var)) %>%
-          summarize(mean_distance = mean(distance, na.rm = TRUE))
+          dplyr::summarize(mean_distance = mean(distance, na.rm = TRUE))
         long.df <-
-          left_join(long.df, long.df.mean, by = c(time.var, group.var, strata.var))
+          dplyr::left_join(long.df, long.df.mean, by = c(time.var, group.var, strata.var))
       }
 
-      long.df <- long.df %>% arrange(subject.var,time.var)
+      long.df <- long.df %>% dplyr::arrange(subject.var,time.var)
 
       # # 计算每个时间点的均值和标准差
       # summary.df <- long.df %>%
       #   dplyr::group_by(!!sym(time.var), !!sym(group.var)) %>%
-      #   summarise(mean_distance = mean(distance),
+      #   dplyr::summarise(mean_distance = mean(distance),
       #             sd_distance = sd(distance),
       #             lower = mean_distance - sd_distance,
       #             upper = mean_distance + sd_distance)

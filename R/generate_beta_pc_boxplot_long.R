@@ -201,7 +201,7 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
       df <-
         df %>%
         as_tibble() %>%
-        gather(
+        tidyr::gather(
           key = "PC",
           value = "value",-one_of(subject.var, group.var, time.var, strata.var)
         )
@@ -218,19 +218,19 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
           if (!is.null(strata.var) & !is.null(group.var)){
             average_sub_df <- sub_df %>%
               dplyr::group_by(!!sym(strata.var), !!sym(group.var), !!sym(time.var)) %>%
-              summarise(dplyr::across(value, mean, na.rm = TRUE), .groups = "drop") %>%
+              dplyr::summarise(dplyr::across(value, mean, na.rm = TRUE), .groups = "drop") %>%
               dplyr::ungroup() %>%
               dplyr::mutate(!!sym(subject.var) := "ALL")
           } else if (!is.null(group.var)) {
             average_sub_df <- sub_df %>%
               dplyr::group_by(!!sym(group.var), !!sym(time.var)) %>%
-              summarise(dplyr::across(value, mean, na.rm = TRUE), .groups = "drop") %>%
+              dplyr::summarise(dplyr::across(value, mean, na.rm = TRUE), .groups = "drop") %>%
               dplyr::ungroup() %>%
               dplyr::mutate(!!sym(subject.var) := "ALL")
           } else {
             average_sub_df <- sub_df %>%
               dplyr::group_by(!!sym(time.var)) %>%
-              summarise(dplyr::across(value, mean, na.rm = TRUE), .groups = "drop") %>%
+              dplyr::summarise(dplyr::across(value, mean, na.rm = TRUE), .groups = "drop") %>%
               dplyr::ungroup() %>%
               dplyr::mutate(!!sym(subject.var) := "ALL")
           }

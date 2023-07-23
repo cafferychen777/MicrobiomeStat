@@ -132,19 +132,19 @@ generate_taxa_indiv_spaghettiplot_long <-
 
       # Filter taxa based on prevalence and abundance
       otu_tax_filtered <- otu_tax %>%
-        gather(key = "sample", value = "count",-one_of(feature.level)) %>%
+        tidyr::gather(key = "sample", value = "count",-one_of(feature.level)) %>%
         group_by_at(vars(!!sym(feature.level))) %>%
-        summarise(total_count = mean(count),
-                  prevalence = sum(count > 0) / n()) %>%
+        dplyr::summarise(total_count = mean(count),
+                  prevalence = sum(count > 0) / dplyr::n()) %>%
         filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
         select(-total_count,-prevalence) %>%
-        left_join(otu_tax, by = feature.level)
+        dplyr::left_join(otu_tax, by = feature.level)
 
       # 聚合 OTU 表
       otu_tax_agg <- otu_tax_filtered %>%
-        gather(key = "sample",  value = "count",-one_of(feature.level)) %>%
+        tidyr::gather(key = "sample",  value = "count",-one_of(feature.level)) %>%
         group_by_at(vars(sample,!!sym(feature.level))) %>%
-        summarise(count = sum(count)) %>%
+        dplyr::summarise(count = sum(count)) %>%
         spread(key = "sample", value = "count")
 
       compute_function <- function(top.k.func) {
@@ -180,8 +180,8 @@ generate_taxa_indiv_spaghettiplot_long <-
         mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
 
       df <- otu_tax_agg_numeric %>%
-        gather(key = "sample", value = "count",-one_of(feature.level)) %>%
-        left_join(meta_tab %>% rownames_to_column(var = "sample"), by = "sample")
+        tidyr::gather(key = "sample", value = "count",-one_of(feature.level)) %>%
+        dplyr::left_join(meta_tab %>% rownames_to_column(var = "sample"), by = "sample")
 
       if (is.null(group.var)) {
         df <- df %>% mutate("ALL" = "ALL")
@@ -191,9 +191,9 @@ generate_taxa_indiv_spaghettiplot_long <-
       if (!is.null(strata.var)) {
         mean_df <-
           df %>% dplyr::group_by(!!sym(feature.level),!!sym(time.var),!!sym(group.var),!!sym(strata.var)) %>%
-          summarize(mean_count = mean(count), na.rm = TRUE)
+          dplyr::summarize(mean_count = mean(count), na.rm = TRUE)
         df <-
-          left_join(df,
+          dplyr::left_join(df,
                     mean_df,
                     by = c(feature.level, time.var, group.var, strata.var))
       } else {
@@ -201,9 +201,9 @@ generate_taxa_indiv_spaghettiplot_long <-
           df %>% dplyr::group_by(!!sym(feature.level),
                           !!sym(time.var),
                           !!sym(group.var)) %>%
-          summarize(mean_count = mean(count), na.rm = TRUE)
+          dplyr::summarize(mean_count = mean(count), na.rm = TRUE)
         df <-
-          left_join(df, mean_df, by = c(feature.level, time.var, group.var))
+          dplyr::left_join(df, mean_df, by = c(feature.level, time.var, group.var))
       }
 
       if (is.null(palette)) {
@@ -247,9 +247,9 @@ generate_taxa_indiv_spaghettiplot_long <-
       legend.text.size = base.size * 0.75
 
       if (is.null(features.plot)){
-        taxa.levels <- df %>% select(feature.level) %>% distinct() %>% pull()
+        taxa.levels <- df %>% select(feature.level) %>% dplyr::distinct() %>% dplyr::pull()
       } else {
-        taxa.levels <- df %>% filter(!!sym(feature.level) %in% features.plot) %>% select(feature.level) %>% distinct() %>% pull()
+        taxa.levels <- df %>% filter(!!sym(feature.level) %in% features.plot) %>% select(feature.level) %>% dplyr::distinct() %>% dplyr::pull()
       }
 
       plot_list <- lapply(taxa.levels, function(tax) {

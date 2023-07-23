@@ -91,7 +91,6 @@ variables and strata variables in sample metadata and generates stacked heatmaps
 using the “pheatmap” package. It can also save the resulting heatmap as a PDF file.
 }
 \examples{
-library(tidyverse)
 library(pheatmap)
 data(ecam.obj)
 

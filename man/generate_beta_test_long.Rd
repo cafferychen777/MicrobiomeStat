@@ -59,8 +59,3 @@ beta_test_long_results <- generate_beta_test_long(
 
 
 }
-\seealso{
-\code{\link[GUniFrac]{PermanovaG2}}
-\code{\link[microbiome]{peerj32}}
-\code{\link[vegan]{adonis2}}
-}

@@ -12,7 +12,6 @@
 #' @examples
 #' \dontrun{
 #' # Load required libraries and data
-#' library(tidyverse)
 #' library(vegan)
 #' data(peerj32.obj)
 #' # Perform aggregation to create feature.agg.list with Phylum and Family

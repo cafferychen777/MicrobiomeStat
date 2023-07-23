@@ -60,7 +60,6 @@ is_continuous_numeric <- function(x) {
 #' @examples
 #' \dontrun{
 #'  library(vegan)
-#'  library(tidyverse)
 #'  data(peerj32.obj)
 #'
 #'  # Generate the scatterplot pairs
@@ -179,19 +178,19 @@ generate_taxa_indiv_change_scatterplot_pair <-
     plot_list_all <- lapply(feature.level, function(feature.level) {
       # Filter taxa based on prevalence and abundance
       otu_tax_filtered <- otu_tax %>%
-        gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
+        tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
         group_by_at(vars(!!sym(feature.level))) %>%
-        summarise(total_count = mean(count),
-                  prevalence = sum(count > 0) / n()) %>%
+        dplyr::summarise(total_count = mean(count),
+                  prevalence = sum(count > 0) / dplyr::n()) %>%
         filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
         select(-total_count, -prevalence) %>%
-        left_join(otu_tax, by = feature.level)
+        dplyr::left_join(otu_tax, by = feature.level)
 
       # 聚合 OTU 表
       otu_tax_agg <- otu_tax_filtered %>%
-        gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
+        tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
         group_by_at(vars(sample, !!sym(feature.level))) %>%
-        summarise(count = sum(count)) %>%
+        dplyr::summarise(count = sum(count)) %>%
         spread(key = "sample", value = "count")
 
       compute_function <- function(top.k.func) {
@@ -231,11 +230,11 @@ generate_taxa_indiv_change_scatterplot_pair <-
         as.matrix()
 
       otu_tab_norm_agg <- otu_tax_agg_numeric %>%
-        gather(-!!sym(feature.level), key = "sample", value = "count") %>%
+        tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
         dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample")
 
       taxa.levels <-
-        otu_tab_norm_agg %>% select(all_of(feature.level)) %>% distinct() %>% pull()
+        otu_tab_norm_agg %>% select(all_of(feature.level)) %>% dplyr::distinct() %>% dplyr::pull()
 
       # 首先，把数据分为两个子集，一个为change.base，一个为change.after
       df_t0 <- otu_tab_norm_agg %>% filter(!!sym(time.var) == change.base)
@@ -253,17 +252,17 @@ generate_taxa_indiv_change_scatterplot_pair <-
         half_nonzero_min_time_2 <- df %>%
           filter(count_ts > 0) %>%
           dplyr::group_by(!!sym(feature.level)) %>%
-          summarize(half_nonzero_min = min(count_ts) / 2,
+          dplyr::summarize(half_nonzero_min = min(count_ts) / 2,
                     .groups = "drop")
         half_nonzero_min_time_1 <- df %>%
           filter(count_t0 > 0) %>%
           dplyr::group_by(!!sym(feature.level)) %>%
-          summarize(half_nonzero_min = min(count_t0) / 2,
+          dplyr::summarize(half_nonzero_min = min(count_t0) / 2,
                     .groups = "drop")
 
         # 然后，用这些值来插补数据
-        df <- left_join(df, half_nonzero_min_time_2, by = feature.level, suffix = c("_t0", "_ts"))
-        df <- left_join(df, half_nonzero_min_time_1, by = feature.level, suffix = c("_t0", "_ts"))
+        df <- dplyr::left_join(df, half_nonzero_min_time_2, by = feature.level, suffix = c("_t0", "_ts"))
+        df <- dplyr::left_join(df, half_nonzero_min_time_1, by = feature.level, suffix = c("_t0", "_ts"))
         df$count_ts[df$count_ts == 0] <- df$half_nonzero_min_ts[df$count_ts == 0]
         df$count_t0[df$count_t0 == 0] <- df$half_nonzero_min_t0[df$count_t0 == 0]
 
@@ -281,7 +280,7 @@ generate_taxa_indiv_change_scatterplot_pair <-
         df <- df %>% mutate(new_count = count_ts - count_t0)
       }
 
-      df <- df %>% left_join(meta_tab %>% select(-all_of(time.var)) %>% distinct(), by = c(subject.var))
+      df <- df %>% dplyr::left_join(meta_tab %>% select(-all_of(time.var)) %>% dplyr::distinct(), by = c(subject.var))
 
       df <- df %>% setNames(ifelse(names(.) == paste0(time.var,"_ts"), time.var, names(.)))
 

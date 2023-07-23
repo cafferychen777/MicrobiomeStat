@@ -95,7 +95,6 @@ including alpha diversity, beta diversity, and taxonomic feature analyses. The f
 to perform analysis on cross-sectional data, a single time point from longitudinal or paired data.
 }
 \examples{
-library(tidyverse)
 library(GUniFrac)
 library(pheatmap)
 library(vegan)

@@ -87,8 +87,6 @@ A ggplot object showing the abundance distribution of taxa over time.
 This function creates a boxplot showing the abundance distribution of individual taxa at a specified taxonomic level over time from longitudinal data. It takes a MicrobiomeStat data object as input.
 }
 \examples{
-# Load required libraries and example data
-library(tidyverse)
 
 # Generate the boxplot pair
 data(ecam.obj)

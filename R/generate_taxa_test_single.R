@@ -104,17 +104,17 @@ generate_taxa_test_single <- function(data.obj,
   test.list <- lapply(feature.level, function(feature.level) {
     # Filter taxa based on prevalence and abundance
     otu_tax_filtered <- otu_tax %>%
-      gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
+      tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
       group_by_at(vars(!!sym(feature.level))) %>%
       dplyr::summarise(total_count = mean(count),
                        prevalence = sum(count > 0) / dplyr::n()) %>%
       filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
       select(-total_count, -prevalence) %>%
-      left_join(otu_tax, by = feature.level)
+      dplyr::left_join(otu_tax, by = feature.level)
 
     # 聚合 OTU 表
     otu_tax_agg <- otu_tax_filtered %>%
-      gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
+      tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
       group_by_at(vars(sample, !!sym(feature.level))) %>%
       dplyr::summarise(count = sum(count)) %>%
       spread(key = "sample", value = "count")
@@ -155,22 +155,22 @@ generate_taxa_test_single <- function(data.obj,
     # Initialize results table
     results <- data.frame()
 
-    prop_prev_data <- gather(
+    prop_prev_data <- tidyr::gather(
       otu_tax_agg_numeric %>%
         as.data.frame() %>% rownames_to_column(feature.level),
       key = "sample",
       value = "count",-feature.level
     )  %>%
-      left_join(data.obj$meta.dat %>% select(all_of(c(
+      dplyr::left_join(data.obj$meta.dat %>% select(all_of(c(
         group.var, adj.vars
       ))) %>%
         rownames_to_column("sample"),
       by = "sample") %>%
       group_by_at(vars(!!sym(feature.level),!!sym(group.var))) %>%
-      summarise(
+      dplyr::summarise(
         mean_proportion = mean(count),
         sdev_count = sd(count),
-        prevalence = sum(count > 0) / n(),
+        prevalence = sum(count > 0) / dplyr::n(),
         sdev_prevalence = sd(ifelse(count > 0, 1, 0))
       )
 

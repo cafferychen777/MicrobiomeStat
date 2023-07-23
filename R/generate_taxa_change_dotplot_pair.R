@@ -30,7 +30,6 @@
 #' @return If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the final ggplot object. If `pdf` is set to FALSE, the function will return the final ggplot object without creating a PDF file.
 #' @examples
 #' # Load required libraries
-#' library(tidyverse)
 #' library(ggh4x)
 #'
 #' # Prepare data for the function
@@ -163,17 +162,17 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
   plot_list <- lapply(feature.level, function(feature.level) {
     # Filter taxa based on prevalence and abundance
     otu_tax_filtered <- otu_tax %>%
-      gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
+      tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
       group_by_at(vars(!!sym(feature.level))) %>%
       dplyr::summarise(total_count = mean(count),
                 prevalence = sum(count > 0) / dplyr::n()) %>%
       filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
       select(-total_count, -prevalence) %>%
-      left_join(otu_tax, by = feature.level)
+      dplyr::left_join(otu_tax, by = feature.level)
 
     # 聚合 OTU 表
     otu_tax_agg <- otu_tax_filtered %>%
-      gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
+      tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
       group_by_at(vars(sample, !!sym(feature.level))) %>%
       dplyr::summarise(count = sum(count)) %>%
       spread(key = "sample", value = "count")
@@ -216,10 +215,10 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
 
     # 计算每个分组的平均丰度
     otu_tab_norm_agg <- otu_tax_agg_numeric %>%
-      gather(-!!sym(feature.level), key = "sample", value = "count") %>%
+      tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
       dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
       dplyr::group_by(!!sym(group.var), !!sym(feature.level), !!sym(time.var)) %>% # Add time.var to dplyr::group_by
-      summarise(mean_abundance = mean(count))
+      dplyr::summarise(mean_abundance = mean(count))
 
     change.after <-
       unique(meta_tab %>% select(all_of(c(time.var))))[unique(meta_tab %>% select(all_of(c(time.var)))) != change.base]
@@ -255,10 +254,10 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
 
     # 计算每个taxon在每个时间点的prevalence
     prevalence_time <- otu_tax_agg_numeric %>%
-      gather(-!!sym(feature.level), key = "sample", value = "count") %>%
+      tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
       dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
       dplyr::group_by(!!sym(feature.level), !!sym(time.var)) %>%
-      summarise(prevalence = sum(count > 0) / n())
+      dplyr::summarise(prevalence = sum(count > 0) / dplyr::n())
 
     # 将数据从长格式转换为宽格式，将不同的时间点的prevalence放到不同的列中
     prevalence_time_wide <- prevalence_time %>%
@@ -288,7 +287,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
 
     # 将两个结果合并
     otu_tab_norm_agg_wide <-
-      otu_tab_norm_agg_wide %>% left_join(prevalence_time_wide, feature.level)
+      otu_tab_norm_agg_wide %>% dplyr::left_join(prevalence_time_wide, feature.level)
 
     # 找到 abundance_change 的最小值和最大值
     abund_change_min <- min(otu_tab_norm_agg_wide$abundance_change)

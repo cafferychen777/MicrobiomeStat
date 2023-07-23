@@ -81,7 +81,6 @@ interactively or saved as a PDF file.
 }
 \examples{
 # Load required libraries
-library(tidyverse)
 data(peerj32.obj)
 
 # Call the function

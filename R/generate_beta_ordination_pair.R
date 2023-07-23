@@ -30,7 +30,6 @@
 #'
 #' @examples
 #' # Load required libraries and example data
-#' library(tidyverse)
 #' library(vegan)
 #' data(peerj32.obj)
 #' dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
@@ -148,7 +147,7 @@ generate_beta_ordination_pair <-
                x_end = NA,
                y_end = NA)
       Time_choices <-
-        df %>% select(all_of(time.var)) %>% pull() %>% unique()
+        df %>% select(all_of(time.var)) %>% dplyr::pull() %>% unique()
       df <- df %>%
         dplyr::group_by(.data[[subject.var]]) %>%
         dplyr::mutate(x_end = lag(PC1, order_by = desc(Time_choices)),

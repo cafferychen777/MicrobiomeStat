@@ -16,7 +16,6 @@
 #' @examples
 #' \dontrun{
 #'   # Load required libraries
-#'   library(tidyverse)
 #'   library(vegan)
 #'   data(peerj32.obj)
 #'

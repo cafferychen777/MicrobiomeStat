@@ -54,7 +54,6 @@ library(GUniFrac)
 library(ape)
 library(philentropy)
 library(MicrobiomeStat)
-library(tidyverse)
 
 data(peerj32.obj)
 results <- generate_taxa_test_pair(

@@ -31,7 +31,6 @@
 #' @examples
 #'
 #' # Load required libraries and example data
-#' library(tidyverse)
 #' library(pheatmap)
 #' data(peerj32.obj)
 #' plot_list <- generate_taxa_heatmap_pair(
@@ -137,19 +136,19 @@ generate_taxa_heatmap_pair <- function(data.obj,
   plot_list <- lapply(feature.level, function(feature.level) {
     # Filter taxa based on prevalence and abundance
     otu_tax_filtered <- otu_tax %>%
-      gather(key = "sample", value = "count",-one_of(colnames(tax_tab))) %>%
+      tidyr::gather(key = "sample", value = "count",-one_of(colnames(tax_tab))) %>%
       group_by_at(vars(!!sym(feature.level))) %>%
-      summarise(total_count = mean(count),
-                prevalence = sum(count > 0) / n()) %>%
+      dplyr::summarise(total_count = mean(count),
+                prevalence = sum(count > 0) / dplyr::n()) %>%
       filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
       select(-total_count,-prevalence) %>%
-      left_join(otu_tax, by = feature.level)
+      dplyr::left_join(otu_tax, by = feature.level)
 
     # Aggregate OTU table
     otu_tax_agg <- otu_tax_filtered %>%
-      gather(key = "sample", value = "count",-one_of(colnames(tax_tab))) %>%
+      tidyr::gather(key = "sample", value = "count",-one_of(colnames(tax_tab))) %>%
       group_by_at(vars(sample,!!sym(feature.level))) %>%
-      summarise(count = sum(count)) %>%
+      dplyr::summarise(count = sum(count)) %>%
       spread(key = "sample", value = "count")
 
     compute_function <- function(top.k.func) {

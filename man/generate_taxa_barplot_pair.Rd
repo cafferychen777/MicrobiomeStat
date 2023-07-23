@@ -73,7 +73,6 @@ It also allows for different taxonomic levels to be used and a specific number o
 The function also has options to customize the size, theme, and color palette of the plot, and to save the plot as a PDF.
 }
 \examples{
-library(tidyverse)
 library(ggh4x)
 library(vegan)
 data(peerj32.obj)

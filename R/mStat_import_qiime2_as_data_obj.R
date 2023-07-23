@@ -202,7 +202,7 @@ read_q2sample_meta <- function(file) {
 
 #' Parse qiime2 taxa in different taxonomic levels
 #'
-#' This function processes a taxonomic table from Qiime2, separating the taxonomic ranks into distinct columns, and converts it into a matrix compatible with MicrobiomeStat.
+#' This function processes a taxonomic table from Qiime2, separating the taxonomic ranks into dplyr::distinct columns, and converts it into a matrix compatible with MicrobiomeStat.
 #' @param taxa A dataframe or matrix where the rows represent features (OTUs or ASVs) and the 'Taxon' column contains taxonomic strings.
 #' @param sep A character string containing a regular expression, acting as the separator between different taxonomic levels. The default is set to "; |;", which is compatible with both GreenGenes and SILVA taxonomies.
 #' @param trim_rank_prefix A logical parameter that determines whether to remove the leading characters from taxonomic ranks, such as "k__" or "D_0__". Default is `TRUE`.

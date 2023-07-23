@@ -84,7 +84,6 @@ interactively or saved as a PDF file.
 }
 \examples{
 # Load required libraries
-library(tidyverse)
 library(vegan)
 library(ggh4x)
 data(peerj32.obj)

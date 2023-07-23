@@ -19,7 +19,6 @@
 #' @examples
 #'
 #' # Load required libraries
-#' library(tidyverse)
 #' library(vegan)
 #' data(peerj32.obj)
 #'
@@ -67,9 +66,9 @@ mStat_aggregate_by_taxonomy <- function (data.obj, feature.level = NULL) {
 
       # 聚合 OTU 表
       otu_tax_agg <- otu_tax %>%
-        gather(key = "sample", value = "value",-one_of(feature.level)) %>%
+        tidyr::gather(key = "sample", value = "value",-one_of(feature.level)) %>%
         group_by_at(vars(sample,!!sym(feature.level))) %>%
-        summarise(value = sum(value)) %>%
+        dplyr::summarise(value = sum(value)) %>%
         spread(key = "sample", value = "value") %>%
         mutate(!!feature.level := replace_na(!!sym(feature.level), "Unclassified")) %>%
         column_to_rownames(feature.level) %>%

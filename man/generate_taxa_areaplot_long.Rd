@@ -74,7 +74,6 @@ different taxa over time. Raw count data will be automatically normalized using 
 The function also supports the generation of plots for grouped data and stratified data.
 }
 \examples{
-library(tidyverse)
 library(ggh4x)
 library(vegan)
 data(ecam.obj)
