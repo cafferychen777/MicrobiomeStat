@@ -358,7 +358,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
       )
     }
 
-    gg_heatmap_plot <- ggplotify::as.ggplot(heatmap_plot)
+    gg_heatmap_plot <- as.ggplot(heatmap_plot)
 
     if (is.function(change.func)){
       change.func = "custom function"

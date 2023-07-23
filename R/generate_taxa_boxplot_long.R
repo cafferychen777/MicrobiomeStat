@@ -249,7 +249,7 @@ generate_taxa_boxplot_long <-
       compute_function <- function(top.k.func) {
         if (is.function(top.k.func)) {
           results <-
-            top.k.func(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
+            top.k.func(otu_tax_agg %>% tibble::column_to_rownames(feature.level) %>% as.matrix())
         } else {
           switch(top.k.func,
                  "mean" = {

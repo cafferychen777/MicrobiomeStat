@@ -143,7 +143,7 @@ generate_beta_ordination_pair <-
       df <- as.data.frame(pc.mat) %>%
         setNames(c("PC1", "PC2")) %>%
         bind_cols(metadata[, c(subject.var, time.var, group.var, strata.var)]) %>%
-        mutate(x_start = PC1,
+        dplyr::mutate(x_start = PC1,
                y_start = PC2,
                x_end = NA,
                y_end = NA)
@@ -151,7 +151,7 @@ generate_beta_ordination_pair <-
         df %>% select(all_of(time.var)) %>% pull() %>% unique()
       df <- df %>%
         group_by(.data[[subject.var]]) %>%
-        mutate(x_end = lag(PC1, order_by = desc(Time_choices)),
+        dplyr::mutate(x_end = lag(PC1, order_by = desc(Time_choices)),
                y_end = lag(PC2, order_by = desc(Time_choices))) %>%
         ungroup()
       p <- ggplot2::ggplot(df, ggplot2::aes(PC1, PC2)) +

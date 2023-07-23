@@ -197,7 +197,7 @@ generate_beta_change_spaghettiplot_long <-
       }
 
       if (is.null(group.var)){
-        long.df <- long.df %>% mutate("ALL" = "ALL")
+        long.df <- long.df %>% dplyr::mutate("ALL" = "ALL")
         group.var = "ALL"
       }
 

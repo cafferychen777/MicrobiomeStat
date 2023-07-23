@@ -255,7 +255,7 @@ generate_beta_ordination_single <-
       p <- p %>%
         aplot::insert_top(Fig1a.taxa.pc1.boxplot, height = 0.2) %>%
         aplot::insert_right(Fig1a.taxa.pc2.boxplot, width=0.2) %>%
-        ggplotify::as.ggplot()
+        as.ggplot()
 
       # Save the plots as a PDF file
       if (pdf) {

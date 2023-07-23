@@ -109,7 +109,7 @@ generate_alpha_boxplot_single <- function (data.obj,
     )
 
   if (is.null(group.var)){
-    alpha_df <- alpha_df %>% mutate("ALL" = "ALL")
+    alpha_df <- alpha_df %>% dplyr::mutate("ALL" = "ALL")
     group.var <- "ALL"
   }
 

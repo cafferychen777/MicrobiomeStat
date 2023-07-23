@@ -127,7 +127,7 @@ generate_alpha_change_boxplot_pair <-
       if (is.function(change.func)) {
 
         combined_alpha <- combined_alpha %>%
-          mutate(!!diff_col_name := change.func(!!sym(paste0(
+          dplyr::mutate(!!diff_col_name := change.func(!!sym(paste0(
             index, "_time_2"
           )), !!sym(paste0(
             index, "_time_1"

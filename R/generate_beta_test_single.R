@@ -54,18 +54,22 @@ generate_beta_test_single <- function(data.obj,
     message("Using provided dist.obj...")
   }
 
+  # Run PermanovaG2 for the entire dist.obj
+  message("Running PermanovaG2 for all distances...")
+
   # Create the formula for PermanovaG2
   if (is.null(adj.vars)) {
-    formula_str <- paste0("dist.obj", " ~ ", "data.obj$meta.dat[[\"", group.var, "\"]]")
+    formula_str <- paste0("dist.obj ~ ", group.var)
   } else {
-    adj_vars_terms <- paste0("data.obj$meta.dat[[\"", adj.vars, "\"]]", collapse = " + ")
-    formula_str <- paste0("dist.obj", " ~ ", adj_vars_terms, " + data.obj$meta.dat[[\"", group.var, "\"]]")
+    adj_vars_terms <- paste0(adj.vars, collapse = " + ")
+    formula_str <- paste0("dist.obj ~ ", adj_vars_terms, " + ", group.var)
   }
-  formula <- eval(parse(text = formula_str))
+
+  formula <- as.formula(formula_str)
 
   # Run PermanovaG2 for the entire dist.obj
   message("Running PermanovaG2 for all distances...")
-  result <- GUniFrac::PermanovaG2(formula)
+  result <- GUniFrac::PermanovaG2(formula, data = data.obj$meta.dat)
 
   # Initialize a list to store the PERMANOVA results in tibble format
   permanova.results <- list()
@@ -73,13 +77,13 @@ generate_beta_test_single <- function(data.obj,
   # Convert the p.tab results to tibble
   permanova.results$p.tab <- result$p.tab %>%
     as_tibble(rownames = "Term") %>%
-    mutate(Term = ifelse(Term == "data.obj$meta.dat[[group.var]]", group.var, Term))
+    dplyr::mutate(Term = ifelse(Term == "data.obj$meta.dat[[group.var]]", group.var, Term))
 
   # Convert each aov.tab result to tibble and store them in the list
   for (i in seq_along(result$aov.tab.list)) {
     permanova.results$aov.tab[[dist.name[i]]] <- result$aov.tab.list[[i]] %>%
       as_tibble(rownames = "Variable") %>%
-      mutate(
+      dplyr::mutate(
         Variable = gsub("data.obj\\$meta.dat\\[\\[\"", "", Variable),
         Variable = gsub("\"\\]\\]", "", Variable),
         Variable = ifelse(Variable == paste0("data.obj$meta.dat[[group.var]]"), group.var, Variable),
@@ -97,7 +101,7 @@ generate_beta_test_single <- function(data.obj,
 
   # Format p.tab
   p.tab <- permanova.results$p.tab %>%
-    mutate(
+    dplyr::mutate(
       Term = gsub("data.obj\\$meta.dat\\[\\[\"", "", Term),
       Term = gsub("\"\\]\\]", "", Term),
       across(where(is.numeric), ~ round(., 3))  # round all numeric values to 3 decimal places
@@ -105,7 +109,7 @@ generate_beta_test_single <- function(data.obj,
 
   # Format aov.tab
   aov.tab <- bind_rows(permanova.results$aov.tab) %>%
-    mutate(across(where(is.numeric), ~ ifelse(is.na(.), "NA", round(., 3))))  # round all numeric values to 3 decimal places, replace NA with "NA"
+    dplyr::mutate(across(where(is.numeric), ~ ifelse(is.na(.), "NA", round(., 3))))  # round all numeric values to 3 decimal places, replace NA with "NA"
 
   return(list("p.tab" = p.tab, "aov.tab" = aov.tab))
 }

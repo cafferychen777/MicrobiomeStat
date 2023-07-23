@@ -44,12 +44,12 @@ mStat_calculate_beta_diversity <- function(data.obj, dist.name = c('BC', 'Jaccar
 
   if ('BC' %in% dist.name) {
     message("Calculating Bray-Curtis dissimilarity...")
-    dist.obj$BC <- vegdist(t(otu_tab), method = 'bray')
+    dist.obj$BC <- vegan::vegdist(t(otu_tab), method = 'bray')
   }
 
   if ('Jaccard' %in% dist.name) {
     message("Calculating Jaccard dissimilarity...")
-    dist.obj$Jaccard <- vegdist(t(otu_tab), method = 'jaccard')
+    dist.obj$Jaccard <- vegan::vegdist(t(otu_tab), method = 'jaccard')
   }
 
   if ('UniFrac' %in% dist.name || 'GUniFrac' %in% dist.name || 'WUniFrac' %in% dist.name) {

@@ -156,7 +156,7 @@ read_qza <- function(file, temp = tempdir()) {
 #' @noRd
 #' @examples
 #' # Please replace 'path_to_your_file.biom' with your actual file path
-#' feature_table <- read_q2biom('path_to_your_file.biom')
+#' # feature_table <- read_q2biom('path_to_your_file.biom')
 read_q2biom <- function(file) {
   biomobj <- read_biom(file)
   feature_tab <- as(biom_data(biomobj), "matrix")
@@ -173,7 +173,7 @@ read_q2biom <- function(file) {
 #' @noRd
 #' @examples
 #' # Please replace 'path_to_your_file.tsv' with your actual file path
-#' taxa_matrix <- read_q2taxa('path_to_your_file.tsv')
+#' # taxa_matrix <- read_q2taxa('path_to_your_file.tsv')
 read_q2taxa <- function(file) {
   taxa <- utils::read.table(file, sep = "\t", header = TRUE)
   if ("Confidence" %in% names(taxa)) {
@@ -192,7 +192,7 @@ read_q2taxa <- function(file) {
 #' @noRd
 #' @examples
 #' # Please replace 'path_to_your_file.tsv' with your actual file path
-#' metadata_df <- read_q2sample_meta('path_to_your_file.tsv')
+#' # metadata_df <- read_q2sample_meta('path_to_your_file.tsv')
 read_q2sample_meta <- function(file) {
   QiimeMap <- read.table(file = file, header = TRUE,
                          sep = "\t", comment.char = "")
@@ -211,7 +211,7 @@ read_q2sample_meta <- function(file) {
 #' @noRd
 #' @examples
 #' # Please replace 'taxa_df' with your actual taxa dataframe or matrix
-#' parsed_taxa <- parse_q2taxonomy(taxa_df)
+#' # parsed_taxa <- parse_q2taxonomy(taxa_df)
 parse_q2taxonomy <- function(taxa, sep = "; |;", trim_rank_prefix = TRUE) {
   taxa <- data.frame(taxa)
   if (trim_rank_prefix) {
@@ -226,8 +226,9 @@ parse_q2taxonomy <- function(taxa, sep = "; |;", trim_rank_prefix = TRUE) {
                           sep = sep,
                           fill = "right"
   )
-  taxa <- purrr::map_df(taxa, ~ ifelse(.x == "", NA_character_, .x)) %>%
-    as.data.frame()
+  taxa <- apply(taxa, 2, function(x) ifelse(x == "", NA, x))
+  taxa <- as.data.frame(taxa)
+
   rownames(taxa) <- taxa$Feature.ID
   taxa$Feature.ID <- NULL
 

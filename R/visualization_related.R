@@ -23,7 +23,8 @@ utils::globalVariables(c(
   "tibble", "time", "time1_mean_abundance", "time1_prevalence",
   "time2_mean_abundance", "time2_prevalence", "total_count", "total_value", "ungroup",
   "unite", "value", "value_diff", "value_time_1", "value_time_2", "vegdist", "where",
-  "x_alternative", "x_end", "x_start", "y_end", "y_start", "zero.handle"
+  "x_alternative", "x_end", "x_start", "y_end", "y_start", "zero.handle", "DNAStringSet",
+  "calcNormFactors", "percent", "readDNAStringSet", "read_yaml", "rescale"
 ))
 
 plot_fun <- function(.call, envir = parent.frame()) {

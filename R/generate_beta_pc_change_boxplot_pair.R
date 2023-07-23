@@ -37,9 +37,6 @@
 #' library(vegan)
 #' library(ggh4x)
 #' data(peerj32.obj)
-#' dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC'))
-#' # Add metadata information
-#' attr(dist.obj[["BC"]], "labels") <- peerj32_obj$meta.dat
 #'
 #' # Generate the boxplot pair
 #' generate_beta_pc_change_boxplot_pair(
@@ -199,7 +196,7 @@ generate_beta_pc_change_boxplot_pair <-
           )
 
         combined_data <- combined_data %>%
-          mutate(value_diff = if (is.function(change.func)) {
+          dplyr::mutate(value_diff = if (is.function(change.func)) {
             change.func(value_time_2, value_time_1)
           } else if (change.func == "difference"){
             value_time_2 - value_time_1
@@ -293,9 +290,6 @@ generate_beta_pc_change_boxplot_pair <-
                 pc.index,
                 "_",
                 dist.name,
-                "_",
-                "method_",
-                method,
                 "_",
                 "subject_",
                 subject.var,

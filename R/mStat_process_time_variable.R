@@ -44,7 +44,7 @@ mStat_process_time_variable <-
 
     # 对 data.obj 中的 meta.dat 的 time.var 进行处理
     data.obj$meta.dat <- data.obj$meta.dat %>%
-      mutate(!!sym(time.var) := {
+      dplyr::mutate(!!sym(time.var) := {
         # 先获取 time.var 的值
         time.var_val <- data.obj$meta.dat[[time.var]]
 

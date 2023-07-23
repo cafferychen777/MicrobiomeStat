@@ -300,7 +300,7 @@ generate_taxa_dotplot_pair <- function(data.obj,
 
     # Save the stacked dotplot as a PDF file
     if (pdf) {
-      dotplot <- ggplotify::as.ggplot(dotplot)
+      dotplot <- as.ggplot(dotplot)
       pdf_name <- paste0(
         "taxa_dotplot_pair",
         "_",

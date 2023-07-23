@@ -121,7 +121,7 @@ generate_beta_change_test_pair <-
             df = df,
             P.Value = p.value
           ) %>%
-          mutate(Estimate = NA, Std.Error = NA)
+          dplyr::mutate(Estimate = NA, Std.Error = NA)
 
         # Reorder the columns to match coef.tab
         anova.tab <- anova.tab %>%

@@ -88,9 +88,6 @@ library(tidyverse)
 library(vegan)
 library(ggh4x)
 data(peerj32.obj)
-dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC'))
-# Add metadata information
-attr(dist.obj[["BC"]], "labels") <- peerj32_obj$meta.dat
 
 # Generate the boxplot pair
 generate_beta_pc_change_boxplot_pair(

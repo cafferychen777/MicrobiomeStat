@@ -45,7 +45,7 @@ This function, part of the MicrobiomeStat package, calculates various beta diver
 data(subset_T2D.obj)
 
 # Perform pairwise beta diversity tests using PERMANOVA
-beta_test_pair_results <- generate_beta_test_long(
+beta_test_long_results <- generate_beta_test_long(
   data.obj = subset_T2D.obj,
   dist.obj = NULL,
   time.var = "visit_number",

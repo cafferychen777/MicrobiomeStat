@@ -162,7 +162,7 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
     feature.dat.type <- "count"
 
     feature.dat <- otu_table(phyloseq.obj)@.Data
-    meta.dat <- data.frame(sample_data(phyloseq.obj))
+    meta.dat <- data.frame(phyloseq::sample_data(phyloseq.obj))
   }
 
   if (any(is.na(feature.dat))) {

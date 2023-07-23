@@ -220,19 +220,19 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
               group_by(!!sym(strata.var), !!sym(group.var), !!sym(time.var)) %>%
               summarise(across(value, mean, na.rm = TRUE), .groups = "drop") %>%
               ungroup() %>%
-              mutate(!!sym(subject.var) := "ALL")
+              dplyr::mutate(!!sym(subject.var) := "ALL")
           } else if (!is.null(group.var)) {
             average_sub_df <- sub_df %>%
               group_by(!!sym(group.var), !!sym(time.var)) %>%
               summarise(across(value, mean, na.rm = TRUE), .groups = "drop") %>%
               ungroup() %>%
-              mutate(!!sym(subject.var) := "ALL")
+              dplyr::mutate(!!sym(subject.var) := "ALL")
           } else {
             average_sub_df <- sub_df %>%
               group_by(!!sym(time.var)) %>%
               summarise(across(value, mean, na.rm = TRUE), .groups = "drop") %>%
               ungroup() %>%
-              mutate(!!sym(subject.var) := "ALL")
+              dplyr::mutate(!!sym(subject.var) := "ALL")
           }
         }
 
@@ -313,9 +313,6 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
             pc.index,
             "_",
             dist.name,
-            "_",
-            "method_",
-            method,
             "_",
             "subject_",
             subject.var,

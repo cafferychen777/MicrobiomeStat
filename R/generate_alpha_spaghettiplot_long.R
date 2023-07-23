@@ -130,7 +130,7 @@ generate_alpha_spaghettiplot_long <-
       )
 
     if (is.null(group.var)){
-      alpha.df <- alpha.df %>% mutate("ALL" = "ALL")
+      alpha.df <- alpha.df %>% dplyr::mutate("ALL" = "ALL")
       group.var <- "ALL"
     }
 

@@ -16,7 +16,7 @@
 #' data(subset_T2D.obj)
 #'
 #' # Perform pairwise beta diversity tests using PERMANOVA
-#' beta_test_pair_results <- generate_beta_test_long(
+#' beta_test_long_results <- generate_beta_test_long(
 #'   data.obj = subset_T2D.obj,
 #'   dist.obj = NULL,
 #'   time.var = "visit_number",
@@ -55,7 +55,7 @@ generate_beta_test_long <- function(data.obj,
       data.obj <-
         mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
     } else {
-      metadata <- attr(dist.obj[[dist.name[1]]], "labels") %>% select(all_of(c(subject.var, time.var, group.var, strata.var)))
+      metadata <- attr(dist.obj[[dist.name[1]]], "labels") %>% select(all_of(c(subject.var, time.var, group.var, adj.vars)))
       data.obj <- list(meta.dat = metadata)
       data.obj <- mStat_process_time_variable(metadata, time.var, t0.level, ts.levels)
     }
@@ -66,23 +66,24 @@ generate_beta_test_long <- function(data.obj,
 
   # Create the formula for PermanovaG2
   if (is.null(adj.vars)) {
-    formula_str <- paste0("dist.obj", " ~ ", "data.obj$meta.dat[[\"", group.var, "\"]]")
+    formula_str <- paste0("~ ", group.var)
   } else {
-    adj_vars_terms <- paste0("data.obj$meta.dat[[\"", adj.vars, "\"]]", collapse = " + ")
-    formula_str <- paste0("dist.obj", " ~ ", adj_vars_terms, " + data.obj$meta.dat[[\"", group.var, "\"]]")
+    adj_vars_terms <- paste0(adj.vars, collapse = " + ")
+    formula_str <- paste0("~ ", adj_vars_terms, " + ", group.var)
   }
   # Add time.var to the formula
-  formula_str <- paste0(formula_str, " + data.obj$meta.dat[[\"", time.var, "\"]]")
-  formula <- eval(parse(text = formula_str))
+  formula_str <- paste0(formula_str, " + ", time.var)
+  formula <- as.formula(formula_str)
 
   # Run PermanovaG2 for the entire dist.obj
   message("Running PermanovaG2 for all distances...")
-  result <- GUniFrac::PermanovaG2(formula, strata = data.obj$meta.dat[[subject.var]])
+  result <- GUniFrac::PermanovaG2(formula, data = data.obj$meta.dat, strata = data.obj$meta.dat[[subject.var]])
+
 
   # Format p.tab
   p.tab <- result$p.tab %>%
     as_tibble(rownames = "Term") %>%
-    mutate(
+    dplyr::mutate(
       Term = gsub("data.obj\\$meta.dat\\[\\[\"", "", Term),
       Term = gsub("\"\\]\\]", "", Term),
       Term = ifelse(Term == group.var, group.var, Term),
@@ -92,7 +93,7 @@ generate_beta_test_long <- function(data.obj,
   # Format aov.tab
   aov.tab <- bind_rows(result$aov.tab.list) %>%
     as_tibble(rownames = "Variable") %>%
-    mutate(
+    dplyr::mutate(
       Variable = gsub("data.obj\\$meta.dat\\[\\[\"", "", Variable),
       Variable = gsub("\"\\]\\]", "", Variable),
       Variable = gsub("\\...\\d+$", "", Variable), # Remove "...1", "...2", etc.
@@ -107,7 +108,7 @@ generate_beta_test_long <- function(data.obj,
       `R_Squared` = R2,
       `P_Value` = `Pr(>F)`
     ) %>%
-    mutate(across(where(is.numeric), ~ ifelse(is.na(.), "NA", round(., 3))))
+    dplyr::mutate(across(where(is.numeric), ~ ifelse(is.na(.), "NA", round(., 3))))
 
   return(list("p.tab" = p.tab, "aov.tab" = aov.tab))
 }

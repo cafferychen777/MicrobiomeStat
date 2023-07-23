@@ -62,7 +62,7 @@ mStat_convert_phyloseq_to_data_obj <- function (phylo.obj) {
 
   if (!is.null(phylo.obj@phy_tree)) {
     data.obj$tree <- phylo.obj@phy_tree
-    if (!is.rooted(data.obj$tree)) {
+    if (!ape::is.rooted(data.obj$tree)) {
       message('Root the tree by midpointing ...')
       data.obj$tree <- midpoint(data.obj$tree)
     }

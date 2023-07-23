@@ -281,7 +281,7 @@ generate_taxa_heatmap_single <- function(data.obj,
       ...
     )
 
-    gg_heatmap_plot <- ggplotify::as.ggplot(heatmap_plot)
+    gg_heatmap_plot <- as.ggplot(heatmap_plot)
 
     # Save the stacked heatmap as a PDF file
     if (pdf) {
