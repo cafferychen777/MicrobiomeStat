@@ -232,7 +232,7 @@ generate_taxa_indiv_change_scatterplot_pair <-
 
       otu_tab_norm_agg <- otu_tax_agg_numeric %>%
         gather(-!!sym(feature.level), key = "sample", value = "count") %>%
-        inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample")
+        dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample")
 
       taxa.levels <-
         otu_tab_norm_agg %>% select(all_of(feature.level)) %>% distinct() %>% pull()
@@ -241,8 +241,8 @@ generate_taxa_indiv_change_scatterplot_pair <-
       df_t0 <- otu_tab_norm_agg %>% filter(!!sym(time.var) == change.base)
       df_ts <- otu_tab_norm_agg %>% filter(!!sym(time.var) != change.after)
 
-      # 然后，使用inner_join合并这两个子集，基于Phylum、subject和sex
-      df <- inner_join(df_ts, df_t0, by = c(feature.level, subject.var), suffix = c("_ts", "_t0"), relationship = "many-to-many")
+      # 然后，使用dplyr::inner_join合并这两个子集，基于Phylum、subject和sex
+      df <- dplyr::inner_join(df_ts, df_t0, by = c(feature.level, subject.var), suffix = c("_ts", "_t0"), relationship = "many-to-many")
 
       # 最后，计算新的count值
       if (is.function(change.func)) {
@@ -252,12 +252,12 @@ generate_taxa_indiv_change_scatterplot_pair <-
         # 首先，为每个分类计算非零最小值的一半
         half_nonzero_min_time_2 <- df %>%
           filter(count_ts > 0) %>%
-          group_by(!!sym(feature.level)) %>%
+          dplyr::group_by(!!sym(feature.level)) %>%
           summarize(half_nonzero_min = min(count_ts) / 2,
                     .groups = "drop")
         half_nonzero_min_time_1 <- df %>%
           filter(count_t0 > 0) %>%
-          group_by(!!sym(feature.level)) %>%
+          dplyr::group_by(!!sym(feature.level)) %>%
           summarize(half_nonzero_min = min(count_t0) / 2,
                     .groups = "drop")
 

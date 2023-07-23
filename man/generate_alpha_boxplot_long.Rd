@@ -64,10 +64,10 @@ These parameters are used to determine the time points that follow the initial t
 \item{...}{Additional arguments to pass to the plotting function.}
 }
 \value{
-A boxplot displaying the specified alpha diversity index across different groupings and time points, stratified by the specified stratification variable (if provided). The boxplot will be saved as a PDF if `pdf` is set to `TRUE`.
+A boxplot displaying the specified alpha diversity index dplyr::across different groupings and time points, stratified by the specified stratification variable (if provided). The boxplot will be saved as a PDF if `pdf` is set to `TRUE`.
 }
 \description{
-This function generates a boxplot of a specified alpha diversity index across different groupings and time points, with optional stratification. The output can be saved as a PDF.
+This function generates a boxplot of a specified alpha diversity index dplyr::across different groupings and time points, with optional stratification. The output can be saved as a PDF.
 }
 \examples{
 

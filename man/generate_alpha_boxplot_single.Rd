@@ -60,10 +60,10 @@ generate_alpha_boxplot_single(
 \item{...}{Additional arguments to pass to the plotting function.}
 }
 \value{
-A list of boxplots displaying the specified alpha diversity indices at the specified time point across different groupings, stratified by the specified stratification variable (if provided). Each boxplot in the list corresponds to one of the alpha diversity indices specified in `alpha.name`. The boxplots will be saved as PDF files if `pdf` is set to `TRUE`.
+A list of boxplots displaying the specified alpha diversity indices at the specified time point dplyr::across different groupings, stratified by the specified stratification variable (if provided). Each boxplot in the list corresponds to one of the alpha diversity indices specified in `alpha.name`. The boxplots will be saved as PDF files if `pdf` is set to `TRUE`.
 }
 \description{
-This function generates a boxplot of specified alpha diversity indices at a single time point across different groupings, with optional stratification. The output can be saved as a PDF.
+This function generates a boxplot of specified alpha diversity indices at a single time point dplyr::across different groupings, with optional stratification. The output can be saved as a PDF.
 }
 \examples{
 

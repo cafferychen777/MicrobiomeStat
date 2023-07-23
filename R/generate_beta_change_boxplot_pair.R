@@ -133,10 +133,10 @@ generate_beta_change_boxplot_pair <-
         left_join(metadata, by = "sample") %>%
         left_join(metadata, by = c("sample2" = "sample"), suffix = c(".subject", ".sample")) %>%
         filter(!!sym(paste0(subject.var, ".subject")) == !!sym(paste0(subject.var, ".sample"))) %>%
-        group_by(!!sym(paste0(subject.var, ".subject"))) %>%
+        dplyr::group_by(!!sym(paste0(subject.var, ".subject"))) %>%
         filter(!!sym(paste0(time.var,".sample")) == change.base) %>%
         filter(!!sym(paste0(time.var,".subject")) != !!sym(paste0(time.var,".sample"))) %>%
-        ungroup() %>%
+        dplyr::ungroup() %>%
         select(!!sym(paste0(subject.var, ".subject")), !!sym(paste0(time.var, ".subject")), distance) %>%
         dplyr::rename(!!sym(subject.var) := !!sym(paste0(subject.var, ".subject")), !!sym(time.var) := !!sym(paste0(time.var, ".subject")))
 

@@ -96,8 +96,8 @@ generate_alpha_test_long <-
 
     # Convert the alpha.obj list to a data frame
     alpha_df <-
-      bind_cols(alpha.obj) %>% bind_cols(tibble("sample" = colnames(otu_tab))) %>%
-      inner_join(meta_tab %>% rownames_to_column("sample"),
+      dplyr::bind_cols(alpha.obj) %>% dplyr::bind_cols(tibble("sample" = colnames(otu_tab))) %>%
+      dplyr::inner_join(meta_tab %>% rownames_to_column("sample"),
                  by = c("sample"))
 
     test.list <- lapply(alpha.name, function(index) {

@@ -1,6 +1,6 @@
 #' @title Generate boxplot for alpha diversity index at a single time point
 #'
-#' @description This function generates a boxplot of specified alpha diversity indices at a single time point across different groupings, with optional stratification. The output can be saved as a PDF.
+#' @description This function generates a boxplot of specified alpha diversity indices at a single time point dplyr::across different groupings, with optional stratification. The output can be saved as a PDF.
 #' @name generate_alpha_boxplot_single
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
 #' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
@@ -20,7 +20,7 @@
 #' @param pdf.hei The height of the output PDF file. Default is 8.5.
 #' @param ... Additional arguments to pass to the plotting function.
 #'
-#' @return A list of boxplots displaying the specified alpha diversity indices at the specified time point across different groupings, stratified by the specified stratification variable (if provided). Each boxplot in the list corresponds to one of the alpha diversity indices specified in `alpha.name`. The boxplots will be saved as PDF files if `pdf` is set to `TRUE`.
+#' @return A list of boxplots displaying the specified alpha diversity indices at the specified time point dplyr::across different groupings, stratified by the specified stratification variable (if provided). Each boxplot in the list corresponds to one of the alpha diversity indices specified in `alpha.name`. The boxplots will be saved as PDF files if `pdf` is set to `TRUE`.
 #'
 #' @examples
 #'
@@ -102,8 +102,8 @@ generate_alpha_boxplot_single <- function (data.obj,
 
   # Convert the alpha.obj list to a data frame
   alpha_df <-
-    bind_cols(alpha.obj) %>% rownames_to_column("sample") %>%
-    inner_join(
+    dplyr::bind_cols(alpha.obj) %>% rownames_to_column("sample") %>%
+    dplyr::inner_join(
       meta_tab %>% rownames_to_column(var = "sample"),
       by = c("sample")
     )
@@ -180,7 +180,7 @@ generate_alpha_boxplot_single <- function (data.obj,
         }
       } +
       labs(y = index,
-           title = if_else(!is.null(time.var) & !is.null(t.level),paste0(time.var," = ", t.level), ""))  +
+           title = dplyr::if_else(!is.null(time.var) & !is.null(t.level),paste0(time.var," = ", t.level), ""))  +
       theme_to_use +
       theme(
         panel.spacing.x = unit(0, "cm"),

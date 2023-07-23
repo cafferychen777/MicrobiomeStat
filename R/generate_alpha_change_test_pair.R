@@ -63,8 +63,8 @@ generate_alpha_change_test_pair <-
 
     # Convert the alpha.obj list to a data frame
     alpha_df <-
-      bind_cols(alpha.obj) %>% bind_cols(tibble("sample" = colnames(otu_tab))) %>%
-      inner_join(meta_tab %>% rownames_to_column("sample"),
+      dplyr::bind_cols(alpha.obj) %>% dplyr::bind_cols(tibble("sample" = colnames(otu_tab))) %>%
+      dplyr::inner_join(meta_tab %>% rownames_to_column("sample"),
                  by = c("sample"))
 
     if (is.null(change.base)){
@@ -75,14 +75,14 @@ generate_alpha_change_test_pair <-
     change.after <-
       unique(alpha_df %>% select(all_of(c(time.var))))[unique(alpha_df %>% select(all_of(c(time.var)))) != change.base]
 
-    alpha_grouped <- alpha_df %>% group_by(time)
+    alpha_grouped <- alpha_df %>% dplyr::group_by(time)
     alpha_split <- split(alpha_df, f = alpha_grouped$time)
 
     alpha_time_1 <- alpha_split[[change.base]]
     alpha_time_2 <- alpha_split[[change.after]]
 
     combined_alpha <- alpha_time_1 %>%
-      inner_join(
+      dplyr::inner_join(
         alpha_time_2,
         by = c(subject.var, group.var),
         suffix = c("_time_1", "_time_2")
@@ -119,7 +119,7 @@ generate_alpha_change_test_pair <-
       }
     })
 
-    combined_alpha <- bind_cols(combined_alpha, diff_columns)
+    combined_alpha <- dplyr::bind_cols(combined_alpha, diff_columns)
 
     if (!is.null(adj.vars)) {
       combined_alpha <-

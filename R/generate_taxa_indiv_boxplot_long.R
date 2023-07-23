@@ -284,9 +284,9 @@ generate_taxa_indiv_boxplot_long <-
           } else if (Transform == "log") {
             # Find the half of the minimum non-zero proportion for each taxon
             min_half_nonzero <- otu_tax_agg_merged %>%
-              group_by(!!sym(feature.level)) %>%
+              dplyr::group_by(!!sym(feature.level)) %>%
               summarise(min_half_value = min(value[value > 0]) / 2) %>%
-              ungroup()
+              dplyr::ungroup()
             # Replace zeros with the log of the half minimum non-zero proportion
             otu_tax_agg_merged <- otu_tax_agg_merged %>%
               left_join(min_half_nonzero, by = feature.level) %>%
@@ -315,21 +315,21 @@ generate_taxa_indiv_boxplot_long <-
         if (n_times > 10 || n_subjects > 25) {
           if (!is.null(group.var) && !is.null(strata.var)) {
             average_sub_otu_tax_agg_merged <- sub_otu_tax_agg_merged %>%
-              group_by(!!sym(strata.var), !!sym(group.var), !!sym(time.var)) %>%
-              summarise(across(value, \(x) mean(x, na.rm = TRUE)), .groups = "drop") %>%
-              ungroup() %>%
+              dplyr::group_by(!!sym(strata.var), !!sym(group.var), !!sym(time.var)) %>%
+              summarise(dplyr::across(value, \(x) mean(x, na.rm = TRUE)), .groups = "drop") %>%
+              dplyr::ungroup() %>%
               mutate(!!sym(subject.var) := "ALL")
           } else if (!is.null(group.var)) {
             average_sub_otu_tax_agg_merged <- sub_otu_tax_agg_merged %>%
-              group_by(!!sym(group.var), !!sym(time.var)) %>%
-              summarise(across(value, \(x) mean(x, na.rm = TRUE)), .groups = "drop") %>%
-              ungroup() %>%
+              dplyr::group_by(!!sym(group.var), !!sym(time.var)) %>%
+              summarise(dplyr::across(value, \(x) mean(x, na.rm = TRUE)), .groups = "drop") %>%
+              dplyr::ungroup() %>%
               mutate(!!sym(subject.var) := "ALL")
           } else {
             average_sub_otu_tax_agg_merged <- sub_otu_tax_agg_merged %>%
-              group_by(!!sym(time.var)) %>%
-              summarise(across(value, \(x) mean(x, na.rm = TRUE)), .groups = "drop") %>%
-              ungroup() %>%
+              dplyr::group_by(!!sym(time.var)) %>%
+              summarise(dplyr::across(value, \(x) mean(x, na.rm = TRUE)), .groups = "drop") %>%
+              dplyr::ungroup() %>%
               mutate(!!sym(subject.var) := "ALL")
           }
         }

@@ -204,7 +204,7 @@ generate_taxa_heatmap_long <- function(data.obj,
       gather(key = "sample", value = "value", -one_of(feature.level)) %>%
       left_join(meta_tab %>%
                   rownames_to_column("sample"), "sample") %>%
-      group_by(!!sym(feature.level), !!sym(group.var), !!sym(time.var)) %>%
+      dplyr::group_by(!!sym(feature.level), !!sym(group.var), !!sym(time.var)) %>%
       summarise(mean_value = mean(value)) %>%
       unite("group_time", c(group.var, time.var), sep = "_") %>%
       spread(key = "group_time", value = "mean_value") %>% column_to_rownames(feature.level)
@@ -215,7 +215,7 @@ generate_taxa_heatmap_long <- function(data.obj,
       gather(key = "sample", value = "value", -one_of(feature.level)) %>%
       left_join(meta_tab %>%
                   rownames_to_column("sample"), "sample") %>%
-      group_by(!!sym(feature.level), !!sym(time.var)) %>%
+      dplyr::group_by(!!sym(feature.level), !!sym(time.var)) %>%
       summarise(mean_value = mean(value)) %>%
       spread(key = time.var, value = "mean_value") %>% column_to_rownames(feature.level)
   }

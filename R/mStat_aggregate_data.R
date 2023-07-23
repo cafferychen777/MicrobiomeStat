@@ -35,12 +35,12 @@ mStat_aggregate_data <- function (data.obj, subject.var, strata.var = NULL) {
       abund <- data.obj$feature.agg.list[[name]]
       if (is.null(strata.var)) {
         obj <- dplyr::group_by(as.data.frame(t(abund)), data.obj$meta.dat[, subject.var]) %>%
-          dplyr::summarise(across(everything(), list(~sum(.x, na.rm = TRUE))))
+          dplyr::summarise(dplyr::across(everything(), list(~sum(.x, na.rm = TRUE))))
         feature.agg.list[[name]] <- t(as.matrix(obj[, -1]))
       } else {
         if (!is.null(data.obj$meta.dat[, strata.var])) {
           obj <- dplyr::group_by(as.data.frame(t(abund)), data.obj$meta.dat[, subject.var], data.obj$meta.dat[, strata.var]) %>%
-            dplyr::summarise(across(everything(), list(~sum(.x, na.rm = TRUE))))
+            dplyr::summarise(dplyr::across(everything(), list(~sum(.x, na.rm = TRUE))))
           feature.agg.list[[name]] <- t(as.matrix(obj[, -(1:2)]))
           colnames(feature.agg.list[[name]]) <- paste(obj[, 1], obj[, 2], sep="_")
         } else {
@@ -60,14 +60,14 @@ mStat_aggregate_data <- function (data.obj, subject.var, strata.var = NULL) {
   abund <- data.obj$feature.tab
   if (is.null(strata.var)) {
     obj <- dplyr::group_by(as.data.frame(t(abund)), data.obj$meta.dat %>% select(all_of(subject.var)) %>% pull()) %>%
-      dplyr::summarise(across(everything(), list(~sum(.x, na.rm = TRUE))))
+      dplyr::summarise(dplyr::across(everything(), list(~sum(.x, na.rm = TRUE))))
     feature.tab <- t(as.matrix(obj[, -1]))
     rownames(feature.tab) <- sub("\\._1$", "", rownames(feature.tab))
     colnames(feature.tab) <- obj[, 1] %>% pull()
   } else {
     if (!is.null(data.obj$meta.dat[, strata.var])) {
       obj <- dplyr::group_by(as.data.frame(t(abund)), data.obj$meta.dat[, subject.var], data.obj$meta.dat[, strata.var]) %>%
-        dplyr::summarise(across(everything(), list(~sum(.x, na.rm = TRUE))))
+        dplyr::summarise(dplyr::across(everything(), list(~sum(.x, na.rm = TRUE))))
       feature.tab <- t(as.matrix(obj[, -(1:2)]))
       colnames(feature.tab) <- paste(obj[, 1] %>% pull(), obj[, 2] %>% pull(), sep="_")
       rownames(feature.tab) <- sub("\\_1$", "", rownames(feature.tab))
@@ -84,13 +84,13 @@ mStat_aggregate_data <- function (data.obj, subject.var, strata.var = NULL) {
   # Aggregate the metadata
   if (is.null(strata.var)) {
     meta.dat <- dplyr::group_by(data.obj$meta.dat, data.obj$meta.dat[, subject.var]) %>%
-      dplyr::summarise(across(everything(), ~.[1])) %>%
+      dplyr::summarise(dplyr::across(everything(), ~.[1])) %>%
       dplyr::ungroup()
     colnames(meta.dat)[1] <- c(subject.var)
   } else {
     if (!is.null(data.obj$meta.dat[, strata.var])) {
       meta.dat <- data.obj$meta.dat %>% dplyr::group_by(data.obj$meta.dat[, subject.var], data.obj$meta.dat[, strata.var]) %>%
-        dplyr::summarise(across(everything(), ~.[1])) %>%
+        dplyr::summarise(dplyr::across(everything(), ~.[1])) %>%
         dplyr::ungroup() %>% select(-all_of(c(subject.var,strata.var)))
       colnames(meta.dat)[1:2] <- c(subject.var,strata.var)
     } else {

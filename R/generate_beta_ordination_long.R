@@ -147,7 +147,7 @@ generate_beta_ordination_long <-
       pc.mat <- pc.obj[[dist.name]]$points[, 1:2]
       df <- as.data.frame(pc.mat) %>%
         setNames(c("PC1", "PC2")) %>%
-        bind_cols(metadata[, c(subject.var, time.var, group.var, strata.var)]) %>%
+        dplyr::bind_cols(metadata[, c(subject.var, time.var, group.var, strata.var)]) %>%
         dplyr::mutate(x_start = PC1,
                y_start = PC2,
                x_end = NA,
@@ -155,10 +155,10 @@ generate_beta_ordination_long <-
       Time_choices <-
         df %>% select(all_of(time.var)) %>% pull() %>% unique()
       df <- df %>%
-        group_by(.data[[subject.var]]) %>%
-        dplyr::mutate(x_end = if_else(.data[[time.var]] == max(levels(Time_choices)), NA_real_, lead(PC1)),
-               y_end = if_else(.data[[time.var]] == max(levels(Time_choices)), NA_real_, lead(PC2))) %>%
-        ungroup()
+        dplyr::group_by(.data[[subject.var]]) %>%
+        dplyr::mutate(x_end = dplyr::if_else(.data[[time.var]] == max(levels(Time_choices)), NA_real_, lead(PC1)),
+               y_end = dplyr::if_else(.data[[time.var]] == max(levels(Time_choices)), NA_real_, lead(PC2))) %>%
+        dplyr::ungroup()
       p <- ggplot2::ggplot(df, ggplot2::aes(PC1, PC2)) +
         ggplot2::geom_point(
           size = 15,

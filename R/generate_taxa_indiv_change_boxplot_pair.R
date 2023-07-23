@@ -259,7 +259,7 @@ generate_taxa_indiv_change_boxplot_pair <-
       split_data <-
         split(otu_tax_agg_merged,
               f = otu_tax_agg_merged %>%
-                group_by(!!sym(time.var)) %>% select(all_of(c(time.var))))
+                dplyr::group_by(!!sym(time.var)) %>% select(all_of(c(time.var))))
 
       # 提取split_data中的第一个和第二个表
       data_time_1 <- split_data[[change.base]]
@@ -267,7 +267,7 @@ generate_taxa_indiv_change_boxplot_pair <-
 
       # 将这两个表连接在一起，以便计算差值
       combined_data <- data_time_1 %>%
-        inner_join(
+        dplyr::inner_join(
           data_time_2,
           by = c(feature.level, subject.var),
           suffix = c("_time_1", "_time_2")
@@ -279,12 +279,12 @@ generate_taxa_indiv_change_boxplot_pair <-
       } else if (change.func == "lfc") {
         half_nonzero_min_time_2 <- combined_data %>%
           filter(value_time_2 > 0) %>%
-          group_by(!!sym(feature.level)) %>%
+          dplyr::group_by(!!sym(feature.level)) %>%
           summarize(half_nonzero_min = min(value_time_2) / 2,
                     .groups = "drop")
         half_nonzero_min_time_1 <- combined_data %>%
           filter(value_time_1 > 0) %>%
-          group_by(!!sym(feature.level)) %>%
+          dplyr::group_by(!!sym(feature.level)) %>%
           summarize(half_nonzero_min = min(value_time_1) / 2,
                     .groups = "drop")
 

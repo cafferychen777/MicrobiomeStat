@@ -29,7 +29,7 @@
 #' )
 #'
 #'
-#' @return A list containing the PERMANOVA results for each beta diversity index. The list includes two elements: "p.tab" - a table of p-values for the PERMANOVA tests across all indices, and "aov.tab" - a table containing detailed PERMANOVA results for each index. The p.tab and aov.tab tables include columns for the terms in the PERMANOVA model, the degrees of freedom, sums of squares, mean squares, F statistics, R-squared values, and p-values.
+#' @return A list containing the PERMANOVA results for each beta diversity index. The list includes two elements: "p.tab" - a table of p-values for the PERMANOVA tests dplyr::across all indices, and "aov.tab" - a table containing detailed PERMANOVA results for each index. The p.tab and aov.tab tables include columns for the terms in the PERMANOVA model, the degrees of freedom, sums of squares, mean squares, F statistics, R-squared values, and p-values.
 #' @export
 #' @seealso
 #' \code{\link[GUniFrac]{PermanovaG2}}
@@ -87,7 +87,7 @@ generate_beta_test_long <- function(data.obj,
       Term = gsub("data.obj\\$meta.dat\\[\\[\"", "", Term),
       Term = gsub("\"\\]\\]", "", Term),
       Term = ifelse(Term == group.var, group.var, Term),
-      across(where(is.numeric), ~ round(., 3))  # round all numeric values to 3 decimal places
+      dplyr::across(where(is.numeric), ~ round(., 3))  # round all numeric values to 3 decimal places
     )
 
   # Format aov.tab
@@ -108,7 +108,7 @@ generate_beta_test_long <- function(data.obj,
       `R_Squared` = R2,
       `P_Value` = `Pr(>F)`
     ) %>%
-    dplyr::mutate(across(where(is.numeric), ~ ifelse(is.na(.), "NA", round(., 3))))
+    dplyr::mutate(dplyr::across(where(is.numeric), ~ ifelse(is.na(.), "NA", round(., 3))))
 
   return(list("p.tab" = p.tab, "aov.tab" = aov.tab))
 }

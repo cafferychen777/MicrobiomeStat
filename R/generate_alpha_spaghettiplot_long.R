@@ -121,8 +121,8 @@ generate_alpha_spaghettiplot_long <-
 
     # Convert the alpha.obj list to a data frame
     alpha.df <-
-      bind_cols(alpha.obj) %>% rownames_to_column("sample") %>%
-      inner_join(
+      dplyr::bind_cols(alpha.obj) %>% rownames_to_column("sample") %>%
+      dplyr::inner_join(
         meta_tab %>% select(all_of(
           c(subject.var, time.var, group.var, strata.var)
         )) %>% rownames_to_column(var = "sample"),
@@ -174,13 +174,13 @@ generate_alpha_spaghettiplot_long <-
 
       if (is.null(strata.var)) {
         sub_alpha.df.mean <- sub_alpha.df %>%
-          group_by(!!sym(time.var), !!sym(group.var)) %>%
+          dplyr::group_by(!!sym(time.var), !!sym(group.var)) %>%
           summarize(mean_alpha = mean(!!sym(index), na.rm = TRUE))
         sub_alpha.df <-
           left_join(sub_alpha.df, sub_alpha.df.mean, by = c(time.var, group.var))
       } else {
         sub_alpha.df.mean <- sub_alpha.df %>%
-          group_by(!!sym(time.var), !!sym(group.var), !!sym(strata.var)) %>%
+          dplyr::group_by(!!sym(time.var), !!sym(group.var), !!sym(strata.var)) %>%
           summarize(mean_alpha = mean(!!sym(index), na.rm = TRUE))
         sub_alpha.df <-
           left_join(sub_alpha.df, sub_alpha.df.mean, by = c(time.var, group.var, strata.var))

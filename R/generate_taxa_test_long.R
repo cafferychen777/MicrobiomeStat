@@ -160,8 +160,8 @@ generate_taxa_test_long <-
         gather(-!!sym(feature.level),
                key = "sample",
                value = "count") %>%
-        inner_join(linda.obj$meta.dat.use %>% rownames_to_column("sample"), by = "sample", relationship = "many-to-many") %>%
-        group_by(!!sym(group.var), !!sym(feature.level)) %>%
+        dplyr::inner_join(linda.obj$meta.dat.use %>% rownames_to_column("sample"), by = "sample", relationship = "many-to-many") %>%
+        dplyr::group_by(!!sym(group.var), !!sym(feature.level)) %>%
         summarise(mean_abundance = mean(count),
                   prevalence = sum(count > 0) / dplyr::n())
 

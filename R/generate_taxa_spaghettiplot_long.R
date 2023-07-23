@@ -231,7 +231,7 @@ generate_taxa_spaghettiplot_long <-
 
       if (!is.null(strata.var)) {
         mean_df <-
-          df %>% group_by(!!sym(feature.level),
+          df %>% dplyr::group_by(!!sym(feature.level),
                           !!sym(time.var),
                           !!sym(group.var),
                           !!sym(strata.var)) %>%
@@ -242,7 +242,7 @@ generate_taxa_spaghettiplot_long <-
                     by = c(feature.level, time.var, group.var, strata.var))
       } else {
         mean_df <-
-          df %>% group_by(!!sym(feature.level), !!sym(time.var), !!sym(group.var)) %>%
+          df %>% dplyr::group_by(!!sym(feature.level), !!sym(time.var), !!sym(group.var)) %>%
           summarize(mean_count = mean(count), na.rm = TRUE)
         df <-
           left_join(df, mean_df, by = c(feature.level, time.var, group.var))

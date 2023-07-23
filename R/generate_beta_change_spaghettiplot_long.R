@@ -181,10 +181,10 @@ generate_beta_change_spaghettiplot_long <-
         left_join(meta_tab, by = "sample") %>%
         left_join(meta_tab, by = c("sample2" = "sample"), suffix = c(".subject", ".sample")) %>%
         filter(!!sym(paste0(subject.var, ".subject")) == !!sym(paste0(subject.var, ".sample"))) %>%
-        group_by(!!sym(paste0(subject.var, ".subject"))) %>%
+        dplyr::group_by(!!sym(paste0(subject.var, ".subject"))) %>%
         filter(!!sym(paste0(time.var,".sample")) == levels(meta_tab[,time.var])[1]) %>%
         filter(!!sym(paste0(time.var,".subject")) != !!sym(paste0(time.var,".sample"))) %>%
-        ungroup() %>%
+        dplyr::ungroup() %>%
         select(!!sym(paste0(subject.var, ".subject")), !!sym(paste0(time.var, ".subject")), distance) %>%
         dplyr::rename(!!sym(subject.var) := !!sym(paste0(subject.var, ".subject")), !!sym(time.var) := !!sym(paste0(time.var, ".subject")))
 
@@ -203,13 +203,13 @@ generate_beta_change_spaghettiplot_long <-
 
       if (is.null(strata.var)) {
         long.df.mean <- long.df %>%
-          group_by(!!sym(time.var),!!sym(group.var)) %>%
+          dplyr::group_by(!!sym(time.var),!!sym(group.var)) %>%
           summarize(mean_distance = mean(distance, na.rm = TRUE))
         long.df <-
           left_join(long.df, long.df.mean, by = c(time.var, group.var))
       } else {
         long.df.mean <- long.df %>%
-          group_by(!!sym(time.var),!!sym(group.var),!!sym(strata.var)) %>%
+          dplyr::group_by(!!sym(time.var),!!sym(group.var),!!sym(strata.var)) %>%
           summarize(mean_distance = mean(distance, na.rm = TRUE))
         long.df <-
           left_join(long.df, long.df.mean, by = c(time.var, group.var, strata.var))
@@ -219,7 +219,7 @@ generate_beta_change_spaghettiplot_long <-
 
       # # 计算每个时间点的均值和标准差
       # summary.df <- long.df %>%
-      #   group_by(!!sym(time.var), !!sym(group.var)) %>%
+      #   dplyr::group_by(!!sym(time.var), !!sym(group.var)) %>%
       #   summarise(mean_distance = mean(distance),
       #             sd_distance = sd(distance),
       #             lower = mean_distance - sd_distance,

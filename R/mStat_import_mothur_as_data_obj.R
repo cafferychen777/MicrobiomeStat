@@ -63,7 +63,7 @@ mStat_import_mothur_as_data_obj <- function(mothur_list_file = NULL, mothur_grou
 
 #' Build Taxonomy Table (Internal)
 #'
-#' This function accepts a list of taxonomic assignments for each feature and transforms it into a matrix format. It ensures the correct matching of taxonomic ranks across different features. This function is particularly useful for creating a unified taxonomy table in microbiome studies.
+#' This function accepts a list of taxonomic assignments for each feature and transforms it into a matrix format. It ensures the correct matching of taxonomic ranks dplyr::across different features. This function is particularly useful for creating a unified taxonomy table in microbiome studies.
 #'
 #' @param taxlist A list of taxonomy vectors. Each element of the list corresponds to a single feature (OTU or ASV). The names of the list should correspond to the identifiers of the features.
 #'

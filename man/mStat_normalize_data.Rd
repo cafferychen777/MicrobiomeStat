@@ -22,7 +22,7 @@ mStat_normalize_data(
 - "DESeq": Normalization using the DESeq method for RNA-seq data.
 - "TMM": Normalization using the Trimmed Mean of M-values (TMM) method from the edgeR package.}
 
-\item{depth}{An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count across samples is used as the rarefaction depth.}
+\item{depth}{An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.}
 }
 \value{
 A list. The normalized data object and the scale factor used for normalization.

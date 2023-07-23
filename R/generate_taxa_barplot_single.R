@@ -192,19 +192,19 @@ generate_taxa_barplot_single <-
 
       # 转换数据框为长格式
       otu_tab_long <- otu_tab_other %>%
-        group_by(!!sym(feature.level)) %>%
+        dplyr::group_by(!!sym(feature.level)) %>%
         summarize_all(sum) %>%
         gather(key = "sample", value = "value", -feature.level)
 
       # 将 otu_tab_long 和 meta_tab_sorted 合并
       merged_long_df <- otu_tab_long %>%
-        inner_join(meta_tab_sorted  %>% rownames_to_column("sample"), by = "sample")
+        dplyr::inner_join(meta_tab_sorted  %>% rownames_to_column("sample"), by = "sample")
 
       sorted_merged_long_df <- merged_long_df %>%
         arrange(!!sym(subject.var))
 
       last_sample_ids <- sorted_merged_long_df %>%
-        group_by(!!sym(subject.var)) %>%
+        dplyr::group_by(!!sym(subject.var)) %>%
         summarize(last_sample_id = last(sample))
 
       sorted_merged_long_df <- sorted_merged_long_df %>% mutate(!!sym(feature.level) := as.factor(!!sym(feature.level)))
@@ -220,15 +220,15 @@ generate_taxa_barplot_single <-
         mutate(!!sym(feature.level) := fct_relevel(!!sym(feature.level), new_levels))
 
       df <- sorted_merged_long_df %>%
-        group_by(sample) %>%
+        dplyr::group_by(sample) %>%
         mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = original_levels)) %>%
         mutate(!!sym(feature.level) := fct_relevel(!!sym(feature.level), new_levels)) %>%
         arrange(match(!!sym(feature.level), new_levels)) %>%
         mutate(cumulative_value = (1-cumsum(value))) %>%
-        ungroup() %>%
-        group_by(!!sym(feature.level)) %>%
-        mutate(next_cumulative_value = if_else(sample %in% last_sample_ids$last_sample_id, NA_real_, lead(cumulative_value))) %>%
-        ungroup()
+        dplyr::ungroup() %>%
+        dplyr::group_by(!!sym(feature.level)) %>%
+        mutate(next_cumulative_value = dplyr::if_else(sample %in% last_sample_ids$last_sample_id, NA_real_, lead(cumulative_value))) %>%
+        dplyr::ungroup()
 
       color_pal <- setNames(pal, as.matrix(unique(df %>% select(!!sym(feature.level)))))
 
@@ -275,7 +275,7 @@ generate_taxa_barplot_single <-
             ggh4x::facet_nested(as.formula(paste(". ~", strata.var)), drop = T, scale = "free", space = "free", switch = "y")
           }
         } +
-        labs(x = NULL, y = NULL, title = if_else(!is.null(time.var) & !is.null(t.level) & time.var != "ALL2",paste0(time.var," = ", t.level), "")) +
+        labs(x = NULL, y = NULL, title = dplyr::if_else(!is.null(time.var) & !is.null(t.level) & time.var != "ALL2",paste0(time.var," = ", t.level), "")) +
         scale_y_continuous(expand = c(0, 0), labels = percent) +
         labs(fill = feature.level) +
         scale_fill_manual(values = color_pal) +
@@ -317,17 +317,17 @@ generate_taxa_barplot_single <-
       }
 
       df_average <- sorted_merged_long_df %>%
-        group_by(!!sym(feature.level),!!sym(group.var),!!sym(time.var)) %>%
+        dplyr::group_by(!!sym(feature.level),!!sym(group.var),!!sym(time.var)) %>%
         summarise(mean_value  = mean(value)) %>%
         mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = original_levels)) %>%
         mutate(!!sym(feature.level) := fct_relevel(!!sym(feature.level), new_levels)) %>%
         arrange(match(!!sym(feature.level), new_levels)) %>%
-        group_by(!!sym(group.var),!!sym(time.var)) %>%
+        dplyr::group_by(!!sym(group.var),!!sym(time.var)) %>%
         mutate(cumulative_mean_value = (1-cumsum(mean_value))) %>%
-        ungroup() %>%
-        group_by(!!sym(feature.level)) %>%
-        mutate(next_cumulative_mean_value = if_else(!!sym(time.var) %in% last_time_ids, NA_real_, lead(cumulative_mean_value))) %>%
-        ungroup()
+        dplyr::ungroup() %>%
+        dplyr::group_by(!!sym(feature.level)) %>%
+        mutate(next_cumulative_mean_value = dplyr::if_else(!!sym(time.var) %in% last_time_ids, NA_real_, lead(cumulative_mean_value))) %>%
+        dplyr::ungroup()
 
       df_average <- df_average %>%
         mutate(x_offset = ifelse(cumulative_mean_value == 0, (bar_width + bar_spacing) / 2, -(bar_width + bar_spacing) / 2))
@@ -360,7 +360,7 @@ generate_taxa_barplot_single <-
           }
         } +
         scale_x_discrete(expand = c(0.1, 0.1)) +
-        labs(fill = feature.level, y = "", x = "", title = if_else(!is.null(time.var) & !is.null(t.level) & time.var != "ALL2",paste0(time.var," = ", t.level), "")) +
+        labs(fill = feature.level, y = "", x = "", title = dplyr::if_else(!is.null(time.var) & !is.null(t.level) & time.var != "ALL2",paste0(time.var," = ", t.level), "")) +
         scale_fill_manual(values = color_pal) +
         scale_color_manual(values = color_pal) +
         theme_to_use +

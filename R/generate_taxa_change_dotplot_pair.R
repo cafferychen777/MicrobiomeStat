@@ -217,8 +217,8 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
     # 计算每个分组的平均丰度
     otu_tab_norm_agg <- otu_tax_agg_numeric %>%
       gather(-!!sym(feature.level), key = "sample", value = "count") %>%
-      inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
-      group_by(!!sym(group.var), !!sym(feature.level), !!sym(time.var)) %>% # Add time.var to group_by
+      dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
+      dplyr::group_by(!!sym(group.var), !!sym(feature.level), !!sym(time.var)) %>% # Add time.var to dplyr::group_by
       summarise(mean_abundance = mean(count))
 
     change.after <-
@@ -256,8 +256,8 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
     # 计算每个taxon在每个时间点的prevalence
     prevalence_time <- otu_tax_agg_numeric %>%
       gather(-!!sym(feature.level), key = "sample", value = "count") %>%
-      inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
-      group_by(!!sym(feature.level), !!sym(time.var)) %>%
+      dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
+      dplyr::group_by(!!sym(feature.level), !!sym(time.var)) %>%
       summarise(prevalence = sum(count > 0) / n())
 
     # 将数据从长格式转换为宽格式，将不同的时间点的prevalence放到不同的列中

@@ -157,11 +157,11 @@ generate_taxa_change_test_pair <-
 
       # 将otu_tax_long和meta_tab按sample列连接
       merged_data <- otu_tax_long %>%
-        inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample")
+        dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample")
 
       # 根据time列分组
       grouped_data <- merged_data %>%
-        group_by(!!sym(time.var))
+        dplyr::group_by(!!sym(time.var))
 
       change.after <-
         unique(grouped_data %>% select(all_of(c(time.var))))[unique(grouped_data %>% select(all_of(c(time.var)))) != change.base]
@@ -176,7 +176,7 @@ generate_taxa_change_test_pair <-
 
       # 将这两个表连接在一起，以便计算差值
       combined_data <- data_time_1 %>%
-        inner_join(
+        dplyr::inner_join(
           data_time_2,
           by = c(feature.level, subject.var),
           suffix = c("_time_1", "_time_2")
@@ -189,12 +189,12 @@ generate_taxa_change_test_pair <-
       } else if (change.func == "lfc") {
         half_nonzero_min_time_2 <- combined_data %>%
           filter(value_time_2 > 0) %>%
-          group_by(!!sym(feature.level)) %>%
+          dplyr::group_by(!!sym(feature.level)) %>%
           summarize(half_nonzero_min = min(value_time_2) / 2,
                     .groups = "drop")
         half_nonzero_min_time_1 <- combined_data %>%
           filter(value_time_1 > 0) %>%
-          group_by(!!sym(feature.level)) %>%
+          dplyr::group_by(!!sym(feature.level)) %>%
           summarize(half_nonzero_min = min(value_time_1) / 2,
                     .groups = "drop")
 
@@ -281,8 +281,8 @@ generate_taxa_change_test_pair <-
         gather(-!!sym(feature.level),
                key = !!sym(subject.var),
                value = "count") %>%
-        inner_join(meta_tab, by = c(subject.var), relationship = "many-to-many") %>%
-        group_by(!!sym(group.var), !!sym(feature.level)) %>% # Add time.var to group_by
+        dplyr::inner_join(meta_tab, by = c(subject.var), relationship = "many-to-many") %>%
+        dplyr::group_by(!!sym(group.var), !!sym(feature.level)) %>% # Add time.var to dplyr::group_by
         summarise(mean_proportion = mean(count),
                   sdev_count = sd(count),
                   prevalence = sum(count > 0) / n(),

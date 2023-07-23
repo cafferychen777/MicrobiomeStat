@@ -183,19 +183,19 @@ generate_taxa_areaplot_long <-
 
       # 转换数据框为长格式
       otu_tab_long <- otu_tab_other %>%
-        group_by(!!sym(feature.level)) %>%
+        dplyr::group_by(!!sym(feature.level)) %>%
         summarize_all(sum) %>%
         gather(key = "sample", value = "value", -feature.level)
 
       # 将 otu_tab_long 和 meta_tab_sorted 合并
       merged_long_df <- otu_tab_long %>%
-        inner_join(meta_tab_sorted  %>% rownames_to_column("sample"), by = "sample")
+        dplyr::inner_join(meta_tab_sorted  %>% rownames_to_column("sample"), by = "sample")
 
       sorted_merged_long_df <- merged_long_df %>%
         arrange(!!sym(subject.var), !!sym(time.var))
 
       last_sample_ids <- sorted_merged_long_df %>%
-        group_by(!!sym(subject.var)) %>%
+        dplyr::group_by(!!sym(subject.var)) %>%
         summarize(last_sample_id = last(sample))
 
       sorted_merged_long_df <- sorted_merged_long_df %>% dplyr::mutate(!!sym(feature.level) := as.factor(!!sym(feature.level)))
@@ -213,15 +213,15 @@ generate_taxa_areaplot_long <-
         dplyr::mutate(!!sym(feature.level) := fct_relevel(!!sym(feature.level), new_levels))
 
       df <- sorted_merged_long_df %>%
-        group_by(sample) %>%
+        dplyr::group_by(sample) %>%
         dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = original_levels)) %>%
         dplyr::mutate(!!sym(feature.level) := fct_relevel(!!sym(feature.level), new_levels)) %>%
         arrange(match(!!sym(feature.level), new_levels)) %>%
         dplyr::mutate(cumulative_value = (1-cumsum(value))) %>%
-        ungroup() %>%
-        group_by(!!sym(feature.level)) %>%
-        dplyr::mutate(next_cumulative_value = if_else(sample %in% last_sample_ids$last_sample_id, NA_real_, lead(cumulative_value))) %>%
-        ungroup()
+        dplyr::ungroup() %>%
+        dplyr::group_by(!!sym(feature.level)) %>%
+        dplyr::mutate(next_cumulative_value = dplyr::if_else(sample %in% last_sample_ids$last_sample_id, NA_real_, lead(cumulative_value))) %>%
+        dplyr::ungroup()
 
       color_pal <- setNames(pal, as.matrix(unique(df %>% select(!!sym(feature.level)))))
 
@@ -247,17 +247,17 @@ generate_taxa_areaplot_long <-
       }
 
       df_average <- sorted_merged_long_df %>%
-        group_by(!!sym(feature.level),!!sym(group.var),!!sym(time.var)) %>%
+        dplyr::group_by(!!sym(feature.level),!!sym(group.var),!!sym(time.var)) %>%
         summarise(mean_value  = mean(value)) %>%
         dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = original_levels)) %>%
         dplyr::mutate(!!sym(feature.level) := fct_relevel(!!sym(feature.level), new_levels)) %>%
         arrange(match(!!sym(feature.level), new_levels),!!sym(group.var),!!sym(time.var)) %>%
-        group_by(!!sym(group.var),!!sym(time.var)) %>%
+        dplyr::group_by(!!sym(group.var),!!sym(time.var)) %>%
         dplyr::mutate(cumulative_mean_value = (1-cumsum(mean_value))) %>%
-        ungroup() %>%
-        group_by(!!sym(feature.level)) %>%
-        dplyr::mutate(next_cumulative_mean_value = if_else(!!sym(time.var) %in% last_time_ids, NA_real_, lead(cumulative_mean_value))) %>%
-        ungroup()
+        dplyr::ungroup() %>%
+        dplyr::group_by(!!sym(feature.level)) %>%
+        dplyr::mutate(next_cumulative_mean_value = dplyr::if_else(!!sym(time.var) %in% last_time_ids, NA_real_, lead(cumulative_mean_value))) %>%
+        dplyr::ungroup()
 
       if (group.var == ""){
         df_average <- df_average %>% mutate(!!sym(group.var) := "")

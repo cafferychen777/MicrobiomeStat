@@ -109,7 +109,7 @@ mStat_summarize_data_obj <-
       "Max. reads per sample: ",
       max_reads,
       "\n",
-      "Total reads across all samples: ",
+      "Total reads dplyr::across all samples: ",
       total_reads,
       "\n",
       "Average reads per sample: ",
@@ -276,7 +276,7 @@ mStat_summarize_data_obj <-
       Variable = c(
         "Min. reads per sample",
         "Max. reads per sample",
-        "Total reads across all samples",
+        "Total reads dplyr::across all samples",
         "Average reads per sample",
         "Median reads per sample",
         "Proportion of zero counts",

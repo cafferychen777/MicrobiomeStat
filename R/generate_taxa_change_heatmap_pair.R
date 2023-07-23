@@ -192,11 +192,11 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
 
     # 将otu_tax_long和meta_tab按sample列连接
     merged_data <- otu_tax_long %>%
-      inner_join(meta_tab, by = "sample")
+      dplyr::inner_join(meta_tab, by = "sample")
 
     # 根据time列分组
     grouped_data <- merged_data %>%
-      group_by(!!sym(time.var))
+      dplyr::group_by(!!sym(time.var))
 
     change.after <-
       unique(grouped_data %>% select(all_of(c(time.var))))[unique(grouped_data %>% select(all_of(c(time.var)))) != change.base]
@@ -211,7 +211,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
 
     # 将这两个表连接在一起，以便计算差值
     combined_data <- data_time_1 %>%
-      inner_join(
+      dplyr::inner_join(
         data_time_2,
         by = c(feature.level, subject.var),
         suffix = c("_time_1", "_time_2")
@@ -223,12 +223,12 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
     } else if (change.func == "lfc") {
       half_nonzero_min_time_2 <- combined_data %>%
         filter(value_time_2 > 0) %>%
-        group_by(!!sym(feature.level)) %>%
+        dplyr::group_by(!!sym(feature.level)) %>%
         summarize(half_nonzero_min = min(value_time_2) / 2,
                   .groups = "drop")
       half_nonzero_min_time_1 <- combined_data %>%
         filter(value_time_1 > 0) %>%
-        group_by(!!sym(feature.level)) %>%
+        dplyr::group_by(!!sym(feature.level)) %>%
         summarize(half_nonzero_min = min(value_time_1) / 2,
                   .groups = "drop")
 

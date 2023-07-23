@@ -216,7 +216,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
       gather(key = "sample", value = "value",-one_of(feature.level)) %>%
       left_join(meta_tab %>%
                   rownames_to_column("sample"), "sample") %>%
-      group_by(!!sym(feature.level),!!sym(group.var),!!sym(time.var)) %>%
+      dplyr::group_by(!!sym(feature.level),!!sym(group.var),!!sym(time.var)) %>%
       summarise(mean_value = mean(value), .groups = "drop")
 
     # Spread the data to wide format

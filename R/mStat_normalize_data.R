@@ -11,7 +11,7 @@
 #' - "CSS": Cumulative Sum Scaling normalization method.
 #' - "DESeq": Normalization using the DESeq method for RNA-seq data.
 #' - "TMM": Normalization using the Trimmed Mean of M-values (TMM) method from the edgeR package.
-#' @param depth An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count across samples is used as the rarefaction depth.
+#' @param depth An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.
 #'
 #' @return A list. The normalized data object and the scale factor used for normalization.
 #'
@@ -47,7 +47,7 @@ mStat_normalize_data <-
       if (is.null(depth)) {
         depth <- min(colSums(otu_tab))
       } else if (depth > min(colSums(otu_tab))) {
-        stop("Depth is greater than the smallest total count across samples.")
+        stop("Depth is greater than the smallest total count dplyr::across samples.")
       }
       rarefy_depth <-
         ifelse(is.null(depth), min(colSums(otu_tab)), depth)
@@ -59,7 +59,7 @@ mStat_normalize_data <-
       if (is.null(depth)) {
         depth <- min(colSums(otu_tab))
       } else if (depth > min(colSums(otu_tab))) {
-        stop("Depth is greater than the smallest total count across samples.")
+        stop("Depth is greater than the smallest total count dplyr::across samples.")
       }
       rarefy_depth <-
         ifelse(is.null(depth), min(colSums(otu_tab)), depth)

@@ -217,22 +217,22 @@ generate_taxa_dotplot_single <- function(data.obj,
     # 计算每个分组的平均丰度和患病率
     otu_tab_norm_agg <- otu_tax_agg_numeric %>%
       gather(-!!sym(feature.level), key = "sample", value = "count") %>%
-      inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
-      group_by(!!sym(group.var),!!sym(feature.level)) %>%
+      dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
+      dplyr::group_by(!!sym(group.var),!!sym(feature.level)) %>%
       summarise(prevalence = sum(count > 0) / n(),
-                mean_abundance = mean(count)) %>% ungroup()
+                mean_abundance = mean(count)) %>% dplyr::ungroup()
 
     # 计算每个分组的平均丰度
     otu_tab_norm_agg <- otu_tax_agg_numeric %>%
       gather(-!!sym(feature.level), key = "sample", value = "count") %>%
-      inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
-      group_by(!!sym(group.var),!!sym(feature.level)) %>% # Add time.var to group_by
+      dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
+      dplyr::group_by(!!sym(group.var),!!sym(feature.level)) %>% # Add time.var to dplyr::group_by
       summarise(mean_abundance = sqrt(mean(count)))
 
     # 计算所有样本中的prevalence
     prevalence_all <- otu_tax_agg_numeric %>%
       gather(-!!sym(feature.level), key = "sample", value = "count") %>%
-      group_by(!!sym(feature.level)) %>%
+      dplyr::group_by(!!sym(feature.level)) %>%
       summarise(prevalence = sum(count > 0) / n())
 
     # 将两个结果合并

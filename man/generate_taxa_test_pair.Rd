@@ -44,7 +44,7 @@ and other statistics obtained from the linear model.
 }
 \description{
 This function takes as input a MicrobiomeStat data object and various specifications regarding the variables,
-and returns an analysis of changes in taxa over time across different groups. It also performs linear modelling on these changes,
+and returns an analysis of changes in taxa over time dplyr::across different groups. It also performs linear modelling on these changes,
 utilizing specified group variables and covariates.
 }
 \examples{

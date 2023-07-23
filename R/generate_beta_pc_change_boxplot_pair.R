@@ -182,14 +182,14 @@ generate_beta_pc_change_boxplot_pair <-
         # 拆分成一个列表，每个time值都有一个独立的tibble
         split_data <-
           split(df, f = df %>%
-                  group_by(!!sym(time.var)) %>% select(!!sym(time.var)))
+                  dplyr::group_by(!!sym(time.var)) %>% select(!!sym(time.var)))
 
         # 提取split_data中的第一个和第二个表
         data_time_1 <- split_data[[change.base]]
         data_time_2 <- split_data[[change.after]]
 
         combined_data <- data_time_1 %>%
-          inner_join(
+          dplyr::inner_join(
             data_time_2,
             by = c("PC", subject.var),
             suffix = c("_time_1", "_time_2")
