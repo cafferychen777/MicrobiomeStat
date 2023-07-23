@@ -29,16 +29,10 @@
 #' @return If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the final ggplot object. If `pdf` is set to FALSE, the function will return the final ggplot object without creating a PDF file.
 #' @examples
 #' # Load required libraries
-#' library(microbiome)
 #' library(tidyverse)
 #' library(vegan)
 #' library(ggh4x)
-#' data(peerj32)
-#'
-#' # Prepare data for the function
-#' peerj32.obj <- list()
-#' peerj32.phy <- peerj32$phyloseq
-#' peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
+#' data(peerj32.obj)
 #'
 #' # Call the function
 #' dotplot_result <- generate_taxa_dotplot_single(
@@ -278,11 +272,11 @@ generate_taxa_dotplot_single <- function(data.obj,
         if(feature.dat.type == "other") {
           quantiles <- quantile(otu_tab_norm_agg$mean_abundance, probs = c(0, 0.25, 0.5, 0.75, 1))
           scale_fill_gradientn(colors = colors,
-                               values = scales::rescale(quantiles),
+                               values = rescale(quantiles),
                                name = "Mean Abundance")
         } else {
           scale_fill_gradientn(colors = colors,
-                               values = scales::rescale(c(0, 0.25, 0.5, 0.75, 1)),
+                               values = rescale(c(0, 0.25, 0.5, 0.75, 1)),
                                name = "Mean Abundance (Sqrt)")
         }
       } +
@@ -290,9 +284,9 @@ generate_taxa_dotplot_single <- function(data.obj,
       scale_shape_manual(values = c(19, 1)) +
       {
           if (!is.null(strata.var)){
-            facet_nested(rows = vars(!!sym(paste0(group.var,"2")),!!sym(strata.var)), cols = vars(!!sym(feature.level)), scales = "free", switch = "y")
+            ggh4x::facet_nested(rows = vars(!!sym(paste0(group.var,"2")),!!sym(strata.var)), cols = vars(!!sym(feature.level)), scales = "free", switch = "y")
           } else {
-            facet_nested(rows = vars(!!sym(group.var)), cols = vars(!!sym(feature.level)), scales = "free", switch = "y")}
+            ggh4x::facet_nested(rows = vars(!!sym(group.var)), cols = vars(!!sym(feature.level)), scales = "free", switch = "y")}
       } +
       theme_to_use +
       theme(

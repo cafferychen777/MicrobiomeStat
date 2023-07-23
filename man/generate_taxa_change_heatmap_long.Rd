@@ -91,11 +91,9 @@ variables and strata variables in sample metadata and generates stacked heatmaps
 using the “pheatmap” package. It can also save the resulting heatmap as a PDF file.
 }
 \examples{
-library("HMP2Data")
 library(tidyverse)
 library(pheatmap)
-momspi.phy <- momspi16S()
-momspi.obj <- mStat_convert_phyloseq_to_data_obj(momspi.phy)
+data(ecam.obj)
 
 plot_list <- generate_taxa_change_heatmap_long(
   data.obj = ecam.obj,
@@ -117,23 +115,6 @@ plot_list <- generate_taxa_change_heatmap_long(
   pdf = TRUE,
   file.ann = "test"
 )
-momspi.obj <- mStat_convert_phyloseq_to_data_obj(momspi.phy)
-plot_list <- generate_taxa_change_heatmap_long(
-  data.obj = momspi.obj,
-  subject.var = "subject_id",
-  time.var = "visit_number",
-  t0.level = " 1",
-  ts.levels = sort(unique(momspi.obj$meta.dat$visit_number))[-1],
-  group.var = "sample_body_site",
-  strata.var = NULL,
-  feature.level = "Phylum",
-  feature.dat.type = "count",
-  prev.filter = 0,
-  abund.filter = 0.01,
-  pdf = TRUE,
-  file.ann = "test"
-)
-print(plot_list)
 
 
 }

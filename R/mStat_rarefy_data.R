@@ -12,14 +12,9 @@
 #' @examples
 #' \dontrun{
 #' # Load required libraries and data
-#' library(microbiome)
 #' library(tidyverse)
 #' library(vegan)
-#' data(peerj32)
-#' peerj32.obj <- list()
-#' peerj32.phy <- peerj32$phyloseq
-#' # Convert phyloseq object to data.obj format
-#' peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
+#' data(peerj32.obj)
 #' # Perform aggregation to create feature.agg.list with Phylum and Family
 #' peerj32.obj <- mStat_aggregate_by_taxonomy(peerj32.obj, c("Phylum", "Family"))
 #' # Perform rarefication, remove all-zero rows and update feature.agg.list
@@ -51,7 +46,7 @@ mStat_rarefy_data <- function(data.obj, depth = NULL) {
   }
 
   # Rarefy the data
-  rarefied_otu_tab <- t(rrarefy(t(otu_tab), sample = depth))
+  rarefied_otu_tab <- t(vegan::rrarefy(t(otu_tab), sample = depth))
 
   # Identify all-zero rows
   zero_row_indices <- which(rowSums(rarefied_otu_tab) == 0)

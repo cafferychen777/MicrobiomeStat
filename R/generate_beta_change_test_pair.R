@@ -13,17 +13,15 @@
 #' @param dist.name Character vector specifying which beta diversity indices to compute. Defaults to c('BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS').
 #'
 #' @examples
-#' \dontrun{
+#'
 #' library(vegan)
 #' library(GUniFrac)
-#' library(microbiome)
 #' library(ape)
 #' library(philentropy)
 #' library(MicrobiomeStat)
 #'
 #' # Load example data
-#' data("peerj32")
-#' peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32$phyloseq)
+#' data(peerj32.obj)
 #' dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
 #'
 #' # Generate beta diversity report
@@ -37,7 +35,7 @@
 #'   change.base = "1",
 #'   dist.name = c('BC', 'Jaccard')
 #' )
-#' }
+#'
 #'
 #' @return A named list where each element is a coefficient table (with p-values) from a linear model of the corresponding beta diversity measure against the grouping variable and covariates.
 #' @export
@@ -112,7 +110,7 @@ generate_beta_change_test_pair <-
         )
 
       # Run ANOVA on the model if group.var is multi-categorical
-      if (length(unique(combined_alpha[[group.var]])) > 2) {
+      if (length(unique(metadata[[group.var]])) > 2) {
         anova.tab <- broom::tidy(anova(lm.model))
 
         # Rearrange the table and add missing columns

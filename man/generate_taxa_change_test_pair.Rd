@@ -52,17 +52,13 @@ This function from the MicrobiomeStat package computes the taxa changes over tim
 If no time variable is provided, the function will select the first unique value from the metadata as the baseline for comparison.
 }
 \examples{
-\dontrun{
+
 library(vegan)
 library(GUniFrac)
-library(microbiome)
 library(ape)
 library(philentropy)
 library(MicrobiomeStat)
-
-# Load example data
-data("peerj32")
-peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32$phyloseq)
+data(peerj32.obj)
 
 generate_taxa_change_test_pair(
   data.obj = peerj32.obj,
@@ -77,6 +73,6 @@ generate_taxa_change_test_pair(
   abund.filter = 0.01,
   feature.dat.type = "count"
 )
-}
+
 
 }

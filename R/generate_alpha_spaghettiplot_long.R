@@ -25,14 +25,8 @@
 #' @return A ggplot object of the alpha diversity line plot.
 #'
 #' @examples
-#' \dontrun{
-#' library("HMP2Data")
-#' T2D <- T2D16S()
 #'
-#' T2D.obj <- mStat_convert_phyloseq_to_data_obj(T2D)
-#'
-#' subset_T2D.obj <- mStat_subset_data(T2D.obj,colnames(T2D.obj$feature.tab
-#' [,colSums(T2D.obj$feature.tab) >= 2000]))
+#' data("subset_T2D.obj")
 #' T2D.alpha.obj <- mStat_calculate_alpha_diversity(subset_T2D.obj$feature.tab,"shannon")
 #'
 #' generate_alpha_spaghettiplot_long(
@@ -41,19 +35,19 @@
 #'   alpha.name = c("shannon"),
 #'   subject.var = "subject_id",
 #'   time.var = "visit_number",
-#'   t0.level = sort(unique(T2D.obj$meta.dat$visit_number))[1],
-#'   ts.levels = sort(unique(T2D.obj$meta.dat$visit_number))[-1],
+#'   t0.level = sort(unique(subset_T2D.obj$meta.dat$visit_number))[1],
+#'   ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[-1],
 #'   group.var = "subject_race",
 #'   strata.var = NULL,
 #'   theme.choice = "bw",
-#'   palette = ggsci::pal_npg()(9),
+#'   palette = NULL,
 #'   pdf = TRUE,
 #'   file.ann = NULL,
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
 #' print(plot)
-#' }
+#'
 #' @export
 generate_alpha_spaghettiplot_long <-
   function(data.obj,

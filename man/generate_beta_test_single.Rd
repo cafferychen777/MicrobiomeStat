@@ -36,18 +36,13 @@ A list containing the PERMANOVA results for each beta diversity index and an omn
 This function calculates various beta diversity indices for a microbiome dataset and performs PERMANOVA tests on them to assess the effect of a grouping variable and any additional covariates on the beta diversity. It returns the PERMANOVA results for each of the specified beta diversity indices.
 }
 \examples{
-\dontrun{
+
 library(vegan)
 library(GUniFrac)
-library(microbiome)
 library(ape)
 library(philentropy)
 library(MicrobiomeStat)
-
-# Load example data
-data("peerj32")
-
-peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32$phyloseq)
+data(peerj32.obj)
 
 dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
 
@@ -61,6 +56,6 @@ beta_diversity_test <- generate_beta_test_single(
   adj.vars = c("sex"),
   dist.name = c('BC', 'Jaccard')
 )
-}
+
 
 }

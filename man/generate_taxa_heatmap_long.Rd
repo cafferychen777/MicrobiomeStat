@@ -86,9 +86,7 @@ variables and strata variables in sample metadata and generates stacked heatmaps
 using the “pheatmap” package. It can also save the resulting heatmap as a PDF file.
 }
 \examples{
-ecam.obj$meta_tab$new_month <- factor(ecam.obj$meta.dat$new_month, levels =
-c("Month 0",paste("Month",as.character(sort(as.numeric
-(as.character(unique(ecam.obj$meta.dat$month)[-1])))))))
+data(ecam.obj)
 plot_list <- generate_taxa_heatmap_long(
   data.obj = ecam.obj,
   subject.var = "studyid",

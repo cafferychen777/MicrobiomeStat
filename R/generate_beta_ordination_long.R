@@ -31,20 +31,15 @@
 #' @author Caffery Yang \email{cafferychen7850@@gmail.com}
 #'
 #' @examples
-#' library("HMP2Data")
-#' T2D <- T2D16S()
-#' T2D.obj <- mStat_convert_phyloseq_to_data_obj(T2D.phy)
-#'
-#' subset_T2D.obj <- mStat_subset_data(T2D.obj,colnames(T2D.obj$feature.tab
-#' [,colSums(T2D.obj$feature.tab) >= 2000]))
+#' subset_T2D.obj
 #' generate_beta_ordination_long(
 #'   data.obj = subset_T2D.obj,
 #'   dist.obj = NULL,
 #'   pc.obj = NULL,
 #'   subject.var = "subject_id",
 #'   time.var = "visit_number",
-#'   t0.level = sort(unique(T2D.obj$meta.dat$visit_number))[1],
-#'   ts.levels = sort(unique(T2D.obj$meta.dat$visit_number))[2:6],
+#'   t0.level = sort(unique(subset_T2D.obj$meta.dat$visit_number))[1],
+#'   ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[2:6],
 #'   group.var = "subject_race",
 #'   strata.var = "subject_gender",
 #'   dist.name = c("BC"),
@@ -227,7 +222,7 @@ generate_beta_ordination_long <-
         )
 
       if (!is.null(strata.var)) {
-        p <- p + facet_nested(as.formula(paste(".~", strata.var)))
+        p <- p + ggh4x::facet_nested(as.formula(paste(".~", strata.var)))
       }
       # Save the plots as a PDF file
       if (pdf) {

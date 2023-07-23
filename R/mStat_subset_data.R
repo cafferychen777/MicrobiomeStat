@@ -17,15 +17,10 @@
 #' @examples
 #' \dontrun{
 #' # Load the required libraries
-#' library(microbiome)
 #' library(MicrobiomeStat)
 #'
 #' # Prepare data for the function
-#' data(peerj32)
-#' peerj32.obj <- list()
-#' peerj32.phy <- peerj32$phyloseq
-#' peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
-#'
+#' data(peerj32.obj)
 #' # Subset data object by sample IDs
 #' subset.ids <- rownames(peerj32.obj$meta.dat)[1:10] # for example
 #' subset_peerj32.obj <- mStat_subset_data(data.obj = peerj32.obj, samIDs = subset.ids)

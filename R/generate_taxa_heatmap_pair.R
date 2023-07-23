@@ -29,15 +29,11 @@
 #' @return An object of class pheatmap, the generated heatmap plot
 #'
 #' @examples
-#' \dontrun{
+#'
 #' # Load required libraries and example data
-#' library(microbiome)
 #' library(tidyverse)
 #' library(pheatmap)
-#' data(peerj32)
-#' peerj32.obj <- list()
-#' peerj32.phy <- peerj32$phyloseq
-#' peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
+#' data(peerj32.obj)
 #' plot_list <- generate_taxa_heatmap_pair(
 #'   data.obj = peerj32.obj,
 #'   subject.var = "subject",
@@ -58,7 +54,7 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
-#' }
+#'
 #' @export
 #'
 #' @seealso \code{\link{pheatmap}}

@@ -26,10 +26,10 @@ This function checks each component (OTU table, sample data, taxonomy table, and
 }
 \examples{
 \dontrun{
-  library(microbiome)
-  data(peerj32)
-  peerj32.phy <- peerj32$phyloseq
-  data.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
+  #library(microbiome)
+  #data(peerj32)
+  #peerj32.phy <- peerj32$phyloseq
+  #data.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
 }
 
 }

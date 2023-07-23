@@ -14,6 +14,7 @@
 #'
 #' @examples
 #' \dontrun{
+#' # library(Biostrings)
 #' data_obj <- mStat_import_qiime2_as_data_obj(otu_qza = "path_to_otu.qza",
 #'                                              taxa_qza = "path_to_taxa.qza",
 #'                                              sam_tab = "path_to_sample_metadata",
@@ -101,7 +102,9 @@ mStat_import_qiime2_as_data_obj <- function(otu_qza,
 #' @noRd
 #' @examples
 #' # Please replace 'path_to_your_file.qza' with your actual file path
-#' read_qza('path_to_your_file.qza')
+#' # library(yaml)
+#' # library(Biostrings)
+#' # read_qza('path_to_your_file.qza')
 read_qza <- function(file, temp = tempdir()) {
   # Unzip the file
   message("Unzipping the .qza file...")
@@ -113,7 +116,7 @@ read_qza <- function(file, temp = tempdir()) {
 
   # Read the metadata
   message("Reading the metadata...")
-  metadata <- yaml::read_yaml(metadata_file_path[1])
+  metadata <- read_yaml(metadata_file_path[1])
   file_format <- metadata$format
   file_uuid <- metadata$uuid
 
@@ -130,7 +133,7 @@ read_qza <- function(file, temp = tempdir()) {
     processed_file <- read_tree(tree_file_path)
   } else if (file_format == "DNASequencesDirectoryFormat") {
     dna_sequences_file_path <- file.path(temp, file_uuid, "data/dna-sequences.fasta")
-    processed_file <- Biostrings::readDNAStringSet(dna_sequences_file_path)
+    processed_file <- readDNAStringSet(dna_sequences_file_path)
   } else {
     stop(
       "Only files in format of 'BIOMV210DirFmt' ",

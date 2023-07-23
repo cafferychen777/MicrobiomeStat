@@ -79,11 +79,10 @@ It also allows for different taxonomic levels to be used and a specific number o
 The function also has options to customize the size, theme, and color palette of the plot, and to save the plot as a PDF.
 }
 \examples{
-library(microbiome)
 library(tidyverse)
 library(ggh4x)
 library(vegan)
-ecam.obj$meta_tab$new_month <- paste("Month",ecam.obj$meta_tab$month)
+data(ecam.obj)
 plot_list_all <- generate_taxa_barplot_long(
   data.obj = ecam.obj,
   subject.var = "studyid",
@@ -96,7 +95,7 @@ plot_list_all <- generate_taxa_barplot_long(
   t0.level = NULL,
   ts.levels = NULL,
   theme.choice = "bw",
-  palette = c(ggsci::pal_npg()(9),ggsci::pal_jama()(7),ggsci::pal_lancet()(9)),
+  palette = NULL,
   pdf = TRUE,
   file.ann = "test"
 )

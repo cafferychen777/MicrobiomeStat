@@ -40,12 +40,6 @@ The function first checks if each component (counts, samples) of the DGEList obj
 }
 
 }
-\references{
-R package edgeR.
-}
-\seealso{
-\code{\link[edgeR]{DGEList}}
-}
 \author{
 Caffery Yang
 }

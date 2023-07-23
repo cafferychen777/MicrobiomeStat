@@ -17,21 +17,14 @@ Description: MicrobiomeStat is a comprehensive R package for microbiome analysis
 Depends: 
     R (>= 3.5.0),
     tidyverse,
-    Biostrings, 
-    biomformat, 
-    gridGraphics, 
-    plyr, 
     rlang, 
-    tibble, 
-    yaml,
-    edgeR
+    tibble
 Imports: 
     ggplot2,
     matrixStats,
     Matrix,
     parallel,
     stats,
-    utils,
     statmod,
     MASS,
     ggrepel,
@@ -39,20 +32,20 @@ Imports:
     foreach,
     modeest,
     phyloseq,
-    microbiome,
     vegan,
     RColorBrewer,
     dplyr,
     ggprism,
-    magrittr,
     pheatmap,
     tidyr,
     ggh4x,
     ape,
+    GUniFrac,
+    philentropy,
+    broom
 Suggests:
     rmarkdown,
-    knitr,
-    HMP2Data
+    knitr
 License: GPL-3
 Encoding: UTF-8
 LazyData: true

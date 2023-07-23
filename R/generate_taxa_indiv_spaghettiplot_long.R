@@ -29,8 +29,8 @@
 #' @return If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the final ggplot object. If `pdf` is set to FALSE, the function will return the final ggplot object without creating a PDF file.
 #'
 #' @examples
-#' \dontrun{
-#' # Assuming ecam.obj is a pre-defined object
+#'
+#' data(ecam.obj)
 #' plot_list_all <- generate_taxa_indiv_spaghettiplot_long(
 #'   data.obj = ecam.obj,
 #'   subject.var = "studyid",
@@ -48,11 +48,11 @@
 #'   abund.filter = 0.01,
 #'   base.size = 16,
 #'   theme.choice = "bw",
-#'   palette = c(ggsci::pal_npg()(9),ggsci::pal_jama()(7),ggsci::pal_lancet()(9)),
+#'   palette = NULL,
 #'   pdf = TRUE,
 #'   file.ann = "test"
 #' )
-#' }
+#'
 #' @export
 generate_taxa_indiv_spaghettiplot_long <-
   function(data.obj,

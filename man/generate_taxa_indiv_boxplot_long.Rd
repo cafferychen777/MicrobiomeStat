@@ -88,14 +88,10 @@ This function creates a boxplot showing the abundance distribution of individual
 }
 \examples{
 # Load required libraries and example data
-library(microbiome)
 library(tidyverse)
-data(peerj32)
-peerj32.obj <- list()
-peerj32.phy <- peerj32$phyloseq
-peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
 
 # Generate the boxplot pair
+data(ecam.obj)
 generate_taxa_indiv_boxplot_long(
   data.obj = ecam.obj,
   subject.var = "studyid",
@@ -112,12 +108,14 @@ generate_taxa_indiv_boxplot_long(
   base.size = 20,
   theme.choice = "classic",
   custom.theme = NULL,
-  palette = c(ggsci::pal_npg()(9),ggsci::pal_jama()(7),ggsci::pal_lancet()(9)),
+  palette = NULL,
   pdf = TRUE,
   file.ann = "test",
   pdf.wid = 11,
   pdf.hei = 8.5
 )
+
+data(peerj32.obj)
 
 generate_taxa_indiv_boxplot_long(
   data.obj = peerj32.obj,

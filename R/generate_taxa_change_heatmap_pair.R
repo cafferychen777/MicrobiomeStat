@@ -30,14 +30,9 @@
 #' @return If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the pheatmap plot. If `pdf` is set to FALSE, the function will return the pheatmap plot without creating a PDF file.
 #' @examples
 #' # Load required libraries and example data
-#' library(microbiome)
 #' library(tidyverse)
 #' library(pheatmap)
-#' library(circlize)
-#' data(peerj32)
-#' peerj32.obj <- list()
-#' peerj32.phy <- peerj32$phyloseq
-#' peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
+#' data(peerj32.obj)
 #' plot_list <- generate_taxa_change_heatmap_pair(
 #'   data.obj = peerj32.obj,
 #'   subject.var = "subject",

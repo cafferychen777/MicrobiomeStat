@@ -17,11 +17,10 @@
 #'
 #' @examples
 #' \dontrun{
-#' library(vegan)
-#' peerj32.obj <- list()
-#' peerj32.phy <- peerj32$phyloseq
-#' peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
-#' peerj32.obj <- mStat_aggregate_by_taxonomy(peerj32.obj, feature.level = c("Phylum","Family"))
+#' data(peerj32.obj)
+#' peerj32.obj <- mStat_aggregate_by_taxonomy(peerj32.obj, method = "TSS")
+#' # library(edgeR)
+#' # peerj32.obj <- mStat_aggregate_by_taxonomy(peerj32.obj, method = "TMM")
 #' }
 #'
 #' @details
@@ -80,7 +79,7 @@ mStat_normalize_data <-
         sum(x) / exp(mean(log(x[x > 0])))
       })
     } else if (method == "TMM") {
-      scale_factor <- edgeR::calcNormFactors(otu_tab, method = "TMM")
+      scale_factor <- calcNormFactors(otu_tab, method = "TMM")
     } else {
       stop("Invalid normalization method.")
     }

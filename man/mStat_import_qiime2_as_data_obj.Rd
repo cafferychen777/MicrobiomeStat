@@ -34,6 +34,7 @@ MicrobiomeStat is a comprehensive and user-friendly tool designed for robust mic
 }
 \examples{
 \dontrun{
+# library(Biostrings)
 data_obj <- mStat_import_qiime2_as_data_obj(otu_qza = "path_to_otu.qza",
                                              taxa_qza = "path_to_taxa.qza",
                                              sam_tab = "path_to_sample_metadata",

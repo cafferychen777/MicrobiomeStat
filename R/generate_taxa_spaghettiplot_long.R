@@ -29,8 +29,9 @@
 #' @return A ggplot object containing the longitudinal line plot.
 #'
 #' @examples
-#' \dontrun{
+#'
 #' # Assuming ecam.obj is a pre-defined object
+#' data(ecam.obj)
 #' plot_list_all <- generate_taxa_spaghettiplot_long(
 #'   data.obj = ecam.obj,
 #'   subject.var = "studyid",
@@ -52,7 +53,7 @@
 #'   pdf = TRUE,
 #'   file.ann = "test"
 #' )
-#' }
+#'
 #' @export
 generate_taxa_spaghettiplot_long <-
   function(data.obj,
@@ -301,9 +302,9 @@ generate_taxa_spaghettiplot_long <-
         } +
         {
           if (!is.null(strata.var)) {
-            facet_nested_wrap(as.formula(paste('~', feature.level,"+",strata.var)))  # Use facet_wrap with strata.var as the faceting variable
+            ggh4x::facet_nested_wrap(as.formula(paste('~', feature.level,"+",strata.var)))  # Use facet_wrap with strata.var as the faceting variable
           } else {
-            facet_nested_wrap(as.formula(paste('~',feature.level)))
+            ggh4x::facet_nested_wrap(as.formula(paste('~',feature.level)))
           }
         } +
         theme_to_use +

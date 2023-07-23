@@ -35,7 +35,7 @@
 #'   # Summary without time variable
 #'   # summary_list <- mStat_summarize_data_obj(data.obj)
 #'
-#'   mStat_summarize_data_obj(T2D.obj, "visit_number", "subject_race")
+#'   mStat_summarize_data_obj(subset_T2D.obj, "visit_number", "subject_race")
 #' }
 #'
 #' @details

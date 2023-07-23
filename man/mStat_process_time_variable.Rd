@@ -34,7 +34,7 @@ The function first gets the unique values of the time variable. Then, it sets th
 \examples{
 # Assuming 'meta_data' is your meta data table and 'time' is your time variable
 # meta_data_handled <- mStat_process_time_variable(meta_data, 'time')
-
+data(ecam.obj)
 mStat_process_time_variable(data.obj = ecam.obj,time.var = "month",
 t0.level = "0",ts.levels = c("1","2"))
 

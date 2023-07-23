@@ -59,15 +59,9 @@ is_continuous_numeric <- function(x) {
 #'
 #' @examples
 #' \dontrun{
-#'  library(microbiome)
 #'  library(vegan)
 #'  library(tidyverse)
-#'
-#'  # Load example data
-#'  data(peerj32)
-#'  peerj32.obj <- list()
-#'  peerj32.phy <- peerj32$phyloseq
-#'  peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
+#'  data(peerj32.obj)
 #'
 #'  # Generate the scatterplot pairs
 #'  plot_list <- generate_taxa_indiv_change_scatterplot_pair(

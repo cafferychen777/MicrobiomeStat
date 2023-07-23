@@ -35,11 +35,10 @@ The function first checks if 'data.obj' is a list. It then retrieves the OTU tab
 }
 \examples{
 \dontrun{
-library(vegan)
-peerj32.obj <- list()
-peerj32.phy <- peerj32$phyloseq
-peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
-peerj32.obj <- mStat_aggregate_by_taxonomy(peerj32.obj, feature.level = c("Phylum","Family"))
+data(peerj32.obj)
+peerj32.obj <- mStat_aggregate_by_taxonomy(peerj32.obj, method = "TSS")
+# library(edgeR)
+# peerj32.obj <- mStat_aggregate_by_taxonomy(peerj32.obj, method = "TMM")
 }
 
 }

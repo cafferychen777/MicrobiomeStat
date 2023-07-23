@@ -26,7 +26,8 @@ ggplot object
 convert plot to ggplot object
 }
 \examples{
-as.ggplot(~barplot(1:10))
+#library(grid)
+#as.ggplot(~barplot(1:10))
 }
 \author{
 Guangchuang Yu

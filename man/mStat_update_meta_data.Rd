@@ -37,15 +37,9 @@ input dataframe.
 \examples{
 \dontrun{
   # Load required libraries
-  library(microbiome)
   library(tidyverse)
   library(vegan)
-  data(peerj32)
-
-  # Convert peerj32 data to the necessary format
-  peerj32.obj <- list()
-  peerj32.phy <- peerj32$phyloseq
-  peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
+  data(peerj32.obj)
 
   # Update metadata using a CSV file
   peerj32.obj <- mStat_update_meta_data(peerj32.obj, "metadata.csv")

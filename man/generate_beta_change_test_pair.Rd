@@ -40,17 +40,15 @@ This function calculates beta diversity measures, performs linear modeling on th
 If no precalculated distance object is provided, it calculates the distance object from the data.
 }
 \examples{
-\dontrun{
+
 library(vegan)
 library(GUniFrac)
-library(microbiome)
 library(ape)
 library(philentropy)
 library(MicrobiomeStat)
 
 # Load example data
-data("peerj32")
-peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32$phyloseq)
+data(peerj32.obj)
 dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
 
 # Generate beta diversity report
@@ -64,6 +62,6 @@ beta_diversity_report <- generate_beta_change_test_pair(
   change.base = "1",
   dist.name = c('BC', 'Jaccard')
 )
-}
+
 
 }

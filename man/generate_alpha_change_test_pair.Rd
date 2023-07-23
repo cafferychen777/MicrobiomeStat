@@ -46,14 +46,9 @@ at two different time points for a given dataset. The function supports various 
 for adjusting the tests and calculating the difference in alpha diversity.
 }
 \examples{
-library(microbiome)
 library(vegan)
-data(peerj32)
+data(peerj32.obj)
 
-# Convert peerj32 data to the necessary format
-peerj32.obj <- list()
-peerj32.phy <- peerj32$phyloseq
-peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
 generate_alpha_change_test_pair(
 data.obj = peerj32.obj,
 alpha.obj = NULL,

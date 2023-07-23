@@ -45,17 +45,13 @@ is_categorical <- function(x) {
 #' @param ... Additional parameters to be passed to the ZicoSeq function.
 #'
 #' @examples
-#' \dontrun{
+#'
 #' library(vegan)
 #' library(GUniFrac)
-#' library(microbiome)
 #' library(ape)
 #' library(philentropy)
 #' library(MicrobiomeStat)
-#'
-#' # Load example data
-#' data("peerj32")
-#' peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32$phyloseq)
+#' data(peerj32.obj)
 #'
 #' generate_taxa_change_test_pair(
 #'   data.obj = peerj32.obj,
@@ -70,7 +66,7 @@ is_categorical <- function(x) {
 #'   abund.filter = 0.01,
 #'   feature.dat.type = "count"
 #' )
-#' }
+#'
 #'
 #' @return A named list where each element corresponds to a feature level and contains a dataframe with the calculated taxa changes, their corresponding p-values, and other statistics from the linear model.
 #' @export

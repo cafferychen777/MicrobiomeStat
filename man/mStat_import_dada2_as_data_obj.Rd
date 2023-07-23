@@ -38,6 +38,7 @@ This function facilitates seamless integration of DADA2 outputs into the Microbi
 }
 \examples{
 \dontrun{
+ # library(Biostrings)
   seq_tab <- readRDS(
     system.file(
         "extdata", "dada2_seqtab.rds",

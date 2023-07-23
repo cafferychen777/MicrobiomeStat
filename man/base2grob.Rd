@@ -19,7 +19,7 @@ grob object
 convert base plot to grob object
 }
 \examples{
-base2grob(~plot(rnorm(10)))
+#base2grob(~plot(rnorm(10)))
 }
 \author{
 Guangchuang Yu

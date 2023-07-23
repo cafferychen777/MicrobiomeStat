@@ -88,7 +88,8 @@ set_par <- function() {
 ##' @importFrom grid viewport
 ##' @export
 ##' @examples
-##' as.ggplot(~barplot(1:10))
+##' #library(grid)
+##' #as.ggplot(~barplot(1:10))
 ##' @author Guangchuang Yu
 as.ggplot <- function(plot, scale = 1, hjust = 0, vjust = 0, angle = 0, ...) {
   ## plot_expr <- quo_name(enexpr(plot))
@@ -273,7 +274,7 @@ as.grob.grob <- function(plot, ...) {
 ##' @return grob object
 ##' @export
 ##' @examples
-##' base2grob(~plot(rnorm(10)))
+##' #base2grob(~plot(rnorm(10)))
 ##' @author Guangchuang Yu
 base2grob <- function(x, envir = parent.frame()) {
   old.par=par(no.readonly=TRUE)

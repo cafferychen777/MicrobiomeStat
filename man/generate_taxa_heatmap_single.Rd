@@ -83,15 +83,11 @@ variables and strata variables in sample metadata and generates stacked heatmaps
 using the “pheatmap” package. It can also save the resulting heatmap as a PDF file.
 }
 \examples{
-\dontrun{
+
 # Load required libraries and example data
-library(microbiome)
 library(tidyverse)
 library(pheatmap)
-data(peerj32)
-peerj32.obj <- list()
-peerj32.phy <- peerj32$phyloseq
-peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
+data(peerj32.obj)
 
 # Generate the boxplot pair
 generate_taxa_heatmap_single(
@@ -115,7 +111,7 @@ generate_taxa_heatmap_single(
   pdf.wid = 11,
   pdf.hei = 8.5
 )
-}
+
 }
 \seealso{
 \code{\link{pheatmap}}

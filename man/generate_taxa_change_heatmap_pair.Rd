@@ -87,14 +87,9 @@ The plot can either be displayed interactively or saved as a PDF file.
 }
 \examples{
 # Load required libraries and example data
-library(microbiome)
 library(tidyverse)
 library(pheatmap)
-library(circlize)
-data(peerj32)
-peerj32.obj <- list()
-peerj32.phy <- peerj32$phyloseq
-peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
+data(peerj32.obj)
 plot_list <- generate_taxa_change_heatmap_pair(
   data.obj = peerj32.obj,
   subject.var = "subject",

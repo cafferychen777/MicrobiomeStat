@@ -13,21 +13,15 @@
 #' @param adj.vars A character vector containing the names of the columns in data.obj$meta.dat to include as covariates in the PERMANOVA analysis. If no covariates are needed, use NULL (default).
 #' @param dist.name A character vector specifying which beta diversity indices to calculate and test (e.g., 'BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS'). Default is c('BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS').
 #' @examples
-#'
-#' library("HMP2Data")
-#' T2D <- T2D16S()
-#' T2D.obj <- mStat_convert_phyloseq_to_data_obj(T2D.phy)
-#'
-#' subset_T2D.obj <- mStat_subset_data(T2D.obj,colnames(T2D.obj$feature.tab
-#' [,colSums(T2D.obj$feature.tab) >= 2000]))
+#' data(subset_T2D.obj)
 #'
 #' # Perform pairwise beta diversity tests using PERMANOVA
 #' beta_test_pair_results <- generate_beta_test_long(
 #'   data.obj = subset_T2D.obj,
 #'   dist.obj = NULL,
 #'   time.var = "visit_number",
-#'   t0.level = sort(unique(T2D.obj$meta.dat$visit_number))[1],
-#'   ts.levels = sort(unique(T2D.obj$meta.dat$visit_number))[2:6],
+#'   t0.level = sort(unique(subset_T2D.obj$meta.dat$visit_number))[1],
+#'   ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[2:6],
 #'   subject.var = "subject_id",
 #'   group.var = "subject_race",
 #'   adj.vars = "subject_gender",

@@ -16,19 +16,15 @@
 #' @param ... Additional parameters to be passed to the function.
 #'
 #' @examples
-#' \dontrun{
+#'
 #' library(vegan)
 #' library(GUniFrac)
-#' library(microbiome)
 #' library(ape)
 #' library(philentropy)
 #' library(MicrobiomeStat)
 #' library(tidyverse)
 #'
-#' # Load example data
-#' data("peerj32")
-#' peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32$phyloseq)
-#'
+#' data(peerj32.obj)
 #' results <- generate_taxa_test_pair(
 #'   data.obj = peerj32.obj,
 #'   subject.var = "subject",
@@ -41,7 +37,7 @@
 #'   feature.dat.type = "count"
 #' )
 #'
-#' }
+#'
 #'
 #' @return A named list where each element corresponds to a feature level. Each list element contains a dataframe with the calculated taxa changes, their corresponding p-values,
 #' and other statistics obtained from the linear model.

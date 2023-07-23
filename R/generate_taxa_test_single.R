@@ -18,7 +18,8 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#'
+#' data(peerj32.obj)
 #' da_report <- generate_taxa_test_single(
 #'     data.obj = peerj32.obj,
 #'     time.var = "time",
@@ -45,7 +46,7 @@
 #'     verbose = TRUE,
 #'     return.feature.dat = T
 #' )
-#' }
+#'
 generate_taxa_test_single <- function(data.obj,
                                       time.var = NULL,
                                       t.level = NULL,

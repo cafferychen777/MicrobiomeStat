@@ -18,22 +18,18 @@
 #'   distance matrix. The results are named with the method's abbreviation.
 #'
 #' @examples
-#' \dontrun{
+#'
 #' # Load required libraries and example data
-#' library(microbiome)
 #' library(tidyverse)
 #' library(vegan)
-#' data(peerj32)
-#' peerj32.obj <- list()
-#' peerj32.phy <- peerj32$phyloseq
-#' peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
+#' data(peerj32.obj)
 #' dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
 #' # Add metadata information
 #' attr(dist.obj[["BC"]], "labels") <- peerj32_obj$meta.dat
 #' attr(dist.obj[["Jaccard"]], "labels") <- peerj32_obj$meta.dat
 #'
 #' pc.obj <- mStat_calculate_PC(dist.obj, method = c('mds'), k = 2, dist.name = c('BC','Jaccard'))
-#' }
+#'
 #'
 #' @export
 mStat_calculate_PC <- function(dist.obj, method = c('mds'), k = 2, dist.name = NULL) {

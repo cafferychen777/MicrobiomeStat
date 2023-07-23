@@ -95,13 +95,8 @@ The function also has options to customize the size, theme, and color palette of
 }
 \examples{
 # Load required libraries and example data
-library(microbiome)
 library(tidyverse)
-data(peerj32)
-peerj32.obj <- list()
-peerj32.phy <- peerj32$phyloseq
-peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
-
+data(peerj32.obj)
 # Generate the boxplot pair
 generate_taxa_boxplot_long(
   data.obj = ecam.obj,
@@ -120,13 +115,13 @@ generate_taxa_boxplot_long(
   base.size = 12,
   theme.choice = "classic",
   custom.theme = NULL,
-  palette = c(ggsci::pal_npg()(9),ggsci::pal_jama()(7),ggsci::pal_lancet()(9)),
+  palette = NULL,
   pdf = TRUE,
   file.ann = "test",
   pdf.wid = 11,
   pdf.hei = 8.5
 )
-
+data(peerj32.obj)
 generate_taxa_boxplot_long(
   data.obj = peerj32.obj,
   subject.var = "subject",

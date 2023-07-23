@@ -21,6 +21,7 @@ of each column (which represents each sample in the OTU table) is equal.
 }
 \examples{
 # Assuming peerj32.obj is a data object with OTU and metadata tables
+data(peerj32.obj)
 is_rarefied(peerj32.obj)
 
 }

@@ -54,24 +54,17 @@ Generate longitudinal taxa test statistics based on the provided MicrobiomeStat 
 
 library(vegan)
 library(GUniFrac)
-library(microbiome)
 library(ape)
 library(philentropy)
 library(MicrobiomeStat)
 library(tidyverse)
-
-library("HMP2Data")
-T2D <- T2D16S()
-T2D.obj <- mStat_convert_phyloseq_to_data_obj(T2D.phy)
-
-subset_T2D.obj <- mStat_subset_data(T2D.obj,colnames(T2D.obj$feature.tab
-[,colSums(T2D.obj$feature.tab) >= 2000]))
+data(subset_T2D.obj)
 results <- generate_taxa_test_long(
   data.obj = subset_T2D.obj,
   subject.var = "subject_id",
   time.var = "visit_number",
-  t0.level = sort(unique(T2D.obj$meta.dat$visit_number))[1],
-  ts.levels = sort(unique(T2D.obj$meta.dat$visit_number))[2:6],
+  t0.level = sort(unique(subset_T2D.obj$meta.dat$visit_number))[1],
+  ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[2:6],
   group.var = "subject_race",
   adj.vars = "subject_gender",
   feature.level = "Phylum",
@@ -80,8 +73,8 @@ results <- generate_taxa_test_long(
   feature.dat.type = "count"
 )
 # Load example data
-data("peerj32")
-peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32$phyloseq)
+data(peerj32.obj)
+
 results <- generate_taxa_test_long(
   data.obj = peerj32.obj,
   subject.var = "subject",
@@ -95,6 +88,7 @@ results <- generate_taxa_test_long(
   abund.filter = 0.001,
   feature.dat.type = "count"
 )
+data(ecam.obj)
 results <- generate_taxa_test_long(
   data.obj = ecam.obj,
   subject.var = "studyid",

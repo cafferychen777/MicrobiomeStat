@@ -104,10 +104,8 @@ library(pheatmap)
 library(vegan)
 library(ggh4x)
 
-# Load example data
-data("peerj32")
 
-peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32$phyloseq)
+data(peerj32.obj)
 
 dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
 

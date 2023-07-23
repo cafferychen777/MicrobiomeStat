@@ -26,32 +26,27 @@
 #'
 #' @examples
 #'
-#' library("HMP2Data")
-#' T2D <- T2D16S()
-#' T2D.obj <- mStat_convert_phyloseq_to_data_obj(T2D.phy)
-#'
-#' subset_T2D.obj <- mStat_subset_data(T2D.obj,colnames(T2D.obj$feature.tab
-#' [,colSums(T2D.obj$feature.tab) >= 2000]))
-#' T2D.alpha.obj <- mStat_calculate_alpha_diversity(subset_T2D.obj$feature.tab,"shannon")
+#' data("subset_T2D.obj")
 #'
 #' generate_alpha_boxplot_long(
 #'   data.obj = subset_T2D.obj,
-#'   alpha.obj = T2D.alpha.obj,
+#'   alpha.obj = NULL,
 #'   alpha.name = c("shannon"),
 #'   subject.var = "subject_id",
 #'   time.var = "visit_number",
-#'   t0.level = sort(unique(T2D.obj$meta.dat$visit_number))[1],
-#'   ts.levels = sort(unique(T2D.obj$meta.dat$visit_number))[2:6],
+#'   t0.level = sort(unique(subset_T2D.obj$meta.dat$visit_number))[1],
+#'   ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[2:6],
 #'   group.var = "subject_race",
 #'   strata.var = NULL,
 #'   base.size = 20,
 #'   theme.choice = "bw",
-#'   palette = ggsci::pal_npg()(9),
+#'   palette = NULL,
 #'   pdf = TRUE,
 #'   file.ann = NULL,
 #'   pdf.wid = 20,
 #'   pdf.hei = 8.5)
 #'
+#' data(peerj32.obj)
 #' generate_alpha_boxplot_long(
 #'   data.obj = peerj32.obj,
 #'   alpha.obj = NULL,
@@ -141,7 +136,7 @@ generate_alpha_boxplot_long <- function (data.obj,
 
   meta_tab <-
     load_data_obj_metadata(data.obj) %>% as.data.frame() %>% select(all_of(c(
-      subject.var, group.var, time.var, adj.vars
+      subject.var, group.var, time.var, strata.var
     )))
 
   # Convert the alpha.obj list to a data frame
@@ -224,15 +219,15 @@ generate_alpha_boxplot_long <- function (data.obj,
       if (!is.null(group.var)) {
         average_alpha_df <- alpha_df %>%
           group_by(!!sym(group.var),!!sym(time.var)) %>%
-          summarise(across(!!sym(index), mean, na.rm = TRUE), .groups = "drop") %>%
+          dplyr::summarise(across(!!sym(index), mean, na.rm = TRUE), .groups = "drop") %>%
           ungroup() %>%
-          mutate(!!sym(subject.var) := "ALL")
+          dplyr::mutate(!!sym(subject.var) := "ALL")
       } else {
         average_alpha_df <- alpha_df %>%
           group_by(!!sym(time.var)) %>%
-          summarise(across(!!sym(index), mean, na.rm = TRUE), .groups = "drop") %>%
+          dplyr::summarise(across(!!sym(index), mean, na.rm = TRUE), .groups = "drop") %>%
           ungroup() %>%
-          mutate(!!sym(subject.var) := "ALL")
+          dplyr::mutate(!!sym(subject.var) := "ALL")
       }
     }
 
@@ -261,7 +256,7 @@ generate_alpha_boxplot_long <- function (data.obj,
       scale_fill_manual(values = col) +
       {
         if (!is.null(strata.var) & !is.null(group.var)) {
-          facet_nested(
+          ggh4x::facet_nested(
             as.formula(paste(". ~", group.var, "+", strata.var)),
             drop = T,
             scale = "free",
@@ -269,7 +264,7 @@ generate_alpha_boxplot_long <- function (data.obj,
           )
         } else {
           if (group.var != "ALL") {
-            facet_nested(
+            ggh4x::facet_nested(
               as.formula(paste(". ~", group.var)),
               drop = T,
               scale = "free",

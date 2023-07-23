@@ -20,7 +20,8 @@
 #'         and contains a dataframe with the linear model's coefficients, standard errors, t values, and p values.
 #'
 #' @examples
-#' generate_alpha_test_single(data.obj = T2D.obj,
+#' data("subset_T2D.obj")
+#' generate_alpha_test_single(data.obj = subset_T2D.obj,
 #'                            time.var = "visit_number",
 #'                            t.level = "   4",
 #'                            alpha.name = c("shannon", "simpson"),

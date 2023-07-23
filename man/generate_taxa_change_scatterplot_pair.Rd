@@ -84,13 +84,10 @@ at a specified taxonomic level between two time points, with grouping and strati
 }
 \examples{
 # Load required libraries and data
-library(microbiome)
 library(vegan)
 library(tidyverse)
 data(peerj32)
-peerj32.obj <- list()
-peerj32.phy <- peerj32$phyloseq
-peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
+data(peerj32.obj)
 peerj32.obj$meta.dat <- peerj32.obj$meta.dat \%>\% select(all_of("subject")) \%>\% distinct() \%>\%
 mutate(cons = runif(n(),0,5)) \%>\% left_join(peerj32.obj$meta.dat,by = "subject") \%>\%
 column_to_rownames("sample")

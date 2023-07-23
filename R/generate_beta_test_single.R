@@ -11,18 +11,13 @@
 #' @param adj.vars A character vector with the names of columns in the 'meta.dat' component of 'data.obj' that are used as covariates in the PERMANOVA tests. Should be NULL if no covariates are used.
 #' @param dist.name A character vector indicating the types of beta diversity indices to calculate and test. Possible values are: 'BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS'.
 #' @examples
-#' \dontrun{
+#'
 #' library(vegan)
 #' library(GUniFrac)
-#' library(microbiome)
 #' library(ape)
 #' library(philentropy)
 #' library(MicrobiomeStat)
-#'
-#' # Load example data
-#' data("peerj32")
-#'
-#' peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32$phyloseq)
+#' data(peerj32.obj)
 #'
 #' dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
 #'
@@ -36,7 +31,7 @@
 #'   adj.vars = c("sex"),
 #'   dist.name = c('BC', 'Jaccard')
 #' )
-#' }
+#'
 #'
 #' @return A list containing the PERMANOVA results for each beta diversity index and an omnibus p-value. The list includes two elements: "p.tab" - a table of p-values for the PERMANOVA tests across all indices, and "aov.tab" - a table containing detailed PERMANOVA results for each index. The p.tab and aov.tab tables include columns for the terms in the PERMANOVA model, the degrees of freedom, sums of squares, mean squares, F statistics, R-squared values, and p-values.
 #' @export

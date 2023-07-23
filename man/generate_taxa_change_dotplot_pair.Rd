@@ -89,12 +89,9 @@ interactively or saved as a PDF file.
 # Load required libraries
 library(tidyverse)
 library(ggh4x)
-data(peerj32)
 
 # Prepare data for the function
-peerj32.obj <- list()
-peerj32.phy <- peerj32$phyloseq
-peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
+data(peerj32.obj)
 
 # Call the function
 dotplot_result <- generate_taxa_change_dotplot_pair(

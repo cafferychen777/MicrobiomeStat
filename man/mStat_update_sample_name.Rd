@@ -26,15 +26,9 @@ and a feature table (`feature.tab`).
 \examples{
 \dontrun{
 # Load the required libraries
-library(microbiome)
 library(MicrobiomeStat)
 
-# Prepare data for the function
-data(peerj32)
-peerj32.obj <- list()
-peerj32.phy <- peerj32$phyloseq
-peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
-
+data(peerj32.obj)
 # Update sample names
 new.names <- paste0("new-", colnames(peerj32.obj$feature.tab))
 updated_peerj32.obj <- MicrobiomeStat::update_sample_name(data.obj = peerj32.obj,

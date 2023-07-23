@@ -25,16 +25,9 @@ The function first checks if the specified feature level is 'original'. If so, i
 \examples{
 \dontrun{
 # Load the necessary libraries
-library(microbiome)
 library(tidyverse)
 
-# Load the data
-data(peerj32)
-
-# Convert the data to a MicrobiomeStat data object
-peerj32.obj <- list()
-peerj32.phy <- peerj32$phyloseq
-peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
+data(peerj32.obj)
 
 # Use the remove_feature function
 # Here we take the first 3 features as an example

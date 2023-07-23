@@ -22,14 +22,9 @@ It rarefies the data to the specified depth and returns the object with the rare
 \examples{
 \dontrun{
 # Load required libraries and data
-library(microbiome)
 library(tidyverse)
 library(vegan)
-data(peerj32)
-peerj32.obj <- list()
-peerj32.phy <- peerj32$phyloseq
-# Convert phyloseq object to data.obj format
-peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
+data(peerj32.obj)
 # Perform aggregation to create feature.agg.list with Phylum and Family
 peerj32.obj <- mStat_aggregate_by_taxonomy(peerj32.obj, c("Phylum", "Family"))
 # Perform rarefication, remove all-zero rows and update feature.agg.list

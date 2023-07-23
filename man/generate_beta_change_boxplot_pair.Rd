@@ -72,13 +72,9 @@ Optionally, a user can specify whether to save the plot as a PDF file.
 }
 \examples{
 # Load required libraries and example data
-library(microbiome)
 library(tidyverse)
 library(vegan)
-data(peerj32)
-peerj32.obj <- list()
-peerj32.phy <- peerj32$phyloseq
-peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
+data(peerj32.obj)
 
 # Generate the boxplot pair
 generate_beta_change_boxplot_pair(

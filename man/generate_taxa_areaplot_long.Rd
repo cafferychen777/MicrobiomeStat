@@ -74,11 +74,10 @@ different taxa over time. Raw count data will be automatically normalized using 
 The function also supports the generation of plots for grouped data and stratified data.
 }
 \examples{
-library(microbiome)
 library(tidyverse)
 library(ggh4x)
 library(vegan)
-ecam.obj$meta_tab$new_month <- paste("Month",ecam.obj$meta_tab$month)
+data(ecam.obj)
 plot_list_all <- generate_taxa_areaplot_long(
   data.obj = ecam.obj,
   subject.var = "studyid",
@@ -92,7 +91,7 @@ plot_list_all <- generate_taxa_areaplot_long(
   ts.levels = unique(ecam.obj$meta.dat$month)[-1],
   base.size = 10,
   theme.choice = "bw",
-  palette = c(ggsci::pal_npg()(9)),
+  palette = NULL,
   pdf = TRUE,
   file.ann = "test"
 )

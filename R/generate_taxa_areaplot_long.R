@@ -27,11 +27,10 @@
 #' @return A list of ggplot objects, each representing a taxa area plot for the specified feature level.
 #'
 #' @examples
-#' library(microbiome)
 #' library(tidyverse)
 #' library(ggh4x)
 #' library(vegan)
-#' ecam.obj$meta_tab$new_month <- paste("Month",ecam.obj$meta_tab$month)
+#' data(ecam.obj)
 #' plot_list_all <- generate_taxa_areaplot_long(
 #'   data.obj = ecam.obj,
 #'   subject.var = "studyid",
@@ -45,7 +44,7 @@
 #'   ts.levels = unique(ecam.obj$meta.dat$month)[-1],
 #'   base.size = 10,
 #'   theme.choice = "bw",
-#'   palette = c(ggsci::pal_npg()(9)),
+#'   palette = NULL,
 #'   pdf = TRUE,
 #'   file.ann = "test"
 #' )
@@ -289,7 +288,7 @@ generate_taxa_areaplot_long <-
         geom_area(stat = "identity", position = "fill") +
         {
           if (all(round(apply(otu_tab, 2, sum),2) == 1)){
-            scale_y_continuous(expand = c(0, 0), labels = scales::percent)
+            scale_y_continuous(expand = c(0, 0), labels = percent)
           } else {
             scale_y_continuous(expand = c(0, 0))
           }
@@ -300,9 +299,9 @@ generate_taxa_areaplot_long <-
             if (group.var == ""){
             } else {
               if (!is.null(strata.var)){
-                facet_nested(as.formula(paste(". ~", group.var, "+", strata.var)), drop = T, scale = "free", space = "free")
+                ggh4x::facet_nested(as.formula(paste(". ~", group.var, "+", strata.var)), drop = T, scale = "free", space = "free")
               } else {
-                facet_nested(as.formula(paste(". ~", group.var)), drop = T, scale = "free", space = "free")
+                ggh4x::facet_nested(as.formula(paste(". ~", group.var)), drop = T, scale = "free", space = "free")
               }
             }
           }

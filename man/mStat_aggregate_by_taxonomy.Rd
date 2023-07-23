@@ -26,24 +26,18 @@ the OTU table by the specified taxonomy level. The aggregation is done by summin
 The aggregated OTU tables are added to the data object as a list named 'feature.agg.list'.
 }
 \examples{
-\dontrun{
+
 # Load required libraries
-library(microbiome)
 library(tidyverse)
 library(vegan)
-data(peerj32)
-
-# Convert peerj32 data to the necessary format
-peerj32.obj <- list()
-peerj32.phy <- peerj32$phyloseq
-peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
+data(peerj32.obj)
 
 # Specify the taxonomy level
 feature.level <- c("Phylum", "Family")
 
 # Aggregate data object by taxonomy level
 peerj32.obj <- mStat_aggregate_by_taxonomy(peerj32.obj, feature.level)
-}
+
 }
 \author{
 Caffery(Chen) YANG

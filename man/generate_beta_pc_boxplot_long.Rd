@@ -78,16 +78,9 @@ Default method of dimension reduction is PCoA.
 }
 \examples{
 # Load required libraries and data
-library(microbiome)
 library(vegan)
-data(peerj32)
-peerj32.obj <- list()
-peerj32.phy <- peerj32$phyloseq
-peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
-# Calculate Bray-Curtis distance
-dist.obj <- mStat_calculate_beta_diversity(peerj32.obj,"BC")
-# Add metadata information
-attr(dist.obj[["BC"]], "labels") <- ecam.obj$meta_tab
+
+  data(ecam.obj)
   generate_beta_pc_boxplot_long(
   data.obj = ecam.obj,
   dist.obj = NULL,
@@ -102,12 +95,13 @@ attr(dist.obj[["BC"]], "labels") <- ecam.obj$meta_tab
   base.size = 20,
   theme.choice = "bw",
   custom.theme = NULL,
-  palette = c(ggsci::pal_npg()(9),ggsci::pal_jama()(7),ggsci::pal_lancet()(9)),
+  palette = NULL,
   pdf = TRUE,
   file.ann = "test",
   pdf.wid = 11,
   pdf.hei = 8.5
 )
+data(peerj32.obj)
   generate_beta_pc_boxplot_long(
   data.obj = peerj32.obj,
   dist.obj = NULL,

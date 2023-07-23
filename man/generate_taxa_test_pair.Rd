@@ -48,19 +48,15 @@ and returns an analysis of changes in taxa over time across different groups. It
 utilizing specified group variables and covariates.
 }
 \examples{
-\dontrun{
+
 library(vegan)
 library(GUniFrac)
-library(microbiome)
 library(ape)
 library(philentropy)
 library(MicrobiomeStat)
 library(tidyverse)
 
-# Load example data
-data("peerj32")
-peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32$phyloseq)
-
+data(peerj32.obj)
 results <- generate_taxa_test_pair(
   data.obj = peerj32.obj,
   subject.var = "subject",
@@ -73,6 +69,6 @@ results <- generate_taxa_test_pair(
   feature.dat.type = "count"
 )
 
-}
+
 
 }

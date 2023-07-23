@@ -21,6 +21,7 @@
 #'
 #' @examples
 #' \dontrun{
+#'  # library(Biostrings)
 #'   seq_tab <- readRDS(
 #'     system.file(
 #'         "extdata", "dada2_seqtab.rds",
@@ -73,7 +74,7 @@ mStat_import_dada2_as_data_obj <- function(seq_tab,
   }
 
   # refseq to XStringSet
-  refseq <- Biostrings::DNAStringSet(refseq)
+  refseq <- DNAStringSet(refseq)
 
   if (!is.null(phy_tree) && inherits(phy_tree, "character")) {
     phy_tree <- read_tree(phy_tree)

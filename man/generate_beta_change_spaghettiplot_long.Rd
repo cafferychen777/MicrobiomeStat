@@ -72,11 +72,8 @@ This function generates a spaghetti plot visualizing the change in beta diversit
 library("MicrobiomeStat")
 library("tidyverse")
 library(vegan)
-ecam.phy <- ecam
-ecam.obj <- mStat_convert_phyloseq_to_data_obj(ecam.phy)
 
-rownames(ecam.obj$meta.dat) <- ecam.obj$meta.dat$X.SampleID
-ecam.obj$meta.dat$subject.id <- substring(ecam.obj$meta.dat$X.SampleID, 1, 10)
+data(ecam.obj)
 
 dist.obj <- mStat_calculate_beta_diversity(ecam.obj, "BC")
 # Add meta_tab information
@@ -94,7 +91,7 @@ generate_beta_change_spaghettiplot_long(
   dist.name = c("BC"),
   base.size = 20,
   theme.choice = "bw",
-  palette = ggsci::pal_npg()(9),
+  palette = NULL,
   pdf = TRUE,
   file.ann = "test",
   pdf.wid = 11,

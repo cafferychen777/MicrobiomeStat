@@ -84,14 +84,10 @@ The function also has options to customize the size, theme, and color palette of
 }
 \examples{
 # Load required libraries and example data
-library(microbiome)
 library(tidyverse)
 library(vegan)
 library(ggh4x)
-data(peerj32)
-peerj32_obj <- list()
-peerj32_phy <- peerj32$phyloseq
-peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
+data(peerj32.obj)
 dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC'))
 # Add metadata information
 attr(dist.obj[["BC"]], "labels") <- peerj32_obj$meta.dat

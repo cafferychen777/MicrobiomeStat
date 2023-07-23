@@ -30,13 +30,9 @@
 #'
 #' @examples
 #' # Load required libraries and example data
-#' library(microbiome)
 #' library(tidyverse)
 #' library(vegan)
-#' data(peerj32)
-#' peerj32.obj <- list()
-#' peerj32.phy <- peerj32$phyloseq
-#' peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
+#' data(peerj32.obj)
 #' dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
 #' # Add metadata information
 #' attr(dist.obj[["BC"]], "labels") <- peerj32.obj$meta.dat
@@ -221,7 +217,7 @@ generate_beta_ordination_pair <-
         )
 
       if (!is.null(strata.var)) {
-        p <- p + facet_nested(as.formula(paste(".~", strata.var)))
+        p <- p + ggh4x::facet_nested(as.formula(paste(".~", strata.var)))
       }
       # Save the plots as a PDF file
       if (pdf) {

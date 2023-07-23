@@ -30,14 +30,10 @@
 #' The function also has options to customize the size, theme, and color palette of the plot, and to save the plot as a PDF.
 #'
 #' @examples
-#' library(microbiome)
 #' library(tidyverse)
 #' library(ggh4x)
 #' library(vegan)
-#' data(peerj32)
-#' peerj32.obj <- list()
-#' peerj32.phy <- peerj32$phyloseq
-#' peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
+#' data(peerj32.obj)
 #'
 #' plot_list_all <- generate_taxa_barplot_single(
 #'   data.obj = peerj32.obj,
@@ -52,7 +48,7 @@
 #'   base.size = 10,
 #'   theme.choice = "bw",
 #'   custom.theme = NULL,
-#'   palette = c(ggsci::pal_nejm()(8),ggsci::pal_npg()(9),ggsci::pal_jama()(7),ggsci::pal_lancet()(9)),
+#'   palette = NULL,
 #'   pdf = TRUE,
 #'   file.ann = NULL,
 #'   pdf.wid = 11,
@@ -272,15 +268,15 @@ generate_taxa_barplot_single <-
         geom_bar(stat = "identity", position = "fill", width = bar_width) +
         {
           if (!is.null(group.var) && !is.null(strata.var)) {
-            facet_nested(as.formula(paste(". ~", group.var, "+", strata.var)), drop = T, scale = "free", space = "free", switch = "y")
+            ggh4x::facet_nested(as.formula(paste(". ~", group.var, "+", strata.var)), drop = T, scale = "free", space = "free", switch = "y")
           } else if (!is.null(group.var)) {
-            facet_nested(as.formula(paste(". ~", group.var)), drop = T, scale = "free", space = "free", switch = "y")
+            ggh4x::facet_nested(as.formula(paste(". ~", group.var)), drop = T, scale = "free", space = "free", switch = "y")
           } else if (!is.null(strata.var)) {
-            facet_nested(as.formula(paste(". ~", strata.var)), drop = T, scale = "free", space = "free", switch = "y")
+            ggh4x::facet_nested(as.formula(paste(". ~", strata.var)), drop = T, scale = "free", space = "free", switch = "y")
           }
         } +
         labs(x = NULL, y = NULL, title = if_else(!is.null(time.var) & !is.null(t.level) & time.var != "ALL2",paste0(time.var," = ", t.level), "")) +
-        scale_y_continuous(expand = c(0, 0), labels = scales::percent) +
+        scale_y_continuous(expand = c(0, 0), labels = percent) +
         labs(fill = feature.level) +
         scale_fill_manual(values = color_pal) +
         scale_color_manual(values = color_pal) +
@@ -350,15 +346,15 @@ generate_taxa_barplot_single <-
         df_average %>%
         ggplot(aes(x = joint_factor_numeric, y = mean_value, fill = !!sym(feature.level))) +
         geom_bar(stat = "identity", position = "fill", width = bar_width) +
-        scale_y_continuous(expand = c(0, 0), labels = scales::percent) +
+        scale_y_continuous(expand = c(0, 0), labels = percent) +
         {
           if (!is.null(group.var) & group.var != "ALL"){
             if (group.var == ""){
             } else {
               if (!is.null(strata.var)){
-                facet_nested(as.formula(paste(". ~", group.var, "+", strata.var)), drop = T, scale = "free", space = "free")
+                ggh4x::facet_nested(as.formula(paste(". ~", group.var, "+", strata.var)), drop = T, scale = "free", space = "free")
               } else {
-                facet_nested(as.formula(paste(". ~", group.var)), drop = T, scale = "free", space = "free")
+                ggh4x::facet_nested(as.formula(paste(". ~", group.var)), drop = T, scale = "free", space = "free")
               }
             }
           }

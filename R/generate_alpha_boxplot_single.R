@@ -23,14 +23,10 @@
 #' @return A list of boxplots displaying the specified alpha diversity indices at the specified time point across different groupings, stratified by the specified stratification variable (if provided). Each boxplot in the list corresponds to one of the alpha diversity indices specified in `alpha.name`. The boxplots will be saved as PDF files if `pdf` is set to `TRUE`.
 #'
 #' @examples
-#' \dontrun{
-#' library(microbiome)
+#'
 #' library(vegan)
 #' library(ggh4x)
-#' data(peerj32)
-#' peerj32.obj <- list()
-#' peerj32.phy <- peerj32$phyloseq
-#' peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
+#' data(peerj32.obj)
 #'
 #' plot_alpha_list <- generate_alpha_boxplot_single(
 #'   data.obj = peerj32.obj,
@@ -48,7 +44,7 @@
 #'   file.ann = NULL,
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5)
-#' }
+#'
 #'
 #' @export
 generate_alpha_boxplot_single <- function (data.obj,
@@ -176,10 +172,10 @@ generate_alpha_boxplot_single <- function (data.obj,
       scale_fill_manual(values = col) +
       {
         if (!is.null(strata.var) & !is.null(group.var)){
-          facet_nested(as.formula(paste(". ~", group.var, "+", strata.var)), drop = T, scale = "free", space = "free")
+          ggh4x::facet_nested(as.formula(paste(". ~", group.var, "+", strata.var)), drop = T, scale = "free", space = "free")
         } else {
           if (group.var != "ALL"){
-            facet_nested(as.formula(paste(". ~", group.var)), drop = T, scale = "free", space = "free")
+            ggh4x::facet_nested(as.formula(paste(". ~", group.var)), drop = T, scale = "free", space = "free")
           }
         }
       } +

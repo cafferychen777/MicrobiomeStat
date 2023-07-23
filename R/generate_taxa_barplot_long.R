@@ -31,11 +31,10 @@
 #' The function also has options to customize the size, theme, and color palette of the plot, and to save the plot as a PDF.
 #'
 #' @examples
-#' library(microbiome)
 #' library(tidyverse)
 #' library(ggh4x)
 #' library(vegan)
-#' ecam.obj$meta_tab$new_month <- paste("Month",ecam.obj$meta_tab$month)
+#' data(ecam.obj)
 #' plot_list_all <- generate_taxa_barplot_long(
 #'   data.obj = ecam.obj,
 #'   subject.var = "studyid",
@@ -48,7 +47,7 @@
 #'   t0.level = NULL,
 #'   ts.levels = NULL,
 #'   theme.choice = "bw",
-#'   palette = c(ggsci::pal_npg()(9),ggsci::pal_jama()(7),ggsci::pal_lancet()(9)),
+#'   palette = NULL,
 #'   pdf = TRUE,
 #'   file.ann = "test"
 #' )
@@ -292,16 +291,16 @@ generate_taxa_barplot_long <-
         ggplot(aes(x = joint_factor_numeric, y = mean_value, fill = !!sym(feature.level))) +
         geom_bar(stat = "identity", position = "fill", width = bar_width) +
         geom_segment(aes(x = joint_factor_numeric + bar_spacing, xend = joint_factor_numeric + 1 - bar_spacing, y = cumulative_mean_value, yend = next_cumulative_mean_value, group = !!sym(feature.level), color = !!sym(feature.level)),linewidth = 0.6) +
-        scale_y_continuous(expand = c(0, 0), labels = scales::percent) +
+        scale_y_continuous(expand = c(0, 0), labels = percent) +
         scale_x_continuous(expand = c(0.01, 0.01), breaks = unique(df_average$joint_factor_numeric), labels = labels) +
         {
           if (!is.null(group.var)){
             if (group.var == ""){
             } else {
               if (!is.null(strata.var)){
-                facet_nested(as.formula(paste(". ~", group.var, "+", strata.var)), drop = T, scale = "free", space = "free")
+                ggh4x::facet_nested(as.formula(paste(". ~", group.var, "+", strata.var)), drop = T, scale = "free", space = "free")
               } else {
-                facet_nested(as.formula(paste(". ~", group.var)), drop = T, scale = "free", space = "free")
+                ggh4x::facet_nested(as.formula(paste(". ~", group.var)), drop = T, scale = "free", space = "free")
               }
             }
           }

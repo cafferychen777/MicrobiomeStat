@@ -12,6 +12,7 @@
 #'
 #' @examples
 #' # Assuming peerj32.obj is a data object with OTU and metadata tables
+#' data(peerj32.obj)
 #' is_rarefied(peerj32.obj)
 #'
 #' @export
@@ -80,6 +81,7 @@ extract_coef <- function(model) {
 #' index.
 #'
 #' @examples
+#' data(peerj32.obj)
 #' alpha_test_results <- generate_alpha_test_pair(
 #' data.obj = peerj32.obj,
 #' alpha.obj = NULL,
