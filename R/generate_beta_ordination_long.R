@@ -1,29 +1,31 @@
-#' @title Generate beta ordination plots for paired samples
+#' Generate Beta Ordination Plots
 #'
-#' @description This function, part of the MicrobiomeStat package, generates Principle Coordinate Analysis (PCoA) plots using the provided distance object. It is specifically designed for the analysis of microbiome data. This function is tailored for paired samples, such as those from longitudinal studies or experiments with multiple time points.
-#' @name generate_beta_ordination_pair
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param dist.obj (Optional) A distance object generated from distance matrices using 'mStat_calculate_beta_diversity' function on data.obj. If data.obj is not provided, metadata can be retrieved from dist.obj.
-#' @param pc.obj (Optional) A matrix containing the principal coordinates, computed using 'mStat_calculate_PC' function on dist.obj. If not provided, the function will calculate PCoA based on the given distance object.
-#' @param subject.var The variable in the metadata table that represents the subject.
-#' @param time.var The variable in the metadata table that represents the time.
-#' @param group.var (Optional) The variable in the metadata table that represents the grouping factor.
-#' @param strata.var (Optional) The variable in the metadata table that represents the stratification factor.
-#' @param dist.name A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned.
-#' @param base.size (Optional) Base font size for the plot (default is 16).
-#' @param theme.choice (Optional) Name of the theme for the plot. Default is "prism". Other options include "plain", "classic", and any other themes compatible with ggplot2.
-#' @param custom.theme (Optional) A custom ggplot2 theme.
-#' @param palette (Optional) A palette function or character vector with the colors for the plot.
-#' @param pdf (Optional) A boolean indicating whether to save the output as a PDF file (default is TRUE).
-#' @param file.ann (Optional) A string for annotating the output file name.
-#' @param pdf.wid (Optional) The width of the PDF file if `pdf` is set to `TRUE` (default is 11).
-#' @param pdf.hei (Optional) The height of the PDF file if `pdf` is set to `TRUE` (default is 8.5).
-#' @param ... (Optional) Additional arguments to pass to the plotting function.
+#' This function generates beta ordination plots using the specified distance measure.
+#' The plots can be stratified by a given variable and the color and shape aesthetics
+#' can be mapped to groups and time variables, respectively. The function also supports
+#' saving the plots as PDF files.
 #'
-#' @details The function is flexible and allows for various modifications, including the choice of distance measure and stratification factor, providing a comprehensive tool for microbiome beta diversity exploration. It integrates well with other MicrobiomeStat functions and takes their output as input.
+#' @param data.obj a list with the data to be used for the plots. If NULL, the distance object will be used instead.
+#' @param dist.obj a list with distance matrices. If NULL, it will be calculated from the data object.
+#' @param pc.obj a list with principal coordinates. If NULL, it will be calculated from the distance object.
+#' @param subject.var a character string specifying the subject variable.
+#' @param time.var a character string specifying the time variable.
+#' @param t0.level a character string specifying the baseline time level.
+#' @param ts.levels a vector of character strings specifying the time series levels.
+#' @param group.var a character string specifying the grouping variable. If NULL, only color will be used in the plots.
+#' @param strata.var a character string specifying the stratification variable. If NULL, no stratification will be done.
+#' @param dist.name a character vector specifying the distance measures to use. Defaults to c('BC', 'Jaccard').
+#' @param base.size a numeric value specifying the base size for the plot text.
+#' @param theme.choice a character string specifying the theme to use. Defaults to "prism".
+#' @param custom.theme a ggplot2 theme object to use instead of the default theme.
+#' @param palette a character vector specifying the colors to use for the plots. If NULL, a default palette will be used.
+#' @param pdf a logical value indicating whether to save the plots as PDF files. Defaults to TRUE.
+#' @param file.ann a character string specifying an annotation to add to the file names of the saved plots.
+#' @param pdf.wid a numeric value specifying the width of the saved PDF files.
+#' @param pdf.hei a numeric value specifying the height of the saved PDF files.
+#' @param ... further arguments to be passed to the underlying functions.
 #'
-#' @return A PCoA plot displaying the beta diversity ordination, stratified by the specified grouping and/or strata variables (if provided). The plot will be saved as a PDF if `pdf` is set to `TRUE`.
-#'
+#' @return A list of ggplot2 objects representing the beta ordination plots.
 #' @seealso \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} for creating the distance object, \code{\link[MicrobiomeStat]{mStat_calculate_PC}} for computing the principal coordinates, and \code{\link[ggplot2]{geom_point}}, \code{\link[ggplot2]{geom_boxplot}} for the underlying plot functions used, and \code{\link[MicrobiomeStat]{mStat_convert_DGEList_to_data_obj}}, \code{\link[MicrobiomeStat]{mStat_convert_DESeqDataSet_to_data_obj}}, \code{\link[MicrobiomeStat]{mStat_convert_phyloseq_to_data_obj}}, \code{\link[MicrobiomeStat]{mStat_convert_SummarizedExperiment_to_data_obj}}, \code{\link[MicrobiomeStat]{mStat_import_qiime2_as_data_obj}}, \code{\link[MicrobiomeStat]{mStat_import_mothur_as_data_obj}}, \code{\link[MicrobiomeStat]{mStat_import_dada2_as_data_obj}}, \code{\link[MicrobiomeStat]{mStat_import_biom_as_data_obj}} for data conversion.
 #'
 #' @author Caffery Yang \email{cafferychen7850@@gmail.com}

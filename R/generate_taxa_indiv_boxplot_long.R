@@ -30,8 +30,6 @@
 #' @return A ggplot object showing the abundance distribution of taxa over time.
 #'
 #' @examples
-#'
-#' @examples
 #' # Load required libraries and example data
 #' library(microbiome)
 #' library(tidyverse)

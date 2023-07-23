@@ -1,25 +1,38 @@
-#' Generate boxplot of individual taxa abundance distribution
+#' Generate Taxa Boxplots for Single Time Point
 #'
-#' This function creates a boxplot showing the abundance distribution of individual taxa at a specified
-#' taxonomic level at one or more time points from cross-sectional data. It takes a MicrobiomeStat data object as input.
+#' This function generates boxplots to visualize the taxonomic composition of samples for a single time point in a longitudinal study.
+#' It provides options for grouping and stratifying data, and selecting the top k features based on a user-defined function.
 #'
-#' @param data.obj MicrobiomeStat data object containing OTU, taxonomy, and metadata.
-#' @param subject.var Character string specifying subject variable in metadata.
-#' @param time.var Character string specifying time variable in metadata.
-#' @param group.var Character string specifying optional group variable in metadata.
-#' @param strata.var Character string specifying optional strata variable in metadata.
-#' @param feature.level Character vector specifying taxonomic level(s) for boxplots. Default 'Phylum'.
-#' @param prev.filter Prevalence threshold for filtering taxa before plotting.
-#' @param abund.filter Abundance threshold for filtering taxa before plotting.
-#' @param Transform Transformation to apply to abundance data before plotting. Default is "log10".
-#' @param features.plot Character vector of specific taxa names to plot. Default NULL plots all.
-#' @param top.k.plot Integer specifying number of top taxa to plot if features.plot is NULL. Default NULL plots all.
-#' @param top.k.func Function specifying metric for determining top k taxa if features.plot is NULL. Default NULL uses row means.
-#' @param pdf Logical, if TRUE save plot as a multi-page PDF file. Default is TRUE.
-#' @param file.ann Optional character string to add to PDF file name.
-#' @param ... Additional arguments passed to ggplot2 functions.
+#' @param data.obj A list object containing the input data.
+#' @param subject.var A string indicating the variable for subject identifiers.
+#' @param time.var A string indicating the variable for time points. If NULL, the function assumes that data for a single time point is provided.
+#' @param t.level A string specifying the time level to generate the plot for. If NULL, the function assumes that data for a single time point is provided.
+#' @param group.var Optional string specifying the variable for groups.
+#' @param strata.var Optional string specifying the variable for strata.
+#' @param feature.level A string specifying the taxonomic level to plot.
+#' @param features.plot A character vector of features to include in the plot. If NULL, top features will be selected based on `top.k.plot` and `top.k.func`.
+#' @param feature.dat.type A string indicating the type of data in the input object. Options are "count", "proportion", "other".
+#' @param top.k.plot An integer indicating the top K features to plot based on the function specified in `top.k.func`.
+#' @param top.k.func A function to determine the top K features to plot.
+#' @param Transform A string indicating the transformation to apply to the data before plotting. Options are "identity", "sqrt", "log".
+#' @param prev.filter A numeric value indicating the minimum prevalence for a feature to be included in the plot.
+#' @param abund.filter A numeric value indicating the minimum abundance for a feature to be included in the plot.
+#' @param base.size A numeric value specifying the base font size for the plot.
+#' @param theme.choice A string specifying the ggplot theme to use for the plot.
+#' @param custom.theme A ggplot2 theme object for user-defined theme. Default is NULL.
+#' @param palette A character vector specifying the color palette. Default is NULL.
+#' @param pdf A logical value indicating whether to save the plot as a PDF. Default is TRUE.
+#' @param file.ann A string for additional annotation to the file name. Default is NULL.
+#' @param pdf.wid A numeric value specifying the width of the PDF file. Default is 11.
+#' @param pdf.hei A numeric value specifying the height of the PDF file. Default is 8.5.
+#' @param ... Additional arguments to be passed to the function.
 #'
-#' @return A ggplot object showing the abundance distribution of taxa.
+#' @return A list of ggplot objects for each taxonomic level.
+#' @details
+#' This function generates a boxplot of taxa abundances for a single time point in a longitudinal study.
+#' The boxplot can be stratified by a group variable and/or other variables.
+#' It allows for different taxonomic levels to be used and a specific number of features to be included in the plot.
+#' The function also has options to customize the size, theme, and color palette of the plot, and to save the plot as a PDF.
 #'
 #' @examples
 #' # Load required libraries and example data

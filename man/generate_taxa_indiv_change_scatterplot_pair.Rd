@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_taxa_indiv_change_scatterplot_pair.R
 \name{generate_taxa_indiv_change_scatterplot_pair}
 \alias{generate_taxa_indiv_change_scatterplot_pair}
-\title{Generate taxa-level individual change scatterplot pairs}
+\title{Generate Individual Change Scatterplot Pairs for Taxonomic Composition Data}
 \usage{
 generate_taxa_indiv_change_scatterplot_pair(
   data.obj,
@@ -31,44 +31,64 @@ generate_taxa_indiv_change_scatterplot_pair(
 )
 }
 \arguments{
-\item{data.obj}{A MicrobiomeStat data object containing the feature table, taxonomy table, and metadata.}
+\item{data.obj}{A list object containing the input data.}
 
-\item{subject.var}{Character string specifying the subject variable in the metadata.}
+\item{subject.var}{A string indicating the variable for subject identifiers.}
 
-\item{time.var}{Character string specifying the time variable in the metadata.}
+\item{time.var}{A string indicating the variable for time points.}
 
-\item{group.var}{Character string specifying the grouping variable in the metadata. Default is NULL.}
+\item{group.var}{Optional string specifying the variable for groups.}
 
-\item{strata.var}{Character string specifying the stratification variable in the metadata. Default is NULL.}
+\item{strata.var}{Optional string specifying the variable for strata.}
 
-\item{change.base}{Level of time variable to use as baseline for computing change.}
+\item{change.base}{A string indicating the base time point for change computation.}
 
-\item{change.func}{Function specifying how to compute change between time points. Default is "difference".}
+\item{change.func}{A string or function to compute the change in abundance. If a string, it should be one of "difference", "relative difference", or "lfc" (log fold change). If a function, it should take two arguments representing the abundances at two time points and return a numeric value indicating the change.}
 
-\item{features.plot}{Character vector of specific taxa names to plot. Default NULL plots top taxa.}
+\item{feature.level}{A string indicating the taxonomic level to plot.}
 
-\item{top.k.plot}{Integer specifying number of top taxa to plot if features.plot is NULL. Default NULL plots all passing filters.}
+\item{features.plot}{A character vector of features to include in the plot. If NULL, top features will be selected based on `top.k.plot` and `top.k.func`.}
 
-\item{top.k.func}{Function specifying metric for determining top k taxa. Default NULL uses row means.}
+\item{feature.dat.type}{A string indicating the type of data in the input object. Options are "count", "proportion", "other".}
 
-\item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering taxa.}
+\item{top.k.plot}{An integer indicating the top K features to plot based on the function specified in `top.k.func`.}
 
-\item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering taxa.}
+\item{top.k.func}{A function to determine the top K features to plot.}
 
-\item{pdf}{Logical, if TRUE save plots as a multi-page PDF file. Default is TRUE.}
+\item{prev.filter}{A numeric value indicating the minimum prevalence for a feature to be included in the plot.}
 
-\item{file.ann}{Character string for file annotation to include in PDF file name. Default NULL.}
+\item{abund.filter}{A numeric value indicating the minimum abundance for a feature to be included in the plot.}
 
-\item{...}{Additional arguments passed to ggsave().}
+\item{base.size}{A numeric value specifying the base font size for the plot.}
 
-\item{taxa.level}{Character vector specifying the taxa level(s) to include. Default is c('Phylum', 'Family', 'Genus').}
+\item{theme.choice}{A string specifying the theme of the plot. Default is "bw".}
+
+\item{custom.theme}{A custom ggplot theme if the user wants to apply it. Default is NULL.}
+
+\item{palette}{A character vector specifying the color palette. Default is NULL.}
+
+\item{pdf}{A logical value indicating whether to save the plot as a PDF. Default is TRUE.}
+
+\item{file.ann}{A string for additional annotation to the file name. Default is NULL.}
+
+\item{pdf.wid}{A numeric value specifying the width of the PDF file. Default is 11.}
+
+\item{pdf.hei}{A numeric value specifying the height of the PDF file. Default is 8.5.}
+
+\item{...}{Additional arguments to be passed to the function.}
 }
 \value{
-A list of ggplot objects, one for each taxa level.
+A list of ggplot objects, one for each taxonomic level.
 }
 \description{
-This function generates scatterplot pairs showing the change in abundance of taxa at different levels (Phylum, Family, or Genus) between two time points.
-It allows users to compare the changes within and between different groups and strata.
+This function generates scatterplots to visualize the change in taxonomic composition of samples between two time points in a longitudinal study.
+It also provides options for grouping and stratifying data, and selecting the top k features based on a user-defined function.
+}
+\details{
+This function generates a scatterplot of the change in taxa abundances between two time points in a longitudinal study.
+The scatterplot can be stratified by a group variable and/or other variables.
+It also allows for different taxonomic levels to be used and a specific number of features to be included in the plot.
+The function also has options to customize the size, theme, and color palette of the plot, and to save the plot as a PDF.
 }
 \examples{
 \dontrun{

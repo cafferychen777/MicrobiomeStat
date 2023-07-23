@@ -1,25 +1,35 @@
-#' Generate taxa-level individual change boxplot pairs
+#' Generate Individual Taxa Change Boxplot Pair
 #'
-#' This function generates a boxplot pair that shows the change in abundance of taxa at different levels (Phylum, Family, or Genus) between two time points.
-#' It allows users to compare the changes in abundance within and between different groups and strata.
+#' This function generates boxplot pairs visualizing the changes in abundance of individual taxa over time.
+#' The boxplots show the change in abundance for each taxon for different groups and strata.
+#' It also allows for a prevalence and abundance filter to be applied to the data, and can optionally save the plots as a PDF.
 #'
-#' @name generate_taxa_indiv_change_boxplot_pair
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param subject.var A character string specifying the subject variable in the metadata.
-#' @param time.var A character string specifying the time variable in the metadata.
-#' @param group.var A character string specifying the grouping variable in the metadata. Default is NULL.
-#' @param strata.var A character string specifying the stratification variable in the metadata. Default is NULL.
-#' @param change.base A numeric value specifying the base time point for calculating the change in abundance.
-#' @param change.func A character string specifying the function to apply for calculating the change in abundance. Default is 'log'.
-#' @param zero.handle A character string specifying the method to handle zero values. Default is 'pseudo'.
-#' @param feature.level A character vector specifying the taxa level(s) to include in the analysis. Default is c('Phylum', 'Family', 'Genus').
-#' @param prev.filter A numeric value specifying the minimum prevalence threshold for filtering taxa.
-#' @param abund.filter A numeric value specifying the minimum abundance threshold for filtering taxa.
-#' @param pdf A logical value indicating whether to save the boxplot to a PDF file. Default is TRUE.
-#' @param file.ann A character string specifying the file annotation. Default is NULL.
-#' @param ... Additional arguments passed to \code{ggplot2::ggsave()}.
+#' @param data.obj A data object containing the data to be plotted.
+#' @param subject.var A character string specifying the subject variable.
+#' @param time.var A character string specifying the time variable.
+#' @param group.var A character string specifying the group variable. Default is NULL.
+#' @param strata.var A character string specifying the strata variable. Default is NULL.
+#' @param change.base The time point to be used as the base for calculating change in abundance.
+#' @param change.func The function to be used for calculating change in abundance. Default is "relative difference".
+#' @param feature.level The feature level at which to plot the data.
+#' @param feature.dat.type The type of the feature data. Can be "count", "proportion", or "other". Default is "count".
+#' @param features.plot A character vector specifying the features to be plotted. Default is NULL.
+#' @param top.k.plot The top k features to be plotted. Default is NULL.
+#' @param top.k.func The function to be used for selecting the top k features. Default is NULL.
+#' @param prev.filter The prevalence filter to be applied to the data.
+#' @param abund.filter The abundance filter to be applied to the data.
+#' @param base.size The base size for the plot. Default is 16.
+#' @param theme.choice The theme choice for the plot. Default is "prism".
+#' @param custom.theme An optional custom theme for the plot. Default is NULL.
+#' @param palette A character vector specifying the color palette for the plot. Default is NULL.
+#' @param pdf A logical value indicating whether to save the plot as a PDF. Default is TRUE.
+#' @param file.ann An optional character string to be appended to the file name of the PDF. Default is NULL.
+#' @param pdf.wid The width of the PDF. Default is 11.
+#' @param pdf.hei The height of the PDF. Default is 8.5.
+#' @param ... Additional arguments passed to the underlying functions.
 #'
-#' @return A ggplot object representing the taxa-level individual change boxplot pair.
+#'
+#' @return A list of ggplot objects, each of which is a boxplot visualizing the changes in abundance of individual taxa over time.
 #'
 #' @examples
 #' # Load required libraries and data
@@ -136,7 +146,7 @@ generate_taxa_change_boxplot_pair <-
     theme_to_use <-
       if (!is.null(custom.theme))
         custom.theme else
-      theme_function
+          theme_function
 
     # 设置颜色，根据 time.var 的唯一值数量生成颜色列表
     if (is.null(palette)) {
@@ -385,7 +395,8 @@ generate_taxa_change_boxplot_pair <-
           axis.ticks.x = element_blank(),
           plot.margin = unit(c(0.3, 0.3, 0.3, 0.3), units = "cm"),
           legend.text = ggplot2::element_text(size = 16),
-          legend.title = ggplot2::element_text(size = 16)
+          legend.title = ggplot2::element_text(size = 16),
+          ...
         )
 
       if (!is.null(strata.var)) {

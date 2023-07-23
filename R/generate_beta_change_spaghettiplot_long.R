@@ -189,7 +189,7 @@ generate_beta_change_spaghettiplot_long <-
         filter(!!sym(paste0(time.var,".subject")) != !!sym(paste0(time.var,".sample"))) %>%
         ungroup() %>%
         select(!!sym(paste0(subject.var, ".subject")), !!sym(paste0(time.var, ".subject")), distance) %>%
-        rename(!!sym(subject.var) := !!sym(paste0(subject.var, ".subject")), !!sym(time.var) := !!sym(paste0(time.var, ".subject")))
+        dplyr::rename(!!sym(subject.var) := !!sym(paste0(subject.var, ".subject")), !!sym(time.var) := !!sym(paste0(time.var, ".subject")))
 
       if (!is.null(strata.var)&!is.null(group.var)){
         long.df <- long.df %>% left_join(meta_tab %>% select(-all_of("sample")) %>% distinct(),by = c(subject.var,time.var))

@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_beta_ordination_single.R
 \name{generate_beta_ordination_single}
 \alias{generate_beta_ordination_single}
-\title{Generate beta diversity change spaghetti plot for longitudinal data}
+\title{Generate Beta Diversity Ordination Plot}
 \usage{
 generate_beta_ordination_single(
   data.obj = NULL,
@@ -26,47 +26,49 @@ generate_beta_ordination_single(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
+\item{data.obj}{A data object. Default is NULL.}
 
-\item{dist.obj}{(Optional) An object storing the pre-calculated distance matrices. If provided, the function will not compute the distances again. This can save a lot of computational time when working with large datasets.}
+\item{dist.obj}{A distance object. Default is NULL.}
 
-\item{subject.var}{A character string specifying the name of the variable that indicates the subject in the metadata table.}
+\item{pc.obj}{A principal component object. Default is NULL.}
 
-\item{time.var}{A character string specifying the name of the variable that indicates the time in the metadata table.}
+\item{subject.var}{String. Variable to be used as subject.}
 
-\item{group.var}{(Optional) A character string specifying the name of the variable that indicates the grouping factor in the metadata table.}
+\item{time.var}{String. Variable to be used for time. Default is NULL.}
 
-\item{strata.var}{(Optional) A character string specifying the name of the variable that indicates the stratification factor in the metadata table.}
+\item{t.level}{Time level to filter the data by. Default is NULL.}
 
-\item{dist.name}{A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned.}
+\item{group.var}{String. Variable to be used for grouping. Default is NULL.}
 
-\item{base.size}{(Optional) A numeric value specifying the base size of the plot elements. The default is 16.}
+\item{strata.var}{String. Variable to be used for stratification. Default is NULL.}
 
-\item{theme.choice}{(Optional) A character string specifying the name of the ggplot2 theme to be used for the plot. The default is "bw".}
+\item{dist.name}{Character vector. Name of distance(s) to be used. Default is c('BC', 'Jaccard').}
 
-\item{custom.theme}{(Optional) A custom ggplot2 theme. If provided, this theme will be used instead of the theme specified by `theme.choice`.}
+\item{base.size}{Numeric. Base size for plot elements. Default is 16.}
 
-\item{palette}{(Optional) A character vector specifying the color palette to be used for the plot. If not provided, a default color palette will be used.}
+\item{theme.choice}{String. Theme choice for the plot. Default is 'prism'.}
 
-\item{pdf}{(Optional) A logical value indicating whether to save the plot as a PDF file. The default is TRUE.}
+\item{custom.theme}{A custom theme to be used. Default is NULL.}
 
-\item{file.ann}{(Optional) A character string to be added as an annotation to the file name of the output PDF file.}
+\item{palette}{A custom color palette to be used. Default is NULL.}
 
-\item{pdf.wid}{(Optional) A numeric value specifying the width of the output PDF file. The default is 11.}
+\item{pdf}{Logical. If TRUE, the plots are saved as PDF files. Default is TRUE.}
 
-\item{pdf.hei}{(Optional) A numeric value specifying the height of the output PDF file. The default is 8.5.}
+\item{file.ann}{File annotation. Default is NULL.}
 
-\item{...}{(Optional) Additional arguments to pass to the `ggplot()` function.}
+\item{pdf.wid}{Width of the PDF. Default is 11.}
 
-\item{t0.level}{(Optional) The baseline time point level. If not provided, the function will infer it from the data.}
+\item{pdf.hei}{Height of the PDF. Default is 8.5.}
 
-\item{ts.levels}{(Optional) A vector specifying the levels of the time points to be considered. If not provided, the function will infer it from the data.}
+\item{...}{Additional arguments to be passed.}
 }
 \value{
 A PCoA plot displaying the beta diversity ordination, stratified by the specified grouping and/or strata variables (if provided). The plot will be saved as a PDF if `pdf` is set to `TRUE`.
 }
 \description{
-This function generates a spaghetti plot visualizing the change in beta diversity over time. The plot is produced for different groups and strata in the given longitudinal data. The function allows users to customize the appearance of the plot and the data processing parameters. If desired, the generated plot can be saved as a PDF file.
+This function generates ordination plots (Principal Component Analysis) based on
+beta-diversity distances. It also allows for stratification and grouping of samples,
+and calculation of distances at a specific time point.
 }
 \details{
 The function is flexible and allows for various modifications, including the choice of distance measure and stratification factor, providing a comprehensive tool for microbiome beta diversity exploration. It integrates well with other MicrobiomeStat functions and takes their output as input.

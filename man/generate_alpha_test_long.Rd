@@ -37,6 +37,8 @@ the analysis, excluding the reference level.}
 indices to compute. Options include: "shannon", "simpson",
 "observed_species", "chao1", "ace", and "pielou".}
 
+\item{subject.var}{A string indicating the variable for subject identifiers.}
+
 \item{group.var}{A string representing the group variable's name in the
 metadata.}
 

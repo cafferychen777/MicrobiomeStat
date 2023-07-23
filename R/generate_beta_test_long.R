@@ -105,7 +105,7 @@ generate_beta_test_long <- function(data.obj,
       Variable = ifelse(Variable == group.var, group.var, Variable),
       Distance = rep(dist.name, each = n() / length(dist.name))
     ) %>%
-    rename(
+    dplyr::rename(
       `DF` = Df,
       `Sum_Sq` = SumsOfSqs,
       `Mean_Sq` = MeanSqs,

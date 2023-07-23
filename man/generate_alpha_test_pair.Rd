@@ -29,6 +29,8 @@ metadata. The default is NULL.}
 indices to compute. Options include: "shannon", "simpson",
 "observed_species", "chao1", "ace", and "pielou".}
 
+\item{subject.var}{A string specifying the subject variable column in the metadata.}
+
 \item{group.var}{A string representing the group variable's name in the
 metadata.}
 

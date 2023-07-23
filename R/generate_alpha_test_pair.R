@@ -73,6 +73,7 @@ extract_coef <- function(model) {
 #' "observed_species", "chao1", "ace", and "pielou".
 #' @param group.var A string representing the group variable's name in the
 #' metadata.
+#' @param subject.var A string specifying the subject variable column in the metadata.
 #' @param adj.vars A character vector with the names of adjustment variables in
 #' the metadata.
 #' @return A list containing the association tests for each alpha diversity

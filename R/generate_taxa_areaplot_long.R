@@ -1,24 +1,30 @@
-#' Generate stacked barplot pairs for taxonomic composition data
+#' Generate taxa area plots over time
 #'
-#' This function generates stacked barplots of relative abundances for the given microbial taxonomic composition
-#' data, stratified by specified subject and time variables, and optionally by group and strata variables.
-#' @name generate_taxa_barplot_long
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' and 'meta_tab' (metadata table).
-#' @param subject.var A character vector specifying the subject variable.
-#' @param time.var A character vector specifying the time variable.
-#' @param group.var Optional character vector specifying the group variable.
-#' @param strata.var Optional character vector specifying the strata variable.
-#' @param feature.level A character vector specifying the taxonomic level to generate the plot for.
-#' @param other.abund.cutoff A numeric value to specify the cutoff for merging taxa with relative abundances
-#' below this threshold into 'Other'.
-#' @param pdf A logical value indicating whether to save the plot as a PDF file (TRUE) or to display it (FALSE).
-#' @param file.ann Optional file annotation to append to the output PDF file.
-#' @param ... Additional arguments to be passed to the plot function.
-
-#' @return A ggplot stacked barplot with relative abundances of taxa stratified by subject and time (and optionally,
-#' group and strata), displaying individual taxa above the specified other.abund.cutoff, and merging those below the
-#' cutoff into 'Other'. If pdf == TRUE, the plot is saved to a PDF file in the working directory.
+#' This function generates taxa area plots for a given data object. The plots will show the relative abundance of
+#' different taxa over time. Raw count data will be automatically normalized using rarefaction and total sum scaling (TSS).
+#' The function also supports the generation of plots for grouped data and stratified data.
+#'
+#' @param data.obj A data object containing the taxa count data.
+#' @param subject.var Name of the subject variable.
+#' @param time.var Name of the time variable.
+#' @param group.var Optional, name of the group variable. Default is NULL.
+#' @param strata.var Optional, name of the stratification variable. Default is NULL.
+#' @param feature.level The taxonomic level to plot. Default is "original".
+#' @param feature.dat.type The type of features data; can be "count", "proportion", or "other". Default is "count".
+#' @param feature.number The number of features to plot. Default is 20.
+#' @param t0.level The initial time level. Default is NULL.
+#' @param ts.levels The time series levels. Default is NULL.
+#' @param base.size The base size for the ggplot2 theme. Default is 10.
+#' @param theme.choice The theme choice for the ggplot2 theme. Default is "bw".
+#' @param custom.theme Optional, a custom ggplot2 theme. Default is NULL.
+#' @param palette Optional, a palette to use for the plot. Default is NULL.
+#' @param pdf Logical indicating if the plot should be saved as a PDF. Default is TRUE.
+#' @param file.ann Optional, a file annotation. Default is NULL.
+#' @param pdf.wid Width of the output PDF. Default is 11.
+#' @param pdf.hei Height of the output PDF. Default is 8.5.
+#' @param ... Additional arguments to pass to the function.
+#'
+#' @return A list of ggplot objects, each representing a taxa area plot for the specified feature level.
 #'
 #' @examples
 #' library(microbiome)

@@ -1,34 +1,38 @@
-#' @title Generate Boxplot Pairs for Individual Changes in Taxonomic Composition
+#' Generate Individual Change Boxplot Pairs for Taxonomic Composition Data
 #'
-#' @description This function generates boxplot pairs showing the change in abundance of taxa at different taxonomic levels between two time points.
-#' It allows users to compare the changes in abundance within and between different groups (specified by the `group.var` parameter).
-#' If a stratification variable (`strata.var`) is provided, the function will also stratify the analysis by this variable.
+#' This function generates boxplots to visualize the change in taxonomic composition of samples between two time points in a longitudinal study.
+#' It also provides options for grouping and stratifying data, and selecting the top k features based on a user-defined function.
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list).
-#' @param subject.var A character string defining the subject variable in the metadata.
-#' @param time.var A character string defining the time variable in the metadata.
-#' @param group.var A character string defining the group variable in the metadata used for sorting and facetting.
-#' @param strata.var (Optional) A character string defining strata variable in the metadata used for sorting and facetting.
-#' @param change.base A numeric value specifying the base time point for calculating the change in abundance.
-#' @param change.func A character string specifying the function to apply for calculating the change in abundance. Default is 'log'.
-#' @param feature.level A character vector specifying the taxa level(s) to include in the analysis. Default is c('Phylum', 'Family', 'Genus').
-#' @param features.plot A character vector specifying the taxa to be plotted. If NULL (default), the top k taxa by mean abundance will be plotted.
-#' @param feature.dat.type A character string specifying the type of the data in feature.dat. Options are "count", "proportion", or "other".
-#' @param top.k.plot A numeric value specifying the number of top taxa to be plotted if features.plot is NULL. If NULL (default), all taxa will be plotted.
-#' @param top.k.func A function to compute the top k taxa if features.plot is NULL. If NULL (default), the mean function will be used.
-#' @param prev.filter A numeric value defining the prevalence threshold to filter taxa, between 0 and 1.
-#' @param abund.filter A numeric value defining the abundance threshold to filter taxa.
-#' @param base.size Base font size for the generated plots.
-#' @param theme.choice Plot theme choice (default: "bw").
-#' @param custom.theme Custom ggplot2 theme (optional).
-#' @param palette Color palette used for the plots.
-#' @param pdf A logical value. If TRUE (default), saves the plot as a PDF file. If FALSE, the plot will be displayed interactively without creating a PDF.
-#' @param file.ann (Optional) A character string specifying a file annotation to include in the generated PDF file's name.
-#' @param pdf.wid Width of the PDF plots.
-#' @param pdf.hei Height of the PDF plots.
-#' @param ... Additional parameters to be passed.
+#' @param data.obj A list object containing the input data.
+#' @param subject.var A string indicating the variable for subject identifiers.
+#' @param time.var A string indicating the variable for time points.
+#' @param group.var Optional string specifying the variable for groups.
+#' @param strata.var Optional string specifying the variable for strata.
+#' @param change.base A string indicating the base time point for change computation.
+#' @param change.func A string or function to compute the change in abundance. If a string, it should be one of "difference", "relative difference", or "lfc" (log fold change). If a function, it should take two arguments representing the abundances at two time points and return a numeric value indicating the change.
+#' @param feature.level A string indicating the taxonomic level to plot.
+#' @param features.plot A character vector of features to include in the plot. If NULL, top features will be selected based on `top.k.plot` and `top.k.func`.
+#' @param feature.dat.type A string indicating the type of data in the input object. Options are "count", "proportion", "other".
+#' @param top.k.plot An integer indicating the top K features to plot based on the function specified in `top.k.func`.
+#' @param top.k.func A function to determine the top K features to plot.
+#' @param prev.filter A numeric value indicating the minimum prevalence for a feature to be included in the plot.
+#' @param abund.filter A numeric value indicating the minimum abundance for a feature to be included in the plot.
+#' @param base.size A numeric value specifying the base font size of the plot.
+#' @param theme.choice A string specifying the ggplot theme to use for the plot.
+#' @param custom.theme A ggplot2 theme object for user-defined theme. Default is NULL.
+#' @param palette A character vector specifying the color palette. Default is NULL.
+#' @param pdf A logical value indicating whether to save the plot as a PDF. Default is TRUE.
+#' @param file.ann A string for additional annotation to the file name. Default is NULL.
+#' @param pdf.wid A numeric value specifying the width of the PDF. Default is 11.
+#' @param pdf.hei A numeric value specifying the height of the PDF. Default is 8.5.
+#' @param ... Additional arguments to be passed to the function.
 #'
-#' @return A ggplot object representing the taxa-level individual change boxplot pair.
+#' @return A list of ggplot objects, one for each taxonomic level.
+#' @details
+#' This function generates a boxplot of the change in taxa abundances between two time points in a longitudinal study.
+#' The boxplot can be stratified by a group variable and/or other variables.
+#' It allows for different taxonomic levels to be used and a specific number of features to be included in the plot.
+#' The function also has options to customize the size, theme, and color palette of the plot, and to save the plot as a PDF.
 #'
 #' @examples
 #' # Load required libraries and data

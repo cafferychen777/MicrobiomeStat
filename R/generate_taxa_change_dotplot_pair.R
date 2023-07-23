@@ -230,7 +230,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
     # 将数据从长格式转换为宽格式，将不同的时间点的mean_abundance放到不同的列中
     otu_tab_norm_agg_wide <- otu_tab_norm_agg %>%
       spread(key = !!sym(time.var), value = mean_abundance) %>%
-      rename(time1_mean_abundance = change.base,
+      dplyr::rename(time1_mean_abundance = change.base,
              time2_mean_abundance = change.after)
 
     # 计算不同时间点的mean_abundance差值
@@ -266,7 +266,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
     # 将数据从长格式转换为宽格式，将不同的时间点的prevalence放到不同的列中
     prevalence_time_wide <- prevalence_time %>%
       spread(key = time.var, value = prevalence) %>%
-      rename(time1_prevalence = change.base,
+      dplyr::rename(time1_prevalence = change.base,
              time2_prevalence = change.after)
 
     # 计算不同时间点的prevalence差值

@@ -29,6 +29,7 @@
 #' @param alpha.name A character vector with the names of alpha diversity
 #' indices to compute. Options include: "shannon", "simpson",
 #' "observed_species", "chao1", "ace", and "pielou".
+#' @param subject.var A string indicating the variable for subject identifiers.
 #' @param group.var A string representing the group variable's name in the
 #' metadata.
 #' @param adj.vars A character vector with the names of adjustment variables in

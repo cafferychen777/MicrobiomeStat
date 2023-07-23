@@ -1,25 +1,27 @@
-#' @title Generate beta diversity change spaghetti plot for longitudinal data
+#' Generate Beta Diversity Ordination Plot
 #'
-#' @description This function generates a spaghetti plot visualizing the change in beta diversity over time. The plot is produced for different groups and strata in the given longitudinal data. The function allows users to customize the appearance of the plot and the data processing parameters. If desired, the generated plot can be saved as a PDF file.
-#' @name generate_beta_ordination_single
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param dist.obj (Optional) An object storing the pre-calculated distance matrices. If provided, the function will not compute the distances again. This can save a lot of computational time when working with large datasets.
-#' @param subject.var A character string specifying the name of the variable that indicates the subject in the metadata table.
-#' @param time.var A character string specifying the name of the variable that indicates the time in the metadata table.
-#' @param t0.level (Optional) The baseline time point level. If not provided, the function will infer it from the data.
-#' @param ts.levels (Optional) A vector specifying the levels of the time points to be considered. If not provided, the function will infer it from the data.
-#' @param group.var (Optional) A character string specifying the name of the variable that indicates the grouping factor in the metadata table.
-#' @param strata.var (Optional) A character string specifying the name of the variable that indicates the stratification factor in the metadata table.
-#' @param dist.name A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned.
-#' @param base.size (Optional) A numeric value specifying the base size of the plot elements. The default is 16.
-#' @param theme.choice (Optional) A character string specifying the name of the ggplot2 theme to be used for the plot. The default is "bw".
-#' @param custom.theme (Optional) A custom ggplot2 theme. If provided, this theme will be used instead of the theme specified by `theme.choice`.
-#' @param palette (Optional) A character vector specifying the color palette to be used for the plot. If not provided, a default color palette will be used.
-#' @param pdf (Optional) A logical value indicating whether to save the plot as a PDF file. The default is TRUE.
-#' @param file.ann (Optional) A character string to be added as an annotation to the file name of the output PDF file.
-#' @param pdf.wid (Optional) A numeric value specifying the width of the output PDF file. The default is 11.
-#' @param pdf.hei (Optional) A numeric value specifying the height of the output PDF file. The default is 8.5.
-#' @param ... (Optional) Additional arguments to pass to the `ggplot()` function.
+#' This function generates ordination plots (Principal Component Analysis) based on
+#' beta-diversity distances. It also allows for stratification and grouping of samples,
+#' and calculation of distances at a specific time point.
+#'
+#' @param data.obj A data object. Default is NULL.
+#' @param dist.obj A distance object. Default is NULL.
+#' @param pc.obj A principal component object. Default is NULL.
+#' @param subject.var String. Variable to be used as subject.
+#' @param time.var String. Variable to be used for time. Default is NULL.
+#' @param t.level Time level to filter the data by. Default is NULL.
+#' @param group.var String. Variable to be used for grouping. Default is NULL.
+#' @param strata.var String. Variable to be used for stratification. Default is NULL.
+#' @param dist.name Character vector. Name of distance(s) to be used. Default is c('BC', 'Jaccard').
+#' @param base.size Numeric. Base size for plot elements. Default is 16.
+#' @param theme.choice String. Theme choice for the plot. Default is 'prism'.
+#' @param custom.theme A custom theme to be used. Default is NULL.
+#' @param palette A custom color palette to be used. Default is NULL.
+#' @param pdf Logical. If TRUE, the plots are saved as PDF files. Default is TRUE.
+#' @param file.ann File annotation. Default is NULL.
+#' @param pdf.wid Width of the PDF. Default is 11.
+#' @param pdf.hei Height of the PDF. Default is 8.5.
+#' @param ... Additional arguments to be passed.
 #'
 #' @details The function is flexible and allows for various modifications, including the choice of distance measure and stratification factor, providing a comprehensive tool for microbiome beta diversity exploration. It integrates well with other MicrobiomeStat functions and takes their output as input.
 #'

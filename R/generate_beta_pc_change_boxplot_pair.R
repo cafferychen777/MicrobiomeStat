@@ -1,23 +1,35 @@
-#' Generate boxplot pair of changes in principal coordinates for beta diversity
+#' Beta Diversity Change Boxplot Pairs
 #'
-#' This function creates a boxplot pair of the changes in principal coordinates for beta diversity
-#' between two time points. It takes a list of distance matrices and principal coordinate (PC)
-#' indices as input, along with metadata variables, and outputs a ggplot2 boxplot.
-#' @name generate_beta_pc_change_boxplot_pair
-#' @param dist.obj A list containing distance matrices (Bray-Curtis, Generalized UniFrac, etc.).
-#' @param pc.mat An optional matrix of principal coordinates. Default is NULL, in which case the function will calculate PCoA.
-#' @param pc.ind A numeric vector of the principal coordinate indices to be plotted. Default is c(1, 2).
-#' @param subject.var A character string specifying the subject variable in the metadata.
-#' @param time.var A character string specifying the time variable in the metadata.
-#' @param group.var A character string specifying the group variable in the metadata.
-#' @param strata.var A character string specifying the strata variable in the metadata. Default is NULL.
-#' @param change.base A numeric value specifying the baseline time point for calculating changes.
-#' @param dist.name A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned.
-#' @param pdf A logical value indicating whether to save the plot as a PDF file. Default is TRUE.
-#' @param file.ann An optional character string to be used as a file annotation when saving the PDF. Default is NULL.
-#' @param ... Additional arguments passed to ggplot2 functions.
+#' This function generates boxplots to visualize the changes in beta diversity principal components (PCs) over time.
+#' It allows the use of Principal Coordinates Analysis (PCoA), non-metric multidimensional scaling (NMDS), t-SNE, or UMAP for dimension reduction.
 #'
-#' @return A ggplot2 boxplot of the changes in principal coordinates for beta diversity between two time points.
+#' @param data.obj A list containing the input data. Default is NULL.
+#' @param dist.obj A list containing the distance object. Default is NULL.
+#' @param pc.obj A list containing the Principal Component Analysis object. Default is NULL.
+#' @param pc.ind A numeric vector indicating the PC indexes used. Default is c(1, 2).
+#' @param subject.var A string specifying the variable for subjects.
+#' @param time.var A string specifying the variable for time.
+#' @param group.var A string specifying the variable for groups. Default is NULL.
+#' @param strata.var A string specifying the variable for strata. Default is NULL.
+#' @param change.base The baseline for calculating changes in beta diversity. Default is NULL.
+#' @param change.func A function or string specifying how to calculate changes. Default is "difference".
+#' @param dist.name A character vector indicating the distance metrics used. Default is c("BC", "Jaccard").
+#' @param base.size A numeric value for the base size of the plot. Default is 16.
+#' @param theme.choice A string specifying the theme of the plot. Default is "prism".
+#' @param custom.theme A ggplot2 theme object for user-defined theme. Default is NULL.
+#' @param palette A character vector specifying the color palette. Default is NULL.
+#' @param pdf A logical value indicating whether to save the plot as a PDF. Default is TRUE.
+#' @param file.ann A string for additional annotation to the file name. Default is NULL.
+#' @param pdf.wid A numeric value specifying the width of the PDF. Default is 11.
+#' @param pdf.hei A numeric value specifying the height of the PDF. Default is 8.5.
+#' @param ... Additional arguments to be passed to the function.
+#' @return A list of ggplot objects for each PC index and distance metric.
+#' @details
+#' This function generates a boxplot of changes in beta diversity based on PCoA coordinates for longitudinal data.
+#' The boxplot can be stratified by a group variable and/or other variables. It also allows for different
+#' distance metrics and principal component indexes to be used.
+#' The function can handle a large number of time points or subjects by averaging the data and adding jitter to the plot.
+#' The function also has options to customize the size, theme, and color palette of the plot, and to save the plot as a PDF.
 #'
 #' @examples
 #' # Load required libraries and example data

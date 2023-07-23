@@ -1,22 +1,31 @@
-#' Generate beta ordination plots for paired samples
+#' Create Boxplots for Beta Diversity Metrics
 #'
-#' This function generates Principle Coordinate Analysis (PCoA) plots using the provided distance object,
-#' optionally stratified by group and/or strata variables. The function is designed for paired samples,
-#' such as those from longitudinal studies or experiments with multiple time points.
-#' @name generate_beta_pc_boxplot_long
-#' @param dist.obj A distance object generated from distance matrices.
-#' @param pc.mat (Optional) A matrix containing the principal coordinates. If not provided, the function will calculate PCoA based on the given distance object.
-#' @param pc.ind (Optional) A numeric vector indicating which PCoA axes to plot (default is c(1, 2)).
-#' @param subject.var The variable in the meta_tab table that represents the subject.
-#' @param time.var The variable in the metadata table that represents the time.
-#' @param group.var The variable in the metadata table that represents the grouping factor.
-#' @param strata.var (Optional) The variable in the metadata table that represents the stratification factor.
-#' @param dist.name A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned.
-#' @param pdf (Optional) A boolean indicating whether to save the output as a PDF file (default is TRUE).
-#' @param file.ann (Optional) A string for annotating the output file name.
-#' @param ... (Optional) Additional arguments to pass to the plotting function.
+#' This function generates boxplots of beta diversity metrics for different groups over time.
+#' It allows the use of Principal Coordinates Analysis (PCoA), non-metric multidimensional scaling (NMDS), t-SNE, or UMAP for dimension reduction.
+#' Default method of dimension reduction is PCoA.
 #'
-#' @return A PCoA plot displaying the beta diversity ordination, stratified by the specified grouping and/or strata variables (if provided). The plot will be saved as a PDF if `pdf` is set to `TRUE`.
+#' @param data.obj A list object containing all data.
+#' @param dist.obj List object containing distance matrices.
+#' @param pc.obj List object containing Principal Coordinates matrices.
+#' @param pc.ind Numeric vector indicating which Principal Coordinates to plot.
+#' @param subject.var Character string indicating the variable for subject identifiers.
+#' @param time.var Character string indicating the variable for time points.
+#' @param t0.level Character string indicating the baseline time point.
+#' @param ts.levels Vector of character strings indicating the time points to include in the plot.
+#' @param group.var Character string indicating the variable for group identifiers.
+#' @param strata.var Character string indicating the variable for stratum identifiers.
+#' @param dist.name Vector of character strings indicating the distance measures to include in the plot.
+#' @param base.size Numeric value indicating the base font size for the plot.
+#' @param theme.choice Character string indicating the ggplot theme to use for the plot.
+#' @param custom.theme Custom ggplot theme to use.
+#' @param palette Vector of colors for the plot.
+#' @param pdf Logical indicating whether to save the plot as a PDF file.
+#' @param file.ann Optional character string to append to the file name.
+#' @param pdf.wid Numeric value indicating the width of the PDF file.
+#' @param pdf.hei Numeric value indicating the height of the PDF file.
+#' @param ... Additional arguments to be passed to the plotting function.
+#'
+#' @return A list of ggplot objects for each distance measure and Principal Coordinate.
 #' @examples
 #' # Load required libraries and data
 #' library(microbiome)

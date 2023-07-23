@@ -1,18 +1,22 @@
-
-#' Alpha Diversity Association Test
+#' Generate Alpha Diversity Change Test Pair
 #'
-#' This function implements an association test for multiple alpha diversity measures. It accepts a data.obj as input and returns a list of tests generated for each alpha diversity index.
+#' This function generates a pair of statistical tests for comparing alpha diversity metrics
+#' at two different time points for a given dataset. The function supports various options
+#' for adjusting the tests and calculating the difference in alpha diversity.
 #'
-#' @param data.obj A list object that includes feature.tab (an OTU table with taxa as rows and samples as columns) and meta.dat (a metadata table with samples as rows and variables as columns).
-#' @param alpha.obj A pre-calculated alpha diversity object. If NULL, the function will calculate alpha diversity based on data.obj.
-#' @param time.var A string representing the time variable's name in the metadata. The default is NULL.
-#' @param alpha.name A character vector with the names of alpha diversity indices to compute. Options include: "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".
-#' @param group.var A string representing the group variable's name in the metadata.
-#' @param adj.vars A character vector with the names of adjustment variables in the metadata.
-#' @param change.base A logical value indicating whether to change the base level of the group variable. Default is FALSE.
-#' @param change.func A function or a string indicating the method to calculate change in diversity indices. Default is "lfc" (log fold change).
+#' @param data.obj A data object containing both the count (OTU table) and the metadata.
+#' @param alpha.obj A data object containing alpha diversity metrics. If NULL, it will be calculated from the data.obj.
+#' @param time.var The name of the variable in the data that represents time points.
+#' @param alpha.name The name of the alpha diversity metric to be tested.
+#' @param subject.var The name of the variable in the data that represents the subject IDs.
+#' @param group.var The name of the variable in the data that represents the group IDs.
+#' @param adj.vars A vector of names of the variables in the data that should be used as covariates in the model.
+#' @param change.base The name of the baseline time point for calculating changes in alpha diversity. If NULL, the first unique time point in the data will be used.
+#' @param change.func The function to be used for calculating changes in alpha diversity. If "lfc", the change will be calculated as the log-fold change. If a function, it will be applied directly.
 #'
-#' @return A list containing the association tests for each alpha diversity index.
+#' @return A list of tables, one for each alpha diversity metric, summarizing the results of the statistical tests.
+#' Each table contains the following columns: Term (the name of the variable in the model), Estimate (the estimated coefficient),
+#' Std.Error (the standard error of the coefficient), Statistic (the t or F statistic), P.Value (the p-value of the test).
 #'
 #' @examples
 #' library(microbiome)

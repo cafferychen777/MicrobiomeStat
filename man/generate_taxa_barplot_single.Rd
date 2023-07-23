@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_taxa_barplot_single.R
 \name{generate_taxa_barplot_single}
 \alias{generate_taxa_barplot_single}
-\title{Generate stacked barplot pairs for taxonomic composition data}
+\title{Generate Stacked Taxa Barplots for Longitudinal Data}
 \usage{
 generate_taxa_barplot_single(
   data.obj,
@@ -26,36 +26,54 @@ generate_taxa_barplot_single(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-and 'meta_tab' (metadata table).}
+\item{data.obj}{A list object containing the input data.}
 
-\item{subject.var}{A character vector specifying the subject variable.}
+\item{subject.var}{A string indicating the variable for subject identifiers.}
 
-\item{time.var}{A character vector specifying the time variable.}
+\item{time.var}{A string indicating the variable for time points.}
 
-\item{group.var}{Optional character vector specifying the group variable.}
+\item{t.level}{A string indicating the reference time point. Default is NULL.}
 
-\item{strata.var}{Optional character vector specifying the strata variable.}
+\item{group.var}{A string indicating the variable for group identifiers. Default is NULL.}
 
-\item{feature.level}{A character vector specifying the taxonomic level to generate the plot for.}
+\item{strata.var}{A string indicating the variable for strata identifiers. Default is NULL.}
 
-\item{pdf}{A logical value indicating whether to save the plot as a PDF file (TRUE) or to display it (FALSE).}
+\item{feature.level}{A string indicating the taxonomic level to plot.}
 
-\item{file.ann}{Optional file annotation to append to the output PDF file.}
+\item{feature.dat.type}{A string indicating the type of data in the input object.}
 
-\item{...}{Additional arguments to be passed to the plot function.}
+\item{feature.number}{A numeric value indicating the number of features to include in the plot.}
 
-\item{other.abund.cutoff}{A numeric value to specify the cutoff for merging taxa with relative abundances
-below this threshold into 'Other'.}
+\item{base.size}{A numeric value indicating the base font size for the plot.}
+
+\item{theme.choice}{A string indicating the ggplot theme to use for the plot.}
+
+\item{custom.theme}{A custom ggplot theme if the user wants to apply it.}
+
+\item{palette}{A character vector specifying the color palette. Default is NULL.}
+
+\item{pdf}{A logical value indicating whether to save the plot as a PDF. Default is TRUE.}
+
+\item{file.ann}{A string for additional annotation to the file name. Default is NULL.}
+
+\item{pdf.wid}{A numeric value specifying the width of the PDF file. Default is 11.}
+
+\item{pdf.hei}{A numeric value specifying the height of the PDF file. Default is 8.5.}
+
+\item{...}{Additional arguments to be passed to the function.}
 }
 \value{
-A ggplot stacked barplot with relative abundances of taxa stratified by subject and time (and optionally,
-group and strata), displaying individual taxa above the specified other.abund.cutoff, and merging those below the
-cutoff into 'Other'. If pdf == TRUE, the plot is saved to a PDF file in the working directory.
+A list of ggplot objects of the taxa barplots.
 }
 \description{
-This function generates stacked barplots of relative abundances for the given microbial taxonomic composition
-data, stratified by specified subject and time variables, and optionally by group and strata variables.
+This function generates stacked barplots to visualize the taxonomic composition of samples for longitudinal data.
+It also provides options for grouping and stratifying data.
+}
+\details{
+This function generates a stacked barplot of taxa proportions for longitudinal data.
+The barplot can be stratified by a group variable and/or other variables.
+It also allows for different taxonomic levels to be used and a specific number of features to be included in the plot.
+The function also has options to customize the size, theme, and color palette of the plot, and to save the plot as a PDF.
 }
 \examples{
 library(microbiome)

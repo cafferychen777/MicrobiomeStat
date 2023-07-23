@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_beta_pc_boxplot_long.R
 \name{generate_beta_pc_boxplot_long}
 \alias{generate_beta_pc_boxplot_long}
-\title{Generate beta ordination plots for paired samples}
+\title{Create Boxplots for Beta Diversity Metrics}
 \usage{
 generate_beta_pc_boxplot_long(
   data.obj = NULL,
@@ -28,35 +28,53 @@ generate_beta_pc_boxplot_long(
 )
 }
 \arguments{
-\item{dist.obj}{A distance object generated from distance matrices.}
+\item{data.obj}{A list object containing all data.}
 
-\item{pc.ind}{(Optional) A numeric vector indicating which PCoA axes to plot (default is c(1, 2)).}
+\item{dist.obj}{List object containing distance matrices.}
 
-\item{subject.var}{The variable in the meta_tab table that represents the subject.}
+\item{pc.obj}{List object containing Principal Coordinates matrices.}
 
-\item{time.var}{The variable in the metadata table that represents the time.}
+\item{pc.ind}{Numeric vector indicating which Principal Coordinates to plot.}
 
-\item{group.var}{The variable in the metadata table that represents the grouping factor.}
+\item{subject.var}{Character string indicating the variable for subject identifiers.}
 
-\item{strata.var}{(Optional) The variable in the metadata table that represents the stratification factor.}
+\item{time.var}{Character string indicating the variable for time points.}
 
-\item{dist.name}{A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned.}
+\item{t0.level}{Character string indicating the baseline time point.}
 
-\item{pdf}{(Optional) A boolean indicating whether to save the output as a PDF file (default is TRUE).}
+\item{ts.levels}{Vector of character strings indicating the time points to include in the plot.}
 
-\item{file.ann}{(Optional) A string for annotating the output file name.}
+\item{group.var}{Character string indicating the variable for group identifiers.}
 
-\item{...}{(Optional) Additional arguments to pass to the plotting function.}
+\item{strata.var}{Character string indicating the variable for stratum identifiers.}
 
-\item{pc.mat}{(Optional) A matrix containing the principal coordinates. If not provided, the function will calculate PCoA based on the given distance object.}
+\item{dist.name}{Vector of character strings indicating the distance measures to include in the plot.}
+
+\item{base.size}{Numeric value indicating the base font size for the plot.}
+
+\item{theme.choice}{Character string indicating the ggplot theme to use for the plot.}
+
+\item{custom.theme}{Custom ggplot theme to use.}
+
+\item{palette}{Vector of colors for the plot.}
+
+\item{pdf}{Logical indicating whether to save the plot as a PDF file.}
+
+\item{file.ann}{Optional character string to append to the file name.}
+
+\item{pdf.wid}{Numeric value indicating the width of the PDF file.}
+
+\item{pdf.hei}{Numeric value indicating the height of the PDF file.}
+
+\item{...}{Additional arguments to be passed to the plotting function.}
 }
 \value{
-A PCoA plot displaying the beta diversity ordination, stratified by the specified grouping and/or strata variables (if provided). The plot will be saved as a PDF if `pdf` is set to `TRUE`.
+A list of ggplot objects for each distance measure and Principal Coordinate.
 }
 \description{
-This function generates Principle Coordinate Analysis (PCoA) plots using the provided distance object,
-optionally stratified by group and/or strata variables. The function is designed for paired samples,
-such as those from longitudinal studies or experiments with multiple time points.
+This function generates boxplots of beta diversity metrics for different groups over time.
+It allows the use of Principal Coordinates Analysis (PCoA), non-metric multidimensional scaling (NMDS), t-SNE, or UMAP for dimension reduction.
+Default method of dimension reduction is PCoA.
 }
 \examples{
 # Load required libraries and data
