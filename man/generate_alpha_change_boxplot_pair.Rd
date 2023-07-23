@@ -69,6 +69,8 @@ A boxplot displaying the change in the specified alpha diversity index between t
 This function generates a boxplot comparing the change in a specified alpha diversity index between two time points. The change can be calculated as the log or the absolute value. Several optional arguments are available for customizing the output, such as strata or group variables.
 }
 \examples{
+
+library(vegan)
 library(microbiome)
 data(peerj32)
 peerj32.obj <- list()

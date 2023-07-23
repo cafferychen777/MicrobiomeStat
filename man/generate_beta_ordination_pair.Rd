@@ -99,19 +99,12 @@ The function is flexible and allows for various modifications, including the cho
 The function is flexible and allows for various modifications, including the choice of distance measure and stratification factor, providing a comprehensive tool for microbiome beta diversity exploration. It integrates well with other MicrobiomeStat functions and takes their output as input.
 }
 \examples{
-# Load required libraries and example data
-library(microbiome)
-library(tidyverse)
-library(vegan)
-data(peerj32)
-peerj32.obj <- list()
-peerj32.phy <- peerj32$phyloseq
-peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
-dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
-# Add metadata information
-attr(dist.obj[["BC"]], "labels") <- peerj32.obj$meta.dat
-attr(dist.obj[["Jaccard"]], "labels") <- peerj32.obj$meta.dat
-# Generate the boxplot pair
+library("HMP2Data")
+T2D <- T2D16S()
+T2D.obj <- mStat_convert_phyloseq_to_data_obj(T2D.phy)
+
+subset_T2D.obj <- mStat_subset_data(T2D.obj,colnames(T2D.obj$feature.tab
+[,colSums(T2D.obj$feature.tab) >= 2000]))
 generate_beta_ordination_long(
   data.obj = subset_T2D.obj,
   dist.obj = NULL,

@@ -25,7 +25,7 @@
 #' @return A boxplot displaying the specified alpha diversity index across different groupings and time points, stratified by the specified stratification variable (if provided). The boxplot will be saved as a PDF if `pdf` is set to `TRUE`.
 #'
 #' @examples
-#' \dontrun{
+#'
 #' library("HMP2Data")
 #' T2D <- T2D16S()
 #' T2D.obj <- mStat_convert_phyloseq_to_data_obj(T2D.phy)
@@ -69,7 +69,7 @@
 #'   file.ann = NULL,
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5)
-#' }
+#'
 #' @export
 #'
 generate_alpha_boxplot_long <- function (data.obj,

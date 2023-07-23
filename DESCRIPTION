@@ -51,7 +51,8 @@ Imports:
     ape,
 Suggests:
     rmarkdown,
-    knitr
+    knitr,
+    HMP2Data
 License: GPL-3
 Encoding: UTF-8
 LazyData: true

@@ -40,6 +40,14 @@ A list containing the association tests for each alpha diversity index.
 This function implements an association test for multiple alpha diversity measures. It accepts a data.obj as input and returns a list of tests generated for each alpha diversity index.
 }
 \examples{
+library(microbiome)
+library(vegan)
+data(peerj32)
+
+# Convert peerj32 data to the necessary format
+peerj32.obj <- list()
+peerj32.phy <- peerj32$phyloseq
+peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
 generate_alpha_change_test_pair(
 data.obj = peerj32.obj,
 alpha.obj = NULL,

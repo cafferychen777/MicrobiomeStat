@@ -23,6 +23,7 @@
 #' @return A list of boxplots displaying the specified alpha diversity indices at the specified time point across different groupings, stratified by the specified stratification variable (if provided). Each boxplot in the list corresponds to one of the alpha diversity indices specified in `alpha.name`. The boxplots will be saved as PDF files if `pdf` is set to `TRUE`.
 #'
 #' @examples
+#' \dontrun{
 #' library(microbiome)
 #' library(vegan)
 #' library(ggh4x)
@@ -47,10 +48,7 @@
 #'   file.ann = NULL,
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5)
-#'
-#'
-#' # Display the boxplot
-#' print(plot_alpha_list)
+#' }
 #'
 #' @export
 generate_alpha_boxplot_single <- function (data.obj,

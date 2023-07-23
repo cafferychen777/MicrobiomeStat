@@ -70,7 +70,7 @@ A boxplot displaying the specified alpha diversity index across different groupi
 This function generates a boxplot of a specified alpha diversity index across different groupings and time points, with optional stratification. The output can be saved as a PDF.
 }
 \examples{
-\dontrun{
+
 library("HMP2Data")
 T2D <- T2D16S()
 T2D.obj <- mStat_convert_phyloseq_to_data_obj(T2D.phy)
@@ -114,5 +114,5 @@ generate_alpha_boxplot_long(
   file.ann = NULL,
   pdf.wid = 11,
   pdf.hei = 8.5)
-}
+
 }

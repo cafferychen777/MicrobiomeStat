@@ -65,6 +65,12 @@ Each table includes the term, estimate, standard error, t value, and p-value
 for each fixed effect in the model.
 }
 \examples{
+library("HMP2Data")
+T2D <- T2D16S()
+T2D.obj <- mStat_convert_phyloseq_to_data_obj(T2D.phy)
+
+subset_T2D.obj <- mStat_subset_data(T2D.obj,colnames(T2D.obj$feature.tab
+[,colSums(T2D.obj$feature.tab) >= 2000]))
 alpha_test_results <- generate_alpha_test_long(
 data.obj = subset_T2D.obj,
 alpha.obj = NULL,

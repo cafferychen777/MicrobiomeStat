@@ -42,20 +42,13 @@ A list containing the PERMANOVA results for each beta diversity index. The list 
 This function, part of the MicrobiomeStat package, calculates various beta diversity indices for a microbiome dataset. It then performs longitudinal PERMANOVA tests on these indices to assess the effect of a grouping variable and any additional covariates on the beta diversity. The function returns the PERMANOVA results for each of the specified beta diversity indices.
 }
 \examples{
-\dontrun{
-library(vegan)
-library(GUniFrac)
-library(microbiome)
-library(ape)
-library(philentropy)
-library(MicrobiomeStat)
 
-# Load example data
-data("peerj32")
+library("HMP2Data")
+T2D <- T2D16S()
+T2D.obj <- mStat_convert_phyloseq_to_data_obj(T2D.phy)
 
-peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32$phyloseq)
-
-dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
+subset_T2D.obj <- mStat_subset_data(T2D.obj,colnames(T2D.obj$feature.tab
+[,colSums(T2D.obj$feature.tab) >= 2000]))
 
 # Perform pairwise beta diversity tests using PERMANOVA
 beta_test_pair_results <- generate_beta_test_long(
@@ -69,7 +62,7 @@ beta_test_pair_results <- generate_beta_test_long(
   adj.vars = "subject_gender",
   dist.name = c('BC', 'Jaccard')
 )
-}
+
 
 }
 \seealso{

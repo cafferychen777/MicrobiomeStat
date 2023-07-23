@@ -13,20 +13,13 @@
 #' @param adj.vars A character vector containing the names of the columns in data.obj$meta.dat to include as covariates in the PERMANOVA analysis. If no covariates are needed, use NULL (default).
 #' @param dist.name A character vector specifying which beta diversity indices to calculate and test (e.g., 'BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS'). Default is c('BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS').
 #' @examples
-#' \dontrun{
-#' library(vegan)
-#' library(GUniFrac)
-#' library(microbiome)
-#' library(ape)
-#' library(philentropy)
-#' library(MicrobiomeStat)
 #'
-#' # Load example data
-#' data("peerj32")
+#' library("HMP2Data")
+#' T2D <- T2D16S()
+#' T2D.obj <- mStat_convert_phyloseq_to_data_obj(T2D.phy)
 #'
-#' peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32$phyloseq)
-#'
-#' dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
+#' subset_T2D.obj <- mStat_subset_data(T2D.obj,colnames(T2D.obj$feature.tab
+#' [,colSums(T2D.obj$feature.tab) >= 2000]))
 #'
 #' # Perform pairwise beta diversity tests using PERMANOVA
 #' beta_test_pair_results <- generate_beta_test_long(
@@ -40,7 +33,7 @@
 #'   adj.vars = "subject_gender",
 #'   dist.name = c('BC', 'Jaccard')
 #' )
-#' }
+#'
 #'
 #' @return A list containing the PERMANOVA results for each beta diversity index. The list includes two elements: "p.tab" - a table of p-values for the PERMANOVA tests across all indices, and "aov.tab" - a table containing detailed PERMANOVA results for each index. The p.tab and aov.tab tables include columns for the terms in the PERMANOVA model, the degrees of freedom, sums of squares, mean squares, F statistics, R-squared values, and p-values.
 #' @export

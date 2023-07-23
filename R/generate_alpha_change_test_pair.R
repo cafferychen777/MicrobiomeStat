@@ -15,6 +15,14 @@
 #' @return A list containing the association tests for each alpha diversity index.
 #'
 #' @examples
+#' library(microbiome)
+#' library(vegan)
+#' data(peerj32)
+#'
+#' # Convert peerj32 data to the necessary format
+#' peerj32.obj <- list()
+#' peerj32.phy <- peerj32$phyloseq
+#' peerj32.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
 #' generate_alpha_change_test_pair(
 #' data.obj = peerj32.obj,
 #' alpha.obj = NULL,
@@ -88,7 +96,7 @@ generate_alpha_change_test_pair <-
       if (is.function(change.func)) {
 
         combined_alpha <- combined_alpha %>%
-          mutate(!!diff_col_name := change.func(!!sym(paste0(
+          dplyr::mutate(!!diff_col_name := change.func(!!sym(paste0(
             index, "_time_2"
           )), !!sym(paste0(
             index, "_time_1"
@@ -98,7 +106,7 @@ generate_alpha_change_test_pair <-
 
         if (change.func == "lfc") {
           combined_alpha <- combined_alpha %>%
-            mutate(!!diff_col_name := log(!!sym(paste0(
+            dplyr::mutate(!!diff_col_name := log(!!sym(paste0(
               index, "_time_2"
             )) / !!sym(paste0(
               index, "_time_1"
@@ -106,7 +114,7 @@ generate_alpha_change_test_pair <-
             select(all_of(diff_col_name))
         } else {
           combined_alpha <- combined_alpha %>%
-            mutate(!!diff_col_name := !!sym(paste0(index, "_time_2")) -!!sym(paste0(index, "_time_1"))) %>%
+            dplyr::mutate(!!diff_col_name := !!sym(paste0(index, "_time_2")) -!!sym(paste0(index, "_time_1"))) %>%
             select(all_of(diff_col_name))
         }
       }

@@ -23,6 +23,8 @@
 #'
 #' @return A boxplot displaying the change in the specified alpha diversity index between two time points, stratified by the specified grouping and/or strata variables (if provided). The boxplot will be saved as a PDF if `pdf` is set to `TRUE`.
 #' @examples
+#'
+#' library(vegan)
 #' library(microbiome)
 #' data(peerj32)
 #' peerj32.obj <- list()
@@ -111,10 +113,8 @@ generate_alpha_change_boxplot_pair <-
     alpha_grouped <- alpha_df %>% group_by(time)
     alpha_split <- split(alpha_df, f = alpha_grouped$time)
 
-
     alpha_time_1 <- alpha_split[[change.base]]
     alpha_time_2 <- alpha_split[[change.after]]
-
 
     combined_alpha <- alpha_time_1 %>%
       inner_join(
@@ -122,7 +122,6 @@ generate_alpha_change_boxplot_pair <-
         by = c(subject.var, group.var),
         suffix = c("_time_1", "_time_2")
       )
-
 
     diff_columns <- lapply(alpha.name, function(index) {
 
@@ -142,15 +141,15 @@ generate_alpha_change_boxplot_pair <-
 
         if (change.func == "lfc") {
           combined_alpha <- combined_alpha %>%
-            mutate(!!diff_col_name := log(!!sym(paste0(
+            dplyr::mutate(!!sym(diff_col_name) := log(!!sym(paste0(
               index, "_time_2"
             )) / !!sym(paste0(
               index, "_time_1"
             )))) %>%
-            select(all_of(diff_col_name))
+            select(all_of(c(diff_col_name)))
         } else {
           combined_alpha <- combined_alpha %>%
-            mutate(!!diff_col_name := !!sym(paste0(index, "_time_2")) -!!sym(paste0(index, "_time_1"))) %>%
+            dplyr::mutate(!!diff_col_name := !!sym(paste0(index, "_time_2")) -!!sym(paste0(index, "_time_1"))) %>%
             select(all_of(diff_col_name))
         }
       }
@@ -190,7 +189,7 @@ generate_alpha_change_boxplot_pair <-
         combined_alpha %>% left_join(alpha_df %>% select(all_of(c(
           subject.var, group.var
         )))
-        , by = c(subject.var, group.var)) %>% rename(group = group.var)
+        , by = c(subject.var, group.var)) %>% dplyr::rename(group = group.var)
     }
 
 
