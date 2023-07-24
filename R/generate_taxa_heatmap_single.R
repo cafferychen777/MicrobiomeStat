@@ -48,8 +48,8 @@
 #'   features.plot = NULL,
 #'   top.k.plot = NULL,
 #'   top.k.func = NULL,
-#'   prev.filter = 0.1,
-#'   abund.filter = 0.1,
+#'   prev.filter = 0.01,
+#'   abund.filter = 0.01,
 #'   base.size = 10,
 #'   palette = NULL,
 #'   pdf = TRUE,
@@ -214,7 +214,7 @@ generate_taxa_heatmap_single <- function(data.obj,
 
     otu_tab_norm <-
       otu_tax_agg_numeric %>%
-      dplyr::mutate(!!sym(feature.level) := replace_na(!!sym(feature.level), "Unclassified")) %>%
+      dplyr::mutate(!!sym(feature.level) := tidyr::replace_na(!!sym(feature.level), "Unclassified")) %>%
       column_to_rownames(var = feature.level) %>%
       as.matrix()
 
@@ -267,7 +267,7 @@ generate_taxa_heatmap_single <- function(data.obj,
     }
 
     # Plot stacked heatmap
-    heatmap_plot <- pheatmap(
+    heatmap_plot <- pheatmap::pheatmap(
       otu_tab_norm_sorted,
       annotation_col = annotation_col,
       cluster_rows = cluster.rows,

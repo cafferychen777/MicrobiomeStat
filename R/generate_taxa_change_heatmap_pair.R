@@ -27,7 +27,7 @@
 #' @param pdf.wid Width of the PDF plots.
 #' @param pdf.hei Height of the PDF plots.
 #' @param ... Additional parameters to be passed
-#' @return If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the pheatmap plot. If `pdf` is set to FALSE, the function will return the pheatmap plot without creating a PDF file.
+#' @return If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the pheatmap::pheatmap plot. If `pdf` is set to FALSE, the function will return the pheatmap plot without creating a PDF file.
 #' @examples
 #' # Load required libraries and example data
 #' library(pheatmap)
@@ -72,8 +72,8 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
                                                     features.plot = NULL,
                                                     top.k.plot = NULL,
                                                     top.k.func = NULL,
-                                                    prev.filter = 0.1,
-                                                    abund.filter = 0.1,
+                                                    prev.filter = 0.01,
+                                                    abund.filter = 0.01,
                                                     base.size = 10,
                                                     palette = NULL,
                                                     cluster.rows = NULL,
@@ -322,7 +322,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
       # 创建颜色向量
       my_palette <- c(colorRampPalette(palette[1:3])(zero_pos), colorRampPalette(palette[3:5])(n_colors - zero_pos + 1))
 
-      heatmap_plot <- pheatmap(
+      heatmap_plot <- pheatmap::pheatmap(
         value_diff_matrix,
         annotation_col = annotation_cols,
         cluster_rows = cluster.rows,
@@ -341,7 +341,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
       my_palette <- colorRampPalette(palette)
 
       # Plot stacked heatmap
-      heatmap_plot <- pheatmap(
+      heatmap_plot <- pheatmap::pheatmap(
         value_diff_matrix,
         annotation_col = annotation_cols,
         cluster_rows = cluster.rows,

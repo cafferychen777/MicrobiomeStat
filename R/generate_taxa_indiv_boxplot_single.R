@@ -41,21 +41,20 @@
 #'   data.obj = ecam.obj,
 #'   subject.var = "studyid",
 #'   time.var = "month",
-#'   t0.level = NULL,
-#'   ts.levels = NULL,
-#'   group.var = NULL,
+#'   t.level = NULL,
+#'   group.var = "antiexposedall",
 #'   strata.var = NULL,
 #'   feature.level = c("Phylum"),
 #'   feature.dat.type = "proportion",
 #'   Transform = "log",
-#'   prev.filter = 0.1,
-#'   abund.filter = 0.1,
+#'   prev.filter = 0.01,
+#'   abund.filter = 0.01,
 #'   base.size = 20,
 #'   theme.choice = "classic",
 #'   custom.theme = NULL,
 #'   palette = NULL,
 #'   pdf = TRUE,
-#'   file.ann = "test",
+#'   file.ann = NULL,
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
@@ -89,7 +88,7 @@ generate_taxa_indiv_boxplot_single <-
   function(data.obj,
            subject.var,
            time.var,
-           t.level,
+           t.level = NULL,
            group.var = NULL,
            strata.var = NULL,
            feature.level = NULL,
@@ -98,7 +97,7 @@ generate_taxa_indiv_boxplot_single <-
            top.k.plot = NULL,
            top.k.func = NULL,
            Transform = c("identity", "sqrt", "log"),
-           prev.filter = 0.05,
+           prev.filter = 0.01,
            abund.filter = 0.01,
            base.size = 16,
            theme.choice = "prism",
@@ -307,7 +306,6 @@ generate_taxa_indiv_boxplot_single <-
           {
             if (feature.dat.type == "other"){
               labs(
-                x = time.var,
                 y = "Abundance",
                 title = tax
               )

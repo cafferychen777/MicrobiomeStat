@@ -473,7 +473,7 @@ generate_taxa_boxplot_long <-
     # Save the plots as a PDF file
     if (pdf) {
       pdf_name <- paste0(
-        "taxa_indiv_boxplot_long_v2",
+        "taxa_boxplot_long",
         "_",
         "subject_",
         subject.var,

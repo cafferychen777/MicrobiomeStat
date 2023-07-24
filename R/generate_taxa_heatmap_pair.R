@@ -24,7 +24,7 @@
 #' @param file.ann (Optional) A character string specifying a file annotation to include in the generated PDF file's name.
 #' @param pdf.wid Width of the PDF plots.
 #' @param pdf.hei Height of the PDF plots.
-#' @param ... Additional parameters to be passed to the pheatmap() function from the “pheatmap” package.
+#' @param ... Additional parameters to be passed to the pheatmap() function from the “pheatmap::pheatmap” package.
 #'
 #' @return An object of class pheatmap, the generated heatmap plot
 #'
@@ -44,8 +44,8 @@
 #'   features.plot = NULL,
 #'   top.k.plot = NULL,
 #'   top.k.func = NULL,
-#'   prev.filter = 0.1,
-#'   abund.filter = 0.1,
+#'   prev.filter = 0.01,
+#'   abund.filter = 0.01,
 #'   base.size = 11,
 #'   palette = NULL,
 #'   pdf = TRUE,
@@ -223,7 +223,7 @@ generate_taxa_heatmap_pair <- function(data.obj,
     }
 
     # Plot stacked heatmap
-    heatmap_plot <- pheatmap(
+    heatmap_plot <- pheatmap::pheatmap(
       otu_tab_norm_sorted,
       annotation_col = annotation_col,
       cluster_rows = cluster.rows,

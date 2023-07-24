@@ -46,8 +46,8 @@
 #'   features.plot = NULL,
 #'   top.k.plot = NULL,
 #'   top.k.func = NULL,
-#'   prev.filter = 0.1,
-#'   abund.filter = 0.1,
+#'   prev.filter = 0.01,
+#'   abund.filter = 0.01,
 #'   base.size = 16,
 #'   theme.choice = "bw",
 #'   custom.theme = NULL,
@@ -209,7 +209,7 @@ generate_taxa_dotplot_single <- function(data.obj,
       dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
 
     otu_tab_norm <- otu_tax_agg_numeric %>%
-      dplyr::mutate(!!sym(feature.level) := replace_na(!!sym(feature.level), "Unclassified")) %>%
+      dplyr::mutate(!!sym(feature.level) := tidyr::replace_na(!!sym(feature.level), "Unclassified")) %>%
       column_to_rownames(var = feature.level) %>%
       as.matrix()
 

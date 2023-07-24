@@ -28,7 +28,7 @@
 #' @param pdf.wid Width of the PDF plots.
 #' @param pdf.hei Height of the PDF plots.
 #' @param ... Additional arguments to be passed
-#' @return If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the pheatmap plot. If `pdf` is set to FALSE, the function will return the pheatmap plot without creating a PDF file.
+#' @return If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the pheatmap::pheatmap plot. If `pdf` is set to FALSE, the function will return the pheatmap plot without creating a PDF file.
 #'
 #' @examples
 #' library(pheatmap)
@@ -406,7 +406,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
       my_palette <- colorRampPalette(palette)
 
       # Plot stacked heatmap
-      heatmap_plot <- pheatmap(
+      heatmap_plot <- pheatmap::pheatmap(
         wide_data_sorted,
         annotation_col = annotation_col_sorted,
         cluster_rows = cluster.rows,

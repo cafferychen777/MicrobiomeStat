@@ -70,7 +70,7 @@ mStat_aggregate_by_taxonomy <- function (data.obj, feature.level = NULL) {
         dplyr::group_by_at(vars(sample,!!sym(feature.level))) %>%
         dplyr::summarise(value = sum(value)) %>%
         tidyr::spread(key = "sample", value = "value") %>%
-        dplyr::mutate(!!feature.level := replace_na(!!sym(feature.level), "Unclassified")) %>%
+        dplyr::mutate(!!feature.level := tidyr::replace_na(!!sym(feature.level), "Unclassified")) %>%
         column_to_rownames(feature.level) %>%
         as.matrix()
 

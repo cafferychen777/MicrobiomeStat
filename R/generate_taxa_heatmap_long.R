@@ -261,7 +261,7 @@ generate_taxa_heatmap_long <- function(data.obj,
   }
 
   # Plot stacked heatmap
-  heatmap_plot <- pheatmap(
+  heatmap_plot <- pheatmap::pheatmap(
     wide_data_sorted,
     annotation_col = annotation_col_sorted,
     annotation_colors = NULL,

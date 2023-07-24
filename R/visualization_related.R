@@ -15,7 +15,7 @@ utils::globalVariables(c(
   "new_count", "next_cumulative_mean_value", "next_cumulative_value", "one_of",
   "otu_table", "p.adjust", "p.value", "pData", "par", "pdf", "pheatmap", "tidyr::pivot_longer",
   "tidyr::pivot_wider", "plot_fun", "prevalence", "prevalence_change", "pt", "dplyr::pull", "quantile",
-  "read.csv", "read.nexus", "read.table", "read.tree", "read_biom", "rename", "replace_na",
+  "read.csv", "read.nexus", "read.table", "read.tree", "read_biom", "rename", "tidyr::replace_na",
   "rowData", "rowMaxs", "matrixStats::rowSds", "rownames_to_column", "dplyr::rowwise", "rrarefy", "sample_data",
   "sample_metadata", "sd", "tidyr::separate", "setNames", "show_mothur_cutoffs", "tidyr::spread",
   "starts_with", "statistic", "std.error", "strata.var", "subject", "subject.var",

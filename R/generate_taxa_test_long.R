@@ -145,7 +145,7 @@ generate_taxa_test_long <-
       otu_tax_agg_numeric <-
         otu_tax_agg %>%
         dplyr::mutate_at(vars(-!!sym(feature.level)), as.numeric) %>%
-        dplyr::mutate(!!sym(feature.level) := replace_na(!!sym(feature.level), "unclassified")) %>% column_to_rownames(feature.level)
+        dplyr::mutate(!!sym(feature.level) := tidyr::replace_na(!!sym(feature.level), "unclassified")) %>% column_to_rownames(feature.level)
 
       linda.obj <- linda(feature.dat = otu_tax_agg_numeric, meta.dat = meta_tab,
                          formula = paste("~",formula), feature.dat.type = "proportion")

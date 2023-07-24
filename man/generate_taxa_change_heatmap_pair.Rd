@@ -17,8 +17,8 @@ generate_taxa_change_heatmap_pair(
   features.plot = NULL,
   top.k.plot = NULL,
   top.k.func = NULL,
-  prev.filter = 0.1,
-  abund.filter = 0.1,
+  prev.filter = 0.01,
+  abund.filter = 0.01,
   base.size = 10,
   palette = NULL,
   cluster.rows = NULL,
@@ -78,7 +78,7 @@ generate_taxa_change_heatmap_pair(
 \item{...}{Additional parameters to be passed}
 }
 \value{
-If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the pheatmap plot. If `pdf` is set to FALSE, the function will return the pheatmap plot without creating a PDF file.
+If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the pheatmap::pheatmap plot. If `pdf` is set to FALSE, the function will return the pheatmap plot without creating a PDF file.
 }
 \description{
 This function generates a heatmap showing the pairwise changes in relative abundances of taxa between different time points.

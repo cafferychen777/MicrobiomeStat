@@ -124,7 +124,7 @@ generate_taxa_test_single <- function(data.obj,
       dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
 
     otu_tax_agg_numeric <- otu_tax_agg_numeric %>%
-      dplyr::mutate(!!sym(feature.level) := replace_na(!!sym(feature.level), "Unclassified")) %>%
+      dplyr::mutate(!!sym(feature.level) := tidyr::replace_na(!!sym(feature.level), "Unclassified")) %>%
       column_to_rownames(feature.level) %>%
       as.matrix()
 

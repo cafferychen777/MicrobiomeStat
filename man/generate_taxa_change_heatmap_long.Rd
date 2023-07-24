@@ -81,7 +81,7 @@ generate_taxa_change_heatmap_long(
 \item{...}{Additional arguments to be passed}
 }
 \value{
-If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the pheatmap plot. If `pdf` is set to FALSE, the function will return the pheatmap plot without creating a PDF file.
+If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the pheatmap::pheatmap plot. If `pdf` is set to FALSE, the function will return the pheatmap plot without creating a PDF file.
 
 An object of class pheatmap, the generated heatmap plot
 }

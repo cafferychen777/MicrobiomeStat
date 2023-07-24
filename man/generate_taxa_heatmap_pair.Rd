@@ -69,7 +69,7 @@ generate_taxa_heatmap_pair(
 
 \item{pdf.hei}{Height of the PDF plots.}
 
-\item{...}{Additional parameters to be passed to the pheatmap() function from the “pheatmap” package.}
+\item{...}{Additional parameters to be passed to the pheatmap() function from the “pheatmap::pheatmap” package.}
 }
 \value{
 An object of class pheatmap, the generated heatmap plot
@@ -95,8 +95,8 @@ plot_list <- generate_taxa_heatmap_pair(
   features.plot = NULL,
   top.k.plot = NULL,
   top.k.func = NULL,
-  prev.filter = 0.1,
-  abund.filter = 0.1,
+  prev.filter = 0.01,
+  abund.filter = 0.01,
   base.size = 11,
   palette = NULL,
   pdf = TRUE,

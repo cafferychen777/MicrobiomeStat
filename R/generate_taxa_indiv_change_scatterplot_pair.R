@@ -131,6 +131,9 @@ generate_taxa_indiv_change_scatterplot_pair <-
         time.var, group.var, strata.var, subject.var
       )))
 
+    change.after <-
+      unique(meta_tab %>% select(all_of(c(time.var))))[unique(meta_tab %>% select(all_of(c(time.var)))) != change.base]
+
     if (is.null(group.var)) {
       group.var = "ALL"
       meta_tab$ALL <- ""

@@ -105,7 +105,7 @@ generate_taxa_change_boxplot_pair(
   features.plot = NULL,
   top.k.plot = 6,
   top.k.func = "sd",
-  prev.filter = 0.1,
+  prev.filter = 0.01,
   abund.filter = 0.01,
   base.size = 20,
   theme.choice = "bw",
