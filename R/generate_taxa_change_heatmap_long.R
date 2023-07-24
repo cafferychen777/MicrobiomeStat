@@ -248,7 +248,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
       } else if (change.func == "relative difference") {
         df_wide <- df_wide %>%
           dplyr::rowwise() %>%
-          dplyr::mutate("{change_col_name}" := case_when(
+          dplyr::mutate("{change_col_name}" := dplyr::case_when(
             (.data[[as.character(ts)]] + .data[[as.character(t0.level)]]) != 0 ~ (.data[[as.character(ts)]] - .data[[as.character(t0.level)]]) / (.data[[ts]] + .data[[as.character(t0.level)]]),
             TRUE ~ 0
           ))

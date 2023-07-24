@@ -3,7 +3,7 @@ utils::globalVariables(c(
   "PC", "PC1", "PC2", "Pr(>F)", "R2", "SampleCount", "Statistic", "Std.Error", "SumsOfSqs", "Term",
   "TimePoint", "Variable", "ZicoSeq", "abundance_change", "dplyr::across", "adj.vars", "all_of", "anova", "any_of",
   "dplyr::arrange", "as", "as.dist", "as.formula", "as_tibble", "assay", "assays", "dplyr::bind_cols", "dplyr::bind_rows",
-  "biom_data", "case_when", "change.after", "cmdscale", "coef", "colData", "colorRampPalette",
+  "biom_data", "dplyr::case_when", "change.after", "cmdscale", "coef", "colData", "colorRampPalette",
   "column_to_rownames", "combined_alpha", "count", "count_t0", "count_ts", "cumulative_mean_value",
   "cumulative_value", "ddply", "desc", "dev.off", "df", "distance", "dplyr::distinct", "drop.tip", "estimate",
   "everything", "experiments", "exprs", "fData", "facet_nested", "facet_nested_wrap", "forcats::fct_relevel",
@@ -24,7 +24,7 @@ utils::globalVariables(c(
   "time2_mean_abundance", "time2_prevalence", "total_count", "total_value", "dplyr::ungroup",
   "tidyr::unite", "value", "value_diff", "value_time_1", "value_time_2", "vegdist", "where",
   "x_alternative", "x_end", "x_start", "y_end", "y_start", "zero.handle", "DNAStringSet",
-  "calcNormFactors", "scales::percent", "readDNAStringSet", "read_yaml", "rescale"
+  "calcNormFactors", "scales::percent", "readDNAStringSet", "read_yaml", "scales::rescale"
 ))
 
 plot_fun <- function(.call, envir = parent.frame()) {

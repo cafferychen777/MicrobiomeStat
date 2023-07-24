@@ -85,13 +85,12 @@ at a specified taxonomic level between two time points, with grouping and strati
 \examples{
 # Load required libraries and data
 library(vegan)
-data(peerj32)
 data(peerj32.obj)
 peerj32.obj$meta.dat <- peerj32.obj$meta.dat \%>\%
-select(all_of("subject")) \%>\% dplyr::distinct() \%>\%
+dplyr::select(all_of("subject")) \%>\% dplyr::distinct() \%>\%
 dplyr::mutate(cons = runif(dplyr::n(),0,5)) \%>\%
-dplyr::left_join(peerj32.obj$meta.dat,by = "subject") \%>\%
-column_to_rownames("sample")
+dplyr::left_join(peerj32.obj$meta.dat \%>\% rownames_to_column("sample"),by = "subject") \%>\%
+tibble::column_to_rownames("sample")
 # Generate the boxplot pair
 plot_list_all <- generate_taxa_change_scatterplot_pair(
   data.obj = peerj32.obj,

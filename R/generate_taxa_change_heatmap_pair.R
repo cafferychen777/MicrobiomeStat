@@ -45,8 +45,8 @@
 #'   features.plot = NULL,
 #'   top.k.plot = NULL,
 #'   top.k.func = NULL,
-#'   prev.filter = 0.1,
-#'   abund.filter = 0.1,
+#'   prev.filter = 0.01,
+#'   abund.filter = 0.01,
 #'   base.size = 10,
 #'   palette = NULL,
 #'   cluster.rows = NULL,
@@ -242,7 +242,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
       combined_data <- combined_data %>% dplyr::mutate(value_diff = log2(value_time_2) - log2(value_time_1))
     } else if (change.func == "relative difference"){
       combined_data <- combined_data %>%
-        dplyr::mutate(value_diff = case_when(
+        dplyr::mutate(value_diff = dplyr::case_when(
           value_time_2 == 0 & value_time_1 == 0 ~ 0,
           TRUE ~ (value_time_2 - value_time_1) / (value_time_2 + value_time_1)
         ))
@@ -376,12 +376,6 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
         "_",
         "change_base_",
         change.base,
-        "_",
-        "change_func_",
-        change.func,
-        "_",
-        "zero_handle_",
-        zero.handle,
         "_",
         "feature_level_",
         feature.level,

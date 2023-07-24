@@ -242,7 +242,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
     } else if (change.func == "relative difference") {
       otu_tab_norm_agg_wide <- otu_tab_norm_agg_wide %>%
         dplyr::mutate(
-          abundance_change = case_when(
+          abundance_change = dplyr::case_when(
             time2_mean_abundance == 0 & time1_mean_abundance == 0 ~ 0,
             TRUE ~ (time2_mean_abundance - time1_mean_abundance) / (time2_mean_abundance + time1_mean_abundance)
           )
@@ -276,7 +276,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
         )
     } else if (change.func == "relative difference") {
       prevalence_time_wide <- prevalence_time_wide %>%
-        dplyr::mutate(prevalence_change = case_when(
+        dplyr::mutate(prevalence_change = dplyr::case_when(
           time2_prevalence == 0 & time1_prevalence == 0 ~ 0,
           TRUE ~ (time2_prevalence - time1_prevalence) / (time2_prevalence + time1_prevalence)
         ))

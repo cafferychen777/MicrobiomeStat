@@ -58,9 +58,13 @@ is_continuous_numeric <- function(x) {
 #' The function also has options to customize the size, theme, and color palette of the plot, and to save the plot as a PDF.
 #'
 #' @examples
-#' \dontrun{
 #'  library(vegan)
-#'  data(peerj32.obj)
+#' data(peerj32.obj)
+#' peerj32.obj$meta.dat <- peerj32.obj$meta.dat %>%
+#' dplyr::select(all_of("subject")) %>% dplyr::distinct() %>%
+#' dplyr::mutate(cons = runif(dplyr::n(),0,5)) %>%
+#' dplyr::left_join(peerj32.obj$meta.dat %>% rownames_to_column("sample"),by = "subject") %>%
+#' tibble::column_to_rownames("sample")
 #'
 #'  # Generate the scatterplot pairs
 #'  plot_list <- generate_taxa_indiv_change_scatterplot_pair(
@@ -70,12 +74,12 @@ is_continuous_numeric <- function(x) {
 #'    group.var = "cons",
 #'    strata.var = "sex",
 #'    change.base = "1",
-#'    taxa.level = "Phylum",
+#'    feature.level = "Phylum",
 #'    top.k.plot = 3,
-#'    prev.filter = 0.1,
+#'    top.k.func = "sd",
+#'    prev.filter = 0.01,
 #'    abund.filter = 0.01
 #'  )
-#' }
 #'
 #' @export
 generate_taxa_indiv_change_scatterplot_pair <-
@@ -91,8 +95,8 @@ generate_taxa_indiv_change_scatterplot_pair <-
            feature.dat.type = c("count", "proportion", "other"),
            top.k.plot = NULL,
            top.k.func = NULL,
-           prev.filter = 0.1,
-           abund.filter = 0.1,
+           prev.filter = 0.01,
+           abund.filter = 0.01,
            base.size = 16,
            theme.choice = "bw",
            custom.theme = NULL,
@@ -272,7 +276,7 @@ generate_taxa_indiv_change_scatterplot_pair <-
         df <- df %>% dplyr::mutate(new_count = log2(count_ts) - log2(count_t0))
       } else if (change.func == "relative difference"){
         df <- df %>%
-          dplyr::mutate(new_count = case_when(
+          dplyr::mutate(new_count = dplyr::case_when(
             count_ts == 0 & count_t0 == 0 ~ 0,
             TRUE ~ (count_ts - count_t0) / (count_ts + count_t0)
           ))

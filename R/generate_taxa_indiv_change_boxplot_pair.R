@@ -298,7 +298,7 @@ generate_taxa_indiv_change_boxplot_pair <-
         combined_data <- combined_data %>% dplyr::mutate(value_diff = log2(value_time_2) - log2(value_time_1))
       } else if (change.func == "relative difference"){
         combined_data <- combined_data %>%
-          dplyr::mutate(value_diff = case_when(
+          dplyr::mutate(value_diff = dplyr::case_when(
             value_time_2 == 0 & value_time_1 == 0 ~ 0,
             TRUE ~ (value_time_2 - value_time_1) / (value_time_2 + value_time_1)
           ))

@@ -32,13 +32,12 @@
 #' @examples
 #' # Load required libraries and data
 #' library(vegan)
-#' data(peerj32)
 #' data(peerj32.obj)
 #' peerj32.obj$meta.dat <- peerj32.obj$meta.dat %>%
-#' select(all_of("subject")) %>% dplyr::distinct() %>%
+#' dplyr::select(all_of("subject")) %>% dplyr::distinct() %>%
 #' dplyr::mutate(cons = runif(dplyr::n(),0,5)) %>%
-#' dplyr::left_join(peerj32.obj$meta.dat,by = "subject") %>%
-#' column_to_rownames("sample")
+#' dplyr::left_join(peerj32.obj$meta.dat %>% rownames_to_column("sample"),by = "subject") %>%
+#' tibble::column_to_rownames("sample")
 #' # Generate the boxplot pair
 #' plot_list_all <- generate_taxa_change_scatterplot_pair(
 #'   data.obj = peerj32.obj,
@@ -259,7 +258,7 @@ generate_taxa_change_scatterplot_pair <-
         df <- df %>% dplyr::mutate(new_count = log2(count_ts) - log2(count_t0))
       } else if (change.func == "relative difference"){
         df <- df %>%
-          dplyr::mutate(new_count = case_when(
+          dplyr::mutate(new_count = dplyr::case_when(
             count_ts == 0 & count_t0 == 0 ~ 0,
             TRUE ~ (count_ts - count_t0) / (count_ts + count_t0)
           ))
@@ -343,7 +342,7 @@ generate_taxa_change_scatterplot_pair <-
         # Save the stacked dotplot as a PDF file
         if (pdf) {
           pdf_name <- paste0(
-            "taxa_indiv_change_scatterplot_v2",
+            "taxa_change_scatterplot",
             "_",
             "subject_",
             subject.var,

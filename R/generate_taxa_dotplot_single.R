@@ -271,11 +271,11 @@ generate_taxa_dotplot_single <- function(data.obj,
         if(feature.dat.type == "other") {
           quantiles <- quantile(otu_tab_norm_agg$mean_abundance, probs = c(0, 0.25, 0.5, 0.75, 1))
           scale_fill_gradientn(colors = colors,
-                               values = rescale(quantiles),
+                               values = scales::rescale(quantiles),
                                name = "Mean Abundance")
         } else {
           scale_fill_gradientn(colors = colors,
-                               values = rescale(c(0, 0.25, 0.5, 0.75, 1)),
+                               values = scales::rescale(c(0, 0.25, 0.5, 0.75, 1)),
                                name = "Mean Abundance (Sqrt)")
         }
       } +
