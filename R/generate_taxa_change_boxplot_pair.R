@@ -117,7 +117,7 @@ generate_taxa_change_boxplot_pair <-
       as.data.frame() %>%
       {
         if ("original" %in% feature.level)
-          mutate(., original = rownames(.))
+          dplyr::mutate(., original = rownames(.))
         else
           .
       } %>%
@@ -192,7 +192,7 @@ generate_taxa_change_boxplot_pair <-
       # Filter taxa based on prevalence and abundance
       otu_tax_filtered <- otu_tax %>%
         tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
-        group_by_at(vars(!!sym(feature.level))) %>%
+        dplyr::group_by_at(vars(!!sym(feature.level))) %>%
         dplyr::summarise(total_value = mean(value),
                   prevalence = sum(value > 0) / dplyr::n()) %>%
         filter(prevalence >= prev.filter, total_value >= abund.filter) %>%
@@ -202,9 +202,9 @@ generate_taxa_change_boxplot_pair <-
       # Aggregate OTU table
       otu_tax_agg <- otu_tax_filtered %>%
         tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
-        group_by_at(vars(sample, !!sym(feature.level))) %>%
+        dplyr::group_by_at(vars(sample, !!sym(feature.level))) %>%
         dplyr::summarise(value = sum(value)) %>%
-        spread(key = "sample", value = "value")
+        tidyr::spread(key = "sample", value = "value")
 
       compute_function <- function(top.k.func) {
         if (is.function(top.k.func)) {
@@ -219,7 +219,7 @@ generate_taxa_change_boxplot_pair <-
                  },
                  "sd" = {
                    results <-
-                     rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
+                     matrixStats::rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
                             na.rm = TRUE)
                    names(results) <- rownames(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
                  },
@@ -237,7 +237,7 @@ generate_taxa_change_boxplot_pair <-
       # Convert values to numeric and add sample ID
       otu_tax_agg_numeric <- otu_tax_agg %>%
         tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
-        mutate(value = as.numeric(value))
+        dplyr::mutate(value = as.numeric(value))
 
       # Add metadata to the aggregated OTU table
       otu_tax_agg_merged <-
@@ -279,7 +279,7 @@ generate_taxa_change_boxplot_pair <-
       # 计算value的差值
       if (is.function(change.func)) {
         combined_data <-
-          combined_data %>% mutate(value_diff = change.func(value_time_2, value_time_1))
+          combined_data %>% dplyr::mutate(value_diff = change.func(value_time_2, value_time_1))
       } else if (change.func == "lfc") {
         half_nonzero_min_time_2 <- combined_data %>%
           filter(value_time_2 > 0) %>%
@@ -317,16 +317,16 @@ generate_taxa_change_boxplot_pair <-
         )
 
         combined_data <-
-          combined_data %>% mutate(value_diff = log2(value_time_2) - log2(value_time_1))
+          combined_data %>% dplyr::mutate(value_diff = log2(value_time_2) - log2(value_time_1))
       } else if (change.func == "relative difference") {
         combined_data <- combined_data %>%
-          mutate(value_diff = case_when(
+          dplyr::mutate(value_diff = case_when(
             value_time_2 == 0 & value_time_1 == 0 ~ 0,
             TRUE ~ (value_time_2 - value_time_1) / (value_time_2 + value_time_1)
           ))
       } else {
         combined_data <-
-          combined_data %>% mutate(value_diff = value_time_2 - value_time_1)
+          combined_data %>% dplyr::mutate(value_diff = value_time_2 - value_time_1)
       }
 
       combined_data <-
@@ -427,7 +427,7 @@ generate_taxa_change_boxplot_pair <-
     # Save the plots as a PDF file
     if (pdf) {
       pdf_name <- paste0(
-        "taxa_indiv_change_boxplot_pair_v2",
+        "taxa_change_boxplot_pair",
         "_",
         "subject_",
         subject.var,

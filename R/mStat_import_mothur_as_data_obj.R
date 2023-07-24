@@ -335,7 +335,7 @@ read_tree <- function (treefile, errorIfNULL = FALSE, ...)
   }
   else {
     tree <- NULL
-    try(tree <- read.nexus(treefile, ...), TRUE)
+    try(tree <- ape::read.nexus(treefile, ...), TRUE)
     if (is.null(tree))
       try(tree <- read.tree(treefile, ...), TRUE)
   }

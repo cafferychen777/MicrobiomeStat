@@ -95,7 +95,7 @@ generate_taxa_dotplot_pair <- function(data.obj,
 
   tax_tab <- load_data_obj_taxonomy(data.obj) %>%
     as.data.frame() %>%
-    {if("original" %in% feature.level) mutate(., original = rownames(.)) else .} %>%
+    {if("original" %in% feature.level) dplyr::mutate(., original = rownames(.)) else .} %>%
     select(all_of(feature.level))
 
   meta_tab <-
@@ -110,7 +110,7 @@ generate_taxa_dotplot_pair <- function(data.obj,
 
   if (!is.null(strata.var)) {
     meta_tab <-
-      meta_tab %>% mutate(!!sym(group.var) := interaction(!!sym(group.var), !!sym(strata.var)))
+      meta_tab %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(group.var), !!sym(strata.var)))
   }
 
   # Define the colors
@@ -150,7 +150,7 @@ generate_taxa_dotplot_pair <- function(data.obj,
     # Filter taxa based on prevalence and abundance
     otu_tax_filtered <- otu_tax %>%
       tidyr::gather(key = "sample", value = "count",-one_of(colnames(tax_tab))) %>%
-      group_by_at(vars(!!sym(feature.level))) %>%
+      dplyr::group_by_at(vars(!!sym(feature.level))) %>%
       dplyr::summarise(total_count = mean(count),
                 prevalence = sum(count > 0) / dplyr::n()) %>%
       filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
@@ -160,9 +160,9 @@ generate_taxa_dotplot_pair <- function(data.obj,
     # 聚合 OTU 表
     otu_tax_agg <- otu_tax_filtered %>%
       tidyr::gather(key = "sample", value = "count",-one_of(colnames(tax_tab))) %>%
-      group_by_at(vars(sample,!!sym(feature.level))) %>%
+      dplyr::group_by_at(vars(sample,!!sym(feature.level))) %>%
       dplyr::summarise(count = sum(count)) %>%
-      spread(key = "sample", value = "count")
+      tidyr::spread(key = "sample", value = "count")
 
     compute_function <- function(top.k.func) {
       if (is.function(top.k.func)) {
@@ -177,7 +177,7 @@ generate_taxa_dotplot_pair <- function(data.obj,
                },
                "sd" = {
                  results <-
-                   rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
+                   matrixStats::rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
                           na.rm = TRUE)
                  names(results) <- rownames(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
                },
@@ -194,7 +194,7 @@ generate_taxa_dotplot_pair <- function(data.obj,
 
     # 转换计数为数值类型
     otu_tax_agg_numeric <-
-      mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
+      dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
 
     otu_tab_norm <- otu_tax_agg_numeric %>%
       column_to_rownames(var = feature.level) %>%
@@ -223,8 +223,8 @@ generate_taxa_dotplot_pair <- function(data.obj,
 
     if (!is.null(strata.var)){
       otu_tab_norm_agg <- otu_tab_norm_agg %>%
-        mutate(temp = !!sym(group.var)) %>%
-        separate(temp, into = c(paste0(group.var,"2"), strata.var), sep = "\\.")
+        dplyr::mutate(temp = !!sym(group.var)) %>%
+        tidyr::separate(temp, into = c(paste0(group.var,"2"), strata.var), sep = "\\.")
     }
 
     if (!is.null(features.plot)){

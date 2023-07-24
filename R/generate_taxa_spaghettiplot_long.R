@@ -114,7 +114,7 @@ generate_taxa_spaghettiplot_long <-
       as.data.frame() %>%
       {
         if ("original" %in% feature.level)
-          mutate(., original = rownames(.))
+          dplyr::mutate(., original = rownames(.))
         else
           .
       } %>%
@@ -174,7 +174,7 @@ generate_taxa_spaghettiplot_long <-
       # Filter taxa based on prevalence and abundance
       otu_tax_filtered <- otu_tax %>%
         tidyr::gather(key = "sample", value = "count", -one_of(feature.level)) %>%
-        group_by_at(vars(!!sym(feature.level))) %>%
+        dplyr::group_by_at(vars(!!sym(feature.level))) %>%
         dplyr::summarise(total_count = mean(count),
                   prevalence = sum(count > 0) / dplyr::n()) %>%
         filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
@@ -184,9 +184,9 @@ generate_taxa_spaghettiplot_long <-
       # 聚合 OTU 表
       otu_tax_agg <- otu_tax_filtered %>%
         tidyr::gather(key = "sample",  value = "count", -one_of(feature.level)) %>%
-        group_by_at(vars(sample, !!sym(feature.level))) %>%
+        dplyr::group_by_at(vars(sample, !!sym(feature.level))) %>%
         dplyr::summarise(count = sum(count)) %>%
-        spread(key = "sample", value = "count")
+        tidyr::spread(key = "sample", value = "count")
 
       compute_function <- function(top.k.func) {
         if (is.function(top.k.func)) {
@@ -201,7 +201,7 @@ generate_taxa_spaghettiplot_long <-
                  },
                  "sd" = {
                    results <-
-                     rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
+                     matrixStats::rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
                             na.rm = TRUE)
                    names(results) <- rownames(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
                  },
@@ -218,14 +218,14 @@ generate_taxa_spaghettiplot_long <-
 
       # 转换计数为数值类型
       otu_tax_agg_numeric <-
-        mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
+        dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
 
       df <- otu_tax_agg_numeric %>%
         tidyr::gather(key = "sample", value = "count", -one_of(feature.level)) %>%
         dplyr::left_join(meta_tab %>% rownames_to_column(var = "sample"), by = "sample")
 
       if (is.null(group.var)) {
-        df <- df %>% mutate("ALL" = "ALL")
+        df <- df %>% dplyr::mutate("ALL" = "ALL")
         group.var = "ALL"
       }
 

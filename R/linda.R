@@ -181,7 +181,7 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
   # Filter features
   temp <- t(t(Y) / colSums(Y))
 
-  keep.tax <- rowMeans(temp != 0) >= prev.filter & rowMeans(temp) >= mean.abund.filter & rowMaxs(temp) >= max.abund.filter
+  keep.tax <- rowMeans(temp != 0) >= prev.filter & rowMeans(temp) >= mean.abund.filter & matrixStats::rowMaxs(temp) >= max.abund.filter
   names(keep.tax) <- rownames(Y)
   rm(temp)
   if (verbose) cat(sum(!keep.tax), " features are filtered!\n")

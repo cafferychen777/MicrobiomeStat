@@ -119,7 +119,7 @@ generate_taxa_indiv_change_scatterplot_pair <-
 
     tax_tab <- load_data_obj_taxonomy(data.obj) %>%
       as.data.frame() %>%
-      {if("original" %in% feature.level) mutate(., original = rownames(.)) else .} %>%
+      {if("original" %in% feature.level) dplyr::mutate(., original = rownames(.)) else .} %>%
       select(all_of(feature.level))
 
     meta_tab <-
@@ -179,7 +179,7 @@ generate_taxa_indiv_change_scatterplot_pair <-
       # Filter taxa based on prevalence and abundance
       otu_tax_filtered <- otu_tax %>%
         tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
-        group_by_at(vars(!!sym(feature.level))) %>%
+        dplyr::group_by_at(vars(!!sym(feature.level))) %>%
         dplyr::summarise(total_count = mean(count),
                   prevalence = sum(count > 0) / dplyr::n()) %>%
         filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
@@ -189,9 +189,9 @@ generate_taxa_indiv_change_scatterplot_pair <-
       # 聚合 OTU 表
       otu_tax_agg <- otu_tax_filtered %>%
         tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
-        group_by_at(vars(sample, !!sym(feature.level))) %>%
+        dplyr::group_by_at(vars(sample, !!sym(feature.level))) %>%
         dplyr::summarise(count = sum(count)) %>%
-        spread(key = "sample", value = "count")
+        tidyr::spread(key = "sample", value = "count")
 
       compute_function <- function(top.k.func) {
         if (is.function(top.k.func)) {
@@ -206,7 +206,7 @@ generate_taxa_indiv_change_scatterplot_pair <-
                  },
                  "sd" = {
                    results <-
-                     rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
+                     matrixStats::rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
                             na.rm = TRUE)
                    names(results) <- rownames(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
                  },
@@ -223,7 +223,7 @@ generate_taxa_indiv_change_scatterplot_pair <-
 
       # 转换计数为数值类型
       otu_tax_agg_numeric <-
-        mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
+        dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
 
       otu_tab_norm <- otu_tax_agg_numeric %>%
         column_to_rownames(var = feature.level) %>%
@@ -245,7 +245,7 @@ generate_taxa_indiv_change_scatterplot_pair <-
 
       # 最后，计算新的count值
       if (is.function(change.func)) {
-        df <- df %>% mutate(new_count = change.func(count_ts, count_t0))
+        df <- df %>% dplyr::mutate(new_count = change.func(count_ts, count_t0))
       } else if (change.func == "lfc") {
         # 对于对数折叠变化("lfc")，我们需要插补数据
         # 首先，为每个分类计算非零最小值的一半
@@ -269,15 +269,15 @@ generate_taxa_indiv_change_scatterplot_pair <-
         # Add a message to inform users that an imputation operation was performed.
         message("Imputation was performed using half the minimum nonzero count for each taxa at different time points.")
 
-        df <- df %>% mutate(new_count = log2(count_ts) - log2(count_t0))
+        df <- df %>% dplyr::mutate(new_count = log2(count_ts) - log2(count_t0))
       } else if (change.func == "relative difference"){
         df <- df %>%
-          mutate(new_count = case_when(
+          dplyr::mutate(new_count = case_when(
             count_ts == 0 & count_t0 == 0 ~ 0,
             TRUE ~ (count_ts - count_t0) / (count_ts + count_t0)
           ))
       } else {
-        df <- df %>% mutate(new_count = count_ts - count_t0)
+        df <- df %>% dplyr::mutate(new_count = count_ts - count_t0)
       }
 
       df <- df %>% dplyr::left_join(meta_tab %>% select(-all_of(time.var)) %>% dplyr::distinct(), by = c(subject.var))
@@ -311,8 +311,8 @@ generate_taxa_indiv_change_scatterplot_pair <-
                    x = !!sym(group.var),
                    y = new_count,
                    fill = !!sym(strata.var),
-                   color = !!sym(strata.var),  # Add this line to separate color by strata.var
-                   group = !!sym(strata.var)   # Add this line to separate smoothing line by strata.var
+                   color = !!sym(strata.var),  # Add this line to tidyr::separate color by strata.var
+                   group = !!sym(strata.var)   # Add this line to tidyr::separate smoothing line by strata.var
                  )) +
           geom_smooth(se = TRUE, method = 'lm') +
           geom_point(aes_function,data = df %>% filter(!!sym(feature.level) == tax),

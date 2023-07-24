@@ -150,7 +150,7 @@ generate_taxa_boxplot_long <-
       as.data.frame() %>%
       {
         if ("original" %in% feature.level)
-          mutate(., original = rownames(.))
+          dplyr::mutate(., original = rownames(.))
         else
           .
       } %>%
@@ -232,7 +232,7 @@ generate_taxa_boxplot_long <-
 
       otu_tax_filtered <- otu_tax %>%
         tidyr::gather(key = "sample", value = "value",-one_of(feature.level)) %>%
-        group_by_at(vars(!!sym(feature.level))) %>%
+        dplyr::group_by_at(vars(!!sym(feature.level))) %>%
         dplyr::summarise(total_count = mean(value),
                   prevalence = sum(value > 0) / dplyr::n()) %>%
         filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
@@ -241,9 +241,9 @@ generate_taxa_boxplot_long <-
 
       otu_tax_agg <- otu_tax_filtered %>%
         tidyr::gather(key = "sample", value = "value",-one_of(feature.level)) %>%
-        group_by_at(vars(sample,!!sym(feature.level))) %>%
+        dplyr::group_by_at(vars(sample,!!sym(feature.level))) %>%
         dplyr::summarise(value = sum(value)) %>%
-        spread(key = "sample", value = "value")
+        tidyr::spread(key = "sample", value = "value")
 
       compute_function <- function(top.k.func) {
         if (is.function(top.k.func)) {
@@ -258,7 +258,7 @@ generate_taxa_boxplot_long <-
                  },
                  "sd" = {
                    results <-
-                     rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
+                     matrixStats::rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
                             na.rm = TRUE)
                    names(results) <- rownames(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
                  },
@@ -275,7 +275,7 @@ generate_taxa_boxplot_long <-
 
       otu_tax_agg_numeric <- otu_tax_agg %>%
         tidyr::gather(key = "sample", value = "value",-one_of(feature.level)) %>%
-        mutate(value = as.numeric(value))
+        dplyr::mutate(value = as.numeric(value))
 
       otu_tax_agg_merged <-
         dplyr::left_join(otu_tax_agg_numeric,
@@ -309,7 +309,7 @@ generate_taxa_boxplot_long <-
             # Replace zeros with the log of the half minimum non-zero proportion
             otu_tax_agg_merged <- otu_tax_agg_merged %>%
               dplyr::left_join(min_half_nonzero, by = feature.level) %>%
-              mutate(value = ifelse(value == 0, log10(min_half_value), log10(value))) %>%
+              dplyr::mutate(value = ifelse(value == 0, log10(min_half_value), log10(value))) %>%
               select(-min_half_value)
           }
         }
@@ -337,7 +337,7 @@ generate_taxa_boxplot_long <-
             ) %>%
             dplyr::summarise(dplyr::across(value, \(x) mean(x, na.rm = TRUE)), .groups = "drop") %>%
             dplyr::ungroup() %>%
-            mutate(!!sym(subject.var) := "ALL")
+            dplyr::mutate(!!sym(subject.var) := "ALL")
         } else if (!is.null(group.var)) {
           average_sub_otu_tax_agg_merged <- sub_otu_tax_agg_merged %>%
             dplyr::group_by(!!sym(group.var),
@@ -345,13 +345,13 @@ generate_taxa_boxplot_long <-
                      !!sym(feature.level)) %>%
             dplyr::summarise(dplyr::across(value, \(x) mean(x, na.rm = TRUE)), .groups = "drop") %>%
             dplyr::ungroup() %>%
-            mutate(!!sym(subject.var) := "ALL")
+            dplyr::mutate(!!sym(subject.var) := "ALL")
         } else {
           average_sub_otu_tax_agg_merged <- sub_otu_tax_agg_merged %>%
             dplyr::group_by(!!sym(time.var)) %>%
             dplyr::summarise(dplyr::across(value, \(x) mean(x, na.rm = TRUE)), .groups = "drop") %>%
             dplyr::ungroup() %>%
-            mutate(!!sym(subject.var) := "ALL")
+            dplyr::mutate(!!sym(subject.var) := "ALL")
         }
       }
 

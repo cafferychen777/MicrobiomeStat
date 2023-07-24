@@ -90,7 +90,7 @@ generate_taxa_barplot_single <-
 
     tax_tab <- load_data_obj_taxonomy(data.obj) %>%
       as.data.frame() %>%
-      {if("original" %in% feature.level) mutate(., original = rownames(.)) else .} %>%
+      {if("original" %in% feature.level) dplyr::mutate(., original = rownames(.)) else .} %>%
       select(all_of(feature.level))
 
     if (!is.null(time.var)){
@@ -161,12 +161,12 @@ generate_taxa_barplot_single <-
       # 聚合 OTU 表
       otu_tax_agg <- otu_tax %>%
         tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
-        group_by_at(vars(sample, !!sym(feature.level))) %>%
+        dplyr::group_by_at(vars(sample, !!sym(feature.level))) %>%
         dplyr::summarise(value = sum(value)) %>%
         tidyr::spread(key = "sample", value = "value")
 
       # 转换计数为数值类型
-      otu_tax_agg_numeric <- mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
+      otu_tax_agg_numeric <- dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
 
       # 标准化数据
       otu_tab_norm <- apply(t(otu_tax_agg_numeric %>% select(-feature.level)), 1, function(x) x)
@@ -192,7 +192,7 @@ generate_taxa_barplot_single <-
       # 转换数据框为长格式
       otu_tab_long <- otu_tab_other %>%
         dplyr::group_by(!!sym(feature.level)) %>%
-        summarize_all(sum) %>%
+        dplyr::summarize_all(sum) %>%
         tidyr::gather(key = "sample", value = "value", -feature.level)
 
       # 将 otu_tab_long 和 meta_tab_sorted 合并
@@ -204,9 +204,9 @@ generate_taxa_barplot_single <-
 
       last_sample_ids <- sorted_merged_long_df %>%
         dplyr::group_by(!!sym(subject.var)) %>%
-        dplyr::summarize(last_sample_id = last(sample))
+        dplyr::summarize(last_sample_id = dplyr::last(sample))
 
-      sorted_merged_long_df <- sorted_merged_long_df %>% mutate(!!sym(feature.level) := as.factor(!!sym(feature.level)))
+      sorted_merged_long_df <- sorted_merged_long_df %>% dplyr::mutate(!!sym(feature.level) := as.factor(!!sym(feature.level)))
       original_levels <- levels(sorted_merged_long_df[[feature.level]])
       if (!is.na(other.abund.cutoff)){
         new_levels <- c("Other", setdiff(original_levels, "Other"))
@@ -215,18 +215,18 @@ generate_taxa_barplot_single <-
       }
 
       sorted_merged_long_df <- sorted_merged_long_df %>%
-        mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = original_levels)) %>%
-        mutate(!!sym(feature.level) := fct_relevel(!!sym(feature.level), new_levels))
+        dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = original_levels)) %>%
+        dplyr::mutate(!!sym(feature.level) := forcats::fct_relevel(!!sym(feature.level), new_levels))
 
       df <- sorted_merged_long_df %>%
         dplyr::group_by(sample) %>%
-        mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = original_levels)) %>%
-        mutate(!!sym(feature.level) := fct_relevel(!!sym(feature.level), new_levels)) %>%
+        dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = original_levels)) %>%
+        dplyr::mutate(!!sym(feature.level) := forcats::fct_relevel(!!sym(feature.level), new_levels)) %>%
         dplyr::arrange(match(!!sym(feature.level), new_levels)) %>%
-        mutate(cumulative_value = (1-cumsum(value))) %>%
+        dplyr::mutate(cumulative_value = (1-cumsum(value))) %>%
         dplyr::ungroup() %>%
         dplyr::group_by(!!sym(feature.level)) %>%
-        mutate(next_cumulative_value = dplyr::if_else(sample %in% last_sample_ids$last_sample_id, NA_real_, dplyr::lead(cumulative_value))) %>%
+        dplyr::mutate(next_cumulative_value = dplyr::if_else(sample %in% last_sample_ids$last_sample_id, NA_real_, dplyr::lead(cumulative_value))) %>%
         dplyr::ungroup()
 
       color_pal <- setNames(pal, as.matrix(unique(df %>% select(!!sym(feature.level)))))
@@ -235,7 +235,7 @@ generate_taxa_barplot_single <-
       bar_spacing <- bar_width / 2
 
       df <- df %>%
-        mutate(x_offset = ifelse(cumulative_value == 0, (bar_width + bar_spacing) / 2, -(bar_width + bar_spacing) / 2))
+        dplyr::mutate(x_offset = ifelse(cumulative_value == 0, (bar_width + bar_spacing) / 2, -(bar_width + bar_spacing) / 2))
 
       if (!is.null(group.var) && !is.null(strata.var)){
         df <- df %>% dplyr::arrange(!!sym(strata.var), !!sym(group.var), !!sym(subject.var))
@@ -247,10 +247,10 @@ generate_taxa_barplot_single <-
 
       # 修改 subject.var 的因子水平
       df <- df %>%
-        mutate(!!sym(subject.var) := factor(!!sym(subject.var), levels = unique(!!sym(subject.var))))
+        dplyr::mutate(!!sym(subject.var) := factor(!!sym(subject.var), levels = unique(!!sym(subject.var))))
 
       df <- df %>%
-        mutate(joint_factor = interaction(!!sym(time.var), !!sym(subject.var)))
+        dplyr::mutate(joint_factor = interaction(!!sym(time.var), !!sym(subject.var)))
 
       df$joint_factor <- as.numeric(df$joint_factor)
 
@@ -300,17 +300,17 @@ generate_taxa_barplot_single <-
 
       # 以下为average barplot的绘制
       last_time_ids <- sorted_merged_long_df %>%
-        select(!!sym(time.var)) %>% dplyr::pull() %>% as.factor() %>% levels() %>% last()
+        select(!!sym(time.var)) %>% dplyr::pull() %>% as.factor() %>% levels() %>% dplyr::last()
 
       if (!is.null(strata.var)){
         if (is.null(group.var)){
-          sorted_merged_long_df <- sorted_merged_long_df %>% mutate("ALL" = "ALL")
+          sorted_merged_long_df <- sorted_merged_long_df %>% dplyr::mutate("ALL" = "ALL")
           group.var = "ALL"
         }
-        sorted_merged_long_df <- sorted_merged_long_df %>% mutate(!!sym(group.var) := interaction(!!sym(group.var),!!sym(strata.var)))
+        sorted_merged_long_df <- sorted_merged_long_df %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(group.var),!!sym(strata.var)))
       } else {
         if (is.null(group.var)){
-          sorted_merged_long_df <- sorted_merged_long_df %>% mutate("ALL" = "ALL")
+          sorted_merged_long_df <- sorted_merged_long_df %>% dplyr::mutate("ALL" = "ALL")
           group.var = "ALL"
         }
       }
@@ -318,27 +318,27 @@ generate_taxa_barplot_single <-
       df_average <- sorted_merged_long_df %>%
         dplyr::group_by(!!sym(feature.level),!!sym(group.var),!!sym(time.var)) %>%
         dplyr::summarise(mean_value  = mean(value)) %>%
-        mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = original_levels)) %>%
-        mutate(!!sym(feature.level) := fct_relevel(!!sym(feature.level), new_levels)) %>%
+        dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = original_levels)) %>%
+        dplyr::mutate(!!sym(feature.level) := forcats::fct_relevel(!!sym(feature.level), new_levels)) %>%
         dplyr::arrange(match(!!sym(feature.level), new_levels)) %>%
         dplyr::group_by(!!sym(group.var),!!sym(time.var)) %>%
-        mutate(cumulative_mean_value = (1-cumsum(mean_value))) %>%
+        dplyr::mutate(cumulative_mean_value = (1-cumsum(mean_value))) %>%
         dplyr::ungroup() %>%
         dplyr::group_by(!!sym(feature.level)) %>%
-        mutate(next_cumulative_mean_value = dplyr::if_else(!!sym(time.var) %in% last_time_ids, NA_real_, dplyr::lead(cumulative_mean_value))) %>%
+        dplyr::mutate(next_cumulative_mean_value = dplyr::if_else(!!sym(time.var) %in% last_time_ids, NA_real_, dplyr::lead(cumulative_mean_value))) %>%
         dplyr::ungroup()
 
       df_average <- df_average %>%
-        mutate(x_offset = ifelse(cumulative_mean_value == 0, (bar_width + bar_spacing) / 2, -(bar_width + bar_spacing) / 2))
+        dplyr::mutate(x_offset = ifelse(cumulative_mean_value == 0, (bar_width + bar_spacing) / 2, -(bar_width + bar_spacing) / 2))
 
       df_average <- df_average %>%
-        mutate(joint_factor = interaction(!!sym(time.var), !!sym(group.var)))
+        dplyr::mutate(joint_factor = interaction(!!sym(time.var), !!sym(group.var)))
 
       df_average$joint_factor_numeric <- as.numeric(df_average$joint_factor)
 
       if(!is.null(strata.var)){
         df_average <- df_average %>%
-          separate(!!sym(group.var), into = c(group.var, strata.var), sep = "\\.")
+          tidyr::separate(!!sym(group.var), into = c(group.var, strata.var), sep = "\\.")
       }
 
       stack_barplot_average  <- # Main plot code

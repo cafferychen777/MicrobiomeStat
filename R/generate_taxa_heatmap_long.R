@@ -112,7 +112,7 @@ generate_taxa_heatmap_long <- function(data.obj,
 
   tax_tab <- load_data_obj_taxonomy(data.obj) %>%
     as.data.frame() %>%
-    {if("original" %in% feature.level) mutate(., original = rownames(.)) else .} %>%
+    {if("original" %in% feature.level) dplyr::mutate(., original = rownames(.)) else .} %>%
     select(all_of(feature.level))
 
   if (is.null(group.var)){
@@ -121,7 +121,7 @@ generate_taxa_heatmap_long <- function(data.obj,
   }
 
   if (!is.null(strata.var)){
-    meta_tab <- meta_tab %>% mutate(!!sym(group.var) := interaction(!!sym(strata.var),!!sym(group.var)))
+    meta_tab <- meta_tab %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(strata.var),!!sym(group.var)))
   }
 
   if (is.null(cluster.cols)){
@@ -148,7 +148,7 @@ generate_taxa_heatmap_long <- function(data.obj,
   # Filter taxa based on prevalence and abundance
   otu_tax_filtered <- otu_tax %>%
     tidyr::gather(key = "sample", value = "count", -one_of(feature.level)) %>%
-    group_by_at(vars(!!sym(feature.level))) %>%
+    dplyr::group_by_at(vars(!!sym(feature.level))) %>%
     dplyr::summarise(total_count = mean(count),
               prevalence = sum(count > 0) / dplyr::n()) %>%
     filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
@@ -158,9 +158,9 @@ generate_taxa_heatmap_long <- function(data.obj,
   # Aggregate OTU table
   otu_tax_agg <- otu_tax_filtered %>%
     tidyr::gather(key = "sample", value = "count", -one_of(feature.level)) %>%
-    group_by_at(vars(sample, !!sym(feature.level))) %>%
+    dplyr::group_by_at(vars(sample, !!sym(feature.level))) %>%
     dplyr::summarise(count = sum(count)) %>%
-    spread(key = "sample", value = "count")
+    tidyr::spread(key = "sample", value = "count")
 
   compute_function <- function(top.k.func) {
     if (is.function(top.k.func)) {
@@ -175,7 +175,7 @@ generate_taxa_heatmap_long <- function(data.obj,
              },
              "sd" = {
                results <-
-                 rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
+                 matrixStats::rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
                         na.rm = TRUE)
                names(results) <- rownames(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
              },
@@ -192,7 +192,7 @@ generate_taxa_heatmap_long <- function(data.obj,
 
   # Convert counts to numeric
   otu_tax_agg_numeric <-
-    mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
+    dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
 
   otu_tab_norm <-
     otu_tax_agg_numeric %>% filter(!is.na(!!sym(feature.level))) %>% column_to_rownames(var = feature.level) %>% as.matrix()
@@ -206,8 +206,8 @@ generate_taxa_heatmap_long <- function(data.obj,
                   rownames_to_column("sample"), "sample") %>%
       dplyr::group_by(!!sym(feature.level), !!sym(group.var), !!sym(time.var)) %>%
       dplyr::summarise(mean_value = mean(value)) %>%
-      unite("group_time", c(group.var, time.var), sep = "_") %>%
-      spread(key = "group_time", value = "mean_value") %>% column_to_rownames(feature.level)
+      tidyr::unite("group_time", c(group.var, time.var), sep = "_") %>%
+      tidyr::spread(key = "group_time", value = "mean_value") %>% column_to_rownames(feature.level)
   } else {
     wide_data <- otu_tab_norm %>%
       as.data.frame() %>%
@@ -217,20 +217,20 @@ generate_taxa_heatmap_long <- function(data.obj,
                   rownames_to_column("sample"), "sample") %>%
       dplyr::group_by(!!sym(feature.level), !!sym(time.var)) %>%
       dplyr::summarise(mean_value = mean(value)) %>%
-      spread(key = time.var, value = "mean_value") %>% column_to_rownames(feature.level)
+      tidyr::spread(key = time.var, value = "mean_value") %>% column_to_rownames(feature.level)
   }
 
     annotation_col <- meta_tab %>%
       select(!!sym(time.var),!!sym(group.var)) %>%
       as_tibble() %>%
       dplyr::distinct() %>%
-      mutate(group_time = paste(!!sym(group.var),!!sym(time.var), sep = "_")) %>%
+      dplyr::mutate(group_time = paste(!!sym(group.var),!!sym(time.var), sep = "_")) %>%
       column_to_rownames("group_time")
     annotation_col_sorted <-
       annotation_col[order(annotation_col[[group.var]], annotation_col[[time.var]]), ]
     if (!is.null(strata.var)){
       annotation_col_sorted <- annotation_col_sorted %>%
-        separate(!!sym(group.var), into = c(strata.var, group.var), sep = "\\.")
+        tidyr::separate(!!sym(group.var), into = c(strata.var, group.var), sep = "\\.")
     }
     wide_data_sorted <- wide_data[, rownames(annotation_col_sorted)]
 

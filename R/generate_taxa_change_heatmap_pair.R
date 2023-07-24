@@ -100,7 +100,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
 
   tax_tab <- load_data_obj_taxonomy(data.obj) %>%
     as.data.frame() %>%
-    {if("original" %in% feature.level) mutate(., original = rownames(.)) else .} %>%
+    {if("original" %in% feature.level) dplyr::mutate(., original = rownames(.)) else .} %>%
     select(all_of(feature.level))
 
   meta_tab <-  load_data_obj_metadata(data.obj) %>% select(all_of(c(
@@ -139,7 +139,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
     # Filter taxa based on prevalence and abundance
     otu_tax_filtered <- otu_tax %>%
       tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
-      group_by_at(vars(!!sym(feature.level))) %>%
+      dplyr::group_by_at(vars(!!sym(feature.level))) %>%
       dplyr::summarise(total_count = mean(count),
                 prevalence = sum(count > 0) / dplyr::n()) %>%
       filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
@@ -149,9 +149,9 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
     # Aggregate OTU table
     otu_tax_agg <- otu_tax_filtered %>%
       tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
-      group_by_at(vars(sample, !!sym(feature.level))) %>%
+      dplyr::group_by_at(vars(sample, !!sym(feature.level))) %>%
       dplyr::summarise(count = sum(count)) %>%
-      spread(key = "sample", value = "count")
+      tidyr::spread(key = "sample", value = "count")
 
     compute_function <- function(top.k.func) {
       if (is.function(top.k.func)) {
@@ -166,7 +166,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
                },
                "sd" = {
                  results <-
-                   rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
+                   matrixStats::rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
                           na.rm = TRUE)
                  names(results) <- rownames(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
                },
@@ -183,7 +183,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
 
     # Convert counts to numeric
     otu_tax_agg_numeric <-
-      mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
+      dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
 
     # 将otu_tax_agg_numeric从宽格式转换为长格式
     otu_tax_long <- otu_tax_agg_numeric %>%
@@ -218,7 +218,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
 
     # 计算value的差值
     if (is.function(change.func)) {
-      combined_data <- combined_data %>% mutate(value_diff = change.func(value_time_2, value_time_1))
+      combined_data <- combined_data %>% dplyr::mutate(value_diff = change.func(value_time_2, value_time_1))
     } else if (change.func == "lfc") {
       half_nonzero_min_time_2 <- combined_data %>%
         filter(value_time_2 > 0) %>%
@@ -239,20 +239,20 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
       # Add a message to inform users that an imputation operation was performed.
       message("Imputation was performed using half the minimum nonzero proportion for each taxon at different time points.")
 
-      combined_data <- combined_data %>% mutate(value_diff = log2(value_time_2) - log2(value_time_1))
+      combined_data <- combined_data %>% dplyr::mutate(value_diff = log2(value_time_2) - log2(value_time_1))
     } else if (change.func == "relative difference"){
       combined_data <- combined_data %>%
-        mutate(value_diff = case_when(
+        dplyr::mutate(value_diff = case_when(
           value_time_2 == 0 & value_time_1 == 0 ~ 0,
           TRUE ~ (value_time_2 - value_time_1) / (value_time_2 + value_time_1)
         ))
     } else {
-      combined_data <- combined_data %>% mutate(value_diff = value_time_2 - value_time_1)
+      combined_data <- combined_data %>% dplyr::mutate(value_diff = value_time_2 - value_time_1)
     }
 
     value_diff_matrix <- combined_data %>%
       select(feature.level, subject = subject, value_diff) %>%
-      spread(key = subject, value = value_diff) %>%
+      tidyr::spread(key = subject, value = value_diff) %>%
       column_to_rownames(var = feature.level) %>%
       as.matrix()
 

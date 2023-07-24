@@ -67,10 +67,10 @@ mStat_aggregate_by_taxonomy <- function (data.obj, feature.level = NULL) {
       # 聚合 OTU 表
       otu_tax_agg <- otu_tax %>%
         tidyr::gather(key = "sample", value = "value",-one_of(feature.level)) %>%
-        group_by_at(vars(sample,!!sym(feature.level))) %>%
+        dplyr::group_by_at(vars(sample,!!sym(feature.level))) %>%
         dplyr::summarise(value = sum(value)) %>%
-        spread(key = "sample", value = "value") %>%
-        mutate(!!feature.level := replace_na(!!sym(feature.level), "Unclassified")) %>%
+        tidyr::spread(key = "sample", value = "value") %>%
+        dplyr::mutate(!!feature.level := replace_na(!!sym(feature.level), "Unclassified")) %>%
         column_to_rownames(feature.level) %>%
         as.matrix()
 

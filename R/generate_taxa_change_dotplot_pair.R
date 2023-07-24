@@ -106,7 +106,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
     as.data.frame() %>%
     {
       if ("original" %in% feature.level)
-        mutate(., original = rownames(.))
+        dplyr::mutate(., original = rownames(.))
       else
         .
     } %>%
@@ -124,7 +124,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
 
   if (!is.null(strata.var)) {
     meta_tab <-
-      meta_tab %>% mutate(!!sym(group.var) := interaction(!!sym(group.var),!!sym(strata.var)))
+      meta_tab %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(group.var),!!sym(strata.var)))
   }
 
   # Define the colors
@@ -163,7 +163,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
     # Filter taxa based on prevalence and abundance
     otu_tax_filtered <- otu_tax %>%
       tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
-      group_by_at(vars(!!sym(feature.level))) %>%
+      dplyr::group_by_at(vars(!!sym(feature.level))) %>%
       dplyr::summarise(total_count = mean(count),
                 prevalence = sum(count > 0) / dplyr::n()) %>%
       filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
@@ -173,9 +173,9 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
     # 聚合 OTU 表
     otu_tax_agg <- otu_tax_filtered %>%
       tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
-      group_by_at(vars(sample, !!sym(feature.level))) %>%
+      dplyr::group_by_at(vars(sample, !!sym(feature.level))) %>%
       dplyr::summarise(count = sum(count)) %>%
-      spread(key = "sample", value = "count")
+      tidyr::spread(key = "sample", value = "count")
 
     compute_function <- function(top.k.func) {
       if (is.function(top.k.func)) {
@@ -190,7 +190,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
                },
                "sd" = {
                  results <-
-                   rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
+                   matrixStats::rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
                           na.rm = TRUE)
                  names(results) <- rownames(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
                },
@@ -207,7 +207,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
 
     # 转换计数为数值类型
     otu_tax_agg_numeric <-
-      mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
+      dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
 
     otu_tab_norm <- otu_tax_agg_numeric %>%
       column_to_rownames(var = feature.level) %>%
@@ -225,7 +225,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
 
     # 将数据从长格式转换为宽格式，将不同的时间点的mean_abundance放到不同的列中
     otu_tab_norm_agg_wide <- otu_tab_norm_agg %>%
-      spread(key = !!sym(time.var), value = mean_abundance) %>%
+      tidyr::spread(key = !!sym(time.var), value = mean_abundance) %>%
       dplyr::rename(time1_mean_abundance = change.base,
              time2_mean_abundance = change.after)
 
@@ -233,15 +233,15 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
     # 最后，计算新的count值
     if (is.function(change.func)) {
       otu_tab_norm_agg_wide <-
-        otu_tab_norm_agg_wide %>% mutate(abundance_change = change.func(time2_mean_abundance, time2_mean_abundance))
+        otu_tab_norm_agg_wide %>% dplyr::mutate(abundance_change = change.func(time2_mean_abundance, time2_mean_abundance))
     } else if (change.func == "lfc") {
       otu_tab_norm_agg_wide <-
-        otu_tab_norm_agg_wide %>% mutate(
+        otu_tab_norm_agg_wide %>% dplyr::mutate(
           abundance_change = log2(time2_mean_abundance + 0.00001) - log2(time1_mean_abundance + 0.00001)
         )
     } else if (change.func == "relative difference") {
       otu_tab_norm_agg_wide <- otu_tab_norm_agg_wide %>%
-        mutate(
+        dplyr::mutate(
           abundance_change = case_when(
             time2_mean_abundance == 0 & time1_mean_abundance == 0 ~ 0,
             TRUE ~ (time2_mean_abundance - time1_mean_abundance) / (time2_mean_abundance + time1_mean_abundance)
@@ -249,7 +249,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
         )
     } else {
       otu_tab_norm_agg_wide <-
-        otu_tab_norm_agg_wide %>% mutate(abundance_change = time2_mean_abundance - time1_mean_abundance)
+        otu_tab_norm_agg_wide %>% dplyr::mutate(abundance_change = time2_mean_abundance - time1_mean_abundance)
     }
 
     # 计算每个taxon在每个时间点的prevalence
@@ -261,28 +261,28 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
 
     # 将数据从长格式转换为宽格式，将不同的时间点的prevalence放到不同的列中
     prevalence_time_wide <- prevalence_time %>%
-      spread(key = time.var, value = prevalence) %>%
+      tidyr::spread(key = time.var, value = prevalence) %>%
       dplyr::rename(time1_prevalence = change.base,
              time2_prevalence = change.after)
 
     # 计算不同时间点的prevalence差值
     if (is.function(change.func)) {
       prevalence_time_wide <-
-        prevalence_time_wide %>% mutate(prevalence_change = change.func(time2_prevalence, time1_prevalence))
+        prevalence_time_wide %>% dplyr::mutate(prevalence_change = change.func(time2_prevalence, time1_prevalence))
     } else if (change.func == "lfc") {
       prevalence_time_wide <-
-        prevalence_time_wide %>% mutate(
+        prevalence_time_wide %>% dplyr::mutate(
           prevalence_change = log2(time2_prevalence + 0.00001) - log2(time1_prevalence + 0.00001)
         )
     } else if (change.func == "relative difference") {
       prevalence_time_wide <- prevalence_time_wide %>%
-        mutate(prevalence_change = case_when(
+        dplyr::mutate(prevalence_change = case_when(
           time2_prevalence == 0 & time1_prevalence == 0 ~ 0,
           TRUE ~ (time2_prevalence - time1_prevalence) / (time2_prevalence + time1_prevalence)
         ))
     } else {
       prevalence_time_wide <-
-        prevalence_time_wide %>% mutate(prevalence_change = time2_prevalence - time1_prevalence)
+        prevalence_time_wide %>% dplyr::mutate(prevalence_change = time2_prevalence - time1_prevalence)
     }
 
     # 将两个结果合并
@@ -314,8 +314,8 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
 
     if (!is.null(strata.var)) {
       otu_tab_norm_agg_wide <- otu_tab_norm_agg_wide %>%
-        mutate(temp = !!sym(group.var)) %>%
-        separate(temp,
+        dplyr::mutate(temp = !!sym(group.var)) %>%
+        tidyr::separate(temp,
                  into = c(paste0(group.var, "2"), strata.var),
                  sep = "\\.")
     }

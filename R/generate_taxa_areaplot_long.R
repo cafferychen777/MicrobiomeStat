@@ -47,6 +47,8 @@
 #'   pdf = TRUE,
 #'   file.ann = "test"
 #' )
+#' @import rlang
+#' @import tibble
 #' @export
 generate_taxa_areaplot_long <-
   function(data.obj,
@@ -151,9 +153,9 @@ generate_taxa_areaplot_long <-
       # 聚合 OTU 表
       otu_tax_agg <- otu_tax %>%
         tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
-        group_by_at(vars(sample, !!sym(feature.level))) %>%
+        dplyr::group_by_at(vars(sample, !!sym(feature.level))) %>%
         dplyr::summarise(value = sum(value)) %>%
-        spread(key = "sample", value = "value")
+        tidyr::spread(key = "sample", value = "value")
 
       # 转换计数为数值类型
       otu_tax_agg_numeric <- dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
@@ -183,7 +185,7 @@ generate_taxa_areaplot_long <-
       # 转换数据框为长格式
       otu_tab_long <- otu_tab_other %>%
         dplyr::group_by(!!sym(feature.level)) %>%
-        summarize_all(sum) %>%
+        dplyr::summarize_all(sum) %>%
         tidyr::gather(key = "sample", value = "value", -feature.level)
 
       # 将 otu_tab_long 和 meta_tab_sorted 合并
@@ -195,7 +197,7 @@ generate_taxa_areaplot_long <-
 
       last_sample_ids <- sorted_merged_long_df %>%
         dplyr::group_by(!!sym(subject.var)) %>%
-        dplyr::summarize(last_sample_id = last(sample))
+        dplyr::summarize(last_sample_id = dplyr::last(sample))
 
       sorted_merged_long_df <- sorted_merged_long_df %>% dplyr::mutate(!!sym(feature.level) := as.factor(!!sym(feature.level)))
 
@@ -209,12 +211,12 @@ generate_taxa_areaplot_long <-
 
       sorted_merged_long_df <- sorted_merged_long_df %>%
         dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = original_levels)) %>%
-        dplyr::mutate(!!sym(feature.level) := fct_relevel(!!sym(feature.level), new_levels))
+        dplyr::mutate(!!sym(feature.level) := forcats::fct_relevel(!!sym(feature.level), new_levels))
 
       df <- sorted_merged_long_df %>%
         dplyr::group_by(sample) %>%
         dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = original_levels)) %>%
-        dplyr::mutate(!!sym(feature.level) := fct_relevel(!!sym(feature.level), new_levels)) %>%
+        dplyr::mutate(!!sym(feature.level) := forcats::fct_relevel(!!sym(feature.level), new_levels)) %>%
         dplyr::arrange(match(!!sym(feature.level), new_levels)) %>%
         dplyr::mutate(cumulative_value = (1-cumsum(value))) %>%
         dplyr::ungroup() %>%
@@ -228,7 +230,7 @@ generate_taxa_areaplot_long <-
       bar_spacing <- bar_width / 2
 
       # 以下为average barplot的绘制
-      last_time_ids <- last(levels(meta_tab[,time.var]))
+      last_time_ids <- dplyr::last(levels(meta_tab[,time.var]))
 
       if (!is.null(strata.var)){
         if (!is.null(group.var)){
@@ -249,7 +251,7 @@ generate_taxa_areaplot_long <-
         dplyr::group_by(!!sym(feature.level),!!sym(group.var),!!sym(time.var)) %>%
         dplyr::summarise(mean_value  = mean(value)) %>%
         dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = original_levels)) %>%
-        dplyr::mutate(!!sym(feature.level) := fct_relevel(!!sym(feature.level), new_levels)) %>%
+        dplyr::mutate(!!sym(feature.level) := forcats::fct_relevel(!!sym(feature.level), new_levels)) %>%
         dplyr::arrange(match(!!sym(feature.level), new_levels),!!sym(group.var),!!sym(time.var)) %>%
         dplyr::group_by(!!sym(group.var),!!sym(time.var)) %>%
         dplyr::mutate(cumulative_mean_value = (1-cumsum(mean_value))) %>%
@@ -259,7 +261,7 @@ generate_taxa_areaplot_long <-
         dplyr::ungroup()
 
       if (group.var == ""){
-        df_average <- df_average %>% mutate(!!sym(group.var) := "")
+        df_average <- df_average %>% dplyr::mutate(!!sym(group.var) := "")
         df_average <- df_average %>%
           dplyr::mutate(joint_factor = interaction(!!sym(time.var), ""))
       } else {
@@ -278,7 +280,7 @@ generate_taxa_areaplot_long <-
 
       if(!is.null(strata.var)){
         df_average <- df_average %>%
-          separate(!!sym(group.var), into = c(group.var, strata.var), sep = "\\.")
+          tidyr::separate(!!sym(group.var), into = c(group.var, strata.var), sep = "\\.")
       }
 
       stack_areaplot_average  <- # Main plot code

@@ -23,9 +23,6 @@ Imports:
     matrixStats,
     Matrix,
     parallel,
-    stats,
-    statmod,
-    MASS,
     ggrepel,
     lmerTest,
     foreach,
@@ -45,7 +42,8 @@ Suggests:
     knitr,
     ggprism,
     aplot,
-    scales
+    scales,
+    forcats
 License: GPL-3
 Encoding: UTF-8
 LazyData: true

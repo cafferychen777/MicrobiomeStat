@@ -102,7 +102,7 @@ generate_taxa_heatmap_single <- function(data.obj,
     as.data.frame() %>%
     {
       if ("original" %in% feature.level)
-        mutate(., original = rownames(.))
+        dplyr::mutate(., original = rownames(.))
       else
         .
     } %>%
@@ -164,7 +164,7 @@ generate_taxa_heatmap_single <- function(data.obj,
     # Filter taxa based on prevalence and abundance
     otu_tax_filtered <- otu_tax %>%
       tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
-      group_by_at(vars(!!sym(feature.level))) %>%
+      dplyr::group_by_at(vars(!!sym(feature.level))) %>%
       dplyr::summarise(total_count = mean(count),
                 prevalence = sum(count > 0) / dplyr::n()) %>%
       filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
@@ -174,9 +174,9 @@ generate_taxa_heatmap_single <- function(data.obj,
     # Aggregate OTU table
     otu_tax_agg <- otu_tax_filtered %>%
       tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
-      group_by_at(vars(sample, !!sym(feature.level))) %>%
+      dplyr::group_by_at(vars(sample, !!sym(feature.level))) %>%
       dplyr::summarise(count = sum(count)) %>%
-      spread(key = "sample", value = "count")
+      tidyr::spread(key = "sample", value = "count")
 
     compute_function <- function(top.k.func) {
       if (is.function(top.k.func)) {
@@ -191,7 +191,7 @@ generate_taxa_heatmap_single <- function(data.obj,
                },
                "sd" = {
                  results <-
-                   rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
+                   matrixStats::rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
                           na.rm = TRUE)
                  names(results) <-
                    rownames(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
@@ -210,11 +210,11 @@ generate_taxa_heatmap_single <- function(data.obj,
 
     # Convert counts to numeric
     otu_tax_agg_numeric <-
-      mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
+      dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
 
     otu_tab_norm <-
       otu_tax_agg_numeric %>%
-      mutate(!!sym(feature.level) := replace_na(!!sym(feature.level), "Unclassified")) %>%
+      dplyr::mutate(!!sym(feature.level) := replace_na(!!sym(feature.level), "Unclassified")) %>%
       column_to_rownames(var = feature.level) %>%
       as.matrix()
 

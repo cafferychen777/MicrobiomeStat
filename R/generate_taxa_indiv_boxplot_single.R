@@ -142,7 +142,7 @@ generate_taxa_indiv_boxplot_single <-
 
     tax_tab <- load_data_obj_taxonomy(data.obj) %>%
       as.data.frame() %>%
-      {if("original" %in% feature.level) mutate(., original = rownames(.)) else .} %>%
+      {if("original" %in% feature.level) dplyr::mutate(., original = rownames(.)) else .} %>%
       select(all_of(feature.level))
 
     aes_function <-  aes(
@@ -193,7 +193,7 @@ generate_taxa_indiv_boxplot_single <-
 
       otu_tax_filtered <- otu_tax %>%
         tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
-        group_by_at(vars(!!sym(feature.level))) %>%
+        dplyr::group_by_at(vars(!!sym(feature.level))) %>%
         dplyr::summarise(total_count = mean(value),
                   prevalence = sum(value > 0) / dplyr::n()) %>%
         filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
@@ -202,9 +202,9 @@ generate_taxa_indiv_boxplot_single <-
 
       otu_tax_agg <- otu_tax_filtered %>%
         tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
-        group_by_at(vars(sample, !!sym(feature.level))) %>%
+        dplyr::group_by_at(vars(sample, !!sym(feature.level))) %>%
         dplyr::summarise(value = sum(value)) %>%
-        spread(key = "sample", value = "value")
+        tidyr::spread(key = "sample", value = "value")
 
       compute_function <- function(top.k.func) {
         if (is.function(top.k.func)) {
@@ -219,7 +219,7 @@ generate_taxa_indiv_boxplot_single <-
                  },
                  "sd" = {
                    results <-
-                     rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
+                     matrixStats::rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
                             na.rm = TRUE)
                    names(results) <- rownames(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
                  },
@@ -236,7 +236,7 @@ generate_taxa_indiv_boxplot_single <-
 
       otu_tax_agg_numeric <- otu_tax_agg %>%
         tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
-        mutate(value = as.numeric(value))
+        dplyr::mutate(value = as.numeric(value))
 
       otu_tax_agg_merged <-
         dplyr::left_join(otu_tax_agg_numeric, meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
@@ -269,7 +269,7 @@ generate_taxa_indiv_boxplot_single <-
               filter(sum(value) != 0) %>%
               dplyr::ungroup() %>%
               dplyr::left_join(min_half_nonzero, by = feature.level) %>%
-              mutate(value = ifelse(value == 0, log10(min_half_value), log10(value))) %>%
+              dplyr::mutate(value = ifelse(value == 0, log10(min_half_value), log10(value))) %>%
               select(-min_half_value)
           }
         }

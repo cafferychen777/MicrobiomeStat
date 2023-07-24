@@ -119,7 +119,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
     as.data.frame() %>%
     {
       if ("original" %in% feature.level)
-        mutate(., original = rownames(.))
+        dplyr::mutate(., original = rownames(.))
       else
         .
     } %>%
@@ -142,7 +142,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
 
   if (!is.null(strata.var)) {
     meta_tab <-
-      meta_tab %>% mutate(!!sym(group.var) := interaction(!!sym(strata.var), !!sym(group.var)))
+      meta_tab %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(strata.var), !!sym(group.var)))
   }
 
   if (feature.dat.type == "other" || !is.null(features.plot) ||
@@ -159,7 +159,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
     # Filter taxa based on prevalence and abundance
     otu_tax_filtered <- otu_tax %>%
       tidyr::gather(key = "sample", value = "count",-one_of(feature.level)) %>%
-      group_by_at(vars(!!sym(feature.level))) %>%
+      dplyr::group_by_at(vars(!!sym(feature.level))) %>%
       dplyr::summarise(total_count = mean(count),
                 prevalence = sum(count > 0) / dplyr::n()) %>%
       filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
@@ -169,9 +169,9 @@ generate_taxa_change_heatmap_long <- function(data.obj,
     # Aggregate OTU table
     otu_tax_agg <- otu_tax_filtered %>%
       tidyr::gather(key = "sample", value = "count",-one_of(feature.level)) %>%
-      group_by_at(vars(sample,!!sym(feature.level))) %>%
+      dplyr::group_by_at(vars(sample,!!sym(feature.level))) %>%
       dplyr::summarise(count = sum(count)) %>%
-      spread(key = "sample", value = "count")
+      tidyr::spread(key = "sample", value = "count")
 
     compute_function <- function(top.k.func) {
       if (is.function(top.k.func)) {
@@ -186,7 +186,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
                },
                "sd" = {
                  results <-
-                   rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
+                   matrixStats::rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
                           na.rm = TRUE)
                  names(results) <- rownames(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
                },
@@ -203,7 +203,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
 
     # Convert counts to numeric
     otu_tax_agg_numeric <-
-      mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
+      dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
 
     otu_tab_norm <-
       otu_tax_agg_numeric %>% filter(!is.na(!!sym(feature.level))) %>% column_to_rownames(var = feature.level) %>% as.matrix()
@@ -220,7 +220,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
 
     # Spread the data to wide format
     df_wide <- df_mean_value %>%
-      spread(key = time.var, value = mean_value)
+      tidyr::spread(key = time.var, value = mean_value)
     if (is.null(t0.level)) {
       if (is.numeric(meta_tab[, time.var])) {
         t0.level <- sort(unique(meta_tab[, time.var]))[1]
@@ -243,23 +243,23 @@ generate_taxa_change_heatmap_long <- function(data.obj,
 
       if (is.function(change.func)) {
         df_wide <- df_wide %>%
-          rowwise() %>%
-          mutate("{change_col_name}" := change.func(.data[[as.character(ts)]], .data[[as.character(t0.level)]]))
+          dplyr::rowwise() %>%
+          dplyr::mutate("{change_col_name}" := change.func(.data[[as.character(ts)]], .data[[as.character(t0.level)]]))
       } else if (change.func == "relative difference") {
         df_wide <- df_wide %>%
-          rowwise() %>%
-          mutate("{change_col_name}" := case_when(
+          dplyr::rowwise() %>%
+          dplyr::mutate("{change_col_name}" := case_when(
             (.data[[as.character(ts)]] + .data[[as.character(t0.level)]]) != 0 ~ (.data[[as.character(ts)]] - .data[[as.character(t0.level)]]) / (.data[[ts]] + .data[[as.character(t0.level)]]),
             TRUE ~ 0
           ))
       } else if (change.func == "difference") {
         df_wide <- df_wide %>%
-          rowwise() %>%
-          mutate("{change_col_name}" := (.data[[as.character(ts)]] - .data[[as.character(t0.level)]]))
+          dplyr::rowwise() %>%
+          dplyr::mutate("{change_col_name}" := (.data[[as.character(ts)]] - .data[[as.character(t0.level)]]))
       } else if (change.func == "lfc") {
         df_wide <- df_wide %>%
-          rowwise() %>%
-          mutate("{change_col_name}" := log2(.data[[as.character(ts)]] + 0.00001) - log2(.data[[as.character(t0.level)]] + 0.00001))
+          dplyr::rowwise() %>%
+          dplyr::mutate("{change_col_name}" := log2(.data[[as.character(ts)]] + 0.00001) - log2(.data[[as.character(t0.level)]] + 0.00001))
       } else {
         stop(
           "`change.func` must be either 'relative difference', 'difference', 'lfc' or a function."
@@ -272,7 +272,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
 
     # 首先将数据框转化为长格式
     df_long <- df_wide %>%
-      pivot_longer(
+      tidyr::pivot_longer(
         cols = starts_with("change"),
         names_to = "time",
         values_to = "value"
@@ -283,8 +283,8 @@ generate_taxa_change_heatmap_long <- function(data.obj,
 
     # 再将数据框转化为宽格式，并在此过程中修改列名
     df_wide_new <- df_long %>%
-      unite("group_time", c(group.var, "time"), sep = "_") %>%
-      pivot_wider(names_from = "group_time",
+      tidyr::unite("group_time", c(group.var, "time"), sep = "_") %>%
+      tidyr::pivot_wider(names_from = "group_time",
                   values_from = "value")
 
     wide_data <- df_wide_new %>% column_to_rownames(feature.level)
@@ -294,7 +294,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
 
     # 首先将数据框转化为长格式
     df_long <- df_wide %>%
-      pivot_longer(
+      tidyr::pivot_longer(
         cols = starts_with("change"),
         names_to = "time",
         values_to = "value"
@@ -305,8 +305,8 @@ generate_taxa_change_heatmap_long <- function(data.obj,
 
     # 再将数据框转化为宽格式，并在此过程中修改列名
     df_wide_new <- df_long %>%
-      unite("group_time", c(group.var, "time"), sep = "_") %>%
-      pivot_wider(names_from = "group_time",
+      tidyr::unite("group_time", c(group.var, "time"), sep = "_") %>%
+      tidyr::pivot_wider(names_from = "group_time",
                   values_from = "value")
 
     wide_data <- df_wide_new %>% column_to_rownames(feature.level)
@@ -340,14 +340,14 @@ generate_taxa_change_heatmap_long <- function(data.obj,
       filter(!!sym(time.var) != t0.level) %>%
       as_tibble() %>%
       dplyr::distinct() %>%
-      mutate(group_time = paste(!!sym(group.var), !!sym(time.var), sep = "_")) %>%
+      dplyr::mutate(group_time = paste(!!sym(group.var), !!sym(time.var), sep = "_")) %>%
       filter(group_time %in% new_colnames) %>%
       column_to_rownames("group_time")
     annotation_col_sorted <-
       annotation_col[order(annotation_col[[group.var]], annotation_col[[time.var]]),]
     if (!is.null(strata.var)) {
       annotation_col_sorted <- annotation_col_sorted %>%
-        separate(!!sym(group.var),
+        tidyr::separate(!!sym(group.var),
                  into = c(strata.var, group.var),
                  sep = "\\.")
     }

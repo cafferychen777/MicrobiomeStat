@@ -103,7 +103,7 @@ generate_taxa_test_long <-
       as.data.frame() %>%
       {
         if ("original" %in% feature.level)
-          mutate(., original = rownames(.))
+          dplyr::mutate(., original = rownames(.))
         else
           .
       } %>%
@@ -127,7 +127,7 @@ generate_taxa_test_long <-
       # Filter taxa based on prevalence and abundance
       otu_tax_filtered <- otu_tax %>%
         tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
-        group_by_at(vars(!!sym(feature.level))) %>%
+        dplyr::group_by_at(vars(!!sym(feature.level))) %>%
         dplyr::summarise(total_count = mean(count),
                          prevalence = sum(count > 0) / dplyr::n()) %>%
         filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
@@ -137,15 +137,15 @@ generate_taxa_test_long <-
       # 聚合 OTU 表
       otu_tax_agg <- otu_tax_filtered %>%
         tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
-        group_by_at(vars(sample, !!sym(feature.level))) %>%
+        dplyr::group_by_at(vars(sample, !!sym(feature.level))) %>%
         dplyr::summarise(count = sum(count)) %>%
-        spread(key = "sample", value = "count")
+        tidyr::spread(key = "sample", value = "count")
 
       # 转换计数为数值类型
       otu_tax_agg_numeric <-
         otu_tax_agg %>%
-        mutate_at(vars(-!!sym(feature.level)), as.numeric) %>%
-        mutate(!!sym(feature.level) := replace_na(!!sym(feature.level), "unclassified")) %>% column_to_rownames(feature.level)
+        dplyr::mutate_at(vars(-!!sym(feature.level)), as.numeric) %>%
+        dplyr::mutate(!!sym(feature.level) := replace_na(!!sym(feature.level), "unclassified")) %>% column_to_rownames(feature.level)
 
       linda.obj <- linda(feature.dat = otu_tax_agg_numeric, meta.dat = meta_tab,
                          formula = paste("~",formula), feature.dat.type = "proportion")

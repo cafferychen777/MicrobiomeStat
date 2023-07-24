@@ -96,7 +96,7 @@ generate_taxa_heatmap_pair <- function(data.obj,
 
   tax_tab <- load_data_obj_taxonomy(data.obj) %>%
     as.data.frame() %>%
-    {if("original" %in% feature.level) mutate(., original = rownames(.)) else .} %>%
+    {if("original" %in% feature.level) dplyr::mutate(., original = rownames(.)) else .} %>%
     select(all_of(feature.level))
 
   meta_tab <-  load_data_obj_metadata(data.obj) %>% select(all_of(c(
@@ -137,7 +137,7 @@ generate_taxa_heatmap_pair <- function(data.obj,
     # Filter taxa based on prevalence and abundance
     otu_tax_filtered <- otu_tax %>%
       tidyr::gather(key = "sample", value = "count",-one_of(colnames(tax_tab))) %>%
-      group_by_at(vars(!!sym(feature.level))) %>%
+      dplyr::group_by_at(vars(!!sym(feature.level))) %>%
       dplyr::summarise(total_count = mean(count),
                 prevalence = sum(count > 0) / dplyr::n()) %>%
       filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
@@ -147,9 +147,9 @@ generate_taxa_heatmap_pair <- function(data.obj,
     # Aggregate OTU table
     otu_tax_agg <- otu_tax_filtered %>%
       tidyr::gather(key = "sample", value = "count",-one_of(colnames(tax_tab))) %>%
-      group_by_at(vars(sample,!!sym(feature.level))) %>%
+      dplyr::group_by_at(vars(sample,!!sym(feature.level))) %>%
       dplyr::summarise(count = sum(count)) %>%
-      spread(key = "sample", value = "count")
+      tidyr::spread(key = "sample", value = "count")
 
     compute_function <- function(top.k.func) {
       if (is.function(top.k.func)) {
@@ -164,7 +164,7 @@ generate_taxa_heatmap_pair <- function(data.obj,
                },
                "sd" = {
                  results <-
-                   rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
+                   matrixStats::rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
                           na.rm = TRUE)
                  names(results) <- rownames(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
                },
@@ -181,7 +181,7 @@ generate_taxa_heatmap_pair <- function(data.obj,
 
     # Convert counts to numeric
     otu_tax_agg_numeric <-
-      mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
+      dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
 
     otu_tab_norm <-
       otu_tax_agg_numeric %>% column_to_rownames(var = feature.level) %>% as.matrix()

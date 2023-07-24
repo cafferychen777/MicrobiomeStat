@@ -81,7 +81,7 @@ generate_taxa_test_single <- function(data.obj,
     as.data.frame() %>%
     {
       if ("original" %in% feature.level)
-        mutate(., original = rownames(.))
+        dplyr::mutate(., original = rownames(.))
       else
         .
     } %>%
@@ -105,7 +105,7 @@ generate_taxa_test_single <- function(data.obj,
     # Filter taxa based on prevalence and abundance
     otu_tax_filtered <- otu_tax %>%
       tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
-      group_by_at(vars(!!sym(feature.level))) %>%
+      dplyr::group_by_at(vars(!!sym(feature.level))) %>%
       dplyr::summarise(total_count = mean(count),
                        prevalence = sum(count > 0) / dplyr::n()) %>%
       filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
@@ -115,16 +115,16 @@ generate_taxa_test_single <- function(data.obj,
     # 聚合 OTU 表
     otu_tax_agg <- otu_tax_filtered %>%
       tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
-      group_by_at(vars(sample, !!sym(feature.level))) %>%
+      dplyr::group_by_at(vars(sample, !!sym(feature.level))) %>%
       dplyr::summarise(count = sum(count)) %>%
-      spread(key = "sample", value = "count")
+      tidyr::spread(key = "sample", value = "count")
 
     # 转换计数为数值类型
     otu_tax_agg_numeric <-
-      mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
+      dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
 
     otu_tax_agg_numeric <- otu_tax_agg_numeric %>%
-      mutate(!!sym(feature.level) := replace_na(!!sym(feature.level), "Unclassified")) %>%
+      dplyr::mutate(!!sym(feature.level) := replace_na(!!sym(feature.level), "Unclassified")) %>%
       column_to_rownames(feature.level) %>%
       as.matrix()
 
@@ -166,7 +166,7 @@ generate_taxa_test_single <- function(data.obj,
       ))) %>%
         rownames_to_column("sample"),
       by = "sample") %>%
-      group_by_at(vars(!!sym(feature.level),!!sym(group.var))) %>%
+      dplyr::group_by_at(vars(!!sym(feature.level),!!sym(group.var))) %>%
       dplyr::summarise(
         mean_proportion = mean(count),
         sdev_count = sd(count),
@@ -200,7 +200,7 @@ generate_taxa_test_single <- function(data.obj,
       if (is_categorical(data.obj$meta.dat[[group.var]])) {
         for (group in unique(data.obj$meta.dat[[group.var]])) {
           group_data <-
-            prop_prev_data[which(prop_prev_data[[feature.level]] == taxa &
+            prop_prev_data[Matrix::which(prop_prev_data[[feature.level]] == taxa &
                                    prop_prev_data[[group.var]] == group),]
           mean_prop <- group_data$mean_proportion
           mean_prev <- group_data$prevalence

@@ -191,7 +191,7 @@ mStat_summarize_data_obj <-
           # Create a grouped data frame
           grouped_df <- data.obj$meta.dat %>%
             select(all_of(c(time.var, group.var))) %>%
-            group_by_at(vars(time.var, group.var)) %>%
+            dplyr::group_by_at(vars(time.var, group.var)) %>%
             dplyr::summarise(SampleCount = dplyr::n(), .groups = "drop")
 
           # Print the grouped data frame
