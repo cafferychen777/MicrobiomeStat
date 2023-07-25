@@ -22,9 +22,6 @@
 #' library(vegan)
 #' data(peerj32.obj)
 #' dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
-#' # Add metadata information
-#' attr(dist.obj[["BC"]], "labels") <- peerj32_obj$meta.dat
-#' attr(dist.obj[["Jaccard"]], "labels") <- peerj32_obj$meta.dat
 #'
 #' pc.obj <- mStat_calculate_PC(dist.obj, method = c('mds'), k = 2, dist.name = c('BC','Jaccard'))
 #'

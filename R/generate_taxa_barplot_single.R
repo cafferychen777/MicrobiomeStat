@@ -406,7 +406,7 @@ generate_taxa_barplot_single <-
 
       # Save the stacked barplots as a PDF file
       if (pdf) {
-        pdf_name <- paste0("taxa_stack_barplot_single",
+        pdf_name <- paste0("taxa_barplot_single",
                            "_",
                            "subject_", subject.var,
                            "_",

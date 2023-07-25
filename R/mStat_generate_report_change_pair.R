@@ -59,6 +59,7 @@
 #'   change.base = "1",
 #'   change.func = "relative difference",
 #'   strata.var = "sex",
+#'   features.plot = NULL,
 #'   feature.level = c("Phylum","Family"),
 #'   feature.dat.type = "count",
 #'   theme.choice = "bw",
@@ -79,6 +80,8 @@ mStat_generate_report_change_pair <- function(data.obj,
                                          dist.name = c('BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS'),
                                          change.base,
                                          change.func,
+                                         top.k.plot = NULL,
+                                         top.k.func = NULL,
                                          strata.var = NULL,
                                          base.size = 16,
                                          theme.choice = "prism",
@@ -90,6 +93,7 @@ mStat_generate_report_change_pair <- function(data.obj,
                                          pdf.hei = 8.5,
                                          prev.filter = 0,
                                          abund.filter = 0,
+                                         features.plot = NULL,
                                          feature.level = NULL,
                                          feature.dat.type = c("count", "proportion", "other"),
                                          output.file,
@@ -151,7 +155,7 @@ for (index in indices) {
 
   cat(paste0('\n## ', index, ' Index Change\n\n'))
 
-  cat(as.character(pander(alpha_change_test_results[[index]])), '\n')
+  cat(as.character(pander::pander(alpha_change_test_results[[index]])), '\n')
 
   results <- alpha_change_test_results[[index]]
 
@@ -251,7 +255,7 @@ for (distance in distances) {
 
   cat(paste0('\n## ', distance, ' Results\n\n'))
 
-  cat(as.character(pander(beta_change_test_results[[distance]])), '\n')
+  cat(as.character(pander::pander(beta_change_test_results[[distance]])), '\n')
 
   results <- beta_change_test_results[[distance]]
 
@@ -386,7 +390,7 @@ taxa_change_test_results <- generate_taxa_change_test_pair(data.obj = data.obj,
 
 ```{r echo=FALSE, message=FALSE, results='asis'}
 cat('## Taxa Change Test Results \n')
-pander(taxa_change_test_results)
+pander::pander(taxa_change_test_results)
 ```
 
 ### 3.5 Taxa Boxplot for Significant Taxa
@@ -481,17 +485,19 @@ cat(paste0('The boxplot results for individual taxa or features can be found in 
 
 "
 
-rmd_code <- knit_expand(text = template, data.obj = data.obj,
+rmd_code <- knitr::knit_expand(text = template, data.obj = data.obj,
                         dist.obj = dist.obj, alpha.obj = alpha.obj,
                         depth = depth, group.var = group.var,
                         adj.vars = adj.vars, subject.var = subject.var,
                         time.var = time.var, alpha.name = alpha.name,
-                        dist.name = dist.name, t.level = t.level,
+                        dist.name = dist.name, top.k.plot = top.k.plot,
+                        top.k.func = top.k.func, change.base = change.base, change.func = change.func,
                         strata.var = strata.var, base.size = base.size,
                         theme.choice = theme.choice, custom.theme = custom.theme,
                         palette = palette, pdf = pdf, file.ann = file.ann,
                         pdf.wid = pdf.wid, pdf.hei = pdf.hei,
                         prev.filter = prev.filter, abund.filter = abund.filter,
+                        features.plot = features.plot,
                         feature.level = feature.level,
                         feature.dat.type = feature.dat.type)
 

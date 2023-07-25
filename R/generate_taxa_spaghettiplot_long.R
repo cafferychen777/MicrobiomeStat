@@ -330,7 +330,7 @@ generate_taxa_spaghettiplot_long <-
       # Save the plots as a PDF file
       if (pdf) {
         pdf_name <- paste0(
-          "taxa_indiv_spaghettiplot_long_v2",
+          "taxa_spaghettiplot_long",
           "_",
           "subject_",
           subject.var,

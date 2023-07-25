@@ -110,7 +110,7 @@ mStat_results <- mStat_summarize_data_obj(data.obj = data.obj,
 
 # Display the results
 cat('## mStat Results \n')
-pander(mStat_results)
+pander::pander(mStat_results)
 ```
 
 ## 2. Alpha Diversity Analysis
@@ -158,7 +158,7 @@ for (index in names(alpha_test_results)) {
   cat(paste0('## ', index, ' Index \n'))
 
   # 提取当前指数的分析结果并输出表格
-  cat(as.character(pander(alpha_test_results[[index]])))
+  cat(as.character(pander::pander(alpha_test_results[[index]])))
 
   cat(paste0('\n### ', index, ' Index Analysis\n'))
 
@@ -232,7 +232,7 @@ beta_test_results <- generate_beta_test_single(data.obj = data.obj,
 
 ```{r echo=FALSE, message=FALSE, results='asis'}
 cat('## P-Tab Results \n')
-pander(beta_test_results$p.tab)
+pander::pander(beta_test_results$p.tab)
 
 for (i in 1:nrow(beta_test_results$p.tab)) {
 
@@ -283,7 +283,7 @@ for (i in 1:nrow(beta_test_results$p.tab)) {
 }
 
 cat('\n## AOV-Tab Results \n\n')
-pander(beta_test_results$aov.tab)
+pander::pander(beta_test_results$aov.tab)
 
 # 遍历aov.tab并生成解析报告
 for (variable in unique(beta_test_results$aov.tab$Variable)) {
@@ -419,7 +419,7 @@ taxa_test_results <- generate_taxa_test_single(data.obj = data.obj,
 
 ```{r echo=FALSE, message=FALSE}
 cat('## Taxa Test Results \n')
-pander(taxa_test_results)
+pander::pander(taxa_test_results)
 ```
 
 ### 4.5 Taxa Boxplot for Significant Taxa
@@ -516,7 +516,7 @@ cat(paste0('The boxplot results for individual taxa or features can be found in 
 
 "
 
-  rmd_code <- knit_expand(text = template, data.obj = data.obj,
+  rmd_code <- knitr::knit_expand(text = template, data.obj = data.obj,
                           dist.obj = dist.obj, alpha.obj = alpha.obj,
                           depth = depth, group.var = group.var,
                           adj.vars = adj.vars, subject.var = subject.var,

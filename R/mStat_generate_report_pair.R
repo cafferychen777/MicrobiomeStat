@@ -151,7 +151,7 @@ for (index in indices) {
   cat(paste0('\n## ', index, ' Index \n\n'))
 
   # 打印pander函数的结果
-  cat(as.character(pander(alpha_test_results[[index]])), '\n')
+  cat(as.character(pander::pander(alpha_test_results[[index]])), '\n')
 
   # 提取当前指数的分析结果
   results <- alpha_test_results[[index]]
@@ -224,7 +224,7 @@ beta_test_pair_results <- generate_beta_test_pair(data.obj = data.obj,
 
 ```{r echo=FALSE, message=FALSE, results='asis'}
 cat('## P-Tab Results \n')
-pander(beta_test_pair_results$p.tab)
+pander::pander(beta_test_pair_results$p.tab)
 
 for (i in 1:nrow(beta_test_pair_results$p.tab)) {
 
@@ -275,7 +275,7 @@ for (i in 1:nrow(beta_test_pair_results$p.tab)) {
 }
 
 cat('\n## AOV-Tab Results \n\n')
-pander(beta_test_pair_results$aov.tab)
+pander::pander(beta_test_pair_results$aov.tab)
 
 # 遍历aov.tab并生成解析报告
 for (variable in unique(beta_test_pair_results$aov.tab$Variable)) {
@@ -440,7 +440,7 @@ taxa_test_results <- generate_taxa_test_pair(data.obj = data.obj,
 
 ```{r echo=FALSE, message=FALSE}
 cat('## Taxa Test Results \n')
-pander(taxa_test_results)
+pander::pander(taxa_test_results)
 ```
 
 ### 3.5 Taxa Boxplot for Significant Taxa
@@ -536,7 +536,7 @@ cat(paste0('The boxplot results for individual taxa or features can be found in 
 
 "
 
-rmd_code <- knit_expand(text = template, data.obj = data.obj,
+rmd_code <- knitr::knit_expand(text = template, data.obj = data.obj,
                         dist.obj = dist.obj, alpha.obj = alpha.obj,
                         depth = depth, group.var = group.var,
                         adj.vars = adj.vars, subject.var = subject.var,

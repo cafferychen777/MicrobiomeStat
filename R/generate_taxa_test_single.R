@@ -43,8 +43,7 @@
 #'     stage.no = 6,
 #'     excl.pct = 0.2,
 #'     is.fwer = TRUE,
-#'     verbose = TRUE,
-#'     return.feature.dat = T
+#'     verbose = TRUE
 #' )
 #'
 generate_taxa_test_single <- function(data.obj,

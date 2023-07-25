@@ -43,7 +43,8 @@ Suggests:
     ggprism,
     aplot,
     scales,
-    forcats
+    forcats,
+    pander
 License: GPL-3
 Encoding: UTF-8
 LazyData: true

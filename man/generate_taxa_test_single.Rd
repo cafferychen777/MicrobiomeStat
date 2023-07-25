@@ -70,8 +70,7 @@ da_report <- generate_taxa_test_single(
     stage.no = 6,
     excl.pct = 0.2,
     is.fwer = TRUE,
-    verbose = TRUE,
-    return.feature.dat = T
+    verbose = TRUE
 )
 
 }
