@@ -17,25 +17,6 @@
 #'
 #' @examples
 #'
-#' library(vegan)
-#' library(GUniFrac)
-#' library(ape)
-#' library(philentropy)
-#' library(MicrobiomeStat)
-#' data(subset_T2D.obj)
-#' results <- generate_taxa_test_long(
-#'   data.obj = subset_T2D.obj,
-#'   subject.var = "subject_id",
-#'   time.var = "visit_number",
-#'   t0.level = sort(unique(subset_T2D.obj$meta.dat$visit_number))[1],
-#'   ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[2:6],
-#'   group.var = "subject_race",
-#'   adj.vars = "subject_gender",
-#'   feature.level = "Phylum",
-#'   prev.filter = 0,
-#'   abund.filter = 0,
-#'   feature.dat.type = "count"
-#' )
 #' # Load example data
 #' data(peerj32.obj)
 #'

@@ -165,6 +165,8 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
     meta.dat <- data.frame(phyloseq::sample_data(phyloseq.obj))
   }
 
+
+
   if (any(is.na(feature.dat))) {
     stop("The feature table contains NAs! Please remove!\n")
   }

@@ -89,7 +89,7 @@ generate_taxa_test_single <- function(data.obj,
 
   meta_tab <-
     load_data_obj_metadata(data.obj) %>% select(all_of(c(
-      time.var, group.var, adj.vars, subject.var
+      time.var, group.var, adj.vars
     )))
 
   # 将 OTU 表与分类表合并
@@ -133,7 +133,7 @@ generate_taxa_test_single <- function(data.obj,
       otu_tax_agg_numeric[rowSums(otu_tax_agg_numeric != 0) > 0,]
 
     # Run ZicoSeq
-    zico.obj <- ZicoSeq(
+    zico.obj <- GUniFrac::ZicoSeq(
       meta.dat = meta_tab,
       feature.dat = otu_tax_agg_numeric,
       grp.name = group.var,

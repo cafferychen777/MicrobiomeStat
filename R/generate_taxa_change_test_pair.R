@@ -256,7 +256,7 @@ generate_taxa_change_test_pair <-
       sorted_unique_meta_tab <- unique_meta_tab[cols_order,]
 
       # Run ZicoSeq
-      zico.obj <- ZicoSeq(
+      zico.obj <- GUniFrac::ZicoSeq(
         meta.dat = sorted_unique_meta_tab,
         feature.dat = na.omit(value_diff_matrix),
         grp.name = group.var,
