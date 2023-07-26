@@ -268,12 +268,7 @@ generate_taxa_change_test_pair <-
       )
 
       # Extract relevant information
-      significant_taxa <- names(which(zico.obj$p.adj.fdr <= 0.3))
-
-      # If no significant taxa were found, stop the function
-      if (length(significant_taxa) == 0) {
-        stop("No significant taxa were found. Stopping the function.")
-      }
+      significant_taxa <- names(which(zico.obj$p.adj.fdr <= 1))
 
       # 计算每个分组的平均丰度
       prop_prev_data <-
