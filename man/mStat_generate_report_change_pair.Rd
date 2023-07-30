@@ -116,26 +116,25 @@ library(ggh4x)
 data(peerj32.obj)
 
 # Generate a report for microbial ecology analysis
-#mStat_generate_report_change_pair(
-  #data.obj = peerj32.obj,
-  #dist.obj = NULL,
-  #alpha.obj = NULL,
-  #group.var = "group",
-  #adj.vars = c("sex"),
-  #subject.var = "subject",
-  #time.var = "time",
-  #alpha.name = c("shannon","simpson"),
-  #dist.name = c("BC",'Jaccard'),
-  #change.base = "1",
-  #change.func = "relative difference",
-  #strata.var = "sex",
-  #features.plot = NULL,
-  #feature.level = c("Phylum","Family"),
-  #feature.dat.type = "count",
-  #theme.choice = "bw",
-  #base.size = 12,
-  #palette = NULL,
-  #output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat/
-  #mStat_generate_report_change_pair_example.pdf"
-#)
+mStat_generate_report_change_pair(
+  data.obj = peerj32.obj,
+  dist.obj = NULL,
+  alpha.obj = NULL,
+  group.var = "group",
+  adj.vars = c("sex"),
+  subject.var = "subject",
+  time.var = "time",
+  alpha.name = c("shannon","simpson"),
+  dist.name = c("BC",'Jaccard'),
+  change.base = "1",
+  change.func = "relative difference",
+  strata.var = "sex",
+  features.plot = NULL,
+  feature.level = c("Phylum","Family"),
+  feature.dat.type = "count",
+  theme.choice = "bw",
+  base.size = 12,
+  palette = NULL,
+  output.file = "mStat_generate_report_change_pair_example.pdf"
+)
 }

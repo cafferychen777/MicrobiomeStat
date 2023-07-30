@@ -29,6 +29,7 @@ mStat_generate_report_pair(
   prev.filter = 0,
   abund.filter = 0,
   feature.level = NULL,
+  features.plot = NULL,
   feature.dat.type = c("count", "proportion", "other"),
   output.file,
   ...
