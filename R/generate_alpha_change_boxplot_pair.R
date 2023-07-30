@@ -285,7 +285,7 @@ generate_alpha_change_boxplot_pair <-
         alpha_index <- alpha.name[i]
 
         pdf_name <- paste0(
-          "alpha_diversity_change_boxplot_pair_",
+          "alpha_change_boxplot_pair_",
           alpha_index,
           "_",
           "subject_",

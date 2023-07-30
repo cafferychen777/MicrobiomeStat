@@ -30,10 +30,12 @@
 #' @param feature.level Taxonomic level for feature analysis.
 #' @param feature.dat.type Data type for feature analysis (count, proportion, or other).
 #' @param output.file Output file name for the report.
+#' @param top.k.plot Number of top taxa to plot for taxa change analysis.
+#' @param top.k.func Function for selecting top taxa (default is based on adjusted p-value).
+#' @param features.plot Custom list of taxa names to plot for taxa change analysis.
 #' @param ... Additional arguments passed to internal functions.
 #'
 #' @return A report file containing the microbial ecology analysis results for paired data.
-#'
 #' @examples
 #' library(GUniFrac)
 #' library(pheatmap)
@@ -43,30 +45,29 @@
 #'
 #' data(peerj32.obj)
 #'
-#' dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
-#'
 #' # Generate a report for microbial ecology analysis
-#' mStat_generate_report_change_pair(
-#'   data.obj = peerj32.obj,
-#'   dist.obj = NULL,
-#'   alpha.obj = NULL,
-#'   group.var = "group",
-#'   adj.vars = c("sex"),
-#'   subject.var = "subject",
-#'   time.var = "time",
-#'   alpha.name = c("shannon","simpson"),
-#'   dist.name = c("BC",'Jaccard'),
-#'   change.base = "1",
-#'   change.func = "relative difference",
-#'   strata.var = "sex",
-#'   features.plot = NULL,
-#'   feature.level = c("Phylum","Family"),
-#'   feature.dat.type = "count",
-#'   theme.choice = "bw",
-#'   base.size = 12,
-#'   output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat/
-#'   mStat_generate_report_change_pair_example.pdf"
-#' )
+#' #mStat_generate_report_change_pair(
+#'   #data.obj = peerj32.obj,
+#'   #dist.obj = NULL,
+#'   #alpha.obj = NULL,
+#'   #group.var = "group",
+#'   #adj.vars = c("sex"),
+#'   #subject.var = "subject",
+#'   #time.var = "time",
+#'   #alpha.name = c("shannon","simpson"),
+#'   #dist.name = c("BC",'Jaccard'),
+#'   #change.base = "1",
+#'   #change.func = "relative difference",
+#'   #strata.var = "sex",
+#'   #features.plot = NULL,
+#'   #feature.level = c("Phylum","Family"),
+#'   #feature.dat.type = "count",
+#'   #theme.choice = "bw",
+#'   #base.size = 12,
+#'   #palette = NULL,
+#'   #output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat/
+#'   #mStat_generate_report_change_pair_example.pdf"
+#' #)
 #' @export
 mStat_generate_report_change_pair <- function(data.obj,
                                          dist.obj = NULL,
@@ -373,7 +374,7 @@ if (is_continuous_numeric(data.obj[[group.var]])) {
 
 ### 3.4 Taxa Change Test
 
-```{r, message=FALSE, results='asis', results='hide'}
+```{r, message=FALSE, results='hide'}
 taxa_change_test_results <- generate_taxa_change_test_pair(data.obj = data.obj,
                                                subject.var = subject.var,
                                                time.var = time.var,
@@ -384,8 +385,7 @@ taxa_change_test_results <- generate_taxa_change_test_pair(data.obj = data.obj,
                                                prev.filter = prev.filter,
                                                abund.filter = abund.filter,
                                                feature.level = feature.level,
-                                               feature.dat.type = feature.dat.type,
-                                               ...)
+                                               feature.dat.type = feature.dat.type)
 ```
 
 ```{r echo=FALSE, message=FALSE, results='asis'}
@@ -396,8 +396,11 @@ pander::pander(taxa_change_test_results)
 ### 3.5 Taxa Boxplot for Significant Taxa
 
 ```{r, message=FALSE, fig.align='center', fig.width = 8, fig.height = 16}
-significant_taxa <- taxa_change_test_results$Taxa[taxa_change_test_results$Adjusted.P.Value < 1]
+combined_df <- do.call('rbind', taxa_change_test_results)
 
+significant_taxa <- combined_df$Variable[combined_df$Adjusted.P.Value < 1]
+
+if (!is.null(significant_taxa)){
 taxa_change_boxplot_results <- generate_taxa_change_boxplot_pair(data.obj = data.obj,
                                                                subject.var = subject.var,
                                                                time.var = time.var,
@@ -444,6 +447,7 @@ taxa_indiv_change_boxplot_results <- generate_taxa_indiv_change_boxplot_pair(dat
                                    file.ann = file.ann,
                                    pdf.wid = pdf.wid,
                                    pdf.hei = pdf.hei)
+}
 
 ```
 
@@ -480,7 +484,9 @@ if (!is.null(file.ann)) {
 }
 pdf_name <- paste0(pdf_name, '.pdf')
 
-cat(paste0('The boxplot results for individual taxa or features can be found in the current working directory. The relevant file is named: ', pdf_name, '. Please refer to this file for more detailed visualizations.'))
+if (!is.null(significant_taxa)){
+  cat(paste0('The boxplot results for individual taxa or features can be found in the current working directory. The relevant file is named: ', pdf_name, '. Please refer to this file for more detailed visualizations.'))
+}
 ```
 
 "
@@ -504,7 +510,7 @@ rmd_code <- knitr::knit_expand(text = template, data.obj = data.obj,
 rmd_file <- tempfile(fileext = ".Rmd")
 writeLines(rmd_code, con = rmd_file)
 
-report_file <- rmarkdown::render(input = rmd_file, output_file = output.file, quiet = TRUE)
+report_file <- rmarkdown::render(input = rmd_file, output_file = output.file, quiet = FALSE)
 
 return(report_file)
 }

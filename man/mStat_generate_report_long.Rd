@@ -105,8 +105,8 @@ This function generates a comprehensive report for microbial ecology analysis,
 data(peerj32.obj)
 mStat_generate_report_long(
   data.obj = peerj32.obj,
-  dist.obj = dist.obj,
-  alpha.obj = alpha.obj,
+  dist.obj = NULL,
+  alpha.obj = NULL,
   group.var = "group",
   adj.vars = c("sex"),
   subject.var = "subject",
@@ -121,7 +121,7 @@ mStat_generate_report_long(
   Transform = "log",
   theme.choice = "bw",
   base.size = 12,
-  output.file = "/path/to/report.pdf"
+  output.file = "report.pdf"
 )
 
 }

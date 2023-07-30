@@ -63,8 +63,7 @@
 #'   feature.dat.type = "count",
 #'   theme.choice = "bw",
 #'   base.size = 12,
-#'   output.file = "/Users/apple/Microbiome/Longitudinal/
-#'   MicrobiomeStat/mStat_generate_report_pair_example.pdf"
+#'   output.file = "mStat_generate_report_pair_example.pdf"
 #' )
 #' @export
 mStat_generate_report_pair <- function(data.obj,

@@ -62,6 +62,10 @@ mStat_generate_report_change_pair(
 
 \item{change.func}{The function for calculating changes in paired data.}
 
+\item{top.k.plot}{Number of top taxa to plot for taxa change analysis.}
+
+\item{top.k.func}{Function for selecting top taxa (default is based on adjusted p-value).}
+
 \item{strata.var}{Variable to stratify the analysis by (optional).}
 
 \item{base.size}{Base font size for the generated plots.}
@@ -83,6 +87,8 @@ mStat_generate_report_change_pair(
 \item{prev.filter}{Prevalence filter for feature analysis.}
 
 \item{abund.filter}{Abundance filter for feature analysis.}
+
+\item{features.plot}{Custom list of taxa names to plot for taxa change analysis.}
 
 \item{feature.level}{Taxonomic level for feature analysis.}
 
@@ -109,28 +115,27 @@ library(ggh4x)
 
 data(peerj32.obj)
 
-dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
-
 # Generate a report for microbial ecology analysis
-mStat_generate_report_change_pair(
-  data.obj = peerj32.obj,
-  dist.obj = NULL,
-  alpha.obj = NULL,
-  group.var = "group",
-  adj.vars = c("sex"),
-  subject.var = "subject",
-  time.var = "time",
-  alpha.name = c("shannon","simpson"),
-  dist.name = c("BC",'Jaccard'),
-  change.base = "1",
-  change.func = "relative difference",
-  strata.var = "sex",
-  features.plot = NULL,
-  feature.level = c("Phylum","Family"),
-  feature.dat.type = "count",
-  theme.choice = "bw",
-  base.size = 12,
-  output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat/
-  mStat_generate_report_change_pair_example.pdf"
-)
+#mStat_generate_report_change_pair(
+  #data.obj = peerj32.obj,
+  #dist.obj = NULL,
+  #alpha.obj = NULL,
+  #group.var = "group",
+  #adj.vars = c("sex"),
+  #subject.var = "subject",
+  #time.var = "time",
+  #alpha.name = c("shannon","simpson"),
+  #dist.name = c("BC",'Jaccard'),
+  #change.base = "1",
+  #change.func = "relative difference",
+  #strata.var = "sex",
+  #features.plot = NULL,
+  #feature.level = c("Phylum","Family"),
+  #feature.dat.type = "count",
+  #theme.choice = "bw",
+  #base.size = 12,
+  #palette = NULL,
+  #output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat/
+  #mStat_generate_report_change_pair_example.pdf"
+#)
 }
