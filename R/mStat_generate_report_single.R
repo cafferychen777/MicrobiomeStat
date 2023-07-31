@@ -26,8 +26,10 @@
 #' @param pdf.hei Height of the PDF plots.
 #' @param prev.filter Prevalence filter for feature analysis.
 #' @param abund.filter Abundance filter for feature analysis.
+#' @param features.plot Custom list of taxa names to plot for taxa analysis.
 #' @param feature.level Taxonomic level for feature analysis.
 #' @param feature.dat.type Data type for feature analysis (count, proportion, or other).
+#' @param Transform Transformation applied to taxa data for display and testing.
 #' @param output.file Output file name for the report.
 #' @param ... Additional arguments passed to internal functions.
 #'

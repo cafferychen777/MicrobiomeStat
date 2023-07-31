@@ -4,7 +4,7 @@
 #' including changes in alpha diversity, beta diversity, and taxonomic features between paired data.
 #' The function is specifically designed for analysis of paired data.
 #'
-#' @param data.obj A data object created by mStat_convert_phyloseq_to_data_obj.
+#' @param data.obj A MicrobiomeStat Data Object.
 #' @param dist.obj A distance object created by mStat_calculate_beta_diversity.
 #' @param alpha.obj An alpha diversity object (optional).
 #' @param depth Sampling depth (optional).
@@ -30,9 +30,12 @@
 #' @param feature.level Taxonomic level for feature analysis.
 #' @param feature.dat.type Data type for feature analysis (count, proportion, or other).
 #' @param output.file Output file name for the report.
+#' @param features.plot Custom list of taxa names to plot for taxa change analysis.
 #' @param ... Additional arguments passed to internal functions.
 #'
 #' @return A report file containing the microbial ecology analysis results for paired data.
+#'
+#' @export
 #'
 #' @examples
 #' library(GUniFrac)

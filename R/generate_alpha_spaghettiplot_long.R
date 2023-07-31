@@ -249,6 +249,7 @@ generate_alpha_spaghettiplot_long <-
       if (pdf) {
         pdf_name <- paste0(
           "alpha_spaghettiplot_long",
+          "_",
           index,
           "_",
           "subject_",
