@@ -38,6 +38,7 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' library(GUniFrac)
 #' library(pheatmap)
 #' library(vegan)
@@ -68,6 +69,7 @@
 #'   base.size = 12,
 #'   output.file = "mStat_generate_report_pair_example.pdf"
 #' )
+#' }
 #' @export
 mStat_generate_report_pair <- function(data.obj,
                                               dist.obj = NULL,

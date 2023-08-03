@@ -29,6 +29,7 @@
 #' @param ... Additional parameters to be passed
 #' @return If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the pheatmap::pheatmap plot. If `pdf` is set to FALSE, the function will return the pheatmap plot without creating a PDF file.
 #' @examples
+#' \dontrun{
 #' # Load required libraries and example data
 #' library(pheatmap)
 #' data(peerj32.obj)
@@ -56,10 +57,8 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
-#'
+#' }
 #' @export
-#'
-#' @seealso \code{\link{pheatmap}}
 generate_taxa_change_heatmap_pair <- function(data.obj,
                                                     subject.var,
                                                     time.var,

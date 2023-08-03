@@ -81,6 +81,7 @@ extract_coef <- function(model) {
 #' index.
 #'
 #' @examples
+#' \dontrun{
 #' data(peerj32.obj)
 #' alpha_test_results <- generate_alpha_test_pair(
 #' data.obj = peerj32.obj,
@@ -91,7 +92,7 @@ extract_coef <- function(model) {
 #' group.var = "group",
 #' adj.vars = "sex"
 #' )
-#'
+#' }
 #' @export
 generate_alpha_test_pair <-
   function(data.obj,

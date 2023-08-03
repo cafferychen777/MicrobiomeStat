@@ -27,6 +27,7 @@
 #' @return A list of ggplot objects, each representing a taxa area plot for the specified feature level.
 #'
 #' @examples
+#' \dontrun{
 #' library(ggh4x)
 #' library(vegan)
 #' data(ecam.obj)
@@ -47,6 +48,7 @@
 #'   pdf = TRUE,
 #'   file.ann = "test"
 #' )
+#' }
 #' @import rlang
 #' @import tibble
 #' @export

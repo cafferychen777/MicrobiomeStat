@@ -18,13 +18,13 @@
 #'   distance matrix. The results are named with the method's abbreviation.
 #'
 #' @examples
-#'
+#' \dontrun{
 #' library(vegan)
 #' data(peerj32.obj)
 #' dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
 #'
 #' pc.obj <- mStat_calculate_PC(dist.obj, method = c('mds'), k = 2, dist.name = c('BC','Jaccard'))
-#'
+#' }
 #'
 #' @export
 mStat_calculate_PC <- function(dist.obj, method = c('mds'), k = 2, dist.name = NULL) {

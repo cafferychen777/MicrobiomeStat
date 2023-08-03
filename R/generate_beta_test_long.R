@@ -13,6 +13,7 @@
 #' @param adj.vars A character vector containing the names of the columns in data.obj$meta.dat to include as covariates in the PERMANOVA analysis. If no covariates are needed, use NULL (default).
 #' @param dist.name A character vector specifying which beta diversity indices to calculate and test (e.g., 'BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS'). Default is c('BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS').
 #' @examples
+#' \dontrun{
 #' data(subset_T2D.obj)
 #'
 #' # Perform pairwise beta diversity tests using PERMANOVA
@@ -27,7 +28,7 @@
 #'   adj.vars = "subject_gender",
 #'   dist.name = c('BC', 'Jaccard')
 #' )
-#'
+#' }
 #'
 #' @return A list containing the PERMANOVA results for each beta diversity index. The list includes two elements: "p.tab" - a table of p-values for the PERMANOVA tests dplyr::across all indices, and "aov.tab" - a table containing detailed PERMANOVA results for each index. The p.tab and aov.tab tables include columns for the terms in the PERMANOVA model, the degrees of freedom, sums of squares, mean squares, F statistics, R-squared values, and p-values.
 #' @export

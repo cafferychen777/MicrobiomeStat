@@ -29,6 +29,7 @@
 #' @param ... Additional parameters to be passed
 #' @return If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the final ggplot object. If `pdf` is set to FALSE, the function will return the final ggplot object without creating a PDF file.
 #' @examples
+#' \dontrun{
 #' # Load required libraries
 #' library(ggh4x)
 #'
@@ -36,7 +37,7 @@
 #' data(peerj32.obj)
 #'
 #' # Call the function
-#' dotplot_result <- generate_taxa_change_dotplot_pair(
+#' generate_taxa_change_dotplot_pair(
 #'   data.obj = peerj32.obj,
 #'   subject.var = "subject",
 #'   time.var = "time",
@@ -59,9 +60,8 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
-#'
+#' }
 #' # View the result
-#' print(dotplot_result)
 #' @export
 generate_taxa_change_dotplot_pair <- function(data.obj,
                                               subject.var,

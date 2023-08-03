@@ -31,6 +31,7 @@
 #' @return An object of class pheatmap, the generated heatmap plot
 #'
 #' @examples
+#' \dontrun{
 #' data(ecam.obj)
 #' plot_list <- generate_taxa_heatmap_long(
 #'   data.obj = ecam.obj,
@@ -52,7 +53,7 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
-#'
+#' }
 #' @export
 #'
 #' @seealso \code{\link{pheatmap}}

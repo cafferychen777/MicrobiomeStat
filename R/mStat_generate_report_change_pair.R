@@ -37,6 +37,7 @@
 #'
 #' @return A report file containing the microbial ecology analysis results for paired data.
 #' @examples
+#' \dontrun{
 #' library(GUniFrac)
 #' library(pheatmap)
 #' library(vegan)
@@ -67,6 +68,7 @@
 #'   palette = NULL,
 #'   output.file = "mStat_generate_report_change_pair_example.pdf"
 #' )
+#' }
 #' @export
 mStat_generate_report_change_pair <- function(data.obj,
                                          dist.obj = NULL,

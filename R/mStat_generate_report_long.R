@@ -35,7 +35,7 @@
 #' @return A PDF report file containing the microbial ecology analysis results for longitudinal data.
 #'
 #' @examples
-#'
+#' \dontrun{
 #' # Assuming peerj32.obj, dist.obj, alpha.obj are pre-defined objects
 #' data(peerj32.obj)
 #' mStat_generate_report_long(
@@ -58,6 +58,7 @@
 #'   base.size = 12,
 #'   output.file = "report.pdf"
 #' )
+#' }
 #'
 #' @export
 mStat_generate_report_long <- function(data.obj,

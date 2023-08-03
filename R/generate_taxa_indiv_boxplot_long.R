@@ -30,7 +30,7 @@
 #' @return A ggplot object showing the abundance distribution of taxa over time.
 #'
 #' @examples
-#'
+#' \dontrun{
 #' # Generate the boxplot pair
 #' data(ecam.obj)
 #' generate_taxa_indiv_boxplot_long(
@@ -86,6 +86,7 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
+#' }
 #' @export
 generate_taxa_indiv_boxplot_long <-
   function(data.obj,

@@ -24,6 +24,7 @@
 #' @return A spaghetti plot displaying the beta diversity change over time, stratified by the specified grouping and/or strata variables (if provided). The plot will be saved as a PDF if `pdf` is set to `TRUE`.
 #'
 #' @examples
+#' \dontrun{
 #' library(vegan)
 #'
 #' data(ecam.obj)
@@ -50,6 +51,7 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
+#' }
 #' @export
 generate_beta_change_spaghettiplot_long <-
   function(data.obj,

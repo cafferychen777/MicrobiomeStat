@@ -15,10 +15,9 @@
 #'
 #' @return A list of tibble(s) containing information about significant taxa, including R.Squared, F.Statistic, Estimate, P.Value, Adjusted.P.Value, Mean.Proportion, Mean.Prevalence, SD.Abundance and SD.Prevalence.
 #'
-#' @export
 #'
 #' @examples
-#'
+#' \dontrun{
 #' data(peerj32.obj)
 #' da_report <- generate_taxa_test_single(
 #'     data.obj = peerj32.obj,
@@ -45,7 +44,8 @@
 #'     is.fwer = TRUE,
 #'     verbose = TRUE
 #' )
-#'
+#' }
+#' @export
 generate_taxa_test_single <- function(data.obj,
                                       time.var = NULL,
                                       t.level = NULL,

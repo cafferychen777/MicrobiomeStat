@@ -29,8 +29,7 @@
 #' @return A ggplot object containing the longitudinal line plot.
 #'
 #' @examples
-#'
-#' # Assuming ecam.obj is a pre-defined object
+#' \dontrun{
 #' data(ecam.obj)
 #' plot_list_all <- generate_taxa_spaghettiplot_long(
 #'   data.obj = ecam.obj,
@@ -53,7 +52,7 @@
 #'   pdf = TRUE,
 #'   file.ann = "test"
 #' )
-#'
+#' }
 #' @export
 generate_taxa_spaghettiplot_long <-
   function(data.obj,

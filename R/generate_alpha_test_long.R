@@ -38,6 +38,7 @@
 #' index.
 #'
 #' @examples
+#' \dontrun{
 #' data("subset_T2D.obj")
 #' alpha_test_results <- generate_alpha_test_long(
 #' data.obj = subset_T2D.obj,
@@ -50,7 +51,7 @@
 #' group.var = "subject_race",
 #' adj.vars = "subject_gender"
 #' )
-#'
+#' }
 #' @export
 generate_alpha_test_long <-
   function(data.obj,

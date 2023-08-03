@@ -32,6 +32,7 @@
 #' @return A list of ggplot objects, each of which is a boxplot visualizing the changes in abundance of individual taxa over time.
 #'
 #' @examples
+#' \dontrun{
 #' # Load required libraries and data
 #' library(vegan)
 #' library(ggh4x)
@@ -62,6 +63,7 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
+#' }
 #' @export
 generate_taxa_change_boxplot_pair <-
   function(data.obj,

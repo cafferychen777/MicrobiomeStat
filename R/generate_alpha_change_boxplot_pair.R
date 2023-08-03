@@ -23,12 +23,12 @@
 #'
 #' @return A boxplot displaying the change in the specified alpha diversity index between two time points, stratified by the specified grouping and/or strata variables (if provided). The boxplot will be saved as a PDF if `pdf` is set to `TRUE`.
 #' @examples
-#'
+#' \dontrun{
 #' library(vegan)
 #' data(peerj32.obj)
 #'
 #' # Generate a boxplot comparing the change in Shannon diversity index
-#' change_boxplot <- generate_alpha_change_boxplot_pair(
+#' generate_alpha_change_boxplot_pair(
 #'   data.obj = peerj32.obj,
 #'   alpha.obj = NULL,
 #'   alpha.name = c("simpson"),
@@ -47,9 +47,7 @@
 #'   pdf.hei = 8.5
 #' )
 #'
-#' # Display the boxplot
-#' print(change_boxplot)
-#'
+#' }
 #' @export
 generate_alpha_change_boxplot_pair <-
   function(data.obj,

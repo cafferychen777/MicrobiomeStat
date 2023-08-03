@@ -30,6 +30,7 @@
 #' @return A list of ggplot objects with the box plot of beta diversity change for each diversity index specified.
 #'
 #' @examples
+#' \dontrun{
 #' # Load required libraries and example data
 #' library(vegan)
 #' data(peerj32.obj)
@@ -53,7 +54,7 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
-#'
+#' }
 #' @export
 generate_beta_change_boxplot_pair <-
   function(data.obj = NULL,

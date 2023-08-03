@@ -27,6 +27,7 @@
 #'
 #' @return A list of ggplot objects for each distance measure and Principal Coordinate.
 #' @examples
+#' \dontrun{
 #' # Load required libraries and data
 #' library(vegan)
 #'
@@ -72,6 +73,7 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
+#' }
 #' @export
 generate_beta_pc_boxplot_long <- function(data.obj = NULL,
                                           dist.obj = NULL,

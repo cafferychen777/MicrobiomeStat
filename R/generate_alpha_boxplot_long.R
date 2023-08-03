@@ -25,7 +25,7 @@
 #' @return A boxplot displaying the specified alpha diversity index dplyr::across different groupings and time points, stratified by the specified stratification variable (if provided). The boxplot will be saved as a PDF if `pdf` is set to `TRUE`.
 #'
 #' @examples
-#'
+#' \dontrun{
 #' data("subset_T2D.obj")
 #'
 #' generate_alpha_boxplot_long(
@@ -64,9 +64,8 @@
 #'   file.ann = NULL,
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5)
-#'
+#' }
 #' @export
-#'
 generate_alpha_boxplot_long <- function (data.obj,
                                          alpha.obj = NULL,
                                          alpha.name = c("shannon",

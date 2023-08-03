@@ -19,6 +19,7 @@
 #' Std.Error (the standard error of the coefficient), Statistic (the t or F statistic), P.Value (the p-value of the test).
 #'
 #' @examples
+#' \dontrun{
 #' library(vegan)
 #' data(peerj32.obj)
 #'
@@ -32,7 +33,7 @@
 #' adj.vars = "sex",
 #' change.base = "1"
 #' )
-#'
+#' }
 #' @export
 generate_alpha_change_test_pair <-
   function(data.obj,

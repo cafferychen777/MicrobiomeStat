@@ -16,7 +16,7 @@
 #' @return A list of dataframes, each corresponding to a feature level. Each dataframe contains calculated taxa changes, p-values and other statistics from the linear model.
 #'
 #' @examples
-#'
+#' \dontrun{
 #' # Load example data
 #' data(peerj32.obj)
 #'
@@ -47,10 +47,8 @@
 #'   abund.filter = 0.001,
 #'   feature.dat.type = "proportion"
 #' )
-#'
-#'
+#' }
 #' @export
-#' @rdname generate_taxa_test_long
 generate_taxa_test_long <-
   function(data.obj,
            subject.var,

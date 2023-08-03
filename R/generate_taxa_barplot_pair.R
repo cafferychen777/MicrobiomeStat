@@ -29,6 +29,7 @@
 #' The function also has options to customize the size, theme, and color palette of the plot, and to save the plot as a PDF.
 #'
 #' @examples
+#' \dontrun{
 #' library(ggh4x)
 #' library(vegan)
 #' data(peerj32.obj)
@@ -51,6 +52,7 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
+#' }
 #' @export
 generate_taxa_barplot_pair <-
   function(data.obj,

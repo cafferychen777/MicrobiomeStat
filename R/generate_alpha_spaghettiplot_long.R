@@ -25,7 +25,7 @@
 #' @return A ggplot object of the alpha diversity line plot.
 #'
 #' @examples
-#'
+#' \dontrun{
 #' data("subset_T2D.obj")
 #' T2D.alpha.obj <- mStat_calculate_alpha_diversity(subset_T2D.obj$feature.tab,"shannon")
 #'
@@ -46,8 +46,7 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
-#' print(plot)
-#'
+#' }
 #' @export
 generate_alpha_spaghettiplot_long <-
   function(data.obj,

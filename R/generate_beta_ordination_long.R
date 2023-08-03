@@ -31,7 +31,8 @@
 #' @author Caffery Yang \email{cafferychen7850@@gmail.com}
 #'
 #' @examples
-#' subset_T2D.obj
+#' \dontrun{
+#' data(subset_T2D.obj)
 #' generate_beta_ordination_long(
 #'   data.obj = subset_T2D.obj,
 #'   dist.obj = NULL,
@@ -52,6 +53,7 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
+#' }
 #' @export
 generate_beta_ordination_long <-
   function(data.obj = NULL,

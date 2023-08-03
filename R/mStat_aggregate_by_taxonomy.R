@@ -17,7 +17,7 @@
 #'
 #' @author Caffery(Chen) YANG
 #' @examples
-#'
+#' \dontrun{
 #' # Load required libraries
 #' library(vegan)
 #' data(peerj32.obj)
@@ -27,7 +27,7 @@
 #'
 #' # Aggregate data object by taxonomy level
 #' peerj32.obj <- mStat_aggregate_by_taxonomy(peerj32.obj, feature.level)
-#'
+#' }
 #' @export
 mStat_aggregate_by_taxonomy <- function (data.obj, feature.level = NULL) {
   # Check if feature.level is not NULL

@@ -23,7 +23,7 @@
 #' @return A list of boxplots displaying the specified alpha diversity indices at the specified time point dplyr::across different groupings, stratified by the specified stratification variable (if provided). Each boxplot in the list corresponds to one of the alpha diversity indices specified in `alpha.name`. The boxplots will be saved as PDF files if `pdf` is set to `TRUE`.
 #'
 #' @examples
-#'
+#' \dontrun{
 #' library(vegan)
 #' library(ggh4x)
 #' data(peerj32.obj)
@@ -44,8 +44,7 @@
 #'   file.ann = NULL,
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5)
-#'
-#'
+#' }
 #' @export
 generate_alpha_boxplot_single <- function (data.obj,
                                          alpha.obj = NULL,

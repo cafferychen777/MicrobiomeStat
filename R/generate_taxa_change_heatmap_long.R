@@ -31,6 +31,7 @@
 #' @return If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the pheatmap::pheatmap plot. If `pdf` is set to FALSE, the function will return the pheatmap plot without creating a PDF file.
 #'
 #' @examples
+#' \dontrun{
 #' library(pheatmap)
 #' data(ecam.obj)
 #'
@@ -54,7 +55,7 @@
 #'   pdf = TRUE,
 #'   file.ann = "test"
 #' )
-#'
+#' }
 #'
 #' @return An object of class pheatmap, the generated heatmap plot
 #' @export

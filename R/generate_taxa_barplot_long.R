@@ -31,6 +31,7 @@
 #' The function also has options to customize the size, theme, and color palette of the plot, and to save the plot as a PDF.
 #'
 #' @examples
+#' \dontrun{
 #' library(ggh4x)
 #' library(vegan)
 #' data(ecam.obj)
@@ -50,6 +51,7 @@
 #'   pdf = TRUE,
 #'   file.ann = "test"
 #' )
+#' }
 #' @export
 generate_taxa_barplot_long <-
   function(data.obj,

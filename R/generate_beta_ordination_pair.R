@@ -29,6 +29,7 @@
 #' @author Caffery Yang \email{cafferychen7850@@gmail.com}
 #'
 #' @examples
+#' \dontrun{
 #' # Load required libraries and example data
 #' library(vegan)
 #' data(peerj32.obj)
@@ -55,6 +56,7 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
+#' }
 #' @export
 generate_beta_ordination_pair <-
   function(data.obj = NULL,

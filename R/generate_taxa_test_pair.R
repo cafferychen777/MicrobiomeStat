@@ -16,7 +16,7 @@
 #' @param ... Additional parameters to be passed to the function.
 #'
 #' @examples
-#'
+#' \dontrun{
 #' library(vegan)
 #' library(GUniFrac)
 #' library(ape)
@@ -35,8 +35,7 @@
 #'   abund.filter = 0,
 #'   feature.dat.type = "count"
 #' )
-#'
-#'
+#' }
 #'
 #' @return A named list where each element corresponds to a feature level. Each list element contains a dataframe with the calculated taxa changes, their corresponding p-values,
 #' and other statistics obtained from the linear model.

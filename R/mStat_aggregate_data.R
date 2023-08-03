@@ -6,11 +6,10 @@
 #' @param strata.var A character specifying the name of the strata variable. If NULL, no stratification is performed.
 #'
 #' @return A new list object with aggregated data.
-#' @export
 #'
 #'
 #' @examples
-#'
+#' \dontrun{
 #' # Prepare data for the function
 #' data(peerj32.obj)
 #'
@@ -20,7 +19,8 @@
 #'   subject.var = "subject",
 #'   strata.var = NULL
 #' )
-#'
+#' }
+#' @export
 mStat_aggregate_data <- function (data.obj, subject.var, strata.var = NULL) {
 
   message("Aggregate data by a factor ...")

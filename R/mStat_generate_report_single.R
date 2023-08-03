@@ -36,6 +36,7 @@
 #' @return A report file containing the microbial ecology analysis results.
 #'
 #' @examples
+#' \dontrun{
 #' library(GUniFrac)
 #' library(pheatmap)
 #' library(vegan)
@@ -65,6 +66,7 @@
 #'   base.size = 12,
 #'   output.file = "mStat_generate_report_single_example.pdf"
 #' )
+#' }
 #' @export
 mStat_generate_report_single <- function(data.obj,
                                          dist.obj = NULL,

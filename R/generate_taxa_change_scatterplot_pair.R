@@ -30,6 +30,7 @@
 #' @return A ggplot object containing the scatterplot pair(s).
 #'
 #' @examples
+#' \dontrun{
 #' # Load required libraries and data
 #' library(vegan)
 #' data(peerj32.obj)
@@ -63,6 +64,7 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
+#' }
 #' @export
 generate_taxa_change_scatterplot_pair <-
   function(data.obj,

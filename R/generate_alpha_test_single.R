@@ -20,6 +20,7 @@
 #'         and contains a dataframe with the linear model's coefficients, standard errors, t values, and p values.
 #'
 #' @examples
+#' \dontrun{
 #' data("subset_T2D.obj")
 #' generate_alpha_test_single(data.obj = subset_T2D.obj,
 #'                            time.var = "visit_number",
@@ -27,7 +28,7 @@
 #'                            alpha.name = c("shannon", "simpson"),
 #'                            group.var = "subject_race",
 #'                            adj.vars = "subject_gender")
-#'
+#' }
 #' @export
 generate_alpha_test_single <-
   function(data.obj,

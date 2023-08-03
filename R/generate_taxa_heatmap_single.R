@@ -30,7 +30,7 @@
 #' @return An object of class pheatmap, the generated heatmap plot
 #'
 #' @examples
-#'
+#' \dontrun{
 #' # Load required libraries and example data
 #' library(pheatmap)
 #' data(peerj32.obj)
@@ -57,7 +57,7 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
-#'
+#' }
 #' @export
 #'
 #' @seealso \code{\link{pheatmap}}

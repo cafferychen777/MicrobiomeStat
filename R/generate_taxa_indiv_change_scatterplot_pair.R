@@ -58,6 +58,7 @@ is_continuous_numeric <- function(x) {
 #' The function also has options to customize the size, theme, and color palette of the plot, and to save the plot as a PDF.
 #'
 #' @examples
+#' \dontrun{
 #'  library(vegan)
 #' data(peerj32.obj)
 #' peerj32.obj$meta.dat <- peerj32.obj$meta.dat %>%
@@ -80,7 +81,7 @@ is_continuous_numeric <- function(x) {
 #'    prev.filter = 0.01,
 #'    abund.filter = 0.01
 #'  )
-#'
+#' }
 #' @export
 generate_taxa_indiv_change_scatterplot_pair <-
   function(data.obj,

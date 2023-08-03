@@ -13,7 +13,7 @@
 #' @param dist.name Character vector specifying which beta diversity indices to compute. Defaults to c('BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS').
 #'
 #' @examples
-#'
+#' \dontrun{
 #' library(vegan)
 #' library(GUniFrac)
 #' library(ape)
@@ -35,7 +35,7 @@
 #'   change.base = "1",
 #'   dist.name = c('BC', 'Jaccard')
 #' )
-#'
+#' }
 #'
 #' @return A named list where each element is a coefficient table (with p-values) from a linear model of the corresponding beta diversity measure against the grouping variable and covariates.
 #' @export

@@ -36,6 +36,7 @@
 #' The function also has options to customize the size, theme, and color palette of the plot, and to save the plot as a PDF.
 #'
 #' @examples
+#' \dontrun{
 #' # Load required libraries and example data
 #' data(peerj32.obj)
 #' # Generate the boxplot pair
@@ -88,6 +89,7 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
+#' }
 #' @export
 generate_taxa_boxplot_long <-
   function(data.obj,
