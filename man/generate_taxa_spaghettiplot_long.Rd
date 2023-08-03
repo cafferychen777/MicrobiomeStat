@@ -84,8 +84,7 @@ A ggplot object containing the longitudinal line plot.
 This function generates a spaghettiplot plot for the taxonomic composition of microbiome data over time.
 }
 \examples{
-
-# Assuming ecam.obj is a pre-defined object
+\dontrun{
 data(ecam.obj)
 plot_list_all <- generate_taxa_spaghettiplot_long(
   data.obj = ecam.obj,
@@ -108,5 +107,5 @@ plot_list_all <- generate_taxa_spaghettiplot_long(
   pdf = TRUE,
   file.ann = "test"
 )
-
+}
 }

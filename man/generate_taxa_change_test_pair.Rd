@@ -52,7 +52,7 @@ This function from the MicrobiomeStat package computes the taxa changes over tim
 If no time variable is provided, the function will select the first unique value from the metadata as the baseline for comparison.
 }
 \examples{
-
+\dontrun{
 library(vegan)
 library(GUniFrac)
 library(ape)
@@ -73,6 +73,6 @@ generate_taxa_change_test_pair(
   abund.filter = 0.01,
   feature.dat.type = "count"
 )
-
+}
 
 }

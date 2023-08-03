@@ -70,7 +70,7 @@ A boxplot displaying the specified alpha diversity index dplyr::across different
 This function generates a boxplot of a specified alpha diversity index dplyr::across different groupings and time points, with optional stratification. The output can be saved as a PDF.
 }
 \examples{
-
+\dontrun{
 data("subset_T2D.obj")
 
 generate_alpha_boxplot_long(
@@ -109,5 +109,5 @@ generate_alpha_boxplot_long(
   file.ann = NULL,
   pdf.wid = 11,
   pdf.hei = 8.5)
-
+}
 }

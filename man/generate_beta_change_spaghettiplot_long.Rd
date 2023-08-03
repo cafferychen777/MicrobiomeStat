@@ -69,6 +69,7 @@ A spaghetti plot displaying the beta diversity change over time, stratified by t
 This function generates a spaghetti plot visualizing the change in beta diversity over time for different groups and strata in longitudinal data. Optionally, a user can specify whether to save the plot as a PDF file.
 }
 \examples{
+\dontrun{
 library(vegan)
 
 data(ecam.obj)
@@ -95,4 +96,5 @@ generate_beta_change_spaghettiplot_long(
   pdf.wid = 11,
   pdf.hei = 8.5
 )
+}
 }

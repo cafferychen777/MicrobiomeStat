@@ -66,7 +66,7 @@ A list of boxplots displaying the specified alpha diversity indices at the speci
 This function generates a boxplot of specified alpha diversity indices at a single time point dplyr::across different groupings, with optional stratification. The output can be saved as a PDF.
 }
 \examples{
-
+\dontrun{
 library(vegan)
 library(ggh4x)
 data(peerj32.obj)
@@ -87,6 +87,5 @@ plot_alpha_list <- generate_alpha_boxplot_single(
   file.ann = NULL,
   pdf.wid = 11,
   pdf.hei = 8.5)
-
-
+}
 }

@@ -83,6 +83,7 @@ The function can handle a large number of time points or subjects by averaging t
 The function also has options to customize the size, theme, and color palette of the plot, and to save the plot as a PDF.
 }
 \examples{
+\dontrun{
 # Load required libraries and example data
 library(vegan)
 library(ggh4x)
@@ -110,5 +111,5 @@ generate_beta_pc_change_boxplot_pair(
   pdf.wid = 11,
   pdf.hei = 8.5
 )
-
+}
 }

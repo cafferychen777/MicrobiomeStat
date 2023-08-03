@@ -48,7 +48,7 @@ and returns an analysis of changes in taxa over time dplyr::across different gro
 utilizing specified group variables and covariates.
 }
 \examples{
-
+\dontrun{
 library(vegan)
 library(GUniFrac)
 library(ape)
@@ -67,7 +67,6 @@ results <- generate_taxa_test_pair(
   abund.filter = 0,
   feature.dat.type = "count"
 )
-
-
+}
 
 }

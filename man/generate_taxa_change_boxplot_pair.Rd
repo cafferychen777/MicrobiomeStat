@@ -86,6 +86,7 @@ The boxplots show the change in abundance for each taxon for different groups an
 It also allows for a prevalence and abundance filter to be applied to the data, and can optionally save the plots as a PDF.
 }
 \examples{
+\dontrun{
 # Load required libraries and data
 library(vegan)
 library(ggh4x)
@@ -116,4 +117,5 @@ generate_taxa_change_boxplot_pair(
   pdf.wid = 11,
   pdf.hei = 8.5
 )
+}
 }

@@ -51,7 +51,7 @@ A list of dataframes, each corresponding to a feature level. Each dataframe cont
 Generate longitudinal taxa test statistics based on the provided MicrobiomeStat data object and user-specified variables.
 }
 \examples{
-
+\dontrun{
 # Load example data
 data(peerj32.obj)
 
@@ -82,6 +82,5 @@ results <- generate_taxa_test_long(
   abund.filter = 0.001,
   feature.dat.type = "proportion"
 )
-
-
+}
 }

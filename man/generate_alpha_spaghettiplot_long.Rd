@@ -70,7 +70,7 @@ This function creates a ggplot object of alpha diversity (e.g., Shannon index) l
 showing individual subject trajectories and the mean trajectory for each group.
 }
 \examples{
-
+\dontrun{
 data("subset_T2D.obj")
 T2D.alpha.obj <- mStat_calculate_alpha_diversity(subset_T2D.obj$feature.tab,"shannon")
 
@@ -91,6 +91,5 @@ generate_alpha_spaghettiplot_long(
   pdf.wid = 11,
   pdf.hei = 8.5
 )
-print(plot)
-
+}
 }

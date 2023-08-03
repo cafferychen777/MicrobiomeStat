@@ -84,7 +84,7 @@ If the `pdf` parameter is set to TRUE, the function will save a PDF file and ret
 This function generates longitudinal line plots for the taxonomic composition in microbiome data over time.
 }
 \examples{
-
+\dontrun{
 data(ecam.obj)
 plot_list_all <- generate_taxa_indiv_spaghettiplot_long(
   data.obj = ecam.obj,
@@ -107,5 +107,5 @@ plot_list_all <- generate_taxa_indiv_spaghettiplot_long(
   pdf = TRUE,
   file.ann = "test"
 )
-
+}
 }

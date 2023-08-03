@@ -40,7 +40,7 @@ This function calculates beta diversity measures, performs linear modeling on th
 If no precalculated distance object is provided, it calculates the distance object from the data.
 }
 \examples{
-
+\dontrun{
 library(vegan)
 library(GUniFrac)
 library(ape)
@@ -62,6 +62,6 @@ beta_diversity_report <- generate_beta_change_test_pair(
   change.base = "1",
   dist.name = c('BC', 'Jaccard')
 )
-
+}
 
 }

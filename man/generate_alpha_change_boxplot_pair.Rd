@@ -69,12 +69,12 @@ A boxplot displaying the change in the specified alpha diversity index between t
 This function generates a boxplot comparing the change in a specified alpha diversity index between two time points. The change can be calculated as the log or the absolute value. Several optional arguments are available for customizing the output, such as strata or group variables.
 }
 \examples{
-
+\dontrun{
 library(vegan)
 data(peerj32.obj)
 
 # Generate a boxplot comparing the change in Shannon diversity index
-change_boxplot <- generate_alpha_change_boxplot_pair(
+generate_alpha_change_boxplot_pair(
   data.obj = peerj32.obj,
   alpha.obj = NULL,
   alpha.name = c("simpson"),
@@ -93,7 +93,5 @@ change_boxplot <- generate_alpha_change_boxplot_pair(
   pdf.hei = 8.5
 )
 
-# Display the boxplot
-print(change_boxplot)
-
+}
 }

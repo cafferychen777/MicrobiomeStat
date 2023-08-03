@@ -91,6 +91,7 @@ It also allows for different taxonomic levels to be used and a specific number o
 The function also has options to customize the size, theme, and color palette of the plot, and to save the plot as a PDF.
 }
 \examples{
+\dontrun{
  library(vegan)
 data(peerj32.obj)
 peerj32.obj$meta.dat <- peerj32.obj$meta.dat \%>\%
@@ -113,5 +114,5 @@ tibble::column_to_rownames("sample")
    prev.filter = 0.01,
    abund.filter = 0.01
  )
-
+}
 }

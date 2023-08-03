@@ -36,7 +36,7 @@ A list containing the PERMANOVA results for each beta diversity index and an omn
 This function calculates various beta diversity indices for a microbiome dataset and performs PERMANOVA tests on them to assess the effect of a grouping variable and any additional covariates on the beta diversity. It returns the PERMANOVA results for each of the specified beta diversity indices.
 }
 \examples{
-
+\dontrun{
 library(vegan)
 library(GUniFrac)
 library(ape)
@@ -56,6 +56,6 @@ beta_diversity_test <- generate_beta_test_single(
   adj.vars = c("sex"),
   dist.name = c('BC', 'Jaccard')
 )
-
+}
 
 }

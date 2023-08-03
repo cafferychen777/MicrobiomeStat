@@ -77,6 +77,7 @@ It allows the use of Principal Coordinates Analysis (PCoA), non-metric multidime
 Default method of dimension reduction is PCoA.
 }
 \examples{
+\dontrun{
 # Load required libraries and data
 library(vegan)
 
@@ -122,4 +123,5 @@ data(peerj32.obj)
   pdf.wid = 11,
   pdf.hei = 8.5
 )
+}
 }

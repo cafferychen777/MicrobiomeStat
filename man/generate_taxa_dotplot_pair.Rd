@@ -80,11 +80,12 @@ visualization will be first filtered based on prevalence and abundance threshold
 interactively or saved as a PDF file.
 }
 \examples{
+\dontrun{
 # Load required libraries
 data(peerj32.obj)
 
 # Call the function
-dotplot_result <- generate_taxa_dotplot_pair(
+generate_taxa_dotplot_pair(
   data.obj = peerj32.obj,
   subject.var = "subject",
   time.var = "time",
@@ -106,7 +107,5 @@ dotplot_result <- generate_taxa_dotplot_pair(
   pdf.wid = 11,
   pdf.hei = 8.5
 )
-
-# View the result
-print(dotplot_result)
+}
 }

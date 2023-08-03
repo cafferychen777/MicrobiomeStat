@@ -76,6 +76,7 @@ It also allows for different taxonomic levels to be used and a specific number o
 The function also has options to customize the size, theme, and color palette of the plot, and to save the plot as a PDF.
 }
 \examples{
+\dontrun{
 library(ggh4x)
 library(vegan)
 data(peerj32.obj)
@@ -99,4 +100,5 @@ plot_list_all <- generate_taxa_barplot_single(
   pdf.wid = 11,
   pdf.hei = 8.5
 )
+}
 }

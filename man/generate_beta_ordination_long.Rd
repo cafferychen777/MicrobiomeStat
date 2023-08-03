@@ -75,7 +75,8 @@ can be mapped to groups and time variables, respectively. The function also supp
 saving the plots as PDF files.
 }
 \examples{
-subset_T2D.obj
+\dontrun{
+data(subset_T2D.obj)
 generate_beta_ordination_long(
   data.obj = subset_T2D.obj,
   dist.obj = NULL,
@@ -96,6 +97,7 @@ generate_beta_ordination_long(
   pdf.wid = 11,
   pdf.hei = 8.5
 )
+}
 }
 \seealso{
 \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} for creating the distance object, \code{\link[MicrobiomeStat]{mStat_calculate_PC}} for computing the principal coordinates, and \code{\link[ggplot2]{geom_point}}, \code{\link[ggplot2]{geom_boxplot}} for the underlying plot functions used, and \code{\link[MicrobiomeStat]{mStat_convert_DGEList_to_data_obj}}, \code{\link[MicrobiomeStat]{mStat_convert_DESeqDataSet_to_data_obj}}, \code{\link[MicrobiomeStat]{mStat_convert_phyloseq_to_data_obj}}, \code{\link[MicrobiomeStat]{mStat_convert_SummarizedExperiment_to_data_obj}}, \code{\link[MicrobiomeStat]{mStat_import_qiime2_as_data_obj}}, \code{\link[MicrobiomeStat]{mStat_import_mothur_as_data_obj}}, \code{\link[MicrobiomeStat]{mStat_import_dada2_as_data_obj}}, \code{\link[MicrobiomeStat]{mStat_import_biom_as_data_obj}} for data conversion.

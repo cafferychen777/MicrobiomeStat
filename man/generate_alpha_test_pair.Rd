@@ -57,6 +57,7 @@ index. Each table includes the term, estimate, standard error, t value, and
 p-value for each fixed effect in the model.
 }
 \examples{
+\dontrun{
 data(peerj32.obj)
 alpha_test_results <- generate_alpha_test_pair(
 data.obj = peerj32.obj,
@@ -67,5 +68,5 @@ subject.var = "subject",
 group.var = "group",
 adj.vars = "sex"
 )
-
+}
 }

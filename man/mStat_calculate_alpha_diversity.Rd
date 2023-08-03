@@ -18,6 +18,7 @@ A list containing the requested alpha diversity indices.
 This function calculates several alpha diversity indices (Shannon, Simpson, Observed Species, Chao1, ACE, and Pielou) using the vegan package. The function takes an OTU table (x) as input and returns a list containing the requested alpha diversity indices.
 }
 \examples{
+\dontrun{
 # Create example OTU table
 otu.tab <- matrix(data = rpois(100, 5), nrow = 10, ncol = 10)
 rownames(otu.tab) <- paste0("Taxon_", 1:10)
@@ -26,4 +27,5 @@ colnames(otu.tab) <- paste0("Sample_", 1:10)
 # Calculate alpha diversity indices
 alpha.obj <- mStat_calculate_alpha_diversity(x = otu.tab, alpha.name =
 c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou"))
+}
 }

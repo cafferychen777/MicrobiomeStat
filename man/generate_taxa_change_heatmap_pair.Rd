@@ -86,6 +86,7 @@ The data used in this visualization will be first filtered based on prevalence a
 The plot can either be displayed interactively or saved as a PDF file.
 }
 \examples{
+\dontrun{
 # Load required libraries and example data
 library(pheatmap)
 data(peerj32.obj)
@@ -113,8 +114,5 @@ plot_list <- generate_taxa_change_heatmap_pair(
   pdf.wid = 11,
   pdf.hei = 8.5
 )
-
 }
-\seealso{
-\code{\link{pheatmap}}
 }

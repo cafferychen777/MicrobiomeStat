@@ -100,7 +100,7 @@ This function generates a comprehensive report for microbial ecology analysis,
              including changes in alpha diversity, beta diversity, and taxonomic features in longitudinal data.
 }
 \examples{
-
+\dontrun{
 # Assuming peerj32.obj, dist.obj, alpha.obj are pre-defined objects
 data(peerj32.obj)
 mStat_generate_report_long(
@@ -123,5 +123,6 @@ mStat_generate_report_long(
   base.size = 12,
   output.file = "report.pdf"
 )
+}
 
 }

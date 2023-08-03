@@ -46,6 +46,7 @@ at two different time points for a given dataset. The function supports various 
 for adjusting the tests and calculating the difference in alpha diversity.
 }
 \examples{
+\dontrun{
 library(vegan)
 data(peerj32.obj)
 
@@ -59,5 +60,5 @@ group.var = "group",
 adj.vars = "sex",
 change.base = "1"
 )
-
+}
 }

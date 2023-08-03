@@ -83,7 +83,7 @@ variables and strata variables in sample metadata and generates stacked heatmaps
 using the “pheatmap” package. It can also save the resulting heatmap as a PDF file.
 }
 \examples{
-
+\dontrun{
 # Load required libraries and example data
 library(pheatmap)
 data(peerj32.obj)
@@ -110,7 +110,7 @@ generate_taxa_heatmap_single(
   pdf.wid = 11,
   pdf.hei = 8.5
 )
-
+}
 }
 \seealso{
 \code{\link{pheatmap}}

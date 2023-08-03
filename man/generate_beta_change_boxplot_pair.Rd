@@ -71,6 +71,7 @@ and can also handle a matrix with coordinates for different groups and strata.
 Optionally, a user can specify whether to save the plot as a PDF file.
 }
 \examples{
+\dontrun{
 # Load required libraries and example data
 library(vegan)
 data(peerj32.obj)
@@ -94,7 +95,7 @@ generate_beta_change_boxplot_pair(
   pdf.wid = 11,
   pdf.hei = 8.5
 )
-
+}
 }
 \seealso{
 \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} for creating the distance object. This package was created by Caffery Yang. For more information, you can contact them at cafferychen7850@gmail.com.

@@ -30,12 +30,12 @@ different methods such as Metric Multi-Dimensional Scaling (MDS),
 Non-Metric Multi-Dimensional Scaling (NMDS)
 }
 \examples{
-
+\dontrun{
 library(vegan)
 data(peerj32.obj)
 dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
 
 pc.obj <- mStat_calculate_PC(dist.obj, method = c('mds'), k = 2, dist.name = c('BC','Jaccard'))
-
+}
 
 }

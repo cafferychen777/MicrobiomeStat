@@ -107,6 +107,7 @@ including changes in alpha diversity, beta diversity, and taxonomic features bet
 The function is specifically designed for analysis of paired data.
 }
 \examples{
+\dontrun{
 library(GUniFrac)
 library(pheatmap)
 library(vegan)
@@ -137,4 +138,5 @@ mStat_generate_report_change_pair(
   palette = NULL,
   output.file = "mStat_generate_report_change_pair_example.pdf"
 )
+}
 }

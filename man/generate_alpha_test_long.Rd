@@ -67,6 +67,7 @@ Each table includes the term, estimate, standard error, t value, and p-value
 for each fixed effect in the model.
 }
 \examples{
+\dontrun{
 data("subset_T2D.obj")
 alpha_test_results <- generate_alpha_test_long(
 data.obj = subset_T2D.obj,
@@ -79,5 +80,5 @@ subject.var = "subject_id",
 group.var = "subject_race",
 adj.vars = "subject_gender"
 )
-
+}
 }

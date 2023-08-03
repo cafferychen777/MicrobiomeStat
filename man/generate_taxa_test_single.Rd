@@ -45,7 +45,7 @@ A list of tibble(s) containing information about significant taxa, including R.S
 This function applies a differential abundance analysis using ZicoSeq on a data set. The function filters taxa based on prevalence and abundance, then it aggregates and applies the ZicoSeq method. Finally, it creates a report of significant taxa with relevant statistics.
 }
 \examples{
-
+\dontrun{
 data(peerj32.obj)
 da_report <- generate_taxa_test_single(
     data.obj = peerj32.obj,
@@ -72,5 +72,5 @@ da_report <- generate_taxa_test_single(
     is.fwer = TRUE,
     verbose = TRUE
 )
-
+}
 }

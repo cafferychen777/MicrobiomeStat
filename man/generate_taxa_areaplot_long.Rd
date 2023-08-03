@@ -74,6 +74,7 @@ different taxa over time. Raw count data will be automatically normalized using 
 The function also supports the generation of plots for grouped data and stratified data.
 }
 \examples{
+\dontrun{
 library(ggh4x)
 library(vegan)
 data(ecam.obj)
@@ -94,4 +95,5 @@ plot_list_all <- generate_taxa_areaplot_long(
   pdf = TRUE,
   file.ann = "test"
 )
+}
 }

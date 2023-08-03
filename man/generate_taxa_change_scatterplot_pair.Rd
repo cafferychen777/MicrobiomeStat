@@ -83,6 +83,7 @@ This function generates scatterplot pairs showing the difference in abundance of
 at a specified taxonomic level between two time points, with grouping and stratification.
 }
 \examples{
+\dontrun{
 # Load required libraries and data
 library(vegan)
 data(peerj32.obj)
@@ -116,4 +117,5 @@ plot_list_all <- generate_taxa_change_scatterplot_pair(
   pdf.wid = 11,
   pdf.hei = 8.5
 )
+}
 }

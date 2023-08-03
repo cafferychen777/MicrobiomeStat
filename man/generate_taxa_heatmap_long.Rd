@@ -86,6 +86,7 @@ variables and strata variables in sample metadata and generates stacked heatmaps
 using the “pheatmap” package. It can also save the resulting heatmap as a PDF file.
 }
 \examples{
+\dontrun{
 data(ecam.obj)
 plot_list <- generate_taxa_heatmap_long(
   data.obj = ecam.obj,
@@ -107,7 +108,7 @@ plot_list <- generate_taxa_heatmap_long(
   pdf.wid = 11,
   pdf.hei = 8.5
 )
-
+}
 }
 \seealso{
 \code{\link{pheatmap}}

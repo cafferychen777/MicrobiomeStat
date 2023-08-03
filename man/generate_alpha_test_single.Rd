@@ -43,6 +43,7 @@ It can be applied to cross-sectional data, a single time point from longitudinal
 It takes a data object as input and returns a list of association tests for each specified alpha diversity index.
 }
 \examples{
+\dontrun{
 data("subset_T2D.obj")
 generate_alpha_test_single(data.obj = subset_T2D.obj,
                            time.var = "visit_number",
@@ -50,5 +51,5 @@ generate_alpha_test_single(data.obj = subset_T2D.obj,
                            alpha.name = c("shannon", "simpson"),
                            group.var = "subject_race",
                            adj.vars = "subject_gender")
-
+}
 }

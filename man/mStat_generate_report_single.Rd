@@ -52,6 +52,8 @@ mStat_generate_report_single(
 
 \item{time.var}{Variable name used for time points.}
 
+\item{Transform}{Transformation applied to taxa data for display and testing.}
+
 \item{alpha.name}{Names of alpha diversity indices to include in the analysis.}
 
 \item{dist.name}{Names of beta diversity distance metrics to include in the analysis.}
@@ -80,6 +82,8 @@ mStat_generate_report_single(
 
 \item{abund.filter}{Abundance filter for feature analysis.}
 
+\item{features.plot}{Custom list of taxa names to plot for taxa analysis.}
+
 \item{feature.level}{Taxonomic level for feature analysis.}
 
 \item{feature.dat.type}{Data type for feature analysis (count, proportion, or other).}
@@ -97,6 +101,7 @@ including alpha diversity, beta diversity, and taxonomic feature analyses. The f
 to perform analysis on cross-sectional data, a single time point from longitudinal or paired data.
 }
 \examples{
+\dontrun{
 library(GUniFrac)
 library(pheatmap)
 library(vegan)
@@ -126,4 +131,5 @@ mStat_generate_report_single(
   base.size = 12,
   output.file = "mStat_generate_report_single_example.pdf"
 )
+}
 }

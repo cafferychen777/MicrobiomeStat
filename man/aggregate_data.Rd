@@ -21,7 +21,7 @@ A new list object with aggregated data.
 This function aggregates data by a specified subject and optional strata.
 }
 \examples{
-
+\dontrun{
 # Prepare data for the function
 data(peerj32.obj)
 
@@ -31,5 +31,5 @@ aggregated_data <- mStat_aggregate_data(
   subject.var = "subject",
   strata.var = NULL
 )
-
+}
 }

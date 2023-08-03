@@ -36,7 +36,7 @@ mStat_generate_report_pair(
 )
 }
 \arguments{
-\item{data.obj}{A data object created by mStat_convert_phyloseq_to_data_obj.}
+\item{data.obj}{A MicrobiomeStat Data Object.}
 
 \item{dist.obj}{A distance object created by mStat_calculate_beta_diversity.}
 
@@ -84,6 +84,8 @@ mStat_generate_report_pair(
 
 \item{feature.level}{Taxonomic level for feature analysis.}
 
+\item{features.plot}{Custom list of taxa names to plot for taxa change analysis.}
+
 \item{feature.dat.type}{Data type for feature analysis (count, proportion, or other).}
 
 \item{output.file}{Output file name for the report.}
@@ -99,6 +101,7 @@ including changes in alpha diversity, beta diversity, and taxonomic features bet
 The function is specifically designed for analysis of paired data.
 }
 \examples{
+\dontrun{
 library(GUniFrac)
 library(pheatmap)
 library(vegan)
@@ -129,4 +132,5 @@ mStat_generate_report_pair(
   base.size = 12,
   output.file = "mStat_generate_report_pair_example.pdf"
 )
+}
 }
