@@ -29,9 +29,6 @@
 #'
 #' data(ecam.obj)
 #'
-#' dist.obj <- mStat_calculate_beta_diversity(ecam.obj, "BC")
-#' # Add meta_tab information
-#' attr(dist.obj[["BC"]], "labels") <- ecam.obj$meta.dat
 #' # Generate the boxplot pair
 #' generate_beta_change_spaghettiplot_long(
 #'   data.obj = ecam.obj,
