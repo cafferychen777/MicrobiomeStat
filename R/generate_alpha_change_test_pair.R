@@ -27,7 +27,7 @@
 #' data.obj = peerj32.obj,
 #' alpha.obj = NULL,
 #' time.var = "time",
-#' alpha.name = c("shannon", "simpson"),
+#' alpha.name = c("shannon"),
 #' subject.var = "subject",
 #' group.var = "group",
 #' adj.vars = "sex",

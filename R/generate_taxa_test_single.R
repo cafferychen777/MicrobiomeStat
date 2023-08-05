@@ -19,7 +19,7 @@
 #' @examples
 #' \dontrun{
 #' data(peerj32.obj)
-#' da_report <- generate_taxa_test_single(
+#' generate_taxa_test_single(
 #'     data.obj = peerj32.obj,
 #'     time.var = "time",
 #'     t.level = "1",

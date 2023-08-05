@@ -25,7 +25,7 @@
 #' dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
 #'
 #' # Generate beta diversity report
-#' beta_diversity_report <- generate_beta_change_test_pair(
+#' generate_beta_change_test_pair(
 #'   data.obj = peerj32.obj,
 #'   dist.obj = NULL,
 #'   time.var = "time",

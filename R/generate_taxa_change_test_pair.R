@@ -338,7 +338,6 @@ generate_taxa_change_test_pair <-
               R.Squared = R.Squared,
               F.Statistic = F.Statistic,
               Estimate = toString(Estimate),
-              # 更新后只包含 group.var 的估计值
               P.Value = P.Value,
               Adjusted.P.Value = Adjusted.P.Value,
               Mean.Abundance_Change = mean_prop,
