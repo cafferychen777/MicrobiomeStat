@@ -2,7 +2,7 @@
 #'
 #' This function is designed specifically for combining two MicrobiomeStat data objects,
 #' assuming that they are both in 'Raw' format. Each MicrobiomeStat data object should be a list that contains
-#' 'norm.status' (indicating the status of normalization, should be 'Raw'), 'feature.tab' (a matrix of features),
+#' 'feature.tab' (a matrix of features),
 #' 'meta.dat' (a data frame of metadata), and 'feature.ann' (a matrix of feature annotations).
 #'
 #' @param data.obj1 The first MicrobiomeStat data object to be combined.
@@ -15,11 +15,8 @@
 #'
 #' @export
 mStat_combine_data <- function(data.obj1, data.obj2) {
-  if (!(data.obj1$norm.status == 'Raw' & data.obj2$norm.status == 'Raw')) {
-    stop("This function is only applicable for data objects in 'Raw' format.")
-  } else {
-    message("Both data objects are in 'Raw' format, proceeding with combination...")
-  }
+
+  message("Both data objects should be in 'Raw' format...")
 
   combine_data_common <- function(data1, data2) {
     data1 <- data1 %>% as.data.frame() %>% rownames_to_column("feature")

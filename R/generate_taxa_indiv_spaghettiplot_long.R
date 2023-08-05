@@ -31,10 +31,10 @@
 #' @examples
 #' \dontrun{
 #' data(ecam.obj)
-#' plot_list_all <- generate_taxa_indiv_spaghettiplot_long(
+#' generate_taxa_indiv_spaghettiplot_long(
 #'   data.obj = ecam.obj,
 #'   subject.var = "studyid",
-#'   time.var = "month",
+#'   time.var = "month_num",
 #'   t0.level = NULL,
 #'   ts.levels = NULL,
 #'   group.var = "diet",
@@ -50,7 +50,7 @@
 #'   theme.choice = "bw",
 #'   palette = NULL,
 #'   pdf = TRUE,
-#'   file.ann = "test"
+#'   file.ann = NULL
 #' )
 #' }
 #' @export

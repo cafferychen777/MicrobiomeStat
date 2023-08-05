@@ -31,7 +31,7 @@
 #' library(ggh4x)
 #' library(vegan)
 #' data(ecam.obj)
-#' plot_list_all <- generate_taxa_areaplot_long(
+#' generate_taxa_areaplot_long(
 #'   data.obj = ecam.obj,
 #'   subject.var = "studyid",
 #'   time.var = "month",
@@ -46,7 +46,7 @@
 #'   theme.choice = "bw",
 #'   palette = NULL,
 #'   pdf = TRUE,
-#'   file.ann = "test"
+#'   file.ann = NULL
 #' )
 #' }
 #' @import rlang

@@ -17,7 +17,7 @@
 #' # Use the remove_feature function
 #' # Here we take the first 3 features as an example
 #' featureIDs <- rownames(peerj32.obj$feature.tab)[1:3]
-#' peerj32.obj <- remove_feature(peerj32.obj, featureIDs, feature.level = "original")
+#' peerj32.obj <- mStat_remove_feature(peerj32.obj, featureIDs, feature.level = "original")
 #' }
 #' @details
 #' The function first checks if the specified feature level is 'original'. If so, it removes the specified features from the 'feature.tab' and 'feature.ann' based on the original row names. If the feature level is specified and is not 'original', it removes the specified features based on this level. After removal, it recalculates 'feature.agg.list' if it exists in the data object.
@@ -26,7 +26,7 @@
 #' @seealso \code{\link[dplyr]{filter}}, \code{\link[dplyr]{select}}
 #' @export
 #' @importFrom dplyr filter select
-remove_feature <- function (data.obj, featureIDs, feature.level = NULL) {
+mStat_remove_feature <- function (data.obj, featureIDs, feature.level = NULL) {
 
   # Check if feature IDs are provided in a character vector
   if (is.numeric(featureIDs)) {
