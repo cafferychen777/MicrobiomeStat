@@ -9,11 +9,8 @@ editor_options:
 <!-- badges: start -->
 [![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/MicrobiomeStat)](https://cran.r-project.org/package=MicrobiomeStat)
 [![Downloads](https://cranlogs.r-pkg.org/badges/grand-total/MicrobiomeStat)](https://cran.r-project.org/package=MicrobiomeStat)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 <!-- badges: end -->   
-
----
-
-# Welcome to MicrobiomeStat 🚀
 
 `MicrobiomeStat` is a powerful and versatile R package, designed specifically for analyzing longitudinal microbiome data. It extends to handle multi-omics data, making it an asset for broader biological research.
 
@@ -90,5 +87,4 @@ We strive to make `MicrobiomeStat` as comprehensive as possible, but there may s
 
 Stay updated with the latest `MicrobiomeStat` features by visiting our wiki: [www.microbiomestat.wiki](http://www.microbiomestat.wiki) 
 
----
 
