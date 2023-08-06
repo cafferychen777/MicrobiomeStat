@@ -114,7 +114,7 @@ output:
 
 ### 1.1 Alpha Diversity Change Boxplots
 
-```{r, message=FALSE, fig.align='center'}
+```{r alpha-diversity-change-boxplot, message=FALSE, fig.align='center'}
 alpha_change_boxplot_results <- generate_alpha_change_boxplot_pair(data.obj = data.obj,
                                                        alpha.obj = alpha.obj,
                                                        alpha.name = alpha.name,
@@ -137,7 +137,7 @@ alpha_change_boxplot_results
 
 ### 1.2 Alpha Diversity Change Test Results
 
-```{r, message=FALSE}
+```{r alpha-diversity-change-test, message=FALSE}
 alpha_change_test_results <- generate_alpha_change_test_pair(data.obj = data.obj,
                                                  alpha.obj = alpha.obj,
                                                  time.var = time.var,
@@ -149,7 +149,7 @@ alpha_change_test_results <- generate_alpha_change_test_pair(data.obj = data.obj
                                                  change.func = change.func)
 ```
 
-```{r echo=FALSE, message=FALSE, results='asis'}
+```{r alpha-diversity-change-analysis, echo=FALSE, message=FALSE, results='asis'}
 
 indices <- names(alpha_change_test_results)
 
@@ -189,7 +189,7 @@ for (index in indices) {
 
 ### 2.1 Beta Diversity PC Change Boxplot Pairs
 
-```{r, message=FALSE, fig.align='center', results='hide'}
+```{r pc-change-boxplot-pairs, message=FALSE, fig.align='center', results='hide'}
 pc_change_boxplot_pairs <- generate_beta_pc_change_boxplot_pair(
   data.obj = data.obj,
   dist.obj = dist.obj,
@@ -217,7 +217,7 @@ pc_change_boxplot_pairs
 
 ### 2.2 Beta Diversity Change Boxplot
 
-```{r, message=FALSE, fig.align='center', results='hide'}
+```{r beta-diversity-change-boxplot, message=FALSE, fig.align='center', results='hide'}
 beta_change_boxplot_results <- generate_beta_change_boxplot_pair(data.obj = data.obj,
                                                                  dist.obj = dist.obj,
                                                                  subject.var = subject.var,
@@ -239,7 +239,7 @@ beta_change_boxplot_results
 
 ### 2.3 Beta Diversity Change Test Results
 
-```{r, message=FALSE, results='asis'}
+```{r beta-diversity-change-test, message=FALSE, results='asis'}
 beta_change_test_results <- generate_beta_change_test_pair(data.obj = data.obj,
                                                dist.obj = dist.obj,
                                                subject.var = subject.var,
@@ -250,7 +250,7 @@ beta_change_test_results <- generate_beta_change_test_pair(data.obj = data.obj,
                                                change.base = change.base)
 ```
 
-```{r echo=FALSE, message=FALSE, results='asis'}
+```{r beta-diversity-change-analysis, echo=FALSE, message=FALSE, results='asis'}
 distances <- names(beta_change_test_results)
 
 for (distance in distances) {
@@ -288,7 +288,7 @@ for (distance in distances) {
 
 ### 3.1 Taxa Change Dotplot
 
-```{r, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8}
+```{r taxa-change-dotplot, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8}
 taxa_change_dotplot_results <- generate_taxa_change_dotplot_pair(data.obj = data.obj,
                                                      subject.var = subject.var,
                                                      time.var = time.var,
@@ -316,7 +316,7 @@ taxa_change_dotplot_results
 
 ### 3.2 Taxa Change Heatmap
 
-```{r, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8}
+```{r taxa-change-heatmap, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8}
 taxa_heatmap_results <- generate_taxa_change_heatmap_pair(data.obj = data.obj,
                                                      subject.var = subject.var,
                                                      time.var = time.var,
@@ -343,7 +343,7 @@ taxa_heatmap_results <- generate_taxa_change_heatmap_pair(data.obj = data.obj,
 
 ### 3.3 Taxa Change Scatterplot
 
-```{r, message=FALSE, fig.align='center'}
+```{r taxa-change-scatterplot, message=FALSE, fig.align='center'}
 if (is_continuous_numeric(data.obj[[group.var]])) {
   taxa_change_scatterplot_results <- generate_taxa_indiv_change_scatterplot_pair(data.obj = data.obj,
                                                        subject.var = subject.var,
@@ -375,7 +375,7 @@ if (is_continuous_numeric(data.obj[[group.var]])) {
 
 ### 3.4 Taxa Change Test
 
-```{r, message=FALSE, results='hide'}
+```{r taxa-change-test-pair, message=FALSE, results='hide'}
 taxa_change_test_results <- generate_taxa_change_test_pair(data.obj = data.obj,
                                                subject.var = subject.var,
                                                time.var = time.var,
@@ -389,14 +389,14 @@ taxa_change_test_results <- generate_taxa_change_test_pair(data.obj = data.obj,
                                                feature.dat.type = feature.dat.type)
 ```
 
-```{r echo=FALSE, message=FALSE, results='asis'}
+```{r taxa-change-test-results-display, echo=FALSE, message=FALSE, results='asis'}
 cat('## Taxa Change Test Results \n')
 pander::pander(taxa_change_test_results)
 ```
 
 ### 3.5 Taxa Boxplot for Significant Taxa
 
-```{r, message=FALSE, fig.align='center', fig.width = 8, fig.height = 16}
+```{r taxa-change-boxplot, message=FALSE, fig.align='center', fig.width = 8, fig.height = 16}
 combined_df <- do.call('rbind', taxa_change_test_results)
 
 significant_taxa <- combined_df$Variable[combined_df$Adjusted.P.Value < 1]
@@ -452,7 +452,7 @@ taxa_indiv_change_boxplot_results <- generate_taxa_indiv_change_boxplot_pair(dat
 
 ```
 
-```{r echo=FALSE, message=FALSE, results='asis'}
+```{r taxa-change-boxplot-pdf, echo=FALSE, message=FALSE, results='asis'}
 pdf_name <- paste0(
   'taxa_indiv_change_boxplot_pair',
   '_',

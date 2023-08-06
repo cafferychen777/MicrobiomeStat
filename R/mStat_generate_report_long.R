@@ -58,6 +58,30 @@
 #'   base.size = 12,
 #'   output.file = "report.pdf"
 #' )
+#'
+#' mStat_generate_report_long(
+#'   data.obj = subset_T2D.obj,
+#'   dist.obj = NULL,
+#'   alpha.obj = NULL,
+#'   group.var = "sample_body_site",
+#'   adj.vars = c("subject_race"),
+#'   subject.var = "subject_id",
+#'   time.var = "visit_number",
+#'   alpha.name = c("shannon","simpson"),
+#'   dist.name = c("BC",'Jaccard'),
+#'   t0.level = unique(sort(subset_T2D.obj$meta.dat$visit_number))[1],
+#'   ts.levels = unique(sort(subset_T2D.obj$meta.dat$visit_number))[-1],
+#'   strata.var = "subject_race",
+#'   feature.level = c("Phylum"),
+#'   change.func = "relative difference",
+#'   feature.dat.type = "count",
+#'   prev.filter = 0.0001,
+#'   abund.filter = 0.0001,
+#'   Transform = "log",
+#'   theme.choice = "bw",
+#'   base.size = 12,
+#'   output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/报告/mStat_generate_report_long_example.pdf"
+#' )
 #' }
 #'
 #' @export
@@ -74,6 +98,7 @@ mStat_generate_report_long <- function(data.obj,
                                        t0.level,
                                        ts.levels,
                                        strata.var = NULL,
+                                       change.func = "relative difference",
                                        base.size = 16,
                                        theme.choice = "prism",
                                        custom.theme = NULL,
@@ -103,7 +128,7 @@ output:
 
 ### 1.1 Alpha Diversity Boxplots
 
-```{r, message=FALSE, fig.align='center'}
+```{r alpha-boxplot-generation, message=FALSE, fig.align='center'}
 alpha_boxplot_results <- generate_alpha_boxplot_long(data.obj = data.obj,
                                                        alpha.obj = alpha.obj,
                                                        alpha.name = alpha.name,
@@ -126,7 +151,7 @@ alpha_boxplot_results
 
 ### 1.2 Alpha Diversity Spaghettiplots
 
-```{r, message=FALSE, fig.align='center'}
+```{r alpha-spaghettiplot-generation, message=FALSE, fig.align='center'}
 alpha_spaghettiplot_results <- generate_alpha_spaghettiplot_long(data.obj = data.obj,
                                                        alpha.obj = alpha.obj,
                                                        alpha.name = alpha.name,
@@ -149,7 +174,7 @@ alpha_spaghettiplot_results
 
 ### 1.3 Alpha Diversity Test Results
 
-```{r, message=FALSE}
+```{r alpha-test-generation, message=FALSE}
 alpha_test_results <- generate_alpha_test_long(data.obj = data.obj,
                                                  alpha.obj = alpha.obj,
                                                  time.var = time.var,
@@ -161,7 +186,7 @@ alpha_test_results <- generate_alpha_test_long(data.obj = data.obj,
                                                  adj.vars = adj.vars)
 ```
 
-```{r echo=FALSE, message=FALSE, results='asis'}
+```{r alpha-diversity-index-analysis, echo=FALSE, message=FALSE, results='asis'}
 
 indices <- names(alpha_test_results)
 
@@ -210,7 +235,7 @@ for (index in indices) {
 
 ### 2.1 Beta Diversity Ordination
 
-```{r, message=FALSE, fig.align='center', warning = FALSE}
+```{r beta-ordination-generation, message=FALSE, fig.align='center', warning = FALSE}
 beta_ordination_results <- generate_beta_ordination_long(data.obj = data.obj,
                                                            dist.obj = dist.obj,
                                                            pc.obj = NULL,
@@ -234,7 +259,7 @@ beta_ordination_results
 
 ### 2.2 Beta Diversity PC Boxplot
 
-```{r, message=FALSE, fig.align='center'}
+```{r pc-boxplot-longitudinal-generation, message=FALSE, fig.align='center'}
 pc_boxplot_longitudinal_results <- generate_beta_pc_boxplot_long(
   data.obj = data.obj,
   dist.obj = dist.obj,
@@ -262,7 +287,7 @@ pc_boxplot_longitudinal_results
 
 ### 2.3 Beta Diversity Change Spaghetti Plot
 
-```{r, message=FALSE, fig.align='center'}
+```{r spaghettiplot-longitudinal-generation, message=FALSE, fig.align='center'}
 spaghettiplot_longitudinal_results <- generate_beta_change_spaghettiplot_long(
   data.obj = data.obj,
   dist.obj = dist.obj,
@@ -288,7 +313,7 @@ spaghettiplot_longitudinal_results
 
 ### 2.4 Beta Diversity Test Longitudinal
 
-```{r, message=FALSE, fig.align='center'}
+```{r beta-test-longitudinal-generation, message=FALSE, fig.align='center'}
 beta_test_longitudinal_results <- generate_beta_test_long(data.obj = data.obj,
                                                   dist.obj = dist.obj,
                                                   time.var = time.var,
@@ -300,7 +325,7 @@ beta_test_longitudinal_results <- generate_beta_test_long(data.obj = data.obj,
                                                   dist.name = dist.name)
 ```
 
-```{r echo=FALSE, message=FALSE, results='asis'}
+```{r beta-diversity-permanova-analysis, echo=FALSE, message=FALSE, results='asis'}
 cat('## P-Tab Results \n')
 pander::pander(beta_test_longitudinal_results$p.tab)
 
@@ -397,7 +422,7 @@ for (variable in unique(beta_test_longitudinal_results$aov.tab$Variable)) {
 
 ### 3.1 Taxa Areaplot Longitudinal
 
-```{r, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8}
+```{r taxa-areaplot-longitudinal-generation, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8}
 taxa_areaplot_long_results <- generate_taxa_areaplot_long(
   data.obj = data.obj,
   subject.var = subject.var,
@@ -424,7 +449,7 @@ taxa_areaplot_long_results
 
 ### 3.2 Taxa Heatmap Longitudinal
 
-```{r, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8}
+```{r taxa-heatmap-longitudinal-generation, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8}
 taxa_heatmap_long_results <- generate_taxa_heatmap_long(
   data.obj = data.obj,
   subject.var = subject.var,
@@ -451,9 +476,39 @@ taxa_heatmap_long_results <- generate_taxa_heatmap_long(
 )
 ```
 
-### 3.3 Taxa Barplot Longitudinal
+### 3.3 Taxa Change Heatmap Longitudinal
 
-```{r, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8, warning = FALSE}
+```{r taxa-change-heatmap-longitudinal-generation, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8}
+taxa_change_heatmap_long_results <- generate_taxa_change_heatmap_long(
+  data.obj = data.obj,
+  subject.var = subject.var,
+  time.var = time.var,
+  t0.level = t0.level,
+  ts.levels = ts.levels,
+  group.var = group.var,
+  strata.var = strata.var,
+  feature.level = feature.level,
+  feature.dat.type = feature.dat.type,
+  features.plot = NULL,
+  top.k.plot = NULL,
+  top.k.func = NULL,
+  change.func = change.func,
+  prev.filter = prev.filter,
+  abund.filter = abund.filter,
+  base.size = base.size,
+  palette = palette,
+  cluster.cols = NULL,
+  cluster.rows = NULL,
+  pdf = pdf,
+  file.ann = file.ann,
+  pdf.wid = pdf.wid,
+  pdf.hei = pdf.hei
+)
+```
+
+### 3.4 Taxa Barplot Longitudinal
+
+```{r taxa-barplot-longitudinal-generation, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8, warning = FALSE}
 taxa_barplot_long_results <- generate_taxa_barplot_long(
   data.obj = data.obj,
   subject.var = subject.var,
@@ -478,9 +533,9 @@ taxa_barplot_long_results <- generate_taxa_barplot_long(
 taxa_barplot_long_results
 ```
 
-### 3.4 Taxa Test
+### 3.5 Taxa Test
 
-```{r, message=FALSE, results='asis', warning = FALSE}
+```{r taxa-test-longitudinal-generation, message=FALSE, results='asis', warning = FALSE}
 taxa_test_results <- generate_taxa_test_long(data.obj = data.obj,
                                                subject.var = subject.var,
                                                time.var = time.var,
@@ -495,14 +550,14 @@ taxa_test_results <- generate_taxa_test_long(data.obj = data.obj,
                                                ...)
 ```
 
-```{r echo=FALSE, message=FALSE}
+```{r taxa-test-results-print, echo=FALSE, message=FALSE}
 cat('## Taxa Test Results \n')
 pander::pander(taxa_test_results)
 ```
 
-### 3.5 Taxa Boxplot for Significant Taxa
+### 3.6 Taxa Boxplot for Significant Taxa
 
-```{r, message=FALSE, fig.height=20, fig.width=15, fig.align='center'}
+```{r taxa-test-boxplot-longitudinal-generation, message=FALSE, fig.height=20, fig.width=15, fig.align='center'}
 taxa_test_results <- do.call('rbind', taxa_test_results)
 significant_taxa <- taxa_test_results$Variable[taxa_test_results$Adjusted.P.Value < 1]
 
@@ -557,7 +612,7 @@ taxa_indiv_boxplot_results <- generate_taxa_indiv_boxplot_long(data.obj = data.o
 
 ```
 
-```{r echo=FALSE, message=FALSE, results='asis'}
+```{r boxplot-pdf-name-creation, echo=FALSE, message=FALSE, results='asis'}
         pdf_name <- paste0(
           'taxa_indiv_boxplot_long',
           '_',
@@ -593,9 +648,9 @@ taxa_indiv_boxplot_results <- generate_taxa_indiv_boxplot_long(data.obj = data.o
 cat(paste0('The boxplot results for individual taxa or features can be found in the current working directory. The relevant file is named: ', pdf_name, '. Please refer to this file for more detailed visualizations.'))
 ```
 
-### 3.6 Taxa Spaghettiplot for Significant Taxa
+### 3.7 Taxa Spaghettiplot for Significant Taxa
 
-```{r, message=FALSE, fig.height=20, fig.width=15, fig.align='center'}
+```{r taxa-spaghettiplot-longitudinal-generation, message=FALSE, fig.height=20, fig.width=15, fig.align='center'}
 
 taxa_spaghettiplot_results <- generate_taxa_spaghettiplot_long(data.obj = data.obj,
                                                                subject.var = subject.var,
@@ -648,7 +703,7 @@ taxa_indiv_spaghettiplot_results <- generate_taxa_indiv_spaghettiplot_long(data.
 
 ```
 
-```{r echo=FALSE, message=FALSE, results='asis'}
+```{r spaghettiplot-pdf-name-creation, echo=FALSE, message=FALSE, results='asis'}
 pdf_name <- paste0(
           'taxa_indiv_spaghettiplot_long',
           '_',
@@ -706,7 +761,7 @@ rmd_code <- knitr::knit_expand(text = template, data.obj = data.obj,
                         strata.var = strata.var, base.size = base.size,
                         theme.choice = theme.choice, custom.theme = custom.theme,
                         palette = palette, pdf = pdf, file.ann = file.ann,
-                        pdf.wid = pdf.wid, pdf.hei = pdf.hei,
+                        pdf.wid = pdf.wid, pdf.hei = pdf.hei, change.func = change.func,
                         prev.filter = prev.filter, abund.filter = abund.filter,
                         feature.level = feature.level,
                         feature.dat.type = feature.dat.type)
@@ -714,7 +769,7 @@ rmd_code <- knitr::knit_expand(text = template, data.obj = data.obj,
 rmd_file <- tempfile(fileext = ".Rmd")
 writeLines(rmd_code, con = rmd_file)
 
-report_file <- rmarkdown::render(input = rmd_file, output_file = output.file, quiet = TRUE)
+report_file <- rmarkdown::render(input = rmd_file, output_file = output.file, quiet = FALSE)
 
 return(report_file)
 }

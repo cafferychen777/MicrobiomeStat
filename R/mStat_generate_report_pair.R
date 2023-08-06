@@ -113,7 +113,7 @@ output:
 
 ### 1.1 Alpha Diversity Boxplots
 
-```{r, message=FALSE, fig.align='center'}
+```{r alpha-boxplot-long-generation, message=FALSE, fig.align='center'}
 alpha_boxplot_results <- generate_alpha_boxplot_long(data.obj = data.obj,
                                                        alpha.obj = alpha.obj,
                                                        alpha.name = alpha.name,
@@ -136,7 +136,7 @@ alpha_boxplot_results
 
 ### 1.2 Alpha Diversity Test Results
 
-```{r, message=FALSE}
+```{r alpha-test-pair-generation, message=FALSE}
 alpha_test_results <- generate_alpha_test_pair(data.obj = data.obj,
                                                  alpha.obj = alpha.obj,
                                                  time.var = time.var,
@@ -146,7 +146,7 @@ alpha_test_results <- generate_alpha_test_pair(data.obj = data.obj,
                                                  adj.vars = adj.vars)
 ```
 
-```{r echo=FALSE, message=FALSE, results='asis'}
+```{r alpha-test-results-analysis, echo=FALSE, message=FALSE, results='asis'}
 
 indices <- names(alpha_test_results)
 
@@ -195,7 +195,7 @@ for (index in indices) {
 
 ### 2.1 Beta Diversity Ordination
 
-```{r, message=FALSE, fig.align='center', warning = FALSE}
+```{r beta-ordination-pair-generation, message=FALSE, fig.align='center', warning = FALSE}
 beta_ordination_results <- generate_beta_ordination_pair(data.obj = data.obj,
                                                            dist.obj = dist.obj,
                                                            pc.obj = NULL,
@@ -217,7 +217,7 @@ beta_ordination_results
 
 ### 2.2 Beta Diversity Test Pair
 
-```{r, message=FALSE, fig.align='center'}
+```{r beta-test-pair-generation, message=FALSE, fig.align='center'}
 beta_test_pair_results <- generate_beta_test_pair(data.obj = data.obj,
                                                   dist.obj = dist.obj,
                                                   time.var = time.var,
@@ -227,7 +227,7 @@ beta_test_pair_results <- generate_beta_test_pair(data.obj = data.obj,
                                                   dist.name = dist.name)
 ```
 
-```{r echo=FALSE, message=FALSE, results='asis'}
+```{r beta-test-pair-results-analysis, echo=FALSE, message=FALSE, results='asis'}
 cat('## P-Tab Results \n')
 pander::pander(beta_test_pair_results$p.tab)
 
@@ -322,7 +322,7 @@ for (variable in unique(beta_test_pair_results$aov.tab$Variable)) {
 
 ### 2.3 Beta Diversity PC Boxplot
 
-```{r, message=FALSE, fig.align='center'}
+```{r beta-pc-boxplot-longitudinal-generation, message=FALSE, fig.align='center'}
 pc_boxplot_longitudinal_results <- generate_beta_pc_boxplot_long(
   data.obj = data.obj,
   dist.obj = dist.obj,
@@ -352,7 +352,7 @@ pc_boxplot_longitudinal_results
 
 ### 3.1 Taxa Change Dotplot
 
-```{r, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8}
+```{r taxa-dotplot-generation, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8}
 taxa_dotplot_results <- generate_taxa_dotplot_pair(data.obj = data.obj,
                                                      subject.var = subject.var,
                                                      time.var = time.var,
@@ -378,7 +378,7 @@ taxa_dotplot_results
 
 ### 3.2 Taxa Heatmap Pair
 
-```{r, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8}
+```{r taxa-heatmap-generation, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8}
 taxa_heatmap_pair_results <- generate_taxa_heatmap_pair(
   data.obj = data.obj,
   subject.var = subject.var,
@@ -405,7 +405,7 @@ taxa_heatmap_pair_results <- generate_taxa_heatmap_pair(
 
 ### 3.3 Taxa Barplot Pair
 
-```{r, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8, warning = FALSE}
+```{r taxa-barplot-generation, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8, warning = FALSE}
 taxa_barplot_pair_results <- generate_taxa_barplot_pair(
   data.obj = data.obj,
   subject.var = subject.var,
@@ -428,9 +428,9 @@ taxa_barplot_pair_results <- generate_taxa_barplot_pair(
 taxa_barplot_pair_results
 ```
 
-### 3.4 Taxa Change Test
+### 3.4 Taxa Test
 
-```{r, message=FALSE, results='asis'}
+```{r taxa-test-generation, message=FALSE, results='asis'}
 taxa_test_results <- generate_taxa_test_pair(data.obj = data.obj,
                                                subject.var = subject.var,
                                                time.var = time.var,
@@ -443,14 +443,14 @@ taxa_test_results <- generate_taxa_test_pair(data.obj = data.obj,
                                                ...)
 ```
 
-```{r echo=FALSE, message=FALSE}
+```{r taxa-test-summary, echo=FALSE, message=FALSE}
 cat('## Taxa Test Results \n')
 pander::pander(taxa_test_results)
 ```
 
 ### 3.5 Taxa Boxplot for Significant Taxa
 
-```{r, message=FALSE, fig.align='center', fig.width = 8, fig.height = 16}
+```{r taxa-change-boxplot-generation, message=FALSE, fig.align='center', fig.width = 8, fig.height = 16}
 taxa_test_results <- do.call('rbind', taxa_test_results)
 significant_taxa <- taxa_test_results$Variable[taxa_test_results$Adjusted.P.Value < 1]
 
@@ -503,7 +503,7 @@ taxa_indiv_change_boxplot_results <- generate_taxa_indiv_change_boxplot_pair(dat
 
 ```
 
-```{r echo=FALSE, message=FALSE, results='asis'}
+```{r taxa-indiv-change-boxplot-pdf, echo=FALSE, message=FALSE, results='asis'}
 pdf_name <- paste0(
   'taxa_indiv_change_boxplot_pair',
   '_',
@@ -558,7 +558,7 @@ rmd_code <- knitr::knit_expand(text = template, data.obj = data.obj,
 rmd_file <- tempfile(fileext = ".Rmd")
 writeLines(rmd_code, con = rmd_file)
 
-report_file <- rmarkdown::render(input = rmd_file, output_file = output.file, quiet = TRUE)
+report_file <- rmarkdown::render(input = rmd_file, output_file = output.file, quiet = FALSE)
 
 return(report_file)
 }

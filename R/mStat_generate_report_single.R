@@ -108,7 +108,7 @@ output:
 
 ## 1. Data Summary and Preparation
 
-```{r, message=FALSE}
+```{r mStat-data-summary, message=FALSE}
 mStat_results <- mStat_summarize_data_obj(data.obj = data.obj,
                                           time.var = time.var,
                                           group.var = group.var,
@@ -123,7 +123,7 @@ pander::pander(mStat_results)
 
 ### 2.1 Alpha Diversity Boxplots
 
-```{r, message=FALSE}
+```{r alpha-diversity-boxplot-generation, message=FALSE}
 alpha_boxplot_results <- generate_alpha_boxplot_single(data.obj = data.obj,
                                                        alpha.obj = alpha.obj,
                                                        alpha.name = alpha.name,
@@ -145,7 +145,7 @@ alpha_boxplot_results
 
 ### 2.2 Alpha Diversity Test Results
 
-```{r, message=FALSE}
+```{r alpha-diversity-test-generation, message=FALSE}
 alpha_test_results <- generate_alpha_test_single(data.obj = data.obj,
                                                  alpha.obj = alpha.obj,
                                                  time.var = time.var,
@@ -155,7 +155,7 @@ alpha_test_results <- generate_alpha_test_single(data.obj = data.obj,
                                                  adj.vars = adj.vars)
 ```
 
-```{r echo=FALSE, message=FALSE, results='asis'}
+```{r alpha-index-analysis, echo=FALSE, message=FALSE, results='asis'}
 
 # 遍历alpha指数并生成解析报告
 for (index in names(alpha_test_results)) {
@@ -203,7 +203,7 @@ for (index in names(alpha_test_results)) {
 
 ### 3.1 Beta Diversity Ordination
 
-```{r, message=FALSE}
+```{r beta-ordination-generation, message=FALSE}
 beta_ordination_results <- generate_beta_ordination_single(data.obj = data.obj,
                                                            dist.obj = dist.obj,
                                                            pc.obj = NULL,
@@ -226,7 +226,7 @@ beta_ordination_results
 
 ### 3.2 Beta Diversity Test Results
 
-```{r, message=FALSE, results='asis'}
+```{r beta-diversity-analysis, message=FALSE, results='asis'}
 beta_test_results <- generate_beta_test_single(data.obj = data.obj,
                                                dist.obj = dist.obj,
                                                time.var = time.var,
@@ -236,7 +236,7 @@ beta_test_results <- generate_beta_test_single(data.obj = data.obj,
                                                dist.name = dist.name)
 ```
 
-```{r echo=FALSE, message=FALSE, results='asis'}
+```{r p-tab-results-and-permanova-analysis, echo=FALSE, message=FALSE, results='asis'}
 cat('## P-Tab Results \n')
 pander::pander(beta_test_results$p.tab)
 
@@ -334,7 +334,7 @@ for (variable in unique(beta_test_results$aov.tab$Variable)) {
 
 ### 4.1 Taxa Barplot
 
-```{r, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8}
+```{r taxa-barplot-generation, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8}
 taxa_barplot_results <- generate_taxa_barplot_single(data.obj = data.obj,
                                                      subject.var = subject.var,
                                                      time.var = time.var,
@@ -357,7 +357,7 @@ taxa_barplot_results
 
 ### 4.2 Taxa Dotplot
 
-```{r, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8}
+```{r taxa-dotplot-generation, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8}
 taxa_dotplot_results <- generate_taxa_dotplot_single(data.obj = data.obj,
                                                      subject.var = subject.var,
                                                      time.var = time.var,
@@ -384,7 +384,7 @@ taxa_dotplot_results
 
 ### 4.3 Taxa Heatmap
 
-```{r, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8}
+```{r taxa-heatmap-generation, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8}
 taxa_heatmap_results <- generate_taxa_heatmap_single(data.obj = data.obj,
                                                      subject.var = subject.var,
                                                      time.var = time.var,
@@ -410,7 +410,7 @@ taxa_heatmap_results <- generate_taxa_heatmap_single(data.obj = data.obj,
 
 ### 4.4 Taxa Test
 
-```{r, message=FALSE}
+```{r taxa-test-execution, message=FALSE}
 taxa_test_results <- generate_taxa_test_single(data.obj = data.obj,
                                                time.var = time.var,
                                                t.level = t.level,
@@ -423,14 +423,14 @@ taxa_test_results <- generate_taxa_test_single(data.obj = data.obj,
                                                ...)
 ```
 
-```{r echo=FALSE, message=FALSE}
+```{r taxa-test-results-display, echo=FALSE, message=FALSE}
 cat('## Taxa Test Results \n')
 pander::pander(taxa_test_results)
 ```
 
 ### 4.5 Taxa Boxplot for Significant Taxa
 
-```{r, message=FALSE, fig.align='center', fig.width = 8, fig.height = 16}
+```{r taxa-significant-boxplot-generation, message=FALSE, fig.align='center', fig.width = 8, fig.height = 16}
 significant_taxa <- taxa_test_results$Taxa[taxa_test_results$Adjusted.P.Value < 0.05]
 
 taxa_boxplot_results <- generate_taxa_boxplot_single(data.obj = data.obj,
@@ -483,7 +483,7 @@ taxa_indiv_boxplot_results <- generate_taxa_indiv_boxplot_single(data.obj = data
 
 ```
 
-```{r echo=FALSE, message=FALSE, results='asis'}
+```{r taxa-indiv-boxplot-pdf-name, echo=FALSE, message=FALSE, results='asis'}
 pdf_name <- paste0(
   'taxa_indiv_boxplot_single',
   '_',
@@ -542,7 +542,7 @@ cat(paste0('The boxplot results for individual taxa or features can be found in 
   writeLines(rmd_code, con = rmd_file)
 
   # 使用rmarkdown::render()函数将.Rmd文件转化为报告
-  report_file <- rmarkdown::render(input = rmd_file, output_file = output.file, quiet = TRUE)
+  report_file <- rmarkdown::render(input = rmd_file, output_file = output.file, quiet = FALSE)
 
   return(report_file)
 }

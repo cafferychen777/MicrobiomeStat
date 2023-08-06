@@ -47,6 +47,7 @@
 #'   abund.filter = 0.001,
 #'   feature.dat.type = "proportion"
 #' )
+#'
 #' }
 #' @export
 generate_taxa_test_long <-
@@ -103,18 +104,9 @@ generate_taxa_test_long <-
     formula <- paste(fixed_effects, random_effects, sep = " + ")
 
     test.list <- lapply(feature.level, function(feature.level) {
-      # Filter taxa based on prevalence and abundance
-      otu_tax_filtered <- otu_tax %>%
-        tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
-        dplyr::group_by_at(vars(!!sym(feature.level))) %>%
-        dplyr::summarise(total_count = mean(count),
-                         prevalence = sum(count > 0) / dplyr::n()) %>%
-        filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
-        select(-total_count, -prevalence) %>%
-        dplyr::left_join(otu_tax, by = feature.level)
 
       # 聚合 OTU 表
-      otu_tax_agg <- otu_tax_filtered %>%
+      otu_tax_agg <- otu_tax %>%
         tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
         dplyr::group_by_at(vars(sample, !!sym(feature.level))) %>%
         dplyr::summarise(count = sum(count)) %>%
@@ -127,7 +119,8 @@ generate_taxa_test_long <-
         dplyr::mutate(!!sym(feature.level) := tidyr::replace_na(!!sym(feature.level), "unclassified")) %>% column_to_rownames(feature.level)
 
       linda.obj <- linda(feature.dat = otu_tax_agg_numeric, meta.dat = meta_tab,
-                         formula = paste("~",formula), feature.dat.type = "proportion")
+                         formula = paste("~",formula), feature.dat.type = "proportion",
+                         prev.filter = prev.filter, mean.abund.filter = abund.filter)
 
       # Extract relevant information
       significant_taxa <- rownames(linda.obj$feature.dat.use)
