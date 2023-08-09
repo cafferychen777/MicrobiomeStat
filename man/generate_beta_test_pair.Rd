@@ -46,7 +46,7 @@ data(peerj32.obj)
 dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
 
 # Perform pairwise beta diversity tests using PERMANOVA
-beta_test_pair_results <- generate_beta_test_pair(
+generate_beta_test_pair(
   data.obj = peerj32.obj,
   dist.obj = NULL,
   time.var = "time",

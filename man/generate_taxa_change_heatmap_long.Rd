@@ -95,7 +95,7 @@ using the “pheatmap” package. It can also save the resulting heatmap as a PD
 library(pheatmap)
 data(ecam.obj)
 
-plot_list <- generate_taxa_change_heatmap_long(
+generate_taxa_change_heatmap_long(
   data.obj = ecam.obj,
   subject.var = "studyid",
   time.var = "month_num",
@@ -113,7 +113,7 @@ plot_list <- generate_taxa_change_heatmap_long(
   prev.filter = 0.01,
   abund.filter = 0.01,
   pdf = TRUE,
-  file.ann = "test"
+  file.ann = NULL
 )
 }
 

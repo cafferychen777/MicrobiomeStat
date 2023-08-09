@@ -103,8 +103,6 @@ It could fit mixed-effect models.
 }
 \examples{
 \dontrun{
-# install package "phyloseq" for importing "smokers" dataset
-library(phyloseq)
 data(smokers)
 ind <- smokers$meta$AIRWAYSITE == "Throat"
 otu.tab <- as.data.frame(smokers$otu[, ind])
@@ -117,19 +115,19 @@ meta <- cbind.data.frame(
 ind1 <- which(meta$Site == "Left")
 res.left <- linda(otu.tab[, ind1], meta[ind1, ],
   formula = "~Smoke+Sex", alpha = 0.1,
-  prev.cut = 0.1, lib.cut = 1000, winsor.quan = 0.97
+  prev.filter = 0.1
 )
 ind2 <- which(meta$Site == "Right")
 res.right <- linda(otu.tab[, ind2], meta[ind2, ],
   formula = "~Smoke+Sex", alpha = 0.1,
-  prev.cut = 0.1, lib.cut = 1000, winsor.quan = 0.97
+  prev.filter = 0.1
 )
 rownames(res.left$output[[1]])[which(res.left$output[[1]]$reject)]
 rownames(res.right$output[[1]])[which(res.right$output[[1]]$reject)]
 
 linda.obj <- linda(otu.tab, meta,
   formula = "~Smoke+Sex+(1|SubjectID)", alpha = 0.1,
-  prev.cut = 0.1, lib.cut = 1000, winsor.quan = 0.97
+  prev.filter = 0.1
 )
 linda.plot(linda.obj, c("Smokey", "Sexmale"),
   titles = c("Smoke: n v.s. y", "Sex: female v.s. male"), alpha = 0.1, lfc.cut = 1,

@@ -8,6 +8,7 @@
 #' @param alpha.obj An alpha diversity object (optional).
 #' @param depth Sampling depth (optional).
 #' @param group.var Variable name used for grouping samples.
+#' @param change.func A function to calculate change between time points, e.g. log2fold change. Default is NULL.
 #' @param adj.vars Variables to adjust for in the analysis.
 #' @param subject.var Variable name used for subject identification.
 #' @param time.var Variable name used for time points in longitudinal data.
@@ -56,7 +57,7 @@
 #'   Transform = "log",
 #'   theme.choice = "bw",
 #'   base.size = 12,
-#'   output.file = "report.pdf"
+#'   output.file = "path/report.pdf"
 #' )
 #'
 #' mStat_generate_report_long(
@@ -80,7 +81,7 @@
 #'   Transform = "log",
 #'   theme.choice = "bw",
 #'   base.size = 12,
-#'   output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/报告/mStat_generate_report_long_example.pdf"
+#'   output.file = "path/report.pdf"
 #' )
 #' }
 #'

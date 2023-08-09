@@ -17,7 +17,7 @@ A list with the combined 'feature.tab', 'meta.dat' and 'feature.ann'.
 \description{
 This function is designed specifically for combining two MicrobiomeStat data objects,
 assuming that they are both in 'Raw' format. Each MicrobiomeStat data object should be a list that contains
-'norm.status' (indicating the status of normalization, should be 'Raw'), 'feature.tab' (a matrix of features),
+'feature.tab' (a matrix of features),
 'meta.dat' (a data frame of metadata), and 'feature.ann' (a matrix of feature annotations).
 }
 \examples{

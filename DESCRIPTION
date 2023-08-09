@@ -29,7 +29,6 @@ Imports:
     lmerTest,
     foreach,
     modeest,
-    phyloseq,
     vegan,
     dplyr,
     pheatmap,
@@ -37,14 +36,14 @@ Imports:
     ggh4x,
     ape,
     GUniFrac,
-    philentropy,
+    scales,
     broom
 Suggests:
     rmarkdown,
     knitr,
     ggprism,
     aplot,
-    scales,
+    philentropy,
     forcats,
     pander,
     tinytex

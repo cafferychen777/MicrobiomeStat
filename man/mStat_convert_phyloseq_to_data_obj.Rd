@@ -36,9 +36,6 @@ This function checks each component (OTU table, sample data, taxonomy table, and
 \references{
 McMurdie PJ, Holmes S. phyloseq: An R Package for Reproducible Interactive Analysis and Graphics of Microbiome Census Data. PLoS ONE. 2013;8(4):e61217.
 }
-\seealso{
-\code{\link[phyloseq]{phyloseq-class}}
-}
 \author{
 Jun Chen
 }

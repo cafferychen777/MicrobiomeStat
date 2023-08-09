@@ -25,7 +25,6 @@
 #' This function checks each component (OTU table, sample data, taxonomy table, and phylogenetic tree) of the phyloseq object for null values. If a component is not null, it is converted to the appropriate format and added to the MicrobiomeStat data object. The OTU and taxonomy tables are converted to matrices, while the sample data is converted to a data frame. The phylogenetic tree is checked if it is rooted, and if not, it is rooted by midpointing. Tips not present in the OTU table are dropped from the tree. This ensures the output data object is consistent and ready for further microbiome statistical analysis.
 #'
 #' @author Jun Chen
-#' @seealso \code{\link[phyloseq]{phyloseq-class}}
 #' @references McMurdie PJ, Holmes S. phyloseq: An R Package for Reproducible Interactive Analysis and Graphics of Microbiome Census Data. PLoS ONE. 2013;8(4):e61217.
 #'
 #' @export

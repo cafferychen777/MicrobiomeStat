@@ -86,10 +86,10 @@ This function generates longitudinal line plots for the taxonomic composition in
 \examples{
 \dontrun{
 data(ecam.obj)
-plot_list_all <- generate_taxa_indiv_spaghettiplot_long(
+generate_taxa_indiv_spaghettiplot_long(
   data.obj = ecam.obj,
   subject.var = "studyid",
-  time.var = "month",
+  time.var = "month_num",
   t0.level = NULL,
   ts.levels = NULL,
   group.var = "diet",
@@ -105,7 +105,7 @@ plot_list_all <- generate_taxa_indiv_spaghettiplot_long(
   theme.choice = "bw",
   palette = NULL,
   pdf = TRUE,
-  file.ann = "test"
+  file.ann = NULL
 )
 }
 }

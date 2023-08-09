@@ -84,7 +84,7 @@ generate_beta_ordination_long(
   subject.var = "subject_id",
   time.var = "visit_number",
   t0.level = sort(unique(subset_T2D.obj$meta.dat$visit_number))[1],
-  ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[2:6],
+  ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[2:4],
   group.var = "subject_race",
   strata.var = "subject_gender",
   dist.name = c("BC"),

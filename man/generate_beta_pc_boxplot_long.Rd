@@ -89,7 +89,7 @@ library(vegan)
   subject.var = "studyid",
   time.var = "month",
   t0.level = "0",
-  ts.levels = as.character(sort(as.numeric(unique(ecam.obj$meta.dat$month))))[2],
+  ts.levels = as.character(sort(as.numeric(unique(ecam.obj$meta.dat$month))))[2:4],
   group.var = "diet",
   strata.var = "delivery",
   dist.name = c('BC'),

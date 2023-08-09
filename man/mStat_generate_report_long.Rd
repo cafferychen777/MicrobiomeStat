@@ -18,6 +18,7 @@ mStat_generate_report_long(
   t0.level,
   ts.levels,
   strata.var = NULL,
+  change.func = "relative difference",
   base.size = 16,
   theme.choice = "prism",
   custom.theme = NULL,
@@ -61,6 +62,8 @@ mStat_generate_report_long(
 \item{ts.levels}{The levels for time points in longitudinal data.}
 
 \item{strata.var}{Variable to stratify the analysis by (optional).}
+
+\item{change.func}{A function to calculate change between time points, e.g. log2fold change. Default is NULL.}
 
 \item{base.size}{Base font size for the generated plots.}
 
@@ -121,7 +124,31 @@ mStat_generate_report_long(
   Transform = "log",
   theme.choice = "bw",
   base.size = 12,
-  output.file = "report.pdf"
+  output.file = "path/report.pdf"
+)
+
+mStat_generate_report_long(
+  data.obj = subset_T2D.obj,
+  dist.obj = NULL,
+  alpha.obj = NULL,
+  group.var = "sample_body_site",
+  adj.vars = c("subject_race"),
+  subject.var = "subject_id",
+  time.var = "visit_number",
+  alpha.name = c("shannon","simpson"),
+  dist.name = c("BC",'Jaccard'),
+  t0.level = unique(sort(subset_T2D.obj$meta.dat$visit_number))[1],
+  ts.levels = unique(sort(subset_T2D.obj$meta.dat$visit_number))[-1],
+  strata.var = "subject_race",
+  feature.level = c("Phylum"),
+  change.func = "relative difference",
+  feature.dat.type = "count",
+  prev.filter = 0.0001,
+  abund.filter = 0.0001,
+  Transform = "log",
+  theme.choice = "bw",
+  base.size = 12,
+  output.file = "path/report.pdf"
 )
 }
 

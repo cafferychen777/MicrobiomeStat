@@ -88,10 +88,10 @@ using the “pheatmap” package. It can also save the resulting heatmap as a PD
 \examples{
 \dontrun{
 data(ecam.obj)
-plot_list <- generate_taxa_heatmap_long(
+generate_taxa_heatmap_long(
   data.obj = ecam.obj,
   subject.var = "studyid",
-  time.var = "month",
+  time.var = "month_num",
   t0.level = NULL,
   ts.levels = NULL,
   group.var = "delivery",
@@ -104,7 +104,7 @@ plot_list <- generate_taxa_heatmap_long(
   prev.filter = 0.01,
   abund.filter = 0.01,
   pdf = TRUE,
-  file.ann = "test",
+  file.ann = NULL,
   pdf.wid = 11,
   pdf.hei = 8.5
 )

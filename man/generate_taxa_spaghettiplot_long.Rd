@@ -86,10 +86,10 @@ This function generates a spaghettiplot plot for the taxonomic composition of mi
 \examples{
 \dontrun{
 data(ecam.obj)
-plot_list_all <- generate_taxa_spaghettiplot_long(
+generate_taxa_spaghettiplot_long(
   data.obj = ecam.obj,
   subject.var = "studyid",
-  time.var = "month",
+  time.var = "month_num",
   t0.level = NULL,
   ts.levels = NULL,
   group.var = "diet",
@@ -97,15 +97,15 @@ plot_list_all <- generate_taxa_spaghettiplot_long(
   feature.level = c("Phylum"),
   features.plot = NULL,
   feature.dat.type = "proportion",
-  top.k.plot = 5,
+  top.k.plot = 3,
   top.k.func = "mean",
   prev.filter = 0,
   abund.filter = 0,
   base.size = 16,
-  theme.choice = "classic",
+  theme.choice = "bw",
   palette = NULL,
   pdf = TRUE,
-  file.ann = "test"
+  file.ann = NULL
 )
 }
 }

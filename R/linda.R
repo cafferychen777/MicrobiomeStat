@@ -114,8 +114,6 @@ winsor.fun <- function(Y, quan, feature.dat.type) {
 #' @import parallel
 #' @examples
 #' \dontrun{
-#' # install package "phyloseq" for importing "smokers" dataset
-#' library(phyloseq)
 #' data(smokers)
 #' ind <- smokers$meta$AIRWAYSITE == "Throat"
 #' otu.tab <- as.data.frame(smokers$otu[, ind])
@@ -128,19 +126,19 @@ winsor.fun <- function(Y, quan, feature.dat.type) {
 #' ind1 <- which(meta$Site == "Left")
 #' res.left <- linda(otu.tab[, ind1], meta[ind1, ],
 #'   formula = "~Smoke+Sex", alpha = 0.1,
-#'   prev.cut = 0.1, lib.cut = 1000, winsor.quan = 0.97
+#'   prev.filter = 0.1
 #' )
 #' ind2 <- which(meta$Site == "Right")
 #' res.right <- linda(otu.tab[, ind2], meta[ind2, ],
 #'   formula = "~Smoke+Sex", alpha = 0.1,
-#'   prev.cut = 0.1, lib.cut = 1000, winsor.quan = 0.97
+#'   prev.filter = 0.1
 #' )
 #' rownames(res.left$output[[1]])[which(res.left$output[[1]]$reject)]
 #' rownames(res.right$output[[1]])[which(res.right$output[[1]]$reject)]
 #'
 #' linda.obj <- linda(otu.tab, meta,
 #'   formula = "~Smoke+Sex+(1|SubjectID)", alpha = 0.1,
-#'   prev.cut = 0.1, lib.cut = 1000, winsor.quan = 0.97
+#'   prev.filter = 0.1
 #' )
 #' linda.plot(linda.obj, c("Smokey", "Sexmale"),
 #'   titles = c("Smoke: n v.s. y", "Sex: female v.s. male"), alpha = 0.1, lfc.cut = 1,
@@ -161,11 +159,13 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
   if (!is.null(phyloseq.obj)) {
     feature.dat.type <- "count"
 
-    feature.dat <- otu_table(phyloseq.obj)@.Data
-    meta.dat <- data.frame(phyloseq::sample_data(phyloseq.obj))
+    feature.dat <- phyloseq.obj@otu_table %>%
+      as.data.frame() %>%
+      as.matrix()
+
+    meta.dat <- phyloseq.obj@sam_data %>% as.matrix() %>%
+      as.data.frame()
   }
-
-
 
   if (any(is.na(feature.dat))) {
     stop("The feature table contains NAs! Please remove!\n")

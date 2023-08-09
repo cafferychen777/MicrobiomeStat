@@ -56,7 +56,7 @@ library(philentropy)
 library(MicrobiomeStat)
 
 data(peerj32.obj)
-results <- generate_taxa_test_pair(
+generate_taxa_test_pair(
   data.obj = peerj32.obj,
   subject.var = "subject",
   time.var = "time",

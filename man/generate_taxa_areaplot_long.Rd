@@ -78,7 +78,7 @@ The function also supports the generation of plots for grouped data and stratifi
 library(ggh4x)
 library(vegan)
 data(ecam.obj)
-plot_list_all <- generate_taxa_areaplot_long(
+generate_taxa_areaplot_long(
   data.obj = ecam.obj,
   subject.var = "studyid",
   time.var = "month",
@@ -93,7 +93,7 @@ plot_list_all <- generate_taxa_areaplot_long(
   theme.choice = "bw",
   palette = NULL,
   pdf = TRUE,
-  file.ann = "test"
+  file.ann = NULL
 )
 }
 }

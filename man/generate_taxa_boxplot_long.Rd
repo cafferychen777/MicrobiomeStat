@@ -113,11 +113,11 @@ generate_taxa_boxplot_long(
   prev.filter = 0,
   abund.filter = 0,
   base.size = 12,
-  theme.choice = "classic",
+  theme.choice = "bw",
   custom.theme = NULL,
   palette = NULL,
   pdf = TRUE,
-  file.ann = "test",
+  file.ann = NULL,
   pdf.wid = 11,
   pdf.hei = 8.5
 )
@@ -139,7 +139,7 @@ generate_taxa_boxplot_long(
   prev.filter = 0,
   abund.filter = 0,
   base.size = 16,
-  theme.choice = "classic",
+  theme.choice = "bw",
   custom.theme = NULL,
   palette = NULL,
   pdf = TRUE,
