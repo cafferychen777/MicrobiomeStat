@@ -38,7 +38,8 @@
 #'   t0.level = sort(unique(subset_T2D.obj$meta.dat$visit_number))[1],
 #'   ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[-1],
 #'   group.var = "subject_race",
-#'   strata.var = NULL,
+#'   strata.var = "subject_gender",
+#'   adj.vars = "sample_body_site",
 #'   theme.choice = "bw",
 #'   palette = NULL,
 #'   pdf = TRUE,
@@ -63,6 +64,7 @@ generate_alpha_spaghettiplot_long <-
            ts.levels,
            group.var = NULL,
            strata.var = NULL,
+           adj.vars = NULL,
            base.size = 16,
            palette = NULL,
            theme.choice = "bw",
@@ -116,14 +118,16 @@ generate_alpha_spaghettiplot_long <-
     }
 
     meta_tab <-
-      load_data_obj_metadata(data.obj)
+      load_data_obj_metadata(data.obj) %>% as.data.frame() %>% select(all_of(c(
+        subject.var, group.var, time.var, strata.var, adj.vars
+      )))
 
     # Convert the alpha.obj list to a data frame
     alpha.df <-
       dplyr::bind_cols(alpha.obj) %>% rownames_to_column("sample") %>%
       dplyr::inner_join(
         meta_tab %>% select(all_of(
-          c(subject.var, time.var, group.var, strata.var)
+          c(subject.var, time.var, group.var, strata.var, adj.vars)
         )) %>% rownames_to_column(var = "sample"),
         by = c("sample")
       )
@@ -169,7 +173,19 @@ generate_alpha_spaghettiplot_long <-
 
     # Create a plot for each alpha diversity index
     plot_list <- lapply(alpha.name, function(index) {
-      sub_alpha.df <- alpha.df %>% select(all_of(c(index,subject.var, time.var, group.var, strata.var)))
+      sub_alpha.df <- alpha.df %>% select(all_of(c(index,subject.var, time.var, group.var, strata.var, adj.vars)))
+
+      if (!is.null(adj.vars)){
+        # 构建公式
+        formula_string <- paste(index, "~", paste(adj.vars, collapse = " + "))
+        formula_obj <- as.formula(formula_string)
+
+        # 使用mutate和residuals来添加残差
+        sub_alpha.df <- sub_alpha.df %>%
+          mutate(!!sym(index) := residuals(lm(formula_obj, data = sub_alpha.df)))
+
+        message("Alpha diversity has been adjusted for the following covariates: ", paste(adj.vars, collapse = ", "), ".")
+      }
 
       if (is.null(strata.var)) {
         sub_alpha.df.mean <- sub_alpha.df %>%

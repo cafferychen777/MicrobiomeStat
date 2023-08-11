@@ -48,7 +48,6 @@ The function plots the effect size plot and volcano plot based on the output fro
 \examples{
 \dontrun{
 # install package "phyloseq" for importing "smokers" dataset
-library(phyloseq)
 data(smokers)
 ind <- smokers$meta$AIRWAYSITE == "Throat"
 otu.tab <- as.data.frame(smokers$otu[, ind])

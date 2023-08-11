@@ -37,8 +37,9 @@
 #'   t0.level = sort(unique(subset_T2D.obj$meta.dat$visit_number))[1],
 #'   ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[2:6],
 #'   group.var = "subject_race",
-#'   strata.var = NULL,
-#'   base.size = 20,
+#'   strata.var = "subject_gender",
+#'   adj.vars = "sample_body_site",
+#'   base.size = 16,
 #'   theme.choice = "bw",
 #'   palette = NULL,
 #'   pdf = TRUE,
@@ -56,7 +57,8 @@
 #'   t0.level = "1",
 #'   ts.levels = "2",
 #'   group.var = "group",
-#'   strata.var = NULL,
+#'   strata.var = "sex",
+#'   adj.vars = "sex",
 #'   base.size = 20,
 #'   theme.choice = "bw",
 #'   palette = NULL,
@@ -80,6 +82,7 @@ generate_alpha_boxplot_long <- function (data.obj,
                                          ts.levels = NULL,
                                          group.var = NULL,
                                          strata.var = NULL,
+                                         adj.vars = NULL,
                                          base.size = 12,
                                          theme.choice = "prism",
                                          custom.theme = NULL,
@@ -89,9 +92,7 @@ generate_alpha_boxplot_long <- function (data.obj,
                                          pdf.wid = 11,
                                          pdf.hei = 8.5,
                                          ...) {
-  # Data validation
-  if (!is(data.obj, "list"))
-    stop("`data.obj` should be a list.")
+
   if (!is.null(alpha.obj) &&
       !is(alpha.obj, "list"))
     stop("`alpha.obj` should be a list or NULL.")
@@ -135,7 +136,7 @@ generate_alpha_boxplot_long <- function (data.obj,
 
   meta_tab <-
     load_data_obj_metadata(data.obj) %>% as.data.frame() %>% select(all_of(c(
-      subject.var, group.var, time.var, strata.var
+      subject.var, group.var, time.var, strata.var, adj.vars
     )))
 
   # Convert the alpha.obj list to a data frame
@@ -212,6 +213,18 @@ generate_alpha_boxplot_long <- function (data.obj,
       )
     }
 
+    if (!is.null(adj.vars)){
+      # 构建公式
+      formula_string <- paste(index, "~", paste(adj.vars, collapse = " + "))
+      formula_obj <- as.formula(formula_string)
+
+      # 使用mutate和residuals来添加残差
+      alpha_df <- alpha_df %>%
+        mutate(!!sym(index) := residuals(lm(formula_obj, data = alpha_df)))
+
+      message("Alpha diversity has been adjusted for the following covariates: ", paste(adj.vars, collapse = ", "), ".")
+    }
+
     average_alpha_df <- NULL
     if (length(unique(alpha_df[[time.var]])) > 10 ||
         length(unique(alpha_df[[subject.var]])) > 25) {
@@ -228,6 +241,13 @@ generate_alpha_boxplot_long <- function (data.obj,
           dplyr::ungroup() %>%
           dplyr::mutate(!!sym(subject.var) := "ALL")
       }
+    }
+
+    if (!is.null(adj.vars)) {
+      covariates <- paste(adj.vars, collapse = ", ")
+      y_label <- paste0(index, " index (adjusted by: ", covariates, ")")
+    } else {
+      y_label <- paste0(index, " index")
     }
 
     boxplot <- ggplot(alpha_df,
@@ -273,7 +293,7 @@ generate_alpha_boxplot_long <- function (data.obj,
         }
       } +
       labs(x = time.var,
-           y = paste0(index, " index"))  +
+           y = y_label)  +
       theme_to_use +
       theme(
         panel.spacing.x = unit(0, "cm"),

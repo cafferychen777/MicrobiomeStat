@@ -78,7 +78,7 @@ generate_alpha_test_single <-
       # Rearrange the table
       coef.tab <-
         coef.tab %>% select(
-          term = term,
+          Term = term,
           Estimate = estimate,
           Std.Error = std.error,
           Statistic = statistic,
@@ -102,7 +102,7 @@ generate_alpha_test_single <-
         # Reorder the columns to match coef.tab
         anova.tab <- anova.tab %>%
           select(
-            term = term,
+            Term = term,
             Estimate = Estimate,
             Std.Error = Std.Error,
             Statistic = Statistic,

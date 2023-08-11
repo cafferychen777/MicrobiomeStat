@@ -35,14 +35,15 @@
 #'   subject.var = "subject",
 #'   time.var = "time",
 #'   group.var = "group",
-#'   strata.var = NULL,
+#'   strata.var = "sex",
+#'   adj.vars = "sex",
 #'   change.base = "1",
 #'   change.func = "lfc",
-#'   base.size = 20,
+#'   base.size = 16,
 #'   theme.choice = "bw",
 #'   palette = NULL,
 #'   pdf = TRUE,
-#'   file.ann = "test",
+#'   file.ann = NULL,
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
@@ -62,6 +63,7 @@ generate_alpha_change_boxplot_pair <-
            time.var,
            group.var = NULL,
            strata.var = NULL,
+           adj.vars = NULL,
            change.base = NULL,
            change.func = c("lfc"),
            base.size = 16,
@@ -87,7 +89,7 @@ generate_alpha_change_boxplot_pair <-
 
     meta_tab <-
       load_data_obj_metadata(data.obj) %>% as.data.frame() %>% select(all_of(c(
-        subject.var, group.var, time.var, strata.var
+        subject.var, group.var, time.var, strata.var, adj.vars
       )))
 
     # Convert the alpha.obj list to a data frame
@@ -120,7 +122,6 @@ generate_alpha_change_boxplot_pair <-
     diff_columns <- lapply(alpha.name, function(index) {
 
       diff_col_name <- paste0(index, "_diff")
-
 
       if (is.function(change.func)) {
 
@@ -186,11 +187,18 @@ generate_alpha_change_boxplot_pair <-
         , by = c(subject.var, group.var)) %>% dplyr::rename(group = group.var)
     }
 
-
     if (!is.null(strata.var)) {
       combined_alpha <-
         combined_alpha %>% dplyr::left_join(alpha_time_1 %>% select(all_of(c(
           subject.var, strata.var
+        )))
+        , by = c(subject.var))
+    }
+
+    if (!is.null(adj.vars) && (is.null(strata.var) || strata.var != adj.vars)){
+      combined_alpha <-
+        combined_alpha %>% dplyr::left_join(alpha_time_1 %>% select(all_of(c(
+          subject.var, adj.vars
         )))
         , by = c(subject.var))
     }
@@ -206,17 +214,36 @@ generate_alpha_change_boxplot_pair <-
 
     theme_to_use <-
       if (!is.null(custom.theme))
-        custom.theme
-    else
+        custom.theme else
       theme_function
 
     ylab_label <- if (is.function(change.func)) {
-      paste0("Change from ", change.base, " (custom function)")
+      base_label <- paste0("Change from ", change.base, " (custom function)")
     } else {
-      paste0("Change from ", change.base, " (", change.func, ")")
+      base_label <- paste0("Change from ", change.base, " (", change.func, ")")
+    }
+
+    if (!is.null(adj.vars)) {
+      covariates <- paste(adj.vars, collapse = ", ")
+      ylab_label <- paste0(base_label, " (adjusted by: ", covariates, ")")
+    } else {
+      ylab_label <- base_label
     }
 
     plot_list <- lapply(alpha.name, function(index) {
+
+      if (!is.null(adj.vars)){
+        # 构建公式
+        formula_string <- paste(paste0(index, "_diff"), "~", paste(adj.vars, collapse = " + "))
+        formula_obj <- as.formula(formula_string)
+
+        # 使用mutate和residuals来添加残差
+        combined_alpha <- combined_alpha %>%
+          mutate(!!sym(paste0(index, "_diff")) := residuals(lm(formula_obj, data = combined_alpha)))
+
+        message("Alpha diversity Change has been adjusted for the following covariates: ", paste(adj.vars, collapse = ", "), ".")
+      }
+
       plot <-
         ggplot(combined_alpha, aes(
           x = group,

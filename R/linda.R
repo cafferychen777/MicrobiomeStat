@@ -390,8 +390,6 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
 #' @import ggrepel
 #' @examples
 #' \dontrun{
-#' # install package "phyloseq" for importing "smokers" dataset
-#' library(phyloseq)
 #' data(smokers)
 #' ind <- smokers$meta$AIRWAYSITE == "Throat"
 #' otu.tab <- as.data.frame(smokers$otu[, ind])

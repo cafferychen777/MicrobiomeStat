@@ -35,14 +35,14 @@
 #' library(vegan)
 #' data(peerj32.obj)
 #'
-#' # Generate the boxplot pair
+#' dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = "BC")
 #' generate_beta_change_boxplot_pair(
 #'   data.obj = peerj32.obj,
-#'   dist.obj = NULL,
+#'   dist.obj = dist.obj,
 #'   subject.var = "subject",
 #'   time.var = "time",
 #'   group.var = "group",
-#'   strata.var = NULL,
+#'   strata.var = "sex",
 #'   change.base = "1",
 #'   dist.name = c('BC'),
 #'   base.size = 20,

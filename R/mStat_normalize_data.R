@@ -1,3 +1,20 @@
+#' Check if the Data Matrix Contains Count Data
+#'
+#' This internal function determines whether the given data matrix contains
+#' non-negative integer values. It's used to verify if the data represents counts,
+#' e.g., read counts in a sequencing context.
+#'
+#' @param data_mat A matrix containing the data to check.
+#'
+#' @return A logical value. Returns `TRUE` if the data matrix contains only non-negative
+#'         integer values, and `FALSE` otherwise.
+#'
+#' @noRd
+is_count_data <- function(data_mat) {
+  # Check if all values in the matrix are non-negative integers
+  all(data_mat == floor(data_mat) & data_mat >= 0)
+}
+
 #' Normalize a MicrobiomeStat Data Object
 #'
 #' This function is part of the MicrobiomeStat package. It normalizes a data object based on the chosen method.
@@ -29,7 +46,7 @@
 #' @export
 mStat_normalize_data <-
   function(data.obj,
-           method = c("Rarefy-TSS", "Rarefy", "TSS", "GMPR", "CSS", "DESeq", "TMM"),
+           method = c("Rarefy-TSS", "Rarefy", "TSS", "GMPR", "CSS", "DESeq", "TMM", "CLR"),
            depth = NULL) {
     # Check if data.obj is the correct type
     if (!is.list(data.obj)) {
@@ -66,6 +83,21 @@ mStat_normalize_data <-
       rarefied_otu_tab <-
         t(vegan::rrarefy(t(otu_tab), sample = rarefy_depth))
       scale_factor <- rarefy_depth
+    } else if (method == "CLR") {
+      if (is_count_data(otu_tab)) {
+        otu_tab <- otu_tab + 0.5
+      } else {
+        min_prop <- apply(otu_tab, 1, function(x) min(x[x > 0]))
+        for (i in 1:nrow(otu_tab)) {
+          otu_tab[i, otu_tab[i, ] == 0] <- min_prop[i] / 2
+        }
+      }
+      clr_transformed <- apply(otu_tab, 1, function(x) {
+        gm_mean <- exp(mean(log(x)))
+        log(x / gm_mean)
+      })
+      clr_transformed <- t(clr_transformed)
+      scale_factor <- NULL
     } else if (method == "TSS") {
       scale_factor <- colSums(otu_tab)
     } else if (method == "GMPR") {
@@ -88,6 +120,8 @@ mStat_normalize_data <-
       # Normalize the data
       data.obj.norm <-
         update_data_obj_count(data.obj, sweep(otu_tab, 2, scale_factor, "/"))
+    } else if (method == "CLR"){
+      data.obj.norm <- update_data_obj_count(data.obj, clr_transformed)
     } else {
       data.obj.norm <-
         update_data_obj_count(data.obj, rarefied_otu_tab)

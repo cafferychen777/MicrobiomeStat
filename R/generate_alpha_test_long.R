@@ -43,10 +43,10 @@
 #' alpha_test_results <- generate_alpha_test_long(
 #' data.obj = subset_T2D.obj,
 #' alpha.obj = NULL,
+#' alpha.name = c("shannon", "simpson"),
 #' time.var = "visit_number",
 #' t0.level = sort(unique(subset_T2D.obj$meta.dat$visit_number))[1],
 #' ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[2:6],
-#' alpha.name = c("shannon", "simpson"),
 #' subject.var = "subject_id",
 #' group.var = "subject_race",
 #' adj.vars = "subject_gender"
@@ -56,10 +56,10 @@
 generate_alpha_test_long <-
   function(data.obj,
            alpha.obj = NULL,
+           alpha.name,
            time.var,
            t0.level,
            ts.levels,
-           alpha.name,
            subject.var,
            group.var,
            adj.vars) {

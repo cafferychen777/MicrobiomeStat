@@ -28,7 +28,7 @@
 #' library(ggh4x)
 #' data(peerj32.obj)
 #'
-#' plot_alpha_list <- generate_alpha_boxplot_single(
+#' generate_alpha_boxplot_single(
 #'   data.obj = peerj32.obj,
 #'   alpha.obj = NULL,
 #'   alpha.name = c("simpson"),
@@ -36,14 +36,35 @@
 #'   time.var = "time",
 #'   t.level = "2",
 #'   group.var = "group",
-#'   strata.var = "sex",
+#'   strata.var = NULL,
+#'   adj.vars = "sex",
 #'   base.size = 16,
-#'   theme.choice = "classic",
+#'   theme.choice = "bw",
 #'   palette = NULL,
 #'   pdf = TRUE,
 #'   file.ann = NULL,
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5)
+#'
+#'   data("subset_T2D.obj")
+#' generate_alpha_boxplot_single(
+#'   data.obj = subset_T2D.obj,
+#'   alpha.obj = NULL,
+#'   alpha.name = c("shannon"),
+#'   subject.var = "subject_id",
+#'   time.var = "visit_number",
+#'   t.level = "   3",
+#'   group.var = "subject_race",
+#'   strata.var = "subject_gender",
+#'   adj.vars = "sample_body_site",
+#'   base.size = 16,
+#'   theme.choice = "bw",
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 20,
+#'   pdf.hei = 8.5)
+#'
 #' }
 #' @export
 generate_alpha_boxplot_single <- function (data.obj,
@@ -59,6 +80,7 @@ generate_alpha_boxplot_single <- function (data.obj,
                                          t.level = NULL,
                                          group.var = NULL,
                                          strata.var = NULL,
+                                         adj.vars = NULL,
                                          base.size = 16,
                                          theme.choice = "prism",
                                          custom.theme = NULL,
@@ -81,17 +103,17 @@ generate_alpha_boxplot_single <- function (data.obj,
     if (!is.null(time.var)){
       if (!is.null(t.level)){
         meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(
-          c(subject.var, time.var, group.var, strata.var))) %>% filter(!!sym(time.var) == t.level)
+          c(subject.var, time.var, group.var, strata.var, adj.vars))) %>% filter(!!sym(time.var) == t.level)
       } else {
         meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(
-          c(subject.var, time.var, group.var, strata.var)))
+          c(subject.var, time.var, group.var, strata.var, adj.vars)))
         if (length(levels(as.factor(meta_tab[,time.var]))) != 1){
           message("Multiple time points detected in your dataset. It is recommended to either set t.level or utilize functions for longitudinal data analysis.")
         }
       }
     } else {
       meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(
-        c(subject.var, group.var, strata.var)))
+        c(subject.var, group.var, strata.var, adj.vars)))
     }
 
     otu_tab <- otu_tab %>% select(all_of(c(rownames(meta_tab))))
@@ -156,6 +178,25 @@ generate_alpha_boxplot_single <- function (data.obj,
       )
     }
 
+    if (!is.null(adj.vars)){
+      # 构建公式
+      formula_string <- paste(index, "~", paste(adj.vars, collapse = " + "))
+      formula_obj <- as.formula(formula_string)
+
+      # 使用mutate和residuals来添加残差
+      alpha_df <- alpha_df %>%
+        mutate(!!sym(index) := residuals(lm(formula_obj, data = alpha_df)))
+
+      message("Alpha diversity has been adjusted for the following covariates: ", paste(adj.vars, collapse = ", "), ".")
+    }
+
+    if (!is.null(adj.vars)) {
+      covariates <- paste(adj.vars, collapse = ", ")
+      y_label <- paste0(index, " index (adjusted by: ", covariates, ")")
+    } else {
+      y_label <- paste0(index, " index")
+    }
+
     boxplot <- ggplot(alpha_df,
                       aes_function) +
       geom_violin(trim = FALSE, alpha = 0.8) +
@@ -178,7 +219,7 @@ generate_alpha_boxplot_single <- function (data.obj,
           }
         }
       } +
-      labs(y = index,
+      labs(y = y_label,
            title = dplyr::if_else(!is.null(time.var) & !is.null(t.level),paste0(time.var," = ", t.level), ""))  +
       theme_to_use +
       theme(
