@@ -46,6 +46,7 @@
 #'   time.var = "time",
 #'   group.var = "group",
 #'   strata.var = NULL,
+#'   adj.vars = NULL,
 #'   dist.name = c("BC"),
 #'   base.size = 16,
 #'   theme.choice = "bw",
@@ -66,6 +67,7 @@ generate_beta_ordination_pair <-
            time.var,
            group.var = NULL,
            strata.var = NULL,
+           adj.vars = NULL,
            dist.name = c('BC', 'Jaccard'),
            base.size = 16,
            theme.choice = "prism",
@@ -81,12 +83,16 @@ generate_beta_ordination_pair <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
       metadata <- load_data_obj_metadata(data.obj)
     } else {
-      if (is.null(data.obj)){
+      if (is.null(data.obj)) {
         metadata <- attr(dist.obj[[dist.name[1]]], "labels")
       } else {
         metadata <- load_data_obj_metadata(data.obj)
       }
     }
+
+    # if (!is.null(adj.vars)){
+    #   dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
+    # }
 
     if (is.null(pc.obj)) {
       pc.obj <-
@@ -130,13 +136,11 @@ generate_beta_ordination_pair <-
       gray = theme_gray(),
       bw = theme_bw(),
       ggprism::theme_prism()
-    ) # 根据用户选择设置主题
+    )
 
-    # 使用用户自定义主题（如果提供），否则使用默认主题
     theme_to_use <-
       if (!is.null(custom.theme))
-        custom.theme
-    else
+        custom.theme else
       theme_function
 
     plot_list <- lapply(dist.name, function(dist.name) {
@@ -144,17 +148,23 @@ generate_beta_ordination_pair <-
       df <- as.data.frame(pc.mat) %>%
         setNames(c("PC1", "PC2")) %>%
         dplyr::bind_cols(metadata[, c(subject.var, time.var, group.var, strata.var)]) %>%
-        dplyr::mutate(x_start = PC1,
-               y_start = PC2,
-               x_end = NA,
-               y_end = NA)
+        dplyr::mutate(
+          x_start = PC1,
+          y_start = PC2,
+          x_end = NA,
+          y_end = NA
+        )
+
       Time_choices <-
         df %>% select(all_of(time.var)) %>% dplyr::pull() %>% unique()
+
       df <- df %>%
-        dplyr::group_by(.data[[subject.var]]) %>%
-        dplyr::mutate(x_end = lag(PC1, order_by = desc(Time_choices)),
-               y_end = lag(PC2, order_by = desc(Time_choices))) %>%
+        arrange(!!sym(subject.var),!!sym(time.var)) %>% # 排序，确保时间的正确顺序
+        dplyr::group_by(!!sym(subject.var)) %>%
+        dplyr::mutate(x_end = lead(PC1),
+                      y_end = lead(PC2)) %>%
         dplyr::ungroup()
+
       p <- ggplot2::ggplot(df, ggplot2::aes(PC1, PC2)) +
         ggplot2::geom_point(
           size = 15,
@@ -177,14 +187,14 @@ generate_beta_ordination_pair <-
           x = ifelse(
             !is.null(pc.obj[[dist.name]]$eig),
             paste0("Axis 1 (", round(
-              pc.obj[[dist.name]]$eig[1] / sum(pc.obj[["BC"]]$eig) * 100, 2
+              pc.obj[[dist.name]]$eig[1] / sum(pc.obj[[dist.name]]$eig) * 100, 2
             ), "%)"),
             "Axis 1"
           ),
           y = ifelse(
             !is.null(pc.obj[[dist.name]]$eig),
             paste0("Axis 2 (", round(
-              pc.obj[[dist.name]]$eig[2] / sum(pc.obj[["BC"]]$eig) * 100, 2
+              pc.obj[[dist.name]]$eig[2] / sum(pc.obj[[dist.name]]$eig) * 100, 2
             ), "%)"),
             "Axis 2"
           )

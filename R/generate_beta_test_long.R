@@ -17,7 +17,7 @@
 #' data(subset_T2D.obj)
 #'
 #' # Perform pairwise beta diversity tests using PERMANOVA
-#' beta_test_long_results <- generate_beta_test_long(
+#' generate_beta_test_long(
 #'   data.obj = subset_T2D.obj,
 #'   dist.obj = NULL,
 #'   time.var = "visit_number",
@@ -26,7 +26,7 @@
 #'   subject.var = "subject_id",
 #'   group.var = "subject_race",
 #'   adj.vars = "subject_gender",
-#'   dist.name = c('BC', 'Jaccard')
+#'   dist.name = c('BC')
 #' )
 #' }
 #'

@@ -1,5 +1,25 @@
+#' Construct a Linear Mixed Effects Model Formula
+#'
+#' This function constructs a formula for a linear mixed effects model based on the specified
+#' index, group variable, time variable, subject variable, and additional covariates.
+#' When the `group.var` is NULL, the function will test the slope=0 in the mixed effects model.
+#'
+#' @param index A character string representing the dependent variable in the model.
+#' @param group.var A character string representing the group variable in the model, or NULL if no group variable is included.
+#' @param time.var A character string representing the time variable in the model.
+#' @param subject.var A character string representing the subject variable in the model.
+#' @param adj.vars A character string or vector representing additional covariates to be included in the model, or NULL if no additional covariates are included.
+#'
+#' @return A formula object suitable for use in functions requiring a linear mixed effects model formula.
+#'
+#' @noRd
 construct_formula <- function(index, group.var, time.var, subject.var, adj.vars) {
-  formula_part <- paste(index, "~", group.var, "*", time.var, " + (1 +", time.var, "|", subject.var, ")")
+  if (!is.null(group.var)) {
+    formula_part <- paste(index, "~", group.var, "*", time.var, " + (1 +", time.var, "|", subject.var, ")")
+  } else {
+    formula_part <- paste(index, "~", time.var, " + (1|", subject.var, ")")
+  }
+
   if (!is.null(adj.vars)) {
     formula_str <- paste(formula_part, "+", adj.vars)
   } else {
@@ -48,7 +68,7 @@ construct_formula <- function(index, group.var, time.var, subject.var, adj.vars)
 #' alpha.name = c("shannon","simpson"),
 #' time.var = "visit_number",
 #' subject.var = "subject_id",
-#' group.var = "subject_race",
+#' group.var = NULL,
 #' adj.vars = "subject_gender"
 #' )
 #' }

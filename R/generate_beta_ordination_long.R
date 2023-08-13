@@ -40,10 +40,11 @@
 #'   subject.var = "subject_id",
 #'   time.var = "visit_number",
 #'   t0.level = sort(unique(subset_T2D.obj$meta.dat$visit_number))[1],
-#'   ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[2:4],
-#'   group.var = "subject_race",
-#'   strata.var = "subject_gender",
-#'   dist.name = c("BC"),
+#'   ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[2:6],
+#'   group.var = "subject_gender",
+#'   strata.var = "subject_race",
+#'   adj.vars = "sample_body_site",
+#'   dist.name = c("BC","Jaccard"),
 #'   base.size = 16,
 #'   theme.choice = "bw",
 #'   custom.theme = NULL,
@@ -65,6 +66,7 @@ generate_beta_ordination_long <-
            ts.levels,
            group.var = NULL,
            strata.var = NULL,
+           adj.vars = NULL,
            dist.name = c('BC', 'Jaccard'),
            base.size = 16,
            theme.choice = "prism",
@@ -75,6 +77,7 @@ generate_beta_ordination_long <-
            pdf.wid = 11,
            pdf.hei = 8.5,
            ...) {
+
     if (is.null(dist.obj)) {
       data.obj <-
         mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
@@ -94,11 +97,15 @@ generate_beta_ordination_long <-
       }
     }
 
+    if (!is.null(adj.vars)){
+      dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
+    }
+
     if (is.null(pc.obj)) {
       pc.obj <-
         mStat_calculate_PC(
           dist.obj = dist.obj,
-          method = "mds",
+          method = "nmds",
           k = 2,
           dist.name = dist.name
         )
@@ -136,9 +143,8 @@ generate_beta_ordination_long <-
       gray = theme_gray(),
       bw = theme_bw(),
       ggprism::theme_prism()
-    ) # 根据用户选择设置主题
+    )
 
-    # 使用用户自定义主题（如果提供），否则使用默认主题
     theme_to_use <-
       if (!is.null(custom.theme))
         custom.theme
@@ -206,8 +212,6 @@ generate_beta_ordination_long <-
         ggplot2::theme(
           panel.spacing.x = unit(0, "cm"),
           panel.spacing.y = unit(0, "cm"),
-          axis.line.x = ggplot2::element_line(size = 1, colour = "black"),
-          axis.line.y = ggplot2::element_line(size = 1, colour = "black"),
           strip.text.x = element_text(size = 12, color = "black"),
           axis.title = ggplot2::element_text(color = "black"),
           axis.text.x = element_text(color = "black", size = base.size),

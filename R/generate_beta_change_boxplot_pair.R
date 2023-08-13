@@ -42,7 +42,8 @@
 #'   subject.var = "subject",
 #'   time.var = "time",
 #'   group.var = "group",
-#'   strata.var = "sex",
+#'   strata.var = NULL,
+#'   adj.vars = "sex",
 #'   change.base = "1",
 #'   dist.name = c('BC'),
 #'   base.size = 20,
@@ -63,6 +64,7 @@ generate_beta_change_boxplot_pair <-
            time.var,
            group.var = NULL,
            strata.var = NULL,
+           adj.vars = NULL,
            change.base,
            dist.name = c('BC', 'Jaccard'),
            base.size = 16,
@@ -75,21 +77,33 @@ generate_beta_change_boxplot_pair <-
            pdf.hei = 8.5,
            ...) {
 
-    if (is.null(dist.obj)&!is.null(data.obj)) {
+    if (is.null(dist.obj)) {
+      meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var, time.var, group.var, strata.var, adj.vars)))
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
-      metadata <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var,group.var,time.var,strata.var))) %>% rownames_to_column("sample")
     } else {
-      metadata <- attr(dist.obj[[dist.name[1]]], "labels")  %>% select(all_of(c(subject.var,group.var,time.var,strata.var))) %>% rownames_to_column("sample")
+      if (!is.null(data.obj) & !is.null(data.obj$meta.dat)){
+        meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var, time.var, group.var, strata.var, adj.vars)))
+      } else {
+        meta_tab <- attr(dist.obj[[dist.name[1]]], "labels") %>% select(all_of(c(subject.var, time.var, group.var, strata.var, adj.vars)))
+        data.obj <- list(meta.dat = meta_tab)
+        meta_tab <- load_data_obj_metadata(data.obj)
+      }
+    }
+
+    meta_tab <- meta_tab %>% rownames_to_column("sample")
+
+    if (!is.null(adj.vars)){
+      dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
     }
 
     if (is.null(change.base)){
-      change.base <- unique(metadata %>% select(all_of(c(time.var))))[1,]
+      change.base <- unique(meta_tab %>% select(all_of(c(time.var))))[1,]
       message("The 'change.base' variable was NULL. It has been set to the first unique value in the 'time.var' column of the 'alpha_df' data frame: ", change.base)
     }
 
     change.after <-
-      unique(metadata %>% select(all_of(c(time.var))))[unique(metadata %>% select(all_of(c(time.var)))) != change.base]
+      unique(meta_tab %>% select(all_of(c(time.var))))[unique(meta_tab %>% select(all_of(c(time.var)))) != change.base]
 
     if (is.null(palette)){
       col <-
@@ -124,14 +138,21 @@ generate_beta_change_boxplot_pair <-
         custom.theme else theme_function
 
     plot_list <- lapply(dist.name,function(dist.name){
+
+      if (is.null(adj.vars)) {
+        y_label <- paste0(dist.name, " Distance from ", change.base, " to ", change.after)
+      } else {
+        y_label <- paste0(dist.name, " Distance from ", change.base, " to ", change.after, " (adjusted by: ", paste(adj.vars, collapse = ", "), ")")
+      }
+
       dist.df <- as.matrix(dist.obj[[dist.name]]) %>%
         as.data.frame() %>%
         rownames_to_column("sample")
 
       long.df <- dist.df %>%
         tidyr::gather(key = "sample2", value = "distance", -sample) %>%
-        dplyr::left_join(metadata, by = "sample") %>%
-        dplyr::left_join(metadata, by = c("sample2" = "sample"), suffix = c(".subject", ".sample")) %>%
+        dplyr::left_join(meta_tab, by = "sample") %>%
+        dplyr::left_join(meta_tab, by = c("sample2" = "sample"), suffix = c(".subject", ".sample")) %>%
         filter(!!sym(paste0(subject.var, ".subject")) == !!sym(paste0(subject.var, ".sample"))) %>%
         dplyr::group_by(!!sym(paste0(subject.var, ".subject"))) %>%
         filter(!!sym(paste0(time.var,".sample")) == change.base) %>%
@@ -140,7 +161,7 @@ generate_beta_change_boxplot_pair <-
         select(!!sym(paste0(subject.var, ".subject")), !!sym(paste0(time.var, ".subject")), distance) %>%
         dplyr::rename(!!sym(subject.var) := !!sym(paste0(subject.var, ".subject")), !!sym(time.var) := !!sym(paste0(time.var, ".subject")))
 
-      long.df <- long.df %>% dplyr::left_join(metadata %>% select(-time.var) %>% dplyr::distinct(), by = subject.var)
+      long.df <- long.df %>% dplyr::left_join(meta_tab %>% select(-time.var) %>% dplyr::distinct(), by = subject.var)
 
       facet_formula <-
         if (!is.null(strata.var)) {
@@ -179,7 +200,7 @@ generate_beta_change_boxplot_pair <-
         scale_fill_manual(values = col) +
         facet_wrap(as.formula(facet_formula), scales = "fixed") +
         xlab(group.var) +
-        ylab(paste0("Distance from ", change.base," to ", change.after)) +
+        ylab(y_label) +
         theme_to_use +
         theme(
           panel.spacing.x = unit(0.2, "cm"),

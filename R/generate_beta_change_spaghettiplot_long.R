@@ -25,11 +25,8 @@
 #'
 #' @examples
 #' \dontrun{
-#' library(vegan)
-#'
 #' data(ecam.obj)
 #'
-#' # Generate the boxplot pair
 #' generate_beta_change_spaghettiplot_long(
 #'   data.obj = ecam.obj,
 #'   dist.obj = NULL,
@@ -39,6 +36,7 @@
 #'   ts.levels = NULL,
 #'   group.var = "diet",
 #'   strata.var = NULL,
+#'   adj.vars = c("antiexposedall","delivery"),
 #'   dist.name = c("BC"),
 #'   base.size = 20,
 #'   theme.choice = "bw",
@@ -59,6 +57,7 @@ generate_beta_change_spaghettiplot_long <-
            ts.levels = NULL,
            group.var = NULL,
            strata.var = NULL,
+           adj.vars = NULL,
            dist.name = c("BC"),
            base.size = 16,
            theme.choice = "bw",
@@ -105,9 +104,8 @@ generate_beta_change_spaghettiplot_long <-
                              classic = theme_classic(),
                              gray = theme_gray(),
                              bw = theme_bw(),
-                             ggprism::theme_prism()) # 根据用户选择设置主题
+                             ggprism::theme_prism()) 
 
-    # 使用用户自定义主题（如果提供），否则使用默认主题
     theme_to_use <- if (!is.null(custom.theme)) custom.theme else theme_function
 
     # Calculate new sizes based on base.size
@@ -137,18 +135,19 @@ generate_beta_change_spaghettiplot_long <-
         }
       }
 
-      # 检查 dist.obj[[dist.name]] 是否存在
+      if (!is.null(adj.vars)){
+        dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
+      }
+
       if (is.null(dist.obj[[dist.name]])) {
         message(paste("dist.obj does not contain", dist.name))
       } else {
-        # 尝试将 dist.obj[[dist.name]] 转换为矩阵
         tryCatch({
           dist.df <- as.matrix(dist.obj[[dist.name]])
         }, error = function(e) {
           message(paste("Failed to convert dist.obj[[", dist.name, "]] to a matrix: ", e$message))
         })
 
-        # 检查 meta_tab 的行名是否在 dist.df 的行名和列名中
         missing_rows <- setdiff(rownames(meta_tab), rownames(dist.df))
         missing_cols <- setdiff(rownames(meta_tab), colnames(dist.df))
 
@@ -172,7 +171,6 @@ generate_beta_change_spaghettiplot_long <-
 
       meta_tab <- meta_tab %>% rownames_to_column("sample")
 
-      # 生成长格式数据框
       long.df <- dist.df %>%
         tidyr::gather(key = "sample2", value = "distance", -sample) %>%
         dplyr::left_join(meta_tab, by = "sample") %>%
@@ -214,13 +212,18 @@ generate_beta_change_spaghettiplot_long <-
 
       long.df <- long.df %>% dplyr::arrange(subject.var,time.var)
 
-      # # 计算每个时间点的均值和标准差
       # summary.df <- long.df %>%
       #   dplyr::group_by(!!sym(time.var), !!sym(group.var)) %>%
       #   dplyr::summarise(mean_distance = mean(distance),
       #             sd_distance = sd(distance),
       #             lower = mean_distance - sd_distance,
       #             upper = mean_distance + sd_distance)
+
+      if (is.null(adj.vars)) {
+        y_label <- paste(dist.name, "Distance from Baseline")
+      } else {
+        y_label <- paste(dist.name, "Distance from Baseline (adjusted by:", paste(adj.vars, collapse = ", "), ")")
+      }
 
       p <- ggplot() +
         geom_line(
@@ -253,7 +256,7 @@ generate_beta_change_spaghettiplot_long <-
         #   ),
         #   width = 0.2
         # ) +
-        labs(x = time.var, y = paste(dist.name,"Distance from Baseline"), color = group.var) +
+        labs(x = time.var, y = y_label, color = group.var) +
         scale_color_manual(
           values = col
         ) +
@@ -264,25 +267,24 @@ generate_beta_change_spaghettiplot_long <-
             face = "bold",
             hjust = 0.5
           ),
-          axis.title.x = element_text(size = axis.title.size, face = "bold"),
-          axis.title.y = element_text(size = axis.title.size, face = "bold"),
+          axis.title.x = element_text(size = axis.title.size),
+          axis.title.y = element_text(size = axis.title.size),
           axis.text.x = element_text(angle = 90, color = "black", vjust = 0.5, size = axis.text.size),
           axis.text.y = element_text(size = axis.text.size),
-          legend.title = element_text(size = legend.title.size, face = "bold"),
+          legend.title = element_text(size = legend.title.size),
           legend.text = element_text(size = legend.text.size)
         )
       if (group.var == "ALL"){
         p <- p + theme(legend.position = "none")
       }
 
-      # 添加分面
       if (!is.null(strata.var)) {
         p <- p + facet_wrap(as.formula(paste0("~", strata.var)))
       }
 
       # Save the plots as a PDF file
       if (pdf) {
-        pdf_name <- paste0("beta_indiv_change_lineplot_",
+        pdf_name <- paste0("beta_change_spaghettiplot_",
                            dist.name,
                            "_",
                            "subject_", subject.var,

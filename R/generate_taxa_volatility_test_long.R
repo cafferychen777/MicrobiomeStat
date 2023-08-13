@@ -17,29 +17,37 @@
 #' the grouping variable using linear models. If the grouping variable has multiple levels,
 #' an ANOVA is performed.
 #'
-#' @param data.obj List containing OTU table and metadata
-#' @param feature.level Taxonomic level for aggregation
-#' @param time.var Time variable name in metadata
-#' @param subject.var Subject variable name in metadata
-#' @param group.var Grouping variable to test
-#' @param adj.vars Covariates for adjustment
-#' @param feature.dat.type Either 'count' or 'proportion'
-#' @param transform Transform to apply before volatility calculation
-#'
-#' @return Tidy dataframe of test results
+#' @param data.obj A MicrobiomeStat data object. The heart of the MicrobiomeStat, consisting of several key components:
+#'   \itemize{
+#'     \item \strong{Feature.tab (Matrix)}: Meeting point for research objects (OTU/ASV/KEGG/Gene, etc.) and samples.
+#'     \item \strong{Meta.dat (Data frame)}: Rows correspond to the samples, and columns serve as annotations, describing the samples.
+#'     \item \strong{Feature.ann (Matrix)}: Annotations, carrying classification information like Kingdom, Phylum, etc.
+#'     \item \strong{Phylogenetic tree (Optional)}: An evolutionary perspective, illuminating the relationships among various research objects.
+#'     \item \strong{Feature.agg.list (Optional)}: Aggregated results based on the feature.tab and feature.ann.
+#'   }
+#' @param time.var A string. The name of the time variable in the metadata.
+#' @param subject.var A string. The name of the subject variable in the metadata.
+#' @param group.var A string. The grouping variable to test, found in metadata.
+#' @param adj.vars A vector of strings. Covariates for adjustment in the linear models. Defaults to NULL.
+#' @param feature.level A vector of strings. Taxonomic level(s) for aggregation, e.g. "Phylum", "Class".
+#' @param feature.dat.type A string. Either 'count', 'proportion', or 'other'. Specifies the data type of feature for appropriate transformation.
+#' @return A list of test results. The results are returned in a tidy dataframe format, including coefficients, standard errors, statistics, and p-values from linear models and ANOVA tests.
 #'
 #' @examples
-#'
-#' generate_alpha_volatility_test_long(
+#' \dontrun{
+#' data("subset_T2D.obj")
+#' subset_T2D.obj2 <- subset_T2D.obj
+#' subset_T2D.obj2$meta.dat$visit_number <- as.numeric(subset_T2D.obj2$meta.dat$visit_number)
+#' generate_taxa_volatility_test_long(
 #' data.obj = subset_T2D.obj2,
 #' time.var = "visit_number",
 #' subject.var = "subject_id",
 #' group.var = "subject_race",
 #' adj.vars = "subject_gender",
-#' feature.level = "Phylum",
+#' feature.level = c("Phylum","Class"),
 #' feature.dat.type = "count"
 #' )
-#'
+#' }
 #' @export
 generate_taxa_volatility_test_long <- function(data.obj,
                                                time.var,
@@ -47,18 +55,28 @@ generate_taxa_volatility_test_long <- function(data.obj,
                                                group.var,
                                                adj.vars = NULL,
                                                feature.level,
-                                               feature.dat.type = c("count", "proportion","other")
-                                               ) {
-
+                                               feature.dat.type = c("count", "proportion", "other")) {
   # Validate and extract data
   mStat_validate_data(data.obj)
 
   data.obj <- mStat_process_time_variable(data.obj, time.var)
 
-  meta_tab <- load_data_obj_metadata(data.obj) %>%
-    dplyr::select(all_of(c(time.var, subject.var, group.var, adj.vars)))
+  message(
+    "The volatility calculation in generate_alpha_volatility_test_long relies on a numeric time variable.
+         Please check that your time variable is coded as numeric.
+         If the time variable is not numeric, it may cause issues in computing the results of the volatility test.
+         You can ensure the time variable is numeric by mutating it in the metadata."
+  )
 
-  if (feature.dat.type %in% c("count","proportion")){
+  data.obj$meta.dat <-
+    data.obj$meta.dat %>% mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
+
+  meta_tab <- load_data_obj_metadata(data.obj) %>%
+    dplyr::select(all_of(c(
+      time.var, subject.var, group.var, adj.vars
+    ))) %>% rownames_to_column("sample")
+
+  if (feature.dat.type %in% c("count", "proportion")) {
     otu_tab <-
       load_data_obj_count(mStat_normalize_data(data.obj, method = "CLR")$data.obj.norm)
   } else {
@@ -79,7 +97,6 @@ generate_taxa_volatility_test_long <- function(data.obj,
     cbind(otu_tab, tax_tab)
 
   test.list <- lapply(feature.level, function(feature.level) {
-
     # 聚合 OTU 表
     otu_tax_agg <- otu_tax %>%
       tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
@@ -93,33 +110,88 @@ generate_taxa_volatility_test_long <- function(data.obj,
       dplyr::mutate_at(vars(-!!sym(feature.level)), as.numeric) %>%
       dplyr::mutate(!!sym(feature.level) := tidyr::replace_na(!!sym(feature.level), "unclassified")) %>% column_to_rownames(feature.level)
 
-    lapply(rownames(otu_tax_agg_numeric), function(taxon){
+    sub_test.list <-
+      lapply(rownames(otu_tax_agg_numeric), function(taxon) {
+        taxa_df <- otu_tax_agg_numeric %>%
+          rownames_to_column("taxa") %>%
+          gather(key = "sample", value = "value",-taxa) %>%
+          filter(taxa == taxon) %>%
+          left_join(meta_tab, by = "sample")
 
-    })
-  # Calculate volatility
-  volatility_df <- otu_tab %>%
-    as.data.frame() %>%
-    rownames_to_column(feature.level) %>%
-    tidyr::gather(key = "sample", value = "abundance", -!!sym(feature.level)) %>%
-    dplyr::inner_join(meta_tab, by = "sample") %>%
-    arrange(!!sym(subject.var), !!sym(time.var)) %>%
-    group_by(!!sym(subject.var), !!sym(feature.level)) %>%
-    mutate(diff_abundance = abs(abundance - lag(abundance)),
-           diff_time = !!sym(time.var) - lag(!!sym(time.var))) %>%
-    filter(!is.na(diff_abundance), !is.na(diff_time)) %>%
-    filter(diff_time != 0) %>%
-    summarize(volatility = mean(diff_abundance/diff_time), .groups = 'drop')
+        if (!is.null(adj.vars)) {
+          # Obtain the residuals by fitting lm(alpha ~ adj.vars)
+          residuals_lm <-
+            lm(as.formula(paste0(
+              "value", "~", paste(adj.vars, collapse = "+")
+            )), data = taxa_df)$residuals
+        }
 
-  # Test association with group variable
-  test_df <- volatility_df %>%
-    left_join(meta_tab %>%
-                dplyr::select(!!sym(subject.var), !!sym(group.var)) %>%
-                distinct(),
-              by = subject.var)
+        taxa_df$residuals <- residuals_lm
 
-  formula <- as.formula(paste("volatility ~", group.var))
+        # Group data by subject and calculate volatility
+        volatility_df <- taxa_df %>%
+          arrange(!!sym(subject.var),!!sym(time.var)) %>%
+          group_by(!!sym(subject.var)) %>%
+          mutate(
+            diff_residuals = abs(residuals - lag(residuals)),
+            diff_time = !!sym(time.var) - lag(!!sym(time.var))
+          ) %>%
+          filter(!is.na(diff_residuals),!is.na(diff_time)) %>%
+          filter(diff_time != 0) %>%
+          summarize(volatility = mean(diff_residuals / diff_time),
+                    .groups = 'drop')
 
-  test_result <- lm(formula, data = test_df)
+        test_df <- volatility_df %>%
+          left_join(meta_tab %>%
+                      select(all_of(c(
+                        subject.var, group.var
+                      ))) %>%
+                      distinct(),
+                    by = subject.var)
 
-  return(broom::tidy(test_result))
+        # Test the association between the volatility and the grp.var
+        formula <- as.formula(paste("volatility ~", group.var))
+        test_result <- lm(formula, data = test_df)
+
+        coef.tab <- extract_coef(test_result)
+
+        # Run ANOVA on the model if group.var is multi-categorical
+        if (length(unique(taxa_df[[group.var]])) > 2) {
+          anova.tab <- broom::tidy(anova(test_result))
+
+          # Rearrange the table and add missing columns
+          anova.tab <- anova.tab %>%
+            select(
+              term = term,
+              Statistic = statistic,
+              df = df,
+              P.Value = p.value
+            ) %>%
+            dplyr::mutate(Estimate = NA, Std.Error = NA)
+
+          # Reorder the columns to match coef.tab
+          anova.tab <- anova.tab %>%
+            select(
+              Term = term,
+              Estimate = Estimate,
+              Std.Error = Std.Error,
+              Statistic = Statistic,
+              P.Value = P.Value
+            )
+
+          coef.tab <-
+            rbind(coef.tab, anova.tab) # Append the anova.tab to the coef.tab
+        }
+        return(as_tibble(coef.tab))
+      })
+
+    # Assign names to the elements of test.list
+    names(sub_test.list) <- rownames(otu_tax_agg_numeric)
+    return(sub_test.list)
+  })
+
+  # Assign names to the elements of test.list
+  names(test.list) <- feature.level
+
+  return(test.list)
 }
