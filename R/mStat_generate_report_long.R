@@ -158,7 +158,7 @@ if (is.null(pc.obj)){
 
 ### 2.1 Alpha Diversity Boxplots
 
-```{r alpha-boxplot-generation, message=FALSE, fig.align='center'}
+```{r alpha-boxplot-generation, message=FALSE, fig.align='center', fig.width = 20, fig.height = 8}
 alpha_boxplot_results <- generate_alpha_boxplot_long(data.obj = data.obj,
                                                        alpha.obj = alpha.obj,
                                                        alpha.name = alpha.name,
@@ -273,6 +273,11 @@ alpha_trend_test_results <- generate_alpha_trend_test_long(data.obj = data.obj,
                                                  adj.vars = adj.vars)
 ```
 
+```{r alpha-trend-test-results-print, echo=FALSE, message=FALSE}
+cat('## Alpha Diversity Trend Test Results \n')
+pander::pander(alpha_trend_test_results)
+```
+
 ### 2.5 Alpha Diversity Volatility Test Results
 
 ```{r alpha-volatility-test-generation, message=FALSE}
@@ -285,11 +290,16 @@ alpha_volatility_test_results <- generate_alpha_volatility_test_long(data.obj = 
                                                  adj.vars = adj.vars)
 ```
 
+```{r alpha-volatility-test-results-print, echo=FALSE, message=FALSE}
+cat('## Alpha Diversity Volatility Test Results \n')
+pander::pander(alpha_volatility_test_results)
+```
+
 ## 3. Beta Diversity Analysis
 
 ### 3.1 Beta Diversity Ordination
 
-```{r beta-ordination-generation, message=FALSE, fig.align='center', warning = FALSE}
+```{r beta-ordination-generation, message=FALSE, fig.align='center', warning = FALSE, fig.width = 18, fig.height = 8}
 beta_ordination_results <- generate_beta_ordination_long(data.obj = data.obj,
                                                            dist.obj = dist.obj,
                                                            pc.obj = pc.obj,
@@ -313,7 +323,7 @@ beta_ordination_results
 
 ### 3.2 Beta Diversity PC Boxplot
 
-```{r pc-boxplot-longitudinal-generation, message=FALSE, fig.align='center'}
+```{r pc-boxplot-longitudinal-generation, message=FALSE, fig.align='center', fig.width = 20, fig.height = 8}
 pc_boxplot_longitudinal_results <- generate_beta_pc_boxplot_long(
   data.obj = data.obj,
   dist.obj = dist.obj,
@@ -365,7 +375,112 @@ spaghettiplot_longitudinal_results <- generate_beta_change_spaghettiplot_long(
 spaghettiplot_longitudinal_results
 ```
 
+### 3.4 Beta Diversity Test Results
 
+```{r beta-test-longitudinal-generation, message=FALSE, fig.align='center'}
+beta_test_longitudinal_results <- generate_beta_test_long(data.obj = data.obj,
+                                                  dist.obj = dist.obj,
+                                                  time.var = time.var,
+                                                  t0.level = t0.level,
+                                                  ts.levels = ts.levels,
+                                                  subject.var = subject.var,
+                                                  group.var = group.var,
+                                                  adj.vars = adj.vars,
+                                                  dist.name = dist.name)
+```
+
+```{r beta-diversity-permanova-analysis, echo=FALSE, message=FALSE, results='asis'}
+cat('## P-Tab Results \n')
+pander::pander(beta_test_longitudinal_results$p.tab)
+
+for (i in 1:nrow(beta_test_longitudinal_results$p.tab)) {
+
+  # 提取变量名称
+  term <- beta_test_longitudinal_results$p.tab$Term[i]
+
+  cat(paste0('\n### Beta Diversity PERMANOVA Analysis for Variable: ', term, '\n'))
+
+  # 提取并解释每个距离矩阵的结果
+  for (j in 1:length(dist.name)) {
+
+    # 提取相关统计结果
+    p_value <- beta_test_longitudinal_results$p.tab[paste0('D', j, '.p.value')][i,]
+
+    # 根据P值决定输出的消息
+    if (p_value < 0.05) {
+      message <- paste0('The variable ', term, ' has a statistically significant impact on the ',
+                        'beta diversity according to the PERMANOVA test with the ', dist.name[j], ' distance matrix.')
+    } else {
+      message <- paste0('The variable ', term, ' does not appear to have a statistically significant effect on the ',
+                        'beta diversity according to the PERMANOVA test with the ', dist.name[j], ' distance matrix.')
+    }
+
+    # 使用strwrap函数将消息断行，并在每行末尾添加两个空格
+    message_lines <- paste0(strwrap(message, width = 100), '  ')
+
+    # 打印分析结果
+    cat(paste(message_lines, collapse = '\n'), '\n')
+  }
+
+  # 提取omnibus检验的结果
+  p_value <- beta_test_longitudinal_results$p.tab['omni.p.value'][i,]
+
+  # 根据P值决定输出的消息
+  if (p_value < 0.05) {
+    message <- paste0('The variable ', term, ' has a statistically significant impact on the ',
+                      'beta diversity according to the omnibus PERMANOVA test.')
+  } else {
+    message <- paste0('The variable ', term, ' does not appear to have a statistically significant effect on the ',
+                      'beta diversity according to the omnibus PERMANOVA test.')
+  }
+
+  # 使用strwrap函数将消息断行，并在每行末尾添加两个空格
+  message_lines <- paste0(strwrap(message, width = 100), '  ')
+
+  # 打印分析结果
+  cat(paste(message_lines, collapse = '\n'), '\n')
+}
+
+cat('\n## AOV-Tab Results \n\n')
+pander::pander(beta_test_longitudinal_results$aov.tab)
+
+# 遍历aov.tab并生成解析报告
+for (variable in unique(beta_test_longitudinal_results$aov.tab$Variable)) {
+
+  # 提取当前变量的分析结果
+  aov_results <- subset(beta_test_longitudinal_results$aov.tab, Variable == variable)
+
+  # 打印变量名称的标题
+  cat(paste0('\n### ', variable, ' Variable Analysis\n'))
+
+  # 提取并解释每个距离矩阵的结果
+  for (i in 1:nrow(aov_results)) {
+
+    # 提取距离矩阵名称和相关统计结果
+    distance <- aov_results$Distance[i]
+    p_value <- as.numeric(aov_results$P_Value[i])
+
+    if (is.na(p_value)){
+    next
+    }
+
+    # 根据P值决定输出的消息
+    if (p_value < 0.05) {
+      message <- paste0('The variable ', variable, ' has a statistically significant impact on the beta diversity ',
+                        'according to the PERMANOVA test with the ', distance, ' distance matrix.\n')
+    } else {
+      message <- paste0('The variable ', variable, ' does not appear to have a statistically significant effect on the beta diversity ',
+                        'according to the PERMANOVA test with the ', distance, ' distance matrix.\n')
+    }
+
+    # 使用strwrap函数将消息断行，并在每行末尾添加两个空格
+    message_lines <- paste0(strwrap(message, width = 100), '  ')
+
+    # 打印分析结果
+    cat(paste(message_lines, collapse = '\n'), '\n')
+  }
+}
+```
 
 ### 3.5 Beta Diversity Trend Test Results
 
@@ -377,6 +492,11 @@ beta_trend_test_longitudinal_results <- generate_beta_trend_test_long(data.obj =
                                                   group.var = group.var,
                                                   adj.vars = adj.vars,
                                                   dist.name = dist.name)
+```
+
+```{r beta-trend-test-results-print, echo=FALSE, message=FALSE}
+cat('## Beta Diversity Trend Test Results \n')
+pander::pander(beta_trend_test_longitudinal_results)
 ```
 
 ### 3.6 Beta Diversity PC Trend Test Results
@@ -392,6 +512,11 @@ beta_pc_trend_test_longitudinal_results <- generate_beta_pc_trend_test_long(data
                                                   dist.name = dist.name)
 ```
 
+```{r beta-pc-trend-test-results-print, echo=FALSE, message=FALSE}
+cat('## Beta Diversity PC Trend Test Results \n')
+pander::pander(beta_pc_trend_test_longitudinal_results)
+```
+
 ### 3.7 Beta Diversity Volatility Test Results
 
 ```{r beta-volatility-test-longitudinal-generation, message=FALSE, fig.align='center'}
@@ -402,6 +527,11 @@ beta_volatility_test_longitudinal_results <- generate_beta_volatility_test_long(
                                                   group.var = group.var,
                                                   adj.vars = adj.vars,
                                                   dist.name = dist.name)
+```
+
+```{r beta-volatility-test-results-print, echo=FALSE, message=FALSE}
+cat('## Beta Diversity Volatility Test Results \n')
+pander::pander(beta_volatility_test_longitudinal_results)
 ```
 
 ### 3.8 Beta Diversity PC Volatility Test Results
@@ -417,11 +547,16 @@ beta_pc_volatility_test_longitudinal_results <- generate_beta_pc_volatility_test
                                                   dist.name = dist.name)
 ```
 
+```{r beta-pc-volatility-test-results-print, echo=FALSE, message=FALSE}
+cat('## Beta Diversity Volatility Test Results \n')
+pander::pander(beta_pc_volatility_test_longitudinal_results)
+```
+
 ## 4. Taxonomic Feature Analysis
 
 ### 4.1 Taxa Areaplot Longitudinal
 
-```{r taxa-areaplot-longitudinal-generation, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8}
+```{r taxa-areaplot-longitudinal-generation, message=FALSE, fig.align='center', fig.width = 20, fig.height = 8}
 taxa_areaplot_long_results <- generate_taxa_areaplot_long(
   data.obj = data.obj,
   subject.var = subject.var,
@@ -596,7 +731,7 @@ pander::pander(taxa_volatility_test_results)
 
 ### 4.8 Taxa Boxplot for Significant Taxa
 
-```{r taxa-test-boxplot-longitudinal-generation, message=FALSE, fig.height=20, fig.width=15, fig.align='center'}
+```{r taxa-test-boxplot-longitudinal-generation, message=FALSE, fig.height=15, fig.width=10, fig.align='center'}
 taxa_test_results <- do.call('rbind', taxa_test_results)
 significant_taxa <- taxa_test_results$Variable[taxa_test_results$Adjusted.P.Value < 0.05]
 
@@ -624,7 +759,7 @@ if (!is.null(significant_taxa)){
                                                                file.ann = file.ann,
                                                                pdf.wid = pdf.wid,
                                                                pdf.hei = pdf.hei)
-taxa_boxplot_results
+print(taxa_boxplot_results)
 
 taxa_indiv_boxplot_results <- generate_taxa_indiv_boxplot_long(data.obj = data.obj,
                                    subject.var = subject.var,
@@ -694,7 +829,7 @@ cat(paste0('The boxplot results for individual taxa or features can be found in 
 
 ### 4.9 Taxa Spaghettiplot for Significant Taxa
 
-```{r taxa-spaghettiplot-longitudinal-generation, message=FALSE, fig.height=20, fig.width=15, fig.align='center'}
+```{r taxa-spaghettiplot-longitudinal-generation, message=FALSE, fig.height=15, fig.width=10, fig.align='center'}
 
 if (!is.null(significant_taxa)){
   taxa_spaghettiplot_results <- generate_taxa_spaghettiplot_long(data.obj = data.obj,
@@ -719,7 +854,7 @@ if (!is.null(significant_taxa)){
                                                                file.ann = file.ann,
                                                                pdf.wid = pdf.wid,
                                                                pdf.hei = pdf.hei)
-taxa_spaghettiplot_results
+print(taxa_spaghettiplot_results)
 
 taxa_indiv_spaghettiplot_results <- generate_taxa_indiv_spaghettiplot_long(data.obj = data.obj,
                                    subject.var = subject.var,

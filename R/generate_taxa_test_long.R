@@ -19,8 +19,7 @@
 #' \dontrun{
 #' # Load example data
 #' data(peerj32.obj)
-#'
-#' results <- generate_taxa_test_long(
+#' generate_taxa_test_long(
 #'   data.obj = peerj32.obj,
 #'   subject.var = "subject",
 #'   time.var = "time",
@@ -34,7 +33,7 @@
 #'   feature.dat.type = "count"
 #' )
 #' data(ecam.obj)
-#' results <- generate_taxa_test_long(
+#' generate_taxa_test_long(
 #'   data.obj = ecam.obj,
 #'   subject.var = "studyid",
 #'   time.var = "month",
@@ -47,7 +46,20 @@
 #'   abund.filter = 0.001,
 #'   feature.dat.type = "proportion"
 #' )
-#'
+#' data("subset_T2D.obj")
+#' generate_taxa_test_long(
+#'   data.obj = subset_T2D.obj,
+#'   subject.var = "subject_id",
+#'   time.var = "visit_number",
+#'   t0.level = NULL,
+#'   ts.levels = NULL,
+#'   group.var = "subject_gender",
+#'   adj.vars = c("subject_race"),
+#'   feature.level = "Phylum",
+#'   prev.filter = 0.0001,
+#'   abund.filter = 0.0001,
+#'   feature.dat.type = "count"
+#' )
 #' }
 #' @export
 generate_taxa_test_long <-
@@ -116,7 +128,8 @@ generate_taxa_test_long <-
       otu_tax_agg_numeric <-
         otu_tax_agg %>%
         dplyr::mutate_at(vars(-!!sym(feature.level)), as.numeric) %>%
-        dplyr::mutate(!!sym(feature.level) := tidyr::replace_na(!!sym(feature.level), "unclassified")) %>% column_to_rownames(feature.level)
+        dplyr::mutate(!!sym(feature.level) := tidyr::replace_na(!!sym(feature.level), "unclassified")) %>%
+        column_to_rownames(feature.level)
 
       linda.obj <- linda(feature.dat = otu_tax_agg_numeric, meta.dat = meta_tab,
                          formula = paste("~",formula), feature.dat.type = "proportion",
