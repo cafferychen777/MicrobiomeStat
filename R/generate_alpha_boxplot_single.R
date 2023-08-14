@@ -10,6 +10,7 @@
 #' @param t.level The specific time point to be analyzed.
 #' @param group.var An optional variable in the metadata table that represents the grouping factor.
 #' @param strata.var An optional variable in the metadata table that represents the stratification factor.
+#' @param adj.vars A character vector of variable names to be used for adjustment.
 #' @param base.size The base font size for the plot. Default is 16.
 #' @param theme.choice A character string indicating the choice of pre-defined ggplot2 theme for the plot. Supported choices include "prism" (default), "classic", "gray", and "bw".
 #' @param custom.theme An optional custom ggplot2 theme. If provided, this theme will be used instead of the pre-defined themes.
@@ -185,7 +186,7 @@ generate_alpha_boxplot_single <- function (data.obj,
 
       # 使用mutate和residuals来添加残差
       alpha_df <- alpha_df %>%
-        mutate(!!sym(index) := residuals(lm(formula_obj, data = alpha_df)))
+        dplyr::mutate(!!sym(index) := stats::residuals(lm(formula_obj, data = alpha_df)))
 
       message("Alpha diversity has been adjusted for the following covariates: ", paste(adj.vars, collapse = ", "), ".")
     }

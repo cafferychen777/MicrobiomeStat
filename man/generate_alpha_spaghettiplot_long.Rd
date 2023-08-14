@@ -14,6 +14,7 @@ generate_alpha_spaghettiplot_long(
   ts.levels,
   group.var = NULL,
   strata.var = NULL,
+  adj.vars = NULL,
   base.size = 16,
   palette = NULL,
   theme.choice = "bw",
@@ -43,6 +44,8 @@ generate_alpha_spaghettiplot_long(
 \item{group.var}{The name of the group variable.}
 
 \item{strata.var}{The name of the strata variable (default is NULL).}
+
+\item{adj.vars}{A character vector of variable names to be used for adjustment.}
 
 \item{base.size}{The base font size for the plot.}
 
@@ -83,7 +86,8 @@ generate_alpha_spaghettiplot_long(
   t0.level = sort(unique(subset_T2D.obj$meta.dat$visit_number))[1],
   ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[-1],
   group.var = "subject_race",
-  strata.var = NULL,
+  strata.var = "subject_gender",
+  adj.vars = "sample_body_site",
   theme.choice = "bw",
   palette = NULL,
   pdf = TRUE,

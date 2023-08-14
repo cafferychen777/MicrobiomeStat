@@ -48,12 +48,12 @@
 #'   ts.levels = NULL,
 #'   group.var = "diet",
 #'   strata.var = NULL,
-#'   feature.level = c("Phylum"),
-#'   features.plot = sample(unique(ecam.obj$feature.ann[,"Phylum"]),1),
+#'   feature.level = c("Class"),
+#'   features.plot = NULL,
 #'   feature.dat.type = "proportion",
 #'   Transform = "log",
-#'   prev.filter = 0,
-#'   abund.filter = 0,
+#'   prev.filter = 1e-7,
+#'   abund.filter = 1e-7,
 #'   base.size = 12,
 #'   theme.choice = "bw",
 #'   custom.theme = NULL,
@@ -187,7 +187,6 @@ generate_taxa_boxplot_long <-
       )
     }
 
-    # 设置颜色，根据 time.var 的唯一值数量生成颜色列表
     if (is.null(palette)) {
       col <-
         c(
@@ -213,9 +212,8 @@ generate_taxa_boxplot_long <-
       gray = theme_gray(),
       bw = theme_bw(),
       ggprism::theme_prism()
-    ) # 根据用户选择设置主题
+    )
 
-    # 使用用户自定义主题（如果提供），否则使用默认主题
     theme_to_use <-
       if (!is.null(custom.theme))
         custom.theme else
@@ -306,10 +304,14 @@ generate_taxa_boxplot_long <-
             # Find the half of the minimum non-zero proportion for each taxon
             min_half_nonzero <- otu_tax_agg_merged %>%
               dplyr::group_by(!!sym(feature.level)) %>%
+              filter(sum(value) != 0) %>%
               dplyr::summarise(min_half_value = min(value[value > 0]) / 2) %>%
               dplyr::ungroup()
             # Replace zeros with the log of the half minimum non-zero proportion
             otu_tax_agg_merged <- otu_tax_agg_merged %>%
+              dplyr::group_by(!!sym(feature.level)) %>%
+              filter(sum(value) != 0) %>%
+              dplyr::ungroup() %>%
               dplyr::left_join(min_half_nonzero, by = feature.level) %>%
               dplyr::mutate(value = ifelse(value == 0, log10(min_half_value), log10(value))) %>%
               select(-min_half_value)
@@ -318,7 +320,7 @@ generate_taxa_boxplot_long <-
       }
 
       taxa.levels <-
-        otu_tax_agg_merged %>% select(feature.level) %>% dplyr::distinct() %>% dplyr::pull()
+        otu_tax_agg_merged %>% select(all_of(c(feature.level))) %>% dplyr::distinct() %>% dplyr::pull()
 
       n_subjects <-
         length(unique(otu_tax_agg_merged[[subject.var]]))
@@ -385,7 +387,6 @@ generate_taxa_boxplot_long <-
           linewidth = 0.6,
           color = "black",
           linetype = "dashed",
-          # 更改线条类型为虚线
           data = if (!is.null(average_sub_otu_tax_agg_merged))
             average_sub_otu_tax_agg_merged  %>% filter(!!sym(feature.level) %in% features.plot)
           else

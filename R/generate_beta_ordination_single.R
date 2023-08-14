@@ -12,6 +12,7 @@
 #' @param t.level Time level to filter the data by. Default is NULL.
 #' @param group.var String. Variable to be used for grouping. Default is NULL.
 #' @param strata.var String. Variable to be used for stratification. Default is NULL.
+#' @param adj.vars A character vector of variable names to be used for adjustment.
 #' @param dist.name Character vector. Name of distance(s) to be used. Default is c('BC', 'Jaccard').
 #' @param base.size Numeric. Base size for plot elements. Default is 16.
 #' @param theme.choice String. Theme choice for the plot. Default is 'prism'.
@@ -41,27 +42,28 @@
 #' # Generate the boxplot pair
 #' generate_beta_ordination_single(
 #'   data.obj = peerj32.obj,
-#'   dist.obj = dist.obj,
-#'   pc.obj = pc.obj,
+#'   dist.obj = NULL,
+#'   pc.obj = NULL,
 #'   subject.var = "subject",
 #'   time.var = "time",
 #'   t.level = "2",
 #'   group.var = "group",
-#'   strata.var = "sex",
+#'   strata.var = NULL,
+#'   adj.vars = "sex",
 #'   dist.name = c("BC"),
 #'   base.size = 20,
 #'   theme.choice = "bw",
 #'   custom.theme = NULL,
 #'   palette = NULL,
 #'   pdf = TRUE,
-#'   file.ann = "test",
+#'   file.ann = NULL,
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
 #' }
 #' @export
 generate_beta_ordination_single <-
-  function(data.obj = NULL,
+  function(data.obj,
            dist.obj = NULL,
            pc.obj = NULL,
            subject.var,
@@ -69,6 +71,7 @@ generate_beta_ordination_single <-
            t.level = NULL,
            group.var = NULL,
            strata.var = NULL,
+           adj.vars = NULL,
            dist.name = c('BC', 'Jaccard'),
            base.size = 16,
            theme.choice = "prism",
@@ -83,8 +86,9 @@ generate_beta_ordination_single <-
     if (is.null(dist.obj)) {
       if (!is.null(time.var)){
         if (!is.null(t.level)){
-          metadata <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var,group.var,strata.var,time.var))) %>% filter(!!sym(time.var) == t.level)
-          data.obj <- update_data_obj_count(data.obj,load_data_obj_count(data.obj)[,rownames(metadata)])
+          condition <- paste(time.var, "== '", t.level, "'", sep = "")
+          data.obj <- mStat_subset_data(data.obj, condition = condition)
+          metadata <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var,group.var,strata.var,time.var)))
           dist.obj <-
             mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
         } else {
@@ -100,12 +104,16 @@ generate_beta_ordination_single <-
         dist.obj <-
           mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
       }
+      if (!is.null(adj.vars)){
+        dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
+      }
     } else {
       if (!is.null(data.obj)){
         if (!is.null(time.var)){
           if (!is.null(t.level)){
-            metadata <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var,group.var,strata.var,time.var))) %>% filter(!!sym(time.var) == t.level)
-            data.obj <- update_data_obj_count(data.obj,load_data_obj_count(data.obj)[,rownames(metadata)])
+            condition <- paste(time.var, "== '", t.level, "'", sep = "")
+            data.obj <- mStat_subset_data(data.obj, condition = condition)
+            metadata <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var,group.var,strata.var,time.var)))
           } else {
             if (length(levels(as.factor(meta_tab[,time.var]))) != 1){
               message("Multiple time points detected in your dataset. It is recommended to either set t.level or utilize functions for longitudinal data analysis.")
@@ -125,7 +133,7 @@ generate_beta_ordination_single <-
       pc.obj <-
         mStat_calculate_PC(
           dist.obj = dist.obj,
-          method = "mds",
+          method = "nmds",
           k = 2,
           dist.name = dist.name
         )
@@ -166,9 +174,8 @@ generate_beta_ordination_single <-
                              classic = theme_classic(),
                              gray = theme_gray(),
                              bw = theme_bw(),
-                             ggprism::theme_prism()) # 根据用户选择设置主题
+                             ggprism::theme_prism())
 
-    # 使用用户自定义主题（如果提供），否则使用默认主题
     theme_to_use <- if (!is.null(custom.theme)) custom.theme else theme_function
 
     plot_list <- lapply(dist.name, function(dist.name) {

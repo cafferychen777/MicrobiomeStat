@@ -39,12 +39,6 @@ The function first checks if each component (counts, samples, feature annotation
 }
 
 }
-\references{
-DESeq2 R package.
-}
-\seealso{
-\code{\link[DESeq2]{DESeqDataSet}}
-}
 \author{
 Caffery Yang
 }

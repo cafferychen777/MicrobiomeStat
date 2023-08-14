@@ -37,11 +37,11 @@ This function reads a BIOM file, which typically contains a biological observati
 }
 \examples{
 \dontrun{
-  rich_dense_biom <- system.file("extdata", "rich_dense_otu_table.biom",  package="phyloseq")
-  treefilename <- system.file("extdata", "biom-tree.phy",  package="phyloseq")
-  refseqfilename <- system.file("extdata", "biom-refseq.fasta",  package="phyloseq")
-  data.obj <- mStat_import_biom_as_data_obj(rich_dense_biom,
-  treefilename, refseqfilename, parseFunction=parse_taxonomy_greengenes)
+  #rich_dense_biom <- system.file("extdata", "rich_dense_otu_table.biom",  package="phyloseq")
+  #treefilename <- system.file("extdata", "biom-tree.phy",  package="phyloseq")
+  #refseqfilename <- system.file("extdata", "biom-refseq.fasta",  package="phyloseq")
+  #data.obj <- mStat_import_biom_as_data_obj(rich_dense_biom,
+  #treefilename, refseqfilename, parseFunction=parse_taxonomy_greengenes)
 }
 
 }

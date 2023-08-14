@@ -22,8 +22,6 @@
 #'   data.obj = peerj32.obj,
 #'   subject.var = "subject",
 #'   time.var = "time",
-#'   t0.level = "1",
-#'   ts.levels = "2",
 #'   group.var = "group",
 #'   adj.vars = "sex",
 #'   feature.level = "Phylum",
@@ -37,13 +35,11 @@
 #'   data.obj = ecam.obj,
 #'   subject.var = "studyid",
 #'   time.var = "month",
-#'   t0.level = NULL,
-#'   ts.levels = NULL,
 #'   group.var = "diet",
 #'   adj.vars = NULL,
-#'   feature.level = "Phylum",
-#'   prev.filter = 0.001,
-#'   abund.filter = 0.001,
+#'   feature.level = c("Phylum","Class"),
+#'   prev.filter = 0,
+#'   abund.filter = 0,
 #'   feature.dat.type = "proportion"
 #' )
 #' }
@@ -52,8 +48,6 @@ generate_taxa_trend_test_long <-
   function(data.obj,
            subject.var,
            time.var = NULL,
-           t0.level,
-           ts.levels,
            group.var,
            adj.vars,
            feature.level,
@@ -63,9 +57,6 @@ generate_taxa_trend_test_long <-
            ...) {
     # Extract data
     mStat_validate_data(data.obj)
-
-    data.obj <-
-      mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
 
     if (feature.dat.type == "count") {
       message(
@@ -92,10 +83,6 @@ generate_taxa_trend_test_long <-
         time.var, group.var, adj.vars, subject.var
       )))
 
-    # 将 OTU 表与分类表合并
-    otu_tax <-
-      cbind(otu_tab, tax_tab)
-
     if (is.null(group.var)) {
       fixed_effects <- paste(paste(adj.vars, collapse = " + "), time.var, sep = " + ")
     } else {
@@ -107,14 +94,26 @@ generate_taxa_trend_test_long <-
 
     test.list <- lapply(feature.level, function(feature.level) {
 
-      # 聚合 OTU 表
-      otu_tax_agg <- otu_tax %>%
-        tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
-        dplyr::group_by_at(vars(sample, !!sym(feature.level))) %>%
-        dplyr::summarise(count = sum(count)) %>%
-        tidyr::spread(key = "sample", value = "count")
+      otu_tax <-
+        cbind(otu_tab,
+              tax_tab %>% select(all_of(feature.level)))
 
-      # 转换计数为数值类型
+      otu_tax_filtered <- otu_tax %>%
+        tidyr::gather(key = "sample", value = "value",-one_of(feature.level)) %>%
+        dplyr::group_by_at(vars(!!sym(feature.level))) %>%
+        dplyr::summarise(total_count = mean(value),
+                         prevalence = sum(value > 0) / dplyr::n(),
+                         , na.rm = TRUE) %>%
+        filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
+        select(-total_count,-prevalence) %>%
+        dplyr::left_join(otu_tax, by = feature.level)
+
+      otu_tax_agg <- otu_tax_filtered %>%
+        tidyr::gather(key = "sample", value = "value",-one_of(feature.level)) %>%
+        dplyr::group_by_at(vars(sample,!!sym(feature.level))) %>%
+        dplyr::summarise(value = sum(value)) %>%
+        tidyr::spread(key = "sample", value = "value")
+
       otu_tax_agg_numeric <-
         otu_tax_agg %>%
         dplyr::mutate_at(vars(-!!sym(feature.level)), as.numeric) %>%
@@ -126,7 +125,8 @@ generate_taxa_trend_test_long <-
                          formula = paste("~", formula),
                          feature.dat.type = "proportion",
                          prev.filter = prev.filter,
-                         mean.abund.filter = abund.filter)
+                         mean.abund.filter = abund.filter,
+                         ...)
 
       # Extract relevant information
       significant_taxa <- rownames(linda.obj$feature.dat.use)

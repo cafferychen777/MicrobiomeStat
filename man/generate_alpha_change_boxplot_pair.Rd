@@ -12,6 +12,7 @@ generate_alpha_change_boxplot_pair(
   time.var,
   group.var = NULL,
   strata.var = NULL,
+  adj.vars = NULL,
   change.base = NULL,
   change.func = c("lfc"),
   base.size = 16,
@@ -39,6 +40,8 @@ generate_alpha_change_boxplot_pair(
 \item{group.var}{(Optional) The variable in the metadata table that represents the grouping factor.}
 
 \item{strata.var}{(Optional) The variable in the metadata table that represents the stratification factor.}
+
+\item{adj.vars}{A character vector of variable names to be used for adjustment.}
 
 \item{change.base}{The base time for calculating the change in alpha diversity.}
 
@@ -81,14 +84,15 @@ generate_alpha_change_boxplot_pair(
   subject.var = "subject",
   time.var = "time",
   group.var = "group",
-  strata.var = NULL,
+  strata.var = "sex",
+  adj.vars = "sex",
   change.base = "1",
   change.func = "lfc",
-  base.size = 20,
+  base.size = 16,
   theme.choice = "bw",
   palette = NULL,
   pdf = TRUE,
-  file.ann = "test",
+  file.ann = NULL,
   pdf.wid = 11,
   pdf.hei = 8.5
 )

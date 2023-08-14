@@ -13,6 +13,7 @@ generate_alpha_boxplot_single(
   t.level = NULL,
   group.var = NULL,
   strata.var = NULL,
+  adj.vars = NULL,
   base.size = 16,
   theme.choice = "prism",
   custom.theme = NULL,
@@ -40,6 +41,8 @@ generate_alpha_boxplot_single(
 \item{group.var}{An optional variable in the metadata table that represents the grouping factor.}
 
 \item{strata.var}{An optional variable in the metadata table that represents the stratification factor.}
+
+\item{adj.vars}{A character vector of variable names to be used for adjustment.}
 
 \item{base.size}{The base font size for the plot. Default is 16.}
 
@@ -71,7 +74,7 @@ library(vegan)
 library(ggh4x)
 data(peerj32.obj)
 
-plot_alpha_list <- generate_alpha_boxplot_single(
+generate_alpha_boxplot_single(
   data.obj = peerj32.obj,
   alpha.obj = NULL,
   alpha.name = c("simpson"),
@@ -79,13 +82,34 @@ plot_alpha_list <- generate_alpha_boxplot_single(
   time.var = "time",
   t.level = "2",
   group.var = "group",
-  strata.var = "sex",
+  strata.var = NULL,
+  adj.vars = "sex",
   base.size = 16,
-  theme.choice = "classic",
+  theme.choice = "bw",
   palette = NULL,
   pdf = TRUE,
   file.ann = NULL,
   pdf.wid = 11,
   pdf.hei = 8.5)
+
+  data("subset_T2D.obj")
+generate_alpha_boxplot_single(
+  data.obj = subset_T2D.obj,
+  alpha.obj = NULL,
+  alpha.name = c("shannon"),
+  subject.var = "subject_id",
+  time.var = "visit_number",
+  t.level = "   3",
+  group.var = "subject_race",
+  strata.var = "subject_gender",
+  adj.vars = "sample_body_site",
+  base.size = 16,
+  theme.choice = "bw",
+  palette = NULL,
+  pdf = TRUE,
+  file.ann = NULL,
+  pdf.wid = 20,
+  pdf.hei = 8.5)
+
 }
 }

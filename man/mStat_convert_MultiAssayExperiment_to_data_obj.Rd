@@ -39,12 +39,6 @@ The function first checks if each component (assays, colData) of the MultiAssayE
 }
 
 }
-\references{
-R package MultiAssayExperiment.
-}
-\seealso{
-\code{\link[MultiAssayExperiment]{MultiAssayExperiment-class}}
-}
 \author{
 Caffery Yang
 }

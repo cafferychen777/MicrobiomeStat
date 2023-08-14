@@ -24,7 +24,8 @@ utils::globalVariables(c(
   "time2_mean_abundance", "time2_prevalence", "total_count", "total_value", "dplyr::ungroup",
   "tidyr::unite", "value", "value_diff", "value_time_1", "value_time_2", "vegdist", "where",
   "x_alternative", "x_end", "x_start", "y_end", "y_start", "zero.handle", "DNAStringSet",
-  "calcNormFactors", "scales::percent", "readDNAStringSet", "read_yaml", "scales::rescale"
+  "calcNormFactors", "scales::percent", "readDNAStringSet", "read_yaml", "scales::rescale", "residuals", "diff_residuals",
+  "diff_time", "time_diff", "test_df", "taxa", "diff_value"
 ))
 
 plot_fun <- function(.call, envir = parent.frame()) {

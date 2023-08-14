@@ -14,6 +14,7 @@ generate_alpha_boxplot_long(
   ts.levels = NULL,
   group.var = NULL,
   strata.var = NULL,
+  adj.vars = NULL,
   base.size = 12,
   theme.choice = "prism",
   custom.theme = NULL,
@@ -44,6 +45,8 @@ These parameters are used to determine the time points that follow the initial t
 \item{group.var}{An optional variable in the metadata table that represents the grouping factor.}
 
 \item{strata.var}{An optional variable in the metadata table that represents the stratification factor.}
+
+\item{adj.vars}{A character vector of variable names to be used for adjustment.}
 
 \item{base.size}{The base font size for the plot.}
 
@@ -82,8 +85,9 @@ generate_alpha_boxplot_long(
   t0.level = sort(unique(subset_T2D.obj$meta.dat$visit_number))[1],
   ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[2:6],
   group.var = "subject_race",
-  strata.var = NULL,
-  base.size = 20,
+  strata.var = "subject_gender",
+  adj.vars = "sample_body_site",
+  base.size = 16,
   theme.choice = "bw",
   palette = NULL,
   pdf = TRUE,
@@ -101,7 +105,8 @@ generate_alpha_boxplot_long(
   t0.level = "1",
   ts.levels = "2",
   group.var = "group",
-  strata.var = NULL,
+  strata.var = "sex",
+  adj.vars = "sex",
   base.size = 20,
   theme.choice = "bw",
   palette = NULL,

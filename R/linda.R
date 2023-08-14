@@ -168,8 +168,11 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
   }
 
   if (any(is.na(feature.dat))) {
-    stop("The feature table contains NAs! Please remove!\n")
+    stop(
+      "The feature table contains NA values. Please remove or handle them before proceeding.\n"
+    )
   }
+
   allvars <- all.vars(as.formula(formula))
   Z <- as.data.frame(meta.dat[, allvars])
 
@@ -186,7 +189,11 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
   keep.tax <- rowMeans(temp != 0) >= prev.filter & rowMeans(temp) >= mean.abund.filter & matrixStats::rowMaxs(temp) >= max.abund.filter
   names(keep.tax) <- rownames(Y)
   rm(temp)
-  if (verbose) cat(sum(!keep.tax), " features are filtered!\n")
+  if (verbose) {
+    message(
+      sum(!keep.tax), " features are filtered!\n"
+    )
+  }
   Y <- Y[keep.tax, ]
 
   n <- ncol(Y)
@@ -202,11 +209,17 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
     n <- ncol(Y)
   }
 
-  if (verbose) cat("The filtered data has ", n, " samples and ", m, " features will be tested!\n")
+  if (verbose) {
+    message(
+      "The filtered data has ", n, " samples and ", m, " features that will be tested!\n"
+    )
+  }
 
   if (sum(rowSums(Y != 0) <= 2) != 0) {
-    warning("Some features have less than 3 nonzero values!
-						They have virtually no statistical power. You may consider filtering them in the analysis!\n")
+    warning(
+      "Some features have less than 3 nonzero values!\n",
+      "They have virtually no statistical power. You may consider filtering them in the analysis!\n"
+    )
   }
 
   ###############################################################################
@@ -250,10 +263,14 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
         }
         corr.pval <- coef(summary(tmp))[-1, "Pr(>|t|)"]
         if (any(corr.pval <= corr.cut)) {
-          if (verbose) cat("Imputation approach is used.\n")
+          if (verbose) {
+            message("Imputation approach is used.")
+          }
           zero.handling <- "Imputation"
         } else {
-          if (verbose) cat("Pseudo-count approach is used.\n")
+          if (verbose) {
+            message("Pseudo-count approach is used.")
+          }
           zero.handling <- "Pseudo-count"
         }
       }
@@ -291,12 +308,16 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
   # 	oldw <- getOption('warn')
   # 	options(warn = -1)
   if (!random.effect) {
-    if (verbose) cat("Fit linear models ...\n")
+    if (verbose) {
+      message("Fit linear models ...")
+    }
     suppressMessages(fit <- lm(as.formula(paste0("W", formula)), Z))
     res <- do.call(rbind, coef(summary(fit)))
     df <- rep(n - ncol(model.matrix(fit)), m)
   } else {
-    if (verbose) cat("Fit linear mixed effects models ...\n")
+    if (verbose) {
+      message("Fit linear mixed effects models ...")
+    }
     fun <- function(i) {
       w <- W[, i]
       suppressMessages(fit <- lmer(as.formula(paste0("w", formula)), Z))
@@ -357,7 +378,9 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
   rownames(Y) <- taxa.name
   colnames(Y) <- samp.name
   rownames(Z) <- samp.name
-  if (verbose) cat("Completed.\n")
+  if (verbose) {
+    message("Completed.")
+  }
   return(list(variables = variables, bias = bias, output = output, feature.dat.use = Y, meta.dat.use = Z))
 }
 

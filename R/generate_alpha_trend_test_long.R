@@ -46,6 +46,10 @@ construct_formula <- function(index, group.var, time.var, subject.var, adj.vars)
 #' @param data.obj A list object that includes feature.tab (an OTU table with
 #' taxa as rows and samples as columns) and meta.dat (a metadata table with
 #' samples as rows and variables as columns).
+#' @param alpha.obj An object containing precomputed alpha diversity indices,
+#' typically calculated by the function `mStat_calculate_alpha_diversity`.
+#' If NULL (the default), alpha diversity will be calculated from the data.obj using
+#' `mStat_calculate_alpha_diversity`.
 #' @param alpha.name A string with the name of the alpha diversity index to compute.
 #' Options could include: "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".
 #' @param time.var A string representing the time variable's name in the
@@ -104,12 +108,14 @@ generate_alpha_trend_test_long <- function(data.obj,
     }
   }
 
-  message("The volatility calculation in generate_alpha_volatility_test_long relies on a numeric time variable.
-         Please check that your time variable is coded as numeric.
-         If the time variable is not numeric, it may cause issues in computing the results of the volatility test.
-         You can ensure the time variable is numeric by mutating it in the metadata.")
+  message(
+    "The trend test in 'generate_alpha_trend_test_long' relies on a numeric time variable.\n",
+    "Please ensure that your time variable is coded as numeric.\n",
+    "If the time variable is not numeric, it may cause issues in computing the results of the trend test.\n",
+    "The time variable will be converted to numeric within the function if needed."
+  )
 
-  data.obj$meta.dat <- data.obj$meta.dat %>% mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
+  data.obj$meta.dat <- data.obj$meta.dat %>% dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
 
   meta_tab <-
     load_data_obj_metadata(data.obj) %>% as.data.frame() %>% select(all_of(c(
@@ -122,8 +128,6 @@ generate_alpha_trend_test_long <- function(data.obj,
                       by = c("sample"))
 
   test.list <- lapply(alpha.name, function(index) {
-
-    # Calculate the volatility for each subject
 
     formula <- construct_formula(index, group.var, time.var, subject.var, adj.vars)
 

@@ -14,6 +14,7 @@
 #' @param ts.levels a vector of character strings specifying the time series levels.
 #' @param group.var a character string specifying the grouping variable. If NULL, only color will be used in the plots.
 #' @param strata.var a character string specifying the stratification variable. If NULL, no stratification will be done.
+#' @param adj.vars A character vector containing the names of the columns in data.obj$meta.dat to include as covariates in the PERMANOVA analysis. If no covariates are needed, use NULL (default).
 #' @param dist.name a character vector specifying the distance measures to use. Defaults to c('BC', 'Jaccard').
 #' @param base.size a numeric value specifying the base size for the plot text.
 #' @param theme.choice a character string specifying the theme to use. Defaults to "prism".
@@ -84,6 +85,9 @@ generate_beta_ordination_long <-
       metadata <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var, time.var, group.var, strata.var)))
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
+      if (!is.null(adj.vars)){
+        dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
+      }
     } else {
       if (!is.null(data.obj) & !is.null(data.obj$meta.dat)){
         data.obj <-
@@ -95,10 +99,6 @@ generate_beta_ordination_long <-
         data.obj <- mStat_process_time_variable(metadata, time.var, t0.level, ts.levels)
         metadata <- load_data_obj_metadata(data.obj)
       }
-    }
-
-    if (!is.null(adj.vars)){
-      dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
     }
 
     if (is.null(pc.obj)) {

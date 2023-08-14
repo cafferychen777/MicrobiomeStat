@@ -38,12 +38,6 @@ The function first checks if each component (assays, rowData, colData) of the Su
 }
 
 }
-\references{
-R package SummarizedExperiment.
-}
-\seealso{
-\code{\link[SummarizedExperiment]{SummarizedExperiment-class}}
-}
 \author{
 Caffery Yang
 }

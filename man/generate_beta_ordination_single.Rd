@@ -5,7 +5,7 @@
 \title{Generate Beta Diversity Ordination Plot}
 \usage{
 generate_beta_ordination_single(
-  data.obj = NULL,
+  data.obj,
   dist.obj = NULL,
   pc.obj = NULL,
   subject.var,
@@ -13,6 +13,7 @@ generate_beta_ordination_single(
   t.level = NULL,
   group.var = NULL,
   strata.var = NULL,
+  adj.vars = NULL,
   dist.name = c("BC", "Jaccard"),
   base.size = 16,
   theme.choice = "prism",
@@ -41,6 +42,8 @@ generate_beta_ordination_single(
 \item{group.var}{String. Variable to be used for grouping. Default is NULL.}
 
 \item{strata.var}{String. Variable to be used for stratification. Default is NULL.}
+
+\item{adj.vars}{A character vector of variable names to be used for adjustment.}
 
 \item{dist.name}{Character vector. Name of distance(s) to be used. Default is c('BC', 'Jaccard').}
 
@@ -83,20 +86,21 @@ pc.obj <- mStat_calculate_PC(dist.obj, method = c('mds'), k = 2, dist.name = c('
 # Generate the boxplot pair
 generate_beta_ordination_single(
   data.obj = peerj32.obj,
-  dist.obj = dist.obj,
-  pc.obj = pc.obj,
+  dist.obj = NULL,
+  pc.obj = NULL,
   subject.var = "subject",
   time.var = "time",
   t.level = "2",
   group.var = "group",
-  strata.var = "sex",
+  strata.var = NULL,
+  adj.vars = "sex",
   dist.name = c("BC"),
   base.size = 20,
   theme.choice = "bw",
   custom.theme = NULL,
   palette = NULL,
   pdf = TRUE,
-  file.ann = "test",
+  file.ann = NULL,
   pdf.wid = 11,
   pdf.hei = 8.5
 )

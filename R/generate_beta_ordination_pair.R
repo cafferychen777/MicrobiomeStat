@@ -9,6 +9,7 @@
 #' @param time.var The variable in the metadata table that represents the time.
 #' @param group.var (Optional) The variable in the metadata table that represents the grouping factor.
 #' @param strata.var (Optional) The variable in the metadata table that represents the stratification factor.
+#' @param adj.vars A character vector containing the names of the columns in data.obj$meta.dat to include as covariates in the PERMANOVA analysis. If no covariates are needed, use NULL (default).
 #' @param dist.name A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned.
 #' @param base.size (Optional) Base font size for the plot (default is 16).
 #' @param theme.choice (Optional) Name of the theme for the plot. Default is "prism". Other options include "plain", "classic", and any other themes compatible with ggplot2.
@@ -46,7 +47,7 @@
 #'   time.var = "time",
 #'   group.var = "group",
 #'   strata.var = NULL,
-#'   adj.vars = NULL,
+#'   adj.vars = "sex",
 #'   dist.name = c("BC"),
 #'   base.size = 16,
 #'   theme.choice = "bw",
@@ -81,18 +82,17 @@ generate_beta_ordination_pair <-
     if (is.null(dist.obj)) {
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
-      metadata <- load_data_obj_metadata(data.obj)
+      metadata <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var, time.var, group.var, strata.var)))
+      if (!is.null(adj.vars)){
+        dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
+      }
     } else {
       if (is.null(data.obj)) {
-        metadata <- attr(dist.obj[[dist.name[1]]], "labels")
+        metadata <- attr(dist.obj[[dist.name[1]]], "labels") %>% select(all_of(c(subject.var, time.var, group.var, strata.var)))
       } else {
-        metadata <- load_data_obj_metadata(data.obj)
+        metadata <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var, time.var, group.var, strata.var)))
       }
     }
-
-    # if (!is.null(adj.vars)){
-    #   dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
-    # }
 
     if (is.null(pc.obj)) {
       pc.obj <-
@@ -159,10 +159,10 @@ generate_beta_ordination_pair <-
         df %>% select(all_of(time.var)) %>% dplyr::pull() %>% unique()
 
       df <- df %>%
-        arrange(!!sym(subject.var),!!sym(time.var)) %>% # 排序，确保时间的正确顺序
+        dplyr::arrange(!!sym(subject.var),!!sym(time.var)) %>% # 排序，确保时间的正确顺序
         dplyr::group_by(!!sym(subject.var)) %>%
-        dplyr::mutate(x_end = lead(PC1),
-                      y_end = lead(PC2)) %>%
+        dplyr::mutate(x_end = dplyr::lead(PC1),
+                      y_end = dplyr::lead(PC2)) %>%
         dplyr::ungroup()
 
       p <- ggplot2::ggplot(df, ggplot2::aes(PC1, PC2)) +

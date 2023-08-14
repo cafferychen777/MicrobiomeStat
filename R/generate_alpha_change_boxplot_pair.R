@@ -15,6 +15,7 @@
 #' @param time.var The variable in the metadata table that represents the time.
 #' @param group.var (Optional) The variable in the metadata table that represents the grouping factor.
 #' @param strata.var (Optional) The variable in the metadata table that represents the stratification factor.
+#' @param adj.vars A character vector of variable names to be used for adjustment.
 #' @param change.base The base time for calculating the change in alpha diversity.
 #' @param change.func (Optional) A function for calculating the change in alpha diversity; can be either "log" (default) or "absolute."
 #' @param pdf (Optional) A boolean indicating whether to save the output as a PDF file.
@@ -239,7 +240,7 @@ generate_alpha_change_boxplot_pair <-
 
         # 使用mutate和residuals来添加残差
         combined_alpha <- combined_alpha %>%
-          mutate(!!sym(paste0(index, "_diff")) := residuals(lm(formula_obj, data = combined_alpha)))
+          dplyr::mutate(!!sym(paste0(index, "_diff")) := stats::residuals(lm(formula_obj, data = combined_alpha)))
 
         message("Alpha diversity Change has been adjusted for the following covariates: ", paste(adj.vars, collapse = ", "), ".")
       }

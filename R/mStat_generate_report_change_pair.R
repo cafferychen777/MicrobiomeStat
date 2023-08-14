@@ -110,9 +110,22 @@ output:
     latex_engine: lualatex
 ---
 
-## 1. Alpha Diversity Change Analysis
+## 1. Data Summary and Preparation
 
-### 1.1 Alpha Diversity Change Boxplots
+```{r mStat-data-summary, message=FALSE}
+mStat_results <- mStat_summarize_data_obj(data.obj = data.obj,
+                                          time.var = time.var,
+                                          group.var = group.var,
+                                          palette = palette)
+
+# Display the results
+cat('## mStat Results \n')
+pander::pander(mStat_results)
+```
+
+## 2. Alpha Diversity Change Analysis
+
+### 2.1 Alpha Diversity Change Boxplots
 
 ```{r alpha-diversity-change-boxplot, message=FALSE, fig.align='center'}
 alpha_change_boxplot_results <- generate_alpha_change_boxplot_pair(data.obj = data.obj,
@@ -135,7 +148,7 @@ alpha_change_boxplot_results <- generate_alpha_change_boxplot_pair(data.obj = da
 alpha_change_boxplot_results
 ```
 
-### 1.2 Alpha Diversity Change Test Results
+### 2.2 Alpha Diversity Change Test Results
 
 ```{r alpha-diversity-change-test, message=FALSE}
 alpha_change_test_results <- generate_alpha_change_test_pair(data.obj = data.obj,
@@ -185,9 +198,9 @@ for (index in indices) {
 
 ```
 
-## 2. Beta Diversity Change Analysis
+## 3. Beta Diversity Change Analysis
 
-### 2.1 Beta Diversity PC Change Boxplot Pairs
+### 3.1 Beta Diversity PC Change Boxplot Pairs
 
 ```{r pc-change-boxplot-pairs, message=FALSE, fig.align='center', results='hide'}
 pc_change_boxplot_pairs <- generate_beta_pc_change_boxplot_pair(
@@ -215,7 +228,7 @@ pc_change_boxplot_pairs <- generate_beta_pc_change_boxplot_pair(
 pc_change_boxplot_pairs
 ```
 
-### 2.2 Beta Diversity Change Boxplot
+### 3.2 Beta Diversity Change Boxplot
 
 ```{r beta-diversity-change-boxplot, message=FALSE, fig.align='center', results='hide'}
 beta_change_boxplot_results <- generate_beta_change_boxplot_pair(data.obj = data.obj,
@@ -237,7 +250,7 @@ beta_change_boxplot_results <- generate_beta_change_boxplot_pair(data.obj = data
 beta_change_boxplot_results
 ```
 
-### 2.3 Beta Diversity Change Test Results
+### 3.3 Beta Diversity Change Test Results
 
 ```{r beta-diversity-change-test, message=FALSE, results='asis'}
 beta_change_test_results <- generate_beta_change_test_pair(data.obj = data.obj,
@@ -284,9 +297,9 @@ for (distance in distances) {
 }
 ```
 
-## 3. Taxonomic Feature Analysis
+## 4. Taxonomic Feature Analysis
 
-### 3.1 Taxa Change Dotplot
+### 4.1 Taxa Change Dotplot
 
 ```{r taxa-change-dotplot, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8}
 taxa_change_dotplot_results <- generate_taxa_change_dotplot_pair(data.obj = data.obj,
@@ -314,7 +327,7 @@ taxa_change_dotplot_results <- generate_taxa_change_dotplot_pair(data.obj = data
 taxa_change_dotplot_results
 ```
 
-### 3.2 Taxa Change Heatmap
+### 4.2 Taxa Change Heatmap
 
 ```{r taxa-change-heatmap, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8}
 taxa_heatmap_results <- generate_taxa_change_heatmap_pair(data.obj = data.obj,
@@ -341,7 +354,7 @@ taxa_heatmap_results <- generate_taxa_change_heatmap_pair(data.obj = data.obj,
                                                      pdf.hei = pdf.hei)
 ```
 
-### 3.3 Taxa Change Scatterplot
+### 4.3 Taxa Change Scatterplot
 
 ```{r taxa-change-scatterplot, message=FALSE, fig.align='center'}
 if (is_continuous_numeric(data.obj[[group.var]])) {
@@ -373,7 +386,7 @@ if (is_continuous_numeric(data.obj[[group.var]])) {
 }
 ```
 
-### 3.4 Taxa Change Test
+### 4.4 Taxa Change Test
 
 ```{r taxa-change-test-pair, message=FALSE, results='hide'}
 taxa_change_test_results <- generate_taxa_change_test_pair(data.obj = data.obj,
@@ -394,7 +407,7 @@ cat('## Taxa Change Test Results \n')
 pander::pander(taxa_change_test_results)
 ```
 
-### 3.5 Taxa Boxplot for Significant Taxa
+### 4.5 Taxa Boxplot for Significant Taxa
 
 ```{r taxa-change-boxplot, message=FALSE, fig.align='center', fig.width = 8, fig.height = 16}
 combined_df <- do.call('rbind', taxa_change_test_results)

@@ -16,6 +16,10 @@
 #' @param data.obj A list object that includes feature.tab (an OTU table with
 #' taxa as rows and samples as columns) and meta.dat (a metadata table with
 #' samples as rows and variables as columns).
+#' @param alpha.obj An object containing precomputed alpha diversity indices,
+#' typically calculated by the function `mStat_calculate_alpha_diversity`.
+#' If NULL (the default), alpha diversity will be calculated from the data.obj using
+#' `mStat_calculate_alpha_diversity`.
 #' @param alpha.name A string with the name of the alpha diversity index to compute.
 #' Options could include: "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".
 #' @param time.var A string representing the time variable's name in the
@@ -35,11 +39,12 @@
 #' subset_T2D.obj2$meta.dat$visit_number <- as.numeric(subset_T2D.obj2$meta.dat$visit_number)
 #' generate_alpha_volatility_test_long(
 #' data.obj = subset_T2D.obj2,
+#' alpha.obj = NULL,
 #' alpha.name = c("shannon","simpson"),
 #' time.var = "visit_number",
 #' subject.var = "subject_id",
 #' group.var = "subject_race",
-#' adj.vars = "subject_gender"
+#' adj.vars = "sample_body_site"
 #' )
 #' }
 #' @export
@@ -74,12 +79,14 @@ generate_alpha_volatility_test_long <- function(data.obj,
     }
   }
 
-  message("The volatility calculation in generate_alpha_volatility_test_long relies on a numeric time variable.
-         Please check that your time variable is coded as numeric.
-         If the time variable is not numeric, it may cause issues in computing the results of the volatility test.
-         You can ensure the time variable is numeric by mutating it in the metadata.")
+  message(
+    "The volatility calculation in generate_alpha_volatility_test_long relies on a numeric time variable.\n",
+    "Please check that your time variable is coded as numeric.\n",
+    "If the time variable is not numeric, it may cause issues in computing the results of the volatility test.\n",
+    "You can ensure the time variable is numeric by mutating it in the metadata."
+  )
 
-  data.obj$meta.dat <- data.obj$meta.dat %>% mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
+  data.obj$meta.dat <- data.obj$meta.dat %>% dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
 
   meta_tab <-
     load_data_obj_metadata(data.obj) %>% as.data.frame() %>% select(all_of(c(
@@ -95,7 +102,9 @@ generate_alpha_volatility_test_long <- function(data.obj,
 
   if (!is.null(adj.vars)){
     # Obtain the residuals by fitting lm(alpha ~ adj.vars)
-    residuals_lm <- lm(as.formula(paste0(index, "~", paste(adj.vars, collapse = "+"))), data = alpha_df)$residuals
+    residuals_lm <- stats::lm(as.formula(paste0(index, "~", paste(adj.vars, collapse = "+"))), data = alpha_df)$residuals
+  } else {
+    residuals_lm <- alpha_df %>% dplyr::select(all_of(c(index))) %>% dplyr::pull()
   }
 
   # Calculate the volatility for each subject
@@ -104,23 +113,24 @@ generate_alpha_volatility_test_long <- function(data.obj,
 
   # Group data by subject and calculate volatility
   volatility_df <- alpha_df %>%
-    arrange(!!sym(subject.var), !!sym(time.var)) %>%
-    group_by(!!sym(subject.var)) %>%
-    mutate(diff_residuals = abs(residuals - lag(residuals)),
-           diff_time = !!sym(time.var) - lag(!!sym(time.var))) %>%
-    filter(!is.na(diff_residuals), !is.na(diff_time)) %>%
-    filter(diff_time != 0) %>%
-    summarize(volatility = mean(diff_residuals / diff_time), .groups = 'drop')
+    dplyr::group_by(!!sym(subject.var)) %>%
+    dplyr::arrange(!!sym(time.var)) %>%
+    dplyr::mutate(diff_residuals = abs(residuals - lag(residuals)),
+           diff_time = !!sym(time.var) - dplyr::lag(!!sym(time.var))) %>%
+    dplyr::filter(!is.na(diff_residuals), !is.na(diff_time)) %>%
+    dplyr::filter(diff_time != 0) %>%
+    dplyr::summarize(volatility = mean(diff_residuals / diff_time), .groups = 'drop')
 
   test_df <- volatility_df %>%
-    left_join(meta_tab %>%
+    dplyr::left_join(meta_tab %>%
                 select(all_of(c(subject.var, group.var))) %>%
-                distinct(),
+                  dplyr::distinct(),
               by = subject.var)
 
   # Test the association between the volatility and the grp.var
   formula <- as.formula(paste("volatility ~", group.var))
-  test_result <- lm(formula, data = test_df)
+
+  test_result <- stats::lm(formula, data = test_df)
 
   coef.tab <- extract_coef(test_result)
 

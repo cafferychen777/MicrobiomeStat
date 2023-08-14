@@ -29,8 +29,6 @@
 #' The function first checks if each component (assays, rowData, colData) of the SummarizedExperiment object is not null. If a component is not null, it is converted to the appropriate format and added to the output list. The assays data is converted to a matrix, while the rowData and colData are converted to data frames. Note that only the rows (features) in the assay data that have a sum > 0 are retained.
 #'
 #' @author Caffery Yang
-#' @seealso \code{\link[SummarizedExperiment]{SummarizedExperiment-class}}
-#' @references R package SummarizedExperiment.
 #'
 #' @export
 mStat_convert_SummarizedExperiment_to_data_obj <- function (se.obj) {

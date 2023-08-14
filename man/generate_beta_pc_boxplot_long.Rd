@@ -15,6 +15,7 @@ generate_beta_pc_boxplot_long(
   ts.levels = NULL,
   group.var = NULL,
   strata.var = NULL,
+  adj.vars = NULL,
   dist.name = c("BC"),
   base.size = 16,
   theme.choice = "prism",
@@ -47,6 +48,8 @@ generate_beta_pc_boxplot_long(
 \item{group.var}{Character string indicating the variable for group identifiers.}
 
 \item{strata.var}{Character string indicating the variable for stratum identifiers.}
+
+\item{adj.vars}{A character vector containing the names of the columns in data.obj$meta.dat to include as covariates in the PERMANOVA analysis. If no covariates are needed, use NULL (default).}
 
 \item{dist.name}{Vector of character strings indicating the distance measures to include in the plot.}
 
@@ -92,6 +95,7 @@ library(vegan)
   ts.levels = as.character(sort(as.numeric(unique(ecam.obj$meta.dat$month))))[2:4],
   group.var = "diet",
   strata.var = "delivery",
+  adj.vars = "antiexposedall",
   dist.name = c('BC'),
   base.size = 20,
   theme.choice = "bw",
@@ -113,6 +117,7 @@ data(peerj32.obj)
   ts.levels = "2",
   group.var = "group",
   strata.var = NULL,
+  adj.vars = "sex",
   dist.name = c('BC'),
   base.size = 20,
   theme.choice = "bw",

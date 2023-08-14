@@ -16,7 +16,6 @@
 #' \dontrun{
 #' data(subset_T2D.obj)
 #'
-#' # Perform pairwise beta diversity tests using PERMANOVA
 #' generate_beta_test_long(
 #'   data.obj = subset_T2D.obj,
 #'   dist.obj = NULL,

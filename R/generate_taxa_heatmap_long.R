@@ -204,7 +204,7 @@ generate_taxa_heatmap_long <- function(data.obj,
       rownames_to_column(var = feature.level) %>%
       tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
       dplyr::left_join(meta_tab %>%
-                  rownames_to_column("sample"), "sample") %>%
+                  rownames_to_column("sample"), by = "sample") %>%
       dplyr::group_by(!!sym(feature.level), !!sym(group.var), !!sym(time.var)) %>%
       dplyr::summarise(mean_value = mean(value)) %>%
       tidyr::unite("group_time", c(group.var, time.var), sep = "_") %>%

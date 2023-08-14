@@ -16,6 +16,7 @@
 #' @param dist.name A character vector of names corresponding to distance matrices in `dist.obj`.
 #' @return A list of adjusted distance matrices.
 #' @examples
+#' \dontrun{
 #' data("subset_T2D.obj")
 #' dist.obj <- mStat_calculate_beta_diversity(subset_T2D.obj, c("BC","Jaccard"))
 #' adj.dist.obj <- mStat_calculate_adjusted_distance(
@@ -23,6 +24,7 @@
 #' dist.obj = dist.obj,
 #' adj.vars = c("subject_gender", "subject_race"),
 #' dist.name = c("BC", "Jaccard"))
+#' }
 #' @export
 mStat_calculate_adjusted_distance <- function (data.obj,
                                                dist.obj,

@@ -28,7 +28,5 @@ data(peerj32.obj)
 peerj32.obj <- mStat_aggregate_by_taxonomy(peerj32.obj, c("Phylum", "Family"))
 # Perform rarefication, remove all-zero rows and update feature.agg.list
 rarefy_peerj32.obj <- mStat_rarefy_data(data.obj = peerj32.obj)
-# Check the updated data.obj
-print(peerj32.obj)
 }
 }

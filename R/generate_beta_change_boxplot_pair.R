@@ -11,6 +11,7 @@
 #' @param time.var A string specifying the name of the time variable
 #' @param group.var A string specifying the name of the group variable or NULL (default)
 #' @param strata.var A string specifying the name of the strata variable or NULL (default)
+#' @param adj.vars A character vector containing the names of the columns in data.obj$meta.dat to include as covariates in the PERMANOVA analysis. If no covariates are needed, use NULL (default).
 #' @param change.base A string or numeric value specifying the first time point used for computing the beta diversity change
 #' @param dist.name A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned.
 #' @param base.size (Optional) Base font size for the plot (default is 16).
@@ -38,7 +39,7 @@
 #' dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = "BC")
 #' generate_beta_change_boxplot_pair(
 #'   data.obj = peerj32.obj,
-#'   dist.obj = dist.obj,
+#'   dist.obj = NULL,
 #'   subject.var = "subject",
 #'   time.var = "time",
 #'   group.var = "group",
@@ -81,6 +82,9 @@ generate_beta_change_boxplot_pair <-
       meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var, time.var, group.var, strata.var, adj.vars)))
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
+      if (!is.null(adj.vars)){
+        dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
+      }
     } else {
       if (!is.null(data.obj) & !is.null(data.obj$meta.dat)){
         meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var, time.var, group.var, strata.var, adj.vars)))
@@ -92,10 +96,6 @@ generate_beta_change_boxplot_pair <-
     }
 
     meta_tab <- meta_tab %>% rownames_to_column("sample")
-
-    if (!is.null(adj.vars)){
-      dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
-    }
 
     if (is.null(change.base)){
       change.base <- unique(meta_tab %>% select(all_of(c(time.var))))[1,]

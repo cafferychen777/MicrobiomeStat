@@ -14,6 +14,7 @@
 #' @param ts.levels Vector of character strings indicating the time points to include in the plot.
 #' @param group.var Character string indicating the variable for group identifiers.
 #' @param strata.var Character string indicating the variable for stratum identifiers.
+#' @param adj.vars A character vector containing the names of the columns in data.obj$meta.dat to include as covariates in the PERMANOVA analysis. If no covariates are needed, use NULL (default).
 #' @param dist.name Vector of character strings indicating the distance measures to include in the plot.
 #' @param base.size Numeric value indicating the base font size for the plot.
 #' @param theme.choice Character string indicating the ggplot theme to use for the plot.
@@ -42,6 +43,7 @@
 #'   ts.levels = as.character(sort(as.numeric(unique(ecam.obj$meta.dat$month))))[2:4],
 #'   group.var = "diet",
 #'   strata.var = "delivery",
+#'   adj.vars = "antiexposedall",
 #'   dist.name = c('BC'),
 #'   base.size = 20,
 #'   theme.choice = "bw",
@@ -63,6 +65,7 @@
 #'   ts.levels = "2",
 #'   group.var = "group",
 #'   strata.var = NULL,
+#'   adj.vars = "sex",
 #'   dist.name = c('BC'),
 #'   base.size = 20,
 #'   theme.choice = "bw",
@@ -85,6 +88,7 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
                                           ts.levels = NULL,
                                           group.var = NULL,
                                           strata.var = NULL,
+                                          adj.vars = NULL,
                                           dist.name = c("BC"),
                                           base.size = 16,
                                           theme.choice = "prism",
@@ -101,6 +105,9 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
     meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var, time.var, group.var, strata.var)))
     dist.obj <-
       mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
+    if (!is.null(adj.vars)){
+      dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
+    }
   } else {
     if (!is.null(data.obj) & !is.null(data.obj$meta.dat)){
       data.obj <-
@@ -256,7 +263,7 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
             alpha = 0.8,
             linewidth = 0.6,
             color = "black",
-            linetype = "dashed", # 更改线条类型为虚线
+            linetype = "dashed",
             data = if (!is.null(average_sub_df)) average_sub_df else sub_df
           ) +
           scale_fill_manual(values = col) +
@@ -311,9 +318,6 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
         if (pdf) {
           pdf_name <- paste0(
             "beta_pc_boxplot_long_",
-            "pc.ind_",
-            pc.index,
-            "_",
             dist.name,
             "_",
             "subject_",

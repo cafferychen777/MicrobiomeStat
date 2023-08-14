@@ -60,6 +60,5 @@ generate_beta_test_pair(
 }
 \seealso{
 \code{\link[GUniFrac]{PermanovaG2}}
-\code{\link[microbiome]{peerj32}}
 \code{\link[vegan]{adonis2}}
 }

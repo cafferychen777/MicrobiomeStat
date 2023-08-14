@@ -13,6 +13,7 @@ generate_beta_pc_change_boxplot_pair(
   time.var,
   group.var = NULL,
   strata.var = NULL,
+  adj.vars = NULL,
   change.base = NULL,
   change.func = "difference",
   dist.name = c("BC", "Jaccard"),
@@ -43,6 +44,8 @@ generate_beta_pc_change_boxplot_pair(
 \item{group.var}{A string specifying the variable for groups. Default is NULL.}
 
 \item{strata.var}{A string specifying the variable for strata. Default is NULL.}
+
+\item{adj.vars}{A character vector of variable names to be used for adjustment.}
 
 \item{change.base}{The baseline for calculating changes in beta diversity. Default is NULL.}
 
@@ -84,12 +87,10 @@ The function also has options to customize the size, theme, and color palette of
 }
 \examples{
 \dontrun{
-# Load required libraries and example data
 library(vegan)
 library(ggh4x)
 data(peerj32.obj)
 
-# Generate the boxplot pair
 generate_beta_pc_change_boxplot_pair(
   data.obj = peerj32.obj,
   dist.obj = NULL,

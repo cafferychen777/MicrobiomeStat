@@ -287,10 +287,14 @@ generate_taxa_indiv_boxplot_long <-
             # Find the half of the minimum non-zero proportion for each taxon
             min_half_nonzero <- otu_tax_agg_merged %>%
               dplyr::group_by(!!sym(feature.level)) %>%
+              filter(sum(value) != 0) %>%
               dplyr::summarise(min_half_value = min(value[value > 0]) / 2) %>%
               dplyr::ungroup()
             # Replace zeros with the log of the half minimum non-zero proportion
             otu_tax_agg_merged <- otu_tax_agg_merged %>%
+              dplyr::group_by(!!sym(feature.level)) %>%
+              filter(sum(value) != 0) %>%
+              dplyr::ungroup() %>%
               dplyr::left_join(min_half_nonzero, by = feature.level) %>%
               dplyr::mutate(value = ifelse(value == 0, log10(min_half_value), log10(value))) %>%
               select(-min_half_value)

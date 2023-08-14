@@ -9,6 +9,7 @@
 #' @param t0.level (Optional) The baseline time point level.
 #' @param ts.levels (Optional) Time point levels.
 #' @param group.var (Optional) The variable in the metadata table that represents the grouping factor.
+#' @param adj.vars A character vector containing the names of the columns in data.obj$meta.dat to include as covariates in the PERMANOVA analysis. If no covariates are needed, use NULL (default).
 #' @param strata.var (Optional) The variable in the metadata table that represents the stratification factor.
 #' @param dist.name A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned.
 #' @param base.size (Optional) Base font size for the plot (default is 16).
@@ -104,7 +105,7 @@ generate_beta_change_spaghettiplot_long <-
                              classic = theme_classic(),
                              gray = theme_gray(),
                              bw = theme_bw(),
-                             ggprism::theme_prism()) 
+                             ggprism::theme_prism())
 
     theme_to_use <- if (!is.null(custom.theme)) custom.theme else theme_function
 
@@ -122,6 +123,9 @@ generate_beta_change_spaghettiplot_long <-
         meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var, time.var, group.var, strata.var)))
         dist.obj <-
           mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
+        if (!is.null(adj.vars)){
+          dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
+        }
       } else {
         if (!is.null(data.obj) & !is.null(data.obj$meta.dat)){
           data.obj <-
@@ -133,10 +137,6 @@ generate_beta_change_spaghettiplot_long <-
           data.obj <- mStat_process_time_variable(meta_tab, time.var, t0.level, ts.levels)
           meta_tab <- load_data_obj_metadata(data.obj)
         }
-      }
-
-      if (!is.null(adj.vars)){
-        dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
       }
 
       if (is.null(dist.obj[[dist.name]])) {

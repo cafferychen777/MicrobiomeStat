@@ -11,6 +11,7 @@
 #' @param time.var A string specifying the variable for time.
 #' @param group.var A string specifying the variable for groups. Default is NULL.
 #' @param strata.var A string specifying the variable for strata. Default is NULL.
+#' @param adj.vars A character vector of variable names to be used for adjustment.
 #' @param change.base The baseline for calculating changes in beta diversity. Default is NULL.
 #' @param change.func A function or string specifying how to calculate changes. Default is "difference".
 #' @param dist.name A character vector indicating the distance metrics used. Default is c("BC", "Jaccard").
@@ -33,12 +34,10 @@
 #'
 #' @examples
 #' \dontrun{
-#' # Load required libraries and example data
 #' library(vegan)
 #' library(ggh4x)
 #' data(peerj32.obj)
 #'
-#' # Generate the boxplot pair
 #' generate_beta_pc_change_boxplot_pair(
 #'   data.obj = peerj32.obj,
 #'   dist.obj = NULL,
@@ -71,6 +70,7 @@ generate_beta_pc_change_boxplot_pair <-
            time.var,
            group.var = NULL,
            strata.var = NULL,
+           adj.vars = NULL,
            change.base = NULL,
            change.func = "difference",
            dist.name = c('BC', 'Jaccard'),
@@ -83,17 +83,20 @@ generate_beta_pc_change_boxplot_pair <-
            pdf.wid = 11,
            pdf.hei = 8.5,
            ...) {
+
     if (is.null(data.obj) & is.null(dist.obj)) {
       stop("Both data.obj and dist.obj cannot be NULL. Please provide at least one.")
     }
 
     if (is.null(dist.obj)) {
-      message("No dist.obj provided, calculating beta diversity.")
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
       metadata <- load_data_obj_metadata(data.obj)
       if (is.null(metadata)) {
         stop("No metadata could be loaded from data.obj. Please ensure it contains the necessary metadata.")
+      }
+      if (!is.null(adj.vars)){
+        dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
       }
     } else {
       if (!all(dist.name %in% names(dist.obj))) {
@@ -150,9 +153,8 @@ generate_beta_pc_change_boxplot_pair <-
       gray = theme_gray(),
       bw = theme_bw(),
       ggprism::theme_prism()
-    ) # 根据用户选择设置主题
+    )
 
-    # 使用用户自定义主题（如果提供），否则使用默认主题
     theme_to_use <-
       if (!is.null(custom.theme))
         custom.theme else theme_function
@@ -160,7 +162,6 @@ generate_beta_pc_change_boxplot_pair <-
     plot_list <- lapply(dist.name, function(dist.name) {
         pc.mat <- pc.obj[[dist.name]]$points
 
-        # 将PC和元数据组合成一个数据框
         colnames(pc.mat) <- paste0("PC", 1:ncol(pc.mat))
 
         pc.mat <- pc.mat %>% as_tibble()
@@ -179,12 +180,10 @@ generate_beta_pc_change_boxplot_pair <-
             value = "value",-one_of(subject.var, group.var, time.var, strata.var)
           )
 
-        # 拆分成一个列表，每个time值都有一个独立的tibble
         split_data <-
           split(df, f = df %>%
                   dplyr::group_by(!!sym(time.var)) %>% select(!!sym(time.var)))
 
-        # 提取split_data中的第一个和第二个表
         data_time_1 <- split_data[[change.base]]
         data_time_2 <- split_data[[change.after]]
 
@@ -271,13 +270,12 @@ generate_beta_pc_change_boxplot_pair <-
           }
 
 
-            # 不显示图例的条件
             if (group.var == "ALL") {
               boxplot <- boxplot  + theme(
-                axis.text.x = element_blank(),  # 隐藏x轴text
-                axis.title.x = element_blank(),  # 隐藏x轴title
-                legend.position = "none",  # 隐藏图例
-                strip.text.x = element_blank()  # 隐藏分面title
+                axis.text.x = element_blank(),
+                axis.title.x = element_blank(),
+                legend.position = "none",
+                strip.text.x = element_blank()
               )
             }
 
@@ -286,9 +284,6 @@ generate_beta_pc_change_boxplot_pair <-
           if (pdf) {
               pdf_name <- paste0(
                 "beta_pc_change_boxplot_pair_",
-                "pc.ind_",
-                pc.index,
-                "_",
                 dist.name,
                 "_",
                 "subject_",

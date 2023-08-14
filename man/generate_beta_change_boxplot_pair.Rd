@@ -11,6 +11,7 @@ generate_beta_change_boxplot_pair(
   time.var,
   group.var = NULL,
   strata.var = NULL,
+  adj.vars = NULL,
   change.base,
   dist.name = c("BC", "Jaccard"),
   base.size = 16,
@@ -36,6 +37,8 @@ generate_beta_change_boxplot_pair(
 \item{group.var}{A string specifying the name of the group variable or NULL (default)}
 
 \item{strata.var}{A string specifying the name of the strata variable or NULL (default)}
+
+\item{adj.vars}{A character vector containing the names of the columns in data.obj$meta.dat to include as covariates in the PERMANOVA analysis. If no covariates are needed, use NULL (default).}
 
 \item{change.base}{A string or numeric value specifying the first time point used for computing the beta diversity change}
 
@@ -76,7 +79,7 @@ Optionally, a user can specify whether to save the plot as a PDF file.
 library(vegan)
 data(peerj32.obj)
 
-# Generate the boxplot pair
+dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = "BC")
 generate_beta_change_boxplot_pair(
   data.obj = peerj32.obj,
   dist.obj = NULL,
@@ -84,6 +87,7 @@ generate_beta_change_boxplot_pair(
   time.var = "time",
   group.var = "group",
   strata.var = NULL,
+  adj.vars = "sex",
   change.base = "1",
   dist.name = c('BC'),
   base.size = 20,

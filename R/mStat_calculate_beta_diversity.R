@@ -15,7 +15,6 @@
 #' \dontrun{
 #' library(vegan)
 #' library(GUniFrac)
-#' library(microbiome)
 #' library(ape)
 #' library(philentropy)
 #'

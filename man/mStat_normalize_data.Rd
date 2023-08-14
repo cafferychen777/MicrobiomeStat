@@ -6,7 +6,7 @@
 \usage{
 mStat_normalize_data(
   data.obj,
-  method = c("Rarefy-TSS", "Rarefy", "TSS", "GMPR", "CSS", "DESeq", "TMM"),
+  method = c("Rarefy-TSS", "Rarefy", "TSS", "GMPR", "CSS", "DESeq", "TMM", "CLR"),
   depth = NULL
 )
 }

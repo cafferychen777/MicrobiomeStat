@@ -109,9 +109,22 @@ output:
     latex_engine: lualatex
 ---
 
-## 1. Alpha Diversity Analysis
+## 1. Data Summary and Preparation
 
-### 1.1 Alpha Diversity Boxplots
+```{r mStat-data-summary, message=FALSE}
+mStat_results <- mStat_summarize_data_obj(data.obj = data.obj,
+                                          time.var = time.var,
+                                          group.var = group.var,
+                                          palette = palette)
+
+# Display the results
+cat('## mStat Results \n')
+pander::pander(mStat_results)
+```
+
+## 2. Alpha Diversity Analysis
+
+### 2.1 Alpha Diversity Boxplots
 
 ```{r alpha-boxplot-long-generation, message=FALSE, fig.align='center'}
 alpha_boxplot_results <- generate_alpha_boxplot_long(data.obj = data.obj,
@@ -134,7 +147,7 @@ alpha_boxplot_results <- generate_alpha_boxplot_long(data.obj = data.obj,
 alpha_boxplot_results
 ```
 
-### 1.2 Alpha Diversity Test Results
+### 2.2 Alpha Diversity Test Results
 
 ```{r alpha-test-pair-generation, message=FALSE}
 alpha_test_results <- generate_alpha_test_pair(data.obj = data.obj,
@@ -191,9 +204,9 @@ for (index in indices) {
 
 ```
 
-## 2. Beta Diversity Change Analysis
+## 3. Beta Diversity Change Analysis
 
-### 2.1 Beta Diversity Ordination
+### 3.1 Beta Diversity Ordination
 
 ```{r beta-ordination-pair-generation, message=FALSE, fig.align='center', warning = FALSE}
 beta_ordination_results <- generate_beta_ordination_pair(data.obj = data.obj,
@@ -215,7 +228,7 @@ beta_ordination_results <- generate_beta_ordination_pair(data.obj = data.obj,
 beta_ordination_results
 ```
 
-### 2.2 Beta Diversity Test Pair
+### 3.2 Beta Diversity Test Pair
 
 ```{r beta-test-pair-generation, message=FALSE, fig.align='center'}
 beta_test_pair_results <- generate_beta_test_pair(data.obj = data.obj,
@@ -320,7 +333,7 @@ for (variable in unique(beta_test_pair_results$aov.tab$Variable)) {
 }
 ```
 
-### 2.3 Beta Diversity PC Boxplot
+### 3.3 Beta Diversity PC Boxplot
 
 ```{r beta-pc-boxplot-longitudinal-generation, message=FALSE, fig.align='center'}
 pc_boxplot_longitudinal_results <- generate_beta_pc_boxplot_long(
@@ -348,9 +361,9 @@ pc_boxplot_longitudinal_results <- generate_beta_pc_boxplot_long(
 pc_boxplot_longitudinal_results
 ```
 
-## 3. Taxonomic Feature Analysis
+## 4. Taxonomic Feature Analysis
 
-### 3.1 Taxa Change Dotplot
+### 4.1 Taxa Change Dotplot
 
 ```{r taxa-dotplot-generation, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8}
 taxa_dotplot_results <- generate_taxa_dotplot_pair(data.obj = data.obj,
@@ -376,7 +389,7 @@ taxa_dotplot_results <- generate_taxa_dotplot_pair(data.obj = data.obj,
 taxa_dotplot_results
 ```
 
-### 3.2 Taxa Heatmap Pair
+### 4.2 Taxa Heatmap Pair
 
 ```{r taxa-heatmap-generation, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8}
 taxa_heatmap_pair_results <- generate_taxa_heatmap_pair(
@@ -403,7 +416,7 @@ taxa_heatmap_pair_results <- generate_taxa_heatmap_pair(
 )
 ```
 
-### 3.3 Taxa Barplot Pair
+### 4.3 Taxa Barplot Pair
 
 ```{r taxa-barplot-generation, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8, warning = FALSE}
 taxa_barplot_pair_results <- generate_taxa_barplot_pair(
@@ -428,7 +441,7 @@ taxa_barplot_pair_results <- generate_taxa_barplot_pair(
 taxa_barplot_pair_results
 ```
 
-### 3.4 Taxa Test
+### 4.4 Taxa Test
 
 ```{r taxa-test-generation, message=FALSE, results='asis'}
 taxa_test_results <- generate_taxa_test_pair(data.obj = data.obj,
@@ -448,7 +461,7 @@ cat('## Taxa Test Results \n')
 pander::pander(taxa_test_results)
 ```
 
-### 3.5 Taxa Boxplot for Significant Taxa
+### 4.5 Taxa Boxplot for Significant Taxa
 
 ```{r taxa-change-boxplot-generation, message=FALSE, fig.align='center', fig.width = 8, fig.height = 16}
 taxa_test_results <- do.call('rbind', taxa_test_results)

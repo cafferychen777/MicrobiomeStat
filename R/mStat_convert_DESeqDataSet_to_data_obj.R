@@ -31,8 +31,6 @@
 #' The function first checks if each component (counts, samples, feature annotations) of the DESeqDataSet object is not null. If a component is not null, it is converted to the appropriate format and added to the output list. The counts data and feature annotations are converted to a matrix, while the samples data is converted to a data frame. Note that only the rows (features) in the counts data that have a sum > 0 are retained.
 #'
 #' @author Caffery Yang
-#' @seealso \code{\link[DESeq2]{DESeqDataSet}}
-#' @references DESeq2 R package.
 #'
 #' @export
 mStat_convert_DESeqDataSet_to_data_obj <- function (dds.obj) {

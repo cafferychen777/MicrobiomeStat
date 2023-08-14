@@ -18,6 +18,7 @@
 #' @param time.var The name of the time variable.
 #' @param group.var The name of the group variable.
 #' @param strata.var The name of the strata variable (default is NULL).
+#' @param adj.vars A character vector of variable names to be used for adjustment.
 #' @param pdf Logical, whether to save the plot as a PDF (default is TRUE).
 #' @param file.ann The annotation to be added to the PDF file name (default is NULL).
 #' @param ... Additional arguments passed to ggplot().
@@ -182,7 +183,7 @@ generate_alpha_spaghettiplot_long <-
 
         # 使用mutate和residuals来添加残差
         sub_alpha.df <- sub_alpha.df %>%
-          mutate(!!sym(index) := residuals(lm(formula_obj, data = sub_alpha.df)))
+          dplyr::mutate(!!sym(index) := stats::residuals(lm(formula_obj, data = sub_alpha.df)))
 
         message("Alpha diversity has been adjusted for the following covariates: ", paste(adj.vars, collapse = ", "), ".")
       }

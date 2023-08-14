@@ -12,6 +12,7 @@ generate_beta_ordination_pair(
   time.var,
   group.var = NULL,
   strata.var = NULL,
+  adj.vars = NULL,
   dist.name = c("BC", "Jaccard"),
   base.size = 16,
   theme.choice = "prism",
@@ -38,6 +39,8 @@ generate_beta_ordination_pair(
 \item{group.var}{(Optional) The variable in the metadata table that represents the grouping factor.}
 
 \item{strata.var}{(Optional) The variable in the metadata table that represents the stratification factor.}
+
+\item{adj.vars}{A character vector containing the names of the columns in data.obj$meta.dat to include as covariates in the PERMANOVA analysis. If no covariates are needed, use NULL (default).}
 
 \item{dist.name}{A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned.}
 
@@ -86,6 +89,7 @@ generate_beta_ordination_pair(
   time.var = "time",
   group.var = "group",
   strata.var = NULL,
+  adj.vars = "sex",
   dist.name = c("BC"),
   base.size = 16,
   theme.choice = "bw",

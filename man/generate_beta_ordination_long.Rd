@@ -14,6 +14,7 @@ generate_beta_ordination_long(
   ts.levels,
   group.var = NULL,
   strata.var = NULL,
+  adj.vars = NULL,
   dist.name = c("BC", "Jaccard"),
   base.size = 16,
   theme.choice = "prism",
@@ -44,6 +45,8 @@ generate_beta_ordination_long(
 \item{group.var}{a character string specifying the grouping variable. If NULL, only color will be used in the plots.}
 
 \item{strata.var}{a character string specifying the stratification variable. If NULL, no stratification will be done.}
+
+\item{adj.vars}{A character vector containing the names of the columns in data.obj$meta.dat to include as covariates in the PERMANOVA analysis. If no covariates are needed, use NULL (default).}
 
 \item{dist.name}{a character vector specifying the distance measures to use. Defaults to c('BC', 'Jaccard').}
 
@@ -84,10 +87,11 @@ generate_beta_ordination_long(
   subject.var = "subject_id",
   time.var = "visit_number",
   t0.level = sort(unique(subset_T2D.obj$meta.dat$visit_number))[1],
-  ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[2:4],
-  group.var = "subject_race",
-  strata.var = "subject_gender",
-  dist.name = c("BC"),
+  ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[2:6],
+  group.var = "subject_gender",
+  strata.var = "subject_race",
+  adj.vars = "sample_body_site",
+  dist.name = c("BC","Jaccard"),
   base.size = 16,
   theme.choice = "bw",
   custom.theme = NULL,

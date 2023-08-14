@@ -7,10 +7,10 @@
 generate_alpha_test_long(
   data.obj,
   alpha.obj = NULL,
+  alpha.name,
   time.var,
   t0.level,
   ts.levels,
-  alpha.name,
   subject.var,
   group.var,
   adj.vars
@@ -24,6 +24,10 @@ samples as rows and variables as columns).}
 \item{alpha.obj}{A pre-calculated alpha diversity object. If NULL, the
 function will calculate alpha diversity based on data.obj.}
 
+\item{alpha.name}{A character vector with the names of alpha diversity
+indices to compute. Options include: "shannon", "simpson",
+"observed_species", "chao1", "ace", and "pielou".}
+
 \item{time.var}{A string representing the time variable's name in the
 metadata. The default is NULL.}
 
@@ -32,10 +36,6 @@ the longitudinal study. Typically the first time point.}
 
 \item{ts.levels}{The levels in time.var that are to be considered in
 the analysis, excluding the reference level.}
-
-\item{alpha.name}{A character vector with the names of alpha diversity
-indices to compute. Options include: "shannon", "simpson",
-"observed_species", "chao1", "ace", and "pielou".}
 
 \item{subject.var}{A string indicating the variable for subject identifiers.}
 
@@ -72,10 +72,10 @@ data("subset_T2D.obj")
 alpha_test_results <- generate_alpha_test_long(
 data.obj = subset_T2D.obj,
 alpha.obj = NULL,
+alpha.name = c("shannon", "simpson"),
 time.var = "visit_number",
 t0.level = sort(unique(subset_T2D.obj$meta.dat$visit_number))[1],
 ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[2:6],
-alpha.name = c("shannon", "simpson"),
 subject.var = "subject_id",
 group.var = "subject_race",
 adj.vars = "subject_gender"

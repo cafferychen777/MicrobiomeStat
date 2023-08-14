@@ -29,8 +29,6 @@
 #' The function first checks if each component (assays, colData) of the MultiAssayExperiment object is not null. If a component is not null, it is converted to the appropriate format and added to the output list. The assays data is converted to a matrix, while the colData is converted to a data frame. Note that only the rows (features) in the assay data that have a sum > 0 are retained.
 #'
 #' @author Caffery Yang
-#' @seealso \code{\link[MultiAssayExperiment]{MultiAssayExperiment-class}}
-#' @references R package MultiAssayExperiment.
 #'
 #' @export
 mStat_convert_MultiAssayExperiment_to_data_obj <- function (mae.obj, experiment_name = NULL) {
