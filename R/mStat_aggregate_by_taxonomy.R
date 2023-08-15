@@ -29,56 +29,64 @@
 #' peerj32.obj <- mStat_aggregate_by_taxonomy(peerj32.obj, feature.level)
 #' }
 #' @export
-mStat_aggregate_by_taxonomy <- function (data.obj, feature.level = NULL) {
-  # Check if feature.level is not NULL
-  if (is.null(feature.level)) {
-    stop("feature.level can not be NULL.")
+mStat_aggregate_by_taxonomy <-
+  function (data.obj,
+            feature.level = NULL) {
+    # Check if feature.level is not NULL
+    if (is.null(feature.level)) {
+      stop("feature.level can not be NULL.")
+    }
+
+    otu_tab <- load_data_obj_count(data.obj) %>% as.data.frame()
+    tax_tab <- load_data_obj_taxonomy(data.obj) %>% as.data.frame()
+
+    # 检查 otu_tab 的行名和 tax_tab 的行名是否完全一致
+    otu_not_in_tax <- setdiff(rownames(otu_tab), rownames(tax_tab))
+    tax_not_in_otu <- setdiff(rownames(tax_tab), rownames(otu_tab))
+
+    if (length(otu_not_in_tax) > 0) {
+      message(
+        "The following row names are in 'feature.tab' but not in 'feature.ann': ",
+        paste(otu_not_in_tax, collapse = ", ")
+      )
+    }
+
+    if (length(tax_not_in_otu) > 0) {
+      message(
+        "The following row names are in 'feature.ann' but not in 'feature.tab': ",
+        paste(tax_not_in_otu, collapse = ", ")
+      )
+    }
+
+    data.obj$feature.agg.list <-
+      setNames(lapply(feature.level, function(feature.level) {
+        # 将 OTU 表与分类表合并
+        message(
+          "Performing an inner join on two tables. Rows with non-matching names will be excluded."
+        )
+        otu_tax <-
+          otu_tab %>% rownames_to_column("sample") %>%
+          dplyr::inner_join(tax_tab %>%
+                              select(all_of(feature.level)) %>%
+                              rownames_to_column("sample"),
+                            by = "sample") %>%
+          column_to_rownames("sample")
+
+        # 聚合 OTU 表
+        otu_tax_agg <- otu_tax %>%
+          tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
+          dplyr::group_by_at(vars(sample, !!sym(feature.level))) %>%
+          dplyr::summarise(value = sum(value)) %>%
+          tidyr::spread(key = "sample", value = "value") %>%
+          dplyr::mutate(!!feature.level := tidyr::replace_na(!!sym(feature.level), "Unclassified")) %>%
+          column_to_rownames(feature.level) %>%
+          as.matrix()
+
+        # Remove rows with all zero
+        otu_tax_agg <- otu_tax_agg[rowSums(otu_tax_agg) > 0, ]
+
+        return(otu_tax_agg)
+      }), feature.level)
+
+    return(data.obj)
   }
-
-  otu_tab <- load_data_obj_count(data.obj) %>% as.data.frame()
-  tax_tab <- load_data_obj_taxonomy(data.obj) %>% as.data.frame()
-
-  # 检查 otu_tab 的行名和 tax_tab 的行名是否完全一致
-  otu_not_in_tax <- setdiff(rownames(otu_tab), rownames(tax_tab))
-  tax_not_in_otu <- setdiff(rownames(tax_tab), rownames(otu_tab))
-
-  if (length(otu_not_in_tax) > 0) {
-    message(
-      "The following row names are in 'feature.tab' but not in 'feature.ann': ",
-      paste(otu_not_in_tax, collapse = ", ")
-    )
-  }
-
-  if (length(tax_not_in_otu) > 0) {
-    message(
-      "The following row names are in 'feature.ann' but not in 'feature.tab': ",
-      paste(tax_not_in_otu, collapse = ", ")
-    )
-  }
-
-  data.obj$feature.agg.list <-
-    setNames(lapply(feature.level, function(feature.level) {
-      # 将 OTU 表与分类表合并
-      message("Performing an inner join on two tables. Rows with non-matching names will be excluded.")
-      otu_tax <-
-        otu_tab %>% rownames_to_column("sample") %>% dplyr::inner_join(tax_tab %>% select(all_of(feature.level)) %>% rownames_to_column("sample"),
-                                                                by = "sample") %>% column_to_rownames("sample")
-
-      # 聚合 OTU 表
-      otu_tax_agg <- otu_tax %>%
-        tidyr::gather(key = "sample", value = "value",-one_of(feature.level)) %>%
-        dplyr::group_by_at(vars(sample,!!sym(feature.level))) %>%
-        dplyr::summarise(value = sum(value)) %>%
-        tidyr::spread(key = "sample", value = "value") %>%
-        dplyr::mutate(!!feature.level := tidyr::replace_na(!!sym(feature.level), "Unclassified")) %>%
-        column_to_rownames(feature.level) %>%
-        as.matrix()
-
-      # Remove rows with all zero
-      otu_tax_agg <- otu_tax_agg[rowSums(otu_tax_agg) > 0,]
-
-      return(otu_tax_agg)
-    }), feature.level)
-
-  return(data.obj)
-}

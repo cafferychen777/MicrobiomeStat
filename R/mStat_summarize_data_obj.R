@@ -100,90 +100,90 @@ mStat_summarize_data_obj <-
       length(which(rowSums(feature_tab) == 1))
 
     # Print summary
-    cat(
-      "Microbiome Feature Table Summary:\n",
-      "==============================\n",
-      "Min. reads per sample: ",
-      min_reads,
-      "\n",
-      "Max. reads per sample: ",
-      max_reads,
-      "\n",
-      "Total reads dplyr::across all samples: ",
-      total_reads,
-      "\n",
-      "Average reads per sample: ",
-      ave_reads_per_sample,
-      "\n",
-      "Median reads per sample: ",
-      median_reads_per_sample,
-      "\n",
-      "Proportion of zero counts: ",
-      zero_count_prop,
-      "\n",
-      "Count of features that only appear once: ",
-      count_single_occurrence,
-      "\n",
-      "Number of metadata variables: ",
-      num_meta_vars,
-      "\n",
-      "Metadata variables are: ",
-      paste(meta_var_names, collapse = ", "),
-      "\n\n",
-
-      "Feature Annotation Summary:\n",
-      "========================\n",
-      paste(
-        "Proportion of missing annotations in ",
-        colnames(feature_ann),
-        " are: ",
-        NA_props,
-        collapse = "\n"
-      ),
-      "\n\n",
-
-      "Phylogenetic Tree Information:\n",
-      "===========================\n",
-      "Exists in the dataset? ",
-      tree_exists,
-      "\n\n",
-
-      "Aggregated Taxonomies:\n",
-      "===================\n",
-      "The taxonomies that have been aggregated are: ",
-      paste(agg_taxonomies, collapse = ", "),
-      "\n\n"
-    )
+    # cat(
+    #   "Microbiome Feature Table Summary:\n",
+    #   "==============================\n",
+    #   "Min. reads per sample: ",
+    #   min_reads,
+    #   "\n",
+    #   "Max. reads per sample: ",
+    #   max_reads,
+    #   "\n",
+    #   "Total reads dplyr::across all samples: ",
+    #   total_reads,
+    #   "\n",
+    #   "Average reads per sample: ",
+    #   ave_reads_per_sample,
+    #   "\n",
+    #   "Median reads per sample: ",
+    #   median_reads_per_sample,
+    #   "\n",
+    #   "Proportion of zero counts: ",
+    #   zero_count_prop,
+    #   "\n",
+    #   "Count of features that only appear once: ",
+    #   count_single_occurrence,
+    #   "\n",
+    #   "Number of metadata variables: ",
+    #   num_meta_vars,
+    #   "\n",
+    #   "Metadata variables are: ",
+    #   paste(meta_var_names, collapse = ", "),
+    #   "\n\n",
+    #
+    #   "Feature Annotation Summary:\n",
+    #   "========================\n",
+    #   paste(
+    #     "Proportion of missing annotations in ",
+    #     colnames(feature_ann),
+    #     " are: ",
+    #     NA_props,
+    #     collapse = "\n"
+    #   ),
+    #   "\n\n",
+    #
+    #   "Phylogenetic Tree Information:\n",
+    #   "===========================\n",
+    #   "Exists in the dataset? ",
+    #   tree_exists,
+    #   "\n\n",
+    #
+    #   "Aggregated Taxonomies:\n",
+    #   "===================\n",
+    #   "The taxonomies that have been aggregated are: ",
+    #   paste(agg_taxonomies, collapse = ", "),
+    #   "\n\n"
+    # )
 
     # Handling the time-series data
     if (!is.null(time.var) && "meta.dat" %in% names(data.obj)) {
       if (time.var %in% colnames(data.obj$meta.dat)) {
         time_var_data <- data.obj$meta.dat[[time.var]]
 
-        cat("Time-Series Information:\n",
-            "========================\n")
+        # cat("Time-Series Information:\n",
+        #     "========================\n")
 
         # Numeric time data
         if (is.numeric(time_var_data)) {
-          cat(
-            "Earliest sample time-point: ",
-            min(time_var_data),
-            "\n",
-            "Latest sample time-point: ",
-            max(time_var_data),
-            "\n\n"
-          )
+          # cat(
+          #   "Earliest sample time-point: ",
+          #   min(time_var_data),
+          #   "\n",
+          #   "Latest sample time-point: ",
+          #   max(time_var_data),
+          #   "\n\n"
+          # )
         }
 
         # Categorical (character or factor) time data
-        if (is.character(time_var_data) || is.factor(time_var_data)) {
-          cat("Unique time-points: ", length(unique(time_var_data)), "\n\n")
-        }
+        # if (is.character(time_var_data) || is.factor(time_var_data)) {
+        #   cat("Unique time-points: ", length(unique(time_var_data)), "\n\n")
+        # }
 
-        cat(
-          "Distribution of sample counts at each time-point:\n",
-          "========================\n"
-        )
+        # cat(
+        #   "Distribution of sample counts at each time-point:\n",
+        #   "========================\n"
+        # )
 
         # Create a histogram for the time variable
         if (!is.null(group.var) &&
@@ -195,7 +195,7 @@ mStat_summarize_data_obj <-
             dplyr::summarise(SampleCount = dplyr::n(), .groups = "drop")
 
           # Print the grouped data frame
-          print(grouped_df)
+          #print(grouped_df)
 
           # Set the palette if it's NULL
           if (is.null(palette)) {
@@ -242,7 +242,7 @@ mStat_summarize_data_obj <-
           colnames(time_df) <- c("TimePoint", "SampleCount")
 
           # Print the data frame
-          print(time_df)
+          #print(time_df)
 
           print(
             ggplot(time_df, aes(x = TimePoint, y = SampleCount)) +
@@ -258,7 +258,7 @@ mStat_summarize_data_obj <-
           )
         }
       } else {
-        cat("The provided time variable does not exist in the metadata.\n")
+        #cat("The provided time variable does not exist in the metadata.\n")
       }
     }
 
@@ -382,7 +382,7 @@ mStat_summarize_data_obj <-
           table1 <- rbind(table1, distribution)
         }
       } else {
-        cat("The provided time variable does not exist in the metadata.\n")
+        #cat("The provided time variable does not exist in the metadata.\n")
       }
     }
 
