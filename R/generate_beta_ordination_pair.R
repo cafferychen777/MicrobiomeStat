@@ -41,7 +41,7 @@
 #' # Generate the boxplot pair
 #' generate_beta_ordination_pair(
 #'   data.obj = peerj32.obj,
-#'   dist.obj = adj.dist.obj,
+#'   dist.obj = NULL,
 #'   pc.obj = NULL,
 #'   subject.var = "subject",
 #'   time.var = "time",

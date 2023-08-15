@@ -107,8 +107,10 @@ mStat_calculate_adjusted_distance <- function (data.obj,
     E <-
       (diag(nrow(H)) - H) %*% J %*% A %*% J %*% (diag(nrow(H)) - H)
 
+    D <- E %*% t(E)
+
     # Return the adjusted distances as a distance object
-    return(as.dist(E))
+    return(as.dist(D))
   })
 
   names(adj.dist.obj) <- dist.name
