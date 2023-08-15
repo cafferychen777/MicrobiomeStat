@@ -101,10 +101,10 @@ improvement.
 
 For assistance or inquiries, feel free to reach out to:
 
-| Name             | Email                       |
-|------------------|-----------------------------|
-| Dr. Jun Chen     | <Chen.Jun2@mayo.edu>        |
-| Dr. Caffery Yang | <cafferychen7850@gmail.com> |
+| Name         | Email                       |
+|--------------|-----------------------------|
+| Dr. Jun Chen | <Chen.Jun2@mayo.edu>        |
+| Chen Yang    | <cafferychen7850@gmail.com> |
 
 ## Engage in Our Discord Community
 
