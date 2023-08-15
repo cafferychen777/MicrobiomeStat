@@ -9,111 +9,83 @@ MicrobiomeStat: Comprehensive Microbiome Analysis in R
 v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 <!-- badges: end -->
 
-`MicrobiomeStat` is a powerful and versatile R package, designed
-specifically for analyzing longitudinal microbiome data. It extends to
-handle multi-omics data, making it an asset for broader biological
-research.
-
-Crucially, `MicrobiomeStat` shines not only in longitudinal studies, but
-is also adept at handling cross-sectional studies.
+The `MicrobiomeStat` package is a state-of-the-art R tool tailored for
+the analysis of longitudinal microbiome data. With its capability to
+manage multi-omics data, it is an invaluable resource for extensive
+biological research. It proficiently analyzes both longitudinal and
+cross-sectional studies.
 
 # Table of Contents
 
 1.  [Online Tutorials](#online-tutorials)
-2.  [Why Choose MicrobiomeStat?](#why-choose-microbiomestat)
-3.  [Features at a glance](#features-at-a-glance)
-4.  [Output interpretation](#output-interpretation)
-5.  [Known issues and limitations](#known-issues-and-limitations)
-6.  [Support & Contact](#support-contact)
+2.  [Benefits of Using MicrobiomeStat](#why-choose-microbiomestat)
+3.  [Key Features](#features-at-a-glance)
+4.  [Assistance & Contact Information](#support-contact)
+5.  [Join Our Discord Community](#discord-community)
 
 # Online Tutorials
 
-MicrobiomeStat is a powerful and comprehensive package for microbiome
-data analysis, with diverse capabilities for data input, analysis,
-visualization, and more.
+`MicrobiomeStat` represents a comprehensive toolset for microbiome data
+analysis, boasting extensive capabilities from data input to
+visualization.
 
-To help users thoroughly learn how to use MicrobiomeStat, we have
-created a comprehensive online tutorial using GitBook.
+For an in-depth understanding of `MicrobiomeStat`, we have curated a
+comprehensive online tutorial using GitBook, encompassing:
 
-The online tutorials contain:
+- Comprehensive installation and configuration guidance
+- Analysis walkthroughs driven by real-world cases
+- Hands-on code examples
+- Detailed guides on result interpretation and visualization
+- Frequently Asked Questions
 
-- Detailed installation and configuration instructions
-- Case-driven analysis walkthroughs  
-- Interactive code examples
-- Result interpretation and visualization guides
-- FAQ
+For a seamless experience with `MicrobiomeStat`, we recommend
+acquainting yourself with these online tutorials: **MicrobiomeStat
+Tutorials:** <https://www.microbiomestat.wiki>
 
-We highly recommend new users to consult the online tutorials first to
-fully understand MicrobiomeStat’s capabilities and usage:
+## Benefits of Using MicrobiomeStat
 
-**MicrobiomeStat Tutorials:** <https://www.microbiomestat.wiki>
+The field of microbiome research is complex and rapidly evolving. The
+analytical tools chosen can have significant implications for research
+outcomes. In this context, `MicrobiomeStat` presents itself as a robust
+option.
 
-The online tutorials are continuously updated as the package evolves.
-Users can find answers to any questions encountered in usage there.
+### Comparative Overview
 
-This helps keep the README focused on the package overview and key
-information, without being overly lengthy or complex. The details of
-usage are covered in the online tutorials in a more user-friendly
-format.
+For a thorough understanding of how `MicrobiomeStat` measures against
+other tools, we’ve provided detailed comparisons on our website:
 
-## Why Choose MicrobiomeStat? 👍
+- [Comparison with Other Longitudinal
+  Packages](https://www.microbiomestat.wiki/introduction/microbiomestat-versus-the-competition-a-comparative-overview/microbiomestat-vs.-other-longitudinal-packages-an-in-depth-comparison)
 
-Choosing the right tools for your microbiome data analysis can make a
-significant difference in the results. We have compared `MicrobiomeStat`
-with other similar packages, and we believe our package stands out in
-many aspects. Below are two comparative tables, showing the distinct
-advantages of `MicrobiomeStat` over other packages.
+- [Comparison with Integrated Analysis
+  Packages](https://www.microbiomestat.wiki/introduction/microbiomestat-versus-the-competition-a-comparative-overview/microbiomestat-vs-integrated-analysis-packages-a-feature-comparison)
 
-## Comparative Table 1: Longitudinal Packages
+### User Support
 
-|                    Features                    |                                      MicrobiomeStat                                      |              q2-longitudinal               |                               SplinectomeR                               |                             coda4microbiome                              |
-|:----------------------------------------------:|:----------------------------------------------------------------------------------------:|:------------------------------------------:|:------------------------------------------------------------------------:|:------------------------------------------------------------------------:|
-|               Data Input Formats               | QIIME2, DADA2, BIOM, Mothur, Phyloseq, DGEList, DESeqDataSet, SummarizedExperiment, etc. |                   QIIME2                   | Custom format (No other formats import or conversion functions provided) | Custom format (No other formats import or conversion functions provided) |
-|       Supports Alpha Diversity Analysis        |                                            ✔️                                            |  Metrics need to be calculated externally  |                 Metrics need to be calculated externally                 |                                    ❌                                    |
-|        Supports Beta Diversity Analysis        |                                            ✔️                                            | Distances need to be calculated externally |                                    ❌                                    |                                    ❌                                    |
-|             Paired Sample Analysis             |                                            ✔️                                            |                     ✔️                     |                                    ❌                                    |                                    ❌                                    |
-|         Multiple Visualization Styles          |   Boxplot, Violinplot, Spaghettiplot, Heatmap, Stacked Barplot, Areaplot, Volcano Plot   |           Spaghettiplot, Boxplot           |                                 Lineplot                                 |                 Boxplot, Densityplot, Barplot, Lineplot                  |
-|          Key Features Identification           |                                            ✔️                                            |                     ✔️                     |                                    ✔️                                    |                                    ✔️                                    |
-|                Diff. Prevalence                |                                            ✔️                                            |                     ❌                     |                                    ❌                                    |                                    ❌                                    |
-|    Paired Samples Support in Taxa Analysis     |                                            ✔️                                            |                     ✔️                     |                                    ❌                                    |                                    ❌                                    |
-| Time Points Subgroup Analysis in Taxa Analysis |                                            ✔️                                            |                     ❌                     |                                    ❌                                    |                                    ❌                                    |
-|           Similar Abundance Pattern            |                                            ✔️                                            |                     ❌                     |                                    ❌                                    |                                    ❌                                    |
-|             Similar Change Pattern             |                                            ✔️                                            |                     ❌                     |                                    ❌                                    |                                    ❌                                    |
-|    Similar Changes in Composition Over Time    |                                            ✔️                                            |                     ❌                     |                                    ❌                                    |                                    ❌                                    |
-|               Publication Ready                |                                            ✔️                                            |                     ✔️                     |                                    ❌                                    |                                    ❌                                    |
-|              Ongoing Development               |                                            ✔️                                            |                     ✔️                     |                                    ✔️                                    |                                    ✔️                                    |
+`MicrobiomeStat` is designed with users in mind. Comprehensive
+documentation and tutorials are available to assist both novice and
+experienced researchers.
 
-As shown in Comparative Table 1, `MicrobiomeStat` provides a variety of
-data input formats, supports both alpha and beta diversity analysis,
-paired sample analysis, multiple visualization styles, and many other
-features. This makes `MicrobiomeStat` more comprehensive and flexible
-than many other packages dedicated to longitudinal data analysis.
+### Ongoing Development
 
-## Comparative Table 2: Comprehensive Packages
+Ensuring that `MicrobiomeStat` remains a leading tool in its category
+requires ongoing development. We’re dedicated to regular updates and
+addressing user feedback.
 
-|             Features              |                                                    MicrobiomeStat                                                     |                              microbiomeutilities                               |                         phyloseq                         |               microbiomemarker                |                                                               MicrobiomeAnalyst                                                                |                                             microbiomeeco                                             |                                                     EasyAmplicon                                                     |        STAMP         |                qiime2                 |                                            MicrobiotaProcess                                            |
-|:---------------------------------:|:---------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------:|:--------------------------------------------------------:|:---------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------:|:--------------------:|:-------------------------------------:|:-------------------------------------------------------------------------------------------------------:|
-|        Data Input Formats         |                  QIIME2, DADA2, BIOM, Mothur, Phyloseq, DGEList, DESeqDataSet, SummarizedExperiment                   |                                    phyloseq                                    |               QIIME2, DADA2, BIOM, Mothur                |     QIIME2, DADA2, BIOM, Mothur, Phyloseq     |                                                            txt, .csv, biom, mothur                                                             |                               QIIME, QIIME2, HUMAnN, Kraken2, phyloseq                                |                                                Paired fastq/fq files                                                 |         .tsv         |              fastq, biom              | qiime2, dada2, MetaPhlAn, Returns MPSE object, Phyloseq, TreeSummarizedExperiment, SummarizedExperiment |
-| Supports Alpha Diversity Analysis |                                                          ✔️                                                           |                                       ✔️                                       |                            ✔️                            |                      ✔️                       |                                                                       ✔️                                                                       |                                                  ✔️                                                   |                                                          ✔️                                                          |          ❌          |                  ✔️                   |                                                   ✔️                                                    |
-| Supports Beta Diversity Analysis  |                                                          ✔️                                                           |                                       ✔️                                       |                            ✔️                            |                      ✔️                       |                                                                       ✔️                                                                       |                                                  ✔️                                                   |                                                          ✔️                                                          |          ❌          |                  ✔️                   |                                                   ✔️                                                    |
-|      Paired Sample Analysis       |                                                          ✔️                                                           |                                       ✔️                                       |                            ❌                            |                      ❌                       |                                                                       ❌                                                                       |                                                  ❌                                                   |                                                          ❌                                                          |          ❌          |                  ✔️                   |                                                   ❌                                                    |
-|    Longitudinal Data Analysis     |                                                          ✔️                                                           |                                       ✔️                                       |                            ❌                            |                      ❌                       |                                                                       ❌                                                                       |                                                  ❌                                                   |                                                          ❌                                                          |          ❌          |                  ✔️                   |                                                   ❌                                                    |
-|   Multiple Visualization Styles   | Boxplot, Violinplot, Scatterplot, Barplot, Heatmap, Dotplot, Ordination plot, Area plot, Volcano plot, Spaghetti plot | Density plot, Barplot, Stripchart, Boxplot, Heatmap, Area plot, Spaghetti plot | Boxplot, Barplot, Heatmap, Network plot, Ordination plot | Boxplot, Heatmap, Dotplot, Barplot, Cladogram | Stacked bar/area plot, Interactive pie chart, Rarefaction curve, Phylogenetic tree, Heat tree, Boxplot, Heatmap, Network plot, Ordination plot | Barplot, Boxplot, Heatmap, Pie chart, Venn diagram, Ordination plot, Circular heatmap, Sankey diagram | Barplot, Cladogram, Phylogenetic tree, Heatmap, Sankey diagram, Venn diagram, Ordination plot, Volcano plot, Boxplot | Barplot, Scatterplot | Scatterplot, Ordination plot, Boxplot |                   Barplot, Boxplot, Heatmap, Ordination plot, Tree plot, Volcano plot                   |
-|         Publication Ready         |                                                          ✔️                                                           |                                       ✔️                                       |                            ❌                            |                      ❌                       |                                                                       ✔️                                                                       |                                                  ❌                                                   |                                                          ❌                                                          |          ✔️          |                  ❌                   |                                                   ❌                                                    |
-|        Ongoing Development        |                                                          ✔️                                                           |                                       ❌                                       |                            ✔️                            |                      ❌                       |                                                                       ✔️                                                                       |                                                  ✔️                                                   |                                                          ✔️                                                          |          ❌          |                  ✔️                   |                                                   ✔️                                                    |
+### Collaborative Development
 
-Comparative Table 2, comparing comprehensive packages, further
-illustrates the strengths of `MicrobiomeStat`. Not only does
-`MicrobiomeStat` support a wide range of data input formats and
-diversity analyses, but it also excels in paired sample analysis and
-longitudinal data analysis, among others.
+`MicrobiomeStat` is an open-source tool, and we value contributions from
+the community. If you have suggestions or improvements, pull requests
+are welcomed.
 
-In conclusion, `MicrobiomeStat` offers a robust and comprehensive
-solution for your microbiome data analysis needs, outperforming many
-other packages in both versatility and user-friendliness. Why not give
-it a try and see the difference for yourself?
+### Conclusion
 
-## Features at a glance 🌟
+`MicrobiomeStat` aims to be a reliable and efficient tool for microbiome
+data analysis. For those who value open-source collaboration, we invite
+you to be part of our community and contribute to its continuous
+improvement.
+
+## Key Features
 
 | Feature                        | Description                                                                                      |
 |--------------------------------|--------------------------------------------------------------------------------------------------|
@@ -125,23 +97,21 @@ it a try and see the difference for yourself?
 | Data Export                    | Supports export of analysis results in diverse formats                                           |
 | Ongoing Development            | Continual feature refinement and new functionality addition                                      |
 
-## Output interpretation 📝
+## Assistance & Contact Information
 
-To learn how to interpret the output objects and visualizations, visit
-our wiki: [www.microbiomestat.wiki](http://www.microbiomestat.wiki).
+For assistance or inquiries, feel free to reach out to:
 
-## Known issues and limitations ❗ {#known-issues}️
+| Name             | Email                       |
+|------------------|-----------------------------|
+| Dr. Jun Chen     | <Chen.Jun2@mayo.edu>        |
+| Dr. Caffery Yang | <cafferychen7850@gmail.com> |
 
-We strive to make `MicrobiomeStat` as comprehensive as possible, but
-there may still be limitations. All known issues can be found in the
-issues section of our GitHub repository.
+## Engage in Our Discord Community
 
-## Support & Contact 📬 📬
+Join our Discord community to stay abreast of the latest developments in
+`MicrobiomeStat`, engage in discussions, and avail support:
 
-| Name         | Email                       |
-|--------------|-----------------------------|
-| Jun Chen     | <Chen.Jun2@mayo.edu>        |
-| Caffery Yang | <cafferychen7850@gmail.com> |
+[Join the MicrobiomeStat Discord Server!](https://discord.gg/BfNvTJAt)
 
-Stay updated with the latest `MicrobiomeStat` features by visiting our
-wiki: [www.microbiomestat.wiki](http://www.microbiomestat.wiki)
+Our active community fosters an environment of collaboration, feedback,
+and continuous learning.

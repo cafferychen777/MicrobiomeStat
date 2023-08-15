@@ -34,20 +34,20 @@
 #' # Load required libraries and example data
 #' library(vegan)
 #' data(peerj32.obj)
-#' dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
+#' dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC'))
 #' # Add metadata information
 #' attr(dist.obj[["BC"]], "labels") <- peerj32.obj$meta.dat
 #' attr(dist.obj[["Jaccard"]], "labels") <- peerj32.obj$meta.dat
 #' # Generate the boxplot pair
 #' generate_beta_ordination_pair(
 #'   data.obj = peerj32.obj,
-#'   dist.obj = NULL,
+#'   dist.obj = adj.dist.obj,
 #'   pc.obj = NULL,
 #'   subject.var = "subject",
 #'   time.var = "time",
 #'   group.var = "group",
 #'   strata.var = NULL,
-#'   adj.vars = NULL,
+#'   adj.vars = "sex",
 #'   dist.name = c("BC"),
 #'   base.size = 16,
 #'   theme.choice = "bw",
@@ -86,6 +86,7 @@ generate_beta_ordination_pair <-
       if (!is.null(adj.vars)){
         dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
       }
+      print(dist.obj)
     } else {
       if (is.null(data.obj)) {
         metadata <- attr(dist.obj[[dist.name[1]]], "labels") %>% select(all_of(c(subject.var, time.var, group.var, strata.var)))
@@ -103,6 +104,8 @@ generate_beta_ordination_pair <-
           dist.name = dist.name
         )
     }
+
+    print(pc.obj)
 
     if (is.null(palette)) {
       col <-

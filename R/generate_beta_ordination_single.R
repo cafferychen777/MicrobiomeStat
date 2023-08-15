@@ -42,7 +42,7 @@
 #' # Generate the boxplot pair
 #' generate_beta_ordination_single(
 #'   data.obj = peerj32.obj,
-#'   dist.obj = NULL,
+#'   dist.obj = adj.dist.obj,
 #'   pc.obj = NULL,
 #'   subject.var = "subject",
 #'   time.var = "time",
@@ -133,7 +133,7 @@ generate_beta_ordination_single <-
       pc.obj <-
         mStat_calculate_PC(
           dist.obj = dist.obj,
-          method = "nmds",
+          method = "mds",
           k = 2,
           dist.name = dist.name
         )
