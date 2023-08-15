@@ -1,5 +1,5 @@
 ---
-title: "MicrobiomeStat: Your Best Choice for Microbiome Analysis Ever! 🧬🔬"
+title: "MicrobiomeStat: Comprehensive Microbiome Analysis in R"
 output: github_document
 editor_options: 
   markdown: 
@@ -14,9 +14,39 @@ editor_options:
 
 `MicrobiomeStat` is a powerful and versatile R package, designed specifically for analyzing longitudinal microbiome data. It extends to handle multi-omics data, making it an asset for broader biological research.
 
-Crucially, `MicrobiomeStat` shines not only in longitudinal studies, but is also adept at handling cross-sectional studies. For more detailed tutorials and information, please visit our main page: [www.microbiomestat.wiki](http://www.microbiomestat.wiki).
+Crucially, `MicrobiomeStat` shines not only in longitudinal studies, but is also adept at handling cross-sectional studies. 
 
-## Why Choose MicrobiomeStat? 👍
+# Table of Contents
+1. [Online Tutorials](#online-tutorials)
+2. [Why Choose MicrobiomeStat?](#why-choose-microbiomestat)
+3. [Features at a glance](#features-at-a-glance)
+4. [Output interpretation](#output-interpretation)
+5. [Known issues and limitations](#known-issues-and-limitations)
+6. [Support & Contact](#support-contact)
+
+# Online Tutorials {#online-tutorials}
+
+MicrobiomeStat is a powerful and comprehensive package for microbiome data analysis, with diverse capabilities for data input, analysis, visualization, and more. 
+
+To help users thoroughly learn how to use MicrobiomeStat, we have created a comprehensive online tutorial using GitBook.
+
+The online tutorials contain:
+
+- Detailed installation and configuration instructions
+- Case-driven analysis walkthroughs  
+- Interactive code examples
+- Result interpretation and visualization guides
+- FAQ
+
+We highly recommend new users to consult the online tutorials first to fully understand MicrobiomeStat's capabilities and usage:
+
+**MicrobiomeStat Tutorials:** https://www.microbiomestat.wiki
+
+The online tutorials are continuously updated as the package evolves. Users can find answers to any questions encountered in usage there.
+
+This helps keep the README focused on the package overview and key information, without being overly lengthy or complex. The details of usage are covered in the online tutorials in a more user-friendly format.
+
+## Why Choose MicrobiomeStat? 👍 {#why-choose-microbiomestat}
 
 Choosing the right tools for your microbiome data analysis can make a significant difference in the results. We have compared `MicrobiomeStat` with other similar packages, and we believe our package stands out in many aspects. Below are two comparative tables, showing the distinct advantages of `MicrobiomeStat` over other packages.
 
@@ -58,7 +88,7 @@ Comparative Table 2, comparing comprehensive packages, further illustrates the s
 
 In conclusion, `MicrobiomeStat` offers a robust and comprehensive solution for your microbiome data analysis needs, outperforming many other packages in both versatility and user-friendliness. Why not give it a try and see the difference for yourself?
 
-## Features at a glance 🌟
+## Features at a glance 🌟 {#features-at-a-glance}
 
 | Feature | Description |
 | --- | --- |
@@ -70,15 +100,15 @@ In conclusion, `MicrobiomeStat` offers a robust and comprehensive solution for y
 | Data Export | Supports export of analysis results in diverse formats |
 | Ongoing Development | Continual feature refinement and new functionality addition |
 
-## Output interpretation 📝 
+## Output interpretation 📝 {#output-interpretation}
 
 To learn how to interpret the output objects and visualizations, visit our wiki: [www.microbiomestat.wiki](http://www.microbiomestat.wiki). 
 
-## Known issues and limitations ❗️ 
+## Known issues and limitations ❗ {#known-issues}️ 
 
 We strive to make `MicrobiomeStat` as comprehensive as possible, but there may still be limitations. All known issues can be found in the issues section of our GitHub repository.
 
-## Support & Contact 📬
+## Support & Contact 📬 📬 {#support-contact}
 
 | Name | Email |
 | --- | --- |

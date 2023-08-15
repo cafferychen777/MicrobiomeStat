@@ -1,4 +1,4 @@
-MicrobiomeStat: Your Best Choice for Microbiome Analysis Ever! 🧬🔬
+MicrobiomeStat: Comprehensive Microbiome Analysis in R
 ================
 
 <!-- badges: start -->
@@ -15,9 +15,46 @@ handle multi-omics data, making it an asset for broader biological
 research.
 
 Crucially, `MicrobiomeStat` shines not only in longitudinal studies, but
-is also adept at handling cross-sectional studies. For more detailed
-tutorials and information, please visit our main page:
-[www.microbiomestat.wiki](http://www.microbiomestat.wiki).
+is also adept at handling cross-sectional studies.
+
+# Table of Contents
+
+1.  [Online Tutorials](#online-tutorials)
+2.  [Why Choose MicrobiomeStat?](#why-choose-microbiomestat)
+3.  [Features at a glance](#features-at-a-glance)
+4.  [Output interpretation](#output-interpretation)
+5.  [Known issues and limitations](#known-issues-and-limitations)
+6.  [Support & Contact](#support-contact)
+
+# Online Tutorials
+
+MicrobiomeStat is a powerful and comprehensive package for microbiome
+data analysis, with diverse capabilities for data input, analysis,
+visualization, and more.
+
+To help users thoroughly learn how to use MicrobiomeStat, we have
+created a comprehensive online tutorial using GitBook.
+
+The online tutorials contain:
+
+- Detailed installation and configuration instructions
+- Case-driven analysis walkthroughs  
+- Interactive code examples
+- Result interpretation and visualization guides
+- FAQ
+
+We highly recommend new users to consult the online tutorials first to
+fully understand MicrobiomeStat’s capabilities and usage:
+
+**MicrobiomeStat Tutorials:** <https://www.microbiomestat.wiki>
+
+The online tutorials are continuously updated as the package evolves.
+Users can find answers to any questions encountered in usage there.
+
+This helps keep the README focused on the package overview and key
+information, without being overly lengthy or complex. The details of
+usage are covered in the online tutorials in a more user-friendly
+format.
 
 ## Why Choose MicrobiomeStat? 👍
 
@@ -93,13 +130,13 @@ it a try and see the difference for yourself?
 To learn how to interpret the output objects and visualizations, visit
 our wiki: [www.microbiomestat.wiki](http://www.microbiomestat.wiki).
 
-## Known issues and limitations ❗️
+## Known issues and limitations ❗ {#known-issues}️
 
 We strive to make `MicrobiomeStat` as comprehensive as possible, but
 there may still be limitations. All known issues can be found in the
 issues section of our GitHub repository.
 
-## Support & Contact 📬
+## Support & Contact 📬 📬
 
 | Name         | Email                       |
 |--------------|-----------------------------|
