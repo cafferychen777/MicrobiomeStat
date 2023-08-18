@@ -37,9 +37,9 @@
 #'   time.var = "month",
 #'   group.var = "diet",
 #'   strata.var = "antiexposedall",
-#'   feature.level = "Family",
+#'   feature.level = c("Family","Genus","Order","Family"),
 #'   feature.dat.type = "proportion",
-#'   feature.number = 8,
+#'   feature.number = 20,
 #'   t0.level = unique(ecam.obj$meta.dat$month)[1],
 #'   ts.levels = unique(ecam.obj$meta.dat$month)[-1],
 #'   base.size = 10,
@@ -163,7 +163,7 @@ generate_taxa_areaplot_long <-
       otu_tax_agg_numeric <- dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
 
       # 标准化数据(Have been dropped out)
-      otu_tab_norm <- apply(t(otu_tax_agg_numeric %>% select(-feature.level)), 1, function(x) x)
+      otu_tab_norm <- apply(t(otu_tax_agg_numeric %>% select(-all_of(feature.level))), 1, function(x) x)
 
       rownames(otu_tab_norm) <- as.matrix(otu_tax_agg_numeric[, feature.level])
 
@@ -302,7 +302,7 @@ generate_taxa_areaplot_long <-
             if (group.var == ""){
             } else {
               if (!is.null(strata.var)){
-                ggh4x::facet_nested(as.formula(paste(". ~", group.var, "+", strata.var)), drop = T, scale = "free", space = "free")
+                ggh4x::facet_nested(as.formula(paste(". ~", strata.var, "+", group.var)), drop = T, scale = "free", space = "free")
               } else {
                 ggh4x::facet_nested(as.formula(paste(". ~", group.var)), drop = T, scale = "free", space = "free")
               }
@@ -358,5 +358,8 @@ generate_taxa_areaplot_long <-
       # 返回堆叠条形图以进行显示
       return(stack_areaplot_average)
     })
+
+    names(plot_list_all) <- feature.level
+
     return(plot_list_all)
   }

@@ -34,19 +34,20 @@
 #' @examples
 #' \dontrun{
 #' data(subset_T2D.obj)
+#'
 #' generate_beta_ordination_long(
 #'   data.obj = subset_T2D.obj,
 #'   dist.obj = NULL,
 #'   pc.obj = NULL,
 #'   subject.var = "subject_id",
-#'   time.var = "visit_number",
-#'   t0.level = sort(unique(subset_T2D.obj$meta.dat$visit_number))[1],
-#'   ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[2:6],
+#'   time.var = "visit_number_num",
+#'   t0.level = NULL,
+#'   ts.levels = NULL,
 #'   group.var = "subject_gender",
 #'   strata.var = "subject_race",
-#'   adj.vars = "sample_body_site",
-#'   dist.name = c("BC","Jaccard"),
-#'   base.size = 16,
+#'   adj.vars = NULL,
+#'   dist.name = c("BC"),
+#'   base.size = 12,
 #'   theme.choice = "bw",
 #'   custom.theme = NULL,
 #'   palette = NULL,
@@ -105,7 +106,7 @@ generate_beta_ordination_long <-
       pc.obj <-
         mStat_calculate_PC(
           dist.obj = dist.obj,
-          method = "nmds",
+          method = "mds",
           k = 2,
           dist.name = dist.name
         )
@@ -131,7 +132,7 @@ generate_beta_ordination_long <-
 
     aes_function <- if (!is.null(group.var)) {
       aes(color = !!sym(group.var),
-          shape = !!sym(time.var))
+          alpha = !!sym(time.var))
     } else {
       aes(color = !!sym(time.var))
     }
@@ -153,26 +154,28 @@ generate_beta_ordination_long <-
 
     plot_list <- lapply(dist.name, function(dist.name) {
       pc.mat <- pc.obj[[dist.name]]$points[, 1:2]
+
       df <- as.data.frame(pc.mat) %>%
         setNames(c("PC1", "PC2")) %>%
-        dplyr::bind_cols(metadata[, c(subject.var, time.var, group.var, strata.var)]) %>%
+        rownames_to_column("sample") %>%
+        dplyr::left_join(metadata %>% select(all_of(c(subject.var, time.var, group.var, strata.var))) %>% rownames_to_column("sample"), by = "sample") %>%
         dplyr::mutate(x_start = PC1,
                y_start = PC2,
                x_end = NA,
                y_end = NA)
-      Time_choices <-
-        df %>% select(all_of(time.var)) %>% dplyr::pull() %>% unique()
+
       df <- df %>%
-        dplyr::group_by(.data[[subject.var]]) %>%
-        dplyr::mutate(x_end = dplyr::if_else(.data[[time.var]] == max(levels(Time_choices)), NA_real_, dplyr::lead(PC1)),
-               y_end = dplyr::if_else(.data[[time.var]] == max(levels(Time_choices)), NA_real_, dplyr::lead(PC2))) %>%
+        dplyr::group_by(!!sym(subject.var)) %>%
+        dplyr::arrange(!!sym(time.var)) %>%
+        dplyr::mutate(x_end = dplyr::if_else(!!sym(time.var) == max(levels(!!sym(time.var))), NA_real_, dplyr::lead(PC1)),
+               y_end = dplyr::if_else(!!sym(time.var) == max(levels(!!sym(time.var))), NA_real_, dplyr::lead(PC2))) %>%
         dplyr::ungroup()
+
       p <- ggplot2::ggplot(df, ggplot2::aes(PC1, PC2)) +
         ggplot2::geom_point(
           size = 15,
           aes_function,
-          show.legend = T,
-          alpha = 0.8
+          show.legend = T
         ) +
         ggplot2::geom_segment(
           aes(
@@ -230,6 +233,7 @@ generate_beta_ordination_long <-
       if (!is.null(strata.var)) {
         p <- p + ggh4x::facet_nested(as.formula(paste(".~", strata.var)))
       }
+
       # Save the plots as a PDF file
       if (pdf) {
         pdf_name <- paste0(
@@ -263,6 +267,8 @@ generate_beta_ordination_long <-
       }
       return(p)
     })
+
+    names(plot_list) <- dist.name
 
     return(plot_list)
   }

@@ -17,24 +17,12 @@
 #'
 #' @examples
 #' \dontrun{
-#' data(peerj32.obj)
-#' generate_taxa_trend_test_long(
-#'   data.obj = peerj32.obj,
-#'   subject.var = "subject",
-#'   time.var = "time",
-#'   group.var = "group",
-#'   adj.vars = "sex",
-#'   feature.level = "Phylum",
-#'   prev.filter = 0.001,
-#'   abund.filter = 0.001,
-#'   feature.dat.type = "count"
-#' )
 #'
-#' data(ecam.obj)
+#' data("ecam.obj")
 #' generate_taxa_trend_test_long(
 #'   data.obj = ecam.obj,
 #'   subject.var = "studyid",
-#'   time.var = "month",
+#'   time.var = "month_num",
 #'   group.var = "diet",
 #'   adj.vars = NULL,
 #'   feature.level = c("Phylum","Class"),
@@ -42,6 +30,20 @@
 #'   abund.filter = 0,
 #'   feature.dat.type = "proportion"
 #' )
+#'
+#' data("subset_T2D.obj")
+#' generate_taxa_trend_test_long(
+#'   data.obj = subset_T2D.obj,
+#'   subject.var = "subject_id",
+#'   time.var = "visit_number_num",
+#'   group.var = "subject_gender",
+#'   adj.vars = "sample_body_site",
+#'   feature.level = "Family",
+#'   prev.filter = 0.001,
+#'   abund.filter = 0.001,
+#'   feature.dat.type = "proportion"
+#' )
+#'
 #' }
 #' @export
 generate_taxa_trend_test_long <-
@@ -49,7 +51,7 @@ generate_taxa_trend_test_long <-
            subject.var,
            time.var = NULL,
            group.var,
-           adj.vars,
+           adj.vars = NULL,
            feature.level,
            prev.filter = 0,
            abund.filter = 0,
@@ -83,13 +85,22 @@ generate_taxa_trend_test_long <-
         time.var, group.var, adj.vars, subject.var
       )))
 
+    # Adjusting the fixed effects for interaction and checking adj.vars
     if (is.null(group.var)) {
-      fixed_effects <- paste(paste(adj.vars, collapse = " + "), time.var, sep = " + ")
+      if (!is.null(adj.vars)) {
+        fixed_effects <- paste(adj.vars, "+", time.var)
+      } else {
+        fixed_effects <- time.var
+      }
     } else {
-      fixed_effects <- paste(paste(adj.vars, collapse = " + "), group.var, time.var, sep = " + ")
+      if (!is.null(adj.vars)) {
+        fixed_effects <- paste(adj.vars, "+", group.var, "*", time.var)
+      } else {
+        fixed_effects <- paste(group.var, "*", time.var)
+      }
     }
 
-    random_effects <- paste("(1|", subject.var, ")", sep = "")
+    random_effects <- paste("(1 +", time.var, "|", subject.var, ")")
     formula <- paste(fixed_effects, random_effects, sep = " + ")
 
     test.list <- lapply(feature.level, function(feature.level) {

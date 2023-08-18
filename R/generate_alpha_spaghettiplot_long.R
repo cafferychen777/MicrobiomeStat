@@ -38,9 +38,9 @@
 #'   time.var = "visit_number",
 #'   t0.level = sort(unique(subset_T2D.obj$meta.dat$visit_number))[1],
 #'   ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[-1],
-#'   group.var = "subject_race",
-#'   strata.var = "subject_gender",
-#'   adj.vars = "sample_body_site",
+#'   group.var = "subject_gender",
+#'   strata.var = "subject_race",
+#'   adj.vars = NULL,
 #'   theme.choice = "bw",
 #'   palette = NULL,
 #'   pdf = TRUE,
@@ -165,13 +165,6 @@ generate_alpha_spaghettiplot_long <-
       col <- palette
     }
 
-    # Calculate new sizes based on base.size
-    title.size = base.size * 1.25
-    axis.title.size = base.size * 1
-    axis.text.size = base.size * 0.5
-    legend.title.size = base.size * 1
-    legend.text.size = base.size * 0.75
-
     # Create a plot for each alpha diversity index
     plot_list <- lapply(alpha.name, function(index) {
       sub_alpha.df <- alpha.df %>% select(all_of(c(index,subject.var, time.var, group.var, strata.var, adj.vars)))
@@ -217,6 +210,13 @@ generate_alpha_spaghettiplot_long <-
       breaks <- time.points[indices]
       labels <- time.points[indices]
 
+      if (!is.null(adj.vars)) {
+        covariates <- paste(adj.vars, collapse = ", ")
+        y_label <- paste0(index, " index (adjusted by: ", covariates, ")")
+      } else {
+        y_label <- paste0(index, " index")
+      }
+
       plot <- ggplot() +
         geom_line(
           data = sub_alpha.df,
@@ -238,28 +238,31 @@ generate_alpha_spaghettiplot_long <-
           ),
           size = 2
         ) +
-        labs(x = time.var, y = index, color = group.var) +
+        labs(x = time.var, y = y_label, color = group.var) +
         scale_color_manual(
           values = col
         ) +
         scale_x_discrete(breaks = breaks, labels = labels) +
         theme_to_use +
         theme(
-          plot.title = element_text(
-            size = title.size,
-            face = "bold",
-            hjust = 0.5
-          ),
-          axis.title.x = element_text(size = axis.title.size, face = "bold"),
-          axis.title.y = element_text(size = axis.title.size, face = "bold"),
-          axis.text.x = element_text(angle = 90, color = "black", vjust = 0.5, size = axis.text.size),
-          axis.text.y = element_text(size = axis.text.size),
-          legend.title = element_text(size = legend.title.size, face = "bold"),
-          legend.text = element_text(size = legend.text.size)
+          strip.text.x = element_text(size = 15, color = "black"),
+          axis.title.x = element_text(size = base.size),
+          axis.title.y = element_text(size = base.size),
+          axis.text.x = element_text(angle = 90, color = "black", vjust = 0.5, size = base.size * 0.75),
+          axis.text.y = element_text(size = base.size),
+          legend.text = ggplot2::element_text(size = 16),
+          legend.title = ggplot2::element_text(size = 16),
+          panel.spacing.x = unit(0, "cm"),
+          panel.spacing.y = unit(0, "cm"),
+          plot.margin = unit(c(0.3, 0.3, 0.3, 0.3), units = "cm")
         )
 
       if (!is.null(strata.var)) {
-        plot <- plot + facet_wrap(as.formula(paste0("~", strata.var)))
+        plot <- plot + ggh4x::facet_nested(
+          cols = vars(!!sym(strata.var)),
+          scale = "free",
+          space = "free"
+        )
       }
 
       if (pdf) {
@@ -297,6 +300,8 @@ generate_alpha_spaghettiplot_long <-
       }
       return(plot)
     })
+
+    names(plot_list) <- alpha.name
 
     return(plot_list)
   }

@@ -296,6 +296,7 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
       colnames(Y) <- samp.name
       rownames(Y) <- taxa.name
     }
+
   }
 
 

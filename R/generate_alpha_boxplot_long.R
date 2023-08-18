@@ -39,7 +39,7 @@
 #'   ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[2:6],
 #'   group.var = "subject_race",
 #'   strata.var = "subject_gender",
-#'   adj.vars = "sample_body_site",
+#'   adj.vars = NULL,
 #'   base.size = 16,
 #'   theme.choice = "bw",
 #'   palette = NULL,
@@ -229,7 +229,13 @@ generate_alpha_boxplot_long <- function (data.obj,
     average_alpha_df <- NULL
     if (length(unique(alpha_df[[time.var]])) > 10 ||
         length(unique(alpha_df[[subject.var]])) > 25) {
-      if (!is.null(group.var)) {
+      if (!is.null(strata.var) & !is.null(group.var)){
+        average_alpha_df <- alpha_df %>%
+          dplyr::group_by(!!sym(strata.var), !!sym(group.var),!!sym(time.var)) %>%
+          dplyr::summarise(dplyr::across(!!sym(index), mean, na.rm = TRUE), .groups = "drop") %>%
+          dplyr::ungroup() %>%
+          dplyr::mutate(!!sym(subject.var) := "ALL")
+      } else if (!is.null(group.var)) {
         average_alpha_df <- alpha_df %>%
           dplyr::group_by(!!sym(group.var),!!sym(time.var)) %>%
           dplyr::summarise(dplyr::across(!!sym(index), mean, na.rm = TRUE), .groups = "drop") %>%
@@ -268,25 +274,21 @@ generate_alpha_boxplot_long <- function (data.obj,
         linewidth = 0.6,
         color = "black",
         linetype = "dashed",
-        data = if (!is.null(average_alpha_df))
-          average_alpha_df
-        else
-          alpha_df
+        data = if (!is.null(average_alpha_df)) average_alpha_df else alpha_df
       ) +
       scale_fill_manual(values = col) +
       {
         if (!is.null(strata.var) & !is.null(group.var)) {
           ggh4x::facet_nested(
-            as.formula(paste(". ~", group.var, "+", strata.var)),
-            drop = T,
+            cols = vars(!!sym(strata.var)),
+            rows = vars(!!sym(group.var)),
             scale = "free",
             space = "free"
           )
         } else {
           if (group.var != "ALL") {
             ggh4x::facet_nested(
-              as.formula(paste(". ~", group.var)),
-              drop = T,
+              cols = vars(!!sym(group.var)),
               scale = "free",
               space = "free"
             )
@@ -367,6 +369,8 @@ generate_alpha_boxplot_long <- function (data.obj,
       dev.off()
     }
   }
+
+  names(plot_list) <- alpha.name
 
   return(plot_list)
 }

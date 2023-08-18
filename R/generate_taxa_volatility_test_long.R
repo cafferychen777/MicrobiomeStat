@@ -40,12 +40,14 @@
 #' subset_T2D.obj2 <- subset_T2D.obj
 #' subset_T2D.obj2$meta.dat$visit_number <- as.numeric(subset_T2D.obj2$meta.dat$visit_number)
 #' generate_taxa_volatility_test_long(
-#' data.obj = subset_T2D.obj2,
+#' data.obj = subset_T2D.obj,
 #' time.var = "visit_number",
 #' subject.var = "subject_id",
-#' group.var = "subject_race",
-#' adj.vars = "subject_gender",
-#' feature.level = c("Phylum","Class"),
+#' group.var = "subject_gender",
+#' adj.vars = NULL,
+#' prev.filter = 1e-7,
+#' abund.filter = 0,
+#' feature.level = c("Phylum"),
 #' feature.dat.type = "count"
 #' )
 #' @export
@@ -58,6 +60,7 @@ generate_taxa_volatility_test_long <- function(data.obj,
                                                abund.filter = 0,
                                                feature.level,
                                                feature.dat.type = c("count", "proportion", "other"),
+                                               Transform = "CLR",
                                                ...) {
   # Validate and extract data
   mStat_validate_data(data.obj)
@@ -79,7 +82,7 @@ generate_taxa_volatility_test_long <- function(data.obj,
 
   if (feature.dat.type %in% c("count", "proportion")) {
     otu_tab <-
-      load_data_obj_count(mStat_normalize_data(data.obj, method = "CLR")$data.obj.norm)
+      load_data_obj_count(mStat_normalize_data(data.obj, method = Transform)$data.obj.norm)
   } else {
     otu_tab <- load_data_obj_count(data.obj)
   }
@@ -93,6 +96,10 @@ generate_taxa_volatility_test_long <- function(data.obj,
         .
     } %>%
     select(all_of(feature.level))
+
+  if (Transform == "CLR"){
+    abund.filter <- 0
+  }
 
   test.list <- lapply(feature.level, function(feature.level) {
 
@@ -195,7 +202,6 @@ generate_taxa_volatility_test_long <- function(data.obj,
     return(sub_test.list)
   })
 
-  # Assign names to the elements of test.list
   names(test.list) <- feature.level
 
   return(test.list)

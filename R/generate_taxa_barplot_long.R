@@ -353,5 +353,8 @@ generate_taxa_barplot_long <-
       # 返回堆叠条形图以进行显示
       return(stack_barplot_average)
     })
+
+    names(plot_list_all) <- feature.level
+
     return(plot_list_all)
   }

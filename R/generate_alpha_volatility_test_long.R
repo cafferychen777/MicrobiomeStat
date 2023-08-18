@@ -94,7 +94,7 @@ generate_alpha_volatility_test_long <- function(data.obj,
     )))
 
   alpha_df <-
-    dplyr::bind_cols(alpha.obj) %>% dplyr::bind_cols(tibble("sample" = colnames(otu_tab))) %>%
+    dplyr::bind_cols(alpha.obj) %>% tibble::rownames_to_column("sample") %>%
     dplyr::inner_join(meta_tab %>% rownames_to_column("sample"),
                       by = c("sample"))
 
@@ -115,7 +115,7 @@ generate_alpha_volatility_test_long <- function(data.obj,
   volatility_df <- alpha_df %>%
     dplyr::group_by(!!sym(subject.var)) %>%
     dplyr::arrange(!!sym(time.var)) %>%
-    dplyr::mutate(diff_residuals = abs(residuals - lag(residuals)),
+    dplyr::mutate(diff_residuals = abs(residuals - dplyr::lag(residuals)),
            diff_time = !!sym(time.var) - dplyr::lag(!!sym(time.var))) %>%
     dplyr::filter(!is.na(diff_residuals), !is.na(diff_time)) %>%
     dplyr::filter(diff_time != 0) %>%

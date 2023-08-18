@@ -29,11 +29,9 @@
 #'   pc.ind = c(1, 2),
 #'   subject.var = "studyid",
 #'   time.var = "month",
-#'   t0.level = NULL,
-#'   ts.levels = NULL,
 #'   group.var = "diet",
 #'   adj.vars = "delivery",
-#'   dist.name = c('BC'),
+#'   dist.name = c('BC')
 #' )
 #' }
 #' @export

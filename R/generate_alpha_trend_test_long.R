@@ -72,8 +72,8 @@ construct_formula <- function(index, group.var, time.var, subject.var, adj.vars)
 #' alpha.name = c("shannon","simpson"),
 #' time.var = "visit_number",
 #' subject.var = "subject_id",
-#' group.var = NULL,
-#' adj.vars = "subject_gender"
+#' group.var = "subject_gender",
+#' adj.vars = NULL
 #' )
 #' }
 #' @export
@@ -123,7 +123,7 @@ generate_alpha_trend_test_long <- function(data.obj,
     )))
 
   alpha_df <-
-    dplyr::bind_cols(alpha.obj) %>% dplyr::bind_cols(tibble("sample" = colnames(otu_tab))) %>%
+    dplyr::bind_cols(alpha.obj) %>% tibble::rownames_to_column("sample") %>%
     dplyr::inner_join(meta_tab %>% rownames_to_column("sample"),
                       by = c("sample"))
 

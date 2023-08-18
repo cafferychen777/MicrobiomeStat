@@ -47,7 +47,7 @@ mStat_calculate_adjusted_distance <- function (data.obj,
     load_data_obj_metadata(data.obj) %>% select(all_of(c(adj.vars)))
 
   # Create a formula string from the adjustment variables and convert it into a formula object
-  formula_str <- paste("xx ~", paste(sprintf("meta_tab$%s", adj.vars), collapse = "+"))
+  formula_str <- paste("xx ~", paste(adj.vars, collapse = "+"))
   dynamic_formula <- as.formula(formula_str)
 
   # Iterate over the distance names to calculate adjusted distances
@@ -65,7 +65,7 @@ mStat_calculate_adjusted_distance <- function (data.obj,
 
     xx <- obj$points
 
-    res <- residuals(lm(dynamic_formula))
+    res <- residuals(lm(dynamic_formula, data = meta_tab))
 
     res_positive <- suppressWarnings(sweep(res, 2, sqrt(eig)[s >= 0], "*"))
     res_negative <- suppressWarnings(sweep(res, 2, sqrt(eig)[s < 0], "*"))

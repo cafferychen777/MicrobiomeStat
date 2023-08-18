@@ -271,7 +271,9 @@ generate_taxa_heatmap_long <- function(data.obj,
     show_colnames = FALSE,
     gaps_col = gaps,
     fontsize = base.size,
-    color = my_palette(n_colors)  # 使用自定义颜色
+    silent = TRUE,
+    color = my_palette(n_colors),
+    ...
   )
 
   gg_heatmap_plot <- as.ggplot(heatmap_plot)
@@ -318,6 +320,8 @@ generate_taxa_heatmap_long <- function(data.obj,
   }
   return(gg_heatmap_plot)
   })
+
+  names(plot_list) <- feature.level
 
   # Return the heatmap plot for display
   return(plot_list)

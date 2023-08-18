@@ -78,16 +78,16 @@
 #'   top.k.plot = NULL,
 #'   top.k.func = NULL,
 #'   Transform = "log",
-#'   prev.filter = 0,
-#'   abund.filter = 0,
-#'   base.size = 16,
+#'   prev.filter = 0.001,
+#'   abund.filter = 0.001,
+#'   base.size = 12,
 #'   theme.choice = "bw",
 #'   custom.theme = NULL,
 #'   palette = NULL,
 #'   pdf = TRUE,
 #'   file.ann = NULL,
 #'   pdf.wid = 11,
-#'   pdf.hei = 8.5
+#'   pdf.hei = 13
 #' )
 #' }
 #' @export
@@ -117,7 +117,6 @@ generate_taxa_boxplot_long <-
            pdf.hei = 8.5,
            ...) {
 
-
     feature.dat.type <- match.arg(feature.dat.type)
 
     mStat_validate_data(data.obj)
@@ -136,7 +135,9 @@ generate_taxa_boxplot_long <-
     # 提取数据
     data.obj <- mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
 
-    meta_tab <- load_data_obj_metadata(data.obj) %>% as.data.frame() %>% select(all_of(c(subject.var,group.var,time.var,strata.var)))
+    meta_tab <- load_data_obj_metadata(data.obj) %>%
+      as.data.frame() %>%
+      select(all_of(c(subject.var,group.var,time.var,strata.var)))
 
     if (feature.dat.type == "count") {
       message(
@@ -513,6 +514,8 @@ generate_taxa_boxplot_long <-
       # Close the PDF device
       dev.off()
     }
+
+    names(plot_list) <- feature.level
 
     return(plot_list)
   }

@@ -36,14 +36,14 @@
 #'   t0.level = NULL,
 #'   ts.levels = NULL,
 #'   group.var = "diet",
-#'   strata.var = NULL,
-#'   adj.vars = c("antiexposedall","delivery"),
+#'   strata.var = "sex",
+#'   adj.vars = NULL,
 #'   dist.name = c("BC"),
 #'   base.size = 20,
 #'   theme.choice = "bw",
 #'   palette = NULL,
 #'   pdf = TRUE,
-#'   file.ann = "test",
+#'   file.ann = NULL,
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
@@ -262,24 +262,27 @@ generate_beta_change_spaghettiplot_long <-
         ) +
         theme_to_use +
         theme(
-          plot.title = element_text(
-            size = title.size,
-            face = "bold",
-            hjust = 0.5
-          ),
+          panel.spacing.x = unit(0, "cm"),
+          panel.spacing.y = unit(0, "cm"),
+          strip.text.x = element_text(size = 12, color = "black"),
           axis.title.x = element_text(size = axis.title.size),
           axis.title.y = element_text(size = axis.title.size),
-          axis.text.x = element_text(angle = 90, color = "black", vjust = 0.5, size = axis.text.size),
-          axis.text.y = element_text(size = axis.text.size),
-          legend.title = element_text(size = legend.title.size),
-          legend.text = element_text(size = legend.text.size)
+          axis.text.x = element_text(angle = 90, color = "black", vjust = 0.5, size = base.size * 0.75),
+          axis.text.y = element_text(size = base.size),
+          plot.margin = unit(c(0.3, 0.3, 0.3, 0.3), units = "cm"),
+          legend.text = ggplot2::element_text(size = 16),
+          legend.title = ggplot2::element_text(size = 16)
         )
       if (group.var == "ALL"){
         p <- p + theme(legend.position = "none")
       }
 
       if (!is.null(strata.var)) {
-        p <- p + facet_wrap(as.formula(paste0("~", strata.var)))
+        p <- p + ggh4x::facet_nested(
+          cols = vars(!!sym(strata.var)),
+          scale = "free",
+          space = "free"
+        )
       }
 
       # Save the plots as a PDF file
@@ -316,5 +319,7 @@ generate_beta_change_spaghettiplot_long <-
 
       return(p)
     })
+
+    names(plot_list) <- dist.name
     return(plot_list)
   }

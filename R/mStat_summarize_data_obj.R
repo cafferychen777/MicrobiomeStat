@@ -99,61 +99,7 @@ mStat_summarize_data_obj <-
     count_single_occurrence <-
       length(which(rowSums(feature_tab) == 1))
 
-    # Print summary
-    # cat(
-    #   "Microbiome Feature Table Summary:\n",
-    #   "==============================\n",
-    #   "Min. reads per sample: ",
-    #   min_reads,
-    #   "\n",
-    #   "Max. reads per sample: ",
-    #   max_reads,
-    #   "\n",
-    #   "Total reads dplyr::across all samples: ",
-    #   total_reads,
-    #   "\n",
-    #   "Average reads per sample: ",
-    #   ave_reads_per_sample,
-    #   "\n",
-    #   "Median reads per sample: ",
-    #   median_reads_per_sample,
-    #   "\n",
-    #   "Proportion of zero counts: ",
-    #   zero_count_prop,
-    #   "\n",
-    #   "Count of features that only appear once: ",
-    #   count_single_occurrence,
-    #   "\n",
-    #   "Number of metadata variables: ",
-    #   num_meta_vars,
-    #   "\n",
-    #   "Metadata variables are: ",
-    #   paste(meta_var_names, collapse = ", "),
-    #   "\n\n",
-    #
-    #   "Feature Annotation Summary:\n",
-    #   "========================\n",
-    #   paste(
-    #     "Proportion of missing annotations in ",
-    #     colnames(feature_ann),
-    #     " are: ",
-    #     NA_props,
-    #     collapse = "\n"
-    #   ),
-    #   "\n\n",
-    #
-    #   "Phylogenetic Tree Information:\n",
-    #   "===========================\n",
-    #   "Exists in the dataset? ",
-    #   tree_exists,
-    #   "\n\n",
-    #
-    #   "Aggregated Taxonomies:\n",
-    #   "===================\n",
-    #   "The taxonomies that have been aggregated are: ",
-    #   paste(agg_taxonomies, collapse = ", "),
-    #   "\n\n"
-    # )
+
 
     # Handling the time-series data
     if (!is.null(time.var) && "meta.dat" %in% names(data.obj)) {
@@ -165,25 +111,9 @@ mStat_summarize_data_obj <-
 
         # Numeric time data
         if (is.numeric(time_var_data)) {
-          # cat(
-          #   "Earliest sample time-point: ",
-          #   min(time_var_data),
-          #   "\n",
-          #   "Latest sample time-point: ",
-          #   max(time_var_data),
-          #   "\n\n"
-          # )
+
         }
 
-        # Categorical (character or factor) time data
-        # if (is.character(time_var_data) || is.factor(time_var_data)) {
-        #   cat("Unique time-points: ", length(unique(time_var_data)), "\n\n")
-        # }
-
-        # cat(
-        #   "Distribution of sample counts at each time-point:\n",
-        #   "========================\n"
-        # )
 
         # Create a histogram for the time variable
         if (!is.null(group.var) &&
@@ -297,16 +227,21 @@ mStat_summarize_data_obj <-
 
     # 元数据统计
     if (!is.na(num_meta_vars)) {
+      # metadata_stats <- data.frame(
+      #   Category = "Metadata",
+      #   Variable = c("Number of metadata variables", "Metadata variables"),
+      #   Value = c(num_meta_vars, paste(meta_var_names, collapse = ", "))
+      # )
+
       metadata_stats <- data.frame(
         Category = "Metadata",
-        Variable = c("Number of metadata variables", "Metadata variables"),
-        Value = c(num_meta_vars, paste(meta_var_names, collapse = ", "))
+        Variable = c("Number of metadata variables"),
+        Value = c(num_meta_vars)
       )
 
       table1 <- rbind(table1, metadata_stats)
     }
 
-    # feature.ann 缺失注释的统计
     # feature.ann 缺失注释的统计
     if (length(NA_props) > 0) {
       for (i in 1:length(NA_props)) {
@@ -361,7 +296,7 @@ mStat_summarize_data_obj <-
         if (is.character(time_var_data) || is.factor(time_var_data)) {
           time_stats <- data.frame(
             Category = "Time-Series Information",
-            Variable = "Unique time-points",
+            Variable = "Number of unique time-points",
             Value = length(unique(time_var_data))
           )
         }
@@ -385,6 +320,28 @@ mStat_summarize_data_obj <-
         #cat("The provided time variable does not exist in the metadata.\n")
       }
     }
+
+    # 添加样本数量和特征数量
+    num_samples <- ncol(feature_tab)
+    num_features <- nrow(feature_tab)
+    sample_feature_stats <- data.frame(
+      Category = c("Basic Statistics", "Basic Statistics"),
+      Variable = c("Number of samples", "Number of features"),
+      Value = c(num_samples, num_features)
+    )
+    table1 <- rbind(sample_feature_stats, table1)
+
+    # 检测Value列中的哪些值是数值型
+    is_numeric <- sapply(table1$Value, function(x) grepl("^-?[0-9.]+$", x))
+
+    # 对于数值型数据，检查是否有超过三位小数
+    has_more_than_three_decimals <- sapply(table1$Value[is_numeric], function(x) {
+      decimal_part <- sub(".*\\.", "", x)
+      nchar(decimal_part) > 3
+    })
+
+    # 对于满足条件的数值，进行四舍五入至三位小数
+    table1$Value[is_numeric][has_more_than_three_decimals] <- round(as.numeric(table1$Value[is_numeric][has_more_than_three_decimals]), 3)
 
     # 返回表格形式的数据
     return(as_tibble(table1))

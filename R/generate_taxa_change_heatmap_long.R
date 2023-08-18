@@ -11,7 +11,7 @@
 #' @param ts.levels The levels for time points in longitudinal data.
 #' @param group.var A character string specifying the grouping variable in the metadata. Default is NULL.
 #' @param strata.var (Optional) A character string specifying the stratification variable in the metadata. Default is NULL.
-#' @param change.func A function or character string specifying the method for computing the change. Default is "difference".
+#' @param change.func A function or character string specifying the method for computing the change. Default is "relative difference".
 #' @param feature.level A character string defining the taxonomic level to analyze ('Phylum', 'Family', or 'Genus').
 #' @param features.plot A character vector specifying the taxa to be plotted. If NULL (default), the top k taxa by mean abundance will be plotted.
 #' @param feature.dat.type A character string specifying the type of the data in feature.dat. Options are "count", "proportion", or "other".
@@ -39,8 +39,8 @@
 #'   data.obj = ecam.obj,
 #'   subject.var = "studyid",
 #'   time.var = "month_num",
-#'   t0.level = NULL,
-#'   ts.levels = NULL,
+#'   t0.level = unique(ecam.obj$meta.dat$month_num)[1],
+#'   ts.levels = unique(ecam.obj$meta.dat$month_num)[-1],
 #'   group.var = "antiexposedall",
 #'   strata.var = "diet",
 #'   feature.level = c("Family"),
@@ -143,7 +143,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
 
   if (!is.null(strata.var)) {
     meta_tab <-
-      meta_tab %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(strata.var), !!sym(group.var)))
+      meta_tab %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(group.var), !!sym(strata.var)))
   }
 
   if (feature.dat.type == "other" || !is.null(features.plot) ||
@@ -349,7 +349,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
     if (!is.null(strata.var)) {
       annotation_col_sorted <- annotation_col_sorted %>%
         tidyr::separate(!!sym(group.var),
-                 into = c(strata.var, group.var),
+                 into = c(group.var, strata.var),
                  sep = "\\.")
     }
     if (group.var == "ALL") {
@@ -400,6 +400,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
         show_colnames = FALSE,
         gaps_col = gaps,
         fontsize = base.size,
+        silent = TRUE,
         color = my_palette
       )
     } else {
@@ -415,6 +416,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
         show_colnames = FALSE,
         gaps_col = gaps,
         fontsize = base.size,
+        silent = TRUE,
         color = my_palette(n_colors)
       )
     }
@@ -467,6 +469,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
     return(gg_heatmap_plot)
   })
 
+  names(plot_list) <- feature.level
 
   # Return the heatmap plot for display
   return(plot_list)

@@ -29,11 +29,13 @@
 #' @return A list of ggplot objects for each distance measure and Principal Coordinate.
 #' @examples
 #' \dontrun{
+#'
 #' # Load required libraries and data
 #' library(vegan)
 #'
-#'   data(ecam.obj)
-#'   generate_beta_pc_boxplot_long(
+#' # Example with ecam.obj dataset
+#' data(ecam.obj)
+#' generate_beta_pc_boxplot_long(
 #'   data.obj = ecam.obj,
 #'   dist.obj = NULL,
 #'   pc.obj = NULL,
@@ -43,29 +45,7 @@
 #'   ts.levels = as.character(sort(as.numeric(unique(ecam.obj$meta.dat$month))))[2:4],
 #'   group.var = "diet",
 #'   strata.var = "delivery",
-#'   adj.vars = "antiexposedall",
-#'   dist.name = c('BC'),
-#'   base.size = 20,
-#'   theme.choice = "bw",
-#'   custom.theme = NULL,
-#'   palette = NULL,
-#'   pdf = TRUE,
-#'   file.ann = "test",
-#'   pdf.wid = 11,
-#'   pdf.hei = 8.5
-#' )
-#' data(peerj32.obj)
-#'   generate_beta_pc_boxplot_long(
-#'   data.obj = peerj32.obj,
-#'   dist.obj = NULL,
-#'   pc.obj = NULL,
-#'   subject.var = "subject",
-#'   time.var = "time",
-#'   t0.level = "1",
-#'   ts.levels = "2",
-#'   group.var = "group",
-#'   strata.var = NULL,
-#'   adj.vars = "sex",
+#'   adj.vars = NULL,
 #'   dist.name = c('BC'),
 #'   base.size = 20,
 #'   theme.choice = "bw",
@@ -76,6 +56,31 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
+#'
+#' # Example with peerj32.obj dataset
+#' data(peerj32.obj)
+#' generate_beta_pc_boxplot_long(
+#'   data.obj = peerj32.obj,
+#'   dist.obj = NULL,
+#'   pc.obj = NULL,
+#'   subject.var = "subject",
+#'   time.var = "time",
+#'   t0.level = "1",
+#'   ts.levels = "2",
+#'   group.var = "group",
+#'   strata.var = "sex",
+#'   adj.vars = NULL,
+#'   dist.name = c('BC'),
+#'   base.size = 20,
+#'   theme.choice = "bw",
+#'   custom.theme = NULL,
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#'
 #' }
 #' @export
 generate_beta_pc_boxplot_long <- function(data.obj = NULL,
@@ -102,21 +107,37 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
   if (is.null(dist.obj)) {
     data.obj <-
       mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
-    meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var, time.var, group.var, strata.var)))
+    meta_tab <-
+      load_data_obj_metadata(data.obj) %>% select(all_of(c(
+        subject.var, time.var, group.var, strata.var
+      )))
     dist.obj <-
       mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
-    if (!is.null(adj.vars)){
-      dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
+    if (!is.null(adj.vars)) {
+      dist.obj <-
+        mStat_calculate_adjusted_distance(
+          data.obj = data.obj,
+          dist.obj = dist.obj,
+          adj.vars = adj.vars,
+          dist.name = dist.name
+        )
     }
   } else {
-    if (!is.null(data.obj) & !is.null(data.obj$meta.dat)){
+    if (!is.null(data.obj) & !is.null(data.obj$meta.dat)) {
       data.obj <-
         mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
-      meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var, time.var, group.var, strata.var)))
+      meta_tab <-
+        load_data_obj_metadata(data.obj) %>% select(all_of(c(
+          subject.var, time.var, group.var, strata.var
+        )))
     } else {
-      meta_tab <- attr(dist.obj[[dist.name[1]]], "labels") %>% select(all_of(c(subject.var, time.var, group.var, strata.var)))
+      meta_tab <-
+        attr(dist.obj[[dist.name[1]]], "labels") %>% select(all_of(c(
+          subject.var, time.var, group.var, strata.var
+        )))
       data.obj <- list(meta.dat = meta_tab)
-      data.obj <- mStat_process_time_variable(meta_tab, time.var, t0.level, ts.levels)
+      data.obj <-
+        mStat_process_time_variable(meta_tab, time.var, t0.level, ts.levels)
       meta_tab <- load_data_obj_metadata(data.obj)
       dist.obj <- mStat_subset_dist(dist.obj, colnames(meta_tab))
     }
@@ -182,13 +203,16 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
   # 使用用户自定义主题（如果提供），否则使用默认主题
   theme_to_use <-
     if (!is.null(custom.theme))
-      custom.theme else
-        theme_function
+      custom.theme
+  else
+    theme_function
 
   plot_list <- lapply(dist.name, function(dist.name) {
     if (is.null(pc.obj)) {
       message("No pc.obj provided, using MDS (PCoA) for dimension reduction by default.")
-      message("If you prefer other methods such as NMDS, t-SNE or UMAP, you can use the mStat_calculate_PC function with a specified method.")
+      message(
+        "If you prefer other methods such as NMDS, t-SNE or UMAP, you can use the mStat_calculate_PC function with a specified method."
+      )
       pc.obj <-
         mStat_calculate_PC(
           dist.obj = dist.obj[dist.name],
@@ -198,155 +222,163 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
         )
     }
 
-      pc.mat <- pc.obj[[dist.name]]$points
+    pc.mat <- pc.obj[[dist.name]]$points
 
-      colnames(pc.mat) <- paste0("PC", 1:ncol(pc.mat))
+    colnames(pc.mat) <- paste0("PC", 1:ncol(pc.mat))
 
-      pc.mat <- pc.mat %>% as_tibble()
+    pc.mat <- pc.mat %>% as_tibble()
 
-      df <-
-        cbind(pc.mat[, paste0("PC", pc.ind)], meta_tab[, c(subject.var, time.var, group.var, strata.var)])
+    df <-
+      cbind(pc.mat[, paste0("PC", pc.ind)], meta_tab[, c(subject.var, time.var, group.var, strata.var)])
 
-      df <-
-        df %>%
-        as_tibble() %>%
-        tidyr::gather(
-          key = "PC",
-          value = "value",-one_of(subject.var, group.var, time.var, strata.var)
+    df <-
+      df %>%
+      as_tibble() %>%
+      tidyr::gather(
+        key = "PC",
+        value = "value",
+        -one_of(subject.var, group.var, time.var, strata.var)
+      )
+
+    n_subjects <- length(unique(df[[subject.var]]))
+    n_times <- length(unique(df[[time.var]]))
+
+    sub_plot_list <- lapply(unique(df$PC), function(pc.index) {
+      sub_df <- df %>% filter(PC == pc.index)
+
+      # 在数据处理部分创建一个新的数据框
+      average_sub_df <- NULL
+      if (n_times > 10 || n_subjects > 25) {
+        if (!is.null(strata.var) & !is.null(group.var)) {
+          average_sub_df <- sub_df %>%
+            dplyr::group_by(!!sym(strata.var),
+                            !!sym(group.var),
+                            !!sym(time.var)) %>%
+            dplyr::summarise(dplyr::across(value, mean, na.rm = TRUE), .groups = "drop") %>%
+            dplyr::ungroup() %>%
+            dplyr::mutate(!!sym(subject.var) := "ALL")
+        } else if (!is.null(group.var)) {
+          average_sub_df <- sub_df %>%
+            dplyr::group_by(!!sym(group.var),!!sym(time.var)) %>%
+            dplyr::summarise(dplyr::across(value, mean, na.rm = TRUE), .groups = "drop") %>%
+            dplyr::ungroup() %>%
+            dplyr::mutate(!!sym(subject.var) := "ALL")
+        } else {
+          average_sub_df <- sub_df %>%
+            dplyr::group_by(!!sym(time.var)) %>%
+            dplyr::summarise(dplyr::across(value, mean, na.rm = TRUE), .groups = "drop") %>%
+            dplyr::ungroup() %>%
+            dplyr::mutate(!!sym(subject.var) := "ALL")
+        }
+      }
+
+      boxplot <- ggplot(sub_df,
+                        aes_function) +
+        geom_violin(trim = FALSE, alpha = 0.8) +
+        stat_boxplot(
+          geom = "errorbar",
+          position = position_dodge(width = 0.2),
+          width = 0.1
+        ) +
+        geom_boxplot(
+          position = position_dodge(width = 0.8),
+          width = 0.1,
+          fill = "white"
+        ) +
+        geom_line(
+          line_aes_function,
+          alpha = 0.8,
+          linewidth = 0.6,
+          color = "black",
+          linetype = "dashed",
+          data = if (!is.null(average_sub_df))
+            average_sub_df
+          else
+            sub_df
+        ) +
+        scale_fill_manual(values = col) +
+        labs(x = time.var,
+             y = paste("Distance:",
+                       dist.name,
+                       " - Axis",
+                       gsub("PC", "", pc.index))) +
+        theme_to_use +
+        theme(
+          panel.spacing.x = unit(0, "cm"),
+          panel.spacing.y = unit(0, "cm"),
+          strip.text.x = element_text(size = 12, color = "black"),
+          axis.text.x = element_text(color = "black", size = base.size),
+          axis.text.y = element_text(color = "black", size = base.size),
+          axis.title.x = element_text(size = base.size),
+          axis.title.y = element_text(size = base.size),
+          axis.ticks.x = element_blank(),
+          plot.margin = unit(c(0.3, 0.3, 0.3, 0.3), units = "cm"),
+          legend.text = ggplot2::element_text(size = base.size),
+          legend.title = ggplot2::element_text(size = base.size)
         )
 
-      n_subjects <- length(unique(df[[subject.var]]))
-      n_times <- length(unique(df[[time.var]]))
-
-      lapply(unique(df$PC), function(pc.index) {
-        sub_df <- df %>% filter(PC == pc.index)
-
-        # 在数据处理部分创建一个新的数据框
-        average_sub_df <- NULL
-        if (n_times > 10 || n_subjects > 25) {
-          if (!is.null(strata.var) & !is.null(group.var)){
-            average_sub_df <- sub_df %>%
-              dplyr::group_by(!!sym(strata.var), !!sym(group.var), !!sym(time.var)) %>%
-              dplyr::summarise(dplyr::across(value, mean, na.rm = TRUE), .groups = "drop") %>%
-              dplyr::ungroup() %>%
-              dplyr::mutate(!!sym(subject.var) := "ALL")
-          } else if (!is.null(group.var)) {
-            average_sub_df <- sub_df %>%
-              dplyr::group_by(!!sym(group.var), !!sym(time.var)) %>%
-              dplyr::summarise(dplyr::across(value, mean, na.rm = TRUE), .groups = "drop") %>%
-              dplyr::ungroup() %>%
-              dplyr::mutate(!!sym(subject.var) := "ALL")
-          } else {
-            average_sub_df <- sub_df %>%
-              dplyr::group_by(!!sym(time.var)) %>%
-              dplyr::summarise(dplyr::across(value, mean, na.rm = TRUE), .groups = "drop") %>%
-              dplyr::ungroup() %>%
-              dplyr::mutate(!!sym(subject.var) := "ALL")
-          }
-        }
-
-        boxplot <- ggplot(sub_df,
-                          aes_function) +
-          geom_violin(trim = FALSE, alpha = 0.8) +
-          stat_boxplot(
-            geom = "errorbar",
-            position = position_dodge(width = 0.2),
-            width = 0.1
-          ) +
-          geom_boxplot(
-            position = position_dodge(width = 0.8),
-            width = 0.1,
-            fill = "white"
-          ) +
-          geom_line(
-            line_aes_function,
-            alpha = 0.8,
-            linewidth = 0.6,
-            color = "black",
-            linetype = "dashed",
-            data = if (!is.null(average_sub_df)) average_sub_df else sub_df
-          ) +
-          scale_fill_manual(values = col) +
-          labs(
-            x = time.var,
-            y = paste(
-              "Distance:",
-              dist.name,
-              " - Axis",
-              gsub("PC", "", pc.index)
+      if (!is.null(group.var)) {
+        if (is.null(strata.var)) {
+          boxplot <-
+            boxplot + ggh4x::facet_nested(cols = vars(!!sym(group.var)),
+                                          scales = "free",
+                                          space = "free")
+        } else {
+          boxplot <-
+            boxplot + ggh4x::facet_nested(
+              cols = vars(!!sym(group.var)),
+              rows = vars(!!sym(strata.var)),
+              scales = "free",
+              space = "free"
             )
-          ) +
-        theme_to_use +
-          theme(
-            panel.spacing.x = unit(0, "cm"),
-            panel.spacing.y = unit(0, "cm"),
-            strip.text.x = element_text(size = 12, color = "black"),
-            axis.text.x = element_text(color = "black", size = base.size),
-            axis.text.y = element_text(color = "black", size = base.size),
-            axis.title.x = element_text(size = base.size),
-            axis.title.y = element_text(size = base.size),
-            axis.ticks.x = element_blank(),
-            plot.margin = unit(c(0.3, 0.3, 0.3, 0.3), units = "cm"),
-            legend.text = ggplot2::element_text(size = base.size),
-            legend.title = ggplot2::element_text(size = base.size)
-          )
+        }
+      }
 
+      # Add geom_jitter() if the number of unique time points or subjects is greater than 10
+      if (n_subjects > 10 || n_times > 10) {
+        boxplot <- boxplot + geom_jitter(width = 0.1,
+                                         alpha = 0.1,
+                                         size = 1)
+      }
+
+      # Save the plots as a PDF file
+      if (pdf) {
+        pdf_name <- paste0(
+          "beta_pc_boxplot_long_",
+          dist.name,
+          "_",
+          "subject_",
+          subject.var,
+          "_",
+          "time_",
+          time.var
+        )
         if (!is.null(group.var)) {
-          if (is.null(strata.var)) {
-            boxplot <-
-              boxplot + ggh4x::facet_nested(
-                cols = vars(!!sym(group.var)),
-                scales = "free",
-                space = "free"
-              )
-          } else {
-            boxplot <-
-              boxplot + ggh4x::facet_nested(
-                cols = vars(!!sym(group.var),!!sym(strata.var)),
-                scales = "free",
-                space = "free"
-              )
-          }
+          pdf_name <- paste0(pdf_name, "_", "group_", group.var)
         }
-
-        # Add geom_jitter() if the number of unique time points or subjects is greater than 10
-        if (n_subjects > 10 || n_times > 10) {
-          boxplot <- boxplot + geom_jitter(width = 0.1, alpha = 0.1, size = 1)
+        if (!is.null(strata.var)) {
+          pdf_name <- paste0(pdf_name, "_", "strata_", strata.var)
         }
-
-        # Save the plots as a PDF file
-        if (pdf) {
-          pdf_name <- paste0(
-            "beta_pc_boxplot_long_",
-            dist.name,
-            "_",
-            "subject_",
-            subject.var,
-            "_",
-            "time_",
-            time.var
-          )
-          if (!is.null(group.var)) {
-            pdf_name <- paste0(pdf_name, "_", "group_", group.var)
-          }
-          if (!is.null(strata.var)) {
-            pdf_name <- paste0(pdf_name, "_", "strata_", strata.var)
-          }
-          if (!is.null(file.ann)) {
-            pdf_name <- paste0(pdf_name, "_", file.ann)
-          }
-          pdf_name <- paste0(pdf_name, ".pdf")
-          ggsave(
-            filename = pdf_name,
-            plot = boxplot,
-            width = pdf.wid,
-            height = pdf.hei,
-            dpi = 300
-          )
+        if (!is.null(file.ann)) {
+          pdf_name <- paste0(pdf_name, "_", file.ann)
         }
-        return(boxplot)
+        pdf_name <- paste0(pdf_name, ".pdf")
+        ggsave(
+          filename = pdf_name,
+          plot = boxplot,
+          width = pdf.wid,
+          height = pdf.hei,
+          dpi = 300
+        )
+      }
+      return(boxplot)
     })
+
+    names(sub_plot_list) <- unique(df$PC)
+    return(sub_plot_list)
   })
+
+  names(plot_list) <- dist.name
 
 
   return(plot_list)
