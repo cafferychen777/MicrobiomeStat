@@ -38,9 +38,9 @@
 #' @examples
 #' \dontrun{
 #' # Load required libraries and example data
-#' data(peerj32.obj)
+#' data(ecam.obj)
 #' # Generate the boxplot pair
-#' generate_taxa_boxplot_long(
+#' a <- generate_taxa_boxplot_long(
 #'   data.obj = ecam.obj,
 #'   subject.var = "studyid",
 #'   time.var = "month",
@@ -425,21 +425,15 @@ generate_taxa_boxplot_long <-
       if (!is.null(group.var)) {
         if (is.null(strata.var)) {
           boxplot <-
-            boxplot + ggh4x::facet_nested_wrap(as.formula(paste(
+            boxplot + ggh4x::facet_nested(as.formula(paste(
               "~", feature.level, "+", group.var
-            )), scales = "fixed",
-            nrow = ifelse(
-              ifelse(length(taxa.levels) %% 2 == 0, length(taxa.levels) / 4, (length(taxa.levels) + 1) / 4) < 1,
-              1,
-              ifelse(length(taxa.levels) %% 2 == 0, length(taxa.levels) / 4, (length(taxa.levels) + 1) / 4)
-            ))
+            )), scales = "fixed")
         } else {
-          boxplot <-
-            boxplot + ggh4x::facet_nested_wrap(as.formula(
-              paste("~", feature.level, "+", group.var, "+", strata.var)
-            ),
-            scales = "fixed",
-            nrow = ifelse(length(taxa.levels) %% 2 == 0, length(taxa.levels) / 2, (length(taxa.levels) + 1) / 2))
+          boxplot <- boxplot + ggh4x::facet_nested(
+            rows = vars(!!sym(strata.var)),
+            cols = vars(!!sym(feature.level), !!sym(group.var)),
+            scales = "fixed"
+          )
         }
       }
 

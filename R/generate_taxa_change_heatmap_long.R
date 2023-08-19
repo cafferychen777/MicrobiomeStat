@@ -39,11 +39,11 @@
 #'   data.obj = ecam.obj,
 #'   subject.var = "studyid",
 #'   time.var = "month_num",
-#'   t0.level = unique(ecam.obj$meta.dat$month_num)[1],
-#'   ts.levels = unique(ecam.obj$meta.dat$month_num)[-1],
+#'   t0.level = NULL,
+#'   ts.levels = NULL,
 #'   group.var = "antiexposedall",
 #'   strata.var = "diet",
-#'   feature.level = c("Family"),
+#'   feature.level = c("Family","Class"),
 #'   feature.dat.type = "proportion",
 #'   features.plot = NULL,
 #'   top.k.plot = 10,
@@ -349,7 +349,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
     if (!is.null(strata.var)) {
       annotation_col_sorted <- annotation_col_sorted %>%
         tidyr::separate(!!sym(group.var),
-                 into = c(group.var, strata.var),
+                 into = c(strata.var, group.var),
                  sep = "\\.")
     }
     if (group.var == "ALL") {
@@ -373,8 +373,8 @@ generate_taxa_change_heatmap_long <- function(data.obj,
 
     n_colors <- 100
 
-    if (is.null(palette)) {
-      palette <- c("#0571b0", "#92c5de", "white", "#f4a582", "#ca0020")
+    #if (is.null(palette)) {
+      col <- c("#0571b0", "#92c5de", "white", "#f4a582", "#ca0020")
       # 找出数据中的最大绝对值
       max_abs_val <-
         max(abs(range(na.omit(
@@ -385,41 +385,75 @@ generate_taxa_change_heatmap_long <- function(data.obj,
       zero_pos <- round(max_abs_val / (2 * max_abs_val) * n_colors)
 
       # 创建颜色向量
-      my_palette <-
+      my_col <-
         c(
-          colorRampPalette(palette[1:3])(zero_pos),
-          colorRampPalette(palette[3:5])(n_colors - zero_pos + 1)
+          colorRampPalette(col[1:3])(zero_pos),
+          colorRampPalette(col[3:5])(n_colors - zero_pos + 1)
         )
 
-      # Plot stacked heatmap
-      heatmap_plot <- pheatmap::pheatmap(
-        wide_data_sorted,
-        annotation_col = annotation_col_sorted,
-        cluster_rows = cluster.rows,
-        cluster_cols = cluster.cols,
-        show_colnames = FALSE,
-        gaps_col = gaps,
-        fontsize = base.size,
-        silent = TRUE,
-        color = my_palette
+      if (is.null(palette)){
+        color_vector <- c(
+          "#E31A1C",
+          "#1F78B4",
+          "#FB9A99",
+          "#33A02C",
+          "#FDBF6F",
+          "#B2DF8A",
+          "#A6CEE3",
+          "#BA7A70",
+          "#9D4E3F",
+          "#829BAB"
+        )
+      } else {
+        color_vector <- palette
+      }
+
+      # 为演示目的，假设这些是您的唯一值
+      group_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
+      strata_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(strata.var))) %>% distinct() %>% pull()
+
+      # 为 group.var 分配颜色
+      group_colors <- setNames(color_vector[1:length(group_levels)], group_levels)
+
+      # 为 strata.var 分配颜色
+      strata_colors <- setNames(rev(color_vector)[1:length(strata_levels)], strata_levels)
+
+      # 创建注释颜色列表
+      annotation_colors_list <- setNames(
+        list(group_colors, strata_colors),
+        c(group.var, strata.var)
       )
-    } else {
-      # 创建颜色映射函数
-      my_palette <- colorRampPalette(palette)
 
       # Plot stacked heatmap
       heatmap_plot <- pheatmap::pheatmap(
         wide_data_sorted,
         annotation_col = annotation_col_sorted,
+        annotation_colors = annotation_colors_list,
         cluster_rows = cluster.rows,
         cluster_cols = cluster.cols,
         show_colnames = FALSE,
         gaps_col = gaps,
         fontsize = base.size,
         silent = TRUE,
-        color = my_palette(n_colors)
+        color = my_col
       )
-    }
+    # } else {
+    #   # 创建颜色映射函数
+    #   my_palette <- colorRampPalette(palette)
+    #
+    #   # Plot stacked heatmap
+    #   heatmap_plot <- pheatmap::pheatmap(
+    #     wide_data_sorted,
+    #     annotation_col = annotation_col_sorted,
+    #     cluster_rows = cluster.rows,
+    #     cluster_cols = cluster.cols,
+    #     show_colnames = FALSE,
+    #     gaps_col = gaps,
+    #     fontsize = base.size,
+    #     silent = TRUE,
+    #     color = my_palette(n_colors)
+    #   )
+    # }
 
     # 计算颜色的数量
     # 这通常取决于你的数据，你可能需要根据你的实际情况进行调整

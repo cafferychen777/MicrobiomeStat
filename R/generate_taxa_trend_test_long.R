@@ -65,7 +65,7 @@ generate_taxa_trend_test_long <-
         "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
       )
       otu_tab <-
-        load_data_obj_count(mStat_normalize_data(data.obj, method = "Rarefy-TSS")$data.obj.norm)
+        load_data_obj_count(mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm)
     } else{
       otu_tab <- load_data_obj_count(data.obj)
     }

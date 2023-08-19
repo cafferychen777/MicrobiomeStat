@@ -74,12 +74,12 @@
 #'   t0.level = unique(sort(subset_T2D.obj$meta.dat$visit_number))[1],
 #'   ts.levels = unique(sort(subset_T2D.obj$meta.dat$visit_number))[-1],
 #'   strata.var = "subject_race",
-#'   feature.level = c("Class"),
+#'   feature.level = c("Phylum"),
 #'   change.func = "relative difference",
 #'   feature.dat.type = "count",
-#'   prev.filter = 1e-17,
-#'   abund.filter = 0.0001,
-#'   Transform = "log",
+#'   prev.filter = 1e-5,
+#'   abund.filter = 1e-5,
+#'   Transform = "sqrt",
 #'   theme.choice = "bw",
 #'   base.size = 12,
 #'   output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/报告/mStat_generate_report_long_example.pdf"
@@ -744,8 +744,8 @@ taxa_heatmap_long_results <- generate_taxa_heatmap_long(
   data.obj = data.obj,
   subject.var = subject.var,
   time.var = time.var,
-  t0.level = t0.level,
-  ts.levels = ts.levels,
+  t0.level = NULL,
+  ts.levels = NULL,
   group.var = group.var,
   strata.var = strata.var,
   feature.level = feature.level,
@@ -778,8 +778,8 @@ taxa_change_heatmap_long_results <- generate_taxa_change_heatmap_long(
   data.obj = data.obj,
   subject.var = subject.var,
   time.var = time.var,
-  t0.level = t0.level,
-  ts.levels = ts.levels,
+  t0.level = NULL,
+  ts.levels = NULL,
   group.var = group.var,
   strata.var = strata.var,
   feature.level = feature.level,
@@ -816,7 +816,7 @@ if (is.function(change.func)) {
   cat('The changes from t0.level were computed as the log2 difference between the current value and t0.level, with a small constant added to avoid taking log of zero.\n\n')
 }
 
-cat('### Average Version: This plot displays the average proportions for each time point, group, and strata. \n')
+cat('### Average Change: This plot displays the average changes for each time point, group, and strata. \n')
 taxa_change_heatmap_long_results
 ```
 
@@ -946,7 +946,7 @@ for(taxon_rank in names(taxa_volatility_test_results)) {
 
     # Report significant results for each taxon under the current rank
     if(length(significant_results_list) > 0) {
-      cat('## Significant Interactions for Different Taxa in Taxa Volatility Test Results \n')
+      cat('## Significant Taxa in Taxa Volatility Test Results \n')
         for(taxon_name in names(significant_results_list)) {
             cat(sprintf('\n### Results for the %s %s: \n', taxon_rank, taxon_name))
             df_to_display <- as.data.frame(significant_results_list[[taxon_name]])
@@ -976,29 +976,30 @@ combined_significant_taxa
 ```{r taxa-test-boxplot-longitudinal-generation, message=FALSE, fig.height=15, fig.width=10, fig.align='center', results='asis'}
 
 if (!is.null(combined_significant_taxa)){
-  taxa_boxplot_results <- generate_taxa_boxplot_long(data.obj = data.obj,
-                                                     subject.var = subject.var,
-                                                     time.var = time.var,
-                                                     t0.level = t0.level,
-                                                     ts.levels = ts.levels,
-                                                     group.var = group.var,
-                                                     strata.var = strata.var,
-                                                     feature.level = feature.level,
-                                                     feature.dat.type = feature.dat.type,
-                                                     features.plot = combined_significant_taxa,
-                                                     Transform = Transform,
-                                                     top.k.plot = top.k.plot,
-                                                     top.k.func = top.k.func,
-                                                     prev.filter = prev.filter,
-                                                     abund.filter = abund.filter,
-                                                     base.size = 10,
-                                                     theme.choice = theme.choice,
-                                                     custom.theme = custom.theme,
-                                                     palette = palette,
-                                                     pdf = pdf,
-                                                     file.ann = file.ann,
-                                                     pdf.wid = pdf.wid,
-                                                     pdf.hei = pdf.hei)
+  taxa_boxplot_results <- generate_taxa_boxplot_long(
+                                              data.obj = data.obj,
+                                              subject.var = subject.var,
+                                              time.var = time.var,
+                                              t0.level = t0.level,
+                                              ts.levels = ts.levels,
+                                              group.var = group.var,
+                                              strata.var = strata.var,
+                                              feature.level = feature.level,
+                                              feature.dat.type = feature.dat.type,
+                                              features.plot = combined_significant_taxa,
+                                              Transform = Transform,
+                                              top.k.plot = top.k.plot,
+                                              top.k.func = top.k.func,
+                                              prev.filter = prev.filter,
+                                              abund.filter = abund.filter,
+                                              base.size = 10,
+                                              theme.choice = theme.choice,
+                                              custom.theme = custom.theme,
+                                              palette = palette,
+                                              pdf = pdf,
+                                              file.ann = file.ann,
+                                              pdf.wid = pdf.wid,
+                                              pdf.hei = pdf.hei)
 
 taxa_indiv_boxplot_results <- generate_taxa_indiv_boxplot_long(
                                    data.obj = data.obj,
@@ -1028,7 +1029,7 @@ taxa_indiv_boxplot_results <- generate_taxa_indiv_boxplot_long(
 
 ```
 
-```{r taxa-test-boxplot-longitudinal-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 10, fig.height = 8}
+```{r taxa-test-boxplot-longitudinal-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 12, fig.height = 12}
 taxa_boxplot_results
 ```
 
