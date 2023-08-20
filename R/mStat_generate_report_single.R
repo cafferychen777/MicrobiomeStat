@@ -29,7 +29,7 @@
 #' @param features.plot Custom list of taxa names to plot for taxa analysis.
 #' @param feature.level Taxonomic level for feature analysis.
 #' @param feature.dat.type Data type for feature analysis (count, proportion, or other).
-#' @param Transform Transformation applied to taxa data for display and testing.
+#' @param transform transformation applied to taxa data for display and testing.
 #' @param output.file Output file name for the report.
 #' @param ... Additional arguments passed to internal functions.
 #'
@@ -58,7 +58,7 @@
 #'   alpha.name = c("shannon","simpson"),
 #'   dist.name = c("BC",'Jaccard'),
 #'   t.level = "1",
-#'   Transform = "identity",
+#'   transform = "identity",
 #'   strata.var = "sex",
 #'   feature.level = c("Phylum","Family"),
 #'   feature.dat.type = "count",
@@ -76,7 +76,7 @@ mStat_generate_report_single <- function(data.obj,
                                          adj.vars,
                                          subject.var,
                                          time.var,
-                                         Transform,
+                                         transform,
                                          alpha.name = c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou"),
                                          dist.name = c('BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS'),
                                          t.level = NULL,
@@ -444,7 +444,7 @@ taxa_boxplot_results <- generate_taxa_boxplot_single(data.obj = data.obj,
                                                                features.plot = significant_taxa,
                                                                top.k.plot = NULL,
                                                                top.k.func = NULL,
-                                                               Transform = Transform,
+                                                               transform = transform,
                                                                prev.filter = prev.filter,
                                                                abund.filter = abund.filter,
                                                                base.size = 10,
@@ -469,7 +469,7 @@ taxa_indiv_boxplot_results <- generate_taxa_indiv_boxplot_single(data.obj = data
                                    feature.dat.type = feature.dat.type,
                                    top.k.plot = NULL,
                                    top.k.func = NULL,
-                                   Transform = Transform,
+                                   transform = transform,
                                    prev.filter = prev.filter,
                                    abund.filter = abund.filter,
                                    base.size = 10,
@@ -497,7 +497,7 @@ pdf_name <- paste0(
   feature.level,
   '_',
   'transform_',
-  Transform,
+  transform,
   '_',
   'prev_filter_',
   prev.filter,
@@ -528,7 +528,7 @@ cat(paste0('The boxplot results for individual taxa or features can be found in 
                           adj.vars = adj.vars, subject.var = subject.var,
                           time.var = time.var, alpha.name = alpha.name,
                           dist.name = dist.name, t.level = t.level,
-                          Transform = Transform,
+                          transform = transform,
                           strata.var = strata.var, base.size = base.size,
                           theme.choice = theme.choice, custom.theme = custom.theme,
                           palette = palette, pdf = pdf, file.ann = file.ann,

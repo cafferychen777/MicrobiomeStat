@@ -29,7 +29,7 @@
 #' @param feature.number The number of features to plot. Default is 15.
 #' @param feature.level Taxonomic level for feature analysis.
 #' @param feature.dat.type Data type for feature analysis (count, proportion, or other).
-#' @param Transform The transformation function applied to the data (default: "log").
+#' @param transform The transformation function applied to the data (default: "log").
 #' @param output.file Output file name for the report.
 #' @param ... Additional arguments passed to internal functions.
 #'
@@ -54,7 +54,7 @@
 #'   strata.var = "sex",
 #'   feature.level = c("Phylum"),
 #'   feature.dat.type = "count",
-#'   Transform = "log",
+#'   transform = "log",
 #'   theme.choice = "bw",
 #'   base.size = 12,
 #'   output.file = "path/report.pdf"
@@ -74,12 +74,14 @@
 #'   t0.level = unique(sort(subset_T2D.obj$meta.dat$visit_number))[1],
 #'   ts.levels = unique(sort(subset_T2D.obj$meta.dat$visit_number))[-1],
 #'   strata.var = "subject_race",
+#'   feature.mt.method = "fdr",
+#'   feature.sig.level = 0.1,
 #'   feature.level = c("Phylum"),
 #'   change.func = "relative difference",
 #'   feature.dat.type = "count",
 #'   prev.filter = 1e-5,
 #'   abund.filter = 1e-5,
-#'   Transform = "sqrt",
+#'   transform = "sqrt",
 #'   theme.choice = "bw",
 #'   base.size = 12,
 #'   output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/报告/mStat_generate_report_long_example.pdf"
@@ -96,8 +98,8 @@ mStat_generate_report_long <- function(data.obj,
                                        adj.vars = NULL,
                                        subject.var,
                                        time.var,
-                                       alpha.name = c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou"),
-                                       dist.name = c('BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS'),
+                                       alpha.name = c("shannon", "simpson"),
+                                       dist.name = c('BC', 'Jaccard'),
                                        t0.level,
                                        ts.levels,
                                        change.func = "relative difference",
@@ -114,7 +116,9 @@ mStat_generate_report_long <- function(data.obj,
                                        feature.number = 15,
                                        feature.level = NULL,
                                        feature.dat.type = c("count", "proportion", "other"),
-                                       Transform = c("identity", "sqrt", "log"),
+                                       feature.mt.method = c("fdr","none"),
+                                       feature.sig.level = 0.1,
+                                       transform = c("identity", "sqrt", "log"),
                                        output.file,
                                        ...) {
 
@@ -128,6 +132,31 @@ output:
     toc: true
     latex_engine: lualatex
 ---
+
+## Input Parameters Summary
+
+```{r input-parameters-summary, echo=FALSE, message=FALSE, results='asis'}
+
+# 判断 custom.theme 是否为 NULL
+custom_theme_status <- ifelse(is.null(custom.theme), 'NULL', 'Not NULL')
+
+custom_palette_status <- ifelse(is.null(palette), 'NULL', 'Not NULL')
+
+custom_file.ann_status <- ifelse(is.null(file.ann), 'NULL', 'Not NULL')
+
+# 创建一个数据框，其中包含参数的名称和对应的值
+params_data <- data.frame(Parameter = c('data.obj', 'group.var', 'strata.var', 'adj.vars', 'subject.var', 'time.var', 'alpha.name',
+                                    'dist.name', 't0.level', 'ts.levels', 'change.func', 'base.size', 'theme.choice',
+                                    'custom.theme', 'palette', 'pdf', 'file.ann', 'pdf.wid', 'pdf.hei', 'prev.filter',
+                                    'abund.filter', 'feature.number', 'feature.level', 'feature.dat.type', 'transform'),
+                          Value = c(deparse(substitute(data.obj)), group.var, strata.var, toString(adj.vars), subject.var, time.var, toString(alpha.name),
+                                    toString(dist.name), t0.level, toString(ts.levels), change.func, base.size, theme.choice,
+                                    custom_theme_status, custom_palette_status, pdf, custom_file.ann_status, pdf.wid, pdf.hei, prev.filter,
+                                    abund.filter, feature.number, toString(feature.level), feature.dat.type, transform))
+
+# 使用pander来渲染数据框
+pander::pander(params_data)
+```
 
 ## 1. Data Summary and Preparation
 
@@ -744,8 +773,8 @@ taxa_heatmap_long_results <- generate_taxa_heatmap_long(
   data.obj = data.obj,
   subject.var = subject.var,
   time.var = time.var,
-  t0.level = NULL,
-  ts.levels = NULL,
+  t0.level = t0.level,
+  ts.levels = ts.levels,
   group.var = group.var,
   strata.var = strata.var,
   feature.level = feature.level,
@@ -778,8 +807,8 @@ taxa_change_heatmap_long_results <- generate_taxa_change_heatmap_long(
   data.obj = data.obj,
   subject.var = subject.var,
   time.var = time.var,
-  t0.level = NULL,
-  ts.levels = NULL,
+  t0.level = t0.level,
+  ts.levels = ts.levels,
   group.var = group.var,
   strata.var = strata.var,
   feature.level = feature.level,
@@ -852,7 +881,7 @@ taxa_barplot_long_results
 
 ### 4.5 Taxa Trend Test
 
-```{r taxa-trend-test-longitudinal-generation, message=FALSE, results='asis', warning = FALSE}
+```{r taxa-trend-test-longitudinal-generation, message=FALSE, results='asis', warning = FALSE, fig.align='center', fig.width = 10, fig.height = 10}
 taxa_trend_test_results <- generate_taxa_trend_test_long(
                                                data.obj = data.obj,
                                                subject.var = subject.var,
@@ -866,7 +895,7 @@ taxa_trend_test_results <- generate_taxa_trend_test_long(
                                                ...)
 ```
 
-```{r taxa-trend-test-results-print, echo=FALSE, message=FALSE, results='asis'}
+```{r taxa-trend-test-results-print, echo=FALSE, message=FALSE, results='asis', warning = FALSE}
 # Initial description
 if (!is.null(group.var)) {
     cat(sprintf('In this analysis, we utilized the LinDA linear mixed effects model to investigate potential interactions in the context of Taxa Trend Test. Specifically, we tested the interaction between the variables %s and %s, for different taxa, while adjusting for other covariates.\n\n', group.var, time.var))
@@ -878,7 +907,7 @@ if (!is.null(group.var)) {
 for(taxon_rank in names(taxa_trend_test_results)) {
     # Filter interaction terms
     interaction_terms_results <- taxa_trend_test_results[[taxon_rank]] %>%
-        filter(grepl(paste0(group.var, ':', time.var), Output.Element)) %>%
+        dplyr::filter(grepl(paste0('^', group.var, '.*', time.var, '$'), Output.Element)) %>%
         filter(Adjusted.P.Value < 0.05)
 
     # Check if filtered results have rows
@@ -894,7 +923,7 @@ for(taxon_rank in names(taxa_trend_test_results)) {
 
 ### 4.6 Taxa Volatility Test
 
-```{r taxa-volatility-test-longitudinal-generation, message=FALSE, results='asis', warning = FALSE}
+```{r taxa-volatility-test-longitudinal-generation, message=FALSE, results='asis', warning = FALSE, fig.align='center', fig.width = 5, fig.height = 5}
 taxa_volatility_test_results <- generate_taxa_volatility_test_long(
                                                data.obj = data.obj,
                                                subject.var = subject.var,
@@ -908,7 +937,11 @@ taxa_volatility_test_results <- generate_taxa_volatility_test_long(
                                                )
 ```
 
-```{r taxa-volatility-test-results-print, echo=FALSE, message=FALSE, results='asis'}
+```{r taxa-volatility-test-results-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 5, fig.height = 5, warning = FALSE}
+
+volatility_volcano_plots <- generate_taxa_volatility_volcano_long(data.obj = data.obj, group.var = group.var, test.list = taxa_volatility_test_results, feature.sig.level = feature.sig.level, feature.mt.method = 'fdr')
+
+volatility_volcano_plots
 
 # Initial description for Taxa Volatility
 num_levels <- length(unique(data.obj[[group.var]]))
@@ -947,15 +980,12 @@ for(taxon_rank in names(taxa_volatility_test_results)) {
     # Report significant results for each taxon under the current rank
     if(length(significant_results_list) > 0) {
       cat('## Significant Taxa in Taxa Volatility Test Results \n')
-        for(taxon_name in names(significant_results_list)) {
-            cat(sprintf('\n### Results for the %s %s: \n', taxon_rank, taxon_name))
-            df_to_display <- as.data.frame(significant_results_list[[taxon_name]])
-            pander::pander(df_to_display)
-        }
     } else {
         cat(sprintf('No significant results were detected for the taxa volatility at a p-value threshold of 0.05 for %s.\n\n', taxon_rank))
     }
 }
+
+pander::pander(significant_results_list)
 
 ```
 
@@ -987,7 +1017,7 @@ if (!is.null(combined_significant_taxa)){
                                               feature.level = feature.level,
                                               feature.dat.type = feature.dat.type,
                                               features.plot = combined_significant_taxa,
-                                              Transform = Transform,
+                                              transform = transform,
                                               top.k.plot = top.k.plot,
                                               top.k.func = top.k.func,
                                               prev.filter = prev.filter,
@@ -1011,7 +1041,7 @@ taxa_indiv_boxplot_results <- generate_taxa_indiv_boxplot_long(
                                    strata.var = strata.var,
                                    feature.level = feature.level,
                                    features.plot = combined_significant_taxa,
-                                   Transform = Transform,
+                                   transform = transform,
                                    feature.dat.type = feature.dat.type,
                                    top.k.plot = top.k.plot,
                                    top.k.func = top.k.func,
@@ -1049,7 +1079,7 @@ if (!is.null(combined_significant_taxa)){
           feature.level,
           '_',
           'transform_',
-          Transform,
+          transform,
           '_',
           'prev_filter_',
           prev.filter,

@@ -53,6 +53,28 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
+#'
+#' data(subset_T2D.obj)
+#' generate_taxa_heatmap_long(
+#'   data.obj = subset_T2D.obj,
+#'   subject.var = "subject_id",
+#'   time.var = "visit_number_num",
+#'   t0.level = NULL,
+#'   ts.levels = NULL,
+#'   group.var = "subject_gender",
+#'   strata.var = "subject_race",
+#'   feature.level = c("Family","Phylum"),
+#'   feature.dat.type = "count",
+#'   features.plot = NULL,
+#'   top.k.plot = NULL,
+#'   top.k.func = NULL,
+#'   prev.filter = 0.0001,
+#'   abund.filter = 0.0001,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
 #' }
 #' @export
 #'

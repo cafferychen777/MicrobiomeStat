@@ -14,7 +14,7 @@
 #' @param feature.dat.type A character string specifying the type of the data in feature.dat. Options are "count", "proportion", or "other".
 #' @param top.k.plot A numeric value specifying the number of top taxa to be plotted if features.plot is NULL. If NULL (default), all taxa will be plotted.
 #' @param top.k.func A function to compute the top k taxa if features.plot is NULL. If NULL (default), the mean function will be used.
-#' @param Transform Transformation to apply before plotting. Default is "log10".
+#' @param transform transformation to apply before plotting. Default is "log10".
 #' @param prev.filter Prevalence threshold for filtering taxa. Default 0.05.
 #' @param abund.filter Abundance threshold for filtering taxa. Default 0.01.
 #' @param base.size Base font size for the generated plots.
@@ -43,7 +43,7 @@
 #'   strata.var = NULL,
 #'   feature.level = c("Phylum"),
 #'   feature.dat.type = "proportion",
-#'   Transform = "log",
+#'   transform = "log",
 #'   prev.filter = 0.01,
 #'   abund.filter = 0.01,
 #'   base.size = 20,
@@ -74,7 +74,7 @@
 #'   feature.dat.type = "other",
 #'   top.k.plot = NULL,
 #'   top.k.func = NULL,
-#'   Transform = "log",
+#'   transform = "log",
 #'   prev.filter = 0.01,
 #'   abund.filter = 0.01,
 #'   base.size = 20,
@@ -101,7 +101,7 @@ generate_taxa_indiv_boxplot_long <-
            feature.dat.type = c("count", "proportion", "other"),
            top.k.plot = NULL,
            top.k.func = NULL,
-           Transform = c("identity", "sqrt", "log"),
+           transform = c("identity", "sqrt", "log"),
            prev.filter = 0.01,
            abund.filter = 0.01,
            base.size = 16,
@@ -278,12 +278,12 @@ generate_taxa_indiv_boxplot_long <-
       # Apply transformation
       if (feature.dat.type %in% c("count","proportion")){
         # Apply transformation
-        if (Transform %in% c("identity", "sqrt", "log")) {
-          if (Transform == "identity") {
+        if (transform %in% c("identity", "sqrt", "log")) {
+          if (transform == "identity") {
             # No transformation needed
-          } else if (Transform == "sqrt") {
+          } else if (transform == "sqrt") {
             otu_tax_agg_merged$value <- sqrt(otu_tax_agg_merged$value)
-          } else if (Transform == "log") {
+          } else if (transform == "log") {
             # Find the half of the minimum non-zero proportion for each taxon
             min_half_nonzero <- otu_tax_agg_merged %>%
               dplyr::group_by(!!sym(feature.level)) %>%
@@ -373,7 +373,7 @@ generate_taxa_indiv_boxplot_long <-
             } else {
               labs(
                 x = time.var,
-                y = paste("Relative Abundance(", Transform, ")"),
+                y = paste("Relative Abundance(", transform, ")"),
                 title = tax
               )
             }
@@ -412,11 +412,11 @@ generate_taxa_indiv_boxplot_long <-
 
         if (feature.dat.type != "other"){
           # 添加对Y轴刻度的修改
-          if (Transform == "sqrt") {
+          if (transform == "sqrt") {
             boxplot <- boxplot + scale_y_continuous(
               labels = function(x) sapply(x, function(i) as.expression(substitute(a^b, list(a = i, b = 2))))
             )
-          } else if (Transform == "log") {
+          } else if (transform == "log") {
             boxplot <- boxplot + scale_y_continuous(
               labels = function(x) sapply(x, function(i) as.expression(substitute(10^a, list(a = i))))
             )
@@ -442,7 +442,7 @@ generate_taxa_indiv_boxplot_long <-
           feature.level,
           "_",
           "transform_",
-          Transform,
+          transform,
           "_",
           "prev_filter_",
           prev.filter,

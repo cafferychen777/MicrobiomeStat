@@ -14,7 +14,7 @@
 #' @param features.plot A character vector of features to include in the plot. If NULL, top features will be selected based on `top.k.plot` and `top.k.func`.
 #' @param top.k.plot An integer specifying the top k features to plot based on the function specified in `top.k.func`.
 #' @param top.k.func A function to determine the top k features to plot.
-#' @param Transform A string specifying the transformation to apply to the data before plotting. Options are "identity", "sqrt", "log".
+#' @param transform A string specifying the transformation to apply to the data before plotting. Options are "identity", "sqrt", "log".
 #' @param prev.filter A numeric value indicating the minimum prevalence for a feature to be included in the plot.
 #' @param abund.filter A numeric value indicating the minimum abundance for a feature to be included in the plot.
 #' @param base.size A numeric value specifying the base font size for the plot.
@@ -48,7 +48,7 @@
 #'   feature.level = c("Phylum"),
 #'   features.plot = sample(unique(ecam.obj$feature.ann[,"Phylum"]),1),
 #'   feature.dat.type = "proportion",
-#'   Transform = "log",
+#'   transform = "log",
 #'   prev.filter = 0,
 #'   abund.filter = 0,
 #'   base.size = 12,
@@ -73,7 +73,7 @@
 #'   features.plot = NULL,
 #'   top.k.plot = NULL,
 #'   top.k.func = NULL,
-#'   Transform = "log",
+#'   transform = "log",
 #'   prev.filter = 0,
 #'   abund.filter = 0,
 #'   base.size = 16,
@@ -99,7 +99,7 @@ generate_taxa_boxplot_single <-
            features.plot = NULL,
            top.k.plot = NULL,
            top.k.func = NULL,
-           Transform = c("identity", "sqrt", "log"),
+           transform = c("identity", "sqrt", "log"),
            prev.filter = 0.05,
            abund.filter = 0.01,
            base.size = 16,
@@ -268,12 +268,12 @@ generate_taxa_boxplot_single <-
 
       if (feature.dat.type %in% c("count","proportion")){
         # Apply transformation
-        if (Transform %in% c("identity", "sqrt", "log")) {
-          if (Transform == "identity") {
+        if (transform %in% c("identity", "sqrt", "log")) {
+          if (transform == "identity") {
             # No transformation needed
-          } else if (Transform == "sqrt") {
+          } else if (transform == "sqrt") {
             otu_tax_agg_merged$value <- sqrt(otu_tax_agg_merged$value)
-          } else if (Transform == "log") {
+          } else if (transform == "log") {
             # Find the half of the minimum non-zero proportion for each taxon
             min_half_nonzero <- otu_tax_agg_merged %>%
               dplyr::group_by(!!sym(feature.level)) %>%
@@ -332,7 +332,7 @@ generate_taxa_boxplot_single <-
                  y = "Abundance")
           } else {
             labs(
-                 y = paste("Relative Abundance(", Transform, ")"))
+                 y = paste("Relative Abundance(", transform, ")"))
           }
         } +
         theme_to_use +
@@ -376,7 +376,7 @@ generate_taxa_boxplot_single <-
 
       if (feature.dat.type != "other"){
         # 添加对Y轴刻度的修改
-        if (Transform == "sqrt") {
+        if (transform == "sqrt") {
           boxplot <- boxplot + scale_y_continuous(
             labels = function(x)
               sapply(x, function(i)
@@ -384,7 +384,7 @@ generate_taxa_boxplot_single <-
                   a ^ b, list(a = i, b = 2)
                 )))
           )
-        } else if (Transform == "log") {
+        } else if (transform == "log") {
           boxplot <- boxplot + scale_y_continuous(
             labels = function(x)
               sapply(x, function(i)
@@ -410,7 +410,7 @@ generate_taxa_boxplot_single <-
         feature.level,
         "_",
         "transform_",
-        Transform,
+        transform,
         "_",
         "prev_filter_",
         prev.filter,

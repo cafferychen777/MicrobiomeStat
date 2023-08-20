@@ -47,6 +47,8 @@
 #' adj.vars = NULL,
 #' prev.filter = 1e-7,
 #' abund.filter = 0,
+#' feature.mt.method = "fdr",
+#' feature.sig.level = 0.1,
 #' feature.level = c("Phylum"),
 #' feature.dat.type = "count"
 #' )
@@ -60,7 +62,9 @@ generate_taxa_volatility_test_long <- function(data.obj,
                                                abund.filter = 0,
                                                feature.level,
                                                feature.dat.type = c("count", "proportion", "other"),
-                                               Transform = "CLR",
+                                               feature.mt.method = c("fdr","none"),
+                                               feature.sig.level = 0.1,
+                                               transform = "CLR",
                                                ...) {
   # Validate and extract data
   mStat_validate_data(data.obj)
@@ -80,9 +84,13 @@ generate_taxa_volatility_test_long <- function(data.obj,
       time.var, subject.var, group.var, adj.vars
     ))) %>% rownames_to_column("sample")
 
+  group_level <- meta_tab %>% select(all_of(c(group.var))) %>% pull() %>% unique()
+
+  reference_level <- group_level[1]
+
   if (feature.dat.type %in% c("count", "proportion")) {
     otu_tab <-
-      load_data_obj_count(mStat_normalize_data(data.obj, method = Transform)$data.obj.norm)
+      load_data_obj_count(mStat_normalize_data(data.obj, method = transform)$data.obj.norm)
   } else {
     otu_tab <- load_data_obj_count(data.obj)
   }
@@ -97,7 +105,7 @@ generate_taxa_volatility_test_long <- function(data.obj,
     } %>%
     select(all_of(feature.level))
 
-  if (Transform == "CLR"){
+  if (transform == "CLR"){
     abund.filter <- 0
   }
 
@@ -127,7 +135,8 @@ generate_taxa_volatility_test_long <- function(data.obj,
     otu_tax_agg_numeric <-
       otu_tax_agg %>%
       dplyr::mutate_at(vars(-!!sym(feature.level)), as.numeric) %>%
-      dplyr::mutate(!!sym(feature.level) := tidyr::replace_na(!!sym(feature.level), "unclassified")) %>% column_to_rownames(feature.level)
+      dplyr::mutate(!!sym(feature.level) := tidyr::replace_na(!!sym(feature.level), "unclassified")) %>%
+      column_to_rownames(feature.level)
 
     sub_test.list <-
       lapply(rownames(otu_tax_agg_numeric), function(taxon) {
@@ -164,7 +173,7 @@ generate_taxa_volatility_test_long <- function(data.obj,
         formula <- as.formula(formula_str)
 
         # Run the linear model
-        test_result <- lm(formula, data = test_df, ...)
+        test_result <- lm(formula, data = test_df)
 
         coef.tab <- extract_coef(test_result)
 
@@ -204,5 +213,98 @@ generate_taxa_volatility_test_long <- function(data.obj,
 
   names(test.list) <- feature.level
 
+  volcano_plots <- generate_taxa_volatility_volcano_long(data.obj = data.obj,
+                                                         group = group.var,
+                                                         test.list = test.list,
+                                                         feature.sig.level = feature.sig.level,
+                                                         feature.mt.method = feature.mt.method)
+  #print(volcano_plots)
+
   return(test.list)
+}
+
+generate_taxa_volatility_volcano_long <- function(data.obj, group.var, test.list, feature.sig.level = 0.1, feature.mt.method = c("fdr","none")){
+
+  meta_tab <- load_data_obj_metadata(data.obj) %>%
+    dplyr::select(all_of(c(
+      group.var
+    ))) %>% rownames_to_column("sample")
+
+  feature.level <- names(test.list)
+
+  group_level <- meta_tab %>% select(all_of(c(group.var))) %>% pull() %>% unique()
+
+  reference_level <- group_level[1]
+
+  # Extract and plot the volcano plot for each level of group.var excluding the reference level
+  plot_volcano <- function(sub_test.list, group.var, feature.sig.level, mt.method) {
+    plots <- list()
+
+    plot_data_list <- lapply(names(sub_test.list), function(name) {
+      df <- sub_test.list[[name]]
+      df <- df %>% filter(!(Term %in% c("(Intercept)", "Residuals", group.var)))
+      df$taxa <- name  # 添加一个新的列保存元素的名称
+      return(df)
+    })
+
+    plot_data <- do.call(rbind, plot_data_list)
+
+    unique_terms <- unique(plot_data$Term)
+
+    for (term in unique_terms) {
+      term_data <- plot_data %>% filter(Term == term)
+
+      # -log10 transform the p-values
+      term_data <- term_data %>% mutate(logP = -log10(P.Value))
+
+      # Multiple testing correction if needed
+      if (mt.method == "fdr") {
+        term_data <- term_data %>% mutate(AdjP = p.adjust(P.Value, method = "fdr"))
+      } else {
+        term_data$AdjP <- term_data$P.Value
+      }
+
+      term_data$Term <- gsub(paste0("^", group.var), "", term_data$Term)
+
+      # Find max absolute estimate for symmetric x-axis
+      max_abs_estimate <- max(abs(term_data$Estimate), na.rm = TRUE)
+
+      # Define the custom color palette
+      color_palette <- c("#2A9D8F", "#F9F871", "#F4A261", "#FF6347")
+
+      p <- ggplot(term_data, aes(x = Estimate, y = logP, color = logP)) +
+        geom_point(aes(shape = (AdjP < feature.sig.level)), size = 7) +
+        geom_vline(aes(xintercept = 0), linetype = "dashed", size = 1.5, color = "grey") +  # 修改vline线宽和颜色
+        geom_hline(aes(yintercept = -log10(feature.sig.level)), linetype = "dashed", size = 1.5, color = "grey") +  # 修改hline线宽和颜色
+        scale_shape_manual(values = c(16, 17)) +
+        labs(title = paste(gsub(paste0("^", group.var), "", term), "vs", reference_level), x = "Estimate", y = "-log10(p-value)", shape = "Significant", color = "-log10(p-value)") +
+        theme_minimal() +
+        theme(plot.title.position = "plot",
+              plot.title = element_text(hjust = 0.5),
+              panel.grid.major = element_line(color = "grey", linetype = "dashed"),
+              panel.grid.minor = element_line(color = "grey", linetype = "dotted"),
+              legend.position = "bottom") +
+        scale_color_gradientn(colors = color_palette) +  # Apply custom color gradient
+        coord_cartesian(xlim = c(-max_abs_estimate, max_abs_estimate))+
+        geom_text(aes(label = ifelse(AdjP < feature.sig.level, as.character(taxa), '')), vjust = -0.5, hjust = 0.5, size = 3.5)  # Add labels for significant taxa
+
+      plots[[term]] <- p
+    }
+    return(plots)
+  }
+
+  # Choose a method for multiple testing correction
+  mt.method <- match.arg(feature.mt.method)
+
+  # Plot the volcano plot
+  volcano_plots <- lapply(feature.level, function(feature.level){
+    plot_volcano(sub_test.list = test.list[[feature.level]],
+                 group.var = group.var,
+                 feature.sig.level = feature.sig.level,
+                 mt.method = mt.method)
+  })
+
+  names(volcano_plots) <- feature.level
+
+  return(volcano_plots)
 }

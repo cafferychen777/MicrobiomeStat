@@ -32,16 +32,18 @@
 #' )
 #'
 #' data("subset_T2D.obj")
-#' generate_taxa_trend_test_long(
+#' a <- generate_taxa_trend_test_long(
 #'   data.obj = subset_T2D.obj,
 #'   subject.var = "subject_id",
-#'   time.var = "visit_number_num",
+#'   time.var = "visit_number",
 #'   group.var = "subject_gender",
-#'   adj.vars = "sample_body_site",
-#'   feature.level = "Family",
-#'   prev.filter = 0.001,
-#'   abund.filter = 0.001,
-#'   feature.dat.type = "proportion"
+#'   adj.vars = NULL,
+#'   feature.level = "Phylum",
+#'   prev.filter = 1e-4,
+#'   abund.filter = 1e-5,
+#'   feature.dat.type = "count",
+#'   feature.sig.level = 0.1,
+#'   feature.mt.method = "fdr"
 #' )
 #'
 #' }
@@ -56,6 +58,8 @@ generate_taxa_trend_test_long <-
            prev.filter = 0,
            abund.filter = 0,
            feature.dat.type = c("count", "proportion"),
+           feature.sig.level = 0.1,
+           feature.mt.method = "fdr",
            ...) {
     # Extract data
     mStat_validate_data(data.obj)
@@ -69,6 +73,16 @@ generate_taxa_trend_test_long <-
     } else{
       otu_tab <- load_data_obj_count(data.obj)
     }
+
+    message(
+      "The volatility calculation in generate_taxa_volatility_test_long relies on a numeric time variable.\n",
+      "Please check that your time variable is coded as numeric.\n",
+      "If the time variable is not numeric, it may cause issues in computing the results of the volatility test.\n",
+      "You can ensure the time variable is numeric by mutating it in the metadata."
+    )
+
+    data.obj$meta.dat <-
+      data.obj$meta.dat %>% dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
 
     tax_tab <- load_data_obj_taxonomy(data.obj) %>%
       as.data.frame() %>%
@@ -113,8 +127,7 @@ generate_taxa_trend_test_long <-
         tidyr::gather(key = "sample", value = "value",-one_of(feature.level)) %>%
         dplyr::group_by_at(vars(!!sym(feature.level))) %>%
         dplyr::summarise(total_count = mean(value),
-                         prevalence = sum(value > 0) / dplyr::n(),
-                         , na.rm = TRUE) %>%
+                         prevalence = sum(value > 0) / dplyr::n()) %>%
         filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
         select(-total_count,-prevalence) %>%
         dplyr::left_join(otu_tax, by = feature.level)
@@ -136,8 +149,7 @@ generate_taxa_trend_test_long <-
                          formula = paste("~", formula),
                          feature.dat.type = "proportion",
                          prev.filter = prev.filter,
-                         mean.abund.filter = abund.filter,
-                         ...)
+                         mean.abund.filter = abund.filter)
 
       # Extract relevant information
       significant_taxa <- rownames(linda.obj$feature.dat.use)
@@ -231,6 +243,71 @@ generate_taxa_trend_test_long <-
     # Assign names to the elements of test.list
     names(test.list) <- feature.level
 
+    # Filtering and generating volcano plots for the selected test results
+    plots.list <- lapply(test.list, function(test.result) {
+      filtered_result <- dplyr::filter(test.result, grepl(paste0("^", group.var, ".*", time.var, "$"), Output.Element))
+
+      levels <- unique(filtered_result$Output.Element)
+
+      sub_plots.list <- lapply(levels, function(level){
+        sub_filtered_result <- filtered_result %>% filter(Output.Element == level)
+        if (nrow(filtered_result) > 0) { # Check if there are any rows after filtering
+          return(generate_taxa_trend_volcano_long(sub_filtered_result))
+        } else {
+          return(NULL) # If no rows after filtering, return NULL
+        }
+      })
+
+    })
+
+    print(plots.list)
+
     return(test.list)
 
   }
+
+
+generate_taxa_trend_volcano_long <- function(data.obj, group.var, time.var, test.list, feature.sig.level = 0.1, feature.mt.method = c("fdr","none")) {
+
+  meta_tab <- load_data_obj_metadata(data.obj) %>%
+    dplyr::select(all_of(c(
+      group.var
+    ))) %>% rownames_to_column("sample")
+
+  feature.level <- names(test.list)
+
+  group_level <- meta_tab %>% select(all_of(c(group.var))) %>% pull() %>% unique()
+
+  reference_level <- group_level[1]
+
+  # Find max absolute log2FoldChange for symmetric x-axis
+  max_abs_log2FC <- max(abs(test.result$Log2.Fold.Change), na.rm = TRUE)
+
+  # Define the custom color palette
+  color_palette <- c("#2A9D8F", "#F9F871", "#F4A261", "#FF6347")
+
+  p <- ggplot(test.result, aes(x = Log2.Fold.Change, y = -log10(P.Value), color = -log10(P.Value))) +
+    geom_point(aes(shape = Adjusted.P.Value < 0.05), size = 7) +
+    geom_vline(aes(xintercept = 0), linetype = "dashed", size = 1.5, color = "grey") +
+    geom_hline(aes(yintercept = -log10(0.05)), linetype = "dashed", size = 1.5, color = "grey") +
+    geom_text(aes(label = ifelse(Adjusted.P.Value < feature.sig.level, as.character(Variable), '')), vjust = -0.5, hjust = 0.5, size = 3.5) +
+    scale_shape_manual(values = c(16, 17)) +
+    labs(title = "Volcano Plot", x = "Log2 Fold Change", y = "-log10(p-value)", shape = "Significant", color = "-log10(p-value)") +
+    theme_minimal() +
+    theme(
+      plot.title.position = "plot",
+      plot.title = element_text(hjust = 0.5),
+      panel.grid.major = element_line(color = "grey", linetype = "dashed"),
+      panel.grid.minor = element_line(color = "grey", linetype = "dotted"),
+      legend.position = "bottom"
+    ) +
+    scale_color_gradientn(colors = color_palette) +
+    coord_cartesian(xlim = c(-max_abs_log2FC, max_abs_log2FC))
+
+
+
+  return(p)
+}
+
+
+
