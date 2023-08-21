@@ -70,7 +70,7 @@ generate_taxa_volatility_test_long <- function(data.obj,
   mStat_validate_data(data.obj)
 
   message(
-    "The volatility calculation in generate_taxa_volatility_test_long relies on a numeric time variable.\n",
+    "The volatility calculation relies on a numeric time variable.\n",
     "Please check that your time variable is coded as numeric.\n",
     "If the time variable is not numeric, it may cause issues in computing the results of the volatility test.\n",
     "You can ensure the time variable is numeric by mutating it in the metadata."
@@ -218,11 +218,32 @@ generate_taxa_volatility_test_long <- function(data.obj,
                                                          test.list = test.list,
                                                          feature.sig.level = feature.sig.level,
                                                          feature.mt.method = feature.mt.method)
-  #print(volcano_plots)
+
+  print(volcano_plots)
 
   return(test.list)
 }
 
+#' Generate volcano plots for longitudinal taxa abundance volatility test
+#'
+#' @param data.obj A MicrobiomeStat data object
+#' @param group.var The grouping variable tested, found in metadata
+#' @param test.list The list of test results returned by generate_taxa_volatility_test_long
+#' @param feature.sig.level The significance level cutoff for highlighting taxa
+#' @param feature.mt.method Multiple testing correction method, "fdr" or "none"
+#'
+#' @return A list of ggplot objects of volcano plots for each taxonomic level
+#'
+#' @examples
+#' # data("subset_T2D.obj")
+#' # test_list <- generate_taxa_volatility_test_long(data.obj, ...)
+#' # volcano_plots <- generate_taxa_volatility_volcano_long(data.obj,
+#'                                                       # group.var,
+#'                                                       # test.list,
+#'                                                       # feature.sig.level = 0.05,
+#'                                                       # feature.mt.method = "fdr")
+#'
+#' @export
 generate_taxa_volatility_volcano_long <- function(data.obj, group.var, test.list, feature.sig.level = 0.1, feature.mt.method = c("fdr","none")){
 
   meta_tab <- load_data_obj_metadata(data.obj) %>%
@@ -254,15 +275,15 @@ generate_taxa_volatility_volcano_long <- function(data.obj, group.var, test.list
     for (term in unique_terms) {
       term_data <- plot_data %>% filter(Term == term)
 
-      # -log10 transform the p-values
-      term_data <- term_data %>% mutate(logP = -log10(P.Value))
-
       # Multiple testing correction if needed
       if (mt.method == "fdr") {
         term_data <- term_data %>% mutate(AdjP = p.adjust(P.Value, method = "fdr"))
       } else {
         term_data$AdjP <- term_data$P.Value
       }
+
+      # -log10 transform the p-values
+      term_data <- term_data %>% mutate(logP = -log10(AdjP))
 
       term_data$Term <- gsub(paste0("^", group.var), "", term_data$Term)
 

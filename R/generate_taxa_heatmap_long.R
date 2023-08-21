@@ -219,7 +219,10 @@ generate_taxa_heatmap_long <- function(data.obj,
     dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
 
   otu_tab_norm <-
-    otu_tax_agg_numeric %>% filter(!is.na(!!sym(feature.level))) %>% column_to_rownames(var = feature.level) %>% as.matrix()
+    otu_tax_agg_numeric %>%
+    filter(!is.na(!!sym(feature.level))) %>%
+    column_to_rownames(var = feature.level) %>%
+    as.matrix()
 
   if (!is.null(group.var)) {
     wide_data <- otu_tab_norm %>%
@@ -250,12 +253,19 @@ generate_taxa_heatmap_long <- function(data.obj,
       dplyr::distinct() %>%
       dplyr::mutate(group_time = paste(!!sym(group.var),!!sym(time.var), sep = "_")) %>%
       column_to_rownames("group_time")
+
     annotation_col_sorted <-
       annotation_col[order(annotation_col[[group.var]], annotation_col[[time.var]]), ]
+
     if (!is.null(strata.var)){
       annotation_col_sorted <- annotation_col_sorted %>%
-        tidyr::separate(!!sym(group.var), into = c(strata.var, group.var), sep = "\\.")
+        tidyr::separate(!!sym(group.var), into = c(strata.var, group.var), sep = "\\.") %>%
+        dplyr::select(!!sym(time.var), !!sym(group.var), !!sym(strata.var))
+
+      annotation_col_sorted <-
+        annotation_col_sorted[order(annotation_col_sorted[[strata.var]], annotation_col_sorted[[group.var]], annotation_col_sorted[[time.var]]), ]
     }
+
     wide_data_sorted <- wide_data[, rownames(annotation_col_sorted)]
 
 
@@ -265,6 +275,11 @@ generate_taxa_heatmap_long <- function(data.obj,
       cumsum(table(annotation_col_sorted[[group.var]]))[-length(table(annotation_col_sorted[[group.var]]))]
   } else {
     gaps <- NULL
+  }
+
+  if (!is.null(strata.var)){
+    gaps <-
+      cumsum(table(annotation_col_sorted[[strata.var]]))[-length(table(annotation_col_sorted[[strata.var]]))]
   }
 
     col <- c("white", "#92c5de", "#0571b0", "#f4a582", "#ca0020")

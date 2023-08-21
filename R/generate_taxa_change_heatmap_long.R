@@ -366,18 +366,26 @@ generate_taxa_change_heatmap_long <- function(data.obj,
       dplyr::mutate(group_time = paste(!!sym(group.var), !!sym(time.var), sep = "_")) %>%
       filter(group_time %in% new_colnames) %>%
       column_to_rownames("group_time")
+
     annotation_col_sorted <-
       annotation_col[order(annotation_col[[group.var]], annotation_col[[time.var]]),]
+
     if (!is.null(strata.var)) {
       annotation_col_sorted <- annotation_col_sorted %>%
         tidyr::separate(!!sym(group.var),
-                 into = c(strata.var, group.var),
+                 into = c(group.var, strata.var),
                  sep = "\\.")
+
+      annotation_col_sorted <-
+        annotation_col_sorted[order(annotation_col_sorted[[strata.var]], annotation_col_sorted[[group.var]], annotation_col_sorted[[time.var]]), ]
+
     }
+
     if (group.var == "ALL") {
       annotation_col_sorted <-
         annotation_col_sorted %>% select(all_of(c(time.var)))
     }
+
     wide_data_sorted <- wide_data[, rownames(annotation_col_sorted)]
 
     if (!is.null(features.plot)) {
@@ -391,6 +399,11 @@ generate_taxa_change_heatmap_long <- function(data.obj,
         cumsum(table(annotation_col_sorted[[group.var]]))[-length(table(annotation_col_sorted[[group.var]]))]
     } else {
       gaps <- NULL
+    }
+
+    if (!is.null(strata.var)){
+      gaps <-
+        cumsum(table(annotation_col_sorted[[strata.var]]))[-length(table(annotation_col_sorted[[strata.var]]))]
     }
 
     n_colors <- 100

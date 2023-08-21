@@ -32,7 +32,7 @@
 #' )
 #'
 #' data("subset_T2D.obj")
-#' a <- generate_taxa_trend_test_long(
+#' test.list <- generate_taxa_trend_test_long(
 #'   data.obj = subset_T2D.obj,
 #'   subject.var = "subject_id",
 #'   time.var = "visit_number",
@@ -43,7 +43,7 @@
 #'   abund.filter = 1e-5,
 #'   feature.dat.type = "count",
 #'   feature.sig.level = 0.1,
-#'   feature.mt.method = "fdr"
+#'   feature.mt.method = "none"
 #' )
 #'
 #' }
@@ -75,9 +75,9 @@ generate_taxa_trend_test_long <-
     }
 
     message(
-      "The volatility calculation in generate_taxa_volatility_test_long relies on a numeric time variable.\n",
-      "Please check that your time variable is coded as numeric.\n",
-      "If the time variable is not numeric, it may cause issues in computing the results of the volatility test.\n",
+      "The trend test calculation relies on a numeric time variable.\\n",
+      "Please check that your time variable is coded as numeric.\\n",
+      "If the time variable is not numeric, it may cause issues in computing the test results.\\n",
       "You can ensure the time variable is numeric by mutating it in the metadata."
     )
 
@@ -118,23 +118,22 @@ generate_taxa_trend_test_long <-
     formula <- paste(fixed_effects, random_effects, sep = " + ")
 
     test.list <- lapply(feature.level, function(feature.level) {
-
       otu_tax <-
         cbind(otu_tab,
               tax_tab %>% select(all_of(feature.level)))
 
       otu_tax_filtered <- otu_tax %>%
-        tidyr::gather(key = "sample", value = "value",-one_of(feature.level)) %>%
+        tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
         dplyr::group_by_at(vars(!!sym(feature.level))) %>%
         dplyr::summarise(total_count = mean(value),
                          prevalence = sum(value > 0) / dplyr::n()) %>%
         filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
-        select(-total_count,-prevalence) %>%
+        select(-total_count, -prevalence) %>%
         dplyr::left_join(otu_tax, by = feature.level)
 
       otu_tax_agg <- otu_tax_filtered %>%
-        tidyr::gather(key = "sample", value = "value",-one_of(feature.level)) %>%
-        dplyr::group_by_at(vars(sample,!!sym(feature.level))) %>%
+        tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
+        dplyr::group_by_at(vars(sample, !!sym(feature.level))) %>%
         dplyr::summarise(value = sum(value)) %>%
         tidyr::spread(key = "sample", value = "value")
 
@@ -144,17 +143,19 @@ generate_taxa_trend_test_long <-
         dplyr::mutate(!!sym(feature.level) := tidyr::replace_na(!!sym(feature.level), "unclassified")) %>%
         column_to_rownames(feature.level)
 
-      linda.obj <- linda(feature.dat = otu_tax_agg_numeric,
-                         meta.dat = meta_tab,
-                         formula = paste("~", formula),
-                         feature.dat.type = "proportion",
-                         prev.filter = prev.filter,
-                         mean.abund.filter = abund.filter)
+      linda.obj <- linda(
+        feature.dat = otu_tax_agg_numeric,
+        meta.dat = meta_tab,
+        formula = paste("~", formula),
+        feature.dat.type = "proportion",
+        prev.filter = prev.filter,
+        mean.abund.filter = abund.filter
+      )
 
       # Extract relevant information
       significant_taxa <- rownames(linda.obj$feature.dat.use)
 
-      if (is.null(group.var)){
+      if (is.null(group.var)) {
         linda.obj$meta.dat.use$group <- "No Group"
         group.var <- "group"
       }
@@ -165,8 +166,12 @@ generate_taxa_trend_test_long <-
         tidyr::gather(-!!sym(feature.level),
                       key = "sample",
                       value = "count") %>%
-        dplyr::inner_join(linda.obj$meta.dat.use %>% rownames_to_column("sample"), by = "sample", relationship = "many-to-many") %>%
-        dplyr::group_by(!!sym(group.var), !!sym(feature.level)) %>%
+        dplyr::inner_join(
+          linda.obj$meta.dat.use %>% rownames_to_column("sample"),
+          by = "sample",
+          relationship = "many-to-many"
+        ) %>%
+        dplyr::group_by(!!sym(group.var),!!sym(feature.level)) %>%
         dplyr::summarise(mean_abundance = mean(count),
                          prevalence = sum(count > 0) / dplyr::n())
 
@@ -190,7 +195,7 @@ generate_taxa_trend_test_long <-
             for (group in unique(linda.obj$meta.dat.use[[group.var]])) {
               group_data <-
                 prop_prev_data[which(prop_prev_data[[feature.level]] == taxa &
-                                       prop_prev_data[[group.var]] == group), ]
+                                       prop_prev_data[[group.var]] == group),]
               mean_prop <- group_data$mean_abundance
               mean_prev <- group_data$prevalence
 
@@ -213,7 +218,7 @@ generate_taxa_trend_test_long <-
             }
           } else {
             total_data <-
-              prop_prev_data[which(prop_prev_data[[feature.level]] == taxa), ]
+              prop_prev_data[which(prop_prev_data[[feature.level]] == taxa),]
             mean_prop <- total_data$mean_abundance
             mean_prev <- total_data$prevalence
 
@@ -243,71 +248,137 @@ generate_taxa_trend_test_long <-
     # Assign names to the elements of test.list
     names(test.list) <- feature.level
 
-    # Filtering and generating volcano plots for the selected test results
-    plots.list <- lapply(test.list, function(test.result) {
-      filtered_result <- dplyr::filter(test.result, grepl(paste0("^", group.var, ".*", time.var, "$"), Output.Element))
-
-      levels <- unique(filtered_result$Output.Element)
-
-      sub_plots.list <- lapply(levels, function(level){
-        sub_filtered_result <- filtered_result %>% filter(Output.Element == level)
-        if (nrow(filtered_result) > 0) { # Check if there are any rows after filtering
-          return(generate_taxa_trend_volcano_long(sub_filtered_result))
-        } else {
-          return(NULL) # If no rows after filtering, return NULL
-        }
-      })
-
-    })
-
-    print(plots.list)
+    plot.list <-
+      generate_taxa_trend_volcano_long(
+        data.obj = data.obj,
+        group.var = group.var,
+        time.var = time.var,
+        test.list = test.list,
+        feature.sig.level = feature.sig.level,
+        feature.mt.method = feature.mt.method
+      )
 
     return(test.list)
-
   }
 
+#' Generate volcano plots for longitudinal taxa trend test
+#'
+#' @param data.obj A MicrobiomeStat data object
+#' @param group.var The grouping variable tested, found in metadata
+#' @param time.var The time variable used in the analysis
+#' @param test.list The list of test results returned by generate_taxa_trend_test_long
+#' @param feature.sig.level The significance level cutoff for highlighting taxa
+#' @param feature.mt.method Multiple testing correction method, "fdr" or "none"
+#'
+#' @return A list of ggplot objects of volcano plots for each taxonomic level
+#'
+#' @examples
+#' # data("subset_T2D.obj")
+#' # test_list <- generate_taxa_trend_test_long(data.obj, ...)
+#' # volcano_plots <- generate_taxa_trend_volcano_long(data.obj,
+#'                                                  # group.var,
+#'                                                  # time.var,
+#'                                                  # test_list,
+#'                                                  # feature.sig.level = 0.05,
+#'                                                  # feature.mt.method = "fdr")
+#'
+#' @export
+generate_taxa_trend_volcano_long <-
+  function(data.obj,
+           group.var,
+           time.var,
+           test.list,
+           feature.sig.level = 0.1,
+           feature.mt.method = "fdr") {
+    meta_tab <- load_data_obj_metadata(data.obj) %>%
+      dplyr::select(all_of(c(group.var))) %>% rownames_to_column("sample")
 
-generate_taxa_trend_volcano_long <- function(data.obj, group.var, time.var, test.list, feature.sig.level = 0.1, feature.mt.method = c("fdr","none")) {
+    feature.level <- names(test.list)
 
-  meta_tab <- load_data_obj_metadata(data.obj) %>%
-    dplyr::select(all_of(c(
-      group.var
-    ))) %>% rownames_to_column("sample")
+    group_level <-
+      meta_tab %>% select(all_of(c(group.var))) %>% pull() %>% unique()
 
-  feature.level <- names(test.list)
+    reference_level <- group_level[1]
 
-  group_level <- meta_tab %>% select(all_of(c(group.var))) %>% pull() %>% unique()
+    # Define the custom color palette
+    color_palette <- c("#2A9D8F", "#F9F871", "#F4A261", "#FF6347")
 
-  reference_level <- group_level[1]
+    plot.list <- lapply(feature.level, function(feature.level) {
+      sub_test.list <- test.list[[feature.level]]
 
-  # Find max absolute log2FoldChange for symmetric x-axis
-  max_abs_log2FC <- max(abs(test.result$Log2.Fold.Change), na.rm = TRUE)
+      test.result <- sub_test.list %>%
+        dplyr::filter(grepl(paste0('^', group.var, '.*', time.var, '$'), Output.Element))
 
-  # Define the custom color palette
-  color_palette <- c("#2A9D8F", "#F9F871", "#F4A261", "#FF6347")
+      sub_plot.list <- lapply(group_level[-1], function(group_level) {
+        sub_test.result <- test.result %>%
+          dplyr::filter(Output.Element == paste0(group.var, group_level, ":", time.var))
 
-  p <- ggplot(test.result, aes(x = Log2.Fold.Change, y = -log10(P.Value), color = -log10(P.Value))) +
-    geom_point(aes(shape = Adjusted.P.Value < 0.05), size = 7) +
-    geom_vline(aes(xintercept = 0), linetype = "dashed", size = 1.5, color = "grey") +
-    geom_hline(aes(yintercept = -log10(0.05)), linetype = "dashed", size = 1.5, color = "grey") +
-    geom_text(aes(label = ifelse(Adjusted.P.Value < feature.sig.level, as.character(Variable), '')), vjust = -0.5, hjust = 0.5, size = 3.5) +
-    scale_shape_manual(values = c(16, 17)) +
-    labs(title = "Volcano Plot", x = "Log2 Fold Change", y = "-log10(p-value)", shape = "Significant", color = "-log10(p-value)") +
-    theme_minimal() +
-    theme(
-      plot.title.position = "plot",
-      plot.title = element_text(hjust = 0.5),
-      panel.grid.major = element_line(color = "grey", linetype = "dashed"),
-      panel.grid.minor = element_line(color = "grey", linetype = "dotted"),
-      legend.position = "bottom"
-    ) +
-    scale_color_gradientn(colors = color_palette) +
-    coord_cartesian(xlim = c(-max_abs_log2FC, max_abs_log2FC))
+        # Find max absolute log2FoldChange for symmetric x-axis
+        max_abs_log2FC <-
+          max(abs(sub_test.result$Log2.Fold.Change), na.rm = TRUE)
 
+        # 使用条件表达式设置要使用的p值变量
+        p_val_var <-
+          ifelse(feature.mt.method == "fdr",
+                 "Adjusted.P.Value",
+                 "P.Value")
 
+        p <-
+          ggplot(sub_test.result,
+                 aes(
+                   x = Log2.Fold.Change,
+                   y = -log10(get(p_val_var)),
+                   color = -log10(get(p_val_var))
+                 )) +
+          geom_point(aes(shape = get(p_val_var) < feature.sig.level), size = 7) +
+          geom_vline(
+            aes(xintercept = 0),
+            linetype = "dashed",
+            size = 1.5,
+            color = "grey"
+          ) +
+          geom_hline(
+            aes(yintercept = -log10(feature.sig.level)),
+            linetype = "dashed",
+            size = 1.5,
+            color = "grey"
+          ) +
+          geom_text(
+            aes(label = ifelse(
+              get(p_val_var) < feature.sig.level,
+              as.character(Variable),
+              ''
+            )),
+            vjust = -0.5,
+            hjust = 0.5,
+            size = 3.5
+          ) +
+          scale_shape_manual(values = c(16, 17)) +
+          labs(
+            title = paste(group_level, "vs", reference_level, "(Reference)"),
+            x = "Log2 Fold Change",
+            y = "-log10(p-value)",
+            shape = "Significant",
+            color = "-log10(p-value)"
+          ) +
+          theme_minimal() +
+          theme(
+            plot.title.position = "plot",
+            plot.title = element_text(hjust = 0.5),
+            panel.grid.major = element_line(color = "grey", linetype = "dashed"),
+            panel.grid.minor = element_line(color = "grey", linetype = "dotted"),
+            legend.position = "bottom"
+          ) +
+          scale_color_gradientn(colors = color_palette) +
+          coord_cartesian(xlim = c(-max_abs_log2FC, max_abs_log2FC))
 
-  return(p)
-}
+        return(p)
+      })
+      names(sub_plot.list) <-
+        paste(group_level[-1], "vs", reference_level, "(Reference)")
+      return(sub_plot.list)
+    })
 
-
-
+    names(plot.list) <- feature.level
+    return(plot.list)
+  }

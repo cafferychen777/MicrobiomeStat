@@ -59,13 +59,14 @@
 #'   base.size = 12,
 #'   output.file = "path/report.pdf"
 #' )
-#'
+#' data(subset_T2D.obj)
 #' mStat_generate_report_long(
 #'   data.obj = subset_T2D.obj,
 #'   dist.obj = NULL,
 #'   alpha.obj = NULL,
 #'   pc.obj = NULL,
 #'   group.var = "subject_gender",
+#'   strata.var = "subject_race",
 #'   adj.vars = NULL,
 #'   subject.var = "subject_id",
 #'   time.var = "visit_number",
@@ -73,8 +74,7 @@
 #'   dist.name = c("BC",'Jaccard'),
 #'   t0.level = unique(sort(subset_T2D.obj$meta.dat$visit_number))[1],
 #'   ts.levels = unique(sort(subset_T2D.obj$meta.dat$visit_number))[-1],
-#'   strata.var = "subject_race",
-#'   feature.mt.method = "fdr",
+#'   feature.mt.method = "none",
 #'   feature.sig.level = 0.1,
 #'   feature.level = c("Phylum"),
 #'   change.func = "relative difference",
@@ -148,11 +148,11 @@ custom_file.ann_status <- ifelse(is.null(file.ann), 'NULL', 'Not NULL')
 params_data <- data.frame(Parameter = c('data.obj', 'group.var', 'strata.var', 'adj.vars', 'subject.var', 'time.var', 'alpha.name',
                                     'dist.name', 't0.level', 'ts.levels', 'change.func', 'base.size', 'theme.choice',
                                     'custom.theme', 'palette', 'pdf', 'file.ann', 'pdf.wid', 'pdf.hei', 'prev.filter',
-                                    'abund.filter', 'feature.number', 'feature.level', 'feature.dat.type', 'transform'),
+                                    'abund.filter', 'feature.number', 'feature.level', 'feature.dat.type', 'feature.mt.method', 'feature.sig.level', 'transform'),
                           Value = c(deparse(substitute(data.obj)), group.var, strata.var, toString(adj.vars), subject.var, time.var, toString(alpha.name),
                                     toString(dist.name), t0.level, toString(ts.levels), change.func, base.size, theme.choice,
                                     custom_theme_status, custom_palette_status, pdf, custom_file.ann_status, pdf.wid, pdf.hei, prev.filter,
-                                    abund.filter, feature.number, toString(feature.level), feature.dat.type, transform))
+                                    abund.filter, feature.number, toString(feature.level), feature.dat.type, feature.mt.method, feature.sig.level, transform))
 
 # 使用pander来渲染数据框
 pander::pander(params_data)
@@ -761,7 +761,7 @@ taxa_areaplot_long_results <- generate_taxa_areaplot_long(
 )
 ```
 
-```{r taxa-areaplot-longitudinal-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 20, fig.height = 8}
+```{r taxa-areaplot-longitudinal-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 15, fig.height = 8}
 cat('### Average Version: This plot displays the average proportions for each time point, group, and strata. \n')
 taxa_areaplot_long_results
 ```
@@ -881,7 +881,7 @@ taxa_barplot_long_results
 
 ### 4.5 Taxa Trend Test
 
-```{r taxa-trend-test-longitudinal-generation, message=FALSE, results='asis', warning = FALSE, fig.align='center', fig.width = 10, fig.height = 10}
+```{r taxa-trend-test-longitudinal-generation, message=FALSE, results='hide', warning = FALSE}
 taxa_trend_test_results <- generate_taxa_trend_test_long(
                                                data.obj = data.obj,
                                                subject.var = subject.var,
@@ -895,7 +895,19 @@ taxa_trend_test_results <- generate_taxa_trend_test_long(
                                                ...)
 ```
 
-```{r taxa-trend-test-results-print, echo=FALSE, message=FALSE, results='asis', warning = FALSE}
+```{r taxa-trend-test-results-print, echo=FALSE, message=FALSE, results='asis', warning = FALSE, fig.align='center', fig.width = 5, fig.height = 5}
+
+trend_volcano_plots <- generate_taxa_trend_volcano_long(
+                                               data.obj = data.obj,
+                                               group.var = group.var,
+                                               time.var = time.var,
+                                               test.list = taxa_trend_test_results,
+                                               feature.sig.level = feature.sig.level,
+                                               feature.mt.method = feature.mt.method
+                                                  )
+
+trend_volcano_plots
+
 # Initial description
 if (!is.null(group.var)) {
     cat(sprintf('In this analysis, we utilized the LinDA linear mixed effects model to investigate potential interactions in the context of Taxa Trend Test. Specifically, we tested the interaction between the variables %s and %s, for different taxa, while adjusting for other covariates.\n\n', group.var, time.var))
@@ -905,25 +917,50 @@ if (!is.null(group.var)) {
 
 # Iterate over each taxonomic rank in taxa_trend_test_results
 for(taxon_rank in names(taxa_trend_test_results)) {
-    # Filter interaction terms
-    interaction_terms_results <- taxa_trend_test_results[[taxon_rank]] %>%
-        dplyr::filter(grepl(paste0('^', group.var, '.*', time.var, '$'), Output.Element)) %>%
-        filter(Adjusted.P.Value < 0.05)
+
+    # Filter interaction terms based on the selected multiple testing method
+    if (feature.mt.method == 'fdr') {
+        interaction_terms_results <- taxa_trend_test_results[[taxon_rank]] %>%
+            dplyr::filter(grepl(paste0('^', group.var, '.*', time.var, '$'), Output.Element)) %>%
+            filter(Adjusted.P.Value < feature.sig.level)
+        p_value_str = 'adjusted p-value'
+    } else if (feature.mt.method == 'none') {
+        interaction_terms_results <- taxa_trend_test_results[[taxon_rank]] %>%
+            dplyr::filter(grepl(paste0('^', group.var, '.*', time.var, '$'), Output.Element)) %>%
+            filter(P.Value < feature.sig.level)
+        p_value_str = 'p-value'
+    }
 
     # Check if filtered results have rows
     if (nrow(interaction_terms_results) == 0) {
-        cat(sprintf('For the investigated taxa under %s, no significant interactions between %s and %s were detected at an adjusted p-value threshold of 0.05.\n\n', taxon_rank, group.var, time.var))
+        cat(sprintf('For the taxa investigated under the %s category, no significant interactions were detected between %s and %s using the %s method for p-value adjustment, at a %s threshold of %s.\n\n', taxon_rank, group.var, time.var, feature.mt.method, p_value_str, feature.sig.level))
     } else {
-        cat(sprintf('## Significant Interactions for %s in Taxa Trend Test Results \n', taxon_rank))
-        pander::pander(interaction_terms_results)
+        cat('## Significant Taxa in Taxa Volatility Test Results \n')
+        cat(sprintf('For the taxon %s, significant interactions were identified in the Taxa Trend Test Results using the %s method for p-value adjustment, based on a threshold of %s:\n\n', taxon_rank, feature.mt.method, feature.sig.level))
     }
 }
+
+pander::pander(interaction_terms_results)
+
+# 指定文件名前缀和后缀
+filename_prefix <- 'taxa_trend_test_results_'
+file_ext <- '.csv'
+
+# 遍历列表并保存每个data.frame
+for(taxon_rank in names(taxa_trend_test_results)) {
+    write.csv(taxa_trend_test_results[[taxon_rank]],
+              file = paste0(filename_prefix, taxon_rank, file_ext),
+              row.names = FALSE)
+}
+
+# 通知用户
+cat(sprintf('The taxa trend test results for individual taxa or features have been saved in the current working directory. Each taxa rank has its own file named with the prefix: %s followed by the taxon rank and the file extension %s. Please refer to these files for more detailed data.', filename_prefix, file_ext))
 
 ```
 
 ### 4.6 Taxa Volatility Test
 
-```{r taxa-volatility-test-longitudinal-generation, message=FALSE, results='asis', warning = FALSE, fig.align='center', fig.width = 5, fig.height = 5}
+```{r taxa-volatility-test-longitudinal-generation, message=FALSE, results='hide', warning = FALSE}
 taxa_volatility_test_results <- generate_taxa_volatility_test_long(
                                                data.obj = data.obj,
                                                subject.var = subject.var,
@@ -937,9 +974,13 @@ taxa_volatility_test_results <- generate_taxa_volatility_test_long(
                                                )
 ```
 
-```{r taxa-volatility-test-results-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 5, fig.height = 5, warning = FALSE}
+```{r taxa-volatility-test-results-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 7, fig.height = 5, warning = FALSE}
 
-volatility_volcano_plots <- generate_taxa_volatility_volcano_long(data.obj = data.obj, group.var = group.var, test.list = taxa_volatility_test_results, feature.sig.level = feature.sig.level, feature.mt.method = 'fdr')
+volatility_volcano_plots <- generate_taxa_volatility_volcano_long(data.obj = data.obj,
+                                                                  group.var = group.var,
+                                                                  test.list = taxa_volatility_test_results,
+                                                                  feature.sig.level = feature.sig.level,
+                                                                  feature.mt.method = feature.mt.method)
 
 volatility_volcano_plots
 
@@ -958,7 +999,7 @@ cat('Taxa abundances were transformed using the centered log-ratio (CLR) transfo
 report_taxa_volatility_significance <- function(data_frame, group_var) {
     significant_group_var <- data_frame %>%
                              filter(Term == group_var) %>%
-                             filter(P.Value < 0.05)
+                             filter(P.Value < feature.sig.level)
 
     if(nrow(significant_group_var) > 0) {
         return(data_frame)
@@ -981,29 +1022,50 @@ for(taxon_rank in names(taxa_volatility_test_results)) {
     if(length(significant_results_list) > 0) {
       cat('## Significant Taxa in Taxa Volatility Test Results \n')
     } else {
-        cat(sprintf('No significant results were detected for the taxa volatility at a p-value threshold of 0.05 for %s.\n\n', taxon_rank))
+        cat(sprintf('No significant results were detected for the taxa volatility at a p-value threshold of %s for %s.\n\n', feature.sig.level, taxon_rank))
     }
 }
 
 pander::pander(significant_results_list)
 
+# 指定文件名前缀和后缀
+filename_prefix <- 'taxa_volatility_test_results_'
+file_ext <- '.csv'
+
+# 遍历主列表的每个元素
+for(main_taxon in names(taxa_volatility_test_results)) {
+    # 获取次级列表
+    sub_list <- taxa_volatility_test_results[[main_taxon]]
+
+    # 遍历次级列表的每个元素
+    for(sub_taxon in names(sub_list)) {
+        # 获取完整的文件名
+        full_filename <- paste0(filename_prefix, main_taxon, '_', sub_taxon, file_ext)
+
+        # 保存data.frame
+        write.csv(sub_list[[sub_taxon]], file = full_filename, row.names = FALSE)
+    }
+}
+
+# 通知用户
+cat(sprintf('The taxa volatility test results for individual taxa or features have been saved in the current working directory. Each taxa rank and sub-rank combination has its own file named with the prefix: %s followed by the main taxon, sub-taxon, and the file extension %s. Please refer to these files for more detailed data.', filename_prefix, file_ext))
+
 ```
 
 ```{r extract_significant_taxa, echo=FALSE, results='hide'}
 # 从taxa_trend_test_results提取具有统计学意义的taxon
-significant_taxa_from_trend <- rownames(interaction_terms_results)
+significant_taxa_from_trend <- interaction_terms_results$Variable
 
 # 从taxa_volatility_test_results提取具有统计学意义的taxon
 significant_taxa_from_volatility <- names(significant_results_list)[sapply(significant_results_list, nrow) > 0]
 
 # 结合并去重
 combined_significant_taxa <- unique(c(significant_taxa_from_trend, significant_taxa_from_volatility))
-combined_significant_taxa
 ```
 
 ### 4.7 Taxa Boxplot for Significant Taxa
 
-```{r taxa-test-boxplot-longitudinal-generation, message=FALSE, fig.height=15, fig.width=10, fig.align='center', results='asis'}
+```{r taxa-test-boxplot-longitudinal-generation, message=FALSE, fig.height=10, fig.width=10, fig.align='center', results='asis'}
 
 if (!is.null(combined_significant_taxa)){
   taxa_boxplot_results <- generate_taxa_boxplot_long(
