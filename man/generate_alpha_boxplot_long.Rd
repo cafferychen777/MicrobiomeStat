@@ -86,7 +86,7 @@ generate_alpha_boxplot_long(
   ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[2:6],
   group.var = "subject_race",
   strata.var = "subject_gender",
-  adj.vars = "sample_body_site",
+  adj.vars = NULL,
   base.size = 16,
   theme.choice = "bw",
   palette = NULL,

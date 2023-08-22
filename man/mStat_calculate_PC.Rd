@@ -33,9 +33,9 @@ Non-Metric Multi-Dimensional Scaling (NMDS)
 \dontrun{
 library(vegan)
 data(peerj32.obj)
-dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
+dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC'))
 
-pc.obj <- mStat_calculate_PC(dist.obj, method = c('mds'), k = 2, dist.name = c('BC','Jaccard'))
+pc.obj <- mStat_calculate_PC(dist.obj, method = c('mds'), k = 2, dist.name = c('BC'))
 }
 
 }

@@ -83,14 +83,14 @@ generate_beta_change_spaghettiplot_long(
   t0.level = NULL,
   ts.levels = NULL,
   group.var = "diet",
-  strata.var = NULL,
-  adj.vars = c("antiexposedall","delivery"),
+  strata.var = "sex",
+  adj.vars = NULL,
   dist.name = c("BC"),
   base.size = 20,
   theme.choice = "bw",
   palette = NULL,
   pdf = TRUE,
-  file.ann = "test",
+  file.ann = NULL,
   pdf.wid = 11,
   pdf.hei = 8.5
 )

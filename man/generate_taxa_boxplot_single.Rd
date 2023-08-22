@@ -16,7 +16,7 @@ generate_taxa_boxplot_single(
   features.plot = NULL,
   top.k.plot = NULL,
   top.k.func = NULL,
-  Transform = c("identity", "sqrt", "log"),
+  transform = c("identity", "sqrt", "log"),
   prev.filter = 0.05,
   abund.filter = 0.01,
   base.size = 16,
@@ -53,7 +53,7 @@ generate_taxa_boxplot_single(
 
 \item{top.k.func}{A function to determine the top k features to plot.}
 
-\item{Transform}{A string specifying the transformation to apply to the data before plotting. Options are "identity", "sqrt", "log".}
+\item{transform}{A string specifying the transformation to apply to the data before plotting. Options are "identity", "sqrt", "log".}
 
 \item{prev.filter}{A numeric value indicating the minimum prevalence for a feature to be included in the plot.}
 
@@ -104,7 +104,7 @@ generate_taxa_boxplot_single(
   feature.level = c("Phylum"),
   features.plot = sample(unique(ecam.obj$feature.ann[,"Phylum"]),1),
   feature.dat.type = "proportion",
-  Transform = "log",
+  transform = "log",
   prev.filter = 0,
   abund.filter = 0,
   base.size = 12,
@@ -129,7 +129,7 @@ generate_taxa_boxplot_single(
   features.plot = NULL,
   top.k.plot = NULL,
   top.k.func = NULL,
-  Transform = "log",
+  transform = "log",
   prev.filter = 0,
   abund.filter = 0,
   base.size = 16,

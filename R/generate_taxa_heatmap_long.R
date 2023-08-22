@@ -59,8 +59,8 @@
 #'   data.obj = subset_T2D.obj,
 #'   subject.var = "subject_id",
 #'   time.var = "visit_number_num",
-#'   t0.level = NULL,
-#'   ts.levels = NULL,
+#'   t0.level = unique(subset_T2D.obj$meta.dat$visit_number_num)[1],
+#'   ts.levels = unique(subset_T2D.obj$meta.dat$visit_number_num)[-1],
 #'   group.var = "subject_gender",
 #'   strata.var = "subject_race",
 #'   feature.level = c("Family","Phylum"),
@@ -77,7 +77,7 @@
 #' )
 #' }
 #' @export
-#'
+#' @importFrom dplyr distinct pull
 #' @seealso \code{\link{pheatmap}}
 generate_taxa_heatmap_long <- function(data.obj,
                                              subject.var,
@@ -171,12 +171,12 @@ generate_taxa_heatmap_long <- function(data.obj,
 
   # Filter taxa based on prevalence and abundance
   otu_tax_filtered <- otu_tax %>%
-    tidyr::gather(key = "sample", value = "count", -one_of(feature.level)) %>%
+    tidyr::gather(key = "sample", value = "count", -all_of(feature.level)) %>%
     dplyr::group_by_at(vars(!!sym(feature.level))) %>%
     dplyr::summarise(total_count = mean(count),
-              prevalence = sum(count > 0) / dplyr::n()) %>%
+                     prevalence = sum(count > 0) / dplyr::n()) %>%
     filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
-    select(-total_count, -prevalence) %>%
+    select(-all_of(c("total_count", "prevalence"))) %>%
     dplyr::left_join(otu_tax, by = feature.level)
 
   # Aggregate OTU table

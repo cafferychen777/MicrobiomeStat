@@ -17,7 +17,7 @@ generate_taxa_boxplot_long(
   features.plot = NULL,
   top.k.plot = NULL,
   top.k.func = NULL,
-  Transform = c("identity", "sqrt", "log"),
+  transform = c("identity", "sqrt", "log"),
   prev.filter = 0.05,
   abund.filter = 0.01,
   base.size = 16,
@@ -56,7 +56,7 @@ generate_taxa_boxplot_long(
 
 \item{top.k.func}{A function to determine the top K features to plot.}
 
-\item{Transform}{A string indicating the transformation to apply to the data before plotting. Options are "identity", "sqrt", "log". Default is "identity".}
+\item{transform}{A string indicating the transformation to apply to the data before plotting. Options are "identity", "sqrt", "log". Default is "identity".}
 
 \item{prev.filter}{A numeric value indicating the minimum prevalence for a feature to be included in the plot.}
 
@@ -96,9 +96,9 @@ The function also has options to customize the size, theme, and color palette of
 \examples{
 \dontrun{
 # Load required libraries and example data
-data(peerj32.obj)
+data(ecam.obj)
 # Generate the boxplot pair
-generate_taxa_boxplot_long(
+a <- generate_taxa_boxplot_long(
   data.obj = ecam.obj,
   subject.var = "studyid",
   time.var = "month",
@@ -106,12 +106,12 @@ generate_taxa_boxplot_long(
   ts.levels = NULL,
   group.var = "diet",
   strata.var = NULL,
-  feature.level = c("Phylum"),
-  features.plot = sample(unique(ecam.obj$feature.ann[,"Phylum"]),1),
+  feature.level = c("Class"),
+  features.plot = NULL,
   feature.dat.type = "proportion",
-  Transform = "log",
-  prev.filter = 0,
-  abund.filter = 0,
+  transform = "log",
+  prev.filter = 1e-7,
+  abund.filter = 1e-7,
   base.size = 12,
   theme.choice = "bw",
   custom.theme = NULL,
@@ -135,17 +135,17 @@ generate_taxa_boxplot_long(
   features.plot = NULL,
   top.k.plot = NULL,
   top.k.func = NULL,
-  Transform = "log",
-  prev.filter = 0,
-  abund.filter = 0,
-  base.size = 16,
+  transform = "log",
+  prev.filter = 0.001,
+  abund.filter = 0.001,
+  base.size = 12,
   theme.choice = "bw",
   custom.theme = NULL,
   palette = NULL,
   pdf = TRUE,
   file.ann = NULL,
   pdf.wid = 11,
-  pdf.hei = 8.5
+  pdf.hei = 13
 )
 }
 }

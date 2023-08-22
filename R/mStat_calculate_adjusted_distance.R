@@ -1,37 +1,45 @@
-#' Calculate Adjusted Distances
+#' Calculate Adjusted Distances Based on Specified Adjustment Variables
 #'
-#' This function calculates the adjusted distances for a given set of variables,
-#' using a model matrix dynamically created from the specified adjustment variables.
+#' This function provides a way to calculate distances adjusted for specified variables in a dataset.
+#' It incorporates the results of multidimensional scaling (MDS) and adjusts distances based on a linear model.
 #'
-#' @param data.obj A MicrobiomeStat data object. The heart of the MicrobiomeStat, consisting of several key components:
+#' @title Calculate Adjusted Distances for Specified Variables
+#'
+#' @description Computes adjusted distance matrices for a set of variables using a dynamic model matrix.
+#'
+#' @param data.obj A MicrobiomeStat data object. This central component contains:
 #'   \itemize{
-#'     \item \strong{Feature.tab (Matrix)}: Meeting point for research objects (OTU/ASV/KEGG/Gene, etc.) and samples.
-#'     \item \strong{Meta.dat (Data frame)}: Rows correspond to the samples, and columns serve as annotations, describing the samples.
-#'     \item \strong{Feature.ann (Matrix)}: Annotations, carrying classification information like Kingdom, Phylum, etc.
-#'     \item \strong{Phylogenetic tree (Optional)}: An evolutionary perspective, illuminating the relationships among various research objects.
-#'     \item \strong{Feature.agg.list (Optional)}: Aggregated results based on the feature.tab and feature.ann.
+#'     \item \strong{feature.tab}: Matrix representation linking research objects and samples.
+#'     \item \strong{meta.dat}: Data frame with rows representing samples and columns as annotations.
+#'     \item \strong{feature.ann}: Matrix annotations with classification data.
+#'     \item \strong{phylogenetic tree}: (Optional) Tree depicting evolutionary relationships.
+#'     \item \strong{feature.agg.list}: (Optional) Aggregated results from feature.tab and feature.ann.
 #'   }
-#' @param dist.obj A list of distance matrices corresponding to the names in `dist.name`.
-#' @param adj.vars A character vector of variable names to be used for adjustment.
-#' @param dist.name A character vector of names corresponding to distance matrices in `dist.obj`.
-#' @return A list of adjusted distance matrices.
+#' @param dist.obj A list containing distance matrices. Each matrix corresponds to a name in `dist.name`.
+#' @param adj.vars Character vector listing variable names intended for adjustment.
+#' @param dist.name Character vector specifying names of distance matrices present in `dist.obj`.
+#'
+#' @return A list of adjusted distance matrices. Each matrix is named according to the `dist.name` parameter.
+#'
+#' @details The function uses cmdscale for multidimensional scaling and then adjusts the resultant distances based on a linear model using the variables provided in `adj.vars`.
+#'
 #' @examples
-#' \dontrun{
 #' data("subset_T2D.obj")
-#' dist.obj <- mStat_calculate_beta_diversity(subset_T2D.obj, c("BC","Jaccard"))
+#' subset_T2D.dist.obj <- mStat_calculate_beta_diversity(subset_T2D.obj, c("BC","Jaccard"))
 #' adj.dist.obj <- mStat_calculate_adjusted_distance(
 #' data.obj = subset_T2D.obj,
-#' dist.obj = dist.obj,
+#' dist.obj = subset_T2D.dist.obj,
 #' adj.vars = c("subject_gender", "subject_race"),
 #' dist.name = c("BC"))
+#'
 #' data("peerj32.obj")
-#' dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, c("BC"))
+#' peerj32.dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, c("BC"))
 #' adj.dist.obj <- mStat_calculate_adjusted_distance(
 #' data.obj = peerj32.obj,
-#' dist.obj = dist.obj,
+#' dist.obj = peerj32.dist.obj,
 #' adj.vars = c("sex"),
 #' dist.name = c("BC"))
-#' }
+#'
 #' @export
 mStat_calculate_adjusted_distance <- function (data.obj,
                                                dist.obj,
@@ -57,6 +65,11 @@ mStat_calculate_adjusted_distance <- function (data.obj,
 
     obj <- suppressWarnings(cmdscale(D, k = nrow(D) - 1, eig = TRUE))
 
+    if (!all(obj$eig > 0)){
+      message("Additive constant c* is being added to the non-diagonal dissimilarities to ensure they are Euclidean.")
+      obj <- suppressWarnings(cmdscale(D, k = nrow(D) - 1, eig = TRUE, add = TRUE))
+    }
+
     eig <- obj$eig
 
     s <- sign(eig)
@@ -65,15 +78,26 @@ mStat_calculate_adjusted_distance <- function (data.obj,
 
     xx <- obj$points
 
-    res <- residuals(lm(dynamic_formula, data = meta_tab))
+    # Create an empty matrix to store residuals
+    res_matrix <- matrix(0, nrow = nrow(xx), ncol = ncol(xx))
 
-    res_positive <- suppressWarnings(sweep(res, 2, sqrt(eig)[s >= 0], "*"))
-    res_negative <- suppressWarnings(sweep(res, 2, sqrt(eig)[s < 0], "*"))
+    rownames(res_matrix) <- rownames(xx)
 
-    dist_positive <- as.matrix(dist(res_positive))
-    dist_negative <- as.matrix(dist(res_negative))
+    # Loop through each column of xx to calculate residuals
+    for (i in 1:ncol(xx)) {
+      column_name <- paste0("MDS", i)
+      formula_str <- paste(column_name, "~", paste(adj.vars, collapse = "+"))
+      dynamic_formula <- as.formula(formula_str)
 
-    D.adj <- dist_positive - dist_negative
+      # Bind the current MDS column to meta_tab
+      current_data <- cbind(meta_tab, xx[, i, drop = FALSE])
+      colnames(current_data)[ncol(current_data)] <- column_name
+
+      model_res <- residuals(lm(dynamic_formula, data = current_data))
+      res_matrix[, i] <- model_res
+    }
+
+    D.adj <- sqrt(stats::dist(t(t(res_matrix) * sqrt(eig)))^2)
 
     return(as.dist(D.adj))
   })

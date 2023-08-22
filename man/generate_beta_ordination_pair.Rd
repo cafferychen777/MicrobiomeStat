@@ -76,7 +76,7 @@ The function is flexible and allows for various modifications, including the cho
 # Load required libraries and example data
 library(vegan)
 data(peerj32.obj)
-dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
+dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC'))
 # Add metadata information
 attr(dist.obj[["BC"]], "labels") <- peerj32.obj$meta.dat
 attr(dist.obj[["Jaccard"]], "labels") <- peerj32.obj$meta.dat
@@ -89,7 +89,7 @@ generate_beta_ordination_pair(
   time.var = "time",
   group.var = "group",
   strata.var = NULL,
-  adj.vars = "sex",
+  adj.vars = NULL,
   dist.name = c("BC"),
   base.size = 16,
   theme.choice = "bw",

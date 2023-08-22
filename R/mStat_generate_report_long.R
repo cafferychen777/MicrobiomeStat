@@ -1,39 +1,102 @@
-#' @title Generate a Comprehensive Report for Microbial Ecology Analysis of Longitudinal Data
+#' Generate Comprehensive Longitudinal Microbiome Analysis Report for MicrobiomeStat
+#' This function performs extensive and in-depth longitudinal analysis of microbiome data using MicrobiomeStat package and generates a comprehensive PDF report.
+#' The report contains thorough statistical analysis along with data visualizations, statistical graphics, and result tables for microbial alpha diversity, beta diversity, taxonomic composition, and their temporal dynamics with MicrobiomeStat.
 #'
-#' @description This function generates a comprehensive report for microbial ecology analysis,
-#'              including changes in alpha diversity, beta diversity, and taxonomic features in longitudinal data.
+#' @param data.obj MicrobiomeStat formatted list (required). Contains OTU table, taxonomy, and metadata for longitudinal analysis.
+#' @param alpha.obj Object containing alpha diversity results from `mStat_calculate_alpha_diversity()`, default is NULL.
+#' @param dist.obj Object containing beta diversity distance matrix from `mStat_calculate_beta_diversity()`, default is NULL.
+#' @param pc.obj Object containing PCoA coordinates from `mStat_calculate_PC()`, default is NULL.
+#' @param group.var Character, column name in metadata containing grouping variable, e.g. "treatment". Required if present in metadata.
+#' @param strata.var Character, column name in metadata containing stratification variable, e.g "sex". Optional.
+#' @param adj.vars Character vector, names of columns in metadata containing covariates to adjust for, default is NULL.
+#' @param subject.var Character, column name in metadata containing subject/sample IDs, e.g. "subject_id". Required.
+#' @param time.var Character, column name in metadata containing time variable, e.g. "week". Required.
+#' @param alpha.name Character vector, names of alpha diversity indices to analyze, e.g. c("shannon", "simpson"). Defaults to c("shannon", "simpson").
+#' @param dist.name Character vector, names of beta diversity distance metrics to analyze, e.g. c("wunifrac", "BC"). Defaults to c("BC", "weighted_unifrac", "unweighted_unifrac").
+#' @param t0.level Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.
+#' @param ts.levels Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.
+#' @param change.func Function to compute taxonomic changes between time points, default is NULL.
+#' @param base.size Numeric, base font size for all plots, default is 16.
+#' @param theme.choice Character, name of ggplot2 theme for plots, default is "prism". Options: "prism", "bw", "classic", etc.
+#' @param custom.theme Custom ggplot2 theme to use for plots, default is NULL.
+#' @param palette Character vector or function defining color palette for plots, default is NULL.
+#' @param pdf Logical, if TRUE save plots as PDF files, default is TRUE.
+#' @param file.ann Character, annotation text to add to PDF plot filenames, default is NULL.
+#' @param pdf.wid Numeric, width of PDF plots in inches, default is 11.
+#' @param pdf.hei Numeric, height of PDF plots in inches, default is 8.5.
+#' @param prev.filter Numeric, minimum prevalence threshold filter for features, default is 0. Value between 0 and 1.
+#' @param abund.filter Numeric, minimum abundance threshold filter for features, default is 0.
+#' @param feature.number Integer, number of top features to plot, default is 15.
+#' @param feature.level Character vector, taxonomic levels to analyze features at, e.g. "Phylum".
+#' @param feature.dat.type Character, feature data type, "count", "proportion", or "other", default is "count".
+#' @param feature.mt.method Character, multiple testing method for features, "fdr" or "none", default is "fdr".
+#' @param feature.sig.level Numeric, significance level cutoff for highlighting features, default is 0.1.
+#' @param transform Character, transformation to apply to feature data, default is "log". Options: "log", "sqrt", "identity".
+#' @param output.file Character, output PDF report filename (required).
 #'
-#' @param data.obj A data object created by mStat_convert_phyloseq_to_data_obj.
-#' @param dist.obj A distance object created by mStat_calculate_beta_diversity.
-#' @param alpha.obj An alpha diversity object (optional).
-#' @param group.var Variable name used for grouping samples.
-#' @param change.func A function to calculate change between time points, e.g. log2fold change. Default is NULL.
-#' @param adj.vars Variables to adjust for in the analysis.
-#' @param subject.var Variable name used for subject identification.
-#' @param time.var Variable name used for time points in longitudinal data.
-#' @param alpha.name Names of alpha diversity indices to include in the analysis.
-#' @param dist.name Names of beta diversity distance metrics to include in the analysis.
-#' @param t0.level The base level for time points in longitudinal data.
-#' @param ts.levels The levels for time points in longitudinal data.
-#' @param strata.var Variable to stratify the analysis by (optional).
-#' @param base.size Base font size for the generated plots.
-#' @param theme.choice Plot theme choice (default: "prism").
-#' @param custom.theme Custom ggplot2 theme (optional).
-#' @param palette Color palette used for the plots.
-#' @param pdf Logical indicating whether to save plots as PDF files (default: TRUE).
-#' @param file.ann Annotation text for the PDF file names.
-#' @param pdf.wid Width of the PDF plots.
-#' @param pdf.hei Height of the PDF plots.
-#' @param prev.filter Prevalence filter for feature analysis.
-#' @param abund.filter Abundance filter for feature analysis.
-#' @param feature.number The number of features to plot. Default is 15.
-#' @param feature.level Taxonomic level for feature analysis.
-#' @param feature.dat.type Data type for feature analysis (count, proportion, or other).
-#' @param transform The transformation function applied to the data (default: "log").
-#' @param output.file Output file name for the report.
-#' @param ... Additional arguments passed to internal functions.
+#' @return A PDF report containing:
 #'
-#' @return A PDF report file containing the microbial ecology analysis results for longitudinal data.
+#' - Summary statistics table: Sample size, covariates, time points
+#'
+#' - Alpha diversity boxplots: Boxplots colored by time and groups
+#'
+#' - Alpha diversity spaghetti plots: Line plots of trajectories
+#'
+#' - Alpha diversity trends: Tables with LME model results
+#'
+#' - Alpha volatility: Tables with LM model results
+#'
+#' - Beta diversity PCoA plots: Ordination plots colored by time and groups
+#'
+#' - Beta distance boxplots: Boxplots colored by time and groups
+#'
+#' - Beta spaghetti plots: Individual line plots
+#'
+#' - Beta diversity trends: Tables with LME results on distances
+#'
+#' - Beta volatility: Tables with LM results on distances
+#'
+#' - Taxa area plots: Stacked area plots showing composition
+#'
+#' - Taxa heatmaps: Heatmaps colored by relative abundance
+#'
+#' - Taxa volcano plots: With trend/volatility significance
+#'
+#' - Taxa boxplots: Distribution by time and groups
+#'
+#' - Taxa spaghetti plots: Individual line plots
+#'
+#' @details This function generates a comprehensive longitudinal microbiome report with:
+#'
+#' 1. Summary Statistics
+#' - Table with sample size, number of timepoints, covariates
+#'
+#' 2. Alpha Diversity Analysis
+#' - Boxplots of alpha diversity vs time, colored by groups
+#' - Spaghetti plots of alpha trajectories for each subject
+#' - Linear mixed effects model results for alpha diversity trend
+#' - Linear model results for alpha diversity volatility
+#'
+#' 3. Beta Diversity Analysis
+#' - PCoA plots colored by time points and groups
+#' - Boxplots of PCoA coordinate 1 vs time, colored by groups
+#' - Spaghetti plots of distance from baseline vs time
+#' - Linear mixed effects models for beta diversity distance trend
+#' - Linear models for beta diversity volatility
+#'
+#' 4. Taxonomic Composition Analysis
+#' - Stacked area plots of average composition by time and groups
+#' - Heatmaps of relative abundance colored from low (blue) to high (red)
+#' - Volcano plots highlighting significant taxa in trend and volatility
+#' - Boxplots of significant taxa by time and groups
+#' - Spaghetti plots for significant taxa vs time
+#'
+#'
+#' @author Chen Yang \email{cafferychen7850@email.com}
+#'
+#' @seealso \code{\link{mStat_calculate_alpha_diversity}},
+#'          \code{\link{mStat_calculate_beta_diversity}},
+#'          \code{\link{mStat_calculate_PC}}
 #'
 #' @examples
 #' \dontrun{
@@ -69,11 +132,11 @@
 #'   strata.var = "subject_race",
 #'   adj.vars = NULL,
 #'   subject.var = "subject_id",
-#'   time.var = "visit_number",
+#'   time.var = "visit_number_num",
 #'   alpha.name = c("shannon","simpson"),
 #'   dist.name = c("BC",'Jaccard'),
-#'   t0.level = unique(sort(subset_T2D.obj$meta.dat$visit_number))[1],
-#'   ts.levels = unique(sort(subset_T2D.obj$meta.dat$visit_number))[-1],
+#'   t0.level = unique(sort(subset_T2D.obj$meta.dat$visit_number_num))[1],
+#'   ts.levels = unique(sort(subset_T2D.obj$meta.dat$visit_number_num))[-1],
 #'   feature.mt.method = "none",
 #'   feature.sig.level = 0.1,
 #'   feature.level = c("Phylum"),
@@ -87,7 +150,33 @@
 #'   output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/报告/mStat_generate_report_long_example.pdf"
 #' )
 #' }
-#'
+#' data(subset_T2D.obj)
+#' mStat_generate_report_long(
+#'   data.obj = subset_T2D.obj,
+#'   dist.obj = NULL,
+#'   alpha.obj = NULL,
+#'   pc.obj = NULL,
+#'   group.var = "subject_gender",
+#'   strata.var = "subject_race",
+#'   adj.vars = NULL,
+#'   subject.var = "subject_id",
+#'   time.var = "visit_number_num",
+#'   alpha.name = c("shannon","simpson"),
+#'   dist.name = c("BC",'Jaccard'),
+#'   t0.level = unique(sort(subset_T2D.obj$meta.dat$visit_number_num))[1],
+#'   ts.levels = unique(sort(subset_T2D.obj$meta.dat$visit_number_num))[-1],
+#'   feature.mt.method = "none",
+#'   feature.sig.level = 0.1,
+#'   feature.level = c("Phylum"),
+#'   change.func = "relative difference",
+#'   feature.dat.type = "count",
+#'   prev.filter = 1e-5,
+#'   abund.filter = 1e-5,
+#'   transform = "sqrt",
+#'   theme.choice = "bw",
+#'   base.size = 12,
+#'   output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/报告/mStat_generate_report_long_example.pdf"
+#' )
 #' @export
 mStat_generate_report_long <- function(data.obj,
                                        alpha.obj = NULL,

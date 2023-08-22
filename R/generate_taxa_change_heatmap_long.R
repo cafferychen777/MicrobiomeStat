@@ -60,16 +60,16 @@
 #'   data.obj = subset_T2D.obj,
 #'   subject.var = "subject_id",
 #'   time.var = "visit_number_num",
-#'   t0.level = NULL,
-#'   ts.levels = NULL,
+#'   t0.level = unique(subset_T2D.obj$meta.dat$visit_number_num)[1],
+#'   ts.levels = unique(subset_T2D.obj$meta.dat$visit_number_num)[-1],
 #'   group.var = "subject_gender",
 #'   strata.var = "subject_race",
-#'   feature.level = c("Family","Phylum"),
+#'   feature.level = c("Phylum"),
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
 #'   top.k.plot = NULL,
 #'   top.k.func = NULL,
-#'   change.func = "lfc",
+#'   change.func = "relative difference",
 #'   prev.filter = 0.0001,
 #'   abund.filter = 0.0001,
 #'   pdf = TRUE,
@@ -81,7 +81,7 @@
 #'
 #' @return An object of class pheatmap, the generated heatmap plot
 #' @export
-#'
+#' @importFrom dplyr distinct pull
 #' @seealso \code{\link{pheatmap}}
 generate_taxa_change_heatmap_long <- function(data.obj,
                                               subject.var,
@@ -244,6 +244,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
     # Spread the data to wide format
     df_wide <- df_mean_value %>%
       tidyr::spread(key = time.var, value = mean_value)
+
     if (is.null(t0.level)) {
       if (is.numeric(meta_tab[, time.var])) {
         t0.level <- sort(unique(meta_tab[, time.var]))[1]
@@ -267,22 +268,22 @@ generate_taxa_change_heatmap_long <- function(data.obj,
       if (is.function(change.func)) {
         df_wide <- df_wide %>%
           dplyr::rowwise() %>%
-          dplyr::mutate("{change_col_name}" := change.func(.data[[as.character(ts)]], .data[[as.character(t0.level)]]))
+          dplyr::mutate(!!sym(change_col_name) := change.func(.data[[as.character(ts)]], .data[[as.character(t0.level)]]))
       } else if (change.func == "relative difference") {
         df_wide <- df_wide %>%
           dplyr::rowwise() %>%
-          dplyr::mutate("{change_col_name}" := dplyr::case_when(
-            (.data[[as.character(ts)]] + .data[[as.character(t0.level)]]) != 0 ~ (.data[[as.character(ts)]] - .data[[as.character(t0.level)]]) / (.data[[ts]] + .data[[as.character(t0.level)]]),
+          dplyr::mutate(!!sym(change_col_name) := dplyr::case_when(
+            (.data[[as.character(ts)]] + .data[[as.character(t0.level)]]) != 0 ~ (.data[[as.character(ts)]] - .data[[as.character(t0.level)]]) / (.data[[as.character(ts)]] + .data[[as.character(t0.level)]]),
             TRUE ~ 0
           ))
       } else if (change.func == "difference") {
         df_wide <- df_wide %>%
           dplyr::rowwise() %>%
-          dplyr::mutate("{change_col_name}" := (.data[[as.character(ts)]] - .data[[as.character(t0.level)]]))
+          dplyr::mutate(!!sym(change_col_name) := (.data[[as.character(ts)]] - .data[[as.character(t0.level)]]))
       } else if (change.func == "lfc") {
         df_wide <- df_wide %>%
           dplyr::rowwise() %>%
-          dplyr::mutate("{change_col_name}" := log2(.data[[as.character(ts)]] + 0.00001) - log2(.data[[as.character(t0.level)]] + 0.00001))
+          dplyr::mutate(!!sym(change_col_name) := log2(.data[[as.character(ts)]] + 0.00001) - log2(.data[[as.character(t0.level)]] + 0.00001))
       } else {
         stop(
           "`change.func` must be either 'relative difference', 'difference', 'lfc' or a function."

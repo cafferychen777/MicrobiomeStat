@@ -67,8 +67,8 @@ data.obj = subset_T2D.obj2,
 alpha.name = c("shannon","simpson"),
 time.var = "visit_number",
 subject.var = "subject_id",
-group.var = NULL,
-adj.vars = "subject_gender"
+group.var = "subject_gender",
+adj.vars = NULL
 )
 }
 }

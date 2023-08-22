@@ -2,84 +2,94 @@
 % Please edit documentation in R/generate_taxa_trend_test_long.R
 \name{generate_taxa_trend_test_long}
 \alias{generate_taxa_trend_test_long}
-\title{Longitudinal Taxa Test Generation}
+\title{Longitudinal Taxa Trend Test Generation}
 \usage{
 generate_taxa_trend_test_long(
   data.obj,
   subject.var,
   time.var = NULL,
-  t0.level,
-  ts.levels,
   group.var,
-  adj.vars,
+  adj.vars = NULL,
   feature.level,
   prev.filter = 0,
   abund.filter = 0,
   feature.dat.type = c("count", "proportion"),
+  feature.sig.level = 0.1,
+  feature.mt.method = "fdr",
   ...
 )
 }
 \arguments{
-\item{data.obj}{A MicrobiomeStat formatted list object.}
+\item{data.obj}{A MicrobiomeStat formatted list object representing the data to be analyzed.}
 
-\item{subject.var}{A string specifying the subject variable column in the metadata.}
+\item{subject.var}{A character string indicating the subject variable column in the metadata.}
 
-\item{time.var}{A string specifying the time variable column in the metadata. Default is NULL.}
+\item{time.var}{A character string representing the time variable column in the metadata. Default is NULL.}
 
-\item{t0.level}{A numeric specifying the baseline time level.}
+\item{group.var}{A character string that specifies the grouping variable column in the metadata.}
 
-\item{ts.levels}{A vector of numerics specifying the time points to be considered in the analysis.}
+\item{adj.vars}{A vector of character strings indicating additional covariates in the metadata.}
 
-\item{group.var}{A string specifying the grouping variable column in the metadata.}
+\item{feature.level}{A character string that specifies the taxonomic level for analysis, e.g., "Phylum" or "Class".}
 
-\item{adj.vars}{A string vector specifying the additional covariates in the metadata.}
+\item{prev.filter}{A numeric value that specifies the minimum prevalence filter for taxa. Default is 0.}
 
-\item{feature.level}{A string specifying the taxonomic level for analysis.}
+\item{abund.filter}{A numeric value representing the minimum abundance filter for taxa. Default is 0.}
 
-\item{prev.filter}{A numeric specifying the minimum prevalence filter for taxa. Default is 0.}
+\item{feature.dat.type}{A character string indicating the feature data type. It can be either "count" or "proportion". Default is "count".}
 
-\item{abund.filter}{A numeric specifying the minimum abundance filter for taxa. Default is 0.}
+\item{feature.sig.level}{A numeric threshold for determining the significance level for features. Default is 0.1.}
 
-\item{feature.dat.type}{A string specifying the feature data type. Either "count" or "proportion". Default is "count".}
+\item{feature.mt.method}{A character string that specifies the method for multiple testing correction, e.g., "fdr". Default is "fdr".}
 
 \item{...}{Additional arguments to pass to the function.}
 }
 \value{
-A list of dataframes, each corresponding to a feature level. Each dataframe contains calculated taxa changes, p-values and other statistics from the linear model.
+A list of dataframes, each corresponding to a feature level.
+Each dataframe contains calculated taxa changes, p-values, and other statistics from the linear model.
 }
 \description{
-Generate longitudinal taxa test statistics based on the provided MicrobiomeStat data object and user-specified variables.
+This function conducts a longitudinal trend test on microbiome data to evaluate how the abundance of various taxa is influenced by time and/or other grouping variables. By leveraging this test, researchers can discern how microbial abundances change over a given period and contrast between different experimental or observational groups. Various statistical measures, p-values, and effect sizes are computed to quantify these trends.
+}
+\details{
+The function first validates the input data, normalizes it if needed, and ensures the time variable is numeric.
+It then uses the linda method to compute taxa trend tests for each specified taxonomic level.
+Results are then aggregated and returned as a list of data frames.
+
+- When `group.var` is not NULL, the function investigates interactions between the specified group and time. The key output to inspect in this case is the interaction term between `group.var` and `time.var` in the `Output.Element` column. This interaction term indicates whether there are significant differences in the trend of taxa abundance between different groups over time.
+
+- When `group.var` is NULL, the function examines the effect of time on taxa abundance. In this scenario, the `Output.Element` of interest is solely the `time.var`, suggesting the influence of time on the abundance of taxa.
 }
 \examples{
 \dontrun{
-data(peerj32.obj)
-generate_taxa_trend_test_long(
-  data.obj = peerj32.obj,
-  subject.var = "subject",
-  time.var = "time",
-  t0.level = "1",
-  ts.levels = "2",
-  group.var = "group",
-  adj.vars = "sex",
-  feature.level = "Phylum",
-  prev.filter = 0.001,
-  abund.filter = 0.001,
-  feature.dat.type = "count"
-)
 
-data(ecam.obj)
+data("ecam.obj")
 generate_taxa_trend_test_long(
   data.obj = ecam.obj,
   subject.var = "studyid",
-  time.var = "month",
-  t0.level = NULL,
-  ts.levels = NULL,
+  time.var = "month_num",
   group.var = "diet",
   adj.vars = NULL,
-  feature.level = "Phylum",
-  prev.filter = 0.001,
-  abund.filter = 0.001,
+  feature.level = c("Phylum","Class"),
+  prev.filter = 0,
+  abund.filter = 0,
   feature.dat.type = "proportion"
 )
+
+data("subset_T2D.obj")
+generate_taxa_trend_test_long(
+  data.obj = subset_T2D.obj,
+  subject.var = "subject_id",
+  time.var = "visit_number",
+  group.var = NULL,
+  adj.vars = NULL,
+  feature.level = "Phylum",
+  prev.filter = 1e-4,
+  abund.filter = 1e-5,
+  feature.dat.type = "count",
+  feature.sig.level = 0.1,
+  feature.mt.method = "none"
+)
+
 }
 }

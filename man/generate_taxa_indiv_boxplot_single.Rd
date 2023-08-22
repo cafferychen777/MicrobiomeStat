@@ -16,7 +16,7 @@ generate_taxa_indiv_boxplot_single(
   feature.dat.type = c("count", "proportion", "other"),
   top.k.plot = NULL,
   top.k.func = NULL,
-  Transform = c("identity", "sqrt", "log"),
+  transform = c("identity", "sqrt", "log"),
   prev.filter = 0.01,
   abund.filter = 0.01,
   base.size = 16,
@@ -53,7 +53,7 @@ generate_taxa_indiv_boxplot_single(
 
 \item{top.k.func}{A function to determine the top K features to plot.}
 
-\item{Transform}{A string indicating the transformation to apply to the data before plotting. Options are "identity", "sqrt", "log".}
+\item{transform}{A string indicating the transformation to apply to the data before plotting. Options are "identity", "sqrt", "log".}
 
 \item{prev.filter}{A numeric value indicating the minimum prevalence for a feature to be included in the plot.}
 
@@ -103,7 +103,7 @@ generate_taxa_indiv_boxplot_single(
   strata.var = NULL,
   feature.level = c("Phylum"),
   feature.dat.type = "proportion",
-  Transform = "log",
+  transform = "log",
   prev.filter = 0.01,
   abund.filter = 0.01,
   base.size = 20,
@@ -128,7 +128,7 @@ generate_taxa_indiv_boxplot_single(
   feature.dat.type = "count",
   top.k.plot = NULL,
   top.k.func = NULL,
-  Transform = "log",
+  transform = "log",
   prev.filter = 0,
   abund.filter = 0,
   base.size = 20,

@@ -10,8 +10,14 @@ generate_taxa_volatility_test_long(
   subject.var,
   group.var,
   adj.vars = NULL,
+  prev.filter = 0,
+  abund.filter = 0,
   feature.level,
-  feature.dat.type = c("count", "proportion", "other")
+  feature.dat.type = c("count", "proportion", "other"),
+  feature.mt.method = c("fdr", "none"),
+  feature.sig.level = 0.1,
+  transform = "CLR",
+  ...
 )
 }
 \arguments{
@@ -32,9 +38,21 @@ generate_taxa_volatility_test_long(
 
 \item{adj.vars}{A vector of strings. Covariates for adjustment in the linear models. Defaults to NULL.}
 
+\item{prev.filter}{A numeric value indicating the minimum prevalence for a feature to be tested.}
+
+\item{abund.filter}{A numeric value indicating the minimum abundance for a feature to be tested.}
+
 \item{feature.level}{A vector of strings. Taxonomic level(s) for aggregation, e.g. "Phylum", "Class".}
 
 \item{feature.dat.type}{A string. Either 'count', 'proportion', or 'other'. Specifies the data type of feature for appropriate transformation.}
+
+\item{feature.mt.method}{A string. Method for multiple testing correction. Can be either "fdr" or "none". Defaults to "fdr".}
+
+\item{feature.sig.level}{A numeric. Significance level threshold for testing. Defaults to 0.1.}
+
+\item{transform}{A string. Method for transforming the data. If 'CLR', count data and proportion data will be transformed using Centered Log Ratio. Defaults to 'CLR'.}
+
+\item{...}{Additional arguments passed to other methods.}
 }
 \value{
 A list of test results. The results are returned in a tidy dataframe format, including coefficients, standard errors, statistics, and p-values from linear models and ANOVA tests.
@@ -60,15 +78,17 @@ an ANOVA is performed.
 }
 \examples{
 data("subset_T2D.obj")
-subset_T2D.obj2 <- subset_T2D.obj
-subset_T2D.obj2$meta.dat$visit_number <- as.numeric(subset_T2D.obj2$meta.dat$visit_number)
 generate_taxa_volatility_test_long(
-data.obj = subset_T2D.obj2,
+data.obj = subset_T2D.obj,
 time.var = "visit_number",
 subject.var = "subject_id",
-group.var = "subject_race",
-adj.vars = "subject_gender",
-feature.level = c("Phylum","Class"),
+group.var = "subject_gender",
+adj.vars = NULL,
+prev.filter = 1e-7,
+abund.filter = 0,
+feature.mt.method = "fdr",
+feature.sig.level = 0.1,
+feature.level = c("Phylum"),
 feature.dat.type = "count"
 )
 }

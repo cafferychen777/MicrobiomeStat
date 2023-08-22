@@ -13,7 +13,7 @@ mStat_generate_report_single(
   adj.vars,
   subject.var,
   time.var,
-  Transform,
+  transform,
   alpha.name = c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou"),
   dist.name = c("BC", "Jaccard", "UniFrac", "GUniFrac", "WUniFrac", "JS"),
   t.level = NULL,
@@ -52,7 +52,7 @@ mStat_generate_report_single(
 
 \item{time.var}{Variable name used for time points.}
 
-\item{Transform}{Transformation applied to taxa data for display and testing.}
+\item{transform}{transformation applied to taxa data for display and testing.}
 
 \item{alpha.name}{Names of alpha diversity indices to include in the analysis.}
 
@@ -123,7 +123,7 @@ mStat_generate_report_single(
   alpha.name = c("shannon","simpson"),
   dist.name = c("BC",'Jaccard'),
   t.level = "1",
-  Transform = "identity",
+  transform = "identity",
   strata.var = "sex",
   feature.level = c("Phylum","Family"),
   feature.dat.type = "count",

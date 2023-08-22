@@ -9,8 +9,6 @@ generate_beta_volatility_test_long(
   dist.obj = NULL,
   subject.var,
   time.var,
-  t0.level = NULL,
-  ts.levels = NULL,
   group.var = NULL,
   adj.vars = NULL,
   dist.name = c("BC"),
@@ -25,10 +23,6 @@ generate_beta_volatility_test_long(
 \item{subject.var}{The variable in the metadata table that represents the subject.}
 
 \item{time.var}{The variable in the metadata table that represents the time. Ensure that it is coded as numeric.}
-
-\item{t0.level}{(Optional) The baseline time point level.}
-
-\item{ts.levels}{(Optional) Time point levels.}
 
 \item{group.var}{(Optional) The variable in the metadata table that represents the grouping factor.}
 
@@ -52,6 +46,7 @@ A warning message will be displayed to ensure that the time variable is coded as
 }
 \examples{
 data(ecam.obj)
+ecam.obj$meta.dat$month <- as.numeric(ecam.obj$meta.dat$month)
 generate_beta_volatility_test_long(
   data.obj = ecam.obj,
   dist.obj = NULL,
@@ -60,7 +55,7 @@ generate_beta_volatility_test_long(
   t0.level = NULL,
   ts.levels = NULL,
   group.var = "diet",
-  adj.vars = c("antiexposedall","delivery"),
+  adj.vars = NULL,
   dist.name = c("BC", "Jaccard")
 )
 }

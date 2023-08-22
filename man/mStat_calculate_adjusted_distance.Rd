@@ -9,11 +9,11 @@ mStat_calculate_adjusted_distance(data.obj, dist.obj, adj.vars, dist.name)
 \arguments{
 \item{data.obj}{A MicrobiomeStat data object. The heart of the MicrobiomeStat, consisting of several key components:
 \itemize{
-  \item \strong{Feature.tab (Matrix)}: Meeting point for research objects (OTU/ASV/KEGG/Gene, etc.) and samples.
-  \item \strong{Meta.dat (Data frame)}: Rows correspond to the samples, and columns serve as annotations, describing the samples.
-  \item \strong{Feature.ann (Matrix)}: Annotations, carrying classification information like Kingdom, Phylum, etc.
-  \item \strong{Phylogenetic tree (Optional)}: An evolutionary perspective, illuminating the relationships among various research objects.
-  \item \strong{Feature.agg.list (Optional)}: Aggregated results based on the feature.tab and feature.ann.
+  \item \strong{feature.tab (Matrix)}: Meeting point for research objects (OTU/ASV/KEGG/Gene, etc.) and samples.
+  \item \strong{meta.dat (Data frame)}: Rows correspond to the samples, and columns serve as annotations, describing the samples.
+  \item \strong{feature.ann (Matrix)}: Annotations, carrying classification information like Kingdom, Phylum, etc.
+  \item \strong{phylogenetic tree (Optional)}: An evolutionary perspective, illuminating the relationships among various research objects.
+  \item \strong{feature.agg.list (Optional)}: Aggregated results based on the feature.tab and feature.ann.
 }}
 
 \item{dist.obj}{A list of distance matrices corresponding to the names in `dist.name`.}
@@ -30,13 +30,20 @@ This function calculates the adjusted distances for a given set of variables,
 using a model matrix dynamically created from the specified adjustment variables.
 }
 \examples{
-\dontrun{
 data("subset_T2D.obj")
-dist.obj <- mStat_calculate_beta_diversity(subset_T2D.obj, c("BC","Jaccard"))
+subset_T2D.dist.obj <- mStat_calculate_beta_diversity(subset_T2D.obj, c("BC","Jaccard"))
 adj.dist.obj <- mStat_calculate_adjusted_distance(
 data.obj = subset_T2D.obj,
-dist.obj = dist.obj,
+dist.obj = subset_T2D.dist.obj,
 adj.vars = c("subject_gender", "subject_race"),
-dist.name = c("BC", "Jaccard"))
-}
+dist.name = c("BC"))
+
+data("peerj32.obj")
+peerj32.dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, c("BC"))
+adj.dist.obj <- mStat_calculate_adjusted_distance(
+data.obj = peerj32.obj,
+dist.obj = peerj32.dist.obj,
+adj.vars = c("sex"),
+dist.name = c("BC"))
+
 }

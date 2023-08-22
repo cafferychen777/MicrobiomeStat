@@ -19,11 +19,11 @@
 #'
 #' @param data.obj A MicrobiomeStat data object. The heart of the MicrobiomeStat, consisting of several key components:
 #'   \itemize{
-#'     \item \strong{Feature.tab (Matrix)}: Meeting point for research objects (OTU/ASV/KEGG/Gene, etc.) and samples.
-#'     \item \strong{Meta.dat (Data frame)}: Rows correspond to the samples, and columns serve as annotations, describing the samples.
-#'     \item \strong{Feature.ann (Matrix)}: Annotations, carrying classification information like Kingdom, Phylum, etc.
-#'     \item \strong{Phylogenetic tree (Optional)}: An evolutionary perspective, illuminating the relationships among various research objects.
-#'     \item \strong{Feature.agg.list (Optional)}: Aggregated results based on the feature.tab and feature.ann.
+#'     \item \strong{feature.tab (Matrix)}: Meeting point for research objects (OTU/ASV/KEGG/Gene, etc.) and samples.
+#'     \item \strong{meta.dat (Data frame)}: Rows correspond to the samples, and columns serve as annotations, describing the samples.
+#'     \item \strong{feature.ann (Matrix)}: Annotations, carrying classification information like Kingdom, Phylum, etc.
+#'     \item \strong{phylogenetic tree (Optional)}: An evolutionary perspective, illuminating the relationships among various research objects.
+#'     \item \strong{feature.agg.list (Optional)}: Aggregated results based on the feature.tab and feature.ann.
 #'   }
 #' @param time.var A string. The name of the time variable in the metadata.
 #' @param subject.var A string. The name of the subject variable in the metadata.
@@ -33,12 +33,14 @@
 #' @param abund.filter A numeric value indicating the minimum abundance for a feature to be tested.
 #' @param feature.level A vector of strings. Taxonomic level(s) for aggregation, e.g. "Phylum", "Class".
 #' @param feature.dat.type A string. Either 'count', 'proportion', or 'other'. Specifies the data type of feature for appropriate transformation.
+#' @param feature.mt.method A string. Method for multiple testing correction. Can be either "fdr" or "none". Defaults to "fdr".
+#' @param feature.sig.level A numeric. Significance level threshold for testing. Defaults to 0.1.
+#' @param transform A string. Method for transforming the data. If 'CLR', count data and proportion data will be transformed using Centered Log Ratio. Defaults to 'CLR'.
+#' @param ... Additional arguments passed to other methods.
 #' @return A list of test results. The results are returned in a tidy dataframe format, including coefficients, standard errors, statistics, and p-values from linear models and ANOVA tests.
 #'
 #' @examples
 #' data("subset_T2D.obj")
-#' subset_T2D.obj2 <- subset_T2D.obj
-#' subset_T2D.obj2$meta.dat$visit_number <- as.numeric(subset_T2D.obj2$meta.dat$visit_number)
 #' generate_taxa_volatility_test_long(
 #' data.obj = subset_T2D.obj,
 #' time.var = "visit_number",
@@ -214,7 +216,7 @@ generate_taxa_volatility_test_long <- function(data.obj,
   names(test.list) <- feature.level
 
   volcano_plots <- generate_taxa_volatility_volcano_long(data.obj = data.obj,
-                                                         group = group.var,
+                                                         group.var = group.var,
                                                          test.list = test.list,
                                                          feature.sig.level = feature.sig.level,
                                                          feature.mt.method = feature.mt.method)
@@ -243,8 +245,13 @@ generate_taxa_volatility_test_long <- function(data.obj,
 #'                                                       # feature.sig.level = 0.05,
 #'                                                       # feature.mt.method = "fdr")
 #'
+#' @importFrom dplyr pull
 #' @export
-generate_taxa_volatility_volcano_long <- function(data.obj, group.var, test.list, feature.sig.level = 0.1, feature.mt.method = c("fdr","none")){
+generate_taxa_volatility_volcano_long <- function(data.obj,
+                                                  group.var,
+                                                  test.list,
+                                                  feature.sig.level = 0.1,
+                                                  feature.mt.method = c("fdr","none")){
 
   meta_tab <- load_data_obj_metadata(data.obj) %>%
     dplyr::select(all_of(c(
@@ -277,13 +284,13 @@ generate_taxa_volatility_volcano_long <- function(data.obj, group.var, test.list
 
       # Multiple testing correction if needed
       if (mt.method == "fdr") {
-        term_data <- term_data %>% mutate(AdjP = p.adjust(P.Value, method = "fdr"))
+        term_data <- term_data %>% dplyr::mutate(AdjP = p.adjust(P.Value, method = "fdr"))
       } else {
         term_data$AdjP <- term_data$P.Value
       }
 
       # -log10 transform the p-values
-      term_data <- term_data %>% mutate(logP = -log10(AdjP))
+      term_data <- term_data %>% dplyr::mutate(logP = -log10(AdjP))
 
       term_data$Term <- gsub(paste0("^", group.var), "", term_data$Term)
 

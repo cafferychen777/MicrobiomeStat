@@ -81,11 +81,13 @@ Default method of dimension reduction is PCoA.
 }
 \examples{
 \dontrun{
+
 # Load required libraries and data
 library(vegan)
 
-  data(ecam.obj)
-  generate_beta_pc_boxplot_long(
+# Example with ecam.obj dataset
+data(ecam.obj)
+generate_beta_pc_boxplot_long(
   data.obj = ecam.obj,
   dist.obj = NULL,
   pc.obj = NULL,
@@ -95,29 +97,7 @@ library(vegan)
   ts.levels = as.character(sort(as.numeric(unique(ecam.obj$meta.dat$month))))[2:4],
   group.var = "diet",
   strata.var = "delivery",
-  adj.vars = "antiexposedall",
-  dist.name = c('BC'),
-  base.size = 20,
-  theme.choice = "bw",
-  custom.theme = NULL,
-  palette = NULL,
-  pdf = TRUE,
-  file.ann = "test",
-  pdf.wid = 11,
-  pdf.hei = 8.5
-)
-data(peerj32.obj)
-  generate_beta_pc_boxplot_long(
-  data.obj = peerj32.obj,
-  dist.obj = NULL,
-  pc.obj = NULL,
-  subject.var = "subject",
-  time.var = "time",
-  t0.level = "1",
-  ts.levels = "2",
-  group.var = "group",
-  strata.var = NULL,
-  adj.vars = "sex",
+  adj.vars = NULL,
   dist.name = c('BC'),
   base.size = 20,
   theme.choice = "bw",
@@ -128,5 +108,30 @@ data(peerj32.obj)
   pdf.wid = 11,
   pdf.hei = 8.5
 )
+
+# Example with peerj32.obj dataset
+data(peerj32.obj)
+generate_beta_pc_boxplot_long(
+  data.obj = peerj32.obj,
+  dist.obj = NULL,
+  pc.obj = NULL,
+  subject.var = "subject",
+  time.var = "time",
+  t0.level = "1",
+  ts.levels = "2",
+  group.var = "group",
+  strata.var = "sex",
+  adj.vars = NULL,
+  dist.name = c('BC'),
+  base.size = 20,
+  theme.choice = "bw",
+  custom.theme = NULL,
+  palette = NULL,
+  pdf = TRUE,
+  file.ann = NULL,
+  pdf.wid = 11,
+  pdf.hei = 8.5
+)
+
 }
 }

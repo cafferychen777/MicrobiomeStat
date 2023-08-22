@@ -56,7 +56,7 @@ generate_taxa_change_heatmap_long(
 
 \item{top.k.func}{A function to compute the top k taxa if features.plot is NULL. If NULL (default), the mean function will be used.}
 
-\item{change.func}{A function or character string specifying the method for computing the change. Default is "difference".}
+\item{change.func}{A function or character string specifying the method for computing the change. Default is "relative difference".}
 
 \item{prev.filter}{A numeric value defining the prevalence threshold to filter taxa, between 0 and 1.}
 
@@ -103,7 +103,7 @@ generate_taxa_change_heatmap_long(
   ts.levels = NULL,
   group.var = "antiexposedall",
   strata.var = "diet",
-  feature.level = c("Family"),
+  feature.level = c("Family","Class"),
   feature.dat.type = "proportion",
   features.plot = NULL,
   top.k.plot = 10,
@@ -114,6 +114,28 @@ generate_taxa_change_heatmap_long(
   abund.filter = 0.01,
   pdf = TRUE,
   file.ann = NULL
+)
+data(subset_T2D.obj)
+generate_taxa_change_heatmap_long(
+  data.obj = subset_T2D.obj,
+  subject.var = "subject_id",
+  time.var = "visit_number_num",
+  t0.level = unique(subset_T2D.obj$meta.dat$visit_number_num)[1],
+  ts.levels = unique(subset_T2D.obj$meta.dat$visit_number_num)[-1],
+  group.var = "subject_gender",
+  strata.var = "subject_race",
+  feature.level = c("Phylum"),
+  feature.dat.type = "count",
+  features.plot = NULL,
+  top.k.plot = NULL,
+  top.k.func = NULL,
+  change.func = "relative difference",
+  prev.filter = 0.0001,
+  abund.filter = 0.0001,
+  pdf = TRUE,
+  file.ann = NULL,
+  pdf.wid = 11,
+  pdf.hei = 8.5
 )
 }
 

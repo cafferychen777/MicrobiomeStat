@@ -17,7 +17,7 @@ generate_taxa_indiv_boxplot_long(
   feature.dat.type = c("count", "proportion", "other"),
   top.k.plot = NULL,
   top.k.func = NULL,
-  Transform = c("identity", "sqrt", "log"),
+  transform = c("identity", "sqrt", "log"),
   prev.filter = 0.01,
   abund.filter = 0.01,
   base.size = 16,
@@ -56,7 +56,7 @@ generate_taxa_indiv_boxplot_long(
 
 \item{top.k.func}{A function to compute the top k taxa if features.plot is NULL. If NULL (default), the mean function will be used.}
 
-\item{Transform}{Transformation to apply before plotting. Default is "log10".}
+\item{transform}{transformation to apply before plotting. Default is "log10".}
 
 \item{prev.filter}{Prevalence threshold for filtering taxa. Default 0.05.}
 
@@ -100,7 +100,7 @@ generate_taxa_indiv_boxplot_long(
   strata.var = NULL,
   feature.level = c("Phylum"),
   feature.dat.type = "proportion",
-  Transform = "log",
+  transform = "log",
   prev.filter = 0.01,
   abund.filter = 0.01,
   base.size = 20,
@@ -131,7 +131,7 @@ generate_taxa_indiv_boxplot_long(
   feature.dat.type = "other",
   top.k.plot = NULL,
   top.k.func = NULL,
-  Transform = "log",
+  transform = "log",
   prev.filter = 0.01,
   abund.filter = 0.01,
   base.size = 20,

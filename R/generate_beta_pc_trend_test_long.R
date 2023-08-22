@@ -1,22 +1,56 @@
 #' Trend Test on Principal Coordinates of Beta Diversity Metrics Over Time
 #'
-#' This function performs a trend test on the selected Principal Coordinates (PCs) of beta diversity distances over time for different groups.
-#' Various methods of dimension reduction, such as Principal Coordinates Analysis (PCoA), non-metric multidimensional scaling (NMDS), t-SNE, or UMAP, can be used.
-#' The default method for dimension reduction is PCoA.
-#' The function relies on a numeric time variable and can make adjustments for distance calculations.
+#' Performs linear trend tests on selected Principal Coordinates (PCs) of beta diversity
+#' distance matrices over time, for different groups. Allows using PCoA, NMDS, t-SNE,
+#' UMAP for dimension reduction, with PCoA as default.
 #'
-#' @param data.obj A list object containing all data.
-#' @param dist.obj List object containing distance matrices. If NULL, beta diversity is calculated from data.obj.
-#' @param pc.obj List object containing Principal Coordinates matrices. If NULL, PCoA is performed by default.
-#' @param pc.ind Numeric vector indicating which Principal Coordinates to include in the trend test.
-#' @param subject.var Character string indicating the variable for subject identifiers.
-#' @param time.var Character string indicating the variable for time points. Must be coded as numeric.
-#' @param group.var Character string indicating the variable for group identifiers.
-#' @param adj.vars Character string indicating the variables for adjustments in the distance calculations.
-#' @param dist.name Vector of character strings indicating the distance measures to include in the trend test, such as "BC" for Bray-Curtis.
-#' @param ... Additional arguments to be passed to the mixed-effects model function.
+#' @param data.obj MicrobiomeStat data object containing OTU table, taxonomy, metadata etc.
+#' Required if dist.obj is NULL.
+#' @param dist.obj List of pre-calculated beta diversity distance matrices. Calculated
+#' from data.obj if NULL. Includes distance matrix for each measure in dist.name.
+#' @param pc.obj List of pre-calculated PCs matrices. Calculated by PCoA if NULL.
+#' Includes PCs matrix for each distance matrix in dist.obj.
+#' @param pc.ind Vector of indices (positive integers) indicating which PCs to include
+#' in trend test. Should not exceed number of PCs calculated.
+#' @param subject.var Name of subject ID variable in metadata (character).
+#' @param time.var Name of time variable in metadata (numeric). Values should be
+#' ordered sequentially.
+#' @param group.var Name of grouping variable in metadata (character). Levels will be
+#' used to fit separate models. Optional.
+#' @param adj.vars Names of variables in metadata to adjust distance matrices for
+#' (character). Optional.
+#' @param dist.name Names of beta diversity distance measures to include, e.g.
+#' "BC" for Bray-Curtis (character vector).
+#' @param ... Additional named arguments to pass to lmer():
+#' \itemize{
+#' \item control: Control parameters for lmer.
+#' \item weights: Prior weights for the residuals.
+#' }
 #'
-#' @return A list of results for each distance measure and selected Principal Coordinate, including coefficients from the mixed-effects models.
+#' @return A nested list by distance > PC. Each element contains:
+#' \itemize{
+#' \item coef: Data frame of coefficients from mixed effects model.
+#' \item model: Fitted lmer model object.
+#' }
+#'
+#' @details
+#' This function allows performing linear trend tests on PCs of beta diversity
+#' distances over time, across groups, with adjustments.
+#'
+#' It checks for pre-calculated distances and PCs, generating them from data if needed.
+#' Sufficient PCs should be calculated to cover indices specified.
+#'
+#' For each distance, PCs are extracted for the selected indices. The metadata is
+#' joined and formatted for mixed effects modeling with time as numeric.
+#'
+#' The model formula is created using the response, time, group, and subject variables.
+#' Mixed effects models are fitted with lmer() and coefficients extracted.
+#'
+#' @seealso
+#' \code{\link{mStat_calculate_beta_diversity}} to generate distance matrices.
+#'
+#' \code{\link{mStat_calculate_PC}} to generate PCs from distances.
+#'
 #' @examples
 #' \dontrun{
 #' library(vegan)

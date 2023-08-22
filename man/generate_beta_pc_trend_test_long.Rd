@@ -11,8 +11,6 @@ generate_beta_pc_trend_test_long(
   pc.ind = c(1, 2),
   subject.var,
   time.var,
-  t0.level = NULL,
-  ts.levels = NULL,
   group.var = NULL,
   adj.vars = NULL,
   dist.name = c("BC"),
@@ -31,10 +29,6 @@ generate_beta_pc_trend_test_long(
 \item{subject.var}{Character string indicating the variable for subject identifiers.}
 
 \item{time.var}{Character string indicating the variable for time points. Must be coded as numeric.}
-
-\item{t0.level}{Character string indicating the baseline time point.}
-
-\item{ts.levels}{Vector of character strings indicating the time points to include in the trend test.}
 
 \item{group.var}{Character string indicating the variable for group identifiers.}
 
@@ -65,11 +59,9 @@ library(vegan)
   pc.ind = c(1, 2),
   subject.var = "studyid",
   time.var = "month",
-  t0.level = NULL,
-  ts.levels = NULL,
   group.var = "diet",
   adj.vars = "delivery",
-  dist.name = c('BC'),
+  dist.name = c('BC')
 )
 }
 }

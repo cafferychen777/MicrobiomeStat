@@ -80,19 +80,20 @@ saving the plots as PDF files.
 \examples{
 \dontrun{
 data(subset_T2D.obj)
+
 generate_beta_ordination_long(
   data.obj = subset_T2D.obj,
   dist.obj = NULL,
   pc.obj = NULL,
   subject.var = "subject_id",
-  time.var = "visit_number",
-  t0.level = sort(unique(subset_T2D.obj$meta.dat$visit_number))[1],
-  ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[2:6],
+  time.var = "visit_number_num",
+  t0.level = NULL,
+  ts.levels = NULL,
   group.var = "subject_gender",
   strata.var = "subject_race",
-  adj.vars = "sample_body_site",
-  dist.name = c("BC","Jaccard"),
-  base.size = 16,
+  adj.vars = NULL,
+  dist.name = c("BC"),
+  base.size = 12,
   theme.choice = "bw",
   custom.theme = NULL,
   palette = NULL,
