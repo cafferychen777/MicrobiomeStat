@@ -8,7 +8,6 @@ mStat_generate_report_change_pair(
   data.obj,
   dist.obj = NULL,
   alpha.obj = NULL,
-  depth = NULL,
   group.var,
   adj.vars,
   subject.var,
@@ -38,13 +37,14 @@ mStat_generate_report_change_pair(
 )
 }
 \arguments{
-\item{data.obj}{A data object created by mStat_convert_phyloseq_to_data_obj.}
+\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
 
-\item{dist.obj}{A distance object created by mStat_calculate_beta_diversity.}
+\item{dist.obj}{Distance matrix between samples, usually calculated using
+\code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
+If NULL, beta diversity will be automatically computed from \code{data.obj}
+using \code{mStat_calculate_beta_diversity}.}
 
-\item{alpha.obj}{An alpha diversity object (optional).}
-
-\item{depth}{Sampling depth (optional).}
+\item{alpha.obj}{An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.}
 
 \item{group.var}{Variable name used for grouping samples.}
 
@@ -70,9 +70,23 @@ mStat_generate_report_change_pair(
 
 \item{base.size}{Base font size for the generated plots.}
 
-\item{theme.choice}{Plot theme choice (default: "prism").}
+\item{theme.choice}{Plot theme choice. Can be one of:
+  - "prism": ggprism::theme_prism()
+  - "classic": theme_classic()
+  - "gray": theme_gray()
+  - "bw": theme_bw()
+Default is "bw".}
 
-\item{custom.theme}{Custom ggplot2 theme (optional).}
+\item{custom.theme}{A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:
+
+```r
+my_theme <- ggplot2::theme(
+  axis.title = ggplot2::element_text(size=16, color="red"),
+  legend.position = "none"
+)
+```
+
+Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.}
 
 \item{palette}{Color palette used for the plots.}
 

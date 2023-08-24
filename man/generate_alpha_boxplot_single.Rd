@@ -36,7 +36,8 @@ generate_alpha_boxplot_single(
 
 \item{time.var}{The variable in the metadata table that represents the time.}
 
-\item{t.level}{The specific time point to be analyzed.}
+\item{t.level}{Character string specifying the time level/value to subset data to,
+if a time variable is provided. Default NULL does not subset data.}
 
 \item{group.var}{An optional variable in the metadata table that represents the grouping factor.}
 
@@ -46,9 +47,23 @@ generate_alpha_boxplot_single(
 
 \item{base.size}{The base font size for the plot. Default is 16.}
 
-\item{theme.choice}{A character string indicating the choice of pre-defined ggplot2 theme for the plot. Supported choices include "prism" (default), "classic", "gray", and "bw".}
+\item{theme.choice}{Plot theme choice. Can be one of:
+  - "prism": ggprism::theme_prism()
+  - "classic": theme_classic()
+  - "gray": theme_gray()
+  - "bw": theme_bw()
+Default is "bw".}
 
-\item{custom.theme}{An optional custom ggplot2 theme. If provided, this theme will be used instead of the pre-defined themes.}
+\item{custom.theme}{A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:
+
+```r
+my_theme <- ggplot2::theme(
+  axis.title = ggplot2::element_text(size=16, color="red"),
+  legend.position = "none"
+)
+```
+
+Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.}
 
 \item{palette}{An optional palette to use for the plot. If NULL (default), a pre-defined palette will be used.}
 
@@ -72,44 +87,52 @@ This function generates a boxplot of specified alpha diversity indices at a sing
 \dontrun{
 library(vegan)
 library(ggh4x)
+
+# Load data
 data(peerj32.obj)
 
+# First example with peerj32.obj
 generate_alpha_boxplot_single(
-  data.obj = peerj32.obj,
-  alpha.obj = NULL,
-  alpha.name = c("simpson"),
-  subject.var = "subject",
-  time.var = "time",
-  t.level = "2",
-  group.var = "group",
-  strata.var = NULL,
-  adj.vars = "sex",
-  base.size = 16,
+  data.obj     = peerj32.obj,
+  alpha.obj    = NULL,
+  alpha.name   = c("simpson"),
+  subject.var  = "subject",
+  time.var     = "time",
+  t.level      = "2",
+  group.var    = "group",
+  strata.var   = NULL,
+  adj.vars     = "sex",
+  base.size    = 16,
   theme.choice = "bw",
-  palette = NULL,
-  pdf = TRUE,
-  file.ann = NULL,
-  pdf.wid = 11,
-  pdf.hei = 8.5)
+  palette      = NULL,
+  pdf          = TRUE,
+  file.ann     = NULL,
+  pdf.wid      = 11,
+  pdf.hei      = 8.5
+)
 
-  data("subset_T2D.obj")
+# Load another dataset
+data("subset_T2D.obj")
+
+# Second example with subset_T2D.obj
 generate_alpha_boxplot_single(
-  data.obj = subset_T2D.obj,
-  alpha.obj = NULL,
-  alpha.name = c("shannon"),
-  subject.var = "subject_id",
-  time.var = "visit_number",
-  t.level = "   3",
-  group.var = "subject_race",
-  strata.var = "subject_gender",
-  adj.vars = "sample_body_site",
-  base.size = 16,
+  data.obj     = subset_T2D.obj,
+  alpha.obj    = NULL,
+  alpha.name   = c("shannon"),
+  subject.var  = "subject_id",
+  time.var     = "visit_number",
+  t.level      = "   3",
+  group.var    = "subject_race",
+  strata.var   = "subject_gender",
+  adj.vars     = "sample_body_site",
+  base.size    = 16,
   theme.choice = "bw",
-  palette = NULL,
-  pdf = TRUE,
-  file.ann = NULL,
-  pdf.wid = 20,
-  pdf.hei = 8.5)
+  palette      = NULL,
+  pdf          = TRUE,
+  file.ann     = NULL,
+  pdf.wid      = 20,
+  pdf.hei      = 8.5
+)
 
 }
 }

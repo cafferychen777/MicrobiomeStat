@@ -7,17 +7,30 @@
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list).
 #' @param subject.var A character string specifying the subject variable in the metadata.
 #' @param time.var A character string specifying the time variable in the metadata.
-#' @param t0.level The base level for time points in longitudinal data.
-#' @param ts.levels The levels for time points in longitudinal data.
+#' @param t0.level Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.
+#' @param ts.levels Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.
 #' @param group.var A character string specifying the grouping variable in the metadata. Default is NULL.
 #' @param strata.var A character string specifying the stratification variable in the metadata. Default is NULL.
 #' @param feature.level A character vector specifying the taxa level(s) to include in the analysis. Default is c('Phylum', 'Family', 'Genus').
-#' @param features.plot A character vector specifying the taxa to be plotted. If NULL (default), the top k taxa by mean abundance will be plotted.
-#' @param feature.dat.type A character string specifying the type of the data in feature.dat. Options are "count", "proportion", or "other".
+#' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+#' Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.
+#' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
+#' Should be one of:
+#' - "count": Raw count data, will be normalized by the function.
+#' - "proportion": Data that has already been normalized to proportions/percentages.
+#' - "other": Custom abundance data that has unknown scaling. No normalization applied.
+#' The choice affects preprocessing steps as well as plot axis labels.
+#' Default is "count", which assumes raw OTU table input.
 #' @param top.k.plot A numeric value specifying the number of top taxa to be plotted if features.plot is NULL. If NULL (default), all taxa will be plotted.
 #' @param top.k.func A function to compute the top k taxa if features.plot is NULL. If NULL (default), the mean function will be used.
-#' @param prev.filter A numeric value defining the prevalence threshold to filter taxa, between 0 and 1.
-#' @param abund.filter A numeric value defining the abundance threshold to filter taxa.
+#' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
+#' taxa before analysis. Taxa with prevalence below this value will be removed.
+#' Prevalence is calculated as the proportion of samples where the taxon is present.
+#' Default 0 removes no taxa by prevalence filtering.
+#' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering
+#' taxa before analysis. Taxa with mean abundance below this value will be removed.
+#' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
+#' Default 0 removes no taxa by abundance filtering.
 #' @param base.size Base font size for the generated plots.
 #' @param palette Color palette used for the plots.
 #' @param cluster.rows A logical variable indicating if rows should be clustered. Default is TRUE.

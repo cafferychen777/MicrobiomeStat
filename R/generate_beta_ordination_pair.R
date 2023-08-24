@@ -3,17 +3,34 @@
 #' @description This function, part of the MicrobiomeStat package, generates Principle Coordinate Analysis (PCoA) plots using the provided distance object. It is specifically designed for the analysis of microbiome data. This function is tailored for paired samples, such as those from longitudinal studies or experiments with multiple time points.
 #' @name generate_beta_ordination_pair
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param dist.obj (Optional) A distance object generated from distance matrices using 'mStat_calculate_beta_diversity' function on data.obj. If data.obj is not provided, metadata can be retrieved from dist.obj.
+#' @param dist.obj Distance matrix between samples, usually calculated using
+#' \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
+#' If NULL, beta diversity will be automatically computed from \code{data.obj}
+#' using \code{mStat_calculate_beta_diversity}.
 #' @param pc.obj (Optional) A matrix containing the principal coordinates, computed using 'mStat_calculate_PC' function on dist.obj. If not provided, the function will calculate PCoA based on the given distance object.
 #' @param subject.var The variable in the metadata table that represents the subject.
 #' @param time.var The variable in the metadata table that represents the time.
 #' @param group.var (Optional) The variable in the metadata table that represents the grouping factor.
 #' @param strata.var (Optional) The variable in the metadata table that represents the stratification factor.
 #' @param adj.vars A character vector containing the names of the columns in data.obj$meta.dat to include as covariates in the PERMANOVA analysis. If no covariates are needed, use NULL (default).
-#' @param dist.name A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned.
+#' @param dist.name A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').
 #' @param base.size (Optional) Base font size for the plot (default is 16).
-#' @param theme.choice (Optional) Name of the theme for the plot. Default is "prism". Other options include "plain", "classic", and any other themes compatible with ggplot2.
-#' @param custom.theme (Optional) A custom ggplot2 theme.
+#' @param theme.choice Plot theme choice. Can be one of:
+#'   - "prism": ggprism::theme_prism()
+#'   - "classic": theme_classic()
+#'   - "gray": theme_gray()
+#'   - "bw": theme_bw()
+#' Default is "bw".
+#' @param custom.theme A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:
+#'
+#' ```r
+#' my_theme <- ggplot2::theme(
+#'   axis.title = ggplot2::element_text(size=16, color="red"),
+#'   legend.position = "none"
+#' )
+#' ```
+#'
+#' Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.
 #' @param palette (Optional) A palette function or character vector with the colors for the plot.
 #' @param pdf (Optional) A boolean indicating whether to save the output as a PDF file (default is TRUE).
 #' @param file.ann (Optional) A string for annotating the output file name.
@@ -27,37 +44,35 @@
 #'
 #' @seealso \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} for creating the distance object, \code{\link[MicrobiomeStat]{mStat_calculate_PC}} for computing the principal coordinates, and \code{\link[ggplot2]{geom_point}}, \code{\link[ggplot2]{geom_boxplot}} for the underlying plot functions used, and \code{\link[MicrobiomeStat]{mStat_convert_DGEList_to_data_obj}}, \code{\link[MicrobiomeStat]{mStat_convert_DESeqDataSet_to_data_obj}}, \code{\link[MicrobiomeStat]{mStat_convert_phyloseq_to_data_obj}}, \code{\link[MicrobiomeStat]{mStat_convert_SummarizedExperiment_to_data_obj}}, \code{\link[MicrobiomeStat]{mStat_import_qiime2_as_data_obj}}, \code{\link[MicrobiomeStat]{mStat_import_mothur_as_data_obj}}, \code{\link[MicrobiomeStat]{mStat_import_dada2_as_data_obj}}, \code{\link[MicrobiomeStat]{mStat_import_biom_as_data_obj}} for data conversion.
 #'
-#' @author Caffery Yang \email{cafferychen7850@@gmail.com}
 #'
 #' @examples
 #' \dontrun{
-#' # Load required libraries and example data
+#'
+#' # Load necessary libraries and data
 #' library(vegan)
 #' data(peerj32.obj)
-#' dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC'))
-#' # Add metadata information
-#' attr(dist.obj[["BC"]], "labels") <- peerj32.obj$meta.dat
-#' attr(dist.obj[["Jaccard"]], "labels") <- peerj32.obj$meta.dat
-#' # Generate the boxplot pair
+#'
+#' # Perform beta ordination pair analysis using `generate_beta_ordination_pair`
 #' generate_beta_ordination_pair(
-#'   data.obj = peerj32.obj,
-#'   dist.obj = NULL,
-#'   pc.obj = NULL,
-#'   subject.var = "subject",
-#'   time.var = "time",
-#'   group.var = "group",
-#'   strata.var = NULL,
-#'   adj.vars = NULL,
-#'   dist.name = c("BC"),
-#'   base.size = 16,
-#'   theme.choice = "bw",
-#'   custom.theme = NULL,
-#'   palette = NULL,
-#'   pdf = TRUE,
-#'   file.ann = NULL,
-#'   pdf.wid = 11,
-#'   pdf.hei = 8.5
+#'   data.obj      = peerj32.obj,
+#'   dist.obj      = NULL,
+#'   pc.obj        = NULL,
+#'   subject.var   = "subject",
+#'   time.var      = "time",
+#'   group.var     = "group",
+#'   strata.var    = NULL,
+#'   adj.vars      = NULL,
+#'   dist.name     = c("BC"),
+#'   base.size     = 16,
+#'   theme.choice  = "bw",
+#'   custom.theme  = NULL,
+#'   palette       = NULL,
+#'   pdf           = TRUE,
+#'   file.ann      = NULL,
+#'   pdf.wid       = 11,
+#'   pdf.hei       = 8.5
 #' )
+#'
 #' }
 #' @export
 generate_beta_ordination_pair <-

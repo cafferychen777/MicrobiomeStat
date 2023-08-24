@@ -7,18 +7,46 @@
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list).
 #' @param subject.var A character string specifying the subject variable in the metadata.
 #' @param time.var A character string specifying the time variable in the metadata.
-#' @param t0.level The base level for time points in longitudinal data.
-#' @param ts.levels The levels for time points in longitudinal data.
+#' @param t0.level Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.
+#' @param ts.levels Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.
 #' @param group.var A character string specifying the grouping variable in the metadata. Default is NULL.
 #' @param strata.var (Optional) A character string specifying the stratification variable in the metadata. Default is NULL.
-#' @param change.func A function or character string specifying the method for computing the change. Default is "relative difference".
+#' @param change.func A function or character string specifying how to calculate
+#' the change from baseline value. This allows flexible options:
+#' - If a function is provided, it will be applied to each row to calculate change.
+#'   The function should take 2 arguments: value at timepoint t and value at baseline t0.
+#' - If a character string is provided, following options are supported:
+#'   - 'relative difference': (value_t - value_t0) / (value_t + value_t0)
+#'   - 'difference': value_t - value_t0
+#'   - 'lfc': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
+#' - Default is 'relative difference'.
+#'
+#' If none of the above options are matched, an error will be thrown indicating
+#' the acceptable options or prompting the user to provide a custom function.
+#' @details This parameter is used to compute the change columns from baseline
+#'   (specified by t0.level) for each taxon. The change values are calculated
+#'   for each timepoint and appended as new columns in the data frame before
+#'   plotting heatmap. This allows flexibly customizing how change is quantified.
 #' @param feature.level A character string defining the taxonomic level to analyze ('Phylum', 'Family', or 'Genus').
-#' @param features.plot A character vector specifying the taxa to be plotted. If NULL (default), the top k taxa by mean abundance will be plotted.
-#' @param feature.dat.type A character string specifying the type of the data in feature.dat. Options are "count", "proportion", or "other".
+#' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+#' Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.
+#' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
+#' Should be one of:
+#' - "count": Raw count data, will be normalized by the function.
+#' - "proportion": Data that has already been normalized to proportions/percentages.
+#' - "other": Custom abundance data that has unknown scaling. No normalization applied.
+#' The choice affects preprocessing steps as well as plot axis labels.
+#' Default is "count", which assumes raw OTU table input.
 #' @param top.k.plot A numeric value specifying the number of top taxa to be plotted if features.plot is NULL. If NULL (default), all taxa will be plotted.
 #' @param top.k.func A function to compute the top k taxa if features.plot is NULL. If NULL (default), the mean function will be used.
-#' @param prev.filter A numeric value defining the prevalence threshold to filter taxa, between 0 and 1.
-#' @param abund.filter A numeric value defining the abundance threshold to filter taxa.
+#' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
+#' taxa before analysis. Taxa with prevalence below this value will be removed.
+#' Prevalence is calculated as the proportion of samples where the taxon is present.
+#' Default 0 removes no taxa by prevalence filtering.
+#' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering
+#' taxa before analysis. Taxa with mean abundance below this value will be removed.
+#' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
+#' Default 0 removes no taxa by abundance filtering.
 #' @param base.size Base font size for the generated plots.
 #' @param palette Color palette used for the plots.
 #' @param cluster.rows A logical variable indicating if rows should be clustered. Default is TRUE.
@@ -27,8 +55,16 @@
 #' @param file.ann (Optional) A character string specifying a file annotation to include in the generated PDF file's name.
 #' @param pdf.wid Width of the PDF plots.
 #' @param pdf.hei Height of the PDF plots.
-#' @param ... Additional arguments to be passed
-#' @return If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the pheatmap::pheatmap plot. If `pdf` is set to FALSE, the function will return the pheatmap plot without creating a PDF file.
+#' @param ... Additional arguments passed to pheatmap.
+#' @return A list of ggplot heatmap objects, one for each taxonomic level.
+#'
+#' @details This function generates a separate heatmap for each taxonomic level specified,
+#'   with rows clustered and layers arranged by groups over timepoints.
+#'   It automatically rarefies raw count data using Rarefy-TSS normalization in MicrobiomeStat.
+#'   Annotation columns are generated and ordered properly for visually stacking the layers.
+#'   Colormaps are also generated for group and strata variables.
+#'
+#' @seealso \code{\link{pheatmap}} for heatmap, \code{\link{mStat_normalize_data}} for data normalization.
 #'
 #' @examples
 #' \dontrun{

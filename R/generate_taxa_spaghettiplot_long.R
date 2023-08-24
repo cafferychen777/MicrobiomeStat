@@ -2,24 +2,76 @@
 #'
 #' @description This function generates a spaghettiplot plot for the taxonomic composition of microbiome data over time.
 #'
-#' @param data.obj A data object created by mStat_convert_phyloseq_to_data_obj.
+#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
 #' @param subject.var A character string defining the subject variable in meta_tab.
+#'                   This should be a column that contains unique subject IDs to
+#'                   identify each sample's subject of origin. Required for plotting
+#'                   individual subject lines.
 #' @param time.var A character string defining the time variable in meta_tab.
-#' @param t0.level The base level for time points in longitudinal data.
-#' @param ts.levels The levels for time points in longitudinal data.
-#' @param group.var A character string defining the group variable in meta_tab used for sorting and facetting.
-#' @param strata.var (Optional) A character string defining strata variable in meta_tab used for sorting and facetting.
-#' @param feature.level A character string specifying the taxonomic level for the plot.
-#' @param feature.dat.type Character. Specifies the type of the data in feature.dat. Options are "count" (default) or "proportion".
-#' @param features.plot A character vector specifying the taxa to be plotted. If NULL (default), the top k taxa by mean abundance will be plotted.
-#' @param top.k.plot A numeric value specifying the number of top taxa to be plotted if features.plot is NULL. If NULL (default), all taxa will be plotted.
-#' @param top.k.func A function to compute the top k taxa if features.plot is NULL. If NULL (default), the mean function will be used.
-#' @param prev.filter A numeric value defining the prevalence threshold to filter taxa, between 0 and 1.
-#' @param abund.filter A numeric value defining the abundance threshold to filter taxa.
+#'                This should be a column in meta_tab that represents the time
+#'                points for the longitudinal samples. Required to identify
+#'                the time axis for plotting.
+#' @param t0.level Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.
+#' @param ts.levels Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.
+#' @param group.var A character string defining the grouping variable in meta_tab.
+#'                 This variable is used for coloring lines in the plot and faceting by
+#'                 group. For example, variable could be treatment group. Optional,
+#'                 can be set to NULL.
+#' @param strata.var (Optional) A character string defining the stratification variable
+#'                    in meta_tab. This variable is used for nested faceting in the plot.
+#'                    For example, could be clinical strata like disease status.
+#'                    Optional, can be set to NULL. When set, plot will show nested
+#'                    facetting by strata within each feature.
+#' @param feature.level The column name(s) in the feature annotation matrix (feature.ann) of data.obj
+#'                     to use for summarization and plotting. Can be taxonomic levels like "Phylum",
+#'                     "Genus", or any other annotation columns like "OTU_ID". Should be a character
+#'                     vector specifying one or more column names in feature.ann. The special value
+#'                     "original" can also be provided, which will use the original row names from
+#'                     feature.ann. Multiple columns can be provided, and data will be plotted
+#'                     separately for each column. **\bold{Cannot be NULL, as NULL value will lead to errors.}**
+#' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+#' Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.
+#' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
+#' Should be one of:
+#' - "count": Raw count data, will be normalized by the function.
+#' - "proportion": Data that has already been normalized to proportions/percentages.
+#' - "other": Custom abundance data that has unknown scaling. No normalization applied.
+#' The choice affects preprocessing steps as well as plot axis labels.
+#' Default is "count", which assumes raw OTU table input.
+#' @param top.k.plot Integer specifying number of top k features to plot, when `features.plot` is NULL.
+#' Default is NULL, in which case all features passing filters will be plotted.
+#' @param top.k.func Function to use for selecting top k features, when `features.plot` is NULL.
+#' Options include inbuilt functions like "mean", "sd", or a custom function. Default is NULL, in which
+#' case features will be selected by abundance.
+#' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
+#' taxa before analysis. Taxa with prevalence below this value will be removed.
+#' Prevalence is calculated as the proportion of samples where the taxon is present.
+#' Default 0 removes no taxa by prevalence filtering.
+#' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering
+#' taxa before analysis. Taxa with mean abundance below this value will be removed.
+#' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
+#' Default 0 removes no taxa by abundance filtering.
 #' @param base.size Base font size for the generated plots.
-#' @param theme.choice Plot theme choice (default: "bw").
-#' @param custom.theme Custom ggplot2 theme (optional).
-#' @param palette Color palette used for the plots.
+#' @param theme.choice Plot theme choice. Can be one of:
+#'   - "prism": ggprism::theme_prism()
+#'   - "classic": theme_classic()
+#'   - "gray": theme_gray()
+#'   - "bw": theme_bw()
+#' Default is "bw".
+#' @param custom.theme A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:
+#'
+#' ```r
+#' my_theme <- ggplot2::theme(
+#'   axis.title = ggplot2::element_text(size=16, color="red"),
+#'   legend.position = "none"
+#' )
+#' ```
+#'
+#' Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.
+#' @param palette Color palette to use for mapping groups to colors in the plot. Must be a
+#'               character vector of colors. Default palette will be used if NULL.
+#'               If specified, should be same length as number of groups/levels in
+#'               group.var. Colors will be mapped to groups in order of levels.
 #' @param pdf A logical value. If TRUE (default), saves the plot as a PDF file. If FALSE, the plot will be displayed interactively without creating a PDF.
 #' @param file.ann (Optional) A character string specifying a file annotation to include in the generated PDF file's name.
 #' @param pdf.wid Width of the PDF plots.

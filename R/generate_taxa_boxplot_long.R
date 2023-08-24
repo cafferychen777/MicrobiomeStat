@@ -3,24 +3,57 @@
 #' This function generates boxplots to visualize the taxonomic composition of samples for longitudinal data.
 #' It also provides options for grouping and stratifying data.
 #'
-#' @param data.obj A list object containing the input data.
+#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
 #' @param subject.var A string indicating the variable for subject identifiers.
 #' @param time.var A string indicating the variable for time points.
-#' @param t0.level A string indicating the reference time point. Default is NULL.
-#' @param ts.levels A vector indicating the time points to include in the analysis. Default is NULL.
+#' @param t0.level Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.
+#' @param ts.levels Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.
 #' @param group.var A string indicating the variable for group identifiers. Default is NULL.
 #' @param strata.var A string indicating the variable for strata identifiers. Default is NULL.
 #' @param feature.level A string indicating the taxonomic level to plot.
-#' @param feature.dat.type A string indicating the type of data in the input object.
-#' @param features.plot A character vector of features to include in the plot. If NULL, top features will be selected based on `top.k.plot` and `top.k.func`.
-#' @param top.k.plot An integer indicating the top K features to plot based on the function specified in `top.k.func`.
-#' @param top.k.func A function to determine the top K features to plot.
-#' @param transform A string indicating the transformation to apply to the data before plotting. Options are "identity", "sqrt", "log". Default is "identity".
-#' @param prev.filter A numeric value indicating the minimum prevalence for a feature to be included in the plot.
-#' @param abund.filter A numeric value indicating the minimum abundance for a feature to be included in the plot.
+#' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
+#' Should be one of:
+#' - "count": Raw count data, will be normalized by the function.
+#' - "proportion": Data that has already been normalized to proportions/percentages.
+#' - "other": Custom abundance data that has unknown scaling. No normalization applied.
+#' The choice affects preprocessing steps as well as plot axis labels.
+#' Default is "count", which assumes raw OTU table input.
+#' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+#' Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.
+#' @param top.k.plot Integer specifying number of top k features to plot, when `features.plot` is NULL.
+#' Default is NULL, in which case all features passing filters will be plotted.
+#' @param top.k.func Function to use for selecting top k features, when `features.plot` is NULL.
+#' Options include inbuilt functions like "mean", "sd", or a custom function. Default is NULL, in which
+#' case features will be selected by abundance.
+#' @param transform A string indicating the transformation to apply to the data before plotting. Options are:
+#' - "identity": No transformation (default)
+#' - "sqrt": Square root transformation
+#' - "log": Logarithmic transformation. Zeros are replaced with half of the minimum non-zero value for each taxon before log transformation.
+#' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
+#' taxa before analysis. Taxa with prevalence below this value will be removed.
+#' Prevalence is calculated as the proportion of samples where the taxon is present.
+#' Default 0 removes no taxa by prevalence filtering.
+#' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering
+#' taxa before analysis. Taxa with mean abundance below this value will be removed.
+#' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
+#' Default 0 removes no taxa by abundance filtering.
 #' @param base.size A numeric value specifying the base size of the plot. Default is 16.
-#' @param theme.choice A string specifying the theme of the plot. Default is "prism".
-#' @param custom.theme A ggplot2 theme object for user-defined theme. Default is NULL.
+#' @param theme.choice Plot theme choice. Can be one of:
+#'   - "prism": ggprism::theme_prism()
+#'   - "classic": theme_classic()
+#'   - "gray": theme_gray()
+#'   - "bw": theme_bw()
+#' Default is "bw".
+#' @param custom.theme A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:
+#'
+#' ```r
+#' my_theme <- ggplot2::theme(
+#'   axis.title = ggplot2::element_text(size=16, color="red"),
+#'   legend.position = "none"
+#' )
+#' ```
+#'
+#' Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.
 #' @param palette A character vector specifying the color palette. Default is NULL.
 #' @param pdf A logical value indicating whether to save the plot as a PDF. Default is TRUE.
 #' @param file.ann A string for additional annotation to the file name. Default is NULL.

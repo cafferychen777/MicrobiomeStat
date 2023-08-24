@@ -7,9 +7,10 @@
 mStat_calculate_PC(dist.obj, method = c("mds"), k = 2, dist.name = NULL)
 }
 \arguments{
-\item{dist.obj}{A list containing distance matrices for each beta diversity
-metric (e.g., Bray-Curtis). The matrices should be named with the metric's
-abbreviation.}
+\item{dist.obj}{Distance matrix between samples, usually calculated using
+\code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
+If NULL, beta diversity will be automatically computed from \code{data.obj}
+using \code{mStat_calculate_beta_diversity}.}
 
 \item{method}{A character vector specifying which methods to use for
 calculating PCoA. Supported methods are "mds" (MDS), "nmds" (NMDS)}

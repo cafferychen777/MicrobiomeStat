@@ -29,9 +29,12 @@ generate_beta_pc_boxplot_long(
 )
 }
 \arguments{
-\item{data.obj}{A list object containing all data.}
+\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
 
-\item{dist.obj}{List object containing distance matrices.}
+\item{dist.obj}{Distance matrix between samples, usually calculated using
+\code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
+If NULL, beta diversity will be automatically computed from \code{data.obj}
+using \code{mStat_calculate_beta_diversity}.}
 
 \item{pc.obj}{List object containing Principal Coordinates matrices.}
 
@@ -41,9 +44,9 @@ generate_beta_pc_boxplot_long(
 
 \item{time.var}{Character string indicating the variable for time points.}
 
-\item{t0.level}{Character string indicating the baseline time point.}
+\item{t0.level}{Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.}
 
-\item{ts.levels}{Vector of character strings indicating the time points to include in the plot.}
+\item{ts.levels}{Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.}
 
 \item{group.var}{Character string indicating the variable for group identifiers.}
 
@@ -55,9 +58,23 @@ generate_beta_pc_boxplot_long(
 
 \item{base.size}{Numeric value indicating the base font size for the plot.}
 
-\item{theme.choice}{Character string indicating the ggplot theme to use for the plot.}
+\item{theme.choice}{Plot theme choice. Can be one of:
+  - "prism": ggprism::theme_prism()
+  - "classic": theme_classic()
+  - "gray": theme_gray()
+  - "bw": theme_bw()
+Default is "bw".}
 
-\item{custom.theme}{Custom ggplot theme to use.}
+\item{custom.theme}{A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:
+
+```r
+my_theme <- ggplot2::theme(
+  axis.title = ggplot2::element_text(size=16, color="red"),
+  legend.position = "none"
+)
+```
+
+Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.}
 
 \item{palette}{Vector of colors for the plot.}
 

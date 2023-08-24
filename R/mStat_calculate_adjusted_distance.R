@@ -15,7 +15,10 @@
 #'     \item \strong{phylogenetic tree}: (Optional) Tree depicting evolutionary relationships.
 #'     \item \strong{feature.agg.list}: (Optional) Aggregated results from feature.tab and feature.ann.
 #'   }
-#' @param dist.obj A list containing distance matrices. Each matrix corresponds to a name in `dist.name`.
+#' @param dist.obj Distance matrix between samples, usually calculated using
+#' \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
+#' If NULL, beta diversity will be automatically computed from \code{data.obj}
+#' using \code{mStat_calculate_beta_diversity}.
 #' @param adj.vars Character vector listing variable names intended for adjustment.
 #' @param dist.name Character vector specifying names of distance matrices present in `dist.obj`.
 #'

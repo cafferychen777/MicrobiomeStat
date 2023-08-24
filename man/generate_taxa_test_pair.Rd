@@ -18,7 +18,7 @@ generate_taxa_test_pair(
 )
 }
 \arguments{
-\item{data.obj}{A list object in MicrobiomeStat format.}
+\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
 
 \item{subject.var}{A string that specifies the name of the subject variable column in the metadata.}
 
@@ -28,32 +28,52 @@ generate_taxa_test_pair(
 
 \item{adj.vars}{A vector of strings that specify the names of additional variables to be used as covariates in the analysis.}
 
-\item{feature.level}{A string specifying the taxonomic level at which to perform the analysis.}
+\item{feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
+to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
+annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
+column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
+for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
+is also NULL.}
 
-\item{prev.filter}{A numeric value specifying the minimum prevalence filter for the taxa. It's set to 0 by default.}
+\item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
+taxa before analysis. Taxa with prevalence below this value will be removed.
+Prevalence is calculated as the proportion of samples where the taxon is present.
+Default 0 removes no taxa by prevalence filtering.}
 
-\item{abund.filter}{A numeric value specifying the minimum abundance filter for the taxa. It's set to 0 by default.}
+\item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering
+taxa before analysis. Taxa with mean abundance below this value will be removed.
+Abundance refers to counts or proportions depending on \code{feature.dat.type}.
+Default 0 removes no taxa by abundance filtering.}
 
-\item{feature.dat.type}{A string that specifies the type of the feature data. Options include: "count", "proportion". "count" is the default.}
+\item{feature.dat.type}{The type of the feature data, which determines how the data is handled in downstream analyses.
+Should be one of:
+- "count": Raw count data, will be normalized by the function.
+- "proportion": Data that has already been normalized to proportions/percentages.
+- "other": Custom abundance data that has unknown scaling. No normalization applied.
+The choice affects preprocessing steps as well as plot axis labels.
+Default is "count", which assumes raw OTU table input.}
 
-\item{...}{Additional parameters to be passed to the function.}
+\item{...}{Additional parameters to be passed to the linda function.}
 }
 \value{
-A named list where each element corresponds to a feature level. Each list element contains a dataframe with the calculated taxa changes, their corresponding p-values,
-and other statistics obtained from the linear model.
+A named list containing data frames summarizing taxon test results for each taxonomic level.
 }
 \description{
-This function takes as input a MicrobiomeStat data object and various specifications regarding the variables,
-and returns an analysis of changes in taxa over time dplyr::across different groups. It also performs linear modelling on these changes,
-utilizing specified group variables and covariates.
+This function takes a MicrobiomeStat data object as input, filters taxa based on
+prevalence and abundance thresholds, aggregates taxon abundances by sample,
+fits linear models using the linda method to identify significant taxon changes
+across groups over time, accounting for specified covariates. It returns data frames
+summarizing the results for each taxonomic level, including statistics from the
+linear models.
+}
+\details{
+Each list element corresponds to a taxonomic level specified in `feature.level`.
+The data frame contains columns for taxon name, log2 fold change, p-values, adjusted p-values,
+mean abundance, mean prevalence, and the output element from `linda` where the taxon was found significant.
 }
 \examples{
 \dontrun{
 library(vegan)
-library(GUniFrac)
-library(ape)
-library(philentropy)
-library(MicrobiomeStat)
 
 data(peerj32.obj)
 generate_taxa_test_pair(

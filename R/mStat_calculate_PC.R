@@ -4,9 +4,10 @@
 #' different methods such as Metric Multi-Dimensional Scaling (MDS),
 #' Non-Metric Multi-Dimensional Scaling (NMDS)
 #' @name mStat_calculate_PC
-#' @param dist.obj A list containing distance matrices for each beta diversity
-#'   metric (e.g., Bray-Curtis). The matrices should be named with the metric's
-#'   abbreviation.
+#' @param dist.obj Distance matrix between samples, usually calculated using
+#' \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
+#' If NULL, beta diversity will be automatically computed from \code{data.obj}
+#' using \code{mStat_calculate_beta_diversity}.
 #' @param method A character vector specifying which methods to use for
 #'   calculating PCoA. Supported methods are "mds" (MDS), "nmds" (NMDS)
 #' @param k An integer specifying the number of principal coordinates to retain.

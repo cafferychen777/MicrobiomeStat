@@ -4,19 +4,44 @@
 #' different taxa over time. Raw count data will be automatically normalized using rarefaction and total sum scaling (TSS).
 #' The function also supports the generation of plots for grouped data and stratified data.
 #'
-#' @param data.obj A data object containing the taxa count data.
+#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
 #' @param subject.var Name of the subject variable.
 #' @param time.var Name of the time variable.
 #' @param group.var Optional, name of the group variable. Default is NULL.
 #' @param strata.var Optional, name of the stratification variable. Default is NULL.
-#' @param feature.level The taxonomic level to plot. Default is "original".
-#' @param feature.dat.type The type of features data; can be "count", "proportion", or "other". Default is "count".
-#' @param feature.number The number of features to plot. Default is 20.
-#' @param t0.level The initial time level. Default is NULL.
-#' @param ts.levels The time series levels. Default is NULL.
+#' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
+#' to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
+#' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
+#' column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
+#' for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
+#' is also NULL. Default is "original".
+#' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
+#' Should be one of:
+#' - "count": Raw count data, will be normalized by the function.
+#' - "proportion": Data that has already been normalized to proportions/percentages.
+#' - "other": Custom abundance data that has unknown scaling. No normalization applied.
+#' The choice affects preprocessing steps as well as plot axis labels.
+#' Default is "count", which assumes raw OTU table input.
+#' @param feature.number A numeric value indicating the number of top abundant features to retain in the plot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.
+#' @param t0.level Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.
+#' @param ts.levels Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.
 #' @param base.size The base size for the ggplot2 theme. Default is 10.
-#' @param theme.choice The theme choice for the ggplot2 theme. Default is "bw".
-#' @param custom.theme Optional, a custom ggplot2 theme. Default is NULL.
+#' @param theme.choice Plot theme choice. Can be one of:
+#'   - "prism": ggprism::theme_prism()
+#'   - "classic": theme_classic()
+#'   - "gray": theme_gray()
+#'   - "bw": theme_bw()
+#' Default is "bw".
+#' @param custom.theme A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:
+#'
+#' ```r
+#' my_theme <- ggplot2::theme(
+#'   axis.title = ggplot2::element_text(size=16, color="red"),
+#'   legend.position = "none"
+#' )
+#' ```
+#'
+#' Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.
 #' @param palette Optional, a palette to use for the plot. Default is NULL.
 #' @param pdf Logical indicating if the plot should be saved as a PDF. Default is TRUE.
 #' @param file.ann Optional, a file annotation. Default is NULL.

@@ -16,33 +16,46 @@ generate_beta_volatility_test_long(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, containing components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). If `dist.obj` is provided, `data.obj` is not required.}
+\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
 
-\item{dist.obj}{(Optional) A distance object generated from distance matrices using the 'mStat_calculate_beta_diversity' function on data.obj. If not provided, it will be computed internally.}
+\item{dist.obj}{Distance matrix between samples, usually calculated using
+\code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
+If NULL, beta diversity will be automatically computed from \code{data.obj}
+using \code{mStat_calculate_beta_diversity}.}
 
-\item{subject.var}{The variable in the metadata table that represents the subject.}
+\item{subject.var}{A string indicating the column name in the metadata table that represents the subject.}
 
-\item{time.var}{The variable in the metadata table that represents the time. Ensure that it is coded as numeric.}
+\item{time.var}{A string indicating the column name in the metadata table that represents the time.
+Ensure that it is coded as numeric.}
 
-\item{group.var}{(Optional) The variable in the metadata table that represents the grouping factor.}
+\item{group.var}{(Optional) A string indicating the column name in the metadata table that represents the grouping factor.}
 
-\item{adj.vars}{(Optional) Variables in the metadata table used for adjustment.}
+\item{adj.vars}{(Optional) A character vector specifying the column names in the metadata table used for adjustment.}
 
-\item{dist.name}{A character vector specifying which beta diversity indices to calculate. Default is "BC" (Bray-Curtis).}
+\item{dist.name}{A character vector specifying which beta diversity indices to calculate.
+Default is "BC" (Bray-Curtis).}
 
 \item{...}{(Optional) Additional arguments to pass to internal functions.}
 }
 \value{
-A list containing the result of the volatility test for each specified beta diversity index. The result includes a tibble with the coefficients extracted from the linear model fitted for each distance, and an ANOVA table if the group variable is multi-categorical.
+A list containing the result of the volatility test for each specified beta diversity index.
+  Each element in the list is a tibble with the coefficients extracted from the linear model fitted
+  for each distance, and an ANOVA table if the group variable is multi-categorical.
 }
 \description{
-This function computes a volatility test for longitudinal data on beta diversity. It considers subject, time, optional grouping and adjusting variables, and computes the volatility in beta diversity over time for different groups. The volatility test relies on a numeric time variable.
+This function computes a volatility test for longitudinal data on beta diversity.
+It tests the association between beta diversity volatility and the specified group variable.
 }
 \details{
-The function starts by validating the input data, processing the time variable, and calculating the beta diversity if necessary. Adjustments are made based on the provided adjusting variables. The volatility of the beta diversity is computed for each subject, and linear models are fitted to test the association between volatility and the specified group variable. The coefficients and ANOVA results are extracted and returned for each beta diversity index specified.
+The function starts by validating the input data, processing the time variable, and calculating the beta diversity if necessary.
+Adjustments are made based on the provided adjusting variables. The volatility of the beta diversity is
+computed for each subject, and linear models are fitted to test the association between volatility and
+the specified group variable. The coefficients and ANOVA results are extracted and returned for each
+beta diversity index specified.
 }
 \note{
-A warning message will be displayed to ensure that the time variable is coded as numeric. Non-numeric coding may lead to issues in the volatility test computation.
+A warning message will be displayed to ensure that the time variable is coded as numeric.
+Non-numeric coding may lead to issues in the volatility test computation.
 }
 \examples{
 data(ecam.obj)
@@ -58,4 +71,7 @@ generate_beta_volatility_test_long(
   adj.vars = NULL,
   dist.name = c("BC", "Jaccard")
 )
+}
+\seealso{
+mStat_calculate_beta_diversity, mStat_calculate_adjusted_distance
 }

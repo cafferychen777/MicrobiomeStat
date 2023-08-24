@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_beta_change_boxplot_pair.R
 \name{generate_beta_change_boxplot_pair}
 \alias{generate_beta_change_boxplot_pair}
-\title{Generate box plot of beta diversity change}
+\title{Compare beta diversity between time points}
 \usage{
 generate_beta_change_boxplot_pair(
   data.obj = NULL,
@@ -15,7 +15,7 @@ generate_beta_change_boxplot_pair(
   change.base,
   dist.name = c("BC", "Jaccard"),
   base.size = 16,
-  theme.choice = "prism",
+  theme.choice = "bw",
   custom.theme = NULL,
   palette = NULL,
   pdf = TRUE,
@@ -28,7 +28,10 @@ generate_beta_change_boxplot_pair(
 \arguments{
 \item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
 
-\item{dist.obj}{A dissimilarity object created with the vegdist() function or NULL. If NULL, the function will automatically compute the beta diversity based on the input \code{data.obj}.}
+\item{dist.obj}{Distance matrix between samples, usually calculated using
+\code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
+If NULL, beta diversity will be automatically computed from \code{data.obj}
+using \code{mStat_calculate_beta_diversity}.}
 
 \item{subject.var}{A string specifying the name of the subject variable}
 
@@ -38,17 +41,34 @@ generate_beta_change_boxplot_pair(
 
 \item{strata.var}{A string specifying the name of the strata variable or NULL (default)}
 
-\item{adj.vars}{A character vector containing the names of the columns in data.obj$meta.dat to include as covariates in the PERMANOVA analysis. If no covariates are needed, use NULL (default).}
+\item{adj.vars}{A string specifying the name of the adjustment variable or NULL (default)}
 
 \item{change.base}{A string or numeric value specifying the first time point used for computing the beta diversity change}
 
-\item{dist.name}{A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned.}
+\item{dist.name}{A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').}
 
 \item{base.size}{(Optional) Base font size for the plot (default is 16).}
 
-\item{theme.choice}{(Optional) Name of the theme for the plot. Default is "prism". Other options include "plain", "classic", and any other themes compatible with ggplot2.}
+\item{theme.choice}{Character string specifying ggplot2 theme to use.
+Options include:
+- "prism": ggprism::theme_prism()
+- "classic": theme_classic()
+- "gray": theme_gray()
+- "bw": theme_bw()
 
-\item{custom.theme}{(Optional) A custom ggplot2 theme.}
+Can also take a custom ggplot2 theme object.
+Default is "bw".}
+
+\item{custom.theme}{A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:
+
+```r
+my_theme <- ggplot2::theme(
+  axis.title = ggplot2::element_text(size=16, color="red"),
+  legend.position = "none"
+)
+```
+
+Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.}
 
 \item{palette}{(Optional) A palette function or character vector with the colors for the plot.}
 
@@ -63,15 +83,24 @@ generate_beta_change_boxplot_pair(
 \item{...}{Additional parameters passed on to ggsave()}
 }
 \value{
-A ggplot object with the box plot of beta diversity change.
-
-A list of ggplot objects with the box plot of beta diversity change for each diversity index specified.
+A named list of ggplot objects visualizing beta diversity change.
+The list contains one plot for each distance metric specified in \code{dist.name}.
+Each plot shows boxplots of the beta diversity changes, with samples faceted by
+the \code{group_var} and \code{strata_var} variables if provided.
 }
 \description{
-This function generates a box plot that visualizes the change in beta diversity
-between two time points for different groups and strata. It takes a \code{dist.obj},
-and can also handle a matrix with coordinates for different groups and strata.
-Optionally, a user can specify whether to save the plot as a PDF file.
+This function generates boxplots to visualize changes in beta diversity
+between two time points, for different groups and strata.
+}
+\details{
+For each subject, it calculates the beta diversity (distance)
+between the sample at baseline time point and the sample at later time point.
+This within-subject change in beta diversity over time is used as the outcome.
+
+Boxplots are generated to compare the distribution of beta diversity changes
+across groups and strata. Violin plots are also included to show the underlying distribution.
+
+Adjustment for covariates is supported by using adjusted distances.
 }
 \examples{
 \dontrun{
@@ -102,5 +131,5 @@ generate_beta_change_boxplot_pair(
 }
 }
 \seealso{
-\code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} for creating the distance object. This package was created by Caffery Yang. For more information, you can contact them at cafferychen7850@gmail.com.
+\code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} for creating the distance object.
 }

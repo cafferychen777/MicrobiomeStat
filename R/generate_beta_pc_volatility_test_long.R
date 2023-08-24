@@ -5,14 +5,17 @@
 #' adjustments. The function relies on a numeric time variable.
 #'
 #' @param data.obj A list object in a format specific to MicrobiomeStat, containing components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). If dist.obj is provided, data.obj is not required.
-#' @param dist.obj (Optional) A distance object generated from distance matrices using the 'mStat_calculate_beta_diversity' function on data.obj. If not provided, it will be computed internally.
-#' @param pc.obj (Optional) Principal coordinates object, or NULL if not provided.
+#' @param dist.obj Distance matrix between samples, usually calculated using
+#' \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
+#' If NULL, beta diversity will be automatically computed from \code{data.obj}
+#' using \code{mStat_calculate_beta_diversity}.
+#' @param pc.obj Object containing PCoA coordinates from `mStat_calculate_PC()`, default is NULL.
 #' @param pc.ind A vector indicating the indices of principal coordinates to use (default c(1, 2)).
 #' @param subject.var The variable in the metadata table that represents the subject.
 #' @param time.var The variable in the metadata table that represents the time. Ensure that it is coded as numeric.
 #' @param group.var (Optional) The variable in the metadata table that represents the grouping factor.
 #' @param adj.vars (Optional) Variables in the metadata table used for adjustment.
-#' @param dist.name A character vector specifying which beta diversity indices to calculate. Default is "BC" (Bray-Curtis).
+#' @param dist.name A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').
 #' @param ... (Optional) Additional arguments to pass to internal functions.
 #'
 #' @return A list of results for each distance measure and selected Principal Coordinate, including coefficients from the mixed-effects models.

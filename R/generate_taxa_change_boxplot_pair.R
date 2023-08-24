@@ -4,23 +4,64 @@
 #' The boxplots show the change in abundance for each taxon for different groups and strata.
 #' It also allows for a prevalence and abundance filter to be applied to the data, and can optionally save the plots as a PDF.
 #'
-#' @param data.obj A data object containing the data to be plotted.
+#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
 #' @param subject.var A character string specifying the subject variable.
 #' @param time.var A character string specifying the time variable.
 #' @param group.var A character string specifying the group variable. Default is NULL.
 #' @param strata.var A character string specifying the strata variable. Default is NULL.
-#' @param change.base The time point to be used as the base for calculating change in abundance.
-#' @param change.func The function to be used for calculating change in abundance. Default is "relative difference".
-#' @param feature.level The feature level at which to plot the data.
-#' @param feature.dat.type The type of the feature data. Can be "count", "proportion", or "other". Default is "count".
-#' @param features.plot A character vector specifying the features to be plotted. Default is NULL.
-#' @param top.k.plot The top k features to be plotted. Default is NULL.
-#' @param top.k.func The function to be used for selecting the top k features. Default is NULL.
-#' @param prev.filter The prevalence filter to be applied to the data.
-#' @param abund.filter The abundance filter to be applied to the data.
+#' @param change.base The time point value to be used as the baseline for calculating change in abundance between time points. Should be one of the values from `time.var`. The change will be calculated as the difference between this baseline time point and the subsequent time point.
+#' @param change.func The function used to calculate change in abundance between time points.
+#' This can be one of "relative difference", "lfc" (log2 fold change),
+#' or a custom function. For custom functions, the function should take two numeric vectors
+#' as input (abundances at time 1 and time 2) and return a numeric vector of differences.
+#' The function should handle zero values appropriately. For "lfc", zero values
+#' are imputed as half the minimum nonzero value before taking the logarithm.
+#' Default is "relative difference".
+#' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
+#' to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
+#' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
+#' column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
+#' for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
+#' is also NULL.
+#' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
+#' Should be one of:
+#' - "count": Raw count data, will be normalized by the function.
+#' - "proportion": Data that has already been normalized to proportions/percentages.
+#' - "other": Custom abundance data that has unknown scaling. No normalization applied.
+#' The choice affects preprocessing steps as well as plot axis labels.
+#' Default is "count", which assumes raw OTU table input.
+#' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+#' Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.
+#' @param top.k.plot Integer specifying number of top k features to plot, when `features.plot` is NULL.
+#' Default is NULL, in which case all features passing filters will be plotted.
+#' @param top.k.func Function to use for selecting top k features, when `features.plot` is NULL.
+#' Options include inbuilt functions like "mean", "sd", or a custom function. Default is NULL, in which
+#' case features will be selected by abundance.
+#' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
+#' taxa before analysis. Taxa with prevalence below this value will be removed.
+#' Prevalence is calculated as the proportion of samples where the taxon is present.
+#' Default 0 removes no taxa by prevalence filtering.
+#' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering
+#' taxa before analysis. Taxa with mean abundance below this value will be removed.
+#' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
+#' Default 0 removes no taxa by abundance filtering.
 #' @param base.size The base size for the plot. Default is 16.
-#' @param theme.choice The theme choice for the plot. Default is "prism".
-#' @param custom.theme An optional custom theme for the plot. Default is NULL.
+#' @param theme.choice Plot theme choice. Can be one of:
+#'   - "prism": ggprism::theme_prism()
+#'   - "classic": theme_classic()
+#'   - "gray": theme_gray()
+#'   - "bw": theme_bw()
+#' Default is "bw".
+#' @param custom.theme A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:
+#'
+#' ```r
+#' my_theme <- ggplot2::theme(
+#'   axis.title = ggplot2::element_text(size=16, color="red"),
+#'   legend.position = "none"
+#' )
+#' ```
+#'
+#' Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.
 #' @param palette A character vector specifying the color palette for the plot. Default is NULL.
 #' @param pdf A logical value indicating whether to save the plot as a PDF. Default is TRUE.
 #' @param file.ann An optional character string to be appended to the file name of the PDF. Default is NULL.
@@ -81,7 +122,7 @@ generate_taxa_change_boxplot_pair <-
            prev.filter,
            abund.filter,
            base.size = 16,
-           theme.choice = "prism",
+           theme.choice = "bw",
            custom.theme = NULL,
            palette = NULL,
            pdf = TRUE,

@@ -1,36 +1,82 @@
-#' Beta Diversity Change Boxplot Pairs
+#' Visualize Beta Diversity Changes Over Time
 #'
-#' This function generates boxplots to visualize the changes in beta diversity principal components (PCs) over time.
-#' It allows the use of Principal Coordinates Analysis (PCoA), non-metric multidimensional scaling (NMDS), t-SNE, or UMAP for dimension reduction.
+#' This function generates a series of boxplots visualizing changes in beta diversity PCoA/PCA coordinates over time.
+#' It is designed to work with longitudinal microbiome composition data across multiple time points.
+#' The primary output is boxplots showing distributions of coordinate changes between two user-specified time points.
+#' These changes can be stratified by groups. Violin plots are overlaid to show density distributions.
 #'
-#' @param data.obj A list containing the input data. Default is NULL.
-#' @param dist.obj A list containing the distance object. Default is NULL.
-#' @param pc.obj A list containing the Principal Component Analysis object. Default is NULL.
-#' @param pc.ind A numeric vector indicating the PC indexes used. Default is c(1, 2).
+#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
+#' @param dist.obj Distance matrix between samples, usually calculated using
+#' \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
+#' If NULL, beta diversity will be automatically computed from \code{data.obj}
+#' using \code{mStat_calculate_beta_diversity}.
+#' @param pc.obj A list containing the results of dimension reduction/Principal Component Analysis.
+#' This should be the output from functions like \code{\link[MicrobiomeStat]{mStat_calculate_PC}}, containing the PC coordinates and other metadata.
+#' If NULL (default), dimension reduction will be automatically performed using metric multidimensional scaling (MDS) via \code{\link[MicrobiomeStat]{mStat_calculate_PC}}.
+#' The pc.obj list structure should contain:
+#' \itemize{
+#'  \item{$points:}{A matrix with samples as rows and PCs as columns containing the coordinates.}
+#'  \item{$eig:}{Eigenvalues for each PC dimension.}
+#'  \item{$vectors:}{Loadings vectors for features onto each PC.}
+#'  \item{Other metadata like $method, $dist.name, etc.}
+#' }
+#' See \code{\link[MicrobiomeStat]{mStat_calculate_PC}} function for details on output format.
+#' @param pc.ind A numeric vector specifying which principal coordinate (PC) axes to use for plotting.
+#' This refers to the PC axes from the dimension reduction method specified in pc.obj or calculated by default.
+#' For example, c(1,2) will generate plots for PC1 and PC2.
+#' Default is c(1,2) to plot the first two PCs.
 #' @param subject.var A string specifying the variable for subjects.
 #' @param time.var A string specifying the variable for time.
 #' @param group.var A string specifying the variable for groups. Default is NULL.
 #' @param strata.var A string specifying the variable for strata. Default is NULL.
 #' @param adj.vars A character vector of variable names to be used for adjustment.
-#' @param change.base The baseline for calculating changes in beta diversity. Default is NULL.
-#' @param change.func A function or string specifying how to calculate changes. Default is "difference".
-#' @param dist.name A character vector indicating the distance metrics used. Default is c("BC", "Jaccard").
+#' @param change.func A function or string specifying how to calculate changes between time points.
+#' If a function is provided, it should take two arguments "value_time_2" and "value_time_1" representing the PC values at the two time points. The function should return the change value.
+#' If a string, currently only "difference" is supported, which calculates simple differences between time points.
+#' More options could be added in the future as needed. Default is "difference".
+#' @param dist.name A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').
 #' @param base.size A numeric value for the base size of the plot. Default is 16.
-#' @param theme.choice A string specifying the theme of the plot. Default is "prism".
-#' @param custom.theme A ggplot2 theme object for user-defined theme. Default is NULL.
+#' @param theme.choice Plot theme choice. Can be one of:
+#'   - "prism": ggprism::theme_prism()
+#'   - "classic": theme_classic()
+#'   - "gray": theme_gray()
+#'   - "bw": theme_bw()
+#' Default is "bw".
+#' @param custom.theme A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:
+#'
+#' ```r
+#' my_theme <- ggplot2::theme(
+#'   axis.title = ggplot2::element_text(size=16, color="red"),
+#'   legend.position = "none"
+#' )
+#' ```
+#'
+#' Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.
 #' @param palette A character vector specifying the color palette. Default is NULL.
 #' @param pdf A logical value indicating whether to save the plot as a PDF. Default is TRUE.
 #' @param file.ann A string for additional annotation to the file name. Default is NULL.
 #' @param pdf.wid A numeric value specifying the width of the PDF. Default is 11.
 #' @param pdf.hei A numeric value specifying the height of the PDF. Default is 8.5.
 #' @param ... Additional arguments to be passed to the function.
-#' @return A list of ggplot objects for each PC index and distance metric.
+#' @return A named list of ggplot objects, with one element per combination of pc.ind and dist.name.
+#' Each element contains the plot for that PC index and distance metric.
 #' @details
-#' This function generates a boxplot of changes in beta diversity based on PCoA coordinates for longitudinal data.
-#' The boxplot can be stratified by a group variable and/or other variables. It also allows for different
-#' distance metrics and principal component indexes to be used.
-#' The function can handle a large number of time points or subjects by averaging the data and adding jitter to the plot.
-#' The function also has options to customize the size, theme, and color palette of the plot, and to save the plot as a PDF.
+#' This function generates boxplots visualizing changes in beta diversity PCoA coordinates over time.
+#' It is designed for longitudinal microbiome data with multiple time points.
+#' The primary output is a boxplot showing distributions of changes in PCoA coordinates between two
+#' user-specified time points, optionally stratified by groups. Violin plots are also overlaid to show density.
+#' The function offers flexibility to control:
+#' - Distance metrics used (via dist.name argument)
+#' - PCoA axes to plot (via pc.ind argument)
+#' - Subject variable for pairing time points (subject.var)
+#' - Time points to compare (time.var and change.base)
+#' - Stratification variable(s) (group.var and strata.var)
+#' - Calculation of change between time points (change.func argument)
+#' - Plot aesthetics like theme, color, file saving, etc.
+#' For large datasets, the data are subset to the two time points of interest before plotting.
+#' Jitter is added to handle overlapping points. These steps help in generating readable plots.
+#' The output plot list allows downstream iteration through multiple PC axes and/or distance metrics.
+#' Plots can be accessed via e.g. plotlist$BC_PC1 for BC dissimilarity PC1 coordinates.
 #'
 #' @examples
 #' \dontrun{
@@ -75,7 +121,7 @@ generate_beta_pc_change_boxplot_pair <-
            change.func = "difference",
            dist.name = c('BC', 'Jaccard'),
            base.size = 16,
-           theme.choice = "prism",
+           theme.choice = "bw",
            custom.theme = NULL,
            palette = NULL,
            pdf = TRUE,

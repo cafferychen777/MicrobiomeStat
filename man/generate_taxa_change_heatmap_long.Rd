@@ -38,9 +38,9 @@ generate_taxa_change_heatmap_long(
 
 \item{time.var}{A character string specifying the time variable in the metadata.}
 
-\item{t0.level}{The base level for time points in longitudinal data.}
+\item{t0.level}{Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.}
 
-\item{ts.levels}{The levels for time points in longitudinal data.}
+\item{ts.levels}{Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.}
 
 \item{group.var}{A character string specifying the grouping variable in the metadata. Default is NULL.}
 
@@ -48,7 +48,13 @@ generate_taxa_change_heatmap_long(
 
 \item{feature.level}{A character string defining the taxonomic level to analyze ('Phylum', 'Family', or 'Genus').}
 
-\item{feature.dat.type}{A character string specifying the type of the data in feature.dat. Options are "count", "proportion", or "other".}
+\item{feature.dat.type}{The type of the feature data, which determines how the data is handled in downstream analyses.
+Should be one of:
+- "count": Raw count data, will be normalized by the function.
+- "proportion": Data that has already been normalized to proportions/percentages.
+- "other": Custom abundance data that has unknown scaling. No normalization applied.
+The choice affects preprocessing steps as well as plot axis labels.
+Default is "count", which assumes raw OTU table input.}
 
 \item{features.plot}{A character vector specifying the taxa to be plotted. If NULL (default), the top k taxa by mean abundance will be plotted.}
 
@@ -56,11 +62,28 @@ generate_taxa_change_heatmap_long(
 
 \item{top.k.func}{A function to compute the top k taxa if features.plot is NULL. If NULL (default), the mean function will be used.}
 
-\item{change.func}{A function or character string specifying the method for computing the change. Default is "relative difference".}
+\item{change.func}{A function or character string specifying how to calculate
+the change from baseline value. This allows flexible options:
+- If a function is provided, it will be applied to each row to calculate change.
+  The function should take 2 arguments: value at timepoint t and value at baseline t0.
+- If a character string is provided, following options are supported:
+  - 'relative difference': (value_t - value_t0) / (value_t + value_t0)
+  - 'difference': value_t - value_t0
+  - 'lfc': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
+- Default is 'relative difference'.
 
-\item{prev.filter}{A numeric value defining the prevalence threshold to filter taxa, between 0 and 1.}
+If none of the above options are matched, an error will be thrown indicating
+the acceptable options or prompting the user to provide a custom function.}
 
-\item{abund.filter}{A numeric value defining the abundance threshold to filter taxa.}
+\item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
+taxa before analysis. Taxa with prevalence below this value will be removed.
+Prevalence is calculated as the proportion of samples where the taxon is present.
+Default 0 removes no taxa by prevalence filtering.}
+
+\item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering
+taxa before analysis. Taxa with mean abundance below this value will be removed.
+Abundance refers to counts or proportions depending on \code{feature.dat.type}.
+Default 0 removes no taxa by abundance filtering.}
 
 \item{base.size}{Base font size for the generated plots.}
 
@@ -78,10 +101,10 @@ generate_taxa_change_heatmap_long(
 
 \item{pdf.hei}{Height of the PDF plots.}
 
-\item{...}{Additional arguments to be passed}
+\item{...}{Additional arguments passed to pheatmap.}
 }
 \value{
-If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the pheatmap::pheatmap plot. If `pdf` is set to FALSE, the function will return the pheatmap plot without creating a PDF file.
+A list of ggplot heatmap objects, one for each taxonomic level.
 
 An object of class pheatmap, the generated heatmap plot
 }
@@ -89,6 +112,18 @@ An object of class pheatmap, the generated heatmap plot
 This function performs hierarchical clustering on microbiome data based on grouping
 variables and strata variables in sample metadata and generates stacked heatmaps
 using the “pheatmap” package. It can also save the resulting heatmap as a PDF file.
+}
+\details{
+This parameter is used to compute the change columns from baseline
+  (specified by t0.level) for each taxon. The change values are calculated
+  for each timepoint and appended as new columns in the data frame before
+  plotting heatmap. This allows flexibly customizing how change is quantified.
+
+This function generates a separate heatmap for each taxonomic level specified,
+  with rows clustered and layers arranged by groups over timepoints.
+  It automatically rarefies raw count data using Rarefy-TSS normalization in MicrobiomeStat.
+  Annotation columns are generated and ordered properly for visually stacking the layers.
+  Colormaps are also generated for group and strata variables.
 }
 \examples{
 \dontrun{
@@ -141,5 +176,7 @@ generate_taxa_change_heatmap_long(
 
 }
 \seealso{
+\code{\link{pheatmap}} for heatmap, \code{\link{mStat_normalize_data}} for data normalization.
+
 \code{\link{pheatmap}}
 }

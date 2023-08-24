@@ -4,18 +4,39 @@
 #' variables and strata variables in sample metadata and generates stacked heatmaps
 #' using the “pheatmap” package. It can also save the resulting heatmap as a PDF file.
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list).
+#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
 #' @param subject.var A character string specifying the subject variable in the metadata.
 #' @param time.var A character string specifying the time variable in the metadata.
 #' @param group.var A character string specifying the grouping variable in the metadata. Default is NULL.
 #' @param strata.var A character string specifying the stratification variable in the metadata. Default is NULL.
-#' @param feature.level A character vector specifying the taxa level(s) to include in the analysis. Default is c('Phylum', 'Family', 'Genus').
-#' @param features.plot A character vector specifying the taxa to be plotted. If NULL (default), the top k taxa by mean abundance will be plotted.
-#' @param feature.dat.type A character string specifying the type of data in feature.dat. Options are "count", "proportion", or "other".
-#' @param top.k.plot A numeric value specifying the number of top taxa to be plotted if features.plot is NULL. If NULL (default), all taxa will be plotted.
-#' @param top.k.func A function to compute the top k taxa if features.plot is NULL. If NULL (default), the mean function will be used.
-#' @param prev.filter A numeric value defining the prevalence threshold to filter taxa, between 0 and 1.
-#' @param abund.filter A numeric value defining the abundance threshold to filter taxa.
+#' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
+#' to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
+#' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
+#' column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
+#' for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
+#' is also NULL.
+#' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+#' Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.
+#' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
+#' Should be one of:
+#' - "count": Raw count data, will be normalized by the function.
+#' - "proportion": Data that has already been normalized to proportions/percentages.
+#' - "other": Custom abundance data that has unknown scaling. No normalization applied.
+#' The choice affects preprocessing steps as well as plot axis labels.
+#' Default is "count", which assumes raw OTU table input.
+#' @param top.k.plot Integer specifying number of top k features to plot, when `features.plot` is NULL.
+#' Default is NULL, in which case all features passing filters will be plotted.
+#' @param top.k.func Function to use for selecting top k features, when `features.plot` is NULL.
+#' Options include inbuilt functions like "mean", "sd", or a custom function. Default is NULL, in which
+#' case features will be selected by abundance.
+#' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
+#' taxa before analysis. Taxa with prevalence below this value will be removed.
+#' Prevalence is calculated as the proportion of samples where the taxon is present.
+#' Default 0 removes no taxa by prevalence filtering.
+#' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering
+#' taxa before analysis. Taxa with mean abundance below this value will be removed.
+#' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
+#' Default 0 removes no taxa by abundance filtering.
 #' @param base.size Base font size for the generated plots.
 #' @param palette Color palette used for the plots.
 #' @param cluster.rows A logical variable indicating if rows should be clustered. Default is TRUE.

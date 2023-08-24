@@ -31,7 +31,7 @@ generate_taxa_change_heatmap_pair(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list).}
+\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
 
 \item{subject.var}{A character string specifying the subject variable in the metadata.}
 
@@ -41,23 +41,49 @@ generate_taxa_change_heatmap_pair(
 
 \item{strata.var}{A character string specifying the stratification variable in the metadata. Default is NULL.}
 
-\item{change.base}{A numeric value setting base for the change (usually 1)}
+\item{change.base}{A numeric value specifying the baseline time point for computing change. This should match one of the time points in the time variable. Default is 1, which assumes the first time point is the baseline.}
 
-\item{change.func}{A function or character string specifying the method for computing the change. Options are "difference", "lfc" (log fold change), "relative difference", or a custom function. Default is "difference".}
+\item{change.func}{A function or character string specifying the method for computing change between time points. Options are:
+- "difference": Compute simple difference of abundances between time points.
+- "lfc": Compute log2 fold change between time points.
+- "relative difference": Compute relative difference of abundances between time points.
+- "custom function": Apply a custom function to compute change. The custom function should take two arguments value_time_2 and value_time_1.
+Default is "difference".}
 
-\item{feature.level}{A character string defining the taxonomic level to analyze ('Phylum', 'Family', or 'Genus').}
+\item{feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
+to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
+annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
+column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
+for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
+is also NULL.}
 
-\item{feature.dat.type}{A character string specifying the type of the data in feature.dat. Options are "count", "proportion", or "other".}
+\item{feature.dat.type}{The type of the feature data, which determines how the data is handled in downstream analyses.
+Should be one of:
+- "count": Raw count data, will be normalized by the function.
+- "proportion": Data that has already been normalized to proportions/percentages.
+- "other": Custom abundance data that has unknown scaling. No normalization applied.
+The choice affects preprocessing steps as well as plot axis labels.
+Default is "count", which assumes raw OTU table input.}
 
-\item{features.plot}{A character vector specifying the taxa to be plotted. If NULL (default), the top k taxa by mean abundance will be plotted.}
+\item{features.plot}{A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.}
 
-\item{top.k.plot}{A numeric value specifying the number of top taxa to be plotted if features.plot is NULL. If NULL (default), all taxa will be plotted.}
+\item{top.k.plot}{Integer specifying number of top k features to plot, when `features.plot` is NULL.
+Default is NULL, in which case all features passing filters will be plotted.}
 
-\item{top.k.func}{A function to compute the top k taxa if features.plot is NULL. If NULL (default), the mean function will be used.}
+\item{top.k.func}{Function to use for selecting top k features, when `features.plot` is NULL.
+Options include inbuilt functions like "mean", "sd", or a custom function. Default is NULL, in which
+case features will be selected by abundance.}
 
-\item{prev.filter}{A numeric value defining the prevalence threshold to filter taxa, between 0 and 1.}
+\item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
+taxa before analysis. Taxa with prevalence below this value will be removed.
+Prevalence is calculated as the proportion of samples where the taxon is present.
+Default 0 removes no taxa by prevalence filtering.}
 
-\item{abund.filter}{A numeric value defining the abundance threshold to filter taxa.}
+\item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering
+taxa before analysis. Taxa with mean abundance below this value will be removed.
+Abundance refers to counts or proportions depending on \code{feature.dat.type}.
+Default 0 removes no taxa by abundance filtering.}
 
 \item{base.size}{Base font size for the generated plots.}
 
@@ -75,7 +101,7 @@ generate_taxa_change_heatmap_pair(
 
 \item{pdf.hei}{Height of the PDF plots.}
 
-\item{...}{Additional parameters to be passed}
+\item{...}{Additional parameters to be passed to pheatmap function}
 }
 \value{
 If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the pheatmap::pheatmap plot. If `pdf` is set to FALSE, the function will return the pheatmap plot without creating a PDF file.

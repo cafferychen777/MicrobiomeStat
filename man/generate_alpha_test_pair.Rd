@@ -15,12 +15,9 @@ generate_alpha_test_pair(
 )
 }
 \arguments{
-\item{data.obj}{A list object that includes feature.tab (an OTU table with
-taxa as rows and samples as columns) and meta.dat (a metadata table with
-samples as rows and variables as columns).}
+\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
 
-\item{alpha.obj}{A pre-calculated alpha diversity object. If NULL, the
-function will calculate alpha diversity based on data.obj.}
+\item{alpha.obj}{An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.}
 
 \item{time.var}{A string representing the time variable's name in the
 metadata. The default is NULL.}

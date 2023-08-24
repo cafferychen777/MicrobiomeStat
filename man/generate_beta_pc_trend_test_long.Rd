@@ -18,34 +18,63 @@ generate_beta_pc_trend_test_long(
 )
 }
 \arguments{
-\item{data.obj}{A list object containing all data.}
+\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
 
-\item{dist.obj}{List object containing distance matrices. If NULL, beta diversity is calculated from data.obj.}
+\item{dist.obj}{Distance matrix between samples, usually calculated using
+\code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
+If NULL, beta diversity will be automatically computed from \code{data.obj}
+using \code{mStat_calculate_beta_diversity}.}
 
-\item{pc.obj}{List object containing Principal Coordinates matrices. If NULL, PCoA is performed by default.}
+\item{pc.obj}{List of pre-calculated PCs matrices. Calculated by PCoA if NULL.
+Includes PCs matrix for each distance matrix in dist.obj.}
 
-\item{pc.ind}{Numeric vector indicating which Principal Coordinates to include in the trend test.}
+\item{pc.ind}{Vector of indices (positive integers) indicating which PCs to include
+in trend test. Should not exceed number of PCs calculated.}
 
-\item{subject.var}{Character string indicating the variable for subject identifiers.}
+\item{subject.var}{Name of subject ID variable in metadata (character).}
 
-\item{time.var}{Character string indicating the variable for time points. Must be coded as numeric.}
+\item{time.var}{Name of time variable in metadata (numeric). Values should be
+ordered sequentially.}
 
-\item{group.var}{Character string indicating the variable for group identifiers.}
+\item{group.var}{Name of grouping variable in metadata (character). Levels will be
+used to fit separate models. Optional.}
 
-\item{adj.vars}{Character string indicating the variables for adjustments in the distance calculations.}
+\item{adj.vars}{Names of variables in metadata to adjust distance matrices for
+(character). Optional.}
 
-\item{dist.name}{Vector of character strings indicating the distance measures to include in the trend test, such as "BC" for Bray-Curtis.}
+\item{dist.name}{Names of beta diversity distance measures to include, e.g.
+"BC" for Bray-Curtis (character vector).}
 
-\item{...}{Additional arguments to be passed to the mixed-effects model function.}
+\item{...}{Additional named arguments to pass to lmer():
+\itemize{
+\item control: Control parameters for lmer.
+\item weights: Prior weights for the residuals.
+}}
 }
 \value{
-A list of results for each distance measure and selected Principal Coordinate, including coefficients from the mixed-effects models.
+A nested list by distance > PC. Each element contains:
+\itemize{
+\item coef: Data frame of coefficients from mixed effects model.
+\item model: Fitted lmer model object.
+}
 }
 \description{
-This function performs a trend test on the selected Principal Coordinates (PCs) of beta diversity distances over time for different groups.
-Various methods of dimension reduction, such as Principal Coordinates Analysis (PCoA), non-metric multidimensional scaling (NMDS), t-SNE, or UMAP, can be used.
-The default method for dimension reduction is PCoA.
-The function relies on a numeric time variable and can make adjustments for distance calculations.
+Performs linear trend tests on selected Principal Coordinates (PCs) of beta diversity
+distance matrices over time, for different groups. Allows using PCoA, NMDS, t-SNE,
+UMAP for dimension reduction, with PCoA as default.
+}
+\details{
+This function allows performing linear trend tests on PCs of beta diversity
+distances over time, across groups, with adjustments.
+
+It checks for pre-calculated distances and PCs, generating them from data if needed.
+Sufficient PCs should be calculated to cover indices specified.
+
+For each distance, PCs are extracted for the selected indices. The metadata is
+joined and formatted for mixed effects modeling with time as numeric.
+
+The model formula is created using the response, time, group, and subject variables.
+Mixed effects models are fitted with lmer() and coefficients extracted.
 }
 \examples{
 \dontrun{
@@ -64,4 +93,9 @@ library(vegan)
   dist.name = c('BC')
 )
 }
+}
+\seealso{
+\code{\link{mStat_calculate_beta_diversity}} to generate distance matrices.
+
+\code{\link{mStat_calculate_PC}} to generate PCs from distances.
 }

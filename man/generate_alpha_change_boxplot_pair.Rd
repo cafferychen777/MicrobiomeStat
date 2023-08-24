@@ -45,13 +45,38 @@ generate_alpha_change_boxplot_pair(
 
 \item{change.base}{The base time for calculating the change in alpha diversity.}
 
-\item{change.func}{(Optional) A function for calculating the change in alpha diversity; can be either "log" (default) or "absolute."}
+\item{change.func}{Function or method for calculating change in alpha diversity
+  between two timepoints. This allows flexible options to quantify change:
+
+  - If a function is provided, it will be applied to compare alpha diversity
+    at timepoint t vs baseline t0. The function should take two arguments
+    representing the alpha diversity values at t and t0.
+
+  - If a string is provided, following options are supported:
+    - 'log': Calculate log-ratio of alpha diversity at t vs t0.
+    - 'absolute': Calculate absolute difference in alpha diversity at t vs t0.
+
+  - Default is 'log', which calculates log2 fold change between t and t0.}
 
 \item{base.size}{The base font size for the plot.}
 
-\item{theme.choice}{A character string indicating the choice of pre-defined ggplot2 theme for the plot. Supported choices include "prism" (default), "classic", "gray", and "bw".}
+\item{theme.choice}{Plot theme choice. Can be one of:
+  - "prism": ggprism::theme_prism()
+  - "classic": theme_classic()
+  - "gray": theme_gray()
+  - "bw": theme_bw()
+Default is "bw".}
 
-\item{custom.theme}{An optional custom ggplot2 theme. If provided, this theme will be used instead of the pre-defined themes.}
+\item{custom.theme}{A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:
+
+```r
+my_theme <- ggplot2::theme(
+  axis.title = ggplot2::element_text(size=16, color="red"),
+  legend.position = "none"
+)
+```
+
+Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.}
 
 \item{palette}{An optional color palette for the plot. If not provided, a default color palette will be used. The palette should be a vector of color codes in a format accepted by ggplot2 (e.g., hexadecimal color codes). The number of colors in the palette should be at least as large as the number of groups being plotted.}
 
@@ -70,6 +95,16 @@ A boxplot displaying the change in the specified alpha diversity index between t
 }
 \description{
 This function generates a boxplot comparing the change in a specified alpha diversity index between two time points. The change can be calculated as the log or the absolute value. Several optional arguments are available for customizing the output, such as strata or group variables.
+}
+\details{
+This parameter allows flexible quantification of how alpha diversity
+  changes from baseline. Log-ratio is commonly used to compare relative
+  difference. Absolute difference indicates the magnitude of change.
+  Custom functions can also be supplied to calculate change as needed.
+
+This function extracts metadata, calculates alpha diversity for specified
+  indices, compares values between two timepoints, applies log2 fold change by default,
+  visualizes the change using boxplots and optional faceting and saving as PDF.
 }
 \examples{
 \dontrun{

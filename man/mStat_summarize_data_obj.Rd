@@ -12,28 +12,41 @@ mStat_summarize_data_obj(
 )
 }
 \arguments{
-\item{data.obj}{A MicrobiomeStat data object to be summarized.}
+\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
 
-\item{time.var}{An optional time variable column name from meta.dat. If provided, the function will additionally dplyr::summarize the temporal distribution of samples. Default is NULL.}
+\item{time.var}{A column name in meta.dat representing the time variable. Optional.}
 
-\item{group.var}{An optional grouping variable column name from meta.dat. If provided together with time.var, the histogram of sample counts over time will be grouped by this variable. Default is NULL.}
+\item{group.var}{A column name in meta.dat representing the grouping variable. Optional.}
 
-\item{palette}{A vector of colors to use for grouping in the histogram. Default is a preset color palette with 10 colors.}
+\item{palette}{A vector of colors for grouping in histogram. Optional. Default is a preset 10 color palette.}
 }
 \value{
-A list containing summaries for:
-\itemize{
-  \item feature.tab: The overall summary includes the number of features, number of samples, sparsity, and description of singleton features.
-  \item meta.dat: The overall summary includes the number of samples, number of metadata fields, missing data, and sample distribution if a time variable is provided. If time.var is provided, a distribution of samples over time is also generated.
-  \item feature.ann: The overall summary includes number of features, number of annotations, and the proportion of NA values for each annotation.
-  \item tree: (optional) Whether a phylogenetic tree exists in the data object.
+A tibble containing detailed summaries of:
+\enumerate{
+  \item \strong{feature.tab}: Number of features, number of samples, matrix sparsity, singleton features.
+
+  \item \strong{meta.dat}: Number of samples, number of metadata fields, missing data, sample distribution over time (if time.var provided).
+
+  \item \strong{feature.ann}: Number of features, number of annotation fields, proportion NA for each annotation.
+
+  \item \strong{tree}: Whether phylogenetic tree exists.
 }
 }
 \description{
-This function takes a MicrobiomeStat data object and provides a summary of the various components such as feature.tab, meta.dat, feature.ann, and optionally time.var and tree.
-The function is useful to give an overview of the input data object before any further microbiome statistical analysis. Providing a time variable can offer additional insights into the temporal dynamics of your samples.
+This function takes a MicrobiomeStat data object and provides a comprehensive summary of the key components, including feature abundance matrix (feature.tab), sample metadata (meta.dat), and feature annotations (feature.ann). It also checks for optional components like time variable and phylogenetic tree.
 }
 \details{
+The summary aims to give an overview of the input microbiome data object before conducting statistical analysis, allowing users to better understand the basic properties of their data.
+
+
+This function checks if each key component of the MicrobiomeStat object exists, and provides a detailed summary if present.
+
+For feature.tab, it summarizes number of features, samples, sparsity, and singleton features. For meta.dat, it summarizes sample size, metadata fields, missing values, and temporal distribution (if time variable given). For feature.ann, it summarizes number of features, annotations, and missing values per annotation. It also checks for a phylogenetic tree.
+
+If time variable is provided, temporal distribution of samples is visualized using ggplot2 histograms. If group variable is also provided, histograms are grouped by the grouping variable and colored based on the palette.
+
+
+
 The function first checks if each component of the MicrobiomeStat data object is not null. If a component is not null, it is summarized and added to the output list. For the feature.tab, it computes the sparsity and singleton features. For the meta.dat, it computes the number of samples and metadata fields, and the distribution of samples if a time variable is provided. The inclusion of a time variable allows the user to gain insights into how samples are distributed over time. For the feature.ann, it computes the number of features, annotations, and the proportion of NA values for each annotation. It also checks if a phylogenetic tree exists in the data object.
 }
 \examples{

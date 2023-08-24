@@ -4,19 +4,47 @@
 #' beta-diversity distances. It also allows for stratification and grouping of samples,
 #' and calculation of distances at a specific time point.
 #'
-#' @param data.obj A data object. Default is NULL.
-#' @param dist.obj A distance object. Default is NULL.
-#' @param pc.obj A principal component object. Default is NULL.
+#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
+#' @param dist.obj Distance matrix between samples, usually calculated using
+#' \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
+#' If NULL, beta diversity will be automatically computed from \code{data.obj}
+#' using \code{mStat_calculate_beta_diversity}.
+#' @param pc.obj A list containing the results of dimension reduction/Principal Component Analysis.
+#' This should be the output from functions like \code{\link[MicrobiomeStat]{mStat_calculate_PC}}, containing the PC coordinates and other metadata.
+#' If NULL (default), dimension reduction will be automatically performed using metric multidimensional scaling (MDS) via \code{\link[MicrobiomeStat]{mStat_calculate_PC}}.
+#' The pc.obj list structure should contain:
+#' \itemize{
+#'  \item{$points:}{A matrix with samples as rows and PCs as columns containing the coordinates.}
+#'  \item{$eig:}{Eigenvalues for each PC dimension.}
+#'  \item{$vectors:}{Loadings vectors for features onto each PC.}
+#'  \item{Other metadata like $method, $dist.name, etc.}
+#' }
+#' See \code{\link[MicrobiomeStat]{mStat_calculate_PC}} function for details on output format.
 #' @param subject.var String. Variable to be used as subject.
 #' @param time.var String. Variable to be used for time. Default is NULL.
-#' @param t.level Time level to filter the data by. Default is NULL.
+#' @param t.level Character string specifying the time level/value to subset data to,
+#' if a time variable is provided. Default NULL does not subset data.
 #' @param group.var String. Variable to be used for grouping. Default is NULL.
 #' @param strata.var String. Variable to be used for stratification. Default is NULL.
 #' @param adj.vars A character vector of variable names to be used for adjustment.
-#' @param dist.name Character vector. Name of distance(s) to be used. Default is c('BC', 'Jaccard').
+#' @param dist.name A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').
 #' @param base.size Numeric. Base size for plot elements. Default is 16.
-#' @param theme.choice String. Theme choice for the plot. Default is 'prism'.
-#' @param custom.theme A custom theme to be used. Default is NULL.
+#' @param theme.choice Plot theme choice. Can be one of:
+#'   - "prism": ggprism::theme_prism()
+#'   - "classic": theme_classic()
+#'   - "gray": theme_gray()
+#'   - "bw": theme_bw()
+#' Default is "bw".
+#' @param custom.theme A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:
+#'
+#' ```r
+#' my_theme <- ggplot2::theme(
+#'   axis.title = ggplot2::element_text(size=16, color="red"),
+#'   legend.position = "none"
+#' )
+#' ```
+#'
+#' Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.
 #' @param palette A custom color palette to be used. Default is NULL.
 #' @param pdf Logical. If TRUE, the plots are saved as PDF files. Default is TRUE.
 #' @param file.ann File annotation. Default is NULL.

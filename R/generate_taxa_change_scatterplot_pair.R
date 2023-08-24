@@ -4,23 +4,62 @@
 
 #' at a specified taxonomic level between two time points, with grouping and stratification.
 #'
-#' @param data.obj An object containing the OTU table, taxonomy table, and sample metadata.
+#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
 #' @param subject.var Character string specifying the subject variable in metadata.
 #' @param time.var Character string specifying the time variable in metadata.
 #' @param group.var Character string specifying the grouping variable in metadata. Default NULL.
 #' @param strata.var Character string specifying the stratification variable in metadata. Default NULL.
-#' @param change.base Character string specifying the baseline time point.
-#' @param change.func Function or character string specifying method to compute change ('difference', 'relative difference', 'lfc'). Default 'difference'.
-#' @param feature.level Character vector specifying taxonomic level(s) to include. Default c('Phylum', 'Family', 'Genus').
-#' @param feature.dat.type Character string specifying data type, one of "count", "proportion", or "other". Default "count".
-#' @param prev.filter Numeric specifying minimum prevalence threshold for filtering taxa.
-#' @param abund.filter Numeric specifying minimum abundance threshold for filtering taxa.
-#' @param features.plot Character vector specifying specific taxa names to plot. Default NULL.
-#' @param top.k.plot Numeric specifying number of top abundant taxa to plot if top.k.func is provided.
-#' @param top.k.func Function or character string specifying method to select top abundant taxa (mean, sd, custom function).
+#' @param change.base Character string specifying the baseline time point. This should match one of the time points present in the metadata for the 'time.var' variable. The change will be calculated by comparing the other time points to this baseline time point.
+#' @param change.func Function or character string specifying method to compute change between time points. Options are:
+#' - 'difference' (default): Computes absolute difference in counts between time points.
+#' - 'relative difference': Computes relative difference in counts between time points, calculated as (count_time2 - count_time1) / (count_time2 + count_time1).
+#' - 'lfc': Computes log2 fold change between time points. Zero counts are imputed with half the minimum nonzero value before log transform.
+#' - Custom function: A user-defined function can also be provided, which should take two vectors of counts (at time 1 and time 2) as input and return the computed change.
+#' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
+#' to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
+#' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
+#' column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
+#' for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
+#' is also NULL.
+#' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
+#' Should be one of:
+#' - "count": Raw count data, will be normalized by the function.
+#' - "proportion": Data that has already been normalized to proportions/percentages.
+#' - "other": Custom abundance data that has unknown scaling. No normalization applied.
+#' The choice affects preprocessing steps as well as plot axis labels.
+#' Default is "count", which assumes raw OTU table input.
+#' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
+#' taxa before analysis. Taxa with prevalence below this value will be removed.
+#' Prevalence is calculated as the proportion of samples where the taxon is present.
+#' Default 0 removes no taxa by prevalence filtering.
+#' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering
+#' taxa before analysis. Taxa with mean abundance below this value will be removed.
+#' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
+#' Default 0 removes no taxa by abundance filtering.
+#' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+#' Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.
+#' @param top.k.plot Integer specifying number of top k features to plot, when `features.plot` is NULL.
+#' Default is NULL, in which case all features passing filters will be plotted.
+#' @param top.k.func Function to use for selecting top k features, when `features.plot` is NULL.
+#' Options include inbuilt functions like "mean", "sd", or a custom function. Default is NULL, in which
+#' case features will be selected by abundance.
 #' @param base.size Numeric specifying base font size for plot text elements. Default 16.
-#' @param theme.choice Character string specifying ggplot2 theme to use. Default 'bw'.
-#' @param custom.theme A ggplot2 theme object to override default theme. Default NULL.
+#' @param theme.choice Plot theme choice. Can be one of:
+#'   - "prism": ggprism::theme_prism()
+#'   - "classic": theme_classic()
+#'   - "gray": theme_gray()
+#'   - "bw": theme_bw()
+#' Default is "bw".
+#' @param custom.theme A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:
+#'
+#' ```r
+#' my_theme <- ggplot2::theme(
+#'   axis.title = ggplot2::element_text(size=16, color="red"),
+#'   legend.position = "none"
+#' )
+#' ```
+#'
+#' Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.
 #' @param palette Character vector specifying colors to use for plot. Defaults to RColorBrewer palette.
 #' @param pdf Logical, if TRUE, save plot(s) as PDF file(s). Default TRUE.
 #' @param file.ann Character string specifying file annotation to add to PDF file name. Default NULL.

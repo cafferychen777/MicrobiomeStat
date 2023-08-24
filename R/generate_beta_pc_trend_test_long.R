@@ -4,10 +4,11 @@
 #' distance matrices over time, for different groups. Allows using PCoA, NMDS, t-SNE,
 #' UMAP for dimension reduction, with PCoA as default.
 #'
-#' @param data.obj MicrobiomeStat data object containing OTU table, taxonomy, metadata etc.
-#' Required if dist.obj is NULL.
-#' @param dist.obj List of pre-calculated beta diversity distance matrices. Calculated
-#' from data.obj if NULL. Includes distance matrix for each measure in dist.name.
+#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
+#' @param dist.obj Distance matrix between samples, usually calculated using
+#' \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
+#' If NULL, beta diversity will be automatically computed from \code{data.obj}
+#' using \code{mStat_calculate_beta_diversity}.
 #' @param pc.obj List of pre-calculated PCs matrices. Calculated by PCoA if NULL.
 #' Includes PCs matrix for each distance matrix in dist.obj.
 #' @param pc.ind Vector of indices (positive integers) indicating which PCs to include

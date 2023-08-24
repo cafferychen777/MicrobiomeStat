@@ -21,14 +21,7 @@ generate_taxa_volatility_test_long(
 )
 }
 \arguments{
-\item{data.obj}{A MicrobiomeStat data object. The heart of the MicrobiomeStat, consisting of several key components:
-\itemize{
-  \item \strong{Feature.tab (Matrix)}: Meeting point for research objects (OTU/ASV/KEGG/Gene, etc.) and samples.
-  \item \strong{Meta.dat (Data frame)}: Rows correspond to the samples, and columns serve as annotations, describing the samples.
-  \item \strong{Feature.ann (Matrix)}: Annotations, carrying classification information like Kingdom, Phylum, etc.
-  \item \strong{Phylogenetic tree (Optional)}: An evolutionary perspective, illuminating the relationships among various research objects.
-  \item \strong{Feature.agg.list (Optional)}: Aggregated results based on the feature.tab and feature.ann.
-}}
+\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
 
 \item{time.var}{A string. The name of the time variable in the metadata.}
 
@@ -38,9 +31,15 @@ generate_taxa_volatility_test_long(
 
 \item{adj.vars}{A vector of strings. Covariates for adjustment in the linear models. Defaults to NULL.}
 
-\item{prev.filter}{A numeric value indicating the minimum prevalence for a feature to be tested.}
+\item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
+taxa before analysis. Taxa with prevalence below this value will be removed.
+Prevalence is calculated as the proportion of samples where the taxon is present.
+Default 0 removes no taxa by prevalence filtering.}
 
-\item{abund.filter}{A numeric value indicating the minimum abundance for a feature to be tested.}
+\item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering
+taxa before analysis. Taxa with mean abundance below this value will be removed.
+Abundance refers to counts or proportions depending on \code{feature.dat.type}.
+Default 0 removes no taxa by abundance filtering.}
 
 \item{feature.level}{A vector of strings. Taxonomic level(s) for aggregation, e.g. "Phylum", "Class".}
 

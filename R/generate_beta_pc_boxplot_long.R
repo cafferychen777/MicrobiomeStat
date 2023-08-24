@@ -4,21 +4,38 @@
 #' It allows the use of Principal Coordinates Analysis (PCoA), non-metric multidimensional scaling (NMDS), t-SNE, or UMAP for dimension reduction.
 #' Default method of dimension reduction is PCoA.
 #'
-#' @param data.obj A list object containing all data.
-#' @param dist.obj List object containing distance matrices.
+#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
+#' @param dist.obj Distance matrix between samples, usually calculated using
+#' \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
+#' If NULL, beta diversity will be automatically computed from \code{data.obj}
+#' using \code{mStat_calculate_beta_diversity}.
 #' @param pc.obj List object containing Principal Coordinates matrices.
 #' @param pc.ind Numeric vector indicating which Principal Coordinates to plot.
 #' @param subject.var Character string indicating the variable for subject identifiers.
 #' @param time.var Character string indicating the variable for time points.
-#' @param t0.level Character string indicating the baseline time point.
-#' @param ts.levels Vector of character strings indicating the time points to include in the plot.
+#' @param t0.level Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.
+#' @param ts.levels Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.
 #' @param group.var Character string indicating the variable for group identifiers.
 #' @param strata.var Character string indicating the variable for stratum identifiers.
 #' @param adj.vars A character vector containing the names of the columns in data.obj$meta.dat to include as covariates in the PERMANOVA analysis. If no covariates are needed, use NULL (default).
 #' @param dist.name Vector of character strings indicating the distance measures to include in the plot.
 #' @param base.size Numeric value indicating the base font size for the plot.
-#' @param theme.choice Character string indicating the ggplot theme to use for the plot.
-#' @param custom.theme Custom ggplot theme to use.
+#' @param theme.choice Plot theme choice. Can be one of:
+#'   - "prism": ggprism::theme_prism()
+#'   - "classic": theme_classic()
+#'   - "gray": theme_gray()
+#'   - "bw": theme_bw()
+#' Default is "bw".
+#' @param custom.theme A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:
+#'
+#' ```r
+#' my_theme <- ggplot2::theme(
+#'   axis.title = ggplot2::element_text(size=16, color="red"),
+#'   legend.position = "none"
+#' )
+#' ```
+#'
+#' Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.
 #' @param palette Vector of colors for the plot.
 #' @param pdf Logical indicating whether to save the plot as a PDF file.
 #' @param file.ann Optional character string to append to the file name.

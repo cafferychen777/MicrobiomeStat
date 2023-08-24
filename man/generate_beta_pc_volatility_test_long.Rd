@@ -20,9 +20,12 @@ generate_beta_pc_volatility_test_long(
 \arguments{
 \item{data.obj}{A list object in a format specific to MicrobiomeStat, containing components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). If dist.obj is provided, data.obj is not required.}
 
-\item{dist.obj}{(Optional) A distance object generated from distance matrices using the 'mStat_calculate_beta_diversity' function on data.obj. If not provided, it will be computed internally.}
+\item{dist.obj}{Distance matrix between samples, usually calculated using
+\code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
+If NULL, beta diversity will be automatically computed from \code{data.obj}
+using \code{mStat_calculate_beta_diversity}.}
 
-\item{pc.obj}{(Optional) Principal coordinates object, or NULL if not provided.}
+\item{pc.obj}{Object containing PCoA coordinates from `mStat_calculate_PC()`, default is NULL.}
 
 \item{pc.ind}{A vector indicating the indices of principal coordinates to use (default c(1, 2)).}
 
@@ -34,7 +37,7 @@ generate_beta_pc_volatility_test_long(
 
 \item{adj.vars}{(Optional) Variables in the metadata table used for adjustment.}
 
-\item{dist.name}{A character vector specifying which beta diversity indices to calculate. Default is "BC" (Bray-Curtis).}
+\item{dist.name}{A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').}
 
 \item{...}{(Optional) Additional arguments to pass to internal functions.}
 }

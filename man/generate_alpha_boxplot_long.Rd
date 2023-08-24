@@ -37,10 +37,9 @@ generate_alpha_boxplot_long(
 
 \item{time.var}{The variable in the metadata table that represents the time.}
 
-\item{t0.level}{The level in the metadata table that represents the initial time point. This parameter is used to determine the starting point for time series data. If NULL, the first unique time point in the data will be used.}
+\item{t0.level}{Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.}
 
-\item{ts.levels}{The levels in the metadata table that represent the subsequent time points.
-These parameters are used to determine the time points that follow the initial time point (t0.level) for time series data. If NULL, all unique time points in the data (except for the initial time point) will be used.}
+\item{ts.levels}{Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.}
 
 \item{group.var}{An optional variable in the metadata table that represents the grouping factor.}
 
@@ -50,9 +49,23 @@ These parameters are used to determine the time points that follow the initial t
 
 \item{base.size}{The base font size for the plot.}
 
-\item{theme.choice}{A character string indicating the choice of pre-defined ggplot2 theme for the plot. Supported choices include "prism" (default), "classic", "gray", and "bw".}
+\item{theme.choice}{Plot theme choice. Can be one of:
+  - "prism": ggprism::theme_prism()
+  - "classic": theme_classic()
+  - "gray": theme_gray()
+  - "bw": theme_bw()
+Default is "bw".}
 
-\item{custom.theme}{An optional custom ggplot2 theme. If provided, this theme will be used instead of the pre-defined themes.}
+\item{custom.theme}{A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:
+
+```r
+my_theme <- ggplot2::theme(
+  axis.title = ggplot2::element_text(size=16, color="red"),
+  legend.position = "none"
+)
+```
+
+Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.}
 
 \item{palette}{An optional color palette for the plot. If not provided, a default color palette will be used. The palette should be a vector of color codes in a format accepted by ggplot2 (e.g., hexadecimal color codes). The number of colors in the palette should be at least as large as the number of groups being plotted.}
 

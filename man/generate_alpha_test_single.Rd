@@ -15,15 +15,14 @@ generate_alpha_test_single(
 )
 }
 \arguments{
-\item{data.obj}{A list object containing feature.tab (OTU table with taxa in rows and samples in columns)
-and meta.dat (Metadata table with samples in rows and variables in columns).}
+\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
 
-\item{alpha.obj}{A list object containing pre-calculated alpha diversity indices;
-if not provided, the function will calculate the indices using the 'alpha.name' parameter. Default is NULL.}
+\item{alpha.obj}{An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.}
 
 \item{time.var}{character; the name of the time variable in the metadata. Default is NULL.}
 
-\item{t.level}{character; the level of the time variable to subset the data. Default is NULL.}
+\item{t.level}{Character string specifying the time level/value to subset data to,
+if a time variable is provided. Default NULL does not subset data.}
 
 \item{alpha.name}{character vector containing the names of alpha diversity indices to calculate.
 Possible values are: "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".}

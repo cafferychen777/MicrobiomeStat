@@ -18,23 +18,41 @@ generate_taxa_test_single(
 )
 }
 \arguments{
-\item{data.obj}{A list containing the metadata and feature data.}
+\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
 
 \item{time.var}{A string representing the time variable. Default is NULL.}
 
-\item{t.level}{A string representing the time level. Default is NULL.}
+\item{t.level}{Character string specifying the time level/value to subset data to,
+if a time variable is provided. Default NULL does not subset data.}
 
 \item{group.var}{A string indicating the variable used for grouping.}
 
 \item{adj.vars}{A string indicating the adjustment variables.}
 
-\item{prev.filter}{A numeric value indicating the prevalence filter threshold. Default is 0.}
+\item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
+taxa before analysis. Taxa with prevalence below this value will be removed.
+Prevalence is calculated as the proportion of samples where the taxon is present.
+Default 0 removes no taxa by prevalence filtering.}
 
-\item{abund.filter}{A numeric value indicating the abundance filter threshold. Default is 0.}
+\item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering
+taxa before analysis. Taxa with mean abundance below this value will be removed.
+Abundance refers to counts or proportions depending on \code{feature.dat.type}.
+Default 0 removes no taxa by abundance filtering.}
 
-\item{feature.level}{A character vector indicating the feature level(s).}
+\item{feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
+to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
+annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
+column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
+for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
+is also NULL.}
 
-\item{feature.dat.type}{A character string representing the type of feature data. Choices are "count", "proportion", "other". Default is "count".}
+\item{feature.dat.type}{The type of the feature data, which determines how the data is handled in downstream analyses.
+Should be one of:
+- "count": Raw count data, will be normalized by the function.
+- "proportion": Data that has already been normalized to proportions/percentages.
+- "other": Custom abundance data that has unknown scaling. No normalization applied.
+The choice affects preprocessing steps as well as plot axis labels.
+Default is "count", which assumes raw OTU table input.}
 
 \item{...}{Additional arguments to be passed to the ZicoSeq function.}
 }
@@ -43,6 +61,28 @@ A list of tibble(s) containing information about significant taxa, including R.S
 }
 \description{
 This function applies a differential abundance analysis using ZicoSeq on a data set. The function filters taxa based on prevalence and abundance, then it aggregates and applies the ZicoSeq method. Finally, it creates a report of significant taxa with relevant statistics.
+}
+\details{
+This function performs differential abundance analysis using ZicoSeq method:
+
+1. Subset data to specific time point if time variable and level provided.
+
+2. Extract OTU table, taxonomy table, and sample metadata.
+
+3. Filter OTUs by prevalence and abundance thresholds if counting data.
+
+4. Aggregate OTU table to taxonomic levels specified by \code{feature.level}.
+
+5. Run ZicoSeq on aggregated table, with grouping and adjustment variables.
+
+6. Extract and compile statistics for significant taxa into results tables,
+including R-squared, F statistic, coefficients, p-values, mean proportions, etc.
+
+7. Return list of tables, with each element corresponding to one taxonomic level.
+
+In summary, it applies preprocessing steps, runs ZicoSeq differential abundance testing,
+and compiles informative results tables for significant taxa. Adjustment for covariates is
+supported. Customizable taxonomic aggregation allows testing at different levels.
 }
 \examples{
 \dontrun{

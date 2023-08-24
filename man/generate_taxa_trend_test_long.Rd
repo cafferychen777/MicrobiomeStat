@@ -20,76 +20,75 @@ generate_taxa_trend_test_long(
 )
 }
 \arguments{
-\item{data.obj}{A MicrobiomeStat formatted list object representing the data to be analyzed.}
+\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
 
-\item{subject.var}{A character string indicating the subject variable column in the metadata.}
+\item{subject.var}{A character string that indicates the column name in the metadata which uniquely identifies each subject or sample.}
 
-\item{time.var}{A character string representing the time variable column in the metadata. Default is NULL.}
+\item{time.var}{A character string representing the time variable column in the metadata. Time points should be numeric. If not, the function will convert it to numeric. Default is NULL.}
 
-\item{group.var}{A character string that specifies the grouping variable column in the metadata.}
+\item{group.var}{A character string specifying the grouping variable column in the metadata. This variable differentiates between different experimental or observational groups.}
 
-\item{adj.vars}{A vector of character strings indicating additional covariates in the metadata.}
+\item{adj.vars}{A vector of character strings. Each string should denote a column name in the metadata that will serve as a covariate in the analysis. These variables might account for potential confounding influences. Default is NULL.}
 
-\item{feature.level}{A character string that specifies the taxonomic level for analysis, e.g., "Phylum" or "Class".}
+\item{feature.level}{A character string indicating the taxonomic resolution for analysis (e.g., "Phylum", "Class"). This choice will determine the granularity of the analysis.}
 
-\item{prev.filter}{A numeric value that specifies the minimum prevalence filter for taxa. Default is 0.}
+\item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
+taxa before analysis. Taxa with prevalence below this value will be removed.
+Prevalence is calculated as the proportion of samples where the taxon is present.
+Default 0 removes no taxa by prevalence filtering.}
 
-\item{abund.filter}{A numeric value representing the minimum abundance filter for taxa. Default is 0.}
+\item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering
+taxa before analysis. Taxa with mean abundance below this value will be removed.
+Abundance refers to counts or proportions depending on \code{feature.dat.type}.
+Default 0 removes no taxa by abundance filtering.}
 
-\item{feature.dat.type}{A character string indicating the feature data type. It can be either "count" or "proportion". Default is "count".}
+\item{feature.dat.type}{A character string, either "count" or "proportion", indicating the nature of the data in the `data.obj`. This helps the function to determine if normalization is required. Default is "count".}
 
-\item{feature.sig.level}{A numeric threshold for determining the significance level for features. Default is 0.1.}
+\item{feature.sig.level}{A numeric threshold, usually between 0 and 1, for assessing the significance of individual taxa. Default is 0.1.}
 
-\item{feature.mt.method}{A character string that specifies the method for multiple testing correction, e.g., "fdr". Default is "fdr".}
+\item{feature.mt.method}{A character string specifying the method employed for multiple testing correction (e.g., "fdr" for False Discovery Rate). Default is "fdr".}
 
-\item{...}{Additional arguments to pass to the function.}
+\item{...}{Additional arguments to cater to any specialized requirements. For now, these are placeholder and not used.}
 }
 \value{
-A list of dataframes, each corresponding to a feature level.
-Each dataframe contains calculated taxa changes, p-values, and other statistics from the linear model.
+A list of dataframes, with each dataframe representing a specific taxonomic level (as specified in `feature.level`). These dataframes contain essential statistics, including taxa changes, p-values, and other metrics derived from the linear model.
 }
 \description{
-This function conducts a longitudinal trend test on microbiome data to evaluate how the abundance of various taxa is influenced by time and/or other grouping variables. By leveraging this test, researchers can discern how microbial abundances change over a given period and contrast between different experimental or observational groups. Various statistical measures, p-values, and effect sizes are computed to quantify these trends.
+This function is designed to conduct a longitudinal trend test on microbiome data. The primary aim is to discern how the abundance of various microbial taxa changes over time and/or in response to different experimental or observational groups. The function delivers robust statistical insights that enable researchers to draw meaningful conclusions about the dynamics of microbial populations.
 }
 \details{
-The function first validates the input data, normalizes it if needed, and ensures the time variable is numeric.
-It then uses the linda method to compute taxa trend tests for each specified taxonomic level.
-Results are then aggregated and returned as a list of data frames.
+The function progresses through several steps:
+1. Input Validation: Checks the integrity of the `data.obj`.
+2. Data Normalization: If the `feature.dat.type` is "count", the function applies normalization to make the data suitable for downstream analyses.
+3. Taxa Filtration: The taxa are filtered based on the specified prevalence and abundance filters.
+4. Trend Test Calculation: The function leverages the "linda" method to perform the trend tests for each specified taxonomic level.
+5. Results Compilation: All the results are collated and returned as a list of data frames.
 
-- When `group.var` is not NULL, the function investigates interactions between the specified group and time. The key output to inspect in this case is the interaction term between `group.var` and `time.var` in the `Output.Element` column. This interaction term indicates whether there are significant differences in the trend of taxa abundance between different groups over time.
+Specific interactions between `group.var` and `time.var` can be inspected if `group.var` is not NULL. This helps in understanding if microbial trends vary between groups over time.
 
-- When `group.var` is NULL, the function examines the effect of time on taxa abundance. In this scenario, the `Output.Element` of interest is solely the `time.var`, suggesting the influence of time on the abundance of taxa.
+If `group.var` is NULL, the function focuses solely on the influence of time.
 }
 \examples{
 \dontrun{
-
+# Example 1
 data("ecam.obj")
 generate_taxa_trend_test_long(
   data.obj = ecam.obj,
   subject.var = "studyid",
   time.var = "month_num",
   group.var = "diet",
-  adj.vars = NULL,
   feature.level = c("Phylum","Class"),
-  prev.filter = 0,
-  abund.filter = 0,
-  feature.dat.type = "proportion"
+  feature.dat.type = c("count")
 )
 
+# Example 2
 data("subset_T2D.obj")
 generate_taxa_trend_test_long(
   data.obj = subset_T2D.obj,
   subject.var = "subject_id",
   time.var = "visit_number",
-  group.var = NULL,
-  adj.vars = NULL,
   feature.level = "Phylum",
-  prev.filter = 1e-4,
-  abund.filter = 1e-5,
-  feature.dat.type = "count",
-  feature.sig.level = 0.1,
-  feature.mt.method = "none"
+  feature.dat.type = c("count")
 )
-
 }
 }

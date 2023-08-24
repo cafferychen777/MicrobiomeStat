@@ -29,15 +29,18 @@ generate_beta_change_spaghettiplot_long(
 \arguments{
 \item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
 
-\item{dist.obj}{(Optional) A distance object generated from distance matrices using 'mStat_calculate_beta_diversity' function on data.obj. If data.obj is not provided, metadata can be retrieved from dist.obj.}
+\item{dist.obj}{Distance matrix between samples, usually calculated using
+\code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
+If NULL, beta diversity will be automatically computed from \code{data.obj}
+using \code{mStat_calculate_beta_diversity}.}
 
 \item{subject.var}{The variable in the metadata table that represents the subject.}
 
 \item{time.var}{The variable in the metadata table that represents the time.}
 
-\item{t0.level}{(Optional) The baseline time point level.}
+\item{t0.level}{Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.}
 
-\item{ts.levels}{(Optional) Time point levels.}
+\item{ts.levels}{Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.}
 
 \item{group.var}{(Optional) The variable in the metadata table that represents the grouping factor.}
 
@@ -49,9 +52,23 @@ generate_beta_change_spaghettiplot_long(
 
 \item{base.size}{(Optional) Base font size for the plot (default is 16).}
 
-\item{theme.choice}{(Optional) Name of the theme for the plot. Default is "bw". Other options include "plain", "classic", and any other themes compatible with ggplot2.}
+\item{theme.choice}{Plot theme choice. Can be one of:
+  - "prism": ggprism::theme_prism()
+  - "classic": theme_classic()
+  - "gray": theme_gray()
+  - "bw": theme_bw()
+Default is "bw".}
 
-\item{custom.theme}{(Optional) A custom ggplot2 theme.}
+\item{custom.theme}{A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:
+
+```r
+my_theme <- ggplot2::theme(
+  axis.title = ggplot2::element_text(size=16, color="red"),
+  legend.position = "none"
+)
+```
+
+Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.}
 
 \item{palette}{(Optional) A palette function or character vector with the colors for the plot.}
 
@@ -69,7 +86,15 @@ generate_beta_change_spaghettiplot_long(
 A spaghetti plot displaying the beta diversity change over time, stratified by the specified grouping and/or strata variables (if provided). The plot will be saved as a PDF if `pdf` is set to `TRUE`.
 }
 \description{
-This function generates a spaghetti plot visualizing the change in beta diversity over time for different groups and strata in longitudinal data. Optionally, a user can specify whether to save the plot as a PDF file.
+This function generates a spaghetti plot visualizing the change in beta diversity over time for different groups and strata in longitudinal data. Optionally, a user can specify whether to save the plot as a PDF file. Change is defined as distance between samples from two time points.
+}
+\details{
+This function calculates beta diversity distances between all
+  pairs of samples using the specified distance metric (dist_name).
+  The change in beta diversity for each subject is then defined as
+  the distance between the baseline sample (t0_level) and the sample
+  at each follow-up timepoint (ts_levels). These changes are visualized
+  using spaghetti lines connecting the distances over time.
 }
 \examples{
 \dontrun{

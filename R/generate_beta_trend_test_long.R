@@ -40,8 +40,11 @@ create_mixed_effects_formula <- function(response.var, time.var, group.var = NUL
 #'
 #' @description The function `generate_beta_trend_test_long` computes a statistical trend test for beta diversity in longitudinal data. It considers subject, time, optional grouping and adjusting variables, and provides the trend in beta diversity over time for different groups.
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, containing components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). See examples for more details.
-#' @param dist.obj (Optional) A distance object generated from distance matrices using the 'mStat_calculate_beta_diversity' function on data.obj. If not provided, it will be computed internally.
+#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
+#' @param dist.obj Distance matrix between samples, usually calculated using
+#' \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
+#' If NULL, beta diversity will be automatically computed from \code{data.obj}
+#' using \code{mStat_calculate_beta_diversity}.
 #' @param subject.var The variable in the metadata table that represents the subject.
 #' @param time.var The variable in the metadata table that represents the time. Ensure that it is coded as numeric.
 #' @param group.var (Optional) The variable in the metadata table that represents the grouping factor.

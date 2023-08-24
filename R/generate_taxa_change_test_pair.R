@@ -26,22 +26,47 @@ is_categorical <- function(x) {
   }
 }
 
-#' Compute and Analyze Taxa Changes Over Time
+#' Compute taxa changes between time points and analyze differential abundance between groups
 #'
-#' This function from the MicrobiomeStat package computes the taxa changes over time for different groups. The changes are calculated based on a specified function. The function also performs linear modelling on these changes using a specified group variable and covariates, and returns a report summarizing these analyses.
-#' If no time variable is provided, the function will select the first unique value from the metadata as the baseline for comparison.
+#' This function calculates taxa abundance changes between two time points in the metadata, using the time values specified in `time.var` and baseline `change.base`.
+#' It computes changes based on the method in `change.func`.
+#' The function then uses the ZicoSeq method to perform differential abundance analysis between the groups in `group.var`, adjusted for `adj.vars`.
+#' It returns data frames summarizing the results of the differential abundance tests for each taxonomic level in `feature.level`.
+#' If `time.var` is not provided, the first unique value in the metadata will be used as `change.base`.
+#' If only one time value exists, the function will exit with a message.
 #'
-#' @param data.obj A list object in MicrobiomeStat format.
+#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
 #' @param subject.var The name of the subject variable column in the metadata.
 #' @param time.var The name of the time variable column in the metadata (optional).
 #' @param group.var The name of the grouping variable column for linear modeling in the metadata.
 #' @param adj.vars Names of additional variables to be used as covariates in the analysis.
 #' @param change.base The baseline time point for detecting changes in taxa. If NULL, the first unique value from the time.var column will be used (optional).
-#' @param change.func The function to be used for calculating changes. Options include: "lfc" (log fold change), "relative difference", and a user-defined function (default is "lfc").
-#' @param feature.level The taxonomic level at which to perform the analysis.
-#' @param prev.filter A numeric value indicating the minimum prevalence filter for the taxa (default is 0).
-#' @param abund.filter A numeric value indicating the minimum abundance filter for the taxa (default is 0).
-#' @param feature.dat.type Type of the feature data. Options include: "count", "proportion", and "other" (default is "count").
+#' @param change.func Function or character string specifying method to compute change between time points. Options are:
+#' - 'difference' (default): Computes absolute difference in counts between time points.
+#' - 'relative difference': Computes relative difference in counts between time points, calculated as (count_time2 - count_time1) / (count_time2 + count_time1).
+#' - 'lfc': Computes log2 fold change between time points. Zero counts are imputed with half the minimum nonzero value before log transform.
+#' - Custom function: A user-defined function can also be provided, which should take two vectors of counts (at time 1 and time 2) as input and return the computed change.
+#' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
+#' to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
+#' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
+#' column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
+#' for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
+#' is also NULL.
+#' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
+#' taxa before analysis. Taxa with prevalence below this value will be removed.
+#' Prevalence is calculated as the proportion of samples where the taxon is present.
+#' Default 0 removes no taxa by prevalence filtering.
+#' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering
+#' taxa before analysis. Taxa with mean abundance below this value will be removed.
+#' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
+#' Default 0 removes no taxa by abundance filtering.
+#' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
+#' Should be one of:
+#' - "count": Raw count data, will be normalized by the function.
+#' - "proportion": Data that has already been normalized to proportions/percentages.
+#' - "other": Custom abundance data that has unknown scaling. No normalization applied.
+#' The choice affects preprocessing steps as well as plot axis labels.
+#' Default is "count", which assumes raw OTU table input.
 #' @param ... Additional parameters to be passed to the ZicoSeq function.
 #'
 #' @examples

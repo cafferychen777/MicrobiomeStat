@@ -38,9 +38,9 @@ generate_taxa_indiv_boxplot_long(
 
 \item{time.var}{A character string specifying the time variable in the metadata.}
 
-\item{t0.level}{The base level for time points in longitudinal data.}
+\item{t0.level}{Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.}
 
-\item{ts.levels}{The levels for time points in longitudinal data.}
+\item{ts.levels}{Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.}
 
 \item{group.var}{Optional grouping variable in metadata.}
 
@@ -50,23 +50,52 @@ generate_taxa_indiv_boxplot_long(
 
 \item{features.plot}{A character vector specifying the taxa to be plotted. If NULL (default), the top k taxa by mean abundance will be plotted.}
 
-\item{feature.dat.type}{A character string specifying the type of the data in feature.dat. Options are "count", "proportion", or "other".}
+\item{feature.dat.type}{The type of the feature data, which determines how the data is handled in downstream analyses.
+Should be one of:
+- "count": Raw count data, will be normalized by the function.
+- "proportion": Data that has already been normalized to proportions/percentages.
+- "other": Custom abundance data that has unknown scaling. No normalization applied.
+The choice affects preprocessing steps as well as plot axis labels.
+Default is "count", which assumes raw OTU table input.}
 
 \item{top.k.plot}{A numeric value specifying the number of top taxa to be plotted if features.plot is NULL. If NULL (default), all taxa will be plotted.}
 
 \item{top.k.func}{A function to compute the top k taxa if features.plot is NULL. If NULL (default), the mean function will be used.}
 
-\item{transform}{transformation to apply before plotting. Default is "log10".}
+\item{transform}{A string indicating the transformation to apply to the data before plotting. Options are:
+- "identity": No transformation (default)
+- "sqrt": Square root transformation
+- "log": Logarithmic transformation. Zeros are replaced with half of the minimum non-zero value for each taxon before log transformation.}
 
-\item{prev.filter}{Prevalence threshold for filtering taxa. Default 0.05.}
+\item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
+taxa before analysis. Taxa with prevalence below this value will be removed.
+Prevalence is calculated as the proportion of samples where the taxon is present.
+Default 0 removes no taxa by prevalence filtering.}
 
-\item{abund.filter}{Abundance threshold for filtering taxa. Default 0.01.}
+\item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering
+taxa before analysis. Taxa with mean abundance below this value will be removed.
+Abundance refers to counts or proportions depending on \code{feature.dat.type}.
+Default 0 removes no taxa by abundance filtering.}
 
 \item{base.size}{Base font size for the generated plots.}
 
-\item{theme.choice}{Plot theme choice (default: "bw").}
+\item{theme.choice}{Plot theme choice. Can be one of:
+  - "prism": ggprism::theme_prism()
+  - "classic": theme_classic()
+  - "gray": theme_gray()
+  - "bw": theme_bw()
+Default is "bw".}
 
-\item{custom.theme}{Custom ggplot2 theme (optional).}
+\item{custom.theme}{A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:
+
+```r
+my_theme <- ggplot2::theme(
+  axis.title = ggplot2::element_text(size=16, color="red"),
+  legend.position = "none"
+)
+```
+
+Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.}
 
 \item{palette}{Color palette used for the plots.}
 

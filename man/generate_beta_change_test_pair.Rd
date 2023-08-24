@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_beta_change_test_pair.R
 \name{generate_beta_change_test_pair}
 \alias{generate_beta_change_test_pair}
-\title{Compute and Analyze Pairwise Beta Diversity Measures}
+\title{Compute and analyze changes in beta diversity}
 \usage{
 generate_beta_change_test_pair(
   data.obj,
@@ -16,9 +16,12 @@ generate_beta_change_test_pair(
 )
 }
 \arguments{
-\item{data.obj}{A list object in MicrobiomeStat format.}
+\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
 
-\item{dist.obj}{A pre-calculated distance object (optional). If not provided, it is computed using the data.obj.}
+\item{dist.obj}{Distance matrix between samples, usually calculated using
+\code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
+If NULL, beta diversity will be automatically computed from \code{data.obj}
+using \code{mStat_calculate_beta_diversity}.}
 
 \item{time.var}{The name of the time variable column in the metadata.}
 
@@ -33,35 +36,52 @@ generate_beta_change_test_pair(
 \item{dist.name}{Character vector specifying which beta diversity indices to compute. Defaults to c('BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS').}
 }
 \value{
-A named list where each element is a coefficient table (with p-values) from a linear model of the corresponding beta diversity measure against the grouping variable and covariates.
+A named list containing linear modeling results for each beta diversity metric.
+Each list element corresponds to one of the distance metrics specified in \code{dist.name}.
+It contains a coefficient table from fitting a linear model with the beta diversity change as
+response and the \code{group_var} and \code{adj_vars} as predictors.
+If \code{group_var} has multiple levels, ANOVA results are also included after the coefficients.
+Column names include:
+Term, Estimate, Std.Error, Statistic, P.Value
 }
 \description{
-This function calculates beta diversity measures, performs linear modeling on them, and generates a report.
-If no precalculated distance object is provided, it calculates the distance object from the data.
+This function calculates beta diversity measures between time points,
+performs linear modeling, and generates results.
+}
+\details{
+For each subject, it calculates the change in beta diversity between
+baseline time point and later time point. This within-subject change
+is used as the outcome in linear models.
+
+Adjustment for covariates is supported. Both ANOVA and coefficient
+tables are provided if a grouping variable is specified.
 }
 \examples{
 \dontrun{
-library(vegan)
-library(GUniFrac)
-library(ape)
-library(philentropy)
-library(MicrobiomeStat)
 
-# Load example data
+# Load packages
+library(vegan)
+
+# Load data
 data(peerj32.obj)
-dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
+
+# Calculate distance matrix
+dist_obj <- mStat_calculate_beta_diversity(
+  data_obj = peerj32.obj,
+  dist_name = c('BC', 'Jaccard')
+)
 
 # Generate beta diversity report
 generate_beta_change_test_pair(
-  data.obj = peerj32.obj,
-  dist.obj = NULL,
-  time.var = "time",
-  subject.var = "subject",
-  group.var = "group",
-  adj.vars = c("sex"),
-  change.base = "1",
-  dist.name = c('BC', 'Jaccard')
+  data_obj = peerj32.obj,
+  dist_obj = NULL,
+  time_var = "time",
+  subject_var = "subject",
+  group_var = "group",
+  adj_vars = c("sex"),
+  change_base = "1",
+  dist_name = c('BC', 'Jaccard')
 )
-}
 
+}
 }

@@ -2,32 +2,42 @@
 % Please edit documentation in R/mStat_calculate_adjusted_distance.R
 \name{mStat_calculate_adjusted_distance}
 \alias{mStat_calculate_adjusted_distance}
-\title{Calculate Adjusted Distances}
+\title{Calculate Adjusted Distances for Specified Variables}
 \usage{
 mStat_calculate_adjusted_distance(data.obj, dist.obj, adj.vars, dist.name)
 }
 \arguments{
-\item{data.obj}{A MicrobiomeStat data object. The heart of the MicrobiomeStat, consisting of several key components:
+\item{data.obj}{A MicrobiomeStat data object. This central component contains:
 \itemize{
-  \item \strong{feature.tab (Matrix)}: Meeting point for research objects (OTU/ASV/KEGG/Gene, etc.) and samples.
-  \item \strong{meta.dat (Data frame)}: Rows correspond to the samples, and columns serve as annotations, describing the samples.
-  \item \strong{feature.ann (Matrix)}: Annotations, carrying classification information like Kingdom, Phylum, etc.
-  \item \strong{phylogenetic tree (Optional)}: An evolutionary perspective, illuminating the relationships among various research objects.
-  \item \strong{feature.agg.list (Optional)}: Aggregated results based on the feature.tab and feature.ann.
+  \item \strong{feature.tab}: Matrix representation linking research objects and samples.
+  \item \strong{meta.dat}: Data frame with rows representing samples and columns as annotations.
+  \item \strong{feature.ann}: Matrix annotations with classification data.
+  \item \strong{phylogenetic tree}: (Optional) Tree depicting evolutionary relationships.
+  \item \strong{feature.agg.list}: (Optional) Aggregated results from feature.tab and feature.ann.
 }}
 
-\item{dist.obj}{A list of distance matrices corresponding to the names in `dist.name`.}
+\item{dist.obj}{Distance matrix between samples, usually calculated using
+\code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
+If NULL, beta diversity will be automatically computed from \code{data.obj}
+using \code{mStat_calculate_beta_diversity}.}
 
-\item{adj.vars}{A character vector of variable names to be used for adjustment.}
+\item{adj.vars}{Character vector listing variable names intended for adjustment.}
 
-\item{dist.name}{A character vector of names corresponding to distance matrices in `dist.obj`.}
+\item{dist.name}{Character vector specifying names of distance matrices present in `dist.obj`.}
 }
 \value{
-A list of adjusted distance matrices.
+A list of adjusted distance matrices. Each matrix is named according to the `dist.name` parameter.
 }
 \description{
-This function calculates the adjusted distances for a given set of variables,
-using a model matrix dynamically created from the specified adjustment variables.
+Computes adjusted distance matrices for a set of variables using a dynamic model matrix.
+}
+\details{
+Calculate Adjusted Distances Based on Specified Adjustment Variables
+
+This function provides a way to calculate distances adjusted for specified variables in a dataset.
+It incorporates the results of multidimensional scaling (MDS) and adjusts distances based on a linear model.
+
+The function uses cmdscale for multidimensional scaling and then adjusts the resultant distances based on a linear model using the variables provided in `adj.vars`.
 }
 \examples{
 data("subset_T2D.obj")

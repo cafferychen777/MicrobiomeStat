@@ -4,10 +4,12 @@
 #' including changes in alpha diversity, beta diversity, and taxonomic features between paired data.
 #' The function is specifically designed for analysis of paired data.
 #'
-#' @param data.obj A MicrobiomeStat Data Object.
-#' @param dist.obj A distance object created by mStat_calculate_beta_diversity.
-#' @param alpha.obj An alpha diversity object (optional).
-#' @param depth Sampling depth (optional).
+#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
+#' @param dist.obj Distance matrix between samples, usually calculated using
+#' \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
+#' If NULL, beta diversity will be automatically computed from \code{data.obj}
+#' using \code{mStat_calculate_beta_diversity}.
+#' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
 #' @param group.var Variable name used for grouping samples.
 #' @param adj.vars Variables to adjust for in the analysis.
 #' @param subject.var Variable name used for subject identification.
@@ -18,19 +20,40 @@
 #' @param change.func The function for calculating changes in paired data.
 #' @param strata.var Variable to stratify the analysis by (optional).
 #' @param base.size Base font size for the generated plots.
-#' @param theme.choice Plot theme choice (default: "prism").
-#' @param custom.theme Custom ggplot2 theme (optional).
+#' @param theme.choice Plot theme choice. Can be one of:
+#'   - "prism": ggprism::theme_prism()
+#'   - "classic": theme_classic()
+#'   - "gray": theme_gray()
+#'   - "bw": theme_bw()
+#' Default is "bw".
+#' @param custom.theme A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:
+#'
+#' ```r
+#' my_theme <- ggplot2::theme(
+#'   axis.title = ggplot2::element_text(size=16, color="red"),
+#'   legend.position = "none"
+#' )
+#' ```
+#'
+#' Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.
 #' @param palette Color palette used for the plots.
 #' @param pdf Logical indicating whether to save plots as PDF files (default: TRUE).
 #' @param file.ann Annotation text for the PDF file names.
 #' @param pdf.wid Width of the PDF plots.
 #' @param pdf.hei Height of the PDF plots.
-#' @param prev.filter Prevalence filter for feature analysis.
-#' @param abund.filter Abundance filter for feature analysis.
+#' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
+#' taxa before analysis. Taxa with prevalence below this value will be removed.
+#' Prevalence is calculated as the proportion of samples where the taxon is present.
+#' Default 0 removes no taxa by prevalence filtering.
+#' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering
+#' taxa before analysis. Taxa with mean abundance below this value will be removed.
+#' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
+#' Default 0 removes no taxa by abundance filtering.
 #' @param feature.level Taxonomic level for feature analysis.
 #' @param feature.dat.type Data type for feature analysis (count, proportion, or other).
 #' @param output.file Output file name for the report.
-#' @param features.plot Custom list of taxa names to plot for taxa change analysis.
+#' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+#' Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.
 #' @param ... Additional arguments passed to internal functions.
 #'
 #' @return A report file containing the microbial ecology analysis results for paired data.
@@ -74,7 +97,6 @@
 mStat_generate_report_pair <- function(data.obj,
                                               dist.obj = NULL,
                                               alpha.obj = NULL,
-                                              depth = NULL,
                                               group.var,
                                               adj.vars,
                                               subject.var,
@@ -556,7 +578,7 @@ cat(paste0('The boxplot results for individual taxa or features can be found in 
 
 rmd_code <- knitr::knit_expand(text = template, data.obj = data.obj,
                         dist.obj = dist.obj, alpha.obj = alpha.obj,
-                        depth = depth, group.var = group.var,
+                        group.var = group.var,
                         adj.vars = adj.vars, subject.var = subject.var,
                         time.var = time.var, alpha.name = alpha.name,
                         dist.name = dist.name, change.base = change.base, change.func = change.func,

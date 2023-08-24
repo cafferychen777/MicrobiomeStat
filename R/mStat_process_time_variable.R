@@ -6,8 +6,8 @@
 #' table (`feature.tab`), feature names, a full feature name list, and a feature aggregation list
 #' (`feature.agg.list`).
 #' @param time.var A character string that specifies the name of the time variable in the meta data table.
-#' @param t0.level A single value that specifies the level to be used as the reference level (optional).
-#' @param ts.levels A vector of values that specifies the levels to be used as the time series levels (optional).
+#' @param t0.level Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.
+#' @param ts.levels Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.
 #'
 #' @return A data frame that is the modified version of the input meta data table.
 #'

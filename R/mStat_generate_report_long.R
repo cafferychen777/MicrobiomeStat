@@ -2,36 +2,84 @@
 #' This function performs extensive and in-depth longitudinal analysis of microbiome data using MicrobiomeStat package and generates a comprehensive PDF report.
 #' The report contains thorough statistical analysis along with data visualizations, statistical graphics, and result tables for microbial alpha diversity, beta diversity, taxonomic composition, and their temporal dynamics with MicrobiomeStat.
 #'
-#' @param data.obj MicrobiomeStat formatted list (required). Contains OTU table, taxonomy, and metadata for longitudinal analysis.
-#' @param alpha.obj Object containing alpha diversity results from `mStat_calculate_alpha_diversity()`, default is NULL.
-#' @param dist.obj Object containing beta diversity distance matrix from `mStat_calculate_beta_diversity()`, default is NULL.
+#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list).
+#' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
+#' @param dist.obj Distance matrix between samples, usually calculated using
+#' \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
+#' If NULL, beta diversity will be automatically computed from \code{data.obj}
+#' using \code{mStat_calculate_beta_diversity}.
 #' @param pc.obj Object containing PCoA coordinates from `mStat_calculate_PC()`, default is NULL.
 #' @param group.var Character, column name in metadata containing grouping variable, e.g. "treatment". Required if present in metadata.
 #' @param strata.var Character, column name in metadata containing stratification variable, e.g "sex". Optional.
 #' @param adj.vars Character vector, names of columns in metadata containing covariates to adjust for, default is NULL.
 #' @param subject.var Character, column name in metadata containing subject/sample IDs, e.g. "subject_id". Required.
 #' @param time.var Character, column name in metadata containing time variable, e.g. "week". Required.
-#' @param alpha.name Character vector, names of alpha diversity indices to analyze, e.g. c("shannon", "simpson"). Defaults to c("shannon", "simpson").
-#' @param dist.name Character vector, names of beta diversity distance metrics to analyze, e.g. c("wunifrac", "BC"). Defaults to c("BC", "weighted_unifrac", "unweighted_unifrac").
+#' @param alpha.name The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".
+#' @param dist.name A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').
 #' @param t0.level Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.
 #' @param ts.levels Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.
-#' @param change.func Function to compute taxonomic changes between time points, default is NULL.
+#' @param change.func A function or character string specifying how to calculate
+#' the change from baseline value. This allows flexible options:
+#' - If a function is provided, it will be applied to each row to calculate change.
+#'   The function should take 2 arguments: value at timepoint t and value at baseline t0.
+#' - If a character string is provided, following options are supported:
+#'   - 'relative difference': (value_t - value_t0) / (value_t + value_t0)
+#'   - 'difference': value_t - value_t0
+#'   - 'lfc': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
+#' - Default is 'relative difference'.
+#'
+#' If none of the above options are matched, an error will be thrown indicating
+#' the acceptable options or prompting the user to provide a custom function.
 #' @param base.size Numeric, base font size for all plots, default is 16.
-#' @param theme.choice Character, name of ggplot2 theme for plots, default is "prism". Options: "prism", "bw", "classic", etc.
-#' @param custom.theme Custom ggplot2 theme to use for plots, default is NULL.
+#' @param theme.choice Plot theme choice. Can be one of:
+#'   - "prism": ggprism::theme_prism()
+#'   - "classic": theme_classic()
+#'   - "gray": theme_gray()
+#'   - "bw": theme_bw()
+#' Default is "bw".
+#' @param custom.theme A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:
+#'
+#' ```r
+#' my_theme <- ggplot2::theme(
+#'   axis.title = ggplot2::element_text(size=16, color="red"),
+#'   legend.position = "none"
+#' )
+#' ```
+#'
+#' Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.
 #' @param palette Character vector or function defining color palette for plots, default is NULL.
 #' @param pdf Logical, if TRUE save plots as PDF files, default is TRUE.
 #' @param file.ann Character, annotation text to add to PDF plot filenames, default is NULL.
 #' @param pdf.wid Numeric, width of PDF plots in inches, default is 11.
 #' @param pdf.hei Numeric, height of PDF plots in inches, default is 8.5.
-#' @param prev.filter Numeric, minimum prevalence threshold filter for features, default is 0. Value between 0 and 1.
-#' @param abund.filter Numeric, minimum abundance threshold filter for features, default is 0.
-#' @param feature.number Integer, number of top features to plot, default is 15.
-#' @param feature.level Character vector, taxonomic levels to analyze features at, e.g. "Phylum".
-#' @param feature.dat.type Character, feature data type, "count", "proportion", or "other", default is "count".
+#' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
+#' taxa before analysis. Taxa with prevalence below this value will be removed.
+#' Prevalence is calculated as the proportion of samples where the taxon is present.
+#' Default 0 removes no taxa by prevalence filtering.
+#' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering
+#' taxa before analysis. Taxa with mean abundance below this value will be removed.
+#' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
+#' Default 0 removes no taxa by abundance filtering.
+#' @param feature.number A numeric value indicating the number of top abundant features to retain in the plot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.
+#' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
+#' to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
+#' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
+#' column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
+#' for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
+#' is also NULL.
+#' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
+#' Should be one of:
+#' - "count": Raw count data, will be normalized by the function.
+#' - "proportion": Data that has already been normalized to proportions/percentages.
+#' - "other": Custom abundance data that has unknown scaling. No normalization applied.
+#' The choice affects preprocessing steps as well as plot axis labels.
+#' Default is "count", which assumes raw OTU table input.
 #' @param feature.mt.method Character, multiple testing method for features, "fdr" or "none", default is "fdr".
 #' @param feature.sig.level Numeric, significance level cutoff for highlighting features, default is 0.1.
-#' @param transform Character, transformation to apply to feature data, default is "log". Options: "log", "sqrt", "identity".
+#' @param transform A string indicating the transformation to apply to the data before plotting. Options are:
+#' - "identity": No transformation (default)
+#' - "sqrt": Square root transformation
+#' - "log": Logarithmic transformation. Zeros are replaced with half of the minimum non-zero value for each taxon before log transformation.
 #' @param output.file Character, output PDF report filename (required).
 #'
 #' @return A PDF report containing:
