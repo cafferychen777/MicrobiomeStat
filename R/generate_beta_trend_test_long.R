@@ -38,17 +38,17 @@ create_mixed_effects_formula <- function(response.var, time.var, group.var = NUL
 
 #' @title Generate Beta Diversity Trend Test for Longitudinal Data
 #'
-#' @description The function `generate_beta_trend_test_long` computes a statistical trend test for beta diversity in longitudinal data. It considers subject, time, optional grouping and adjusting variables, and provides the trend in beta diversity over time for different groups.
+#' @description The function `generate_beta_trend_test_long` performs a linear mixed effects model to test the longitudinal trend in beta diversity. It models the distance matrix as the response, with time as a fixed effect and subject as a random effect. An optional grouping variable can be included as an interaction with time. Covariates for adjustment can also be added to the model. The time variable should be numeric, and the function coerces it as needed. The linear mixed model is fitted using lmer, and the estimated coefficients are extracted and returned, representing the trends over time and differences between groups.
 #'
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
 #' @param dist.obj Distance matrix between samples, usually calculated using
 #' \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
 #' If NULL, beta diversity will be automatically computed from \code{data.obj}
 #' using \code{mStat_calculate_beta_diversity}.
-#' @param subject.var The variable in the metadata table that represents the subject.
-#' @param time.var The variable in the metadata table that represents the time. Ensure that it is coded as numeric.
-#' @param group.var (Optional) The variable in the metadata table that represents the grouping factor.
-#' @param adj.vars (Optional) Variables in the metadata table used for adjustment.
+#' @param subject.var The variable name in metadata that represents the subject identifiers. Should match the subject identifiers used when calculating distance matrix.
+#' @param time.var The variable name in metadata that represents the time points. Should be a numeric vector coded as continuous values. The function will try to coerce to numeric if needed.
+#' @param group.var (Optional) The variable name in metadata that represents the grouping factor of interest. Default is NULL.
+#' @param adj.vars (Optional) A character vector of variable names in metadata to be used for adjustment in the model. Default is NULL.
 #' @param dist.name A character vector specifying which beta diversity indices to calculate. Default is "BC" (Bray-Curtis). Supported indices include "BC", "Jaccard", "UniFrac", "GUniFrac", "WUniFrac", and "JS".
 #' @param ... (Optional) Additional arguments to pass to internal functions.
 #'

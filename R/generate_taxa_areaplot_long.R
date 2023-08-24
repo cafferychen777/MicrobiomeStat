@@ -5,16 +5,19 @@
 #' The function also supports the generation of plots for grouped data and stratified data.
 #'
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param subject.var Name of the subject variable.
-#' @param time.var Name of the time variable.
-#' @param group.var Optional, name of the group variable. Default is NULL.
-#' @param strata.var Optional, name of the stratification variable. Default is NULL.
-#' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
-#' to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
-#' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
-#' column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
-#' for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
-#' is also NULL. Default is "original".
+#' @param subject.var Character string specifying the column name in metadata containing
+#'                    unique subject IDs. Required to connect samples from the same subject.
+#' @param time.var Character string specifying the column name in metadata containing the
+#'                time variable. Required to order and connect samples over time.
+#' @param group.var Character string specifying the column name in metadata containing grouping
+#'                 categories. Used for coloring lines in the plot. Optional, can be NULL.
+#' @param strata.var Character string specifying the column name in metadata containing stratification
+#'                  categories. Used for nested faceting in the plots. Optional, can be NULL.
+#' @param feature.level Character vector specifying taxonomic level(s) to use for plotting,
+#'                     e.g. c("Phylum", "Genus"). The special value "original" can also be provided,
+#'                     which will use the original taxon identifiers. Multiple levels can be specified
+#'                     and data will be plotted separately for each. **Cannot be NULL, as NULL value
+#'                     will lead to errors.** Default is "original".
 #' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
 #' Should be one of:
 #' - "count": Raw count data, will be normalized by the function.
@@ -42,7 +45,10 @@
 #' ```
 #'
 #' Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.
-#' @param palette Optional, a palette to use for the plot. Default is NULL.
+#' @param palette Character vector specifying colors to use for mapping features to color aesthetic.
+#'               Should be same length as number of features. If NULL, default palette will be used.
+#'               Colors will be mapped to features based on order of features. This parameter
+#'               does not represent groups, it is only used for feature colors.
 #' @param pdf Logical indicating if the plot should be saved as a PDF. Default is TRUE.
 #' @param file.ann Optional, a file annotation. Default is NULL.
 #' @param pdf.wid Width of the output PDF. Default is 11.

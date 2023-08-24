@@ -3,11 +3,14 @@
 #' This function applies a differential abundance analysis using ZicoSeq on a data set. The function filters taxa based on prevalence and abundance, then it aggregates and applies the ZicoSeq method. Finally, it creates a report of significant taxa with relevant statistics.
 #'
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param time.var A string representing the time variable. Default is NULL.
+#' @param time.var Character string specifying the column name in metadata containing time variable.
+#'                Used to subset data to a single timepoint if provided. Default NULL does not subset.
 #' @param t.level Character string specifying the time level/value to subset data to,
 #' if a time variable is provided. Default NULL does not subset data.
-#' @param group.var A string indicating the variable used for grouping.
-#' @param adj.vars A string indicating the adjustment variables.
+#' @param group.var Character string specifying the column name in metadata containing grouping
+#'                 categories. This will be used as the predictor in differential abundance testing.
+#' @param adj.vars Character vector specifying column names in metadata containing covariates.
+#'                These will be used for adjustment in differential abundance testing.
 #' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
 #' taxa before analysis. Taxa with prevalence below this value will be removed.
 #' Prevalence is calculated as the proportion of samples where the taxon is present.

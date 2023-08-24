@@ -8,7 +8,17 @@
 #' \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
 #' If NULL, beta diversity will be automatically computed from \code{data.obj}
 #' using \code{mStat_calculate_beta_diversity}.
-#' @param pc.obj Object containing PCoA coordinates from `mStat_calculate_PC()`, default is NULL.
+#' @param pc.obj A list containing the results of dimension reduction/Principal Component Analysis.
+#' This should be the output from functions like \code{\link[MicrobiomeStat]{mStat_calculate_PC}}, containing the PC coordinates and other metadata.
+#' If NULL (default), dimension reduction will be automatically performed using metric multidimensional scaling (MDS) via \code{\link[MicrobiomeStat]{mStat_calculate_PC}}.
+#' The pc.obj list structure should contain:
+#' \itemize{
+#'  \item{$points:}{A matrix with samples as rows and PCs as columns containing the coordinates.}
+#'  \item{$eig:}{Eigenvalues for each PC dimension.}
+#'  \item{$vectors:}{Loadings vectors for features onto each PC.}
+#'  \item{Other metadata like $method, $dist.name, etc.}
+#' }
+#' See \code{\link[MicrobiomeStat]{mStat_calculate_PC}} function for details on output format.
 #' @param group.var Character, column name in metadata containing grouping variable, e.g. "treatment". Required if present in metadata.
 #' @param strata.var Character, column name in metadata containing stratification variable, e.g "sex". Optional.
 #' @param adj.vars Character vector, names of columns in metadata containing covariates to adjust for, default is NULL.

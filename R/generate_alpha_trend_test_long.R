@@ -47,13 +47,15 @@ construct_formula <- function(index, group.var, time.var, subject.var, adj.vars)
 #' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
 #' @param alpha.name A string with the name of the alpha diversity index to compute.
 #' Options could include: "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".
-#' @param time.var A string representing the time variable's name in the
-#' metadata. The default is NULL.
-#' @param subject.var A string indicating the variable for subject identifiers.
-#' @param group.var A string representing the group variable's name in the
-#' metadata.
-#' @param adj.vars A character vector with the names of adjustment variables in
-#' the metadata, used in fitting the linear model for residuals.
+#' @param time.var Character string specifying the column name in metadata containing the
+#'                numeric time variable. Should contain ordered time points for each subject.
+#'                Required to calculate volatility over time.
+#' @param subject.var Character string specifying the column name in metadata containing
+#'                    unique subject IDs. Required to calculate volatility within subjects.
+#' @param group.var Character string specifying the column name in metadata containing grouping
+#'                 categories. Volatility will be compared between groups using linear models.
+#' @param adj.vars Character vector specifying column names in metadata containing covariates
+#'                to adjust for when calculating residuals.
 #' @return A summary object containing the results of the linear model testing
 #' the association between alpha diversity volatility and the group variable.
 #'

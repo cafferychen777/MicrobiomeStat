@@ -20,11 +20,19 @@
 #'
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
 #' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
-#' @param time.var The name of the variable in the data that represents time points.
 #' @param alpha.name The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou". Previously named as `alpha.index`.
-#' @param subject.var The name of the variable in the data that represents the subject IDs.
-#' @param group.var The name of the variable in the data that represents the group IDs.
-#' @param adj.vars A vector of names of the variables in the data that should be used as covariates in the model.
+#' @param time.var Character string specifying the column name in metadata containing
+#'                time values for each sample. Required to identify pairs of time
+#'                points to calculate changes between.
+#' @param subject.var Character string specifying the column name in metadata containing
+#'                    unique subject IDs. Required to pair samples from the same subject
+#'                    across time points.
+#' @param group.var Character string specifying the column name in metadata containing
+#'                 grouping categories. Used as a predictor in the models to test for
+#'                 differences in changes between groups. Optional, can be NULL.
+#' @param adj.vars Character vector specifying column names in metadata containing
+#'                covariates to adjust for in the linear models. Optional, can be
+#'                left NULL if no adjustment is needed.
 #' @param change.base The name of the baseline time point for calculating changes in alpha diversity. If NULL, the first unique time point in the data will be used.
 #' @param change.func A method for calculating the change in alpha diversity between two time points.
 #' This can either be the string "lfc" or a custom function.

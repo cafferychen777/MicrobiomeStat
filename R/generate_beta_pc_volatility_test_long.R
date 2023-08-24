@@ -9,12 +9,30 @@
 #' \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
 #' If NULL, beta diversity will be automatically computed from \code{data.obj}
 #' using \code{mStat_calculate_beta_diversity}.
-#' @param pc.obj Object containing PCoA coordinates from `mStat_calculate_PC()`, default is NULL.
-#' @param pc.ind A vector indicating the indices of principal coordinates to use (default c(1, 2)).
-#' @param subject.var The variable in the metadata table that represents the subject.
-#' @param time.var The variable in the metadata table that represents the time. Ensure that it is coded as numeric.
-#' @param group.var (Optional) The variable in the metadata table that represents the grouping factor.
-#' @param adj.vars (Optional) Variables in the metadata table used for adjustment.
+#' @param pc.obj A list containing the results of dimension reduction/Principal Component Analysis.
+#' This should be the output from functions like \code{\link[MicrobiomeStat]{mStat_calculate_PC}}, containing the PC coordinates and other metadata.
+#' If NULL (default), dimension reduction will be automatically performed using metric multidimensional scaling (MDS) via \code{\link[MicrobiomeStat]{mStat_calculate_PC}}.
+#' The pc.obj list structure should contain:
+#' \itemize{
+#'  \item{$points:}{A matrix with samples as rows and PCs as columns containing the coordinates.}
+#'  \item{$eig:}{Eigenvalues for each PC dimension.}
+#'  \item{$vectors:}{Loadings vectors for features onto each PC.}
+#'  \item{Other metadata like $method, $dist.name, etc.}
+#' }
+#' See \code{\link[MicrobiomeStat]{mStat_calculate_PC}} function for details on output format.
+#' @param pc.ind Numeric vector indicating which principal coordinate (PC) axes to use for
+#'              volatility test, e.g. c(1,2) for PC1 and PC2. Defaults to c(1,2).
+#' @param subject.var Character string specifying the column in metadata containing unique
+#'                    subject IDs. This should uniquely identify each subject in the study.
+#'                    Required to compute volatility within subjects.
+#' @param time.var Character string specifying the column in metadata containing the time variable.
+#'                This should be numeric with successive time points for each subject. Required to
+#'                compute volatility over time.
+#' @param group.var (Optional) Character string specifying the column in metadata containing a grouping
+#'                  variable. This grouping variable will be used to test for differences in volatility
+#'                  between groups. Can be left NULL.
+#' @param adj.vars (Optional) Character vector specifying columns in metadata containing variables to
+#'                 adjust for in the volatility models. Can be left NULL.
 #' @param dist.name A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').
 #' @param ... (Optional) Additional arguments to pass to internal functions.
 #'

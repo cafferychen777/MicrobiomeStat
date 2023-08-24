@@ -25,11 +25,21 @@
 #' This refers to the PC axes from the dimension reduction method specified in pc.obj or calculated by default.
 #' For example, c(1,2) will generate plots for PC1 and PC2.
 #' Default is c(1,2) to plot the first two PCs.
-#' @param subject.var A string specifying the variable for subjects.
-#' @param time.var A string specifying the variable for time.
-#' @param group.var A string specifying the variable for groups. Default is NULL.
-#' @param strata.var A string specifying the variable for strata. Default is NULL.
-#' @param adj.vars A character vector of variable names to be used for adjustment.
+#' @param subject.var Character string specifying the column name in metadata containing unique subject IDs.
+#'                    Required to connect samples from the same subject across timepoints.
+#' @param time.var Character string specifying the column name in metadata containing time values for each
+#'                sample. Required to identify pairs of timepoints to calculate changes between.
+#' @param group.var Character string specifying the column in metadata containing grouping categories.
+#'                 Used for stratification in plots. Optional, can be NULL.
+#' @param strata.var Character string specifying the column in metadata containing stratification categories.
+#'                  Used for nested faceting in plots. Optional, can be NULL.
+#' @param adj.vars Character vector specifying columns in metadata containing covariates
+#'                to adjust for in distance matrix calculation. Optional, can be NULL.
+#' @param change.base The baseline time point value in the time variable to be used
+#'                    as the reference for calculating changes. Required if time.var
+#'                    contains multiple time points. Changes will be calculated from
+#'                    this baseline time point to the other later time point(s). If
+#'                    NULL, the first time point will be used as change.base automatically.
 #' @param change.func A function or string specifying how to calculate changes between time points.
 #' If a function is provided, it should take two arguments "value_time_2" and "value_time_1" representing the PC values at the two time points. The function should return the change value.
 #' If a string, currently only "difference" is supported, which calculates simple differences between time points.
@@ -52,7 +62,9 @@
 #' ```
 #'
 #' Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.
-#' @param palette A character vector specifying the color palette. Default is NULL.
+#' @param palette Character vector specifying colors to use for mapping groups to color aesthetic.
+#'               Should be same length as number of groups. If NULL, default palette will be used.
+#'               Colors will be mapped to groups based on order of group levels.
 #' @param pdf A logical value indicating whether to save the plot as a PDF. Default is TRUE.
 #' @param file.ann A string for additional annotation to the file name. Default is NULL.
 #' @param pdf.wid A numeric value specifying the width of the PDF. Default is 11.

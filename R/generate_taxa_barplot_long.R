@@ -4,10 +4,12 @@
 #' It also provides options for grouping and stratifying data.
 #'
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param subject.var A string indicating the variable for subject identifiers.
-#' @param time.var A string indicating the variable for time points.
-#' @param group.var A string indicating the variable for group identifiers. Default is NULL.
-#' @param strata.var A string indicating the variable for stratum identifiers. Default is NULL.
+#' @param subject.var Character string specifying the column name in metadata containing
+#'                    unique subject IDs. Required to connect samples from the same subject.
+#' @param time.var Character string specifying the column name in metadata containing the
+#'                time variable. Required to order and connect samples over time.
+#' @param group.var Character string specifying the column name in metadata containing group identifiers. Default is NULL.
+#' @param strata.var Character string specifying the column name in metadata containing stratum identifiers. Default is NULL.
 #' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
 #' to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
 #' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
@@ -41,7 +43,10 @@
 #' ```
 #'
 #' Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.
-#' @param palette A character vector specifying the color palette. Default is NULL.
+#' @param palette A character vector specifying the names of colors to use for the plot.
+#' The vector should contain color names that will be matched to the levels of
+#' the taxonomic grouping variable (feature.level). Default is NULL, which will
+#' use a pre-defined set of colors from the package ggh4x.
 #' @param pdf A logical value indicating whether to save the plot as a PDF. Default is TRUE.
 #' @param file.ann A string for additional annotation to the file name. Default is NULL.
 #' @param pdf.wid A numeric value specifying the width of the PDF file. Default is 11.
