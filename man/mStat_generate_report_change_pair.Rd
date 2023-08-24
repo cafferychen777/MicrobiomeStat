@@ -102,7 +102,8 @@ Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the defa
 
 \item{abund.filter}{Abundance filter for feature analysis.}
 
-\item{features.plot}{Custom list of taxa names to plot for taxa change analysis.}
+\item{features.plot}{A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.}
 
 \item{feature.level}{Taxonomic level for feature analysis.}
 

@@ -48,7 +48,8 @@ generate_taxa_indiv_boxplot_long(
 
 \item{feature.level}{Taxonomic level(s) for boxplots.}
 
-\item{features.plot}{A character vector specifying the taxa to be plotted. If NULL (default), the top k taxa by mean abundance will be plotted.}
+\item{features.plot}{A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.}
 
 \item{feature.dat.type}{The type of the feature data, which determines how the data is handled in downstream analyses.
 Should be one of:

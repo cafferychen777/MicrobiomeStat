@@ -60,7 +60,8 @@ Should be one of:
 The choice affects preprocessing steps as well as plot axis labels.
 Default is "count", which assumes raw OTU table input.}
 
-\item{features.plot}{A character vector specifying the taxa to be plotted. If NULL (default), the top k taxa by mean abundance will be plotted.}
+\item{features.plot}{A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.}
 
 \item{top.k.plot}{Integer specifying number of top abundant features to plot, when `features.plot` is NULL.
 Default is NULL, in which case all features passing filters will be plotted.}

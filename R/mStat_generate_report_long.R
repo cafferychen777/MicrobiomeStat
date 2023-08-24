@@ -91,6 +91,7 @@
 #' - "sqrt": Square root transformation
 #' - "log": Logarithmic transformation. Zeros are replaced with half of the minimum non-zero value for each taxon before log transformation.
 #' @param output.file Character, output PDF report filename (required).
+#' @param ... Additional arguments passed to generate_taxa_trend_test_long().
 #'
 #' @return A PDF report containing:
 #'

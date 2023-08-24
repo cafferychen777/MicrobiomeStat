@@ -13,6 +13,16 @@ generate_beta_test_single(
   adj.vars = NULL,
   dist.name = c("BC", "Jaccard", "UniFrac", "GUniFrac", "WUniFrac", "JS")
 )
+
+generate_beta_test_single(
+  data.obj,
+  dist.obj = NULL,
+  time.var = NULL,
+  t.level = NULL,
+  group.var,
+  adj.vars = NULL,
+  dist.name = c("BC", "Jaccard", "UniFrac", "GUniFrac", "WUniFrac", "JS")
+)
 }
 \arguments{
 \item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
@@ -22,24 +32,42 @@ generate_beta_test_single(
 If NULL, beta diversity will be automatically computed from \code{data.obj}
 using \code{mStat_calculate_beta_diversity}.}
 
-\item{time.var}{The name of the column in the 'meta.dat' component of 'data.obj' that contains the time variable for subsetting data. Should be NULL if no time variable is needed.}
+\item{time.var}{The column name in metadata containing the time variable for subsetting data before analysis. Default is NULL.}
 
 \item{t.level}{Character string specifying the time level/value to subset data to,
 if a time variable is provided. Default NULL does not subset data.}
 
-\item{group.var}{The name of the column in the 'meta.dat' component of 'data.obj' that contains the grouping variable for the PERMANOVA tests.}
+\item{group.var}{The column name in metadata containing the grouping variable of interest for PERMANOVA test.}
 
-\item{adj.vars}{A character vector with the names of columns in the 'meta.dat' component of 'data.obj' that are used as covariates in the PERMANOVA tests. Should be NULL if no covariates are used.}
+\item{adj.vars}{Character vector of column names in metadata to be included as covariates in PERMANOVA test. Default is NULL.}
 
 \item{dist.name}{A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').}
 }
 \value{
+A list containing the PERMANOVA results for each beta diversity index and an omnibus p-value. The list includes two elements: "p.tab" - a table of p-values for the PERMANOVA tests dplyr::across all indices, and "aov.tab" - a table containing detailed PERMANOVA results for each index. The p.tab and aov.tab tables include columns for the terms in the PERMANOVA model, the degrees of freedom, sums of squares, mean squares, F statistics, R-squared values, and p-values.
+
 A list containing the PERMANOVA results for each beta diversity index and an omnibus p-value. The list includes two elements: "p.tab" - a table of p-values for the PERMANOVA tests dplyr::across all indices, and "aov.tab" - a table containing detailed PERMANOVA results for each index. The p.tab and aov.tab tables include columns for the terms in the PERMANOVA model, the degrees of freedom, sums of squares, mean squares, F statistics, R-squared values, and p-values.
 }
 \description{
 This function calculates various beta diversity indices for a microbiome dataset and performs PERMANOVA tests on them to assess the effect of a grouping variable and any additional covariates on the beta diversity. It returns the PERMANOVA results for each of the specified beta diversity indices.
 }
 \examples{
+\dontrun{
+library(vegan)
+data(peerj32.obj)
+
+# Perform beta diversity tests using PERMANOVA
+generate_beta_test_single(
+  data.obj = peerj32.obj,
+  dist.obj = NULL,
+  time.var = "time",
+  t.level = "1",
+  group.var = "group",
+  adj.vars = c("sex"),
+  dist.name = c('BC', 'Jaccard')
+)
+}
+
 \dontrun{
 library(vegan)
 data(peerj32.obj)

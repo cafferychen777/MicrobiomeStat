@@ -35,23 +35,45 @@ generate_beta_ordination_long(
 If NULL, beta diversity will be automatically computed from \code{data.obj}
 using \code{mStat_calculate_beta_diversity}.}
 
-\item{pc.obj}{a list with principal coordinates. If NULL, it will be calculated from the distance object.}
+\item{pc.obj}{A list containing the results of dimension reduction/Principal Component Analysis.
+This should be the output from functions like \code{\link[MicrobiomeStat]{mStat_calculate_PC}}, containing the PC coordinates and other metadata.
+If NULL (default), dimension reduction will be automatically performed using metric multidimensional scaling (MDS) via \code{\link[MicrobiomeStat]{mStat_calculate_PC}}.
+The pc.obj list structure should contain:
+\itemize{
+ \item{$points:}{A matrix with samples as rows and PCs as columns containing the coordinates.}
+ \item{$eig:}{Eigenvalues for each PC dimension.}
+ \item{$vectors:}{Loadings vectors for features onto each PC.}
+ \item{Other metadata like $method, $dist.name, etc.}
+}
+See \code{\link[MicrobiomeStat]{mStat_calculate_PC}} function for details on output format.}
 
-\item{subject.var}{a character string specifying the subject variable.}
+\item{subject.var}{Character string specifying the column name in metadata
+containing the subject IDs. This should uniquely identify
+each subject in the study. Required for connecting samples
+from the same subject.}
 
-\item{time.var}{a character string specifying the time variable.}
+\item{time.var}{Character string specifying the column name in metadata containing
+the time variable. This should contain time points for each
+sample. Required for ordering and connecting samples for the
+same subject over time.}
 
 \item{t0.level}{Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.}
 
 \item{ts.levels}{Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.}
 
-\item{group.var}{a character string specifying the grouping variable. If NULL, only color will be used in the plots.}
+\item{group.var}{Character string specifying the column name in metadata containing
+the grouping variable. This will be mapped to color aesthetic in the
+plot. Optional, can be NULL.}
 
-\item{strata.var}{a character string specifying the stratification variable. If NULL, no stratification will be done.}
+\item{strata.var}{Character string specifying the column name in metadata containing
+the stratification variable. This will be used for nested faceting
+in the plots. Optional, can be NULL.}
 
-\item{adj.vars}{A character vector containing the names of the columns in data.obj$meta.dat to include as covariates in the PERMANOVA analysis. If no covariates are needed, use NULL (default).}
+\item{adj.vars}{Character vector specifying column names in metadata to include as
+covariates in multivariate adjustment of the distance matrix before
+ordination. Can be empty or NULL if no adjustment needed.}
 
-\item{dist.name}{a character vector specifying the distance measures to use. Defaults to c('BC', 'Jaccard').}
+\item{dist.name}{A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned.}
 
 \item{base.size}{a numeric value specifying the base size for the plot text.}
 
@@ -73,7 +95,9 @@ my_theme <- ggplot2::theme(
 
 Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.}
 
-\item{palette}{a character vector specifying the colors to use for the plots. If NULL, a default palette will be used.}
+\item{palette}{Character vector specifying colors to use for mapping groups to color aesthetic.
+Should be same length as number of groups. If NULL, default palette will be used.
+Colors will be mapped to groups based on order of group levels.}
 
 \item{pdf}{a logical value indicating whether to save the plots as PDF files. Defaults to TRUE.}
 

@@ -23,13 +23,13 @@ generate_beta_trend_test_long(
 If NULL, beta diversity will be automatically computed from \code{data.obj}
 using \code{mStat_calculate_beta_diversity}.}
 
-\item{subject.var}{The variable in the metadata table that represents the subject.}
+\item{subject.var}{The variable name in metadata that represents the subject identifiers. Should match the subject identifiers used when calculating distance matrix.}
 
-\item{time.var}{The variable in the metadata table that represents the time. Ensure that it is coded as numeric.}
+\item{time.var}{The variable name in metadata that represents the time points. Should be a numeric vector coded as continuous values. The function will try to coerce to numeric if needed.}
 
-\item{group.var}{(Optional) The variable in the metadata table that represents the grouping factor.}
+\item{group.var}{(Optional) The variable name in metadata that represents the grouping factor of interest. Default is NULL.}
 
-\item{adj.vars}{(Optional) Variables in the metadata table used for adjustment.}
+\item{adj.vars}{(Optional) A character vector of variable names in metadata to be used for adjustment in the model. Default is NULL.}
 
 \item{dist.name}{A character vector specifying which beta diversity indices to calculate. Default is "BC" (Bray-Curtis). Supported indices include "BC", "Jaccard", "UniFrac", "GUniFrac", "WUniFrac", and "JS".}
 
@@ -39,7 +39,7 @@ using \code{mStat_calculate_beta_diversity}.}
 A list containing the result of the trend test for each specified beta diversity index. The result includes a tibble with the coefficients extracted from the mixed-effects model fitted for each distance.
 }
 \description{
-The function `generate_beta_trend_test_long` computes a statistical trend test for beta diversity in longitudinal data. It considers subject, time, optional grouping and adjusting variables, and provides the trend in beta diversity over time for different groups.
+The function `generate_beta_trend_test_long` performs a linear mixed effects model to test the longitudinal trend in beta diversity. It models the distance matrix as the response, with time as a fixed effect and subject as a random effect. An optional grouping variable can be included as an interaction with time. Covariates for adjustment can also be added to the model. The time variable should be numeric, and the function coerces it as needed. The linear mixed model is fitted using lmer, and the estimated coefficients are extracted and returned, representing the trends over time and differences between groups.
 }
 \details{
 The function starts by validating the input data, followed by processing the time variable and calculating the beta diversity if necessary. Adjustments are made based on the provided adjusting variables, and the mixed-effects model is fitted to the long-format data. The coefficients of the model are extracted and returned for each beta diversity index specified.

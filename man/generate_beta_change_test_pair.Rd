@@ -23,17 +23,27 @@ generate_beta_change_test_pair(
 If NULL, beta diversity will be automatically computed from \code{data.obj}
 using \code{mStat_calculate_beta_diversity}.}
 
-\item{time.var}{The name of the time variable column in the metadata.}
+\item{time.var}{The name of the column in metadata containing the time variable.
+This should be a column with time points for each sample. Required
+to identify pairs of samples for the same subject across time.}
 
-\item{subject.var}{The name of the subject variable column in the metadata.}
+\item{subject.var}{The name of the column in metadata containing the subject IDs.
+This should uniquely identify each subject in the study. Required
+to identify samples that belong to the same subject.}
 
-\item{group.var}{The name of the grouping variable column for linear modeling in the metadata.}
+\item{group.var}{The name of the column in metadata containing the grouping variable
+to use in linear modeling. This grouping variable will be used as a
+predictor in the linear models for beta diversity change. Optional.}
 
-\item{adj.vars}{Names of additional variables to be used as covariates in the analysis.}
+\item{adj.vars}{Vector of names of additional variables in metadata to be included
+as covariates in the linear models. Can be empty.}
 
-\item{change.base}{The baseline time point for detecting changes in beta diversity.}
+\item{change.base}{The baseline time point value in the time variable to be used
+as the reference for calculating beta diversity change. Required
+if time.var contains multiple time points. If NULL, the first
+time point will be used as change.base automatically.}
 
-\item{dist.name}{Character vector specifying which beta diversity indices to compute. Defaults to c('BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS').}
+\item{dist.name}{A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned.}
 }
 \value{
 A named list containing linear modeling results for each beta diversity metric.
@@ -65,13 +75,7 @@ library(vegan)
 # Load data
 data(peerj32.obj)
 
-# Calculate distance matrix
-dist_obj <- mStat_calculate_beta_diversity(
-  data_obj = peerj32.obj,
-  dist_name = c('BC', 'Jaccard')
-)
-
-# Generate beta diversity report
+# Generate beta diversity test
 generate_beta_change_test_pair(
   data_obj = peerj32.obj,
   dist_obj = NULL,

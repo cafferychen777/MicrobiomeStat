@@ -22,13 +22,17 @@ generate_beta_test_pair(
 If NULL, beta diversity will be automatically computed from \code{data.obj}
 using \code{mStat_calculate_beta_diversity}.}
 
-\item{time.var}{The name of the column in data.obj$meta.dat that contains the time variable for subsetting data, if applicable. This should be a character string representing the column name.}
+\item{time.var}{Character string specifying the column name in metadata containing a time variable.
+Used for subsetting data before beta diversity calculation if needed. Optional.}
 
-\item{subject.var}{The name of the column in data.obj$meta.dat that contains the subject variable for the PERMANOVA tests. This should be a character string representing the column name.}
+\item{subject.var}{Character string specifying the column name in metadata containing unique subject
+IDs. Used as a stratifying variable in PERMANOVA tests. Required.}
 
-\item{group.var}{The name of the column in data.obj$meta.dat that contains the grouping variable for the PERMANOVA tests. This should be a character string representing the column name.}
+\item{group.var}{Character string specifying the column name in metadata containing grouping
+categories. Used as the main predictor in PERMANOVA tests. Required.}
 
-\item{adj.vars}{A character vector containing the names of the columns in data.obj$meta.dat to include as covariates in the PERMANOVA analysis. If no covariates are needed, use NULL (default).}
+\item{adj.vars}{Character vector specifying column names in metadata containing covariates
+to include in PERMANOVA model. Optional, can be NULL if no adjustment needed.}
 
 \item{dist.name}{A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').}
 }

@@ -56,7 +56,8 @@ Should be one of:
 The choice affects preprocessing steps as well as plot axis labels.
 Default is "count", which assumes raw OTU table input.}
 
-\item{features.plot}{A character vector of features to include in the plot. If NULL, top features will be selected based on `top.k.plot` and `top.k.func`.}
+\item{features.plot}{A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.}
 
 \item{top.k.plot}{Integer specifying number of top k features to plot, when `features.plot` is NULL.
 Default is NULL, in which case all features passing filters will be plotted.}

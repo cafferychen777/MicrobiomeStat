@@ -19,7 +19,8 @@ generate_alpha_test_single(
 
 \item{alpha.obj}{An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.}
 
-\item{time.var}{character; the name of the time variable in the metadata. Default is NULL.}
+\item{time.var}{Character string specifying the column name in metadata containing time variable.
+Used to subset to a single time point if provided. Default NULL does not subset data.}
 
 \item{t.level}{Character string specifying the time level/value to subset data to,
 if a time variable is provided. Default NULL does not subset data.}
@@ -27,9 +28,11 @@ if a time variable is provided. Default NULL does not subset data.}
 \item{alpha.name}{character vector containing the names of alpha diversity indices to calculate.
 Possible values are: "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".}
 
-\item{group.var}{character; the name of the group variable in the metadata.}
+\item{group.var}{Character string specifying the column name in metadata containing the grouping
+variable. Used as a predictor in the linear models.}
 
-\item{adj.vars}{character vector; the names of the adjustment variables in the metadata.}
+\item{adj.vars}{Character vector specifying column names in metadata containing variables to adjust
+for in the linear models.}
 }
 \value{
 A list containing the association tests for each alpha diversity index.

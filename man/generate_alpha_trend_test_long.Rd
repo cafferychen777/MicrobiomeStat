@@ -22,16 +22,18 @@ generate_alpha_trend_test_long(
 \item{alpha.name}{A string with the name of the alpha diversity index to compute.
 Options could include: "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".}
 
-\item{time.var}{A string representing the time variable's name in the
-metadata. The default is NULL.}
+\item{time.var}{Character string specifying the column name in metadata containing the
+numeric time variable. Should contain ordered time points for each subject.
+Required to calculate volatility over time.}
 
-\item{subject.var}{A string indicating the variable for subject identifiers.}
+\item{subject.var}{Character string specifying the column name in metadata containing
+unique subject IDs. Required to calculate volatility within subjects.}
 
-\item{group.var}{A string representing the group variable's name in the
-metadata.}
+\item{group.var}{Character string specifying the column name in metadata containing grouping
+categories. Volatility will be compared between groups using linear models.}
 
-\item{adj.vars}{A character vector with the names of adjustment variables in
-the metadata, used in fitting the linear model for residuals.}
+\item{adj.vars}{Character vector specifying column names in metadata containing covariates
+to adjust for when calculating residuals.}
 }
 \value{
 A summary object containing the results of the linear model testing

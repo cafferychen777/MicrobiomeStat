@@ -33,7 +33,17 @@ generate_beta_ordination_pair(
 If NULL, beta diversity will be automatically computed from \code{data.obj}
 using \code{mStat_calculate_beta_diversity}.}
 
-\item{pc.obj}{(Optional) A matrix containing the principal coordinates, computed using 'mStat_calculate_PC' function on dist.obj. If not provided, the function will calculate PCoA based on the given distance object.}
+\item{pc.obj}{A list containing the results of dimension reduction/Principal Component Analysis.
+This should be the output from functions like \code{\link[MicrobiomeStat]{mStat_calculate_PC}}, containing the PC coordinates and other metadata.
+If NULL (default), dimension reduction will be automatically performed using metric multidimensional scaling (MDS) via \code{\link[MicrobiomeStat]{mStat_calculate_PC}}.
+The pc.obj list structure should contain:
+\itemize{
+ \item{$points:}{A matrix with samples as rows and PCs as columns containing the coordinates.}
+ \item{$eig:}{Eigenvalues for each PC dimension.}
+ \item{$vectors:}{Loadings vectors for features onto each PC.}
+ \item{Other metadata like $method, $dist.name, etc.}
+}
+See \code{\link[MicrobiomeStat]{mStat_calculate_PC}} function for details on output format.}
 
 \item{subject.var}{The variable in the metadata table that represents the subject.}
 

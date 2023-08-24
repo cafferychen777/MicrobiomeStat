@@ -29,13 +29,15 @@ generate_taxa_barplot_long(
 \arguments{
 \item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
 
-\item{subject.var}{A string indicating the variable for subject identifiers.}
+\item{subject.var}{Character string specifying the column name in metadata containing
+unique subject IDs. Required to connect samples from the same subject.}
 
-\item{time.var}{A string indicating the variable for time points.}
+\item{time.var}{Character string specifying the column name in metadata containing the
+time variable. Required to order and connect samples over time.}
 
-\item{group.var}{A string indicating the variable for group identifiers. Default is NULL.}
+\item{group.var}{Character string specifying the column name in metadata containing group identifiers. Default is NULL.}
 
-\item{strata.var}{A string indicating the variable for stratum identifiers. Default is NULL.}
+\item{strata.var}{Character string specifying the column name in metadata containing stratum identifiers. Default is NULL.}
 
 \item{feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
 to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
@@ -78,7 +80,10 @@ my_theme <- ggplot2::theme(
 
 Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.}
 
-\item{palette}{A character vector specifying the color palette. Default is NULL.}
+\item{palette}{A character vector specifying the names of colors to use for the plot.
+The vector should contain color names that will be matched to the levels of
+the taxonomic grouping variable (feature.level). Default is NULL, which will
+use a pre-defined set of colors from the package ggh4x.}
 
 \item{pdf}{A logical value indicating whether to save the plot as a PDF. Default is TRUE.}
 

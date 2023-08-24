@@ -46,7 +46,8 @@ if a time variable is provided. Default NULL does not subset data.}
 
 \item{feature.level}{A string specifying the taxonomic level to plot.}
 
-\item{features.plot}{A character vector of features to include in the plot. If NULL, top features will be selected based on `top.k.plot` and `top.k.func`.}
+\item{features.plot}{A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.}
 
 \item{feature.dat.type}{The type of the feature data, which determines how the data is handled in downstream analyses.
 Should be one of:

@@ -21,15 +21,23 @@ generate_alpha_change_test_pair(
 
 \item{alpha.obj}{An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.}
 
-\item{time.var}{The name of the variable in the data that represents time points.}
+\item{time.var}{Character string specifying the column name in metadata containing
+time values for each sample. Required to identify pairs of time
+points to calculate changes between.}
 
 \item{alpha.name}{The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou". Previously named as `alpha.index`.}
 
-\item{subject.var}{The name of the variable in the data that represents the subject IDs.}
+\item{subject.var}{Character string specifying the column name in metadata containing
+unique subject IDs. Required to pair samples from the same subject
+across time points.}
 
-\item{group.var}{The name of the variable in the data that represents the group IDs.}
+\item{group.var}{Character string specifying the column name in metadata containing
+grouping categories. Used as a predictor in the models to test for
+differences in changes between groups. Optional, can be NULL.}
 
-\item{adj.vars}{A vector of names of the variables in the data that should be used as covariates in the model.}
+\item{adj.vars}{Character vector specifying column names in metadata containing
+covariates to adjust for in the linear models. Optional, can be
+left NULL if no adjustment is needed.}
 
 \item{change.base}{The name of the baseline time point for calculating changes in alpha diversity. If NULL, the first unique time point in the data will be used.}
 

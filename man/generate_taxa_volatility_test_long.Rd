@@ -23,13 +23,20 @@ generate_taxa_volatility_test_long(
 \arguments{
 \item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
 
-\item{time.var}{A string. The name of the time variable in the metadata.}
+\item{time.var}{Character string specifying the column name in metadata containing
+the numeric time variable. Should contain ordered time points for each
+subject. Required to calculate volatility over time.}
 
-\item{subject.var}{A string. The name of the subject variable in the metadata.}
+\item{subject.var}{Character string specifying the column name in metadata containing
+unique subject IDs. Required to calculate volatility within subjects
+over time.}
 
-\item{group.var}{A string. The grouping variable to test, found in metadata.}
+\item{group.var}{Character string specifying the column name in metadata containing
+grouping categories. Volatility will be compared between groups using
+linear models. Required.}
 
-\item{adj.vars}{A vector of strings. Covariates for adjustment in the linear models. Defaults to NULL.}
+\item{adj.vars}{Character vector specifying column names in metadata containing covariates
+to adjust for in linear models. Optional, can be NULL.}
 
 \item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
 taxa before analysis. Taxa with prevalence below this value will be removed.
@@ -41,15 +48,25 @@ taxa before analysis. Taxa with mean abundance below this value will be removed.
 Abundance refers to counts or proportions depending on \code{feature.dat.type}.
 Default 0 removes no taxa by abundance filtering.}
 
-\item{feature.level}{A vector of strings. Taxonomic level(s) for aggregation, e.g. "Phylum", "Class".}
+\item{feature.level}{Character vector specifying taxonomic level(s) to aggregate abundance data to
+before volatility calculation, e.g. c("Phylum", "Genus"). The special value
+"original" can also be provided, which will use the original taxon identifiers.}
 
-\item{feature.dat.type}{A string. Either 'count', 'proportion', or 'other'. Specifies the data type of feature for appropriate transformation.}
+\item{feature.dat.type}{Character string specifying the data type of the abundance data. Should be
+one of "count", "proportion", or "other". Determines transform. This should
+match the units of data used in feature.level.}
 
-\item{feature.mt.method}{A string. Method for multiple testing correction. Can be either "fdr" or "none". Defaults to "fdr".}
+\item{feature.mt.method}{Character string specifying multiple testing correction method.
+Either "fdr" for BH FDR control or "none" for no correction.
+Default is "fdr".}
 
-\item{feature.sig.level}{A numeric. Significance level threshold for testing. Defaults to 0.1.}
+\item{feature.sig.level}{Numeric specifying the significance threshold for statistical
+testing. Taxa with adj.p below this level are considered
+significant. Default 0.1.}
 
-\item{transform}{A string. Method for transforming the data. If 'CLR', count data and proportion data will be transformed using Centered Log Ratio. Defaults to 'CLR'.}
+\item{transform}{Character string specifying transformation method. If "CLR", count and
+proportion data will be CLR transformed before volatility calculation.
+Default "CLR".}
 
 \item{...}{Additional arguments passed to other methods.}
 }
