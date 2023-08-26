@@ -116,7 +116,7 @@ generate_taxa_heatmap_single(
   subject.var = "subject",
   time.var = NULL,
   t.level = NULL,
-  group.var = "group",
+  group.var = NULL,
   strata.var = NULL,
   feature.level = c("Family"),
   feature.dat.type = "count",

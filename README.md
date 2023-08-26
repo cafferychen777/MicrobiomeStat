@@ -1,4 +1,4 @@
-MicrobiomeStat: Comprehensive Microbiome Analysis in R
+MicrobiomeStat: Comprehensive & Longitudinal Microbiome Analysis in R
 ================
 
 <!-- badges: start -->
@@ -9,11 +9,33 @@ MicrobiomeStat: Comprehensive Microbiome Analysis in R
 v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 <!-- badges: end -->
 
-The `MicrobiomeStat` package is a state-of-the-art R tool tailored for
-the analysis of longitudinal microbiome data. With its capability to
-manage multi-omics data, it is an invaluable resource for extensive
-biological research. It proficiently analyzes both longitudinal and
-cross-sectional studies.
+The `MicrobiomeStat` package is a state-of-the-art R tool with a
+**special focus on the analysis of longitudinal microbiome data**. While
+capable of handling multi-omics data and cross-sectional studies, its
+**core strength lies in its proficiency in longitudinal analysis**. This
+makes it an invaluable resource for researchers conducting extensive
+biological studies over time.
+
+## Important Note on CRAN Version
+
+Due to the **ongoing development cycle**, the **most up-to-date
+features** of `MicrobiomeStat` have **not yet been uploaded to the CRAN
+repository**. The current CRAN version **only supports the `linda` and
+`linda.plot` functions**. If you **require additional functionalities**,
+particularly for **analyzing longitudinal data**, we recommend
+**installing the development version from GitHub**. To do this, you’ll
+first need to **install the `devtools` package** if you haven’t already:
+
+``` r
+install.packages("devtools")
+```
+
+Once `devtools` is installed, you can install `MicrobiomeStat` from
+GitHub using the following command:
+
+``` r
+devtools::install_github("cafferychen777/MicrobiomeStat")
+```
 
 # Table of Contents
 

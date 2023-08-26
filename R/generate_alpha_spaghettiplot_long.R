@@ -54,7 +54,7 @@
 #'   ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[-1],
 #'   group.var = "subject_gender",
 #'   strata.var = "subject_race",
-#'   adj.vars = NULL,
+#'   adj.vars = "sample_body_site",
 #'   theme.choice = "bw",
 #'   palette = NULL,
 #'   pdf = TRUE,
@@ -183,16 +183,35 @@ generate_alpha_spaghettiplot_long <-
     plot_list <- lapply(alpha.name, function(index) {
       sub_alpha.df <- alpha.df %>% select(all_of(c(index,subject.var, time.var, group.var, strata.var, adj.vars)))
 
-      if (!is.null(adj.vars)){
-        # 构建公式
-        formula_string <- paste(index, "~", paste(adj.vars, collapse = " + "))
-        formula_obj <- as.formula(formula_string)
+      if (!is.null(adj.vars)) {
 
-        # 使用mutate和residuals来添加残差
-        sub_alpha.df <- sub_alpha.df %>%
-          dplyr::mutate(!!sym(index) := stats::residuals(lm(formula_obj, data = sub_alpha.df)))
+        # 对非数值型协变量进行因子转换
+        data_subset <- sub_alpha.df %>%
+          select(all_of(adj.vars)) %>%
+          dplyr::mutate(dplyr::across(where(is.character) & !is.factor, factor))
 
-        message("Alpha diversity has been adjusted for the following covariates: ", paste(adj.vars, collapse = ", "), ".")
+        # 创建模型矩阵，并为非数值型协变量设定对比度
+        M <- model.matrix(
+          ~ 0 + .,
+          data = data_subset,
+          contrasts.arg = lapply(data_subset, stats::contrasts, contrasts = FALSE)
+        )
+
+        # Center the covariates (no scaling)
+        M_centered <- scale(M, scale = FALSE)
+
+        # Fit the regression model
+        fit <- lm(sub_alpha.df[[index]] ~ M_centered)
+
+        # 计算调整后的alpha多样性值
+        adjusted_value <- fit$coefficients[1] + residuals(fit)
+
+        # 在sub_alpha.df中更新alpha多样性值
+        sub_alpha.df[[index]] <- adjusted_value
+
+        # 显示消息，表示已经为特定的协变量调整了alpha多样性
+        message("Alpha diversity has been adjusted for the following covariates: ",
+                paste(adj.vars, collapse = ", "), ".")
       }
 
       if (is.null(strata.var)) {

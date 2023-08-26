@@ -113,7 +113,7 @@ generate_taxa_barplot_single(
   time.var = NULL,
   t.level = NULL,
   group.var = "group",
-  strata.var = NULL,
+  strata.var = "sex",
   feature.level = "Family",
   feature.dat.type = "count",
   feature.number = 30,

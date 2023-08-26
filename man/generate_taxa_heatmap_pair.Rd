@@ -105,11 +105,11 @@ using the “pheatmap” package. It can also save the resulting heatmap as a PD
 # Load required libraries and example data
 library(pheatmap)
 data(peerj32.obj)
-plot_list <- generate_taxa_heatmap_pair(
+generate_taxa_heatmap_pair(
   data.obj = peerj32.obj,
   subject.var = "subject",
   time.var = "time",
-  group.var = "group",
+  group.var = NULL,
   strata.var = NULL,
   feature.level = c("Family"),
   feature.dat.type = "count",

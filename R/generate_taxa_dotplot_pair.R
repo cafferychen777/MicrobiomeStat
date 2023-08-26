@@ -295,7 +295,7 @@ generate_taxa_dotplot_pair <- function(data.obj,
       } +
       {
         if (!is.null(strata.var)){
-          ggh4x::facet_nested(rows = vars(!!sym(paste0(group.var,"2")),!!sym(strata.var)), cols = vars(!!sym(feature.level)), scales = "free", switch = "y")
+          ggh4x::facet_nested(rows = vars(!!sym(strata.var),!!sym(paste0(group.var,"2"))), cols = vars(!!sym(feature.level)), scales = "free", switch = "y")
         } else {
           ggh4x::facet_nested(rows = vars(!!sym(group.var)), cols = vars(!!sym(feature.level)), scales = "free", switch = "y")}
       } +

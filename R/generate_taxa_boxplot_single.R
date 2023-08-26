@@ -103,7 +103,7 @@
 #'   time.var = "time",
 #'   t.level = "1",
 #'   group.var = "group",
-#'   strata.var = NULL,
+#'   strata.var = "sex",
 #'   feature.level = c("Family"),
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
@@ -112,8 +112,8 @@
 #'   transform = "log",
 #'   prev.filter = 0,
 #'   abund.filter = 0,
-#'   base.size = 16,
-#'   theme.choice = "classic",
+#'   base.size = 12,
+#'   theme.choice = "bw",
 #'   custom.theme = NULL,
 #'   palette = NULL,
 #'   pdf = TRUE,
@@ -375,7 +375,6 @@ generate_taxa_boxplot_single <-
         theme(
           panel.spacing.x = unit(0, "cm"),
           panel.spacing.y = unit(0.1, "cm"),
-          plot.title = element_text(hjust = 0.5, size = 20),
           strip.text.x = element_text(size = base.size, color = "black"),
           strip.text.y = element_text(size = base.size, color = "black"),
           axis.text = element_text(color = "black"),
@@ -393,20 +392,15 @@ generate_taxa_boxplot_single <-
       if (!is.null(group.var)) {
         if (is.null(strata.var)) {
           boxplot <-
-            boxplot + ggh4x::facet_nested_wrap(as.formula(paste(
-              "~", feature.level)), scales = "fixed",
-            nrow = ifelse(
-              ifelse(length(taxa.levels) %% 2 == 0, length(taxa.levels) / 4, (length(taxa.levels) + 1) / 4) < 1,
-              1,
-              ifelse(length(taxa.levels) %% 2 == 0, length(taxa.levels) / 4, (length(taxa.levels) + 1) / 4)
-            ))
+            boxplot + ggh4x::facet_nested(as.formula(paste(
+              "~", feature.level, "+", group.var
+            )), scales = "free")
         } else {
-          boxplot <-
-            boxplot + ggh4x::facet_nested_wrap(as.formula(
-              paste("~", feature.level, "+", strata.var)
-            ),
-            scales = "fixed",
-            nrow = ifelse(length(taxa.levels) %% 2 == 0, length(taxa.levels) / 2, (length(taxa.levels) + 1) / 2))
+          boxplot <- boxplot + ggh4x::facet_nested(
+            rows = vars(!!sym(strata.var)),
+            cols = vars(!!sym(feature.level), !!sym(group.var)),
+            scales = "free"
+          )
         }
       }
 

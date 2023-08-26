@@ -70,8 +70,6 @@
 #' @return A list of ggplot2 objects representing the beta ordination plots.
 #' @seealso \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} for creating the distance object, \code{\link[MicrobiomeStat]{mStat_calculate_PC}} for computing the principal coordinates, and \code{\link[ggplot2]{geom_point}}, \code{\link[ggplot2]{geom_boxplot}} for the underlying plot functions used, and \code{\link[MicrobiomeStat]{mStat_convert_DGEList_to_data_obj}}, \code{\link[MicrobiomeStat]{mStat_convert_DESeqDataSet_to_data_obj}}, \code{\link[MicrobiomeStat]{mStat_convert_phyloseq_to_data_obj}}, \code{\link[MicrobiomeStat]{mStat_convert_SummarizedExperiment_to_data_obj}}, \code{\link[MicrobiomeStat]{mStat_import_qiime2_as_data_obj}}, \code{\link[MicrobiomeStat]{mStat_import_mothur_as_data_obj}}, \code{\link[MicrobiomeStat]{mStat_import_dada2_as_data_obj}}, \code{\link[MicrobiomeStat]{mStat_import_biom_as_data_obj}} for data conversion.
 #'
-#' @author Caffery Yang \email{cafferychen7850@@gmail.com}
-#'
 #' @examples
 #' \dontrun{
 #' data(subset_T2D.obj)
@@ -256,6 +254,8 @@ generate_beta_ordination_long <-
         ggplot2::theme(
           panel.spacing.x = unit(0, "cm"),
           panel.spacing.y = unit(0, "cm"),
+          axis.line.x = ggplot2::element_line(size = 1, colour = "black"),
+          axis.line.y = ggplot2::element_line(size = 1, colour = "black"),
           strip.text.x = element_text(size = 12, color = "black"),
           axis.title = ggplot2::element_text(color = "black"),
           axis.text.x = element_text(color = "black", size = base.size),

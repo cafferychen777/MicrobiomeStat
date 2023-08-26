@@ -98,8 +98,8 @@
 #'   time.var = "visit_number_num",
 #'   t0.level = unique(subset_T2D.obj$meta.dat$visit_number_num)[1],
 #'   ts.levels = unique(subset_T2D.obj$meta.dat$visit_number_num)[-1],
-#'   group.var = "subject_gender",
-#'   strata.var = "subject_race",
+#'   group.var = NULL,
+#'   strata.var = NULL,
 #'   feature.level = c("Phylum"),
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
@@ -463,6 +463,9 @@ generate_taxa_change_heatmap_long <- function(data.obj,
           colorRampPalette(col[3:5])(n_colors - zero_pos + 1)
         )
 
+      break_points <-
+        seq(-max_abs_val, max_abs_val, length.out = length(my_col) + 1)
+
       if (is.null(palette)){
         color_vector <- c(
           "#E31A1C",
@@ -480,21 +483,35 @@ generate_taxa_change_heatmap_long <- function(data.obj,
         color_vector <- palette
       }
 
-      # 为演示目的，假设这些是您的唯一值
-      group_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
-      strata_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(strata.var))) %>% distinct() %>% pull()
+      if (!is.null(strata.var) & !is.null(group.var)){
+        # 为演示目的，假设这些是您的唯一值
+        group_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
 
-      # 为 group.var 分配颜色
-      group_colors <- setNames(color_vector[1:length(group_levels)], group_levels)
+        # 为 group.var 分配颜色
+        group_colors <- setNames(color_vector[1:length(group_levels)], group_levels)
 
-      # 为 strata.var 分配颜色
-      strata_colors <- setNames(rev(color_vector)[1:length(strata_levels)], strata_levels)
+        strata_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(strata.var))) %>% distinct() %>% pull()
+        # 为 strata.var 分配颜色
+        strata_colors <- setNames(rev(color_vector)[1:length(strata_levels)], strata_levels)
 
-      # 创建注释颜色列表
-      annotation_colors_list <- setNames(
-        list(group_colors, strata_colors),
-        c(group.var, strata.var)
-      )
+        # 创建注释颜色列表
+        annotation_colors_list <- setNames(
+          list(group_colors, strata_colors),
+          c(group.var, strata.var)
+        )
+      } else if (!is.null(group.var) & group.var != "ALL"){
+        # 为演示目的，假设这些是您的唯一值
+        group_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
+        # 为 group.var 分配颜色
+        group_colors <- setNames(color_vector[1:length(group_levels)], group_levels)
+        # 创建注释颜色列表
+        annotation_colors_list <- setNames(
+          list(group_colors),
+          c(group.var)
+        )
+      } else {
+        annotation_colors_list <- NULL
+      }
 
       # Plot stacked heatmap
       heatmap_plot <- pheatmap::pheatmap(
@@ -507,7 +524,9 @@ generate_taxa_change_heatmap_long <- function(data.obj,
         gaps_col = gaps,
         fontsize = base.size,
         silent = TRUE,
-        color = my_col
+        color = my_col,
+        breaks = break_points,
+        ...
       )
     # } else {
     #   # 创建颜色映射函数

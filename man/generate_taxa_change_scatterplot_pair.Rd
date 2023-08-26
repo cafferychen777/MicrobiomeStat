@@ -132,7 +132,7 @@ dplyr::mutate(cons = runif(dplyr::n(),0,5)) \%>\%
 dplyr::left_join(peerj32.obj$meta.dat \%>\% rownames_to_column("sample"),by = "subject") \%>\%
 tibble::column_to_rownames("sample")
 # Generate the boxplot pair
-plot_list_all <- generate_taxa_change_scatterplot_pair(
+generate_taxa_change_scatterplot_pair(
   data.obj = peerj32.obj,
   subject.var = "subject",
   time.var = "time",

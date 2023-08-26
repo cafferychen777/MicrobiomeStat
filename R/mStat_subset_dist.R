@@ -17,8 +17,7 @@
 #' is.na.null(NULL)  # TRUE
 #' is.na.null(1)  # FALSE
 #' }
-#'
-#' @export
+#' @noRd
 is.na.null <- function (x) {
   if (is.null(x)) {
     return(TRUE)

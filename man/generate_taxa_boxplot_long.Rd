@@ -131,7 +131,7 @@ The function also has options to customize the size, theme, and color palette of
 # Load required libraries and example data
 data(ecam.obj)
 # Generate the boxplot pair
-a <- generate_taxa_boxplot_long(
+generate_taxa_boxplot_long(
   data.obj = ecam.obj,
   subject.var = "studyid",
   time.var = "month",

@@ -70,13 +70,13 @@
 #' # Generate the boxplot pair
 #' generate_beta_ordination_single(
 #'   data.obj = peerj32.obj,
-#'   dist.obj = adj.dist.obj,
+#'   dist.obj = NULL,
 #'   pc.obj = NULL,
 #'   subject.var = "subject",
 #'   time.var = "time",
 #'   t.level = "2",
 #'   group.var = "group",
-#'   strata.var = NULL,
+#'   strata.var = "sex",
 #'   adj.vars = "sex",
 #'   dist.name = c("BC"),
 #'   base.size = 20,

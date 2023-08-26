@@ -101,7 +101,7 @@ generate_alpha_spaghettiplot_long(
   ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[-1],
   group.var = "subject_gender",
   strata.var = "subject_race",
-  adj.vars = NULL,
+  adj.vars = "sample_body_site",
   theme.choice = "bw",
   palette = NULL,
   pdf = TRUE,

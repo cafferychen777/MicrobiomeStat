@@ -54,11 +54,11 @@
 #' # Load required libraries and example data
 #' library(pheatmap)
 #' data(peerj32.obj)
-#' plot_list <- generate_taxa_heatmap_pair(
+#' generate_taxa_heatmap_pair(
 #'   data.obj = peerj32.obj,
 #'   subject.var = "subject",
 #'   time.var = "time",
-#'   group.var = "group",
+#'   group.var = NULL,
 #'   strata.var = NULL,
 #'   feature.level = c("Family"),
 #'   feature.dat.type = "count",
@@ -115,7 +115,12 @@ generate_taxa_heatmap_pair <- function(data.obj,
 
   tax_tab <- load_data_obj_taxonomy(data.obj) %>%
     as.data.frame() %>%
-    {if("original" %in% feature.level) dplyr::mutate(., original = rownames(.)) else .} %>%
+    {
+      if ("original" %in% feature.level)
+        dplyr::mutate(., original = rownames(.))
+      else
+        .
+    } %>%
     select(all_of(feature.level))
 
   meta_tab <-  load_data_obj_metadata(data.obj) %>% select(all_of(c(
@@ -132,11 +137,11 @@ generate_taxa_heatmap_pair <- function(data.obj,
     cluster.rows = TRUE
   }
 
-  if (is.null(palette)) {
-    palette <- c("white", "#92c5de", "#0571b0", "#f4a582", "#ca0020")
-  }
+
+  col <- c("white", "#92c5de", "#0571b0", "#f4a582", "#ca0020")
+
   # 创建颜色映射函数
-  my_palette <- colorRampPalette(palette)
+  my_col <- colorRampPalette(col)
 
   # 计算颜色的数量
   # 这通常取决于你的数据，你可能需要根据你的实际情况进行调整
@@ -155,18 +160,18 @@ generate_taxa_heatmap_pair <- function(data.obj,
   plot_list <- lapply(feature.level, function(feature.level) {
     # Filter taxa based on prevalence and abundance
     otu_tax_filtered <- otu_tax %>%
-      tidyr::gather(key = "sample", value = "count",-one_of(colnames(tax_tab))) %>%
+      tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
       dplyr::group_by_at(vars(!!sym(feature.level))) %>%
       dplyr::summarise(total_count = mean(count),
-                prevalence = sum(count > 0) / dplyr::n()) %>%
+                       prevalence = sum(count > 0) / dplyr::n()) %>%
       filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
-      select(-total_count,-prevalence) %>%
+      select(-total_count, -prevalence) %>%
       dplyr::left_join(otu_tax, by = feature.level)
 
     # Aggregate OTU table
     otu_tax_agg <- otu_tax_filtered %>%
-      tidyr::gather(key = "sample", value = "count",-one_of(colnames(tax_tab))) %>%
-      dplyr::group_by_at(vars(sample,!!sym(feature.level))) %>%
+      tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
+      dplyr::group_by_at(vars(sample, !!sym(feature.level))) %>%
       dplyr::summarise(count = sum(count)) %>%
       tidyr::spread(key = "sample", value = "count")
 
@@ -184,8 +189,9 @@ generate_taxa_heatmap_pair <- function(data.obj,
                "sd" = {
                  results <-
                    matrixStats::rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
-                          na.rm = TRUE)
-                 names(results) <- rownames(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
+                                       na.rm = TRUE)
+                 names(results) <-
+                   rownames(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
                },
                stop("Invalid function specified"))
       }
@@ -195,7 +201,8 @@ generate_taxa_heatmap_pair <- function(data.obj,
 
     if (is.null(features.plot) &&
         !is.null(top.k.plot) && !is.null(top.k.func)) {
-      features.plot <- names(sort(compute_function(top.k.func), decreasing = TRUE)[1:top.k.plot])
+      features.plot <-
+        names(sort(compute_function(top.k.func), decreasing = TRUE)[1:top.k.plot])
     }
 
     # Convert counts to numeric
@@ -208,25 +215,29 @@ generate_taxa_heatmap_pair <- function(data.obj,
     # Sort samples by group.var and strata.var
     if (!is.null(group.var) & !is.null(strata.var)) {
       meta_tab_sorted <-
-        meta_tab[order(meta_tab[[group.var]], meta_tab[[strata.var]]),]
+        meta_tab[order(meta_tab[[strata.var]], meta_tab[[group.var]]), ]
       otu_tab_norm_sorted <-
         otu_tab_norm[, rownames(meta_tab_sorted)]
     } else if (!is.null(group.var)) {
-      meta_tab_sorted <- meta_tab[order(meta_tab[[group.var]]),]
+      meta_tab_sorted <- meta_tab[order(meta_tab[[group.var]]), ]
       otu_tab_norm_sorted <-
         otu_tab_norm[, rownames(meta_tab_sorted)]
     } else {
       otu_tab_norm_sorted <- otu_tab_norm
     }
 
-    # Calculate gaps if group.var is not NULL
-    gaps <-
-      cumsum(table(meta_tab_sorted[[subject.var]]))[-length(table(meta_tab_sorted[[subject.var]]))]
+    if (!is.null(group.var)){
+      # Calculate gaps if group.var is not NULL
+      gaps <-
+        cumsum(table(meta_tab_sorted[[subject.var]]))[-length(table(meta_tab_sorted[[subject.var]]))]
+    } else {
+      gaps <- NULL
+    }
 
     # Set up annotation_col based on group.var and strata.var values
     if (!is.null(group.var) & !is.null(strata.var)) {
       annotation_col <-
-        meta_tab %>% select(all_of(c(time.var, strata.var, group.var)))
+        meta_tab %>% select(all_of(c(time.var, group.var, strata.var)))
     } else if (!is.null(group.var) & is.null(strata.var)) {
       annotation_col <-
         meta_tab %>% select(all_of(c(time.var, group.var)))
@@ -235,20 +246,67 @@ generate_taxa_heatmap_pair <- function(data.obj,
     }
 
 
-    if (!is.null(features.plot)){
+    if (!is.null(features.plot)) {
+      otu_tab_norm_sorted <-
+        otu_tab_norm_sorted[rownames(otu_tab_norm_sorted) %in% features.plot,]
+    }
 
-      otu_tab_norm_sorted <- otu_tab_norm_sorted[rownames(otu_tab_norm_sorted) %in% features.plot, ]
+    if (is.null(palette)){
+      color_vector <- c(
+        "#E31A1C",
+        "#1F78B4",
+        "#FB9A99",
+        "#33A02C",
+        "#FDBF6F",
+        "#B2DF8A",
+        "#A6CEE3",
+        "#BA7A70",
+        "#9D4E3F",
+        "#829BAB"
+      )
+    } else {
+      color_vector <- palette
+    }
 
+    if (!is.null(strata.var) & !is.null(group.var)){
+      # 为演示目的，假设这些是您的唯一值
+      group_levels <- annotation_col %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
+
+      # 为 group.var 分配颜色
+      group_colors <- setNames(color_vector[1:length(group_levels)], group_levels)
+
+      strata_levels <- annotation_col %>% dplyr::select(all_of(c(strata.var))) %>% distinct() %>% pull()
+      # 为 strata.var 分配颜色
+      strata_colors <- setNames(rev(color_vector)[1:length(strata_levels)], strata_levels)
+
+      # 创建注释颜色列表
+      annotation_colors_list <- setNames(
+        list(group_colors, strata_colors),
+        c(group.var, strata.var)
+      )
+    } else if (!is.null(group.var)){
+      # 为演示目的，假设这些是您的唯一值
+      group_levels <- annotation_col %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
+      # 为 group.var 分配颜色
+      group_colors <- setNames(color_vector[1:length(group_levels)], group_levels)
+      # 创建注释颜色列表
+      annotation_colors_list <- setNames(
+        list(group_colors),
+        c(group.var)
+      )
+    } else {
+      annotation_colors_list <- NULL
     }
 
     # Plot stacked heatmap
     heatmap_plot <- pheatmap::pheatmap(
       otu_tab_norm_sorted,
       annotation_col = annotation_col,
+      annotation_colors = annotation_colors_list,
       cluster_rows = cluster.rows,
       cluster_cols = cluster.cols,
       gaps_col = gaps,
-      color = my_palette(n_colors),
+      color = my_col(n_colors),
       # 使用自定义颜色
       fontsize = base.size,
       ...

@@ -115,7 +115,7 @@ generate_beta_change_boxplot_pair(
   subject.var = "subject",
   time.var = "time",
   group.var = "group",
-  strata.var = NULL,
+  strata.var = "sex",
   adj.vars = "sex",
   change.base = "1",
   dist.name = c('BC'),

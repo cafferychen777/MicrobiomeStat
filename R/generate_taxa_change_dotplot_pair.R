@@ -77,7 +77,7 @@
 #'   subject.var = "subject",
 #'   time.var = "time",
 #'   group.var = "group",
-#'   strata.var = NULL,
+#'   strata.var = "sex",
 #'   change.base = "1",
 #'   change.func = "lfc",
 #'   feature.level = "Family",
@@ -389,9 +389,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
       {
         if (!is.null(strata.var)) {
           ggh4x::facet_nested(
-            rows = vars(!!sym(paste0(
-              group.var, "2"
-            )), !!sym(strata.var)),
+            rows = vars(!!sym(strata.var), !!sym(paste0(group.var, "2"))),
             cols = vars(!!sym(feature.level)),
             scales = "free",
             switch = "y"

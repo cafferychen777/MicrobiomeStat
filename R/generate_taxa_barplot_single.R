@@ -67,7 +67,7 @@
 #'   time.var = NULL,
 #'   t.level = NULL,
 #'   group.var = "group",
-#'   strata.var = NULL,
+#'   strata.var = "sex",
 #'   feature.level = "Family",
 #'   feature.dat.type = "count",
 #'   feature.number = 30,
@@ -295,7 +295,7 @@ generate_taxa_barplot_single <-
         geom_bar(stat = "identity", position = "fill", width = bar_width) +
         {
           if (!is.null(group.var) && !is.null(strata.var)) {
-            ggh4x::facet_nested(as.formula(paste(". ~", group.var, "+", strata.var)), drop = T, scale = "free", space = "free", switch = "y")
+            ggh4x::facet_nested(as.formula(paste(". ~", strata.var, "+", group.var)), drop = T, scale = "free", space = "free", switch = "y")
           } else if (!is.null(group.var)) {
             ggh4x::facet_nested(as.formula(paste(". ~", group.var)), drop = T, scale = "free", space = "free", switch = "y")
           } else if (!is.null(strata.var)) {
@@ -379,7 +379,7 @@ generate_taxa_barplot_single <-
             if (group.var == ""){
             } else {
               if (!is.null(strata.var)){
-                ggh4x::facet_nested(as.formula(paste(". ~", group.var, "+", strata.var)), drop = T, scale = "free", space = "free")
+                ggh4x::facet_nested(as.formula(paste(". ~", strata.var, "+", group.var)), drop = T, scale = "free", space = "free")
               } else {
                 ggh4x::facet_nested(as.formula(paste(". ~", group.var)), drop = T, scale = "free", space = "free")
               }

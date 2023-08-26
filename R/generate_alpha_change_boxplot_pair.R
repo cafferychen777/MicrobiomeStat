@@ -266,16 +266,35 @@ generate_alpha_change_boxplot_pair <-
 
     plot_list <- lapply(alpha.name, function(index) {
 
-      if (!is.null(adj.vars)){
-        # 构建公式
-        formula_string <- paste(paste0(index, "_diff"), "~", paste(adj.vars, collapse = " + "))
-        formula_obj <- as.formula(formula_string)
+      if (!is.null(adj.vars)) {
 
-        # 使用mutate和residuals来添加残差
-        combined_alpha <- combined_alpha %>%
-          dplyr::mutate(!!sym(paste0(index, "_diff")) := stats::residuals(lm(formula_obj, data = combined_alpha)))
+        # 对非数值型协变量进行因子转换
+        data_subset <- combined_alpha %>%
+          select(all_of(adj.vars)) %>%
+          dplyr::mutate(dplyr::across(where(is.character) & !is.factor, factor))
 
-        message("Alpha diversity Change has been adjusted for the following covariates: ", paste(adj.vars, collapse = ", "), ".")
+        # 创建模型矩阵，并为非数值型协变量设定对比度
+        M <- model.matrix(
+          ~ 0 + .,
+          data = data_subset,
+          contrasts.arg = lapply(data_subset, stats::contrasts, contrasts = FALSE)
+        )
+
+        # Center the covariates (no scaling)
+        M_centered <- scale(M, scale = FALSE)
+
+        # Fit the regression model
+        fit <- lm(combined_alpha[[paste0(index, "_diff")]] ~ M_centered)
+
+        # 计算调整后的alpha多样性值
+        adjusted_value <- fit$coefficients[1] + residuals(fit)
+
+        # 在combined_alpha中更新alpha多样性值
+        combined_alpha[[paste0(index, "_diff")]] <- adjusted_value
+
+        # 显示消息，表示已经为特定的协变量调整了alpha多样性
+        message("Alpha diversity Change has been adjusted for the following covariates: ",
+                paste(adj.vars, collapse = ", "), ".")
       }
 
       plot <-

@@ -55,7 +55,7 @@
 #'   time.var     = "time",
 #'   t.level      = "2",
 #'   group.var    = "group",
-#'   strata.var   = NULL,
+#'   strata.var   = "sex",
 #'   adj.vars     = "sex",
 #'   base.size    = 16,
 #'   theme.choice = "bw",
@@ -92,31 +92,30 @@
 #' }
 #' @export
 generate_alpha_boxplot_single <- function (data.obj,
-                                         alpha.obj = NULL,
-                                         alpha.name = c("shannon",
-                                                        "simpson",
-                                                        "observed_species",
-                                                        "chao1",
-                                                        "ace",
-                                                        "pielou"),
-                                         subject.var,
-                                         time.var =NULL,
-                                         t.level = NULL,
-                                         group.var = NULL,
-                                         strata.var = NULL,
-                                         adj.vars = NULL,
-                                         base.size = 16,
-                                         theme.choice = "prism",
-                                         custom.theme = NULL,
-                                         palette = NULL,
-                                         pdf = TRUE,
-                                         file.ann = NULL,
-                                         pdf.wid = 11,
-                                         pdf.hei = 8.5,
-                                         ...) {
-
+                                           alpha.obj = NULL,
+                                           alpha.name = c("shannon",
+                                                          "simpson",
+                                                          "observed_species",
+                                                          "chao1",
+                                                          "ace",
+                                                          "pielou"),
+                                           subject.var,
+                                           time.var = NULL,
+                                           t.level = NULL,
+                                           group.var = NULL,
+                                           strata.var = NULL,
+                                           adj.vars = NULL,
+                                           base.size = 16,
+                                           theme.choice = "prism",
+                                           custom.theme = NULL,
+                                           palette = NULL,
+                                           pdf = TRUE,
+                                           file.ann = NULL,
+                                           pdf.wid = 11,
+                                           pdf.hei = 8.5,
+                                           ...) {
   if (is.null(alpha.obj)) {
-    if (!is_rarefied(data.obj)){
+    if (!is_rarefied(data.obj)) {
       message(
         "Diversity analysis needs rarefaction! Call 'mStat_rarefy_data' to rarefy the data!"
       )
@@ -124,20 +123,25 @@ generate_alpha_boxplot_single <- function (data.obj,
     }
     otu_tab <- as.data.frame(load_data_obj_count(data.obj))
 
-    if (!is.null(time.var)){
-      if (!is.null(t.level)){
+    if (!is.null(time.var)) {
+      if (!is.null(t.level)) {
         meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(
-          c(subject.var, time.var, group.var, strata.var, adj.vars))) %>% filter(!!sym(time.var) == t.level)
+          c(subject.var, time.var, group.var, strata.var, adj.vars)
+        )) %>% filter(!!sym(time.var) == t.level)
       } else {
         meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(
-          c(subject.var, time.var, group.var, strata.var, adj.vars)))
-        if (length(levels(as.factor(meta_tab[,time.var]))) != 1){
-          message("Multiple time points detected in your dataset. It is recommended to either set t.level or utilize functions for longitudinal data analysis.")
+          c(subject.var, time.var, group.var, strata.var, adj.vars)
+        ))
+        if (length(levels(as.factor(meta_tab[, time.var]))) != 1) {
+          message(
+            "Multiple time points detected in your dataset. It is recommended to either set t.level or utilize functions for longitudinal data analysis."
+          )
         }
       }
     } else {
-      meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(
-        c(subject.var, group.var, strata.var, adj.vars)))
+      meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(c(
+        subject.var, group.var, strata.var, adj.vars
+      )))
     }
 
     otu_tab <- otu_tab %>% select(all_of(c(rownames(meta_tab))))
@@ -148,26 +152,30 @@ generate_alpha_boxplot_single <- function (data.obj,
   # Convert the alpha.obj list to a data frame
   alpha_df <-
     dplyr::bind_cols(alpha.obj) %>% rownames_to_column("sample") %>%
-    dplyr::inner_join(
-      meta_tab %>% rownames_to_column(var = "sample"),
-      by = c("sample")
-    )
+    dplyr::inner_join(meta_tab %>% rownames_to_column(var = "sample"),
+                      by = c("sample"))
 
-  if (is.null(group.var)){
+  if (is.null(group.var)) {
     alpha_df <- alpha_df %>% dplyr::mutate("ALL" = "ALL")
     group.var <- "ALL"
   }
 
-  theme_function <- switch(theme.choice,
-                           prism = ggprism::theme_prism(),
-                           classic = theme_classic(),
-                           gray = theme_gray(),
-                           bw = theme_bw(),
-                           ggprism::theme_prism())
+  theme_function <- switch(
+    theme.choice,
+    prism = ggprism::theme_prism(),
+    classic = theme_classic(),
+    gray = theme_gray(),
+    bw = theme_bw(),
+    ggprism::theme_prism()
+  )
 
-  theme_to_use <- if (!is.null(custom.theme)) custom.theme else theme_function
+  theme_to_use <-
+    if (!is.null(custom.theme))
+      custom.theme
+  else
+    theme_function
 
-  if (is.null(palette)){
+  if (is.null(palette)) {
     col <-
       c(
         "#E31A1C",
@@ -187,7 +195,6 @@ generate_alpha_boxplot_single <- function (data.obj,
 
   # Create a plot for each alpha diversity index
   plot_list <- lapply(alpha.name, function(index) {
-
     aes_function <- if (!is.null(group.var)) {
       aes(
         x = !!sym(group.var),
@@ -202,21 +209,43 @@ generate_alpha_boxplot_single <- function (data.obj,
       )
     }
 
-    if (!is.null(adj.vars)){
-      # 构建公式
-      formula_string <- paste(index, "~", paste(adj.vars, collapse = " + "))
-      formula_obj <- as.formula(formula_string)
+    if (!is.null(adj.vars)) {
+      # 对非数值型协变量进行因子转换
+      data_subset <- alpha_df %>%
+        select(all_of(adj.vars)) %>%
+        dplyr::mutate(dplyr::across(where(is.character) & !is.factor, factor))
 
-      # 使用mutate和residuals来添加残差
-      alpha_df <- alpha_df %>%
-        dplyr::mutate(!!sym(index) := stats::residuals(lm(formula_obj, data = alpha_df)))
+      # 创建模型矩阵，并为非数值型协变量设定对比度
+      M <- model.matrix(
+        ~ 0 + .,
+        data = data_subset,
+        contrasts.arg = lapply(data_subset, stats::contrasts, contrasts = FALSE)
+      )
 
-      message("Alpha diversity has been adjusted for the following covariates: ", paste(adj.vars, collapse = ", "), ".")
+      # Center the covariates (no scaling)
+      M_centered <- scale(M, scale = FALSE)
+
+      # Fit the regression model
+      fit <- lm(alpha_df[[index]] ~ M_centered)
+
+      # 计算调整后的alpha多样性值
+      adjusted_value <- fit$coefficients[1] + residuals(fit)
+
+      # 在alpha_df中更新alpha多样性值
+      alpha_df[[index]] <- adjusted_value
+
+      # 显示消息，表示已经为特定的协变量调整了alpha多样性
+      message(
+        "Alpha diversity has been adjusted for the following covariates: ",
+        paste(adj.vars, collapse = ", "),
+        "."
+      )
     }
 
     if (!is.null(adj.vars)) {
       covariates <- paste(adj.vars, collapse = ", ")
-      y_label <- paste0(index, " index (adjusted by: ", covariates, ")")
+      y_label <-
+        paste0(index, " index (adjusted by: ", covariates, ")")
     } else {
       y_label <- paste0(index, " index")
     }
@@ -224,7 +253,9 @@ generate_alpha_boxplot_single <- function (data.obj,
     boxplot <- ggplot(alpha_df,
                       aes_function) +
       geom_violin(trim = FALSE, alpha = 0.8) +
-      geom_jitter(width = 0.1, alpha = 0.5, size = 1) +
+      geom_jitter(width = 0.1,
+                  alpha = 0.5,
+                  size = 1) +
       stat_boxplot(geom = "errorbar",
                    position = position_dodge(width = 0.2),
                    width = 0.1) +
@@ -235,16 +266,31 @@ generate_alpha_boxplot_single <- function (data.obj,
       ) +
       scale_fill_manual(values = col) +
       {
-        if (!is.null(strata.var) & !is.null(group.var)){
-          ggh4x::facet_nested(as.formula(paste(". ~", group.var, "+", strata.var)), drop = T, scale = "free", space = "free")
+        if (!is.null(strata.var) & !is.null(group.var)) {
+          ggh4x::facet_nested(
+            as.formula(paste(". ~", strata.var, "+", group.var)),
+            drop = T,
+            scale = "free",
+            space = "free"
+          )
         } else {
-          if (group.var != "ALL"){
-            ggh4x::facet_nested(as.formula(paste(". ~", group.var)), drop = T, scale = "free", space = "free")
+          if (group.var != "ALL") {
+            ggh4x::facet_nested(
+              as.formula(paste(". ~", group.var)),
+              drop = T,
+              scale = "free",
+              space = "free"
+            )
           }
         }
       } +
       labs(y = y_label,
-           title = dplyr::if_else(!is.null(time.var) & !is.null(t.level),paste0(time.var," = ", t.level), ""))  +
+           title = dplyr::if_else(
+             !is.null(time.var) &
+               !is.null(t.level),
+             paste0(time.var, " = ", t.level),
+             ""
+           ))  +
       theme_to_use +
       theme(
         panel.spacing.x = unit(0, "cm"),
@@ -258,9 +304,9 @@ generate_alpha_boxplot_single <- function (data.obj,
         plot.margin = unit(c(0.3, 0.3, 0.3, 0.3), units = "cm"),
         legend.text = ggplot2::element_text(size = 16),
         legend.title = ggplot2::element_text(size = 16),
-        plot.title = element_text(hjust = 0.5,size = 20)
+        plot.title = element_text(hjust = 0.5, size = 20)
       ) + {
-        if (group.var == "ALL"){
+        if (group.var == "ALL") {
           guides(fill = "none")
         }
       }
@@ -276,12 +322,16 @@ generate_alpha_boxplot_single <- function (data.obj,
       plot <- plot_list[[plot_index]]
       current_alpha_name <- alpha.name[plot_index]
 
-      pdf_name <- paste0("alpha_diversity_boxplot_single_",
-                         current_alpha_name,
-                         "_",
-                         "subject_", subject.var,
-                         "_",
-                         "time_", time.var)
+      pdf_name <- paste0(
+        "alpha_boxplot_single_",
+        current_alpha_name,
+        "_",
+        "subject_",
+        subject.var,
+        "_",
+        "time_",
+        time.var
+      )
 
       if (!is.null(group.var)) {
         pdf_name <- paste0(pdf_name, "_", "group_", group.var)

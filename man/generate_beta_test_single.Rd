@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_beta_test_single.R
 \name{generate_beta_test_single}
 \alias{generate_beta_test_single}
-\title{Perform beta diversity tests using PERMANOVA}
+\title{This function calculates various beta diversity indices for a microbiome dataset and performs PERMANOVA tests on them to assess the effect of a grouping variable and any additional covariates on the beta diversity. It returns the PERMANOVA results for each of the specified beta diversity indices.}
 \usage{
 generate_beta_test_single(
   data.obj,

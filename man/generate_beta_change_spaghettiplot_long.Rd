@@ -99,7 +99,6 @@ This function calculates beta diversity distances between all
 \examples{
 \dontrun{
 data(ecam.obj)
-
 generate_beta_change_spaghettiplot_long(
   data.obj = ecam.obj,
   dist.obj = NULL,

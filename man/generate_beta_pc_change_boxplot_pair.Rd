@@ -157,7 +157,7 @@ generate_beta_pc_change_boxplot_pair(
   subject.var = "subject",
   time.var = "time",
   group.var = "group",
-  strata.var = NULL,
+  strata.var = "sex",
   change.base = "1",
   change.func = "difference",
   dist.name = c('BC'),

@@ -88,7 +88,6 @@ This function generates a boxplot of a specified alpha diversity index dplyr::ac
 \examples{
 \dontrun{
 data("subset_T2D.obj")
-
 generate_alpha_boxplot_long(
   data.obj = subset_T2D.obj,
   alpha.obj = NULL,
@@ -99,7 +98,7 @@ generate_alpha_boxplot_long(
   ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[2:6],
   group.var = "subject_race",
   strata.var = "subject_gender",
-  adj.vars = NULL,
+  adj.vars = c("sample_body_site","subject_gender"),
   base.size = 16,
   theme.choice = "bw",
   palette = NULL,

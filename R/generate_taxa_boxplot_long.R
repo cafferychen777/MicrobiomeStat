@@ -73,7 +73,7 @@
 #' # Load required libraries and example data
 #' data(ecam.obj)
 #' # Generate the boxplot pair
-#' a <- generate_taxa_boxplot_long(
+#' generate_taxa_boxplot_long(
 #'   data.obj = ecam.obj,
 #'   subject.var = "studyid",
 #'   time.var = "month",
@@ -460,12 +460,12 @@ generate_taxa_boxplot_long <-
           boxplot <-
             boxplot + ggh4x::facet_nested(as.formula(paste(
               "~", feature.level, "+", group.var
-            )), scales = "fixed")
+            )), scales = "free")
         } else {
           boxplot <- boxplot + ggh4x::facet_nested(
             rows = vars(!!sym(strata.var)),
             cols = vars(!!sym(feature.level), !!sym(group.var)),
-            scales = "fixed"
+            scales = "free"
           )
         }
       }

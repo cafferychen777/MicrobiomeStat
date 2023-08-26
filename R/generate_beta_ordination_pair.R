@@ -70,8 +70,8 @@
 #'   subject.var   = "subject",
 #'   time.var      = "time",
 #'   group.var     = "group",
-#'   strata.var    = NULL,
-#'   adj.vars      = NULL,
+#'   strata.var    = "sex",
+#'   adj.vars      = "sex",
 #'   dist.name     = c("BC"),
 #'   base.size     = 16,
 #'   theme.choice  = "bw",
@@ -129,8 +129,6 @@ generate_beta_ordination_pair <-
           dist.name = dist.name
         )
     }
-
-    print(pc.obj)
 
     if (is.null(palette)) {
       col <-

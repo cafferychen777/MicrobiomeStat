@@ -100,7 +100,7 @@ generate_alpha_boxplot_single(
   time.var     = "time",
   t.level      = "2",
   group.var    = "group",
-  strata.var   = NULL,
+  strata.var   = "sex",
   adj.vars     = "sex",
   base.size    = 16,
   theme.choice = "bw",

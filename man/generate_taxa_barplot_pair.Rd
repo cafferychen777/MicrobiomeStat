@@ -108,7 +108,7 @@ generate_taxa_barplot_pair(
   subject.var = "subject",
   time.var = "time",
   group.var = "group",
-  strata.var = NULL,
+  strata.var = "sex",
   feature.level = "Family",
   feature.dat.type = c("count"),
   feature.number = 8,

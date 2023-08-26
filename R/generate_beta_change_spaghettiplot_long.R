@@ -51,7 +51,6 @@
 #' @examples
 #' \dontrun{
 #' data(ecam.obj)
-#'
 #' generate_beta_change_spaghettiplot_long(
 #'   data.obj = ecam.obj,
 #'   dist.obj = NULL,
@@ -297,6 +296,7 @@ generate_beta_change_spaghettiplot_long <-
           legend.text = ggplot2::element_text(size = 16),
           legend.title = ggplot2::element_text(size = 16)
         )
+
       if (group.var == "ALL"){
         p <- p + theme(legend.position = "none")
       }

@@ -41,7 +41,6 @@
 #' @examples
 #' \dontrun{
 #' data("subset_T2D.obj")
-#'
 #' generate_alpha_boxplot_long(
 #'   data.obj = subset_T2D.obj,
 #'   alpha.obj = NULL,
@@ -52,7 +51,7 @@
 #'   ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[2:6],
 #'   group.var = "subject_race",
 #'   strata.var = "subject_gender",
-#'   adj.vars = NULL,
+#'   adj.vars = c("sample_body_site","subject_gender"),
 #'   base.size = 16,
 #'   theme.choice = "bw",
 #'   palette = NULL,
@@ -228,13 +227,27 @@ generate_alpha_boxplot_long <- function (data.obj,
     }
 
     if (!is.null(adj.vars)){
-      # 构建公式
-      formula_string <- paste(index, "~", paste(adj.vars, collapse = " + "))
-      formula_obj <- as.formula(formula_string)
 
-      # 使用mutate和residuals来添加残差
-      alpha_df <- alpha_df %>%
-        dplyr::mutate(!!sym(index) := stats::residuals(lm(formula_obj, data = alpha_df)))
+      data_subset <- alpha_df %>%
+        select(all_of(adj.vars)) %>%
+        dplyr::mutate(dplyr::across(where(is.character) & !is.factor, factor))
+
+      M <- model.matrix(~ 0 + ., data = data_subset, contrasts.arg = lapply(data_subset, stats::contrasts, contrasts = FALSE))
+
+      # 去掉截距
+      # M <- M[, -1] 这一步在创建模型矩阵时通过 ~ 0 + . 已经实现了
+
+      # Center the covariates
+      M_centered <- scale(M, scale = FALSE)
+
+      # Fit regression model
+      fit <- lm(alpha_df[[index]] ~ M_centered)
+
+      # Compute the adjusted value
+      adjusted_value <- fit$coefficients[1] + residuals(fit)
+
+      # Update the alpha_df
+      alpha_df[[index]] <- adjusted_value
 
       message("Alpha diversity has been adjusted for the following covariates: ", paste(adj.vars, collapse = ", "), ".")
     }

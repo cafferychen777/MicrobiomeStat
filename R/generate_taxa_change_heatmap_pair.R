@@ -59,12 +59,12 @@
 #' # Load required libraries and example data
 #' library(pheatmap)
 #' data(peerj32.obj)
-#' plot_list <- generate_taxa_change_heatmap_pair(
+#' generate_taxa_change_heatmap_pair(
 #'   data.obj = peerj32.obj,
 #'   subject.var = "subject",
 #'   time.var = "time",
 #'   group.var = "group",
-#'   strata.var = NULL,
+#'   strata.var = "sex",
 #'   change.base = "1",
 #'   change.func = "relative difference",
 #'   feature.level = c("Family"),
@@ -86,28 +86,28 @@
 #' }
 #' @export
 generate_taxa_change_heatmap_pair <- function(data.obj,
-                                                    subject.var,
-                                                    time.var,
-                                                    group.var = NULL,
-                                                    strata.var = NULL,
-                                                    change.base = NULL,
-                                                    change.func = "relative difference",
-                                                    feature.level = NULL,
-                                                    feature.dat.type = c("count", "proportion", "other"),
-                                                    features.plot = NULL,
-                                                    top.k.plot = NULL,
-                                                    top.k.func = NULL,
-                                                    prev.filter = 0.01,
-                                                    abund.filter = 0.01,
-                                                    base.size = 10,
-                                                    palette = NULL,
-                                                    cluster.rows = NULL,
-                                                    cluster.cols = NULL,
-                                                    pdf = TRUE,
-                                                    file.ann = NULL,
-                                                    pdf.wid = 11,
-                                                    pdf.hei = 8.5,
-                                                    ...) {
+                                              subject.var,
+                                              time.var,
+                                              group.var = NULL,
+                                              strata.var = NULL,
+                                              change.base = NULL,
+                                              change.func = "relative difference",
+                                              feature.level = NULL,
+                                              feature.dat.type = c("count", "proportion", "other"),
+                                              features.plot = NULL,
+                                              top.k.plot = NULL,
+                                              top.k.func = NULL,
+                                              prev.filter = 0.01,
+                                              abund.filter = 0.01,
+                                              base.size = 10,
+                                              palette = NULL,
+                                              cluster.rows = NULL,
+                                              cluster.cols = NULL,
+                                              pdf = TRUE,
+                                              file.ann = NULL,
+                                              pdf.wid = 11,
+                                              pdf.hei = 8.5,
+                                              ...) {
   # Extract data
   mStat_validate_data(data.obj)
 
@@ -125,16 +125,22 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
 
   tax_tab <- load_data_obj_taxonomy(data.obj) %>%
     as.data.frame() %>%
-    {if("original" %in% feature.level) dplyr::mutate(., original = rownames(.)) else .} %>%
+    {
+      if ("original" %in% feature.level)
+        dplyr::mutate(., original = rownames(.))
+      else
+        .
+    } %>%
     select(all_of(feature.level))
 
   meta_tab <-  load_data_obj_metadata(data.obj) %>% select(all_of(c(
     time.var, group.var, strata.var, subject.var
   ))) %>% rownames_to_column("sample")
 
-  if (is.null(cluster.cols)){
-    if (!is.null(group.var)){
-      if (is.numeric(meta_tab %>% select(all_of(group.var)) %>% dplyr::pull()) && !is.integer(meta_tab %>% select(all_of(group.var)) %>% dplyr::pull())){
+  if (is.null(cluster.cols)) {
+    if (!is.null(group.var)) {
+      if (is.numeric(meta_tab %>% select(all_of(group.var)) %>% dplyr::pull()) &&
+          !is.integer(meta_tab %>% select(all_of(group.var)) %>% dplyr::pull())) {
         cluster.cols = FALSE
       } else {
         cluster.cols = TRUE
@@ -146,7 +152,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
 
   }
 
-  if (is.null(cluster.rows)){
+  if (is.null(cluster.rows)) {
     cluster.rows = TRUE
   }
 
@@ -163,18 +169,18 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
   plot_list <- lapply(feature.level, function(feature.level) {
     # Filter taxa based on prevalence and abundance
     otu_tax_filtered <- otu_tax %>%
-      tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
+      tidyr::gather(key = "sample", value = "count",-one_of(colnames(tax_tab))) %>%
       dplyr::group_by_at(vars(!!sym(feature.level))) %>%
       dplyr::summarise(total_count = mean(count),
-                prevalence = sum(count > 0) / dplyr::n()) %>%
+                       prevalence = sum(count > 0) / dplyr::n()) %>%
       filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
-      select(-total_count, -prevalence) %>%
+      select(-total_count,-prevalence) %>%
       dplyr::left_join(otu_tax, by = feature.level)
 
     # Aggregate OTU table
     otu_tax_agg <- otu_tax_filtered %>%
-      tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
-      dplyr::group_by_at(vars(sample, !!sym(feature.level))) %>%
+      tidyr::gather(key = "sample", value = "count",-one_of(colnames(tax_tab))) %>%
+      dplyr::group_by_at(vars(sample,!!sym(feature.level))) %>%
       dplyr::summarise(count = sum(count)) %>%
       tidyr::spread(key = "sample", value = "count")
 
@@ -192,8 +198,9 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
                "sd" = {
                  results <-
                    matrixStats::rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
-                          na.rm = TRUE)
-                 names(results) <- rownames(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
+                                       na.rm = TRUE)
+                 names(results) <-
+                   rownames(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
                },
                stop("Invalid function specified"))
       }
@@ -203,7 +210,8 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
 
     if (is.null(features.plot) &&
         !is.null(top.k.plot) && !is.null(top.k.func)) {
-      features.plot <- names(sort(compute_function(top.k.func), decreasing = TRUE)[1:top.k.plot])
+      features.plot <-
+        names(sort(compute_function(top.k.func), decreasing = TRUE)[1:top.k.plot])
     }
 
     # Convert counts to numeric
@@ -212,7 +220,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
 
     # 将otu_tax_agg_numeric从宽格式转换为长格式
     otu_tax_long <- otu_tax_agg_numeric %>%
-      tidyr::gather(key = "sample", value = "value", -feature.level)
+      tidyr::gather(key = "sample", value = "value",-feature.level)
 
     # 将otu_tax_long和meta_tab按sample列连接
     merged_data <- otu_tax_long %>%
@@ -243,36 +251,55 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
 
     # 计算value的差值
     if (is.function(change.func)) {
-      combined_data <- combined_data %>% dplyr::mutate(value_diff = change.func(value_time_2, value_time_1))
+      combined_data <-
+        combined_data %>% dplyr::mutate(value_diff = change.func(value_time_2, value_time_1))
     } else if (change.func == "lfc") {
       half_nonzero_min_time_2 <- combined_data %>%
         filter(value_time_2 > 0) %>%
         dplyr::group_by(!!sym(feature.level)) %>%
         dplyr::summarize(half_nonzero_min = min(value_time_2) / 2,
-                  .groups = "drop")
+                         .groups = "drop")
       half_nonzero_min_time_1 <- combined_data %>%
         filter(value_time_1 > 0) %>%
         dplyr::group_by(!!sym(feature.level)) %>%
         dplyr::summarize(half_nonzero_min = min(value_time_1) / 2,
-                  .groups = "drop")
+                         .groups = "drop")
 
-      combined_data <- dplyr::left_join(combined_data, half_nonzero_min_time_2, by = feature.level, suffix = c("_time_1", "_time_2"))
-      combined_data <- dplyr::left_join(combined_data, half_nonzero_min_time_1, by = feature.level, suffix = c("_time_1", "_time_2"))
-      combined_data$value_time_2[combined_data$value_time_2 == 0] <- combined_data$half_nonzero_min_time_2[combined_data$value_time_2 == 0]
-      combined_data$value_time_1[combined_data$value_time_1 == 0] <- combined_data$half_nonzero_min_time_1[combined_data$value_time_1 == 0]
+      combined_data <-
+        dplyr::left_join(
+          combined_data,
+          half_nonzero_min_time_2,
+          by = feature.level,
+          suffix = c("_time_1", "_time_2")
+        )
+      combined_data <-
+        dplyr::left_join(
+          combined_data,
+          half_nonzero_min_time_1,
+          by = feature.level,
+          suffix = c("_time_1", "_time_2")
+        )
+      combined_data$value_time_2[combined_data$value_time_2 == 0] <-
+        combined_data$half_nonzero_min_time_2[combined_data$value_time_2 == 0]
+      combined_data$value_time_1[combined_data$value_time_1 == 0] <-
+        combined_data$half_nonzero_min_time_1[combined_data$value_time_1 == 0]
 
       # Add a message to inform users that an imputation operation was performed.
-      message("Imputation was performed using half the minimum nonzero proportion for each taxon at different time points.")
+      message(
+        "Imputation was performed using half the minimum nonzero proportion for each taxon at different time points."
+      )
 
-      combined_data <- combined_data %>% dplyr::mutate(value_diff = log2(value_time_2) - log2(value_time_1))
-    } else if (change.func == "relative difference"){
+      combined_data <-
+        combined_data %>% dplyr::mutate(value_diff = log2(value_time_2) - log2(value_time_1))
+    } else if (change.func == "relative difference") {
       combined_data <- combined_data %>%
         dplyr::mutate(value_diff = dplyr::case_when(
           value_time_2 == 0 & value_time_1 == 0 ~ 0,
           TRUE ~ (value_time_2 - value_time_1) / (value_time_2 + value_time_1)
         ))
     } else {
-      combined_data <- combined_data %>% dplyr::mutate(value_diff = value_time_2 - value_time_1)
+      combined_data <-
+        combined_data %>% dplyr::mutate(value_diff = value_time_2 - value_time_1)
     }
 
     value_diff_matrix <- combined_data %>%
@@ -292,16 +319,16 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
             as.matrix(unique_meta_tab %>% select(!!sym(subject.var))))
 
     suppressWarnings({
-    # 根据顺序对 unique_meta_tab 进行排序
-    sorted_meta_tab <- unique_meta_tab[order_index, ]
-    rownames(sorted_meta_tab) <-
-      as.matrix(sorted_meta_tab[, subject.var])
+      # 根据顺序对 unique_meta_tab 进行排序
+      sorted_meta_tab <- unique_meta_tab[order_index,]
+      rownames(sorted_meta_tab) <-
+        as.matrix(sorted_meta_tab[, subject.var])
     })
 
     # 如果 group.var 不为空，则根据 group.var 对 sorted_meta_tab 进行排序
     if (!is.null(group.var)) {
       sorted_meta_tab <-
-        sorted_meta_tab[order(sorted_meta_tab %>% select(!!sym(group.var)) %>% as.matrix()), ]
+        sorted_meta_tab[order(sorted_meta_tab %>% select(!!sym(group.var)) %>% as.matrix()),]
     }
 
     # 从 sorted_meta_tab 中提取 subject 列
@@ -322,69 +349,111 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
         sorted_meta_tab %>% select(all_of(c(group.var, strata.var, subject.var))) %>% column_to_rownames(var = subject.var)
     }
 
-    if (!is.null(group.var)) {
-      # 计算分隔线应该出现的位置
-      gaps <-
-        cumsum(table(sorted_meta_tab[[group.var]]))[-length(sorted_meta_tab[[group.var]])]
-    } else {
-      gaps <- NULL
+    annotation_col_sorted <-
+      annotation_cols[order(annotation_cols[[group.var]]), ]
+
+    if (!is.null(strata.var)) {
+      annotation_col_sorted <-
+        annotation_col_sorted[order(annotation_col_sorted[[strata.var]], annotation_col_sorted[[group.var]]),]
+
     }
 
-    if (!is.null(features.plot)){
-      value_diff_matrix <- value_diff_matrix[rownames(value_diff_matrix) %in% features.plot, ]
+    value_diff_matrix <-
+      value_diff_matrix[, rownames(annotation_col_sorted)]
+
+    if (!is.null(strata.var)) {
+      gaps <-
+        cumsum(table(sorted_meta_tab[[strata.var]]))[-length(sorted_meta_tab[[strata.var]])]
+    } else {
+      if (!is.null(group.var)) {
+        # 计算分隔线应该出现的位置
+        gaps <-
+          cumsum(table(sorted_meta_tab[[group.var]]))[-length(sorted_meta_tab[[group.var]])]
+      } else {
+        gaps <- NULL
+      }
+    }
+
+    if (!is.null(features.plot)) {
+      value_diff_matrix <-
+        value_diff_matrix[rownames(value_diff_matrix) %in% features.plot,]
     }
 
     n_colors <- 100
 
-    if (is.null(palette)) {
-      palette <- c("#0571b0", "#92c5de", "white", "#f4a582", "#ca0020")
-      # 找出数据中的最大绝对值
-      max_abs_val <- max(abs(range(na.omit(c(value_diff_matrix)))))
+    col <- c("#0571b0", "#92c5de", "white", "#f4a582", "#ca0020")
+    # 找出数据中的最大绝对值
+    max_abs_val <- max(abs(range(na.omit(
+      c(value_diff_matrix)
+    ))))
 
-      # 计算零值在新色彩向量中的位置
-      zero_pos <- round(max_abs_val / (2 * max_abs_val) * n_colors)
+    # 计算零值在新色彩向量中的位置
+    zero_pos <- round(max_abs_val / (2 * max_abs_val) * n_colors)
 
-      # 创建颜色向量
-      my_palette <- c(colorRampPalette(palette[1:3])(zero_pos), colorRampPalette(palette[3:5])(n_colors - zero_pos + 1))
+    # 创建颜色向量
+    my_col <-
+      c(
+        colorRampPalette(col[1:3])(zero_pos),
+        colorRampPalette(col[3:5])(n_colors - zero_pos + 1)
+      )
 
-      heatmap_plot <- pheatmap::pheatmap(
-        value_diff_matrix,
-        annotation_col = annotation_cols,
-        cluster_rows = cluster.rows,
-        cluster_cols = cluster.cols,
-        annotation_legend = TRUE,
-        show_colnames = TRUE,
-        show_rownames = TRUE,
-        border_color = NA,
-        gaps_col = gaps,
-        fontsize = base.size,
-        color = my_palette,
-        ...
+    break_points <-
+      seq(-max_abs_val, max_abs_val, length.out = length(my_col) + 1)
+
+    if (is.null(palette)){
+      color_vector <- c(
+        "#E31A1C",
+        "#1F78B4",
+        "#FB9A99",
+        "#33A02C",
+        "#FDBF6F",
+        "#B2DF8A",
+        "#A6CEE3",
+        "#BA7A70",
+        "#9D4E3F",
+        "#829BAB"
       )
     } else {
-      # 创建颜色映射函数
-      my_palette <- colorRampPalette(palette)
-
-      # Plot stacked heatmap
-      heatmap_plot <- pheatmap::pheatmap(
-        value_diff_matrix,
-        annotation_col = annotation_cols,
-        cluster_rows = cluster.rows,
-        cluster_cols = cluster.cols,
-        annotation_legend = TRUE,
-        show_colnames = TRUE,
-        show_rownames = TRUE,
-        border_color = NA,
-        gaps_col = gaps,
-        fontsize = base.size,
-        color = my_palette(n_colors),
-        ...
-      )
+      color_vector <- palette
     }
+
+    # 为演示目的，假设这些是您的唯一值
+    group_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
+    strata_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(strata.var))) %>% distinct() %>% pull()
+
+    # 为 group.var 分配颜色
+    group_colors <- setNames(color_vector[1:length(group_levels)], group_levels)
+
+    # 为 strata.var 分配颜色
+    strata_colors <- setNames(rev(color_vector)[1:length(strata_levels)], strata_levels)
+
+    # 创建注释颜色列表
+    annotation_colors_list <- setNames(
+      list(group_colors, strata_colors),
+      c(group.var, strata.var)
+    )
+
+    heatmap_plot <- pheatmap::pheatmap(
+      value_diff_matrix,
+      annotation_col = annotation_col_sorted,
+      annotation_colors = annotation_colors_list,
+      cluster_rows = cluster.rows,
+      cluster_cols = cluster.cols,
+      annotation_legend = TRUE,
+      show_colnames = TRUE,
+      show_rownames = TRUE,
+      border_color = NA,
+      silent = TRUE,
+      gaps_col = gaps,
+      fontsize = base.size,
+      color = my_col,
+      breaks = break_points,
+      ...
+    )
 
     gg_heatmap_plot <- as.ggplot(heatmap_plot)
 
-    if (is.function(change.func)){
+    if (is.function(change.func)) {
       change.func = "custom function"
     }
 

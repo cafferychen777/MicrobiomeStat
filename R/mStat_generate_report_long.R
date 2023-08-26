@@ -206,7 +206,7 @@
 #'   transform = "sqrt",
 #'   theme.choice = "bw",
 #'   base.size = 12,
-#'   output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/报告/mStat_generate_report_long_example.pdf"
+#'   output.file = "path/report.pdf"
 #' )
 #' }
 #' data(subset_T2D.obj)
