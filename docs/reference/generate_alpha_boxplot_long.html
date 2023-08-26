@@ -58,6 +58,7 @@
 <span>  ts.levels <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  group.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  adj.vars <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  base.size <span class="op">=</span> <span class="fl">12</span>,</span>
 <span>  theme.choice <span class="op">=</span> <span class="st">"prism"</span>,</span>
 <span>  custom.theme <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -93,12 +94,11 @@
 
 
 <dt>t0.level</dt>
-<dd><p>The level in the metadata table that represents the initial time point. This parameter is used to determine the starting point for time series data. If NULL, the first unique time point in the data will be used.</p></dd>
+<dd><p>Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.</p></dd>
 
 
 <dt>ts.levels</dt>
-<dd><p>The levels in the metadata table that represent the subsequent time points.
-These parameters are used to determine the time points that follow the initial time point (t0.level) for time series data. If NULL, all unique time points in the data (except for the initial time point) will be used.</p></dd>
+<dd><p>Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.</p></dd>
 
 
 <dt>group.var</dt>
@@ -109,16 +109,32 @@ These parameters are used to determine the time points that follow the initial t
 <dd><p>An optional variable in the metadata table that represents the stratification factor.</p></dd>
 
 
+<dt>adj.vars</dt>
+<dd><p>A character vector of variable names to be used for adjustment.</p></dd>
+
+
 <dt>base.size</dt>
 <dd><p>The base font size for the plot.</p></dd>
 
 
 <dt>theme.choice</dt>
-<dd><p>A character string indicating the choice of pre-defined ggplot2 theme for the plot. Supported choices include "prism" (default), "classic", "gray", and "bw".</p></dd>
+<dd><p>Plot theme choice. Can be one of:
+  - "prism": ggprism::theme_prism()
+  - "classic": theme_classic()
+  - "gray": theme_gray()
+  - "bw": theme_bw()
+Default is "bw".</p></dd>
 
 
 <dt>custom.theme</dt>
-<dd><p>An optional custom ggplot2 theme. If provided, this theme will be used instead of the pre-defined themes.</p></dd>
+<dd><p>A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:</p>
+<p>```r
+my_theme &lt;- ggplot2::theme(
+  axis.title = ggplot2::element_text(size=16, color="red"),
+  legend.position = "none"
+)
+```</p>
+<p>Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.</p></dd>
 
 
 <dt>palette</dt>
@@ -156,7 +172,6 @@ These parameters are used to determine the time points that follow the initial t
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"subset_T2D.obj"</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">generate_alpha_boxplot_long</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">subset_T2D.obj</span>,</span></span>
 <span class="r-in"><span>  alpha.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
@@ -166,8 +181,9 @@ These parameters are used to determine the time points that follow the initial t
 <span class="r-in"><span>  t0.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">subset_T2D.obj</span><span class="op">$</span><span class="va">meta.dat</span><span class="op">$</span><span class="va">visit_number</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span></span>
 <span class="r-in"><span>  ts.levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">subset_T2D.obj</span><span class="op">$</span><span class="va">meta.dat</span><span class="op">$</span><span class="va">visit_number</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span>,</span></span>
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"subject_race"</span>,</span></span>
-<span class="r-in"><span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">20</span>,</span></span>
+<span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"subject_gender"</span>,</span></span>
+<span class="r-in"><span>  adj.vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sample_body_site"</span>,<span class="st">"subject_gender"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">16</span>,</span></span>
 <span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
 <span class="r-in"><span>  palette <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  pdf <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
@@ -185,7 +201,8 @@ These parameters are used to determine the time points that follow the initial t
 <span class="r-in"><span>  t0.level <span class="op">=</span> <span class="st">"1"</span>,</span></span>
 <span class="r-in"><span>  ts.levels <span class="op">=</span> <span class="st">"2"</span>,</span></span>
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
-<span class="r-in"><span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
+<span class="r-in"><span>  adj.vars <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
 <span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">20</span>,</span></span>
 <span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
 <span class="r-in"><span>  palette <span class="op">=</span> <span class="cn">NULL</span>,</span></span>

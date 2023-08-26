@@ -56,6 +56,7 @@
 <span>  <span class="va">time.var</span>,</span>
 <span>  group.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  adj.vars <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BC"</span>, <span class="st">"Jaccard"</span><span class="op">)</span>,</span>
 <span>  base.size <span class="op">=</span> <span class="fl">16</span>,</span>
 <span>  theme.choice <span class="op">=</span> <span class="st">"prism"</span>,</span>
@@ -76,11 +77,21 @@
 
 
 <dt>dist.obj</dt>
-<dd><p>(Optional) A distance object generated from distance matrices using 'mStat_calculate_beta_diversity' function on data.obj. If data.obj is not provided, metadata can be retrieved from dist.obj.</p></dd>
+<dd><p>Distance matrix between samples, usually calculated using
+<code><a href="mStat_calculate_beta_diversity.html">mStat_calculate_beta_diversity</a></code> function.
+If NULL, beta diversity will be automatically computed from <code>data.obj</code>
+using <code>mStat_calculate_beta_diversity</code>.</p></dd>
 
 
 <dt>pc.obj</dt>
-<dd><p>(Optional) A matrix containing the principal coordinates, computed using 'mStat_calculate_PC' function on dist.obj. If not provided, the function will calculate PCoA based on the given distance object.</p></dd>
+<dd><p>A list containing the results of dimension reduction/Principal Component Analysis.
+This should be the output from functions like <code><a href="mStat_calculate_PC.html">mStat_calculate_PC</a></code>, containing the PC coordinates and other metadata.
+If NULL (default), dimension reduction will be automatically performed using metric multidimensional scaling (MDS) via <code><a href="mStat_calculate_PC.html">mStat_calculate_PC</a></code>.
+The pc.obj list structure should contain:</p><ul><li><p>$points:A matrix with samples as rows and PCs as columns containing the coordinates.</p></li>
+<li><p>$eig:Eigenvalues for each PC dimension.</p></li>
+<li><p>$vectors:Loadings vectors for features onto each PC.</p></li>
+<li><p>Other metadata like $method, $dist.name, etc.</p></li>
+</ul><p>See <code><a href="mStat_calculate_PC.html">mStat_calculate_PC</a></code> function for details on output format.</p></dd>
 
 
 <dt>subject.var</dt>
@@ -99,8 +110,12 @@
 <dd><p>(Optional) The variable in the metadata table that represents the stratification factor.</p></dd>
 
 
+<dt>adj.vars</dt>
+<dd><p>A character vector containing the names of the columns in data.obj$meta.dat to include as covariates in the PERMANOVA analysis. If no covariates are needed, use NULL (default).</p></dd>
+
+
 <dt>dist.name</dt>
-<dd><p>A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned.</p></dd>
+<dd><p>A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').</p></dd>
 
 
 <dt>base.size</dt>
@@ -108,11 +123,23 @@
 
 
 <dt>theme.choice</dt>
-<dd><p>(Optional) Name of the theme for the plot. Default is "prism". Other options include "plain", "classic", and any other themes compatible with ggplot2.</p></dd>
+<dd><p>Plot theme choice. Can be one of:
+  - "prism": ggprism::theme_prism()
+  - "classic": theme_classic()
+  - "gray": theme_gray()
+  - "bw": theme_bw()
+Default is "bw".</p></dd>
 
 
 <dt>custom.theme</dt>
-<dd><p>(Optional) A custom ggplot2 theme.</p></dd>
+<dd><p>A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:</p>
+<p>```r
+my_theme &lt;- ggplot2::theme(
+  axis.title = ggplot2::element_text(size=16, color="red"),
+  legend.position = "none"
+)
+```</p>
+<p>Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.</p></dd>
 
 
 <dt>palette</dt>
@@ -153,40 +180,36 @@
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="mStat_calculate_beta_diversity.html">mStat_calculate_beta_diversity</a></code> for creating the distance object, <code><a href="mStat_calculate_PC.html">mStat_calculate_PC</a></code> for computing the principal coordinates, and <code><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></code>, <code><a href="https://ggplot2.tidyverse.org/reference/geom_boxplot.html" class="external-link">geom_boxplot</a></code> for the underlying plot functions used, and <code><a href="mStat_convert_DGEList_to_data_obj.html">mStat_convert_DGEList_to_data_obj</a></code>, <code><a href="mStat_convert_DESeqDataSet_to_data_obj.html">mStat_convert_DESeqDataSet_to_data_obj</a></code>, <code><a href="mStat_convert_phyloseq_to_data_obj.html">mStat_convert_phyloseq_to_data_obj</a></code>, <code><a href="mStat_convert_SummarizedExperiment_to_data_obj.html">mStat_convert_SummarizedExperiment_to_data_obj</a></code>, <code><a href="mStat_import_qiime2_as_data_obj.html">mStat_import_qiime2_as_data_obj</a></code>, <code><a href="mStat_import_mothur_as_data_obj.html">mStat_import_mothur_as_data_obj</a></code>, <code><a href="mStat_import_dada2_as_data_obj.html">mStat_import_dada2_as_data_obj</a></code>, <code><a href="mStat_import_biom_as_data_obj.html">mStat_import_biom_as_data_obj</a></code> for data conversion.</p></div>
     </div>
-    <div class="section level2">
-    <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>
-    <p>Caffery Yang <a href="mailto:cafferychen7850@gmail.com">cafferychen7850@gmail.com</a></p>
-    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span><span class="co"># Load required libraries and example data</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Load necessary libraries and data</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/vegandevs/vegan" class="external-link">vegan</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">peerj32.obj</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">dist.obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="mStat_calculate_beta_diversity.html">mStat_calculate_beta_diversity</a></span><span class="op">(</span><span class="va">peerj32.obj</span>, dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'BC'</span>, <span class="st">'Jaccard'</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="co"># Add metadata information</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">dist.obj</span><span class="op">[[</span><span class="st">"BC"</span><span class="op">]</span><span class="op">]</span>, <span class="st">"labels"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">peerj32.obj</span><span class="op">$</span><span class="va">meta.dat</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">dist.obj</span><span class="op">[[</span><span class="st">"Jaccard"</span><span class="op">]</span><span class="op">]</span>, <span class="st">"labels"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">peerj32.obj</span><span class="op">$</span><span class="va">meta.dat</span></span></span>
-<span class="r-in"><span><span class="co"># Generate the boxplot pair</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Perform beta ordination pair analysis using `generate_beta_ordination_pair`</span></span></span>
 <span class="r-in"><span><span class="fu">generate_beta_ordination_pair</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">peerj32.obj</span>,</span></span>
-<span class="r-in"><span>  dist.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  pc.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"subject"</span>,</span></span>
-<span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"time"</span>,</span></span>
-<span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
-<span class="r-in"><span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BC"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">16</span>,</span></span>
-<span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
-<span class="r-in"><span>  custom.theme <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  palette <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  pdf <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
-<span class="r-in"><span>  file.ann <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  pdf.wid <span class="op">=</span> <span class="fl">11</span>,</span></span>
-<span class="r-in"><span>  pdf.hei <span class="op">=</span> <span class="fl">8.5</span></span></span>
+<span class="r-in"><span>  data.obj      <span class="op">=</span> <span class="va">peerj32.obj</span>,</span></span>
+<span class="r-in"><span>  dist.obj      <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  pc.obj        <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  subject.var   <span class="op">=</span> <span class="st">"subject"</span>,</span></span>
+<span class="r-in"><span>  time.var      <span class="op">=</span> <span class="st">"time"</span>,</span></span>
+<span class="r-in"><span>  group.var     <span class="op">=</span> <span class="st">"group"</span>,</span></span>
+<span class="r-in"><span>  strata.var    <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
+<span class="r-in"><span>  adj.vars      <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
+<span class="r-in"><span>  dist.name     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BC"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  base.size     <span class="op">=</span> <span class="fl">16</span>,</span></span>
+<span class="r-in"><span>  theme.choice  <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
+<span class="r-in"><span>  custom.theme  <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  palette       <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  pdf           <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>  file.ann      <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  pdf.wid       <span class="op">=</span> <span class="fl">11</span>,</span></span>
+<span class="r-in"><span>  pdf.hei       <span class="op">=</span> <span class="fl">8.5</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>

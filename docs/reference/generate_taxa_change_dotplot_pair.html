@@ -112,31 +112,52 @@ interactively or saved as a PDF file.</p>
 
 
 <dt>feature.level</dt>
-<dd><p>A character string defining the taxonomic level to analyze ('Phylum', 'Family', or 'Genus')</p></dd>
+<dd><p>The column name in the feature annotation matrix (feature.ann) of data.obj
+to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
+annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
+column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
+for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
+is also NULL.</p></dd>
 
 
 <dt>feature.dat.type</dt>
-<dd><p>A character string specifying the type of the data in feature.dat. Options are "count", "proportion", or "other".</p></dd>
+<dd><p>The type of the feature data, which determines how the data is handled in downstream analyses.
+Should be one of:
+- "count": Raw count data, will be normalized by the function.
+- "proportion": Data that has already been normalized to proportions/percentages.
+- "other": Custom abundance data that has unknown scaling. No normalization applied.
+The choice affects preprocessing steps as well as plot axis labels.
+Default is "count", which assumes raw OTU table input.</p></dd>
 
 
 <dt>features.plot</dt>
-<dd><p>A character vector specifying the taxa to be plotted. If NULL (default), the top k taxa by mean abundance will be plotted.</p></dd>
+<dd><p>A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.</p></dd>
 
 
 <dt>top.k.plot</dt>
-<dd><p>A numeric value specifying the number of top taxa to be plotted if features.plot is NULL. If NULL (default), all taxa will be plotted.</p></dd>
+<dd><p>Integer specifying number of top abundant features to plot, when `features.plot` is NULL.
+Default is NULL, in which case all features passing filters will be plotted.</p></dd>
 
 
 <dt>top.k.func</dt>
-<dd><p>A function to compute the top k taxa if features.plot is NULL. If NULL (default), the mean function will be used.</p></dd>
+<dd><p>Function to use for selecting top abundant features, when `features.plot` is NULL.
+Options include inbuilt functions like "mean", "sd", or a custom function. Default is NULL, in which
+case features will be selected by mean abundance.</p></dd>
 
 
 <dt>prev.filter</dt>
-<dd><p>A numeric value defining the prevalence threshold to filter taxa, between 0 and 1</p></dd>
+<dd><p>Numeric value specifying the minimum prevalence threshold for filtering
+taxa before analysis. Taxa with prevalence below this value will be removed.
+Prevalence is calculated as the proportion of samples where the taxon is present.
+Default 0 removes no taxa by prevalence filtering.</p></dd>
 
 
 <dt>abund.filter</dt>
-<dd><p>A numeric value defining the abundance threshold to filter taxa</p></dd>
+<dd><p>Numeric value specifying the minimum abundance threshold for filtering
+taxa before analysis. Taxa with mean abundance below this value will be removed.
+Abundance refers to counts or proportions depending on <code>feature.dat.type</code>.
+Default 0 removes no taxa by abundance filtering.</p></dd>
 
 
 <dt>base.size</dt>
@@ -144,11 +165,23 @@ interactively or saved as a PDF file.</p>
 
 
 <dt>theme.choice</dt>
-<dd><p>The choice of theme for the plot. Default is "bw".</p></dd>
+<dd><p>Plot theme choice. Can be one of:
+  - "prism": ggprism::theme_prism()
+  - "classic": theme_classic()
+  - "gray": theme_gray()
+  - "bw": theme_bw()
+Default is "bw".</p></dd>
 
 
 <dt>custom.theme</dt>
-<dd><p>Custom ggplot2 theme (optional).</p></dd>
+<dd><p>A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:</p>
+<p>```r
+my_theme &lt;- ggplot2::theme(
+  axis.title = ggplot2::element_text(size=16, color="red"),
+  legend.position = "none"
+)
+```</p>
+<p>Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.</p></dd>
 
 
 <dt>palette</dt>
@@ -197,7 +230,7 @@ interactively or saved as a PDF file.</p>
 <span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"subject"</span>,</span></span>
 <span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"time"</span>,</span></span>
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
-<span class="r-in"><span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
 <span class="r-in"><span>  change.base <span class="op">=</span> <span class="st">"1"</span>,</span></span>
 <span class="r-in"><span>  change.func <span class="op">=</span> <span class="st">"lfc"</span>,</span></span>
 <span class="r-in"><span>  feature.level <span class="op">=</span> <span class="st">"Family"</span>,</span></span>

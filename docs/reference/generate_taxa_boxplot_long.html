@@ -64,7 +64,7 @@ It also provides options for grouping and stratifying data.</p>
 <span>  features.plot <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  top.k.plot <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  top.k.func <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  Transform <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"identity"</span>, <span class="st">"sqrt"</span>, <span class="st">"log"</span><span class="op">)</span>,</span>
+<span>  transform <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"identity"</span>, <span class="st">"sqrt"</span>, <span class="st">"log"</span><span class="op">)</span>,</span>
 <span>  prev.filter <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  abund.filter <span class="op">=</span> <span class="fl">0.01</span>,</span>
 <span>  base.size <span class="op">=</span> <span class="fl">16</span>,</span>
@@ -82,7 +82,7 @@ It also provides options for grouping and stratifying data.</p>
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>data.obj</dt>
-<dd><p>A list object containing the input data.</p></dd>
+<dd><p>A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.</p></dd>
 
 
 <dt>subject.var</dt>
@@ -94,11 +94,11 @@ It also provides options for grouping and stratifying data.</p>
 
 
 <dt>t0.level</dt>
-<dd><p>A string indicating the reference time point. Default is NULL.</p></dd>
+<dd><p>Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.</p></dd>
 
 
 <dt>ts.levels</dt>
-<dd><p>A vector indicating the time points to include in the analysis. Default is NULL.</p></dd>
+<dd><p>Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.</p></dd>
 
 
 <dt>group.var</dt>
@@ -114,31 +114,50 @@ It also provides options for grouping and stratifying data.</p>
 
 
 <dt>feature.dat.type</dt>
-<dd><p>A string indicating the type of data in the input object.</p></dd>
+<dd><p>The type of the feature data, which determines how the data is handled in downstream analyses.
+Should be one of:
+- "count": Raw count data, will be normalized by the function.
+- "proportion": Data that has already been normalized to proportions/percentages.
+- "other": Custom abundance data that has unknown scaling. No normalization applied.
+The choice affects preprocessing steps as well as plot axis labels.
+Default is "count", which assumes raw OTU table input.</p></dd>
 
 
 <dt>features.plot</dt>
-<dd><p>A character vector of features to include in the plot. If NULL, top features will be selected based on `top.k.plot` and `top.k.func`.</p></dd>
+<dd><p>A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.</p></dd>
 
 
 <dt>top.k.plot</dt>
-<dd><p>An integer indicating the top K features to plot based on the function specified in `top.k.func`.</p></dd>
+<dd><p>Integer specifying number of top k features to plot, when `features.plot` is NULL.
+Default is NULL, in which case all features passing filters will be plotted.</p></dd>
 
 
 <dt>top.k.func</dt>
-<dd><p>A function to determine the top K features to plot.</p></dd>
+<dd><p>Function to use for selecting top k features, when `features.plot` is NULL.
+Options include inbuilt functions like "mean", "sd", or a custom function. Default is NULL, in which
+case features will be selected by abundance.</p></dd>
 
 
-<dt>Transform</dt>
-<dd><p>A string indicating the transformation to apply to the data before plotting. Options are "identity", "sqrt", "log". Default is "identity".</p></dd>
+<dt>transform</dt>
+<dd><p>A string indicating the transformation to apply to the data before plotting. Options are:
+- "identity": No transformation (default)
+- "sqrt": Square root transformation
+- "log": Logarithmic transformation. Zeros are replaced with half of the minimum non-zero value for each taxon before log transformation.</p></dd>
 
 
 <dt>prev.filter</dt>
-<dd><p>A numeric value indicating the minimum prevalence for a feature to be included in the plot.</p></dd>
+<dd><p>Numeric value specifying the minimum prevalence threshold for filtering
+taxa before analysis. Taxa with prevalence below this value will be removed.
+Prevalence is calculated as the proportion of samples where the taxon is present.
+Default 0 removes no taxa by prevalence filtering.</p></dd>
 
 
 <dt>abund.filter</dt>
-<dd><p>A numeric value indicating the minimum abundance for a feature to be included in the plot.</p></dd>
+<dd><p>Numeric value specifying the minimum abundance threshold for filtering
+taxa before analysis. Taxa with mean abundance below this value will be removed.
+Abundance refers to counts or proportions depending on <code>feature.dat.type</code>.
+Default 0 removes no taxa by abundance filtering.</p></dd>
 
 
 <dt>base.size</dt>
@@ -146,11 +165,23 @@ It also provides options for grouping and stratifying data.</p>
 
 
 <dt>theme.choice</dt>
-<dd><p>A string specifying the theme of the plot. Default is "prism".</p></dd>
+<dd><p>Plot theme choice. Can be one of:
+  - "prism": ggprism::theme_prism()
+  - "classic": theme_classic()
+  - "gray": theme_gray()
+  - "bw": theme_bw()
+Default is "bw".</p></dd>
 
 
 <dt>custom.theme</dt>
-<dd><p>A ggplot2 theme object for user-defined theme. Default is NULL.</p></dd>
+<dd><p>A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:</p>
+<p>```r
+my_theme &lt;- ggplot2::theme(
+  axis.title = ggplot2::element_text(size=16, color="red"),
+  legend.position = "none"
+)
+```</p>
+<p>Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.</p></dd>
 
 
 <dt>palette</dt>
@@ -195,7 +226,7 @@ The function also has options to customize the size, theme, and color palette of
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span><span class="co"># Load required libraries and example data</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">peerj32.obj</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">ecam.obj</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># Generate the boxplot pair</span></span></span>
 <span class="r-in"><span><span class="fu">generate_taxa_boxplot_long</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">ecam.obj</span>,</span></span>
@@ -205,18 +236,18 @@ The function also has options to customize the size, theme, and color palette of
 <span class="r-in"><span>  ts.levels <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"diet"</span>,</span></span>
 <span class="r-in"><span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Phylum"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  features.plot <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">ecam.obj</span><span class="op">$</span><span class="va">feature.ann</span><span class="op">[</span>,<span class="st">"Phylum"</span><span class="op">]</span><span class="op">)</span>,<span class="fl">1</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Class"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  features.plot <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"proportion"</span>,</span></span>
-<span class="r-in"><span>  Transform <span class="op">=</span> <span class="st">"log"</span>,</span></span>
-<span class="r-in"><span>  prev.filter <span class="op">=</span> <span class="fl">0</span>,</span></span>
-<span class="r-in"><span>  abund.filter <span class="op">=</span> <span class="fl">0</span>,</span></span>
+<span class="r-in"><span>  transform <span class="op">=</span> <span class="st">"log"</span>,</span></span>
+<span class="r-in"><span>  prev.filter <span class="op">=</span> <span class="fl">1e-7</span>,</span></span>
+<span class="r-in"><span>  abund.filter <span class="op">=</span> <span class="fl">1e-7</span>,</span></span>
 <span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">12</span>,</span></span>
-<span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"classic"</span>,</span></span>
+<span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
 <span class="r-in"><span>  custom.theme <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  palette <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  pdf <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
-<span class="r-in"><span>  file.ann <span class="op">=</span> <span class="st">"test"</span>,</span></span>
+<span class="r-in"><span>  file.ann <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  pdf.wid <span class="op">=</span> <span class="fl">11</span>,</span></span>
 <span class="r-in"><span>  pdf.hei <span class="op">=</span> <span class="fl">8.5</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
@@ -234,17 +265,17 @@ The function also has options to customize the size, theme, and color palette of
 <span class="r-in"><span>  features.plot <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  top.k.plot <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  top.k.func <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  Transform <span class="op">=</span> <span class="st">"log"</span>,</span></span>
-<span class="r-in"><span>  prev.filter <span class="op">=</span> <span class="fl">0</span>,</span></span>
-<span class="r-in"><span>  abund.filter <span class="op">=</span> <span class="fl">0</span>,</span></span>
-<span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">16</span>,</span></span>
-<span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"classic"</span>,</span></span>
+<span class="r-in"><span>  transform <span class="op">=</span> <span class="st">"log"</span>,</span></span>
+<span class="r-in"><span>  prev.filter <span class="op">=</span> <span class="fl">0.001</span>,</span></span>
+<span class="r-in"><span>  abund.filter <span class="op">=</span> <span class="fl">0.001</span>,</span></span>
+<span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">12</span>,</span></span>
+<span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
 <span class="r-in"><span>  custom.theme <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  palette <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  pdf <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>  file.ann <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  pdf.wid <span class="op">=</span> <span class="fl">11</span>,</span></span>
-<span class="r-in"><span>  pdf.hei <span class="op">=</span> <span class="fl">8.5</span></span></span>
+<span class="r-in"><span>  pdf.hei <span class="op">=</span> <span class="fl">13</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>

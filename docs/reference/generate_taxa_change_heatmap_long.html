@@ -97,11 +97,11 @@ using the “pheatmap” package. It can also save the resulting heatmap as a PD
 
 
 <dt>t0.level</dt>
-<dd><p>The base level for time points in longitudinal data.</p></dd>
+<dd><p>Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.</p></dd>
 
 
 <dt>ts.levels</dt>
-<dd><p>The levels for time points in longitudinal data.</p></dd>
+<dd><p>Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.</p></dd>
 
 
 <dt>group.var</dt>
@@ -117,11 +117,18 @@ using the “pheatmap” package. It can also save the resulting heatmap as a PD
 
 
 <dt>feature.dat.type</dt>
-<dd><p>A character string specifying the type of the data in feature.dat. Options are "count", "proportion", or "other".</p></dd>
+<dd><p>The type of the feature data, which determines how the data is handled in downstream analyses.
+Should be one of:
+- "count": Raw count data, will be normalized by the function.
+- "proportion": Data that has already been normalized to proportions/percentages.
+- "other": Custom abundance data that has unknown scaling. No normalization applied.
+The choice affects preprocessing steps as well as plot axis labels.
+Default is "count", which assumes raw OTU table input.</p></dd>
 
 
 <dt>features.plot</dt>
-<dd><p>A character vector specifying the taxa to be plotted. If NULL (default), the top k taxa by mean abundance will be plotted.</p></dd>
+<dd><p>A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.</p></dd>
 
 
 <dt>top.k.plot</dt>
@@ -133,15 +140,31 @@ using the “pheatmap” package. It can also save the resulting heatmap as a PD
 
 
 <dt>change.func</dt>
-<dd><p>A function or character string specifying the method for computing the change. Default is "difference".</p></dd>
+<dd><p>A function or character string specifying how to calculate
+the change from baseline value. This allows flexible options:
+- If a function is provided, it will be applied to each row to calculate change.
+  The function should take 2 arguments: value at timepoint t and value at baseline t0.
+- If a character string is provided, following options are supported:
+  - 'relative difference': (value_t - value_t0) / (value_t + value_t0)
+  - 'difference': value_t - value_t0
+  - 'lfc': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
+- Default is 'relative difference'.</p>
+<p>If none of the above options are matched, an error will be thrown indicating
+the acceptable options or prompting the user to provide a custom function.</p></dd>
 
 
 <dt>prev.filter</dt>
-<dd><p>A numeric value defining the prevalence threshold to filter taxa, between 0 and 1.</p></dd>
+<dd><p>Numeric value specifying the minimum prevalence threshold for filtering
+taxa before analysis. Taxa with prevalence below this value will be removed.
+Prevalence is calculated as the proportion of samples where the taxon is present.
+Default 0 removes no taxa by prevalence filtering.</p></dd>
 
 
 <dt>abund.filter</dt>
-<dd><p>A numeric value defining the abundance threshold to filter taxa.</p></dd>
+<dd><p>Numeric value specifying the minimum abundance threshold for filtering
+taxa before analysis. Taxa with mean abundance below this value will be removed.
+Abundance refers to counts or proportions depending on <code>feature.dat.type</code>.
+Default 0 removes no taxa by abundance filtering.</p></dd>
 
 
 <dt>base.size</dt>
@@ -177,21 +200,34 @@ using the “pheatmap” package. It can also save the resulting heatmap as a PD
 
 
 <dt>...</dt>
-<dd><p>Additional arguments to be passed</p></dd>
+<dd><p>Additional arguments passed to pheatmap.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     
 
-<p>If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the pheatmap::pheatmap plot. If `pdf` is set to FALSE, the function will return the pheatmap plot without creating a PDF file.</p>
+<p>A list of ggplot heatmap objects, one for each taxonomic level.</p>
 
 
 <p>An object of class pheatmap, the generated heatmap plot</p>
     </div>
     <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>This parameter is used to compute the change columns from baseline
+  (specified by t0.level) for each taxon. The change values are calculated
+  for each timepoint and appended as new columns in the data frame before
+  plotting heatmap. This allows flexibly customizing how change is quantified.</p>
+<p>This function generates a separate heatmap for each taxonomic level specified,
+  with rows clustered and layers arranged by groups over timepoints.
+  It automatically rarefies raw count data using Rarefy-TSS normalization in MicrobiomeStat.
+  Annotation columns are generated and ordered properly for visually stacking the layers.
+  Colormaps are also generated for group and strata variables.</p>
+    </div>
+    <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="https://rdrr.io/pkg/pheatmap/man/pheatmap.html" class="external-link">pheatmap</a></code></p></div>
+    <div class="dont-index"><p><code><a href="https://rdrr.io/pkg/pheatmap/man/pheatmap.html" class="external-link">pheatmap</a></code> for heatmap, <code><a href="mStat_normalize_data.html">mStat_normalize_data</a></code> for data normalization.</p>
+<p><code><a href="https://rdrr.io/pkg/pheatmap/man/pheatmap.html" class="external-link">pheatmap</a></code></p></div>
     </div>
 
     <div class="section level2">
@@ -200,7 +236,7 @@ using the “pheatmap” package. It can also save the resulting heatmap as a PD
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">pheatmap</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">ecam.obj</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">plot_list</span> <span class="op">&lt;-</span> <span class="fu">generate_taxa_change_heatmap_long</span><span class="op">(</span></span></span>
+<span class="r-in"><span><span class="fu">generate_taxa_change_heatmap_long</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">ecam.obj</span>,</span></span>
 <span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"studyid"</span>,</span></span>
 <span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"month_num"</span>,</span></span>
@@ -208,7 +244,7 @@ using the “pheatmap” package. It can also save the resulting heatmap as a PD
 <span class="r-in"><span>  ts.levels <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"antiexposedall"</span>,</span></span>
 <span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"diet"</span>,</span></span>
-<span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Family"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Family"</span>,<span class="st">"Class"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"proportion"</span>,</span></span>
 <span class="r-in"><span>  features.plot <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  top.k.plot <span class="op">=</span> <span class="fl">10</span>,</span></span>
@@ -218,7 +254,29 @@ using the “pheatmap” package. It can also save the resulting heatmap as a PD
 <span class="r-in"><span>  prev.filter <span class="op">=</span> <span class="fl">0.01</span>,</span></span>
 <span class="r-in"><span>  abund.filter <span class="op">=</span> <span class="fl">0.01</span>,</span></span>
 <span class="r-in"><span>  pdf <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
-<span class="r-in"><span>  file.ann <span class="op">=</span> <span class="st">"test"</span></span></span>
+<span class="r-in"><span>  file.ann <span class="op">=</span> <span class="cn">NULL</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">subset_T2D.obj</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">generate_taxa_change_heatmap_long</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">subset_T2D.obj</span>,</span></span>
+<span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"subject_id"</span>,</span></span>
+<span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"visit_number_num"</span>,</span></span>
+<span class="r-in"><span>  t0.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">subset_T2D.obj</span><span class="op">$</span><span class="va">meta.dat</span><span class="op">$</span><span class="va">visit_number_num</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span></span>
+<span class="r-in"><span>  ts.levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">subset_T2D.obj</span><span class="op">$</span><span class="va">meta.dat</span><span class="op">$</span><span class="va">visit_number_num</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>,</span></span>
+<span class="r-in"><span>  group.var <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Phylum"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"count"</span>,</span></span>
+<span class="r-in"><span>  features.plot <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  top.k.plot <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  top.k.func <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  change.func <span class="op">=</span> <span class="st">"relative difference"</span>,</span></span>
+<span class="r-in"><span>  prev.filter <span class="op">=</span> <span class="fl">0.0001</span>,</span></span>
+<span class="r-in"><span>  abund.filter <span class="op">=</span> <span class="fl">0.0001</span>,</span></span>
+<span class="r-in"><span>  pdf <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>  file.ann <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  pdf.wid <span class="op">=</span> <span class="fl">11</span>,</span></span>
+<span class="r-in"><span>  pdf.hei <span class="op">=</span> <span class="fl">8.5</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span></span></span>

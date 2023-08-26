@@ -58,280 +58,82 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="microbiomestat-your-best-choice-for-microbiome-analysis-ever-">MicrobiomeStat: Your Best Choice for Microbiome Analysis Ever! 🧬🔬<a class="anchor" aria-label="anchor" href="#microbiomestat-your-best-choice-for-microbiome-analysis-ever-"></a>
+<div class="page-header"><h1 id="microbiomestat-comprehensive--longitudinal-microbiome-analysis-in-r">MicrobiomeStat: Comprehensive &amp; Longitudinal Microbiome Analysis in R<a class="anchor" aria-label="anchor" href="#microbiomestat-comprehensive--longitudinal-microbiome-analysis-in-r"></a>
 </h1></div>
 <!-- badges: start -->
 
-<p><code>MicrobiomeStat</code> is a powerful and versatile R package, designed specifically for analyzing longitudinal microbiome data. It extends to handle multi-omics data, making it an asset for broader biological research.</p>
-<p>Crucially, <code>MicrobiomeStat</code> shines not only in longitudinal studies, but is also adept at handling cross-sectional studies. For more detailed tutorials and information, please visit our main page: <a href="http://www.microbiomestat.wiki" class="external-link">www.microbiomestat.wiki</a>.</p>
+<p>The <code>MicrobiomeStat</code> package is a state-of-the-art R tool with a <strong>special focus on the analysis of longitudinal microbiome data</strong>. While capable of handling multi-omics data and cross-sectional studies, its <strong>core strength lies in its proficiency in longitudinal analysis</strong>. This makes it an invaluable resource for researchers conducting extensive biological studies over time.</p>
 <div class="section level2">
-<h2 id="why-choose-microbiomestat-">Why Choose MicrobiomeStat? 👍<a class="anchor" aria-label="anchor" href="#why-choose-microbiomestat-"></a>
+<h2 id="important-note-on-cran-version">Important Note on CRAN Version<a class="anchor" aria-label="anchor" href="#important-note-on-cran-version"></a>
 </h2>
-<p>Choosing the right tools for your microbiome data analysis can make a significant difference in the results. We have compared <code>MicrobiomeStat</code> with other similar packages, and we believe our package stands out in many aspects. Below are two comparative tables, showing the distinct advantages of <code>MicrobiomeStat</code> over other packages.</p>
+<p>Due to the <strong>ongoing development cycle</strong>, the <strong>most up-to-date features</strong> of <code>MicrobiomeStat</code> have <strong>not yet been uploaded to the CRAN repository</strong>. The current CRAN version <strong>only supports the <code>linda</code> and <code>linda.plot</code> functions</strong>. If you <strong>require additional functionalities</strong>, particularly for <strong>analyzing longitudinal data</strong>, we recommend <strong>installing the development version from GitHub</strong>. To do this, you’ll first need to <strong>install the <code>devtools</code> package</strong> if you haven’t already:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span></span></code></pre></div>
+<p>Once <code>devtools</code> is installed, you can install <code>MicrobiomeStat</code> from GitHub using the following command:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"cafferychen777/MicrobiomeStat"</span><span class="op">)</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level1">
+<h1 id="table-of-contents">Table of Contents<a class="anchor" aria-label="anchor" href="#table-of-contents"></a>
+</h1>
+<ol style="list-style-type: decimal">
+<li><a href="#online-tutorials">Online Tutorials</a></li>
+<li><a href="#why-choose-microbiomestat">Benefits of Using MicrobiomeStat</a></li>
+<li><a href="#features-at-a-glance">Key Features</a></li>
+<li><a href="#support-contact">Assistance &amp; Contact Information</a></li>
+<li><a href="#discord-community">Join Our Discord Community</a></li>
+</ol>
+</div>
+<div class="section level1">
+<h1 id="online-tutorials">Online Tutorials<a class="anchor" aria-label="anchor" href="#online-tutorials"></a>
+</h1>
+<p><code>MicrobiomeStat</code> represents a comprehensive toolset for microbiome data analysis, boasting extensive capabilities from data input to visualization.</p>
+<p>For an in-depth understanding of <code>MicrobiomeStat</code>, we have curated a comprehensive online tutorial using GitBook, encompassing:</p>
+<ul>
+<li>Comprehensive installation and configuration guidance</li>
+<li>Analysis walkthroughs driven by real-world cases</li>
+<li>Hands-on code examples</li>
+<li>Detailed guides on result interpretation and visualization</li>
+<li>Frequently Asked Questions</li>
+</ul>
+<p>For a seamless experience with <code>MicrobiomeStat</code>, we recommend acquainting yourself with these online tutorials: <strong>MicrobiomeStat Tutorials:</strong> <a href="https://www.microbiomestat.wiki" class="external-link uri">https://www.microbiomestat.wiki</a></p>
+<div class="section level2">
+<h2 id="benefits-of-using-microbiomestat">Benefits of Using MicrobiomeStat<a class="anchor" aria-label="anchor" href="#benefits-of-using-microbiomestat"></a>
+</h2>
+<p>The field of microbiome research is complex and rapidly evolving. The analytical tools chosen can have significant implications for research outcomes. In this context, <code>MicrobiomeStat</code> presents itself as a robust option.</p>
+<div class="section level3">
+<h3 id="comparative-overview">Comparative Overview<a class="anchor" aria-label="anchor" href="#comparative-overview"></a>
+</h3>
+<p>For a thorough understanding of how <code>MicrobiomeStat</code> measures against other tools, we’ve provided detailed comparisons on our website:</p>
+<ul>
+<li><p><a href="https://www.microbiomestat.wiki/introduction/microbiomestat-versus-the-competition-a-comparative-overview/microbiomestat-vs.-other-longitudinal-packages-an-in-depth-comparison" class="external-link">Comparison with Other Longitudinal Packages</a></p></li>
+<li><p><a href="https://www.microbiomestat.wiki/introduction/microbiomestat-versus-the-competition-a-comparative-overview/microbiomestat-vs-integrated-analysis-packages-a-feature-comparison" class="external-link">Comparison with Integrated Analysis Packages</a></p></li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="user-support">User Support<a class="anchor" aria-label="anchor" href="#user-support"></a>
+</h3>
+<p><code>MicrobiomeStat</code> is designed with users in mind. Comprehensive documentation and tutorials are available to assist both novice and experienced researchers.</p>
+</div>
+<div class="section level3">
+<h3 id="ongoing-development">Ongoing Development<a class="anchor" aria-label="anchor" href="#ongoing-development"></a>
+</h3>
+<p>Ensuring that <code>MicrobiomeStat</code> remains a leading tool in its category requires ongoing development. We’re dedicated to regular updates and addressing user feedback.</p>
+</div>
+<div class="section level3">
+<h3 id="collaborative-development">Collaborative Development<a class="anchor" aria-label="anchor" href="#collaborative-development"></a>
+</h3>
+<p><code>MicrobiomeStat</code> is an open-source tool, and we value contributions from the community. If you have suggestions or improvements, pull requests are welcomed.</p>
+</div>
+<div class="section level3">
+<h3 id="conclusion">Conclusion<a class="anchor" aria-label="anchor" href="#conclusion"></a>
+</h3>
+<p><code>MicrobiomeStat</code> aims to be a reliable and efficient tool for microbiome data analysis. For those who value open-source collaboration, we invite you to be part of our community and contribute to its continuous improvement.</p>
+</div>
 </div>
 <div class="section level2">
-<h2 id="comparative-table-1-longitudinal-packages">Comparative Table 1: Longitudinal Packages<a class="anchor" aria-label="anchor" href="#comparative-table-1-longitudinal-packages"></a>
-</h2>
-<table class="table">
-<colgroup>
-<col width="14%">
-<col width="27%">
-<col width="13%">
-<col width="22%">
-<col width="22%">
-</colgroup>
-<thead><tr class="header">
-<th align="center">Features</th>
-<th align="center">MicrobiomeStat</th>
-<th align="center">q2-longitudinal</th>
-<th align="center">SplinectomeR</th>
-<th align="center">coda4microbiome</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td align="center">Data Input Formats</td>
-<td align="center">QIIME2, DADA2, BIOM, Mothur, Phyloseq, DGEList, DESeqDataSet, SummarizedExperiment, etc.</td>
-<td align="center">QIIME2</td>
-<td align="center">Custom format (No other formats import or conversion functions provided)</td>
-<td align="center">Custom format (No other formats import or conversion functions provided)</td>
-</tr>
-<tr class="even">
-<td align="center">Supports Alpha Diversity Analysis</td>
-<td align="center">✔️</td>
-<td align="center">Metrics need to be calculated externally</td>
-<td align="center">Metrics need to be calculated externally</td>
-<td align="center">❌</td>
-</tr>
-<tr class="odd">
-<td align="center">Supports Beta Diversity Analysis</td>
-<td align="center">✔️</td>
-<td align="center">Distances need to be calculated externally</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-</tr>
-<tr class="even">
-<td align="center">Paired Sample Analysis</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-</tr>
-<tr class="odd">
-<td align="center">Multiple Visualization Styles</td>
-<td align="center">Boxplot, Violinplot, Spaghettiplot, Heatmap, Stacked Barplot, Areaplot, Volcano Plot</td>
-<td align="center">Spaghettiplot, Boxplot</td>
-<td align="center">Lineplot</td>
-<td align="center">Boxplot, Densityplot, Barplot, Lineplot</td>
-</tr>
-<tr class="even">
-<td align="center">Key Features Identification</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-</tr>
-<tr class="odd">
-<td align="center">Diff. Prevalence</td>
-<td align="center">✔️</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-</tr>
-<tr class="even">
-<td align="center">Paired Samples Support in Taxa Analysis</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-</tr>
-<tr class="odd">
-<td align="center">Time Points Subgroup Analysis in Taxa Analysis</td>
-<td align="center">✔️</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-</tr>
-<tr class="even">
-<td align="center">Similar Abundance Pattern</td>
-<td align="center">✔️</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-</tr>
-<tr class="odd">
-<td align="center">Similar Change Pattern</td>
-<td align="center">✔️</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-</tr>
-<tr class="even">
-<td align="center">Similar Changes in Composition Over Time</td>
-<td align="center">✔️</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-</tr>
-<tr class="odd">
-<td align="center">Publication Ready</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-</tr>
-<tr class="even">
-<td align="center">Ongoing Development</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-</tr>
-</tbody>
-</table>
-<p>As shown in Comparative Table 1, <code>MicrobiomeStat</code> provides a variety of data input formats, supports both alpha and beta diversity analysis, paired sample analysis, multiple visualization styles, and many other features. This makes <code>MicrobiomeStat</code> more comprehensive and flexible than many other packages dedicated to longitudinal data analysis.</p>
-</div>
-<div class="section level2">
-<h2 id="comparative-table-2-comprehensive-packages">Comparative Table 2: Comprehensive Packages<a class="anchor" aria-label="anchor" href="#comparative-table-2-comprehensive-packages"></a>
-</h2>
-<table style="width:100%;" class="table">
-<colgroup>
-<col width="4%">
-<col width="13%">
-<col width="9%">
-<col width="6%">
-<col width="5%">
-<col width="16%">
-<col width="11%">
-<col width="13%">
-<col width="2%">
-<col width="4%">
-<col width="12%">
-</colgroup>
-<thead><tr class="header">
-<th align="center">Features</th>
-<th align="center">MicrobiomeStat</th>
-<th align="center">microbiomeutilities</th>
-<th align="center">phyloseq</th>
-<th align="center">microbiomemarker</th>
-<th align="center">MicrobiomeAnalyst</th>
-<th align="center">microbiomeeco</th>
-<th align="center">EasyAmplicon</th>
-<th align="center">STAMP</th>
-<th align="center">qiime2</th>
-<th align="center">MicrobiotaProcess</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td align="center">Data Input Formats</td>
-<td align="center">QIIME2, DADA2, BIOM, Mothur, Phyloseq, DGEList, DESeqDataSet, SummarizedExperiment</td>
-<td align="center">phyloseq</td>
-<td align="center">QIIME2, DADA2, BIOM, Mothur</td>
-<td align="center">QIIME2, DADA2, BIOM, Mothur, Phyloseq</td>
-<td align="center">txt, .csv, biom, mothur</td>
-<td align="center">QIIME, QIIME2, HUMAnN, Kraken2, phyloseq</td>
-<td align="center">Paired fastq/fq files</td>
-<td align="center">.tsv</td>
-<td align="center">fastq, biom</td>
-<td align="center">qiime2, dada2, MetaPhlAn, Returns MPSE object, Phyloseq, TreeSummarizedExperiment, SummarizedExperiment</td>
-</tr>
-<tr class="even">
-<td align="center">Supports Alpha Diversity Analysis</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-<td align="center">❌</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-</tr>
-<tr class="odd">
-<td align="center">Supports Beta Diversity Analysis</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-<td align="center">❌</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-</tr>
-<tr class="even">
-<td align="center">Paired Sample Analysis</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-<td align="center">✔️</td>
-<td align="center">❌</td>
-</tr>
-<tr class="odd">
-<td align="center">Longitudinal Data Analysis</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-<td align="center">✔️</td>
-<td align="center">❌</td>
-</tr>
-<tr class="even">
-<td align="center">Multiple Visualization Styles</td>
-<td align="center">Boxplot, Violinplot, Scatterplot, Barplot, Heatmap, Dotplot, Ordination plot, Area plot, Volcano plot, Spaghetti plot</td>
-<td align="center">Density plot, Barplot, Stripchart, Boxplot, Heatmap, Area plot, Spaghetti plot</td>
-<td align="center">Boxplot, Barplot, Heatmap, Network plot, Ordination plot</td>
-<td align="center">Boxplot, Heatmap, Dotplot, Barplot, Cladogram</td>
-<td align="center">Stacked bar/area plot, Interactive pie chart, Rarefaction curve, Phylogenetic tree, Heat tree, Boxplot, Heatmap, Network plot, Ordination plot</td>
-<td align="center">Barplot, Boxplot, Heatmap, Pie chart, Venn diagram, Ordination plot, Circular heatmap, Sankey diagram</td>
-<td align="center">Barplot, Cladogram, Phylogenetic tree, Heatmap, Sankey diagram, Venn diagram, Ordination plot, Volcano plot, Boxplot</td>
-<td align="center">Barplot, Scatterplot</td>
-<td align="center">Scatterplot, Ordination plot, Boxplot</td>
-<td align="center">Barplot, Boxplot, Heatmap, Ordination plot, Tree plot, Volcano plot</td>
-</tr>
-<tr class="odd">
-<td align="center">Publication Ready</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-<td align="center">✔️</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-<td align="center">✔️</td>
-<td align="center">❌</td>
-<td align="center">❌</td>
-</tr>
-<tr class="even">
-<td align="center">Ongoing Development</td>
-<td align="center">✔️</td>
-<td align="center">❌</td>
-<td align="center">✔️</td>
-<td align="center">❌</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-<td align="center">❌</td>
-<td align="center">✔️</td>
-<td align="center">✔️</td>
-</tr>
-</tbody>
-</table>
-<p>Comparative Table 2, comparing comprehensive packages, further illustrates the strengths of <code>MicrobiomeStat</code>. Not only does <code>MicrobiomeStat</code> support a wide range of data input formats and diversity analyses, but it also excels in paired sample analysis and longitudinal data analysis, among others.</p>
-<p>In conclusion, <code>MicrobiomeStat</code> offers a robust and comprehensive solution for your microbiome data analysis needs, outperforming many other packages in both versatility and user-friendliness. Why not give it a try and see the difference for yourself?</p>
-</div>
-<div class="section level2">
-<h2 id="features-at-a-glance-">Features at a glance 🌟<a class="anchor" aria-label="anchor" href="#features-at-a-glance-"></a>
+<h2 id="key-features">Key Features<a class="anchor" aria-label="anchor" href="#key-features"></a>
 </h2>
 <table class="table">
 <colgroup>
@@ -375,18 +177,9 @@
 </table>
 </div>
 <div class="section level2">
-<h2 id="output-interpretation-">Output interpretation 📝<a class="anchor" aria-label="anchor" href="#output-interpretation-"></a>
+<h2 id="assistance--contact-information">Assistance &amp; Contact Information<a class="anchor" aria-label="anchor" href="#assistance--contact-information"></a>
 </h2>
-<p>To learn how to interpret the output objects and visualizations, visit our wiki: <a href="http://www.microbiomestat.wiki" class="external-link">www.microbiomestat.wiki</a>.</p>
-</div>
-<div class="section level2">
-<h2 id="known-issues-and-limitations-️">Known issues and limitations ❗️<a class="anchor" aria-label="anchor" href="#known-issues-and-limitations-%EF%B8%8F"></a>
-</h2>
-<p>We strive to make <code>MicrobiomeStat</code> as comprehensive as possible, but there may still be limitations. All known issues can be found in the issues section of our GitHub repository.</p>
-</div>
-<div class="section level2">
-<h2 id="support--contact-">Support &amp; Contact 📬<a class="anchor" aria-label="anchor" href="#support--contact-"></a>
-</h2>
+<p>For assistance or inquiries, feel free to reach out to:</p>
 <table class="table">
 <thead><tr class="header">
 <th>Name</th>
@@ -394,18 +187,25 @@
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td>Jun Chen</td>
+<td>Dr. Jun Chen</td>
 <td><a href="mailto:Chen.Jun2@mayo.edu" class="email">Chen.Jun2@mayo.edu</a></td>
 </tr>
 <tr class="even">
-<td>Caffery Yang</td>
+<td>Chen Yang</td>
 <td><a href="mailto:cafferychen7850@gmail.com" class="email">cafferychen7850@gmail.com</a></td>
 </tr>
 </tbody>
 </table>
-<p>Stay updated with the latest <code>MicrobiomeStat</code> features by visiting our wiki: <a href="http://www.microbiomestat.wiki" class="external-link">www.microbiomestat.wiki</a></p>
+</div>
+<div class="section level2">
+<h2 id="engage-in-our-discord-community">Engage in Our Discord Community<a class="anchor" aria-label="anchor" href="#engage-in-our-discord-community"></a>
+</h2>
+<p>Join our Discord community to stay abreast of the latest developments in <code>MicrobiomeStat</code>, engage in discussions, and avail support:</p>
+<p><a href="https://discord.gg/BfNvTJAt" class="external-link">Join the MicrobiomeStat Discord Server!</a></p>
+<p>Our active community fosters an environment of collaboration, feedback, and continuous learning.</p>
 </div>
 </div>
+
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">

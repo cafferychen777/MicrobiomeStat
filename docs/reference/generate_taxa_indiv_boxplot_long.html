@@ -61,7 +61,7 @@
 <span>  feature.dat.type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"count"</span>, <span class="st">"proportion"</span>, <span class="st">"other"</span><span class="op">)</span>,</span>
 <span>  top.k.plot <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  top.k.func <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  Transform <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"identity"</span>, <span class="st">"sqrt"</span>, <span class="st">"log"</span><span class="op">)</span>,</span>
+<span>  transform <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"identity"</span>, <span class="st">"sqrt"</span>, <span class="st">"log"</span><span class="op">)</span>,</span>
 <span>  prev.filter <span class="op">=</span> <span class="fl">0.01</span>,</span>
 <span>  abund.filter <span class="op">=</span> <span class="fl">0.01</span>,</span>
 <span>  base.size <span class="op">=</span> <span class="fl">16</span>,</span>
@@ -91,11 +91,11 @@
 
 
 <dt>t0.level</dt>
-<dd><p>The base level for time points in longitudinal data.</p></dd>
+<dd><p>Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.</p></dd>
 
 
 <dt>ts.levels</dt>
-<dd><p>The levels for time points in longitudinal data.</p></dd>
+<dd><p>Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.</p></dd>
 
 
 <dt>group.var</dt>
@@ -111,11 +111,18 @@
 
 
 <dt>features.plot</dt>
-<dd><p>A character vector specifying the taxa to be plotted. If NULL (default), the top k taxa by mean abundance will be plotted.</p></dd>
+<dd><p>A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.</p></dd>
 
 
 <dt>feature.dat.type</dt>
-<dd><p>A character string specifying the type of the data in feature.dat. Options are "count", "proportion", or "other".</p></dd>
+<dd><p>The type of the feature data, which determines how the data is handled in downstream analyses.
+Should be one of:
+- "count": Raw count data, will be normalized by the function.
+- "proportion": Data that has already been normalized to proportions/percentages.
+- "other": Custom abundance data that has unknown scaling. No normalization applied.
+The choice affects preprocessing steps as well as plot axis labels.
+Default is "count", which assumes raw OTU table input.</p></dd>
 
 
 <dt>top.k.plot</dt>
@@ -126,16 +133,25 @@
 <dd><p>A function to compute the top k taxa if features.plot is NULL. If NULL (default), the mean function will be used.</p></dd>
 
 
-<dt>Transform</dt>
-<dd><p>Transformation to apply before plotting. Default is "log10".</p></dd>
+<dt>transform</dt>
+<dd><p>A string indicating the transformation to apply to the data before plotting. Options are:
+- "identity": No transformation (default)
+- "sqrt": Square root transformation
+- "log": Logarithmic transformation. Zeros are replaced with half of the minimum non-zero value for each taxon before log transformation.</p></dd>
 
 
 <dt>prev.filter</dt>
-<dd><p>Prevalence threshold for filtering taxa. Default 0.05.</p></dd>
+<dd><p>Numeric value specifying the minimum prevalence threshold for filtering
+taxa before analysis. Taxa with prevalence below this value will be removed.
+Prevalence is calculated as the proportion of samples where the taxon is present.
+Default 0 removes no taxa by prevalence filtering.</p></dd>
 
 
 <dt>abund.filter</dt>
-<dd><p>Abundance threshold for filtering taxa. Default 0.01.</p></dd>
+<dd><p>Numeric value specifying the minimum abundance threshold for filtering
+taxa before analysis. Taxa with mean abundance below this value will be removed.
+Abundance refers to counts or proportions depending on <code>feature.dat.type</code>.
+Default 0 removes no taxa by abundance filtering.</p></dd>
 
 
 <dt>base.size</dt>
@@ -143,11 +159,23 @@
 
 
 <dt>theme.choice</dt>
-<dd><p>Plot theme choice (default: "bw").</p></dd>
+<dd><p>Plot theme choice. Can be one of:
+  - "prism": ggprism::theme_prism()
+  - "classic": theme_classic()
+  - "gray": theme_gray()
+  - "bw": theme_bw()
+Default is "bw".</p></dd>
 
 
 <dt>custom.theme</dt>
-<dd><p>Custom ggplot2 theme (optional).</p></dd>
+<dd><p>A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:</p>
+<p>```r
+my_theme &lt;- ggplot2::theme(
+  axis.title = ggplot2::element_text(size=16, color="red"),
+  legend.position = "none"
+)
+```</p>
+<p>Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.</p></dd>
 
 
 <dt>palette</dt>
@@ -196,18 +224,18 @@
 <span class="r-in"><span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Phylum"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"proportion"</span>,</span></span>
-<span class="r-in"><span>  Transform <span class="op">=</span> <span class="st">"log"</span>,</span></span>
+<span class="r-in"><span>  transform <span class="op">=</span> <span class="st">"log"</span>,</span></span>
 <span class="r-in"><span>  prev.filter <span class="op">=</span> <span class="fl">0.01</span>,</span></span>
 <span class="r-in"><span>  abund.filter <span class="op">=</span> <span class="fl">0.01</span>,</span></span>
 <span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">20</span>,</span></span>
-<span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"classic"</span>,</span></span>
+<span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
 <span class="r-in"><span>  custom.theme <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"#1f77b4"</span>, <span class="st">"#ff7f0e"</span>, <span class="st">"#2ca02c"</span>, <span class="st">"#d62728"</span>, <span class="st">"#9467bd"</span>,</span></span>
 <span class="r-in"><span>  <span class="st">"#8c564b"</span>, <span class="st">"#e377c2"</span>, <span class="st">"#7f7f7f"</span>, <span class="st">"#bcbd22"</span>, <span class="st">"#17becf"</span>, <span class="st">"#aec7e8"</span>,</span></span>
 <span class="r-in"><span>  <span class="st">"#ffbb78"</span>, <span class="st">"#98df8a"</span>, <span class="st">"#ff9896"</span>, <span class="st">"#c5b0d5"</span>, <span class="st">"#c49c94"</span>, <span class="st">"#f7b6d2"</span>,</span></span>
 <span class="r-in"><span>  <span class="st">"#c7c7c7"</span>, <span class="st">"#dbdb8d"</span>, <span class="st">"#9edae5"</span>, <span class="st">"#f0f0f0"</span>, <span class="st">"#3182bd"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  pdf <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
-<span class="r-in"><span>  file.ann <span class="op">=</span> <span class="st">"test"</span>,</span></span>
+<span class="r-in"><span>  file.ann <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  pdf.wid <span class="op">=</span> <span class="fl">11</span>,</span></span>
 <span class="r-in"><span>  pdf.hei <span class="op">=</span> <span class="fl">8.5</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
@@ -227,11 +255,11 @@
 <span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"other"</span>,</span></span>
 <span class="r-in"><span>  top.k.plot <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  top.k.func <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  Transform <span class="op">=</span> <span class="st">"log"</span>,</span></span>
+<span class="r-in"><span>  transform <span class="op">=</span> <span class="st">"log"</span>,</span></span>
 <span class="r-in"><span>  prev.filter <span class="op">=</span> <span class="fl">0.01</span>,</span></span>
 <span class="r-in"><span>  abund.filter <span class="op">=</span> <span class="fl">0.01</span>,</span></span>
 <span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">20</span>,</span></span>
-<span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"classic"</span>,</span></span>
+<span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
 <span class="r-in"><span>  custom.theme <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  palette <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  pdf <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>

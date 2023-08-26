@@ -60,9 +60,10 @@ Non-Metric Multi-Dimensional Scaling (NMDS)</p>
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>dist.obj</dt>
-<dd><p>A list containing distance matrices for each beta diversity
-metric (e.g., Bray-Curtis). The matrices should be named with the metric's
-abbreviation.</p></dd>
+<dd><p>Distance matrix between samples, usually calculated using
+<code><a href="mStat_calculate_beta_diversity.html">mStat_calculate_beta_diversity</a></code> function.
+If NULL, beta diversity will be automatically computed from <code>data.obj</code>
+using <code>mStat_calculate_beta_diversity</code>.</p></dd>
 
 
 <dt>method</dt>
@@ -93,9 +94,9 @@ to be used from the dist.obj list. Default is 'BC'.</p></dd>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/vegandevs/vegan" class="external-link">vegan</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">peerj32.obj</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">dist.obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="mStat_calculate_beta_diversity.html">mStat_calculate_beta_diversity</a></span><span class="op">(</span><span class="va">peerj32.obj</span>, dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'BC'</span>, <span class="st">'Jaccard'</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">dist.obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="mStat_calculate_beta_diversity.html">mStat_calculate_beta_diversity</a></span><span class="op">(</span><span class="va">peerj32.obj</span>, dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'BC'</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">pc.obj</span> <span class="op">&lt;-</span> <span class="fu">mStat_calculate_PC</span><span class="op">(</span><span class="va">dist.obj</span>, method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'mds'</span><span class="op">)</span>, k <span class="op">=</span> <span class="fl">2</span>, dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'BC'</span>,<span class="st">'Jaccard'</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">pc.obj</span> <span class="op">&lt;-</span> <span class="fu">mStat_calculate_PC</span><span class="op">(</span><span class="va">dist.obj</span>, method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'mds'</span><span class="op">)</span>, k <span class="op">=</span> <span class="fl">2</span>, dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'BC'</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

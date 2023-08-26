@@ -65,39 +65,60 @@
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>data.obj</dt>
-<dd><p>A list containing the metadata and feature data.</p></dd>
+<dd><p>A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.</p></dd>
 
 
 <dt>time.var</dt>
-<dd><p>A string representing the time variable. Default is NULL.</p></dd>
+<dd><p>Character string specifying the column name in metadata containing time variable.
+Used to subset data to a single timepoint if provided. Default NULL does not subset.</p></dd>
 
 
 <dt>t.level</dt>
-<dd><p>A string representing the time level. Default is NULL.</p></dd>
+<dd><p>Character string specifying the time level/value to subset data to,
+if a time variable is provided. Default NULL does not subset data.</p></dd>
 
 
 <dt>group.var</dt>
-<dd><p>A string indicating the variable used for grouping.</p></dd>
+<dd><p>Character string specifying the column name in metadata containing grouping
+categories. This will be used as the predictor in differential abundance testing.</p></dd>
 
 
 <dt>adj.vars</dt>
-<dd><p>A string indicating the adjustment variables.</p></dd>
+<dd><p>Character vector specifying column names in metadata containing covariates.
+These will be used for adjustment in differential abundance testing.</p></dd>
 
 
 <dt>prev.filter</dt>
-<dd><p>A numeric value indicating the prevalence filter threshold. Default is 0.</p></dd>
+<dd><p>Numeric value specifying the minimum prevalence threshold for filtering
+taxa before analysis. Taxa with prevalence below this value will be removed.
+Prevalence is calculated as the proportion of samples where the taxon is present.
+Default 0 removes no taxa by prevalence filtering.</p></dd>
 
 
 <dt>abund.filter</dt>
-<dd><p>A numeric value indicating the abundance filter threshold. Default is 0.</p></dd>
+<dd><p>Numeric value specifying the minimum abundance threshold for filtering
+taxa before analysis. Taxa with mean abundance below this value will be removed.
+Abundance refers to counts or proportions depending on <code>feature.dat.type</code>.
+Default 0 removes no taxa by abundance filtering.</p></dd>
 
 
 <dt>feature.level</dt>
-<dd><p>A character vector indicating the feature level(s).</p></dd>
+<dd><p>The column name in the feature annotation matrix (feature.ann) of data.obj
+to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
+annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
+column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
+for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
+is also NULL.</p></dd>
 
 
 <dt>feature.dat.type</dt>
-<dd><p>A character string representing the type of feature data. Choices are "count", "proportion", "other". Default is "count".</p></dd>
+<dd><p>The type of the feature data, which determines how the data is handled in downstream analyses.
+Should be one of:
+- "count": Raw count data, will be normalized by the function.
+- "proportion": Data that has already been normalized to proportions/percentages.
+- "other": Custom abundance data that has unknown scaling. No normalization applied.
+The choice affects preprocessing steps as well as plot axis labels.
+Default is "count", which assumes raw OTU table input.</p></dd>
 
 
 <dt>...</dt>
@@ -110,12 +131,27 @@
 
 <p>A list of tibble(s) containing information about significant taxa, including R.Squared, F.Statistic, Estimate, P.Value, Adjusted.P.Value, Mean.Proportion, Mean.Prevalence, SD.Abundance and SD.Prevalence.</p>
     </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>This function performs differential abundance analysis using ZicoSeq method:</p>
+<p>1. Subset data to specific time point if time variable and level provided.</p>
+<p>2. Extract OTU table, taxonomy table, and sample metadata.</p>
+<p>3. Filter OTUs by prevalence and abundance thresholds if counting data.</p>
+<p>4. Aggregate OTU table to taxonomic levels specified by <code>feature.level</code>.</p>
+<p>5. Run ZicoSeq on aggregated table, with grouping and adjustment variables.</p>
+<p>6. Extract and compile statistics for significant taxa into results tables,
+including R-squared, F statistic, coefficients, p-values, mean proportions, etc.</p>
+<p>7. Return list of tables, with each element corresponding to one taxonomic level.</p>
+<p>In summary, it applies preprocessing steps, runs ZicoSeq differential abundance testing,
+and compiles informative results tables for significant taxa. Adjustment for covariates is
+supported. Customizable taxonomic aggregation allows testing at different levels.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">peerj32.obj</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">da_report</span> <span class="op">&lt;-</span> <span class="fu">generate_taxa_test_single</span><span class="op">(</span></span></span>
+<span class="r-in"><span><span class="fu">generate_taxa_test_single</span><span class="op">(</span></span></span>
 <span class="r-in"><span>    data.obj <span class="op">=</span> <span class="va">peerj32.obj</span>,</span></span>
 <span class="r-in"><span>    time.var <span class="op">=</span> <span class="st">"time"</span>,</span></span>
 <span class="r-in"><span>    t.level <span class="op">=</span> <span class="st">"1"</span>,</span></span>

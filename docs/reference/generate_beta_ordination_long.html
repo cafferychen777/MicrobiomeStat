@@ -67,6 +67,7 @@ saving the plots as PDF files.</p>
 <span>  <span class="va">ts.levels</span>,</span>
 <span>  group.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  adj.vars <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BC"</span>, <span class="st">"Jaccard"</span><span class="op">)</span>,</span>
 <span>  base.size <span class="op">=</span> <span class="fl">16</span>,</span>
 <span>  theme.choice <span class="op">=</span> <span class="st">"prism"</span>,</span>
@@ -83,43 +84,69 @@ saving the plots as PDF files.</p>
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>data.obj</dt>
-<dd><p>a list with the data to be used for the plots. If NULL, the distance object will be used instead.</p></dd>
+<dd><p>A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.</p></dd>
 
 
 <dt>dist.obj</dt>
-<dd><p>a list with distance matrices. If NULL, it will be calculated from the data object.</p></dd>
+<dd><p>Distance matrix between samples, usually calculated using
+<code><a href="mStat_calculate_beta_diversity.html">mStat_calculate_beta_diversity</a></code> function.
+If NULL, beta diversity will be automatically computed from <code>data.obj</code>
+using <code>mStat_calculate_beta_diversity</code>.</p></dd>
 
 
 <dt>pc.obj</dt>
-<dd><p>a list with principal coordinates. If NULL, it will be calculated from the distance object.</p></dd>
+<dd><p>A list containing the results of dimension reduction/Principal Component Analysis.
+This should be the output from functions like <code><a href="mStat_calculate_PC.html">mStat_calculate_PC</a></code>, containing the PC coordinates and other metadata.
+If NULL (default), dimension reduction will be automatically performed using metric multidimensional scaling (MDS) via <code><a href="mStat_calculate_PC.html">mStat_calculate_PC</a></code>.
+The pc.obj list structure should contain:</p><ul><li><p>$points:A matrix with samples as rows and PCs as columns containing the coordinates.</p></li>
+<li><p>$eig:Eigenvalues for each PC dimension.</p></li>
+<li><p>$vectors:Loadings vectors for features onto each PC.</p></li>
+<li><p>Other metadata like $method, $dist.name, etc.</p></li>
+</ul><p>See <code><a href="mStat_calculate_PC.html">mStat_calculate_PC</a></code> function for details on output format.</p></dd>
 
 
 <dt>subject.var</dt>
-<dd><p>a character string specifying the subject variable.</p></dd>
+<dd><p>Character string specifying the column name in metadata
+containing the subject IDs. This should uniquely identify
+each subject in the study. Required for connecting samples
+from the same subject.</p></dd>
 
 
 <dt>time.var</dt>
-<dd><p>a character string specifying the time variable.</p></dd>
+<dd><p>Character string specifying the column name in metadata containing
+the time variable. This should contain time points for each
+sample. Required for ordering and connecting samples for the
+same subject over time.</p></dd>
 
 
 <dt>t0.level</dt>
-<dd><p>a character string specifying the baseline time level.</p></dd>
+<dd><p>Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.</p></dd>
 
 
 <dt>ts.levels</dt>
-<dd><p>a vector of character strings specifying the time series levels.</p></dd>
+<dd><p>Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.</p></dd>
 
 
 <dt>group.var</dt>
-<dd><p>a character string specifying the grouping variable. If NULL, only color will be used in the plots.</p></dd>
+<dd><p>Character string specifying the column name in metadata containing
+the grouping variable. This will be mapped to color aesthetic in the
+plot. Optional, can be NULL.</p></dd>
 
 
 <dt>strata.var</dt>
-<dd><p>a character string specifying the stratification variable. If NULL, no stratification will be done.</p></dd>
+<dd><p>Character string specifying the column name in metadata containing
+the stratification variable. This will be used for nested faceting
+in the plots. Optional, can be NULL.</p></dd>
+
+
+<dt>adj.vars</dt>
+<dd><p>Character vector specifying column names in metadata to include as
+covariates in multivariate adjustment of the distance matrix before
+ordination. Can be empty or NULL if no adjustment needed.</p></dd>
 
 
 <dt>dist.name</dt>
-<dd><p>a character vector specifying the distance measures to use. Defaults to c('BC', 'Jaccard').</p></dd>
+<dd><p>A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned.</p></dd>
 
 
 <dt>base.size</dt>
@@ -127,15 +154,29 @@ saving the plots as PDF files.</p>
 
 
 <dt>theme.choice</dt>
-<dd><p>a character string specifying the theme to use. Defaults to "prism".</p></dd>
+<dd><p>Plot theme choice. Can be one of:
+  - "prism": ggprism::theme_prism()
+  - "classic": theme_classic()
+  - "gray": theme_gray()
+  - "bw": theme_bw()
+Default is "bw".</p></dd>
 
 
 <dt>custom.theme</dt>
-<dd><p>a ggplot2 theme object to use instead of the default theme.</p></dd>
+<dd><p>A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:</p>
+<p>```r
+my_theme &lt;- ggplot2::theme(
+  axis.title = ggplot2::element_text(size=16, color="red"),
+  legend.position = "none"
+)
+```</p>
+<p>Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.</p></dd>
 
 
 <dt>palette</dt>
-<dd><p>a character vector specifying the colors to use for the plots. If NULL, a default palette will be used.</p></dd>
+<dd><p>Character vector specifying colors to use for mapping groups to color aesthetic.
+Should be same length as number of groups. If NULL, default palette will be used.
+Colors will be mapped to groups based on order of group levels.</p></dd>
 
 
 <dt>pdf</dt>
@@ -168,27 +209,25 @@ saving the plots as PDF files.</p>
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="mStat_calculate_beta_diversity.html">mStat_calculate_beta_diversity</a></code> for creating the distance object, <code><a href="mStat_calculate_PC.html">mStat_calculate_PC</a></code> for computing the principal coordinates, and <code><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></code>, <code><a href="https://ggplot2.tidyverse.org/reference/geom_boxplot.html" class="external-link">geom_boxplot</a></code> for the underlying plot functions used, and <code><a href="mStat_convert_DGEList_to_data_obj.html">mStat_convert_DGEList_to_data_obj</a></code>, <code><a href="mStat_convert_DESeqDataSet_to_data_obj.html">mStat_convert_DESeqDataSet_to_data_obj</a></code>, <code><a href="mStat_convert_phyloseq_to_data_obj.html">mStat_convert_phyloseq_to_data_obj</a></code>, <code><a href="mStat_convert_SummarizedExperiment_to_data_obj.html">mStat_convert_SummarizedExperiment_to_data_obj</a></code>, <code><a href="mStat_import_qiime2_as_data_obj.html">mStat_import_qiime2_as_data_obj</a></code>, <code><a href="mStat_import_mothur_as_data_obj.html">mStat_import_mothur_as_data_obj</a></code>, <code><a href="mStat_import_dada2_as_data_obj.html">mStat_import_dada2_as_data_obj</a></code>, <code><a href="mStat_import_biom_as_data_obj.html">mStat_import_biom_as_data_obj</a></code> for data conversion.</p></div>
     </div>
-    <div class="section level2">
-    <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>
-    <p>Caffery Yang <a href="mailto:cafferychen7850@gmail.com">cafferychen7850@gmail.com</a></p>
-    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">subset_T2D.obj</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">generate_beta_ordination_long</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">subset_T2D.obj</span>,</span></span>
 <span class="r-in"><span>  dist.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  pc.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"subject_id"</span>,</span></span>
-<span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"visit_number"</span>,</span></span>
-<span class="r-in"><span>  t0.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">subset_T2D.obj</span><span class="op">$</span><span class="va">meta.dat</span><span class="op">$</span><span class="va">visit_number</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span></span>
-<span class="r-in"><span>  ts.levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">subset_T2D.obj</span><span class="op">$</span><span class="va">meta.dat</span><span class="op">$</span><span class="va">visit_number</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span>,</span></span>
-<span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"subject_race"</span>,</span></span>
-<span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"subject_gender"</span>,</span></span>
+<span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"visit_number_num"</span>,</span></span>
+<span class="r-in"><span>  t0.level <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  ts.levels <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"subject_gender"</span>,</span></span>
+<span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"subject_race"</span>,</span></span>
+<span class="r-in"><span>  adj.vars <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BC"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">16</span>,</span></span>
+<span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">12</span>,</span></span>
 <span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
 <span class="r-in"><span>  custom.theme <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  palette <span class="op">=</span> <span class="cn">NULL</span>,</span></span>

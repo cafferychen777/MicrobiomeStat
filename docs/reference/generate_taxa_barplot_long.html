@@ -77,43 +77,56 @@ It also provides options for grouping and stratifying data.</p>
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>data.obj</dt>
-<dd><p>A list object containing the input data.</p></dd>
+<dd><p>A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.</p></dd>
 
 
 <dt>subject.var</dt>
-<dd><p>A string indicating the variable for subject identifiers.</p></dd>
+<dd><p>Character string specifying the column name in metadata containing
+unique subject IDs. Required to connect samples from the same subject.</p></dd>
 
 
 <dt>time.var</dt>
-<dd><p>A string indicating the variable for time points.</p></dd>
+<dd><p>Character string specifying the column name in metadata containing the
+time variable. Required to order and connect samples over time.</p></dd>
 
 
 <dt>group.var</dt>
-<dd><p>A string indicating the variable for group identifiers. Default is NULL.</p></dd>
+<dd><p>Character string specifying the column name in metadata containing group identifiers. Default is NULL.</p></dd>
 
 
 <dt>strata.var</dt>
-<dd><p>A string indicating the variable for stratum identifiers. Default is NULL.</p></dd>
+<dd><p>Character string specifying the column name in metadata containing stratum identifiers. Default is NULL.</p></dd>
 
 
 <dt>feature.level</dt>
-<dd><p>A string indicating the taxonomic level to plot.</p></dd>
+<dd><p>The column name in the feature annotation matrix (feature.ann) of data.obj
+to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
+annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
+column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
+for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
+is also NULL.</p></dd>
 
 
 <dt>feature.dat.type</dt>
-<dd><p>A string indicating the type of data in the input object.</p></dd>
+<dd><p>The type of the feature data, which determines how the data is handled in downstream analyses.
+Should be one of:
+- "count": Raw count data, will be normalized by the function.
+- "proportion": Data that has already been normalized to proportions/percentages.
+- "other": Custom abundance data that has unknown scaling. No normalization applied.
+The choice affects preprocessing steps as well as plot axis labels.
+Default is "count", which assumes raw OTU table input.</p></dd>
 
 
 <dt>feature.number</dt>
-<dd><p>A numeric value indicating the number of features to include in the plot.</p></dd>
+<dd><p>A numeric value indicating the number of top abundant features to retain in the plot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.</p></dd>
 
 
 <dt>t0.level</dt>
-<dd><p>A string indicating the reference time point. Default is NULL.</p></dd>
+<dd><p>Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.</p></dd>
 
 
 <dt>ts.levels</dt>
-<dd><p>A vector indicating the time points to include in the analysis. Default is NULL.</p></dd>
+<dd><p>Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.</p></dd>
 
 
 <dt>base.size</dt>
@@ -121,15 +134,30 @@ It also provides options for grouping and stratifying data.</p>
 
 
 <dt>theme.choice</dt>
-<dd><p>A string indicating the ggplot theme to use for the plot.</p></dd>
+<dd><p>Plot theme choice. Can be one of:
+  - "prism": ggprism::theme_prism()
+  - "classic": theme_classic()
+  - "gray": theme_gray()
+  - "bw": theme_bw()
+Default is "bw".</p></dd>
 
 
 <dt>custom.theme</dt>
-<dd><p>A custom ggplot theme if the user wants to apply it.</p></dd>
+<dd><p>A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:</p>
+<p>```r
+my_theme &lt;- ggplot2::theme(
+  axis.title = ggplot2::element_text(size=16, color="red"),
+  legend.position = "none"
+)
+```</p>
+<p>Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.</p></dd>
 
 
 <dt>palette</dt>
-<dd><p>A character vector specifying the color palette. Default is NULL.</p></dd>
+<dd><p>A character vector specifying the names of colors to use for the plot.
+The vector should contain color names that will be matched to the levels of
+the taxonomic grouping variable (feature.level). Default is NULL, which will
+use a pre-defined set of colors from the package ggh4x.</p></dd>
 
 
 <dt>pdf</dt>
@@ -172,7 +200,7 @@ The function also has options to customize the size, theme, and color palette of
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/teunbrand/ggh4x" class="external-link">ggh4x</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/vegandevs/vegan" class="external-link">vegan</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">ecam.obj</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">plot_list_all</span> <span class="op">&lt;-</span> <span class="fu">generate_taxa_barplot_long</span><span class="op">(</span></span></span>
+<span class="r-in"><span><span class="fu">generate_taxa_barplot_long</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">ecam.obj</span>,</span></span>
 <span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"studyid"</span>,</span></span>
 <span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"month"</span>,</span></span>
@@ -186,7 +214,7 @@ The function also has options to customize the size, theme, and color palette of
 <span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
 <span class="r-in"><span>  palette <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  pdf <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
-<span class="r-in"><span>  file.ann <span class="op">=</span> <span class="st">"test"</span></span></span>
+<span class="r-in"><span>  file.ann <span class="op">=</span> <span class="cn">NULL</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>

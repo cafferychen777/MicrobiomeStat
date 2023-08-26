@@ -56,6 +56,7 @@
 <span>  <span class="va">time.var</span>,</span>
 <span>  group.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  adj.vars <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  change.base <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  change.func <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lfc"</span><span class="op">)</span>,</span>
 <span>  base.size <span class="op">=</span> <span class="fl">16</span>,</span>
@@ -100,12 +101,24 @@
 <dd><p>(Optional) The variable in the metadata table that represents the stratification factor.</p></dd>
 
 
+<dt>adj.vars</dt>
+<dd><p>A character vector of variable names to be used for adjustment.</p></dd>
+
+
 <dt>change.base</dt>
 <dd><p>The base time for calculating the change in alpha diversity.</p></dd>
 
 
 <dt>change.func</dt>
-<dd><p>(Optional) A function for calculating the change in alpha diversity; can be either "log" (default) or "absolute."</p></dd>
+<dd><p>Function or method for calculating change in alpha diversity
+  between two timepoints. This allows flexible options to quantify change:</p>
+<p>- If a function is provided, it will be applied to compare alpha diversity
+    at timepoint t vs baseline t0. The function should take two arguments
+    representing the alpha diversity values at t and t0.</p>
+<p>- If a string is provided, following options are supported:
+    - 'log': Calculate log-ratio of alpha diversity at t vs t0.
+    - 'absolute': Calculate absolute difference in alpha diversity at t vs t0.</p>
+<p>- Default is 'log', which calculates log2 fold change between t and t0.</p></dd>
 
 
 <dt>base.size</dt>
@@ -113,11 +126,23 @@
 
 
 <dt>theme.choice</dt>
-<dd><p>A character string indicating the choice of pre-defined ggplot2 theme for the plot. Supported choices include "prism" (default), "classic", "gray", and "bw".</p></dd>
+<dd><p>Plot theme choice. Can be one of:
+  - "prism": ggprism::theme_prism()
+  - "classic": theme_classic()
+  - "gray": theme_gray()
+  - "bw": theme_bw()
+Default is "bw".</p></dd>
 
 
 <dt>custom.theme</dt>
-<dd><p>An optional custom ggplot2 theme. If provided, this theme will be used instead of the pre-defined themes.</p></dd>
+<dd><p>A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:</p>
+<p>```r
+my_theme &lt;- ggplot2::theme(
+  axis.title = ggplot2::element_text(size=16, color="red"),
+  legend.position = "none"
+)
+```</p>
+<p>Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.</p></dd>
 
 
 <dt>palette</dt>
@@ -150,6 +175,16 @@
 
 <p>A boxplot displaying the change in the specified alpha diversity index between two time points, stratified by the specified grouping and/or strata variables (if provided). The boxplot will be saved as a PDF if `pdf` is set to `TRUE`.</p>
     </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>This parameter allows flexible quantification of how alpha diversity
+  changes from baseline. Log-ratio is commonly used to compare relative
+  difference. Absolute difference indicates the magnitude of change.
+  Custom functions can also be supplied to calculate change as needed.</p>
+<p>This function extracts metadata, calculates alpha diversity for specified
+  indices, compares values between two timepoints, applies log2 fold change by default,
+  visualizes the change using boxplots and optional faceting and saving as PDF.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
@@ -165,14 +200,15 @@
 <span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"subject"</span>,</span></span>
 <span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"time"</span>,</span></span>
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
-<span class="r-in"><span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
+<span class="r-in"><span>  adj.vars <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
 <span class="r-in"><span>  change.base <span class="op">=</span> <span class="st">"1"</span>,</span></span>
 <span class="r-in"><span>  change.func <span class="op">=</span> <span class="st">"lfc"</span>,</span></span>
-<span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">20</span>,</span></span>
+<span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">16</span>,</span></span>
 <span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
 <span class="r-in"><span>  palette <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  pdf <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
-<span class="r-in"><span>  file.ann <span class="op">=</span> <span class="st">"test"</span>,</span></span>
+<span class="r-in"><span>  file.ann <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  pdf.wid <span class="op">=</span> <span class="fl">11</span>,</span></span>
 <span class="r-in"><span>  pdf.hei <span class="op">=</span> <span class="fl">8.5</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>

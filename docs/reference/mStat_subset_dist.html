@@ -54,7 +54,10 @@
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>dist.obj</dt>
-<dd><p>A list of distance matrices.</p></dd>
+<dd><p>Distance matrix between samples, usually calculated using
+<code><a href="mStat_calculate_beta_diversity.html">mStat_calculate_beta_diversity</a></code> function.
+If NULL, beta diversity will be automatically computed from <code>data.obj</code>
+using <code>mStat_calculate_beta_diversity</code>.</p></dd>
 
 
 <dt>samIDs</dt>

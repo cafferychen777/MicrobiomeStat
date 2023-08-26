@@ -58,7 +58,6 @@ The function is specifically designed for analysis of paired data.</p>
 <span>  <span class="va">data.obj</span>,</span>
 <span>  dist.obj <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  alpha.obj <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  depth <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">group.var</span>,</span>
 <span>  <span class="va">adj.vars</span>,</span>
 <span>  <span class="va">subject.var</span>,</span>
@@ -91,19 +90,18 @@ The function is specifically designed for analysis of paired data.</p>
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>data.obj</dt>
-<dd><p>A data object created by mStat_convert_phyloseq_to_data_obj.</p></dd>
+<dd><p>A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.</p></dd>
 
 
 <dt>dist.obj</dt>
-<dd><p>A distance object created by mStat_calculate_beta_diversity.</p></dd>
+<dd><p>Distance matrix between samples, usually calculated using
+<code><a href="mStat_calculate_beta_diversity.html">mStat_calculate_beta_diversity</a></code> function.
+If NULL, beta diversity will be automatically computed from <code>data.obj</code>
+using <code>mStat_calculate_beta_diversity</code>.</p></dd>
 
 
 <dt>alpha.obj</dt>
-<dd><p>An alpha diversity object (optional).</p></dd>
-
-
-<dt>depth</dt>
-<dd><p>Sampling depth (optional).</p></dd>
+<dd><p>An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.</p></dd>
 
 
 <dt>group.var</dt>
@@ -155,11 +153,23 @@ The function is specifically designed for analysis of paired data.</p>
 
 
 <dt>theme.choice</dt>
-<dd><p>Plot theme choice (default: "prism").</p></dd>
+<dd><p>Plot theme choice. Can be one of:
+  - "prism": ggprism::theme_prism()
+  - "classic": theme_classic()
+  - "gray": theme_gray()
+  - "bw": theme_bw()
+Default is "bw".</p></dd>
 
 
 <dt>custom.theme</dt>
-<dd><p>Custom ggplot2 theme (optional).</p></dd>
+<dd><p>A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:</p>
+<p>```r
+my_theme &lt;- ggplot2::theme(
+  axis.title = ggplot2::element_text(size=16, color="red"),
+  legend.position = "none"
+)
+```</p>
+<p>Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.</p></dd>
 
 
 <dt>palette</dt>
@@ -191,7 +201,8 @@ The function is specifically designed for analysis of paired data.</p>
 
 
 <dt>features.plot</dt>
-<dd><p>Custom list of taxa names to plot for taxa change analysis.</p></dd>
+<dd><p>A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.</p></dd>
 
 
 <dt>feature.level</dt>
