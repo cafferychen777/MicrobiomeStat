@@ -2,7 +2,7 @@ MicrobiomeStat: Comprehensive & Longitudinal Microbiome Analysis in R
 ================
 
 <p align="center" style="margin:0; padding:0;">
-<img src="man/figures/logo.jpeg" alt="MicrobiomeStat Logo" width="400" style="margin:0; padding:0;"/>
+<img src="man/figures/logo.png" alt="MicrobiomeStat Logo" width="400" style="margin:0; padding:0;"/>
 </p>
 <!-- badges: start -->
 
