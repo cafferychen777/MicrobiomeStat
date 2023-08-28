@@ -47,6 +47,7 @@ devtools::install_github("cafferychen777/MicrobiomeStat")
 3.  [Key Features](#features-at-a-glance)
 4.  [Assistance & Contact Information](#support-contact)
 5.  [Join Our Discord Community](#discord-community)
+6.  [Share and Connect](#share-and-connect)
 
 # Online Tutorials
 
@@ -57,15 +58,20 @@ visualization.
 For an in-depth understanding of `MicrobiomeStat`, we have curated a
 comprehensive online tutorial using GitBook, encompassing:
 
-- Comprehensive installation and configuration guidance
-- Analysis walkthroughs driven by real-world cases
+- Comprehensive **installation and configuration** guidance
+
+- **Analysis walkthroughs** driven by real-world cases
+
 - Hands-on code examples
-- Detailed guides on result interpretation and visualization
+
+- Detailed guides on result **interpretation and visualization**
+
 - Frequently Asked Questions
 
 For a seamless experience with `MicrobiomeStat`, we recommend
-acquainting yourself with these online tutorials: **MicrobiomeStat
-Tutorials:** <https://www.microbiomestat.wiki>
+acquainting yourself with these online tutorials:
+
+**MicrobiomeStat Tutorials:** <https://www.microbiomestat.wiki>
 
 ## Benefits of Using MicrobiomeStat
 
@@ -88,26 +94,26 @@ other tools, we’ve provided detailed comparisons on our website:
 ### User Support
 
 `MicrobiomeStat` is designed with users in mind. Comprehensive
-documentation and tutorials are available to assist both novice and
+**documentation and tutorials** are available to assist both novice and
 experienced researchers.
 
 ### Ongoing Development
 
 Ensuring that `MicrobiomeStat` remains a leading tool in its category
-requires ongoing development. We’re dedicated to regular updates and
+requires **ongoing development**. We’re dedicated to regular updates and
 addressing user feedback.
 
 ### Collaborative Development
 
 `MicrobiomeStat` is an open-source tool, and we value contributions from
-the community. If you have suggestions or improvements, pull requests
-are welcomed.
+the community. If you have suggestions or improvements, **pull requests
+are welcomed**.
 
 ### Conclusion
 
 `MicrobiomeStat` aims to be a reliable and efficient tool for microbiome
-data analysis. For those who value open-source collaboration, we invite
-you to be part of our community and contribute to its continuous
+data analysis. For those who value **open-source collaboration**, we
+invite you to be part of our community and contribute to its continuous
 improvement.
 
 ## Key Features
@@ -116,11 +122,11 @@ improvement.
 |--------------------------------|--------------------------------------------------------------------------------------------------|
 | Data Import and Conversion     | Supports numerous input formats from popular tools like QIIME2, Mothur, DADA2, Phyloseq and more |
 | Cross-sectional Study Analysis | Performs comprehensive analysis of cross-sectional studies                                       |
-| Paired Sample Analysis         | Excellent tool for analyzing paired samples                                                      |
-| Longitudinal Study Analysis    | Allows for exploring the temporal dynamics of the microbiome                                     |
-| Visualization Capabilities     | Offers a wide variety of visualization styles                                                    |
+| Paired Sample Analysis         | Excellent tool for analyzing **paired samples**                                                  |
+| Longitudinal Study Analysis    | Allows for exploring the **temporal dynamics** of the microbiome                                 |
+| Visualization Capabilities     | Offers a wide variety of **visualization styles**                                                |
 | Data Export                    | Supports export of analysis results in diverse formats                                           |
-| Ongoing Development            | Continual feature refinement and new functionality addition                                      |
+| Ongoing Development            | Continual **feature refinement** and **new functionality** addition                              |
 
 ## Assistance & Contact Information
 
@@ -138,5 +144,18 @@ Join our Discord community to stay abreast of the latest developments in
 
 [Join the MicrobiomeStat Discord Server!](https://discord.gg/BfNvTJAt)
 
-Our active community fosters an environment of collaboration, feedback,
-and continuous learning.
+Our active community fosters an environment of **collaboration,
+feedback, and continuous learning**.
+
+## Share and Connect
+
+Spread the word about `MicrobiomeStat` and stay connected through
+various platforms!
+
+[![Twitter](https://img.shields.io/twitter/url?url=https%3A%2F%2Fgithub.com%2Fcafferychen777%2FMicrobiomeStat&style=social)](https://twitter.com/intent/tweet?url=https%3A%2F%2Fgithub.com%2Fcafferychen777%2FMicrobiomeStat&text=Check%20out%20this%20awesome%20package%20for%20comprehensive%20and%20longitudinal%20microbiome%20analysis%20in%20R!)
+
+[![Facebook](https://img.shields.io/badge/Share_on-Facebook-1877F2?logo=facebook&style=social)](https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fgithub.com%2Fcafferychen777%2FMicrobiomeStat&quote=Check%20out%20this%20awesome%20package%20for%20comprehensive%20and%20longitudinal%20microbiome%20analysis%20in%20R!)
+
+[![LinkedIn](https://img.shields.io/badge/Share_on-LinkedIn-0077B5?logo=linkedin&style=social)](https://www.linkedin.com/shareArticle?mini=true&url=https%3A%2F%2Fgithub.com%2Fcafferychen777%2FMicrobiomeStat&title=Check%20out%20this%20awesome%20package%20for%20comprehensive%20and%20longitudinal%20microbiome%20analysis%20in%20R!)
+
+[![Reddit](https://img.shields.io/badge/Share_on-Reddit-FF4500?logo=reddit&style=social)](https://www.reddit.com/submit?url=https%3A%2F%2Fgithub.com%2Fcafferychen777%2FMicrobiomeStat&title=Check%20out%20this%20awesome%20package%20for%20comprehensive%20and%20longitudinal%20microbiome%20analysis%20in%20R!)
