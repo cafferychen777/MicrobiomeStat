@@ -75,19 +75,20 @@ construct_formula <- function(index, group.var, time.var, subject.var, adj.vars)
 #' }
 #' @export
 generate_alpha_trend_test_long <- function(data.obj,
-                                                alpha.obj = NULL,
-                                                alpha.name,
-                                                time.var,
-                                                subject.var,
-                                                group.var,
-                                                adj.vars = NULL) {
+                                           alpha.obj = NULL,
+                                           alpha.name = NULL,
+                                           depth = NULL,
+                                           time.var,
+                                           subject.var,
+                                           group.var,
+                                           adj.vars = NULL) {
 
   if (is.null(alpha.obj)) {
     if (!is_rarefied(data.obj)) {
       message(
         "Diversity analysis needs rarefaction! Call 'mStat_rarefy_data' to rarefy the data!"
       )
-      data.obj <- mStat_rarefy_data(data.obj)
+      data.obj <- mStat_rarefy_data(data.obj, depth = depth)
     }
     otu_tab <- load_data_obj_count(data.obj)
     alpha.obj <-

@@ -99,6 +99,7 @@ generate_alpha_boxplot_single <- function (data.obj,
                                                           "chao1",
                                                           "ace",
                                                           "pielou"),
+                                           depth = NULL,
                                            subject.var,
                                            time.var = NULL,
                                            t.level = NULL,
@@ -119,7 +120,7 @@ generate_alpha_boxplot_single <- function (data.obj,
       message(
         "Diversity analysis needs rarefaction! Call 'mStat_rarefy_data' to rarefy the data!"
       )
-      data.obj <- mStat_rarefy_data(data.obj)
+      data.obj <- mStat_rarefy_data(data.obj, depth = depth)
     }
     otu_tab <- as.data.frame(load_data_obj_count(data.obj))
 

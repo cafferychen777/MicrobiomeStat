@@ -125,6 +125,8 @@ mStat_generate_report_pair <- function(data.obj,
   template <- "
 ---
 title: 'Microbial Ecology Analysis Report'
+author: 'Powered by MicrobiomeStat (Ver 1.1.1)'
+date: '`r Sys.Date()`'
 output:
   pdf_document:
     toc: true

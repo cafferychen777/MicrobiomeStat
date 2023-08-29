@@ -166,7 +166,7 @@ mStat_summarize_data_obj <-
               theme(plot.title = element_text(hjust = 0.5)) +
               labs(
                 title = "Histogram of Sample Counts over Time",
-                x = "Time Point",
+                x = time.var,
                 y = "Sample Count"
               ) +
               scale_y_continuous(expand = expansion(mult = c(0, 0.05)), limits = c(0, NA))

@@ -77,8 +77,9 @@
 generate_alpha_change_test_pair <-
   function(data.obj,
            alpha.obj = NULL,
+           alpha.name = NULL,
+           depth = NULL,
            time.var,
-           alpha.name,
            subject.var,
            group.var,
            adj.vars,
@@ -90,7 +91,7 @@ generate_alpha_change_test_pair <-
         message(
           "Diversity analysis needs rarefaction! Call 'mStat_rarefy_data' to rarefy the data!"
         )
-        data.obj <- mStat_rarefy_data(data.obj)
+        data.obj <- mStat_rarefy_data(data.obj, depth = depth)
       }
       otu_tab <- load_data_obj_count(data.obj)
       alpha.obj <- mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name)

@@ -239,17 +239,25 @@
 #' @export
 mStat_generate_report_long <- function(data.obj,
                                        alpha.obj = NULL,
+                                       alpha.name = c("shannon", "simpson"),
                                        dist.obj = NULL,
+                                       dist.name = c('BC', 'Jaccard'),
                                        pc.obj = NULL,
                                        group.var,
                                        strata.var = NULL,
                                        adj.vars = NULL,
                                        subject.var,
                                        time.var,
-                                       alpha.name = c("shannon", "simpson"),
-                                       dist.name = c('BC', 'Jaccard'),
                                        t0.level,
                                        ts.levels,
+                                       prev.filter = 0,
+                                       abund.filter = 0,
+                                       feature.number = 15,
+                                       feature.level = NULL,
+                                       feature.dat.type = c("count", "proportion", "other"),
+                                       feature.mt.method = c("fdr","none"),
+                                       feature.sig.level = 0.1,
+                                       transform = c("identity", "sqrt", "log"),
                                        change.func = "relative difference",
                                        base.size = 16,
                                        theme.choice = "prism",
@@ -259,27 +267,21 @@ mStat_generate_report_long <- function(data.obj,
                                        file.ann = NULL,
                                        pdf.wid = 11,
                                        pdf.hei = 8.5,
-                                       prev.filter = 0,
-                                       abund.filter = 0,
-                                       feature.number = 15,
-                                       feature.level = NULL,
-                                       feature.dat.type = c("count", "proportion", "other"),
-                                       feature.mt.method = c("fdr","none"),
-                                       feature.sig.level = 0.1,
-                                       transform = c("identity", "sqrt", "log"),
                                        output.file,
                                        ...) {
 
   template <- "
 ---
 title: 'Microbial Ecology Analysis Report'
-author: 'Powered by MicrobiomeStat'
+author: 'Powered by MicrobiomeStat (Ver 1.1.1)'
 date: '`r Sys.Date()`'
 output:
   pdf_document:
     toc: true
     latex_engine: lualatex
 ---
+
+## 1. Data Summary and Preparation
 
 ## Input Parameters Summary
 
@@ -292,12 +294,14 @@ custom_palette_status <- ifelse(is.null(palette), 'NULL', 'Not NULL')
 
 custom_file.ann_status <- ifelse(is.null(file.ann), 'NULL', 'Not NULL')
 
+custom_adj.vars_status <- ifelse(is.null(adj.vars), 'NULL', toString(adj.vars))
+
 # 创建一个数据框，其中包含参数的名称和对应的值
 params_data <- data.frame(Parameter = c('data.obj', 'group.var', 'strata.var', 'adj.vars', 'subject.var', 'time.var', 'alpha.name',
                                     'dist.name', 't0.level', 'ts.levels', 'change.func', 'base.size', 'theme.choice',
                                     'custom.theme', 'palette', 'pdf', 'file.ann', 'pdf.wid', 'pdf.hei', 'prev.filter',
                                     'abund.filter', 'feature.number', 'feature.level', 'feature.dat.type', 'feature.mt.method', 'feature.sig.level', 'transform'),
-                          Value = c(deparse(substitute(data.obj)), group.var, strata.var, toString(adj.vars), subject.var, time.var, toString(alpha.name),
+                          Value = c(deparse(substitute(data.obj)), group.var, strata.var, custom_adj.vars_status, subject.var, time.var, toString(alpha.name),
                                     toString(dist.name), t0.level, toString(ts.levels), change.func, base.size, theme.choice,
                                     custom_theme_status, custom_palette_status, pdf, custom_file.ann_status, pdf.wid, pdf.hei, prev.filter,
                                     abund.filter, feature.number, toString(feature.level), feature.dat.type, feature.mt.method, feature.sig.level, transform))
@@ -305,8 +309,6 @@ params_data <- data.frame(Parameter = c('data.obj', 'group.var', 'strata.var', '
 # 使用pander来渲染数据框
 pander::pander(params_data)
 ```
-
-## 1. Data Summary and Preparation
 
 ```{r mStat-data-summary, message=FALSE}
 mStat_results <- mStat_summarize_data_obj(data.obj = data.obj,

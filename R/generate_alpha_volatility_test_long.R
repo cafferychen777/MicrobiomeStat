@@ -48,7 +48,8 @@
 #' @export
 generate_alpha_volatility_test_long <- function(data.obj,
                                                 alpha.obj = NULL,
-                                                alpha.name,
+                                                alpha.name = NULL,
+                                                depth = depth,
                                                 time.var,
                                                 subject.var,
                                                 group.var,
@@ -59,7 +60,7 @@ generate_alpha_volatility_test_long <- function(data.obj,
       message(
         "Diversity analysis needs rarefaction! Call 'mStat_rarefy_data' to rarefy the data!"
       )
-      data.obj <- mStat_rarefy_data(data.obj)
+      data.obj <- mStat_rarefy_data(data.obj, depth = depth)
     }
     otu_tab <- load_data_obj_count(data.obj)
     alpha.obj <-
