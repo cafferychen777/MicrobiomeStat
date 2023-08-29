@@ -10,13 +10,13 @@
 #' @param group.var A character string specifying the group variable. Default is NULL.
 #' @param strata.var A character string specifying the strata variable. Default is NULL.
 #' @param change.base The time point value to be used as the baseline for calculating change in abundance between time points. Should be one of the values from `time.var`. The change will be calculated as the difference between this baseline time point and the subsequent time point.
-#' @param change.func The function used to calculate change in abundance between time points.
-#' This can be one of "relative difference", "lfc" (log2 fold change),
+#' @param feature.change.func The function used to calculate change in abundance between time points.
+#' This can be one of "relative change", "lfc" (log2 fold change),
 #' or a custom function. For custom functions, the function should take two numeric vectors
 #' as input (abundances at time 1 and time 2) and return a numeric vector of differences.
 #' The function should handle zero values appropriately. For "lfc", zero values
 #' are imputed as half the minimum nonzero value before taking the logarithm.
-#' Default is "relative difference".
+#' Default is "relative change".
 #' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
 #' to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
 #' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
@@ -87,7 +87,7 @@
 #'   group.var = "group",
 #'   strata.var = NULL,
 #'   change.base = "1",
-#'   change.func = "lfc",
+#'   feature.change.func = "lfc",
 #'   feature.level = c("Family"),
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
@@ -113,7 +113,7 @@ generate_taxa_change_boxplot_pair <-
            group.var = NULL,
            strata.var = NULL,
            change.base = NULL,
-           change.func = "relative difference",
+           feature.change.func = "relative change",
            feature.level = NULL,
            feature.dat.type = c("count", "proportion", "other"),
            features.plot = NULL,
@@ -205,19 +205,19 @@ generate_taxa_change_boxplot_pair <-
       col <- palette
     }
 
-    # 提前判断change.func的类型，如果是自定义函数则给出特定的标签，否则保持原样
+    # 提前判断feature.change.func的类型，如果是自定义函数则给出特定的标签，否则保持原样
     ylab_label <- if (feature.dat.type != "other") {
-      if (is.function(change.func)) {
+      if (is.function(feature.change.func)) {
         paste0("Change in Relative Abundance", " (custom function)")
       } else {
-        paste0("Change in Relative Abundance", " (", change.func, ")")
+        paste0("Change in Relative Abundance", " (", feature.change.func, ")")
       }
     }
     else {
-      if (is.function(change.func)) {
+      if (is.function(feature.change.func)) {
         paste0("Change in Abundance", " (custom function)")
       } else {
-        paste0("Change in Abundance", " (", change.func, ")")
+        paste0("Change in Abundance", " (", feature.change.func, ")")
       }
     }
 
@@ -320,10 +320,10 @@ generate_taxa_change_boxplot_pair <-
         )
 
       # 计算value的差值
-      if (is.function(change.func)) {
+      if (is.function(feature.change.func)) {
         combined_data <-
-          combined_data %>% dplyr::mutate(value_diff = change.func(value_time_2, value_time_1))
-      } else if (change.func == "lfc") {
+          combined_data %>% dplyr::mutate(value_diff = feature.change.func(value_time_2, value_time_1))
+      } else if (feature.change.func == "lfc") {
         half_nonzero_min_time_2 <- combined_data %>%
           filter(value_time_2 > 0) %>%
           dplyr::group_by(!!sym(feature.level)) %>%
@@ -361,7 +361,7 @@ generate_taxa_change_boxplot_pair <-
 
         combined_data <-
           combined_data %>% dplyr::mutate(value_diff = log2(value_time_2) - log2(value_time_1))
-      } else if (change.func == "relative difference") {
+      } else if (feature.change.func == "relative change") {
         combined_data <- combined_data %>%
           dplyr::mutate(value_diff = dplyr::case_when(
             value_time_2 == 0 & value_time_1 == 0 ~ 0,

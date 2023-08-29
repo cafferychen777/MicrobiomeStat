@@ -75,7 +75,7 @@
 #'   alpha.name = c("shannon","simpson"),
 #'   dist.name = c("BC",'Jaccard'),
 #'   change.base = "1",
-#'   change.func = "relative difference",
+#'   change.func = "relative change",
 #'   strata.var = "sex",
 #'   features.plot = NULL,
 #'   feature.level = c("Phylum","Family"),

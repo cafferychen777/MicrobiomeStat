@@ -10,7 +10,7 @@
 #' @param group.var A character string defining group variable in meta_tab used for sorting and facetting
 #' @param strata.var (Optional) A character string defining strata variable in meta_tab used for sorting and facetting
 #' @param change.base A numeric value setting base for the change (usually 1)
-#' @param change.func A function or character string specifying the method for computing the change. Default is "difference".
+#' @param feature.change.func A function or character string specifying the method for computing the change. Default is "difference".
 #' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
 #' to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
 #' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
@@ -79,7 +79,7 @@
 #'   group.var = "group",
 #'   strata.var = "sex",
 #'   change.base = "1",
-#'   change.func = "lfc",
+#'   feature.change.func = "lfc",
 #'   feature.level = "Family",
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
@@ -104,7 +104,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
                                               group.var = NULL,
                                               strata.var = NULL,
                                               change.base = "1",
-                                              change.func = "lfc",
+                                              feature.change.func = "lfc",
                                               feature.level = NULL,
                                               feature.dat.type = c("count", "proportion", "other"),
                                               features.plot = NULL,
@@ -266,15 +266,15 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
 
     # 计算不同时间点的mean_abundance差值
     # 最后，计算新的count值
-    if (is.function(change.func)) {
+    if (is.function(feature.change.func)) {
       otu_tab_norm_agg_wide <-
-        otu_tab_norm_agg_wide %>% dplyr::mutate(abundance_change = change.func(time2_mean_abundance, time2_mean_abundance))
-    } else if (change.func == "lfc") {
+        otu_tab_norm_agg_wide %>% dplyr::mutate(abundance_change = feature.change.func(time2_mean_abundance, time2_mean_abundance))
+    } else if (feature.change.func == "lfc") {
       otu_tab_norm_agg_wide <-
         otu_tab_norm_agg_wide %>% dplyr::mutate(
           abundance_change = log2(time2_mean_abundance + 0.00001) - log2(time1_mean_abundance + 0.00001)
         )
-    } else if (change.func == "relative difference") {
+    } else if (feature.change.func == "relative change") {
       otu_tab_norm_agg_wide <- otu_tab_norm_agg_wide %>%
         dplyr::mutate(
           abundance_change = dplyr::case_when(
@@ -301,15 +301,15 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
              time2_prevalence = change.after)
 
     # 计算不同时间点的prevalence差值
-    if (is.function(change.func)) {
+    if (is.function(feature.change.func)) {
       prevalence_time_wide <-
-        prevalence_time_wide %>% dplyr::mutate(prevalence_change = change.func(time2_prevalence, time1_prevalence))
-    } else if (change.func == "lfc") {
+        prevalence_time_wide %>% dplyr::mutate(prevalence_change = feature.change.func(time2_prevalence, time1_prevalence))
+    } else if (feature.change.func == "lfc") {
       prevalence_time_wide <-
         prevalence_time_wide %>% dplyr::mutate(
           prevalence_change = log2(time2_prevalence + 0.00001) - log2(time1_prevalence + 0.00001)
         )
-    } else if (change.func == "relative difference") {
+    } else if (feature.change.func == "relative change") {
       prevalence_time_wide <- prevalence_time_wide %>%
         dplyr::mutate(prevalence_change = dplyr::case_when(
           time2_prevalence == 0 & time1_prevalence == 0 ~ 0,

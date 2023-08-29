@@ -9,9 +9,9 @@
 #' @param group.var Optional string specifying the variable for groups.
 #' @param strata.var Optional string specifying the variable for strata.
 #' @param change.base A string indicating the base time point for change computation. This should match one of the time points present in the metadata for the 'time.var' variable.
-#' @param change.func A string or function to compute the change in abundance between two time points. If a string, options are:
+#' @param feature.change.func A string or function to compute the change in abundance between two time points. If a string, options are:
 #' - 'difference': Computes absolute difference in abundance
-#' - 'relative difference': Computes relative difference in abundance, calculated as (abundance_time2 - abundance_time1) / (abundance_time2 + abundance_time1)
+#' - 'relative change': Computes relative change in abundance, calculated as (abundance_time2 - abundance_time1) / (abundance_time2 + abundance_time1)
 #' - 'lfc': Computes log2 fold change. Zero abundances are imputed before log transform.
 #' If a function, it should take two numeric vectors of abundances at time 1 and time 2 and return a numeric vector of computed changes.
 #' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
@@ -88,7 +88,7 @@
 #'   group.var = "group",
 #'   strata.var = NULL,
 #'   change.base = "1",
-#'   change.func = "lfc",
+#'   feature.change.func = "lfc",
 #'   feature.level = c("Family"),
 #'   features.plot = NULL,
 #'   feature.dat.type = "count",
@@ -114,7 +114,7 @@ generate_taxa_indiv_change_boxplot_pair <-
            group.var = NULL,
            strata.var = NULL,
            change.base = NULL,
-           change.func = "relative difference",
+           feature.change.func = "relative change",
            feature.level = NULL,
            features.plot = NULL,
            feature.dat.type = c("count", "proportion", "other"),
@@ -203,19 +203,19 @@ generate_taxa_indiv_change_boxplot_pair <-
       col <- palette
     }
 
-    # 提前判断change.func的类型，如果是自定义函数则给出特定的标签，否则保持原样
+    # 提前判断feature.change.func的类型，如果是自定义函数则给出特定的标签，否则保持原样
     ylab_label <- if (feature.dat.type != "other") {
-      if (is.function(change.func)) {
+      if (is.function(feature.change.func)) {
         paste0("Change in Relative Abundance", " (custom function)")
       } else {
-        paste0("Change in Relative Abundance", " (", change.func, ")")
+        paste0("Change in Relative Abundance", " (", feature.change.func, ")")
       }
     }
     else {
-      if (is.function(change.func)) {
+      if (is.function(feature.change.func)) {
         paste0("Change in Abundance", " (custom function)")
       } else {
-        paste0("Change in Abundance", " (", change.func, ")")
+        paste0("Change in Abundance", " (", feature.change.func, ")")
       }
     }
 
@@ -314,9 +314,9 @@ generate_taxa_indiv_change_boxplot_pair <-
         )
 
       # 计算value的差值
-      if (is.function(change.func)) {
-        combined_data <- combined_data %>% dplyr::mutate(value_diff = change.func(value_time_2, value_time_1))
-      } else if (change.func == "lfc") {
+      if (is.function(feature.change.func)) {
+        combined_data <- combined_data %>% dplyr::mutate(value_diff = feature.change.func(value_time_2, value_time_1))
+      } else if (feature.change.func == "lfc") {
         half_nonzero_min_time_2 <- combined_data %>%
           filter(value_time_2 > 0) %>%
           dplyr::group_by(!!sym(feature.level)) %>%
@@ -337,7 +337,7 @@ generate_taxa_indiv_change_boxplot_pair <-
         message("Imputation was performed using half the minimum nonzero proportion for each taxon at different time points.")
 
         combined_data <- combined_data %>% dplyr::mutate(value_diff = log2(value_time_2) - log2(value_time_1))
-      } else if (change.func == "relative difference"){
+      } else if (feature.change.func == "relative change"){
         combined_data <- combined_data %>%
           dplyr::mutate(value_diff = dplyr::case_when(
             value_time_2 == 0 & value_time_1 == 0 ~ 0,

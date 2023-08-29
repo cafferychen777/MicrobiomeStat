@@ -19,6 +19,31 @@ capable of handling multi-omics data and cross-sectional studies, its
 makes it an invaluable resource for researchers conducting extensive
 biological studies over time.
 
+# Citations
+
+## General Citation for MicrobiomeStat
+
+If you are using features beyond the `linda` and `linda.plot` functions,
+please cite as follows, until a preprint version is published:
+
+    @Manual{,
+      title = {MicrobiomeStat: Comprehensive Statistical and Visualization Methods for Microbiome and Multi-Omics Data},
+      author = {Xianyang Zhang and Jun Chen and Caffery(Chen) Yang},
+      year = {2023},
+      note = {R package version 1.1.1},
+      url = {www.microbiomestat.wiki},
+    }
+
+## Special Citation for `linda` and `linda.plot` Functions
+
+If you are using `linda` or `linda.plot` functions, please cite the
+following paper:
+
+    Zhou, H., He, K., Chen, J. et al. LinDA: linear models for differential abundance analysis of microbiome compositional data. Genome Biol 23, 95 (2022). https://doi.org/10.1186/s13059-022-02655-5
+
+We will update the citation guidelines as soon as the preprint is
+published.
+
 ## Important Note on CRAN Version
 
 Due to the **ongoing development cycle**, the **most up-to-date

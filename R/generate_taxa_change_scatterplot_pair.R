@@ -10,9 +10,9 @@
 #' @param group.var Character string specifying the grouping variable in metadata. Default NULL.
 #' @param strata.var Character string specifying the stratification variable in metadata. Default NULL.
 #' @param change.base Character string specifying the baseline time point. This should match one of the time points present in the metadata for the 'time.var' variable. The change will be calculated by comparing the other time points to this baseline time point.
-#' @param change.func Function or character string specifying method to compute change between time points. Options are:
+#' @param feature.change.func Function or character string specifying method to compute change between time points. Options are:
 #' - 'difference' (default): Computes absolute difference in counts between time points.
-#' - 'relative difference': Computes relative difference in counts between time points, calculated as (count_time2 - count_time1) / (count_time2 + count_time1).
+#' - 'relative change': Computes relative change in counts between time points, calculated as (count_time2 - count_time1) / (count_time2 + count_time1).
 #' - 'lfc': Computes log2 fold change between time points. Zero counts are imputed with half the minimum nonzero value before log transform.
 #' - Custom function: A user-defined function can also be provided, which should take two vectors of counts (at time 1 and time 2) as input and return the computed change.
 #' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
@@ -86,7 +86,7 @@
 #'   group.var = "cons",
 #'   strata.var = "sex",
 #'   change.base = "1",
-#'   change.func = "lfc",
+#'   feature.change.func = "lfc",
 #'   feature.level = "Genus",
 #'   feature.dat.type = "other",
 #'   features.plot = NULL,
@@ -112,7 +112,7 @@ generate_taxa_change_scatterplot_pair <-
            group.var = NULL,
            strata.var = NULL,
            change.base = NULL,
-           change.func = "difference",
+           feature.change.func = "difference",
            feature.level = NULL,
            feature.dat.type = c("count", "proportion", "other"),
            features.plot = NULL,
@@ -271,9 +271,9 @@ generate_taxa_change_scatterplot_pair <-
       df <- dplyr::inner_join(df_ts, df_t0, by = c(feature.level, subject.var), suffix = c("_ts", "_t0"), relationship = "many-to-many")
 
       # 最后，计算新的count值
-      if (is.function(change.func)) {
-        df <- df %>% dplyr::mutate(new_count = change.func(count_ts, count_t0))
-      } else if (change.func == "lfc") {
+      if (is.function(feature.change.func)) {
+        df <- df %>% dplyr::mutate(new_count = feature.change.func(count_ts, count_t0))
+      } else if (feature.change.func == "lfc") {
         # 对于对数折叠变化("lfc")，我们需要插补数据
         # 首先，为每个分类计算非零最小值的一半
         half_nonzero_min_time_2 <- df %>%
@@ -297,7 +297,7 @@ generate_taxa_change_scatterplot_pair <-
         message("Imputation was performed using half the minimum nonzero count for each taxa at different time points.")
 
         df <- df %>% dplyr::mutate(new_count = log2(count_ts) - log2(count_t0))
-      } else if (change.func == "relative difference"){
+      } else if (feature.change.func == "relative change"){
         df <- df %>%
           dplyr::mutate(new_count = dplyr::case_when(
             count_ts == 0 & count_t0 == 0 ~ 0,
@@ -311,18 +311,18 @@ generate_taxa_change_scatterplot_pair <-
 
       df <- df %>% setNames(ifelse(names(.) == paste0(time.var,"_ts"), time.var, names(.)))
 
-      # 提前判断change.func的类型，如果是自定义函数则给出特定的标签，否则保持原样
+      # 提前判断feature.change.func的类型，如果是自定义函数则给出特定的标签，否则保持原样
       ylab_label <- if (feature.dat.type != "other") {
-        if (is.function(change.func)) {
+        if (is.function(feature.change.func)) {
           paste0("Change in Relative Abundance", " (custom function)")
         } else {
-          paste0("Change in Relative Abundance", " (", change.func, ")")
+          paste0("Change in Relative Abundance", " (", feature.change.func, ")")
         }
       } else {
-        if (is.function(change.func)) {
+        if (is.function(feature.change.func)) {
           paste0("Change in Abundance", " (custom function)")
         } else {
-          paste0("Change in Abundance", " (", change.func, ")")
+          paste0("Change in Abundance", " (", feature.change.func, ")")
         }
       }
 

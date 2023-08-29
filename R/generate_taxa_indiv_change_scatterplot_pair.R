@@ -32,9 +32,9 @@ is_continuous_numeric <- function(x) {
 #' @param group.var Optional string specifying the variable for groups.
 #' @param strata.var Optional string specifying the variable for strata.
 #' @param change.base A string indicating the base time point for change computation. This should match one of the time points present in the metadata for the 'time.var' variable.
-#' @param change.func A string or function to compute the change in abundance between two time points. If a string, options are:
+#' @param feature.change.func A string or function to compute the change in abundance between two time points. If a string, options are:
 #' - 'difference': Computes absolute difference in abundance
-#' - 'relative difference': Computes relative difference in abundance, calculated as (abundance_time2 - abundance_time1) / (abundance_time2 + abundance_time1)
+#' - 'relative change': Computes relative change in abundance, calculated as (abundance_time2 - abundance_time1) / (abundance_time2 + abundance_time1)
 #' - 'lfc': Computes log2 fold change. Zero abundances are imputed before log transform.
 #' If a function, it should take two numeric vectors of abundances at time 1 and time 2 and return a numeric vector of computed changes.
 #' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
@@ -129,7 +129,7 @@ generate_taxa_indiv_change_scatterplot_pair <-
            group.var = NULL,
            strata.var = NULL,
            change.base = NULL,
-           change.func = "difference",
+           feature.change.func = "difference",
            feature.level = NULL,
            features.plot = NULL,
            feature.dat.type = c("count", "proportion", "other"),
@@ -291,9 +291,9 @@ generate_taxa_indiv_change_scatterplot_pair <-
       df <- dplyr::inner_join(df_ts, df_t0, by = c(feature.level, subject.var), suffix = c("_ts", "_t0"), relationship = "many-to-many")
 
       # 最后，计算新的count值
-      if (is.function(change.func)) {
-        df <- df %>% dplyr::mutate(new_count = change.func(count_ts, count_t0))
-      } else if (change.func == "lfc") {
+      if (is.function(feature.change.func)) {
+        df <- df %>% dplyr::mutate(new_count = feature.change.func(count_ts, count_t0))
+      } else if (feature.change.func == "lfc") {
         # 对于对数折叠变化("lfc")，我们需要插补数据
         # 首先，为每个分类计算非零最小值的一半
         half_nonzero_min_time_2 <- df %>%
@@ -317,7 +317,7 @@ generate_taxa_indiv_change_scatterplot_pair <-
         message("Imputation was performed using half the minimum nonzero count for each taxa at different time points.")
 
         df <- df %>% dplyr::mutate(new_count = log2(count_ts) - log2(count_t0))
-      } else if (change.func == "relative difference"){
+      } else if (feature.change.func == "relative change"){
         df <- df %>%
           dplyr::mutate(new_count = dplyr::case_when(
             count_ts == 0 & count_t0 == 0 ~ 0,
@@ -331,19 +331,19 @@ generate_taxa_indiv_change_scatterplot_pair <-
 
       df <- df %>% setNames(ifelse(names(.) == paste0(time.var,"_ts"), time.var, names(.)))
 
-      # 提前判断change.func的类型，如果是自定义函数则给出特定的标签，否则保持原样
+      # 提前判断feature.change.func的类型，如果是自定义函数则给出特定的标签，否则保持原样
       ylab_label <- if (feature.dat.type != "other") {
-        if (is.function(change.func)) {
+        if (is.function(feature.change.func)) {
           paste0("Change in Relative Abundance", " (custom function)")
         } else {
-          paste0("Change in Relative Abundance", " (", change.func, ")")
+          paste0("Change in Relative Abundance", " (", feature.change.func, ")")
         }
       }
       else {
-        if (is.function(change.func)) {
+        if (is.function(feature.change.func)) {
           paste0("Change in Abundance", " (custom function)")
         } else {
-          paste0("Change in Abundance", " (", change.func, ")")
+          paste0("Change in Abundance", " (", feature.change.func, ")")
         }
       }
 

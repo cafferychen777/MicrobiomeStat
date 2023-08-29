@@ -29,7 +29,7 @@ is_categorical <- function(x) {
 #' Compute taxa changes between time points and analyze differential abundance between groups
 #'
 #' This function calculates taxa abundance changes between two time points in the metadata, using the time values specified in `time.var` and baseline `change.base`.
-#' It computes changes based on the method in `change.func`.
+#' It computes changes based on the method in `feature.change.func`.
 #' The function then uses the ZicoSeq method to perform differential abundance analysis between the groups in `group.var`, adjusted for `adj.vars`.
 #' It returns data frames summarizing the results of the differential abundance tests for each taxonomic level in `feature.level`.
 #' If `time.var` is not provided, the first unique value in the metadata will be used as `change.base`.
@@ -41,9 +41,9 @@ is_categorical <- function(x) {
 #' @param group.var The name of the grouping variable column for linear modeling in the metadata.
 #' @param adj.vars Names of additional variables to be used as covariates in the analysis.
 #' @param change.base The baseline time point for detecting changes in taxa. If NULL, the first unique value from the time.var column will be used (optional).
-#' @param change.func Function or character string specifying method to compute change between time points. Options are:
+#' @param feature.change.func Function or character string specifying method to compute change between time points. Options are:
 #' - 'difference' (default): Computes absolute difference in counts between time points.
-#' - 'relative difference': Computes relative difference in counts between time points, calculated as (count_time2 - count_time1) / (count_time2 + count_time1).
+#' - 'relative change': Computes relative change in counts between time points, calculated as (count_time2 - count_time1) / (count_time2 + count_time1).
 #' - 'lfc': Computes log2 fold change between time points. Zero counts are imputed with half the minimum nonzero value before log transform.
 #' - Custom function: A user-defined function can also be provided, which should take two vectors of counts (at time 1 and time 2) as input and return the computed change.
 #' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
@@ -85,7 +85,7 @@ is_categorical <- function(x) {
 #'   group.var = "group",
 #'   adj.vars = c("sex"),
 #'   change.base = "1",
-#'   change.func = "lfc",
+#'   feature.change.func = "lfc",
 #'   feature.level = "original",
 #'   prev.filter = 0.01,
 #'   abund.filter = 0.01,
@@ -103,7 +103,7 @@ generate_taxa_change_test_pair <-
            group.var,
            adj.vars,
            change.base,
-           change.func,
+           feature.change.func = "lfc",
            feature.level,
            prev.filter = 0,
            abund.filter = 0,
@@ -208,10 +208,10 @@ generate_taxa_change_test_pair <-
         )
 
       # 计算value的差值
-      if (is.function(change.func)) {
+      if (is.function(feature.change.func)) {
         combined_data <-
-          combined_data %>% dplyr::mutate(value_diff = change.func(value_time_2, value_time_1))
-      } else if (change.func == "lfc") {
+          combined_data %>% dplyr::mutate(value_diff = feature.change.func(value_time_2, value_time_1))
+      } else if (feature.change.func == "lfc") {
         half_nonzero_min_time_2 <- combined_data %>%
           filter(value_time_2 > 0) %>%
           dplyr::group_by(!!sym(feature.level)) %>%
@@ -249,7 +249,7 @@ generate_taxa_change_test_pair <-
 
         combined_data <-
           combined_data %>% dplyr::mutate(value_diff = log2(value_time_2) - log2(value_time_1))
-      } else if (change.func == "relative difference") {
+      } else if (feature.change.func == "relative change") {
         combined_data <- combined_data %>%
           dplyr::mutate(value_diff = dplyr::case_when(
             value_time_2 == 0 & value_time_1 == 0 ~ 0,

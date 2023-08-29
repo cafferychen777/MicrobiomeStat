@@ -4,10 +4,13 @@
 #'
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list).
 #' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
+#' @param alpha.name The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".
+#' @param depth
 #' @param dist.obj Distance matrix between samples, usually calculated using
 #' \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
 #' If NULL, beta diversity will be automatically computed from \code{data.obj}
 #' using \code{mStat_calculate_beta_diversity}.
+#' @param dist.name A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').
 #' @param pc.obj A list containing the results of dimension reduction/Principal Component Analysis.
 #' This should be the output from functions like \code{\link[MicrobiomeStat]{mStat_calculate_PC}}, containing the PC coordinates and other metadata.
 #' If NULL (default), dimension reduction will be automatically performed using metric multidimensional scaling (MDS) via \code{\link[MicrobiomeStat]{mStat_calculate_PC}}.
@@ -24,44 +27,20 @@
 #' @param adj.vars Character vector, names of columns in metadata containing covariates to adjust for, default is NULL.
 #' @param subject.var Character, column name in metadata containing subject/sample IDs, e.g. "subject_id". Required.
 #' @param time.var Character, column name in metadata containing time variable, e.g. "week". Required.
-#' @param alpha.name The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".
-#' @param dist.name A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').
 #' @param t0.level Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.
 #' @param ts.levels Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.
-#' @param change.func A function or character string specifying how to calculate
+#' @param feature.change.func A function or character string specifying how to calculate
 #' the change from baseline value. This allows flexible options:
 #' - If a function is provided, it will be applied to each row to calculate change.
 #'   The function should take 2 arguments: value at timepoint t and value at baseline t0.
 #' - If a character string is provided, following options are supported:
-#'   - 'relative difference': (value_t - value_t0) / (value_t + value_t0)
+#'   - 'relative change': (value_t - value_t0) / (value_t + value_t0)
 #'   - 'difference': value_t - value_t0
 #'   - 'lfc': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
-#' - Default is 'relative difference'.
+#' - Default is 'relative change'.
 #'
 #' If none of the above options are matched, an error will be thrown indicating
 #' the acceptable options or prompting the user to provide a custom function.
-#' @param base.size Numeric, base font size for all plots, default is 16.
-#' @param theme.choice Plot theme choice. Can be one of:
-#'   - "prism": ggprism::theme_prism()
-#'   - "classic": theme_classic()
-#'   - "gray": theme_gray()
-#'   - "bw": theme_bw()
-#' Default is "bw".
-#' @param custom.theme A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:
-#'
-#' ```r
-#' my_theme <- ggplot2::theme(
-#'   axis.title = ggplot2::element_text(size=16, color="red"),
-#'   legend.position = "none"
-#' )
-#' ```
-#'
-#' Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.
-#' @param palette Character vector or function defining color palette for plots, default is NULL.
-#' @param pdf Logical, if TRUE save plots as PDF files, default is TRUE.
-#' @param file.ann Character, annotation text to add to PDF plot filenames, default is NULL.
-#' @param pdf.wid Numeric, width of PDF plots in inches, default is 11.
-#' @param pdf.hei Numeric, height of PDF plots in inches, default is 8.5.
 #' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
 #' taxa before analysis. Taxa with prevalence below this value will be removed.
 #' Prevalence is calculated as the proportion of samples where the taxon is present.
@@ -90,6 +69,28 @@
 #' - "identity": No transformation (default)
 #' - "sqrt": Square root transformation
 #' - "log": Logarithmic transformation. Zeros are replaced with half of the minimum non-zero value for each taxon before log transformation.
+#' @param base.size Numeric, base font size for all plots, default is 16.
+#' @param theme.choice Plot theme choice. Can be one of:
+#'   - "prism": ggprism::theme_prism()
+#'   - "classic": theme_classic()
+#'   - "gray": theme_gray()
+#'   - "bw": theme_bw()
+#' Default is "bw".
+#' @param custom.theme A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:
+#'
+#' ```r
+#' my_theme <- ggplot2::theme(
+#'   axis.title = ggplot2::element_text(size=16, color="red"),
+#'   legend.position = "none"
+#' )
+#' ```
+#'
+#' Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.
+#' @param palette Character vector or function defining color palette for plots, default is NULL.
+#' @param pdf Logical, if TRUE save plots as PDF files, default is TRUE.
+#' @param file.ann Character, annotation text to add to PDF plot filenames, default is NULL.
+#' @param pdf.wid Numeric, width of PDF plots in inches, default is 11.
+#' @param pdf.hei Numeric, height of PDF plots in inches, default is 8.5.
 #' @param output.file Character, output PDF report filename (required).
 #' @param ... Additional arguments passed to generate_taxa_trend_test_long().
 #'
@@ -199,7 +200,7 @@
 #'   feature.mt.method = "none",
 #'   feature.sig.level = 0.1,
 #'   feature.level = c("Phylum"),
-#'   change.func = "relative difference",
+#'   feature.change.func = "relative change",
 #'   feature.dat.type = "count",
 #'   prev.filter = 1e-5,
 #'   abund.filter = 1e-5,
@@ -227,7 +228,7 @@
 #'   feature.mt.method = "none",
 #'   feature.sig.level = 0.1,
 #'   feature.level = c("Phylum"),
-#'   change.func = "relative difference",
+#'   feature.change.func = "relative change",
 #'   feature.dat.type = "count",
 #'   prev.filter = 1e-5,
 #'   abund.filter = 1e-5,
@@ -238,11 +239,6 @@
 #' )
 #' @export
 mStat_generate_report_long <- function(data.obj,
-                                       alpha.obj = NULL,
-                                       alpha.name = c("shannon", "simpson"),
-                                       dist.obj = NULL,
-                                       dist.name = c('BC', 'Jaccard'),
-                                       pc.obj = NULL,
                                        group.var,
                                        strata.var = NULL,
                                        adj.vars = NULL,
@@ -250,17 +246,22 @@ mStat_generate_report_long <- function(data.obj,
                                        time.var,
                                        t0.level,
                                        ts.levels,
+                                       alpha.obj = NULL,
+                                       alpha.name = c("shannon", "simpson"),
+                                       dist.obj = NULL,
+                                       dist.name = c('BC', 'Jaccard'),
+                                       pc.obj = NULL,
                                        prev.filter = 0,
                                        abund.filter = 0,
                                        feature.number = 15,
                                        feature.level = NULL,
                                        feature.dat.type = c("count", "proportion", "other"),
+                                       feature.change.func = "relative change",
                                        feature.mt.method = c("fdr","none"),
                                        feature.sig.level = 0.1,
                                        transform = c("identity", "sqrt", "log"),
-                                       change.func = "relative difference",
                                        base.size = 16,
-                                       theme.choice = "prism",
+                                       theme.choice = "bw",
                                        custom.theme = NULL,
                                        palette = NULL,
                                        pdf = TRUE,
@@ -283,7 +284,7 @@ output:
 
 ## 1. Data Summary and Preparation
 
-## Input Parameters Summary
+## Parameter Setting
 
 ```{r input-parameters-summary, echo=FALSE, message=FALSE, results='asis'}
 
@@ -298,11 +299,11 @@ custom_adj.vars_status <- ifelse(is.null(adj.vars), 'NULL', toString(adj.vars))
 
 # 创建一个数据框，其中包含参数的名称和对应的值
 params_data <- data.frame(Parameter = c('data.obj', 'group.var', 'strata.var', 'adj.vars', 'subject.var', 'time.var', 'alpha.name',
-                                    'dist.name', 't0.level', 'ts.levels', 'change.func', 'base.size', 'theme.choice',
+                                    'dist.name', 't0.level', 'ts.levels', 'feature.change.func', 'base.size', 'theme.choice',
                                     'custom.theme', 'palette', 'pdf', 'file.ann', 'pdf.wid', 'pdf.hei', 'prev.filter',
                                     'abund.filter', 'feature.number', 'feature.level', 'feature.dat.type', 'feature.mt.method', 'feature.sig.level', 'transform'),
                           Value = c(deparse(substitute(data.obj)), group.var, strata.var, custom_adj.vars_status, subject.var, time.var, toString(alpha.name),
-                                    toString(dist.name), t0.level, toString(ts.levels), change.func, base.size, theme.choice,
+                                    toString(dist.name), t0.level, toString(ts.levels), feature.change.func, base.size, theme.choice,
                                     custom_theme_status, custom_palette_status, pdf, custom_file.ann_status, pdf.wid, pdf.hei, prev.filter,
                                     abund.filter, feature.number, toString(feature.level), feature.dat.type, feature.mt.method, feature.sig.level, transform))
 
@@ -966,7 +967,7 @@ taxa_change_heatmap_long_results <- generate_taxa_change_heatmap_long(
   features.plot = NULL,
   top.k.plot = NULL,
   top.k.func = NULL,
-  change.func = change.func,
+  feature.change.func = feature.change.func,
   prev.filter = prev.filter,
   abund.filter = abund.filter,
   base.size = base.size,
@@ -981,16 +982,16 @@ taxa_change_heatmap_long_results <- generate_taxa_change_heatmap_long(
 ```
 
 ```{r taxa-change-heatmap-longitudinal-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 20, fig.height = 12}
-if (is.function(change.func)) {
+if (is.function(feature.change.func)) {
   cat('### Change Calculation: Custom Function\n')
   cat('The changes from t0.level were computed using a custom function provided by the user.\n\n')
-} else if (change.func == 'relative difference') {
-  cat('### Change Calculation: Relative Difference\n')
+} else if (feature.change.func == 'relative change') {
+  cat('### Change Calculation: Relative Change\n')
   cat('The changes from t0.level were computed as the difference between the current value and t0.level divided by the sum of the two.\n\n')
-} else if (change.func == 'difference') {
+} else if (feature.change.func == 'difference') {
   cat('### Change Calculation: Difference\n')
   cat('The changes from t0.level were computed as the difference between the current value and t0.level.\n\n')
-} else if (change.func == 'lfc') {
+} else if (feature.change.func == 'lfc') {
   cat('### Change Calculation: Log2 Fold Change (lfc)\n')
   cat('The changes from t0.level were computed as the log2 difference between the current value and t0.level, with a small constant added to avoid taking log of zero.\n\n')
 }
@@ -1085,7 +1086,7 @@ for(taxon_rank in names(taxa_trend_test_results)) {
     if (nrow(interaction_terms_results) == 0) {
         cat(sprintf('For the taxa investigated under the %s category, no significant interactions were detected between %s and %s using the %s method for p-value adjustment, at a %s threshold of %s.\n\n', taxon_rank, group.var, time.var, feature.mt.method, p_value_str, feature.sig.level))
     } else {
-        cat('## Significant Taxa in Taxa Volatility Test Results \n')
+        cat('## Significant features in volatility test results \n')
         cat(sprintf('For the taxon %s, significant interactions were identified in the Taxa Trend Test Results using the %s method for p-value adjustment, based on a threshold of %s:\n\n', taxon_rank, feature.mt.method, feature.sig.level))
     }
 }
@@ -1170,7 +1171,7 @@ for(taxon_rank in names(taxa_volatility_test_results)) {
 
     # Report significant results for each taxon under the current rank
     if(length(significant_results_list) > 0) {
-      cat('## Significant Taxa in Taxa Volatility Test Results \n')
+      cat('## Significant features in volatility test results \n')
     } else {
         cat(sprintf('No significant results were detected for the taxa volatility at a p-value threshold of %s for %s.\n\n', feature.sig.level, taxon_rank))
     }
@@ -1352,7 +1353,7 @@ taxa_indiv_spaghettiplot_results <- generate_taxa_indiv_spaghettiplot_long(
                                    group.var = group.var,
                                    strata.var = strata.var,
                                    change.base = change.base,
-                                   change.func = change.func,
+                                   feature.change.func = feature.change.func,
                                    feature.level = feature.level,
                                    features.plot = combined_significant_taxa,
                                    feature.dat.type = feature.dat.type,
@@ -1438,7 +1439,7 @@ rmd_code <- knitr::knit_expand(text = template, data.obj = data.obj,
                         strata.var = strata.var, base.size = base.size,
                         theme.choice = theme.choice, custom.theme = custom.theme,
                         palette = palette, pdf = pdf, file.ann = file.ann,
-                        pdf.wid = pdf.wid, pdf.hei = pdf.hei, change.func = change.func,
+                        pdf.wid = pdf.wid, pdf.hei = pdf.hei, feature.change.func = feature.change.func,
                         prev.filter = prev.filter, abund.filter = abund.filter,
                         feature.number = feature.number,
                         feature.level = feature.level,

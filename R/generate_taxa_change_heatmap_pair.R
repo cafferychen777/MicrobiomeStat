@@ -10,10 +10,10 @@
 #' @param group.var A character string specifying the grouping variable in the metadata. Default is NULL.
 #' @param strata.var A character string specifying the stratification variable in the metadata. Default is NULL.
 #' @param change.base A numeric value specifying the baseline time point for computing change. This should match one of the time points in the time variable. Default is 1, which assumes the first time point is the baseline.
-#' @param change.func A function or character string specifying the method for computing change between time points. Options are:
+#' @param feature.change.func A function or character string specifying the method for computing change between time points. Options are:
 #' - "difference": Compute simple difference of abundances between time points.
 #' - "lfc": Compute log2 fold change between time points.
-#' - "relative difference": Compute relative difference of abundances between time points.
+#' - "relative change": Compute relative change of abundances between time points.
 #' - "custom function": Apply a custom function to compute change. The custom function should take two arguments value_time_2 and value_time_1.
 #' Default is "difference".
 #' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
@@ -66,7 +66,7 @@
 #'   group.var = "group",
 #'   strata.var = "sex",
 #'   change.base = "1",
-#'   change.func = "relative difference",
+#'   feature.change.func = "relative change",
 #'   feature.level = c("Family"),
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
@@ -91,7 +91,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
                                               group.var = NULL,
                                               strata.var = NULL,
                                               change.base = NULL,
-                                              change.func = "relative difference",
+                                              feature.change.func = "relative change",
                                               feature.level = NULL,
                                               feature.dat.type = c("count", "proportion", "other"),
                                               features.plot = NULL,
@@ -250,10 +250,10 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
       )
 
     # 计算value的差值
-    if (is.function(change.func)) {
+    if (is.function(feature.change.func)) {
       combined_data <-
-        combined_data %>% dplyr::mutate(value_diff = change.func(value_time_2, value_time_1))
-    } else if (change.func == "lfc") {
+        combined_data %>% dplyr::mutate(value_diff = feature.change.func(value_time_2, value_time_1))
+    } else if (feature.change.func == "lfc") {
       half_nonzero_min_time_2 <- combined_data %>%
         filter(value_time_2 > 0) %>%
         dplyr::group_by(!!sym(feature.level)) %>%
@@ -291,7 +291,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
 
       combined_data <-
         combined_data %>% dplyr::mutate(value_diff = log2(value_time_2) - log2(value_time_1))
-    } else if (change.func == "relative difference") {
+    } else if (feature.change.func == "relative change") {
       combined_data <- combined_data %>%
         dplyr::mutate(value_diff = dplyr::case_when(
           value_time_2 == 0 & value_time_1 == 0 ~ 0,
@@ -453,8 +453,8 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
 
     gg_heatmap_plot <- as.ggplot(heatmap_plot)
 
-    if (is.function(change.func)) {
-      change.func = "custom function"
+    if (is.function(feature.change.func)) {
+      feature.change.func = "custom function"
     }
 
     # Save the heatmap as a PDF file
