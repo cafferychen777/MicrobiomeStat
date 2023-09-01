@@ -78,11 +78,6 @@ If only one time value exists, the function will exit with a message.
 }
 \examples{
 \dontrun{
-library(vegan)
-library(GUniFrac)
-library(ape)
-library(philentropy)
-library(MicrobiomeStat)
 data(peerj32.obj)
 
 generate_taxa_change_test_pair(

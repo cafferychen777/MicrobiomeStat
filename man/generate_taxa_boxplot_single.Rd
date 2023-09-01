@@ -129,7 +129,7 @@ The function also has options to customize the size, theme, and color palette of
 \examples{
 \dontrun{
 # Generate the boxplot pair
-data(peerj32.obj)
+data(ecam.obj)
 generate_taxa_boxplot_single(
   data.obj = ecam.obj,
   subject.var = "studyid",
@@ -138,7 +138,7 @@ generate_taxa_boxplot_single(
   group.var = "diet",
   strata.var = NULL,
   feature.level = c("Phylum"),
-  features.plot = sample(unique(ecam.obj$feature.ann[,"Phylum"]),1),
+  features.plot = sample(unique(ecam.obj$feature.ann[,"Phylum"]),3),
   feature.dat.type = "proportion",
   transform = "log",
   prev.filter = 0,
@@ -166,8 +166,8 @@ generate_taxa_boxplot_single(
   top.k.plot = NULL,
   top.k.func = NULL,
   transform = "log",
-  prev.filter = 0,
-  abund.filter = 0,
+  prev.filter = 0.1,
+  abund.filter = 0.0001,
   base.size = 12,
   theme.choice = "bw",
   custom.theme = NULL,

@@ -83,8 +83,8 @@ generate_taxa_test_pair(
   group.var = "group",
   adj.vars = c("sex"),
   feature.level = "Family",
-  prev.filter = 0,
-  abund.filter = 0,
+  prev.filter = 0.1,
+  abund.filter = 0.001,
   feature.dat.type = "count"
 )
 }

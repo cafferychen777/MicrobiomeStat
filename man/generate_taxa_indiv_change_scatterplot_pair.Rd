@@ -140,16 +140,17 @@ dplyr::left_join(peerj32.obj$meta.dat \%>\% rownames_to_column("sample"),by = "s
 tibble::column_to_rownames("sample")
 
  # Generate the scatterplot pairs
- plot_list <- generate_taxa_indiv_change_scatterplot_pair(
+ generate_taxa_indiv_change_scatterplot_pair(
    data.obj = peerj32.obj,
    subject.var = "subject",
    time.var = "time",
    group.var = "cons",
    strata.var = "sex",
    change.base = "1",
-   feature.level = "Phylum",
-   top.k.plot = 3,
-   top.k.func = "sd",
+   feature.change.func = "lfc",
+   feature.level = "Genus",
+   top.k.plot = NULL,
+   top.k.func = NULL,
    prev.filter = 0.01,
    abund.filter = 0.01
  )

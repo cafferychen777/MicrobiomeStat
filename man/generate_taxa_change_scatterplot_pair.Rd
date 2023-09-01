@@ -148,11 +148,11 @@ generate_taxa_change_scatterplot_pair(
   prev.filter = 0.01,
   abund.filter = 0.01,
   base.size = 16,
-  theme.choice = "classic",
+  theme.choice = "bw",
   custom.theme = NULL,
   palette = NULL,
   pdf = TRUE,
-  file.ann = "test",
+  file.ann = NULL,
   pdf.wid = 11,
   pdf.hei = 8.5
 )

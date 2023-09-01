@@ -111,7 +111,7 @@ generate_taxa_barplot_pair(
   strata.var = "sex",
   feature.level = "Family",
   feature.dat.type = c("count"),
-  feature.number = 8,
+  feature.number = 12,
   base.size = 10,
   theme.choice = "bw",
   custom.theme = NULL,

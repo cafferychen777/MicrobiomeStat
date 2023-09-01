@@ -133,7 +133,7 @@ generate_taxa_indiv_spaghettiplot_long(
   features.plot = NULL,
   feature.dat.type = "proportion",
   top.k.plot = 5,
-  top.k.func = "mean",
+  top.k.func = "sd",
   prev.filter = 0.01,
   abund.filter = 0.01,
   base.size = 16,

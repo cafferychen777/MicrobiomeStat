@@ -149,7 +149,7 @@ generate_taxa_spaghettiplot_long(
   feature.level = c("Phylum"),
   features.plot = NULL,
   feature.dat.type = "proportion",
-  top.k.plot = 3,
+  top.k.plot = 10,
   top.k.func = "mean",
   prev.filter = 0,
   abund.filter = 0,

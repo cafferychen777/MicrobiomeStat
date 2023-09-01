@@ -2,21 +2,20 @@
 % Please edit documentation in R/mStat_generate_report_long.R
 \name{mStat_generate_report_long}
 \alias{mStat_generate_report_long}
-\title{Generate Comprehensive Longitudinal Microbiome Analysis Report for MicrobiomeStat
-This function performs extensive and in-depth longitudinal analysis of microbiome data using MicrobiomeStat package and generates a comprehensive PDF report.
-The report contains thorough statistical analysis along with data visualizations, statistical graphics, and result tables for microbial alpha diversity, beta diversity, taxonomic composition, and their temporal dynamics with MicrobiomeStat.}
+\title{Generate Comprehensive Longitudinal Microbiome Analysis Report for MicrobiomeStat}
 \usage{
 mStat_generate_report_long(
   data.obj,
   group.var,
-  strata.var = NULL,
   adj.vars = NULL,
+  strata.var = NULL,
   subject.var,
   time.var,
   t0.level,
   ts.levels,
   alpha.obj = NULL,
   alpha.name = c("shannon", "simpson"),
+  depth = NULL,
   dist.obj = NULL,
   dist.name = c("BC", "Jaccard"),
   pc.obj = NULL,
@@ -46,9 +45,9 @@ mStat_generate_report_long(
 
 \item{group.var}{Character, column name in metadata containing grouping variable, e.g. "treatment". Required if present in metadata.}
 
-\item{strata.var}{Character, column name in metadata containing stratification variable, e.g "sex". Optional.}
-
 \item{adj.vars}{Character vector, names of columns in metadata containing covariates to adjust for, default is NULL.}
+
+\item{strata.var}{Character, column name in metadata containing stratification variable, e.g "sex". Optional.}
 
 \item{subject.var}{Character, column name in metadata containing subject/sample IDs, e.g. "subject_id". Required.}
 
@@ -198,7 +197,6 @@ A PDF report containing:
 - Taxa spaghetti plots: Individual line plots
 }
 \description{
-Generate Comprehensive Longitudinal Microbiome Analysis Report for MicrobiomeStat
 This function performs extensive and in-depth longitudinal analysis of microbiome data using MicrobiomeStat package and generates a comprehensive PDF report.
 The report contains thorough statistical analysis along with data visualizations, statistical graphics, and result tables for microbial alpha diversity, beta diversity, taxonomic composition, and their temporal dynamics with MicrobiomeStat.
 }

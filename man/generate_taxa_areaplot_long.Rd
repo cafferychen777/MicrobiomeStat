@@ -115,7 +115,7 @@ generate_taxa_areaplot_long(
   time.var = "month",
   group.var = "diet",
   strata.var = "antiexposedall",
-  feature.level = c("Family","Genus","Order","Family"),
+  feature.level = c("Family","Genus","Order"),
   feature.dat.type = "proportion",
   feature.number = 20,
   t0.level = unique(ecam.obj$meta.dat$month)[1],
