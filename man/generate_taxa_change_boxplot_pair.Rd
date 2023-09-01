@@ -11,7 +11,7 @@ generate_taxa_change_boxplot_pair(
   group.var = NULL,
   strata.var = NULL,
   change.base = NULL,
-  change.func = "relative difference",
+  feature.change.func = "relative change",
   feature.level = NULL,
   feature.dat.type = c("count", "proportion", "other"),
   features.plot = NULL,
@@ -43,13 +43,13 @@ generate_taxa_change_boxplot_pair(
 
 \item{change.base}{The time point value to be used as the baseline for calculating change in abundance between time points. Should be one of the values from `time.var`. The change will be calculated as the difference between this baseline time point and the subsequent time point.}
 
-\item{change.func}{The function used to calculate change in abundance between time points.
-This can be one of "relative difference", "lfc" (log2 fold change),
+\item{feature.change.func}{The function used to calculate change in abundance between time points.
+This can be one of "relative change", "lfc" (log2 fold change),
 or a custom function. For custom functions, the function should take two numeric vectors
 as input (abundances at time 1 and time 2) and return a numeric vector of differences.
 The function should handle zero values appropriately. For "lfc", zero values
 are imputed as half the minimum nonzero value before taking the logarithm.
-Default is "relative difference".}
+Default is "relative change".}
 
 \item{feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
 to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
@@ -141,7 +141,7 @@ generate_taxa_change_boxplot_pair(
   group.var = "group",
   strata.var = NULL,
   change.base = "1",
-  change.func = "lfc",
+  feature.change.func = "lfc",
   feature.level = c("Family"),
   feature.dat.type = "count",
   features.plot = NULL,

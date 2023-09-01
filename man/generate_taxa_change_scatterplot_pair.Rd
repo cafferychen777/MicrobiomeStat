@@ -11,7 +11,7 @@ generate_taxa_change_scatterplot_pair(
   group.var = NULL,
   strata.var = NULL,
   change.base = NULL,
-  change.func = "difference",
+  feature.change.func = "difference",
   feature.level = NULL,
   feature.dat.type = c("count", "proportion", "other"),
   features.plot = NULL,
@@ -43,9 +43,9 @@ generate_taxa_change_scatterplot_pair(
 
 \item{change.base}{Character string specifying the baseline time point. This should match one of the time points present in the metadata for the 'time.var' variable. The change will be calculated by comparing the other time points to this baseline time point.}
 
-\item{change.func}{Function or character string specifying method to compute change between time points. Options are:
+\item{feature.change.func}{Function or character string specifying method to compute change between time points. Options are:
 - 'difference' (default): Computes absolute difference in counts between time points.
-- 'relative difference': Computes relative difference in counts between time points, calculated as (count_time2 - count_time1) / (count_time2 + count_time1).
+- 'relative change': Computes relative change in counts between time points, calculated as (count_time2 - count_time1) / (count_time2 + count_time1).
 - 'lfc': Computes log2 fold change between time points. Zero counts are imputed with half the minimum nonzero value before log transform.
 - Custom function: A user-defined function can also be provided, which should take two vectors of counts (at time 1 and time 2) as input and return the computed change.}
 
@@ -139,7 +139,7 @@ generate_taxa_change_scatterplot_pair(
   group.var = "cons",
   strata.var = "sex",
   change.base = "1",
-  change.func = "lfc",
+  feature.change.func = "lfc",
   feature.level = "Genus",
   feature.dat.type = "other",
   features.plot = NULL,

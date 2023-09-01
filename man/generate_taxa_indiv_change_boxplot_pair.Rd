@@ -11,7 +11,7 @@ generate_taxa_indiv_change_boxplot_pair(
   group.var = NULL,
   strata.var = NULL,
   change.base = NULL,
-  change.func = "relative difference",
+  feature.change.func = "relative change",
   feature.level = NULL,
   features.plot = NULL,
   feature.dat.type = c("count", "proportion", "other"),
@@ -43,9 +43,9 @@ generate_taxa_indiv_change_boxplot_pair(
 
 \item{change.base}{A string indicating the base time point for change computation. This should match one of the time points present in the metadata for the 'time.var' variable.}
 
-\item{change.func}{A string or function to compute the change in abundance between two time points. If a string, options are:
+\item{feature.change.func}{A string or function to compute the change in abundance between two time points. If a string, options are:
 - 'difference': Computes absolute difference in abundance
-- 'relative difference': Computes relative difference in abundance, calculated as (abundance_time2 - abundance_time1) / (abundance_time2 + abundance_time1)
+- 'relative change': Computes relative change in abundance, calculated as (abundance_time2 - abundance_time1) / (abundance_time2 + abundance_time1)
 - 'lfc': Computes log2 fold change. Zero abundances are imputed before log transform.
 If a function, it should take two numeric vectors of abundances at time 1 and time 2 and return a numeric vector of computed changes.}
 
@@ -144,7 +144,7 @@ generate_taxa_indiv_change_boxplot_pair(
   group.var = "group",
   strata.var = NULL,
   change.base = "1",
-  change.func = "lfc",
+  feature.change.func = "lfc",
   feature.level = c("Family"),
   features.plot = NULL,
   feature.dat.type = "count",

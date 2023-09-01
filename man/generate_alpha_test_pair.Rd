@@ -7,8 +7,9 @@
 generate_alpha_test_pair(
   data.obj,
   alpha.obj = NULL,
+  alpha.name = NULL,
+  depth = NULL,
   time.var,
-  alpha.name,
   subject.var,
   group.var,
   adj.vars
@@ -19,12 +20,12 @@ generate_alpha_test_pair(
 
 \item{alpha.obj}{An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.}
 
-\item{time.var}{A string representing the time variable's name in the
-metadata. The default is NULL.}
-
 \item{alpha.name}{A character vector with the names of alpha diversity
 indices to compute. Options include: "shannon", "simpson",
 "observed_species", "chao1", "ace", and "pielou".}
+
+\item{time.var}{A string representing the time variable's name in the
+metadata. The default is NULL.}
 
 \item{subject.var}{A string specifying the subject variable column in the metadata.}
 

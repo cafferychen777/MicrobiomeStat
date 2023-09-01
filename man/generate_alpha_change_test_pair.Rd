@@ -7,8 +7,9 @@
 generate_alpha_change_test_pair(
   data.obj,
   alpha.obj = NULL,
+  alpha.name = NULL,
+  depth = NULL,
   time.var,
-  alpha.name,
   subject.var,
   group.var,
   adj.vars,
@@ -21,11 +22,11 @@ generate_alpha_change_test_pair(
 
 \item{alpha.obj}{An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.}
 
+\item{alpha.name}{The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou". Previously named as `alpha.index`.}
+
 \item{time.var}{Character string specifying the column name in metadata containing
 time values for each sample. Required to identify pairs of time
 points to calculate changes between.}
-
-\item{alpha.name}{The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou". Previously named as `alpha.index`.}
 
 \item{subject.var}{Character string specifying the column name in metadata containing
 unique subject IDs. Required to pair samples from the same subject

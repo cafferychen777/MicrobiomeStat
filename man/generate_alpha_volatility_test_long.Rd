@@ -7,7 +7,8 @@
 generate_alpha_volatility_test_long(
   data.obj,
   alpha.obj = NULL,
-  alpha.name,
+  alpha.name = NULL,
+  depth = depth,
   time.var,
   subject.var,
   group.var,

@@ -11,7 +11,7 @@ generate_taxa_change_heatmap_pair(
   group.var = NULL,
   strata.var = NULL,
   change.base = NULL,
-  change.func = "relative difference",
+  feature.change.func = "relative change",
   feature.level = NULL,
   feature.dat.type = c("count", "proportion", "other"),
   features.plot = NULL,
@@ -43,10 +43,10 @@ generate_taxa_change_heatmap_pair(
 
 \item{change.base}{A numeric value specifying the baseline time point for computing change. This should match one of the time points in the time variable. Default is 1, which assumes the first time point is the baseline.}
 
-\item{change.func}{A function or character string specifying the method for computing change between time points. Options are:
+\item{feature.change.func}{A function or character string specifying the method for computing change between time points. Options are:
 - "difference": Compute simple difference of abundances between time points.
 - "lfc": Compute log2 fold change between time points.
-- "relative difference": Compute relative difference of abundances between time points.
+- "relative change": Compute relative change of abundances between time points.
 - "custom function": Apply a custom function to compute change. The custom function should take two arguments value_time_2 and value_time_1.
 Default is "difference".}
 
@@ -123,7 +123,7 @@ generate_taxa_change_heatmap_pair(
   group.var = "group",
   strata.var = "sex",
   change.base = "1",
-  change.func = "relative difference",
+  feature.change.func = "relative change",
   feature.level = c("Family"),
   feature.dat.type = "count",
   features.plot = NULL,

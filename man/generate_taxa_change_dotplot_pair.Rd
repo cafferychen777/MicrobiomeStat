@@ -11,7 +11,7 @@ generate_taxa_change_dotplot_pair(
   group.var = NULL,
   strata.var = NULL,
   change.base = "1",
-  change.func = "lfc",
+  feature.change.func = "lfc",
   feature.level = NULL,
   feature.dat.type = c("count", "proportion", "other"),
   features.plot = NULL,
@@ -43,7 +43,7 @@ generate_taxa_change_dotplot_pair(
 
 \item{change.base}{A numeric value setting base for the change (usually 1)}
 
-\item{change.func}{A function or character string specifying the method for computing the change. Default is "difference".}
+\item{feature.change.func}{A function or character string specifying the method for computing the change. Default is "difference".}
 
 \item{feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
 to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
@@ -136,7 +136,7 @@ generate_taxa_change_dotplot_pair(
   group.var = "group",
   strata.var = "sex",
   change.base = "1",
-  change.func = "lfc",
+  feature.change.func = "lfc",
   feature.level = "Family",
   feature.dat.type = "count",
   features.plot = NULL,

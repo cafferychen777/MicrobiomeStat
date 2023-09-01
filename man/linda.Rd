@@ -9,7 +9,7 @@ linda(
   meta.dat,
   phyloseq.obj = NULL,
   formula,
-  feature.dat.type = c("count", "proportion"),
+  feature.dat.type = c("count", "proportion", "other"),
   prev.filter = 0,
   mean.abund.filter = 0,
   max.abund.filter = 0,

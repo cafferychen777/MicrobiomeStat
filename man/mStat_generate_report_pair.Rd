@@ -145,7 +145,7 @@ mStat_generate_report_pair(
   alpha.name = c("shannon","simpson"),
   dist.name = c("BC",'Jaccard'),
   change.base = "1",
-  change.func = "relative difference",
+  change.func = "relative change",
   strata.var = "sex",
   feature.level = c("Phylum","Family"),
   feature.dat.type = "count",

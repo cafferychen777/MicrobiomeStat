@@ -13,11 +13,11 @@ generate_taxa_change_heatmap_long(
   group.var = NULL,
   strata.var = NULL,
   feature.level,
+  feature.change.func = "relative change",
   feature.dat.type = c("count", "proportion", "other"),
   features.plot = NULL,
   top.k.plot = NULL,
   top.k.func = NULL,
-  change.func = "relative difference",
   prev.filter = 1e-08,
   abund.filter = 0.01,
   base.size = 10,
@@ -48,6 +48,19 @@ generate_taxa_change_heatmap_long(
 
 \item{feature.level}{A character string defining the taxonomic level to analyze ('Phylum', 'Family', or 'Genus').}
 
+\item{feature.change.func}{A function or character string specifying how to calculate
+the change from baseline value. This allows flexible options:
+- If a function is provided, it will be applied to each row to calculate change.
+  The function should take 2 arguments: value at timepoint t and value at baseline t0.
+- If a character string is provided, following options are supported:
+  - 'relative change': (value_t - value_t0) / (value_t + value_t0)
+  - 'difference': value_t - value_t0
+  - 'lfc': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
+- Default is 'relative change'.
+
+If none of the above options are matched, an error will be thrown indicating
+the acceptable options or prompting the user to provide a custom function.}
+
 \item{feature.dat.type}{The type of the feature data, which determines how the data is handled in downstream analyses.
 Should be one of:
 - "count": Raw count data, will be normalized by the function.
@@ -62,19 +75,6 @@ Default is NULL, in which case features will be selected based on `top.k.plot` a
 \item{top.k.plot}{A numeric value specifying the number of top taxa to be plotted if features.plot is NULL. If NULL (default), all taxa will be plotted.}
 
 \item{top.k.func}{A function to compute the top k taxa if features.plot is NULL. If NULL (default), the mean function will be used.}
-
-\item{change.func}{A function or character string specifying how to calculate
-the change from baseline value. This allows flexible options:
-- If a function is provided, it will be applied to each row to calculate change.
-  The function should take 2 arguments: value at timepoint t and value at baseline t0.
-- If a character string is provided, following options are supported:
-  - 'relative difference': (value_t - value_t0) / (value_t + value_t0)
-  - 'difference': value_t - value_t0
-  - 'lfc': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
-- Default is 'relative difference'.
-
-If none of the above options are matched, an error will be thrown indicating
-the acceptable options or prompting the user to provide a custom function.}
 
 \item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
 taxa before analysis. Taxa with prevalence below this value will be removed.
@@ -140,11 +140,11 @@ generate_taxa_change_heatmap_long(
   group.var = "antiexposedall",
   strata.var = "diet",
   feature.level = c("Family","Class"),
+  feature.change.func = "lfc",
   feature.dat.type = "proportion",
   features.plot = NULL,
   top.k.plot = 10,
   top.k.func = "sd",
-  change.func = "lfc",
   palette = NULL,
   prev.filter = 0.01,
   abund.filter = 0.01,
@@ -158,16 +158,16 @@ generate_taxa_change_heatmap_long(
   time.var = "visit_number_num",
   t0.level = unique(subset_T2D.obj$meta.dat$visit_number_num)[1],
   ts.levels = unique(subset_T2D.obj$meta.dat$visit_number_num)[-1],
-  group.var = NULL,
-  strata.var = NULL,
+  group.var = "subject_gender",
+  strata.var = "subject_race",
   feature.level = c("Phylum"),
+  feature.change.func = "lfc",
   feature.dat.type = "count",
   features.plot = NULL,
   top.k.plot = NULL,
   top.k.func = NULL,
-  change.func = "relative difference",
-  prev.filter = 0.0001,
-  abund.filter = 0.0001,
+  prev.filter = 0.01,
+  abund.filter = 0.01,
   pdf = TRUE,
   file.ann = NULL,
   pdf.wid = 11,

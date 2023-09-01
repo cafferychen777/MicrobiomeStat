@@ -8,35 +8,35 @@ The report contains thorough statistical analysis along with data visualizations
 \usage{
 mStat_generate_report_long(
   data.obj,
-  alpha.obj = NULL,
-  dist.obj = NULL,
-  pc.obj = NULL,
   group.var,
   strata.var = NULL,
   adj.vars = NULL,
   subject.var,
   time.var,
-  alpha.name = c("shannon", "simpson"),
-  dist.name = c("BC", "Jaccard"),
   t0.level,
   ts.levels,
-  change.func = "relative difference",
+  alpha.obj = NULL,
+  alpha.name = c("shannon", "simpson"),
+  dist.obj = NULL,
+  dist.name = c("BC", "Jaccard"),
+  pc.obj = NULL,
+  prev.filter = 0,
+  abund.filter = 0,
+  feature.number = 15,
+  feature.level = NULL,
+  feature.dat.type = c("count", "proportion", "other"),
+  feature.change.func = "relative change",
+  feature.mt.method = c("fdr", "none"),
+  feature.sig.level = 0.1,
+  transform = c("identity", "sqrt", "log"),
   base.size = 16,
-  theme.choice = "prism",
+  theme.choice = "bw",
   custom.theme = NULL,
   palette = NULL,
   pdf = TRUE,
   file.ann = NULL,
   pdf.wid = 11,
   pdf.hei = 8.5,
-  prev.filter = 0,
-  abund.filter = 0,
-  feature.number = 15,
-  feature.level = NULL,
-  feature.dat.type = c("count", "proportion", "other"),
-  feature.mt.method = c("fdr", "none"),
-  feature.sig.level = 0.1,
-  transform = c("identity", "sqrt", "log"),
   output.file,
   ...
 )
@@ -44,12 +44,30 @@ mStat_generate_report_long(
 \arguments{
 \item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list).}
 
+\item{group.var}{Character, column name in metadata containing grouping variable, e.g. "treatment". Required if present in metadata.}
+
+\item{strata.var}{Character, column name in metadata containing stratification variable, e.g "sex". Optional.}
+
+\item{adj.vars}{Character vector, names of columns in metadata containing covariates to adjust for, default is NULL.}
+
+\item{subject.var}{Character, column name in metadata containing subject/sample IDs, e.g. "subject_id". Required.}
+
+\item{time.var}{Character, column name in metadata containing time variable, e.g. "week". Required.}
+
+\item{t0.level}{Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.}
+
+\item{ts.levels}{Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.}
+
 \item{alpha.obj}{An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.}
+
+\item{alpha.name}{The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".}
 
 \item{dist.obj}{Distance matrix between samples, usually calculated using
 \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
 If NULL, beta diversity will be automatically computed from \code{data.obj}
 using \code{mStat_calculate_beta_diversity}.}
+
+\item{dist.name}{A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').}
 
 \item{pc.obj}{A list containing the results of dimension reduction/Principal Component Analysis.
 This should be the output from functions like \code{\link[MicrobiomeStat]{mStat_calculate_PC}}, containing the PC coordinates and other metadata.
@@ -63,36 +81,54 @@ The pc.obj list structure should contain:
 }
 See \code{\link[MicrobiomeStat]{mStat_calculate_PC}} function for details on output format.}
 
-\item{group.var}{Character, column name in metadata containing grouping variable, e.g. "treatment". Required if present in metadata.}
+\item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
+taxa before analysis. Taxa with prevalence below this value will be removed.
+Prevalence is calculated as the proportion of samples where the taxon is present.
+Default 0 removes no taxa by prevalence filtering.}
 
-\item{strata.var}{Character, column name in metadata containing stratification variable, e.g "sex". Optional.}
+\item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering
+taxa before analysis. Taxa with mean abundance below this value will be removed.
+Abundance refers to counts or proportions depending on \code{feature.dat.type}.
+Default 0 removes no taxa by abundance filtering.}
 
-\item{adj.vars}{Character vector, names of columns in metadata containing covariates to adjust for, default is NULL.}
+\item{feature.number}{A numeric value indicating the number of top abundant features to retain in the plot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.}
 
-\item{subject.var}{Character, column name in metadata containing subject/sample IDs, e.g. "subject_id". Required.}
+\item{feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
+to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
+annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
+column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
+for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
+is also NULL.}
 
-\item{time.var}{Character, column name in metadata containing time variable, e.g. "week". Required.}
+\item{feature.dat.type}{The type of the feature data, which determines how the data is handled in downstream analyses.
+Should be one of:
+- "count": Raw count data, will be normalized by the function.
+- "proportion": Data that has already been normalized to proportions/percentages.
+- "other": Custom abundance data that has unknown scaling. No normalization applied.
+The choice affects preprocessing steps as well as plot axis labels.
+Default is "count", which assumes raw OTU table input.}
 
-\item{alpha.name}{The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".}
-
-\item{dist.name}{A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').}
-
-\item{t0.level}{Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.}
-
-\item{ts.levels}{Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.}
-
-\item{change.func}{A function or character string specifying how to calculate
+\item{feature.change.func}{A function or character string specifying how to calculate
 the change from baseline value. This allows flexible options:
 - If a function is provided, it will be applied to each row to calculate change.
   The function should take 2 arguments: value at timepoint t and value at baseline t0.
 - If a character string is provided, following options are supported:
-  - 'relative difference': (value_t - value_t0) / (value_t + value_t0)
+  - 'relative change': (value_t - value_t0) / (value_t + value_t0)
   - 'difference': value_t - value_t0
   - 'lfc': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
-- Default is 'relative difference'.
+- Default is 'relative change'.
 
 If none of the above options are matched, an error will be thrown indicating
 the acceptable options or prompting the user to provide a custom function.}
+
+\item{feature.mt.method}{Character, multiple testing method for features, "fdr" or "none", default is "fdr".}
+
+\item{feature.sig.level}{Numeric, significance level cutoff for highlighting features, default is 0.1.}
+
+\item{transform}{A string indicating the transformation to apply to the data before plotting. Options are:
+- "identity": No transformation (default)
+- "sqrt": Square root transformation
+- "log": Logarithmic transformation. Zeros are replaced with half of the minimum non-zero value for each taxon before log transformation.}
 
 \item{base.size}{Numeric, base font size for all plots, default is 16.}
 
@@ -123,42 +159,6 @@ Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the defa
 \item{pdf.wid}{Numeric, width of PDF plots in inches, default is 11.}
 
 \item{pdf.hei}{Numeric, height of PDF plots in inches, default is 8.5.}
-
-\item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
-taxa before analysis. Taxa with prevalence below this value will be removed.
-Prevalence is calculated as the proportion of samples where the taxon is present.
-Default 0 removes no taxa by prevalence filtering.}
-
-\item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering
-taxa before analysis. Taxa with mean abundance below this value will be removed.
-Abundance refers to counts or proportions depending on \code{feature.dat.type}.
-Default 0 removes no taxa by abundance filtering.}
-
-\item{feature.number}{A numeric value indicating the number of top abundant features to retain in the plot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.}
-
-\item{feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
-to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
-annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
-column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
-for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
-is also NULL.}
-
-\item{feature.dat.type}{The type of the feature data, which determines how the data is handled in downstream analyses.
-Should be one of:
-- "count": Raw count data, will be normalized by the function.
-- "proportion": Data that has already been normalized to proportions/percentages.
-- "other": Custom abundance data that has unknown scaling. No normalization applied.
-The choice affects preprocessing steps as well as plot axis labels.
-Default is "count", which assumes raw OTU table input.}
-
-\item{feature.mt.method}{Character, multiple testing method for features, "fdr" or "none", default is "fdr".}
-
-\item{feature.sig.level}{Numeric, significance level cutoff for highlighting features, default is 0.1.}
-
-\item{transform}{A string indicating the transformation to apply to the data before plotting. Options are:
-- "identity": No transformation (default)
-- "sqrt": Square root transformation
-- "log": Logarithmic transformation. Zeros are replaced with half of the minimum non-zero value for each taxon before log transformation.}
 
 \item{output.file}{Character, output PDF report filename (required).}
 
@@ -270,7 +270,7 @@ mStat_generate_report_long(
   feature.mt.method = "none",
   feature.sig.level = 0.1,
   feature.level = c("Phylum"),
-  change.func = "relative difference",
+  feature.change.func = "relative change",
   feature.dat.type = "count",
   prev.filter = 1e-5,
   abund.filter = 1e-5,
@@ -298,7 +298,7 @@ mStat_generate_report_long(
   feature.mt.method = "none",
   feature.sig.level = 0.1,
   feature.level = c("Phylum"),
-  change.func = "relative difference",
+  feature.change.func = "relative change",
   feature.dat.type = "count",
   prev.filter = 1e-5,
   abund.filter = 1e-5,

@@ -8,6 +8,7 @@ generate_alpha_boxplot_single(
   data.obj,
   alpha.obj = NULL,
   alpha.name = c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou"),
+  depth = NULL,
   subject.var,
   time.var = NULL,
   t.level = NULL,

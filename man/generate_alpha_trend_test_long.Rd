@@ -7,7 +7,8 @@
 generate_alpha_trend_test_long(
   data.obj,
   alpha.obj = NULL,
-  alpha.name,
+  alpha.name = NULL,
+  depth = NULL,
   time.var,
   subject.var,
   group.var,
