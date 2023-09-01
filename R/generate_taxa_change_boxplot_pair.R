@@ -88,19 +88,19 @@
 #'   strata.var = NULL,
 #'   change.base = "1",
 #'   feature.change.func = "lfc",
-#'   feature.level = c("Family"),
+#'   feature.level = "original",
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
 #'   top.k.plot = 6,
 #'   top.k.func = "sd",
 #'   prev.filter = 0.01,
 #'   abund.filter = 0.01,
-#'   base.size = 20,
+#'   base.size = 16,
 #'   theme.choice = "bw",
 #'   custom.theme = NULL,
 #'   palette = NULL,
 #'   pdf = TRUE,
-#'   file.ann = "test",
+#'   file.ann = NULL,
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
@@ -145,26 +145,6 @@ generate_taxa_change_boxplot_pair <-
     if (!is.null(strata.var) &&
         !is.character(strata.var))
       stop("`strata.var` should be a character string or NULL.")
-
-    if (feature.dat.type == "count") {
-      message(
-        "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
-      )
-      otu_tab <-
-        load_data_obj_count(mStat_normalize_data(data.obj, method = "Rarefy-TSS")$data.obj.norm)
-    } else{
-      otu_tab <- load_data_obj_count(data.obj)
-    }
-
-    tax_tab <- load_data_obj_taxonomy(data.obj) %>%
-      as.data.frame() %>%
-      {
-        if ("original" %in% feature.level)
-          dplyr::mutate(., original = rownames(.))
-        else
-          .
-      } %>%
-      select(all_of(feature.level))
 
     meta_tab <-
       load_data_obj_metadata(data.obj) %>% as.data.frame() %>% select(all_of(c(
@@ -228,26 +208,29 @@ generate_taxa_change_boxplot_pair <-
     }
 
     plot_list <- lapply(feature.level, function(feature.level) {
-      # Merge OTU table with taxonomy table
-      otu_tax <-
-        cbind(otu_tab, tax_tab %>% select(all_of(c(feature.level))))
 
-      # Filter taxa based on prevalence and abundance
-      otu_tax_filtered <- otu_tax %>%
-        tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
-        dplyr::group_by_at(vars(!!sym(feature.level))) %>%
-        dplyr::summarise(total_value = mean(value),
-                  prevalence = sum(value > 0) / dplyr::n()) %>%
-        filter(prevalence >= prev.filter, total_value >= abund.filter) %>%
-        select(-all_of(c("total_value", "prevalence"))) %>%
-        dplyr::left_join(otu_tax, by = feature.level)
+      if (feature.dat.type == "count"){
+        message(
+          "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
+        )
+        data.obj <- mStat_normalize_data(data.obj, method = "Rarefy-TSS")$data.obj.norm
+      }
 
-      # Aggregate OTU table
-      otu_tax_agg <- otu_tax_filtered %>%
-        tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
-        dplyr::group_by_at(vars(sample, !!sym(feature.level))) %>%
-        dplyr::summarise(value = sum(value)) %>%
-        tidyr::spread(key = "sample", value = "value")
+      if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
+        data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
+      }
+
+      if (feature.level != "original"){
+        otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
+      } else {
+        otu_tax_agg <- load_data_obj_count(data.obj)
+      }
+
+      otu_tax_agg <-  otu_tax_agg %>%
+        as.data.frame() %>%
+        mStat_filter(prev.filter = prev.filter,
+                     abund.filter = abund.filter) %>%
+        tibble::rownames_to_column(feature.level)
 
       compute_function <- function(top.k.func) {
         if (is.function(top.k.func)) {
@@ -342,6 +325,7 @@ generate_taxa_change_boxplot_pair <-
             by = feature.level,
             suffix = c("_time_1", "_time_2")
           )
+
         combined_data <-
           dplyr::left_join(
             combined_data,
@@ -349,8 +333,10 @@ generate_taxa_change_boxplot_pair <-
             by = feature.level,
             suffix = c("_time_1", "_time_2")
           )
+
         combined_data$value_time_2[combined_data$value_time_2 == 0] <-
           combined_data$half_nonzero_min_time_2[combined_data$value_time_2 == 0]
+
         combined_data$value_time_1[combined_data$value_time_1 == 0] <-
           combined_data$half_nonzero_min_time_1[combined_data$value_time_1 == 0]
 
@@ -466,6 +452,8 @@ generate_taxa_change_boxplot_pair <-
       return(boxplot)
 
     })
+
+    names(plot_list) <- feature.level
 
     # Save the plots as a PDF file
     if (pdf) {

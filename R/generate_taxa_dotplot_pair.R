@@ -117,21 +117,6 @@ generate_taxa_dotplot_pair <- function(data.obj,
 
   mStat_validate_data(data.obj)
 
-  if (feature.dat.type == "count") {
-    message(
-      "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
-    )
-    otu_tab <-
-      load_data_obj_count(mStat_normalize_data(data.obj, method = "Rarefy-TSS")$data.obj.norm)
-  } else{
-    otu_tab <- load_data_obj_count(data.obj)
-  }
-
-  tax_tab <- load_data_obj_taxonomy(data.obj) %>%
-    as.data.frame() %>%
-    {if("original" %in% feature.level) dplyr::mutate(., original = rownames(.)) else .} %>%
-    select(all_of(feature.level))
-
   meta_tab <-
     load_data_obj_metadata(data.obj) %>% select(all_of(c(
       time.var, group.var, strata.var, subject.var
@@ -169,34 +154,36 @@ generate_taxa_dotplot_pair <- function(data.obj,
       custom.theme else
     theme_function
 
-  # 将 OTU 表与分类表合并
-  otu_tax <-
-    cbind(otu_tab, tax_tab)
-
   if (feature.dat.type == "other" || !is.null(features.plot) ||
       (!is.null(top.k.func) && !is.null(top.k.plot))) {
     prev.filter <- 0
     abund.filter <- 0
   }
 
+  if (feature.dat.type == "count"){
+    message(
+      "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
+    )
+    data.obj <- mStat_normalize_data(data.obj, method = "Rarefy-TSS")$data.obj.norm
+  }
+
   plot_list <- lapply(feature.level, function(feature.level) {
 
-    # Filter taxa based on prevalence and abundance
-    otu_tax_filtered <- otu_tax %>%
-      tidyr::gather(key = "sample", value = "count",-one_of(colnames(tax_tab))) %>%
-      dplyr::group_by_at(vars(!!sym(feature.level))) %>%
-      dplyr::summarise(total_count = mean(count),
-                prevalence = sum(count > 0) / dplyr::n()) %>%
-      filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
-      select(-total_count,-prevalence) %>%
-      dplyr::left_join(otu_tax, by = feature.level)
+    if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
+      data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
+    }
 
-    # 聚合 OTU 表
-    otu_tax_agg <- otu_tax_filtered %>%
-      tidyr::gather(key = "sample", value = "count",-one_of(colnames(tax_tab))) %>%
-      dplyr::group_by_at(vars(sample,!!sym(feature.level))) %>%
-      dplyr::summarise(count = sum(count)) %>%
-      tidyr::spread(key = "sample", value = "count")
+    if (feature.level != "original"){
+      otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
+    } else {
+      otu_tax_agg <- load_data_obj_count(data.obj)
+    }
+
+    otu_tax_agg <-  otu_tax_agg %>%
+      as.data.frame() %>%
+      mStat_filter(prev.filter = prev.filter,
+                   abund.filter = abund.filter) %>%
+      rownames_to_column(feature.level)
 
     compute_function <- function(top.k.func) {
       if (is.function(top.k.func)) {

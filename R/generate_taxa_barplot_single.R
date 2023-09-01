@@ -107,24 +107,12 @@ generate_taxa_barplot_single <-
     # Extract data
     mStat_validate_data(data.obj)
 
-    if (feature.dat.type == "count"){
-      message("Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation.")
-      otu_tab <- load_data_obj_count(mStat_normalize_data(data.obj, method = "Rarefy-TSS")$data.obj.norm)
-    } else if (feature.dat.type == "other"){
-      stop("The 'other' type is suitable for situations where the user has analyzed the data using a method not provided in 'mStat_normalize_data' method, and the 'barplot' is only applicable to raw data that has not undergone any processing or proportion data that adds up to 1. If you believe your data falls into these two categories, please modify 'feature.dat.type'.")
-    } else if (feature.dat.type == "proportion"){
-      otu_tab <- load_data_obj_count(data.obj)
-    }
-
-    tax_tab <- load_data_obj_taxonomy(data.obj) %>%
-      as.data.frame() %>%
-      {if("original" %in% feature.level) dplyr::mutate(., original = rownames(.)) else .} %>%
-      select(all_of(feature.level))
-
     if (!is.null(time.var)){
       if (!is.null(t.level)){
+        condition <- paste(time.var, "== '", t.level, "'", sep = "")
+        data.obj <- mStat_subset_data(data.obj, condition = condition)
         meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(
-          c(subject.var, time.var, group.var, strata.var))) %>% filter(!!sym(time.var) == t.level)
+          c(subject.var, time.var, group.var, strata.var)))
       } else {
         meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(
           c(subject.var, time.var, group.var, strata.var)))
@@ -138,8 +126,6 @@ generate_taxa_barplot_single <-
       meta_tab$ALL2 <- "ALL"
       time.var = "ALL2"
     }
-
-    otu_tab <- otu_tab[,rownames(meta_tab)]
 
     theme_function <- switch(theme.choice,
                              prism = ggprism::theme_prism(),
@@ -182,23 +168,34 @@ generate_taxa_barplot_single <-
       pal = palette
     }
 
+    if (feature.dat.type == "count"){
+      message(
+        "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
+      )
+      data.obj <- mStat_normalize_data(data.obj, method = "Rarefy-TSS")$data.obj.norm
+    } else if (feature.dat.type == "other"){
+      stop("The 'other' type is suitable for situations where the user has analyzed the data using a method not provided in 'mStat_normalize_data' method, and the 'areaplot' is only applicable to raw data that has not undergone any processing or proportion data that adds up to 1. If you believe your data falls into these two categories, please modify 'feature.dat.type'.")
+    }
+
     plot_list_all <- lapply(feature.level,function(feature.level){
-      # 将 OTU 表与分类表合并
-      otu_tax <- cbind(otu_tab, tax_tab %>% select(all_of(feature.level)))
 
-      # 聚合 OTU 表
-      otu_tax_agg <- otu_tax %>%
-        tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
-        dplyr::group_by_at(vars(sample, !!sym(feature.level))) %>%
-        dplyr::summarise(value = sum(value)) %>%
-        tidyr::spread(key = "sample", value = "value")
+      if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
+        data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
+      }
 
-      # 转换计数为数值类型
-      otu_tax_agg_numeric <- dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
+      if (feature.level != "original"){
+        otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
+      } else {
+        otu_tax_agg <- load_data_obj_count(data.obj)
+      }
+
+      otu_tax_agg <-  otu_tax_agg %>%
+        as.data.frame() %>%
+        rownames_to_column(feature.level)
 
       # 标准化数据
-      otu_tab_norm <- apply(t(otu_tax_agg_numeric %>% select(-feature.level)), 1, function(x) x)
-      rownames(otu_tab_norm) <- as.matrix(otu_tax_agg_numeric[, feature.level])
+      otu_tab_norm <- apply(t(otu_tax_agg %>% select(-feature.level)), 1, function(x) x)
+      rownames(otu_tab_norm) <- as.matrix(otu_tax_agg[, feature.level])
 
       meta_tab_sorted <- meta_tab[colnames(otu_tab_norm), ]
 

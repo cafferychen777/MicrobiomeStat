@@ -71,11 +71,6 @@ is_categorical <- function(x) {
 #'
 #' @examples
 #' \dontrun{
-#' library(vegan)
-#' library(GUniFrac)
-#' library(ape)
-#' library(philentropy)
-#' library(MicrobiomeStat)
 #' data(peerj32.obj)
 #'
 #' generate_taxa_change_test_pair(
@@ -112,26 +107,6 @@ generate_taxa_change_test_pair <-
     # Extract data
     mStat_validate_data(data.obj)
 
-    if (feature.dat.type == "count") {
-      message(
-        "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
-      )
-      otu_tab <-
-        load_data_obj_count(mStat_normalize_data(data.obj, method = "Rarefy-TSS")$data.obj.norm)
-    } else{
-      otu_tab <- load_data_obj_count(data.obj)
-    }
-
-    tax_tab <- load_data_obj_taxonomy(data.obj) %>%
-      as.data.frame() %>%
-      {
-        if ("original" %in% feature.level)
-          dplyr::mutate(., original = rownames(.))
-        else
-          .
-      } %>%
-      select(all_of(feature.level))
-
     meta_tab <-
       load_data_obj_metadata(data.obj) %>% select(all_of(c(
         time.var, group.var, adj.vars, subject.var
@@ -145,32 +120,35 @@ generate_taxa_change_test_pair <-
       )
     }
 
-    # 将 OTU 表与分类表合并
-    otu_tax <-
-      cbind(otu_tab, tax_tab)
-
     if (feature.dat.type == "other") {
       prev.filter <- 0
       abund.filter <- 0
     }
 
-    test.list <- lapply(feature.level, function(feature.level) {
-      # Filter taxa based on prevalence and abundance
-      otu_tax_filtered <- otu_tax %>%
-        tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
-        dplyr::group_by_at(vars(!!sym(feature.level))) %>%
-        dplyr::summarise(total_count = mean(count),
-                         prevalence = sum(count > 0) / dplyr::n()) %>%
-        filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
-        select(-total_count, -prevalence) %>%
-        dplyr::left_join(otu_tax, by = feature.level)
+    if (feature.dat.type == "count"){
+      message(
+        "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
+      )
+      data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
+    }
 
-      # 聚合 OTU 表
-      otu_tax_agg <- otu_tax_filtered %>%
-        tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
-        dplyr::group_by_at(vars(sample, !!sym(feature.level))) %>%
-        dplyr::summarise(count = sum(count)) %>%
-        tidyr::spread(key = "sample", value = "count")
+    test.list <- lapply(feature.level, function(feature.level) {
+
+      if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
+        data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
+      }
+
+      if (feature.level != "original"){
+        otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
+      } else {
+        otu_tax_agg <- load_data_obj_count(data.obj)
+      }
+
+      otu_tax_agg <-  otu_tax_agg %>%
+        as.data.frame() %>%
+        mStat_filter(prev.filter = prev.filter,
+                     abund.filter = abund.filter) %>%
+        rownames_to_column(feature.level)
 
       # 转换计数为数值类型
       otu_tax_agg_numeric <-

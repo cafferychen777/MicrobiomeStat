@@ -61,10 +61,10 @@
 #' generate_taxa_heatmap_single(
 #'   data.obj = peerj32.obj,
 #'   subject.var = "subject",
-#'   time.var = NULL,
-#'   t.level = NULL,
-#'   group.var = NULL,
-#'   strata.var = NULL,
+#'   time.var = "time",
+#'   t.level = "1",
+#'   group.var = "group",
+#'   strata.var = "sex",
 #'   feature.level = c("Family"),
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
@@ -110,48 +110,15 @@ generate_taxa_heatmap_single <- function(data.obj,
 
   feature.dat.type <- match.arg(feature.dat.type)
 
-  if (feature.dat.type == "count") {
-    message(
-      "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
-    )
-    otu_tab <-
-      load_data_obj_count(mStat_normalize_data(data.obj, method = "Rarefy-TSS")$data.obj.norm)
-  } else{
-    otu_tab <- load_data_obj_count(data.obj)
-  }
-
-  tax_tab <- load_data_obj_taxonomy(data.obj) %>%
-    as.data.frame() %>%
-    {
-      if ("original" %in% feature.level)
-        dplyr::mutate(., original = rownames(.))
-      else
-        .
-    } %>%
-    select(all_of(feature.level))
-
   if (!is.null(time.var)) {
     if (!is.null(t.level)) {
-      meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(c(
-        subject.var, time.var, group.var, strata.var
-      ))) %>% filter(!!sym(time.var) == t.level)
-    } else {
-      meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(c(
-        subject.var, time.var, group.var, strata.var
-      )))
-      if (length(levels(as.factor(meta_tab[, time.var]))) != 1) {
-        message <-
-          "Multiple time points detected in your dataset. It is recommended to either set t.level or utilize functions for longitudinal data analysis."
-      }
+      condition <- paste(time.var, "== '", t.level, "'", sep = "")
+      data.obj <- mStat_subset_data(data.obj, condition = condition)
     }
-  } else {
-    meta_tab <-
-      load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var, group.var, strata.var)))
   }
 
-  otu_tab <-
-    otu_tab %>% as.data.frame() %>% select(all_of(c(rownames(meta_tab))))
-
+  meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(
+    c(subject.var, time.var, group.var, strata.var)))
 
     col <- c("white", "#92c5de", "#0571b0", "#f4a582", "#ca0020")
 
@@ -172,33 +139,36 @@ generate_taxa_heatmap_single <- function(data.obj,
     cluster.rows = TRUE
   }
 
-  # Merge OTU table with taxonomy table
-  otu_tax <-
-    cbind(otu_tab, tax_tab)
-
   if (feature.dat.type == "other" || !is.null(features.plot) ||
       (!is.null(top.k.func) && !is.null(top.k.plot))) {
     prev.filter <- 0
     abund.filter <- 0
   }
 
-  plot_list <- lapply(feature.level, function(feature.level) {
-    # Filter taxa based on prevalence and abundance
-    otu_tax_filtered <- otu_tax %>%
-      tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
-      dplyr::group_by_at(vars(!!sym(feature.level))) %>%
-      dplyr::summarise(total_count = mean(count),
-                prevalence = sum(count > 0) / dplyr::n()) %>%
-      filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
-      select(-total_count, -prevalence) %>%
-      dplyr::left_join(otu_tax, by = feature.level)
+  if (feature.dat.type == "count"){
+    message(
+      "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
+    )
+    data.obj <- mStat_normalize_data(data.obj, method = "Rarefy-TSS")$data.obj.norm
+  }
 
-    # Aggregate OTU table
-    otu_tax_agg <- otu_tax_filtered %>%
-      tidyr::gather(key = "sample", value = "count", -one_of(colnames(tax_tab))) %>%
-      dplyr::group_by_at(vars(sample, !!sym(feature.level))) %>%
-      dplyr::summarise(count = sum(count)) %>%
-      tidyr::spread(key = "sample", value = "count")
+  plot_list <- lapply(feature.level, function(feature.level) {
+
+    if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
+      data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
+    }
+
+    if (feature.level != "original"){
+      otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
+    } else {
+      otu_tax_agg <- load_data_obj_count(data.obj)
+    }
+
+    otu_tax_agg <-  otu_tax_agg %>%
+      as.data.frame() %>%
+      mStat_filter(prev.filter = prev.filter,
+                   abund.filter = abund.filter) %>%
+      rownames_to_column(feature.level)
 
     compute_function <- function(top.k.func) {
       if (is.function(top.k.func)) {

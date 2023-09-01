@@ -43,14 +43,14 @@
 #'
 #' # Generate beta diversity test
 #' generate_beta_change_test_pair(
-#'   data_obj = peerj32.obj,
-#'   dist_obj = NULL,
-#'   time_var = "time",
-#'   subject_var = "subject",
-#'   group_var = "group",
-#'   adj_vars = c("sex"),
-#'   change_base = "1",
-#'   dist_name = c('BC', 'Jaccard')
+#'   data.obj = peerj32.obj,
+#'   dist.obj = NULL,
+#'   time.var = "time",
+#'   subject.var = "subject",
+#'   group.var = "group",
+#'   adj.vars = c("sex"),
+#'   change.base = "1",
+#'   dist.name = c('BC', 'Jaccard')
 #' )
 #'
 #' }

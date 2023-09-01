@@ -11,15 +11,16 @@
 #' @param ts.levels Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.
 #' @param group.var A character string specifying the grouping variable in the metadata. Default is NULL.
 #' @param strata.var (Optional) A character string specifying the stratification variable in the metadata. Default is NULL.
-#' @param change.func A function or character string specifying how to calculate
+#' @param feature.level A character string defining the taxonomic level to analyze ('Phylum', 'Family', or 'Genus').
+#' @param feature.change.func A function or character string specifying how to calculate
 #' the change from baseline value. This allows flexible options:
 #' - If a function is provided, it will be applied to each row to calculate change.
 #'   The function should take 2 arguments: value at timepoint t and value at baseline t0.
 #' - If a character string is provided, following options are supported:
-#'   - 'relative difference': (value_t - value_t0) / (value_t + value_t0)
+#'   - 'relative change': (value_t - value_t0) / (value_t + value_t0)
 #'   - 'difference': value_t - value_t0
 #'   - 'lfc': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
-#' - Default is 'relative difference'.
+#' - Default is 'relative change'.
 #'
 #' If none of the above options are matched, an error will be thrown indicating
 #' the acceptable options or prompting the user to provide a custom function.
@@ -27,7 +28,6 @@
 #'   (specified by t0.level) for each taxon. The change values are calculated
 #'   for each timepoint and appended as new columns in the data frame before
 #'   plotting heatmap. This allows flexibly customizing how change is quantified.
-#' @param feature.level A character string defining the taxonomic level to analyze ('Phylum', 'Family', or 'Genus').
 #' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
 #' Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.
 #' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
@@ -80,11 +80,11 @@
 #'   group.var = "antiexposedall",
 #'   strata.var = "diet",
 #'   feature.level = c("Family","Class"),
+#'   feature.change.func = "lfc",
 #'   feature.dat.type = "proportion",
 #'   features.plot = NULL,
 #'   top.k.plot = 10,
 #'   top.k.func = "sd",
-#'   change.func = "lfc",
 #'   palette = NULL,
 #'   prev.filter = 0.01,
 #'   abund.filter = 0.01,
@@ -96,18 +96,18 @@
 #'   data.obj = subset_T2D.obj,
 #'   subject.var = "subject_id",
 #'   time.var = "visit_number_num",
-#'   t0.level = unique(subset_T2D.obj$meta.dat$visit_number_num)[1],
-#'   ts.levels = unique(subset_T2D.obj$meta.dat$visit_number_num)[-1],
-#'   group.var = NULL,
-#'   strata.var = NULL,
+#'   t0.level = NULL,
+#'   ts.levels = NULL,
+#'   group.var = "subject_gender",
+#'   strata.var = "subject_race",
 #'   feature.level = c("Phylum"),
+#'   feature.change.func = "lfc",
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
-#'   top.k.plot = NULL,
-#'   top.k.func = NULL,
-#'   change.func = "relative difference",
-#'   prev.filter = 0.0001,
-#'   abund.filter = 0.0001,
+#'   top.k.plot = 10,
+#'   top.k.func = "sd",
+#'   prev.filter = 0.01,
+#'   abund.filter = 0.01,
 #'   pdf = TRUE,
 #'   file.ann = NULL,
 #'   pdf.wid = 11,
@@ -127,12 +127,12 @@ generate_taxa_change_heatmap_long <- function(data.obj,
                                               group.var = NULL,
                                               strata.var = NULL,
                                               feature.level,
+                                              feature.change.func = "relative change",
                                               feature.dat.type = c("count", "proportion", "other"),
                                               features.plot = NULL,
                                               top.k.plot = NULL,
                                               top.k.func = NULL,
-                                              change.func = "relative difference",
-                                              prev.filter = 0.00000001,
+                                              prev.filter = 0.01,
                                               abund.filter = 0.01,
                                               base.size = 10,
                                               palette = NULL,
@@ -164,26 +164,6 @@ generate_taxa_change_heatmap_long <- function(data.obj,
 
   meta_tab <- load_data_obj_metadata(data.obj) %>% as.data.frame() %>% select(all_of(c(subject.var,group.var,time.var,strata.var)))
 
-  if (feature.dat.type == "count") {
-    message(
-      "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
-    )
-    otu_tab <-
-      load_data_obj_count(mStat_normalize_data(data.obj, method = "Rarefy-TSS")$data.obj.norm)
-  } else{
-    otu_tab <- load_data_obj_count(data.obj)
-  }
-
-  tax_tab <- load_data_obj_taxonomy(data.obj) %>%
-    as.data.frame() %>%
-    {
-      if ("original" %in% feature.level)
-        dplyr::mutate(., original = rownames(.))
-      else
-        .
-    } %>%
-    select(all_of(feature.level))
-
   if (is.null(group.var)) {
     group.var = "ALL"
     meta_tab$ALL <- "ALL"
@@ -210,27 +190,30 @@ generate_taxa_change_heatmap_long <- function(data.obj,
     abund.filter <- 0
   }
 
+  if (feature.dat.type == "count"){
+    message(
+      "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
+    )
+    data.obj <- mStat_normalize_data(data.obj, method = "Rarefy-TSS")$data.obj.norm
+  }
+
   plot_list <- lapply(feature.level, function(feature.level) {
-    # Merge OTU table with taxonomy table
-    otu_tax <-
-      cbind(otu_tab, tax_tab %>% select(all_of(feature.level)))
 
-    # Filter taxa based on prevalence and abundance
-    otu_tax_filtered <- otu_tax %>%
-      tidyr::gather(key = "sample", value = "count",-one_of(feature.level)) %>%
-      dplyr::group_by_at(vars(!!sym(feature.level))) %>%
-      dplyr::summarise(total_count = mean(count),
-                prevalence = sum(count > 0) / dplyr::n()) %>%
-      filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
-      select(-total_count,-prevalence) %>%
-      dplyr::left_join(otu_tax, by = feature.level)
+    if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
+      data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
+    }
 
-    # Aggregate OTU table
-    otu_tax_agg <- otu_tax_filtered %>%
-      tidyr::gather(key = "sample", value = "count",-one_of(feature.level)) %>%
-      dplyr::group_by_at(vars(sample,!!sym(feature.level))) %>%
-      dplyr::summarise(count = sum(count)) %>%
-      tidyr::spread(key = "sample", value = "count")
+    if (feature.level != "original"){
+      otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
+    } else {
+      otu_tax_agg <- load_data_obj_count(data.obj)
+    }
+
+    otu_tax_agg <-  otu_tax_agg %>%
+      as.data.frame() %>%
+      mStat_filter(prev.filter = prev.filter,
+                   abund.filter = abund.filter) %>%
+      rownames_to_column(feature.level)
 
     compute_function <- function(top.k.func) {
       if (is.function(top.k.func)) {
@@ -260,12 +243,10 @@ generate_taxa_change_heatmap_long <- function(data.obj,
       features.plot <- names(sort(compute_function(top.k.func), decreasing = TRUE)[1:top.k.plot])
     }
 
-    # Convert counts to numeric
-    otu_tax_agg_numeric <-
-      dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
-
     otu_tab_norm <-
-      otu_tax_agg_numeric %>% filter(!is.na(!!sym(feature.level))) %>% column_to_rownames(var = feature.level) %>% as.matrix()
+      otu_tax_agg %>%
+      column_to_rownames(var = feature.level) %>%
+      as.matrix()
 
     # Calculate the mean_value for each combination of feature.level, group.var, and time.var
     df_mean_value <- otu_tab_norm %>%
@@ -301,28 +282,28 @@ generate_taxa_change_heatmap_long <- function(data.obj,
     for (ts in ts.levels) {
       change_col_name <- paste0("change_", ts)
 
-      if (is.function(change.func)) {
+      if (is.function(feature.change.func)) {
         df_wide <- df_wide %>%
           dplyr::rowwise() %>%
-          dplyr::mutate(!!sym(change_col_name) := change.func(.data[[as.character(ts)]], .data[[as.character(t0.level)]]))
-      } else if (change.func == "relative difference") {
+          dplyr::mutate(!!sym(change_col_name) := feature.change.func(.data[[as.character(ts)]], .data[[as.character(t0.level)]]))
+      } else if (feature.change.func == "relative change") {
         df_wide <- df_wide %>%
           dplyr::rowwise() %>%
           dplyr::mutate(!!sym(change_col_name) := dplyr::case_when(
             (.data[[as.character(ts)]] + .data[[as.character(t0.level)]]) != 0 ~ (.data[[as.character(ts)]] - .data[[as.character(t0.level)]]) / (.data[[as.character(ts)]] + .data[[as.character(t0.level)]]),
             TRUE ~ 0
           ))
-      } else if (change.func == "difference") {
+      } else if (feature.change.func == "difference") {
         df_wide <- df_wide %>%
           dplyr::rowwise() %>%
           dplyr::mutate(!!sym(change_col_name) := (.data[[as.character(ts)]] - .data[[as.character(t0.level)]]))
-      } else if (change.func == "lfc") {
+      } else if (feature.change.func == "lfc") {
         df_wide <- df_wide %>%
           dplyr::rowwise() %>%
           dplyr::mutate(!!sym(change_col_name) := log2(.data[[as.character(ts)]] + 0.00001) - log2(.data[[as.character(t0.level)]] + 0.00001))
       } else {
         stop(
-          "`change.func` must be either 'relative difference', 'difference', 'lfc' or a function."
+          "`feature.change.func` must be either 'relative change', 'difference', 'lfc' or a function."
         )
       }
     }

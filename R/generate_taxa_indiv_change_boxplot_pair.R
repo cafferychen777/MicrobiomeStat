@@ -86,7 +86,7 @@
 #'   subject.var = "subject",
 #'   time.var = "time",
 #'   group.var = "group",
-#'   strata.var = NULL,
+#'   strata.var = "sex",
 #'   change.base = "1",
 #'   feature.change.func = "lfc",
 #'   feature.level = c("Family"),
@@ -147,21 +147,6 @@ generate_taxa_indiv_change_boxplot_pair <-
     if (!is.null(strata.var) &&
         !is.character(strata.var))
       stop("`strata.var` should be a character string or NULL.")
-
-    if (feature.dat.type == "count") {
-      message(
-        "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
-      )
-      otu_tab <-
-        load_data_obj_count(mStat_normalize_data(data.obj, method = "Rarefy-TSS")$data.obj.norm)
-    } else{
-      otu_tab <- load_data_obj_count(data.obj)
-    }
-
-    tax_tab <- load_data_obj_taxonomy(data.obj) %>%
-      as.data.frame() %>%
-      {if("original" %in% feature.level) dplyr::mutate(., original = rownames(.)) else .} %>%
-      select(all_of(feature.level))
 
     meta_tab <-
       load_data_obj_metadata(data.obj) %>% as.data.frame() %>% select(all_of(c(
@@ -225,27 +210,30 @@ generate_taxa_indiv_change_boxplot_pair <-
       abund.filter <- 0
     }
 
+    if (feature.dat.type == "count"){
+      message(
+        "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
+      )
+      data.obj <- mStat_normalize_data(data.obj, method = "Rarefy-TSS")$data.obj.norm
+    }
+
     plot_list_all <- lapply(feature.level, function(feature.level) {
-      # Merge OTU table with taxonomy table
-      otu_tax <-
-        cbind(otu_tab, tax_tab %>% select(all_of(c(feature.level))))
 
-      # Filter taxa based on prevalence and abundance
-      otu_tax_filtered <- otu_tax %>%
-        tidyr::gather(key = "sample", value = "value",-one_of(feature.level)) %>%
-        dplyr::group_by_at(vars(!!sym(feature.level))) %>%
-        dplyr::summarise(total_value = mean(value),
-                  prevalence = sum(value > 0) / dplyr::n()) %>%
-        filter(prevalence >= prev.filter, total_value >= abund.filter) %>%
-        select(-all_of(c("total_value","prevalence"))) %>%
-        dplyr::left_join(otu_tax, by = feature.level)
+      if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
+        data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
+      }
 
-      # Aggregate OTU table
-      otu_tax_agg <- otu_tax_filtered %>%
-        tidyr::gather(key = "sample", value = "value",-one_of(feature.level)) %>%
-        dplyr::group_by_at(vars(sample,!!sym(feature.level))) %>%
-        dplyr::summarise(value = sum(value)) %>%
-        tidyr::spread(key = "sample", value = "value")
+      if (feature.level != "original"){
+        otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
+      } else {
+        otu_tax_agg <- load_data_obj_count(data.obj)
+      }
+
+      otu_tax_agg <-  otu_tax_agg %>%
+        as.data.frame() %>%
+        mStat_filter(prev.filter = prev.filter,
+                     abund.filter = abund.filter) %>%
+        rownames_to_column(feature.level)
 
       compute_function <- function(top.k.func) {
         if (is.function(top.k.func)) {

@@ -147,7 +147,7 @@ winsor.fun <- function(Y, quan, feature.dat.type) {
 #' }
 #' @export
 
-linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.dat.type = c("count", "proportion"),
+linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.dat.type = c("count", "proportion","other"),
                   prev.filter = 0, mean.abund.filter = 0, max.abund.filter = 0,
                   is.winsor = TRUE, outlier.pct = 0.03,
                   adaptive = TRUE, zero.handling = c("pseudo-count", "imputation"),
@@ -185,6 +185,13 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
 
   # Filter features
   temp <- t(t(Y) / colSums(Y))
+
+  if (feature.dat.type == "other" & (max.abund.filter != 0 | mean.abund.filter != 0 | prev.filter != 0 )){
+    message("Note: Since feature.dat.type is set to 'other', all filters (max.abund.filter, mean.abund.filter, and prev.filter) are reset to 0.")
+    max.abund.filter <- 0
+    mean.abund.filter <- 0
+    prev.filter <- 0
+  }
 
   keep.tax <- rowMeans(temp != 0) >= prev.filter & rowMeans(temp) >= mean.abund.filter & matrixStats::rowMaxs(temp) >= max.abund.filter
   names(keep.tax) <- rownames(Y)
