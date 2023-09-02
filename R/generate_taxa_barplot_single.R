@@ -194,7 +194,7 @@ generate_taxa_barplot_single <-
         rownames_to_column(feature.level)
 
       # 标准化数据
-      otu_tab_norm <- apply(t(otu_tax_agg %>% select(-feature.level)), 1, function(x) x)
+      otu_tab_norm <- apply(t(otu_tax_agg %>% select(-all_of(feature.level))), 1, function(x) x)
       rownames(otu_tab_norm) <- as.matrix(otu_tax_agg[, feature.level])
 
       meta_tab_sorted <- meta_tab[colnames(otu_tab_norm), ]
@@ -457,5 +457,7 @@ generate_taxa_barplot_single <-
       # 返回堆叠条形图以进行显示
       return(stack_barplot_list)
     })
+
+    names(plot_list_all) <- feature.level
     return(plot_list_all)
   }
