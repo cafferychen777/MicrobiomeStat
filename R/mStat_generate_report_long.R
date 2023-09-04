@@ -25,7 +25,8 @@
 #' See \code{\link[MicrobiomeStat]{mStat_calculate_PC}} function for details on output format.
 #' @param group.var Character, column name in metadata containing grouping variable, e.g. "treatment". Required if present in metadata.
 #' @param strata.var Character, column name in metadata containing stratification variable, e.g "sex". Optional.
-#' @param adj.vars Character vector, names of columns in metadata containing covariates to adjust for, default is NULL.
+#' @param test.adj.vars Character vector, names of columns in the metadata containing covariates to be adjusted for in statistical tests and models, such as linear mixed effects models for longitudinal data analysis. This allows the user to account for the effects of additional variables in assessing the effects of primary variables of interest such as time and groups. Default is NULL, which indicates no covariates are adjusted for in statistical testing.
+#' @param vis.adj.vars Character vector, names of columns in the metadata containing covariates to visualize in plots, in addition to the primary variables of interest such as groups. For example, if sex is provided in vis.adj.vars, plots will display facets or colors for different sex groups. This allows visualization of effects across multiple covariates. Default is NULL, which indicates only the primary variables of interest will be visualized without additional covariates.
 #' @param subject.var Character, column name in metadata containing subject/sample IDs, e.g. "subject_id". Required.
 #' @param time.var Character, column name in metadata containing time variable, e.g. "week". Required.
 #' @param t0.level Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.
@@ -168,7 +169,8 @@
 #'   dist.obj = NULL,
 #'   alpha.obj = NULL,
 #'   group.var = "group",
-#'   adj.vars = c("sex"),
+#'   test.adj.vars = c("sex"),
+#'   vis.test.vars = c("sex"),
 #'   subject.var = "subject",
 #'   time.var = "time",
 #'   alpha.name = c("shannon","simpson"),
@@ -191,7 +193,8 @@
 #'   pc.obj = NULL,
 #'   group.var = "subject_gender",
 #'   strata.var = "subject_race",
-#'   adj.vars = NULL,
+#'   test.adj.vars = NULL,
+#'   vis.adj.vars = NULL,
 #'   subject.var = "subject_id",
 #'   time.var = "visit_number_num",
 #'   alpha.name = c("shannon","simpson"),
@@ -219,7 +222,8 @@
 #'   pc.obj = NULL,
 #'   group.var = "subject_gender",
 #'   strata.var = "subject_race",
-#'   adj.vars = NULL,
+#'   test.adj.vars = NULL,
+#'   vis.adj.vars = NULL,
 #'   subject.var = "subject_id",
 #'   time.var = "visit_number_num",
 #'   alpha.name = c("shannon","simpson"),
@@ -231,7 +235,7 @@
 #'   feature.level = c("Phylum"),
 #'   feature.change.func = "relative change",
 #'   feature.dat.type = "count",
-#'   prev.filter = 1e-5,
+#'   prev.filter = 0.1,
 #'   abund.filter = 1e-5,
 #'   transform = "sqrt",
 #'   theme.choice = "bw",
@@ -241,14 +245,15 @@
 #' @export
 mStat_generate_report_long <- function(data.obj,
                                        group.var,
-                                       adj.vars = NULL,
+                                       vis.adj.vars = NULL,
+                                       test.adj.vars = NULL,
                                        strata.var = NULL,
                                        subject.var,
                                        time.var,
                                        t0.level,
                                        ts.levels,
                                        alpha.obj = NULL,
-                                       alpha.name = c("shannon", "simpson"),
+                                       alpha.name = c("shannon", "observed_species"),
                                        depth = NULL,
                                        dist.obj = NULL,
                                        dist.name = c('BC', 'Jaccard'),
@@ -297,12 +302,15 @@ custom_palette_status <- ifelse(is.null(palette), 'NULL', 'Not NULL')
 
 custom_file.ann_status <- ifelse(is.null(file.ann), 'NULL', 'Not NULL')
 
-custom_adj.vars_status <- ifelse(is.null(adj.vars), 'NULL', toString(adj.vars))
+custom_test.adj.vars_status <- ifelse(is.null(test.adj.vars), 'NULL', toString(test.adj.vars))
+custom_vis.adj.vars_status <- ifelse(is.null(vis.adj.vars), 'NULL', toString(vis.adj.vars))
 
 # 创建一个数据框，其中包含参数的名称和对应的值
 params_data <- data.frame(Parameter = c('data.obj',
+                                        'feature.dat.type',
                                         'group.var',
-                                        'adj.vars',
+                                        'test.adj.vars',
+                                        'vis.adj.vars',
                                         'strata.var',
                                         'subject.var',
                                         'time.var',
@@ -311,7 +319,7 @@ params_data <- data.frame(Parameter = c('data.obj',
                                         'alpha.obj',
                                         'alpha.name',
                                         'depth',
-                                        'dist.obj'
+                                        'dist.obj',
                                         'dist.name',
                                         'pc.obj',
                                         'prev.filter',
@@ -319,7 +327,6 @@ params_data <- data.frame(Parameter = c('data.obj',
                                         'feature.change.func',
                                         'feature.number',
                                         'feature.level',
-                                        'feature.dat.type',
                                         'feature.mt.method',
                                         'feature.sig.level',
                                         'transform',
@@ -332,8 +339,10 @@ params_data <- data.frame(Parameter = c('data.obj',
                                         'pdf.wid',
                                         'pdf.hei'),
                           Value =       c(deparse(substitute(data.obj)),
+                                        feature.dat.type,
                                         group.var,
-                                        custom_adj.vars_status,
+                                        custom_test.adj.vars_status,
+                                        custom_vis.adj.vars_status,
                                         strata.var,
                                         subject.var,
                                         time.var,
@@ -350,7 +359,6 @@ params_data <- data.frame(Parameter = c('data.obj',
                                         feature.change.func,
                                         feature.number,
                                         toString(feature.level),
-                                        feature.dat.type,
                                         feature.mt.method,
                                         feature.sig.level,
                                         transform,
@@ -361,11 +369,11 @@ params_data <- data.frame(Parameter = c('data.obj',
                                         pdf,
                                         custom_file.ann_status,
                                         pdf.wid,
-                                        pdf.hei,
-                                        ))
+                                        pdf.hei))
 
 # 使用pander来渲染数据框
 pander::pander(params_data)
+
 ```
 
 ```{r mStat-data-summary, message=FALSE}
@@ -412,7 +420,7 @@ alpha_boxplot_results <- generate_alpha_boxplot_long(data.obj = data.obj,
                                                        ts.levels = ts.levels,
                                                        group.var = group.var,
                                                        strata.var = strata.var,
-                                                       adj.vars = adj.vars,
+                                                       adj.vars = vis.adj.vars,
                                                        base.size = base.size,
                                                        theme.choice = theme.choice,
                                                        custom.theme = custom.theme,
@@ -437,7 +445,7 @@ alpha_spaghettiplot_results <- generate_alpha_spaghettiplot_long(
                                                        ts.levels = ts.levels,
                                                        group.var = group.var,
                                                        strata.var = strata.var,
-                                                       adj.vars = adj.vars,
+                                                       adj.vars = vis.adj.vars,
                                                        base.size = base.size,
                                                        theme.choice = theme.choice,
                                                        custom.theme = custom.theme,
@@ -459,7 +467,7 @@ alpha_trend_test_results <- generate_alpha_trend_test_long(
                                                  time.var = time.var,
                                                  subject.var = subject.var,
                                                  group.var = group.var,
-                                                 adj.vars = adj.vars)
+                                                 adj.vars = test.adj.vars)
 ```
 
 ```{r alpha-trend-test-results-print, echo=FALSE, message=FALSE, results='asis'}
@@ -524,7 +532,7 @@ alpha_volatility_test_results <- generate_alpha_volatility_test_long(
                                                  time.var = time.var,
                                                  subject.var = subject.var,
                                                  group.var = group.var,
-                                                 adj.vars = adj.vars)
+                                                 adj.vars = test.adj.vars)
 ```
 
 ```{r alpha-volatility-test-results-print, echo=FALSE, message=FALSE, results='asis'}
@@ -597,6 +605,7 @@ beta_ordination_results <- generate_beta_ordination_long(data.obj = data.obj,
                                                            ts.levels = ts.levels,
                                                            group.var = group.var,
                                                            strata.var = strata.var,
+                                                           adj.vars = vis.adj.vars,
                                                            dist.name = dist.name,
                                                            base.size = base.size,
                                                            theme.choice = theme.choice,
@@ -623,6 +632,7 @@ pc_boxplot_longitudinal_results <- generate_beta_pc_boxplot_long(
   ts.levels = ts.levels,
   group.var = group.var,
   strata.var = strata.var,
+  adj.vars = vis.adj.vars,
   dist.name = dist.name,
   base.size = base.size,
   theme.choice = theme.choice,
@@ -649,6 +659,7 @@ spaghettiplot_longitudinal_results <- generate_beta_change_spaghettiplot_long(
   ts.levels = ts.levels,
   group.var = group.var,
   strata.var = strata.var,
+  adj.vars = vis.adj.vars,
   dist.name = dist.name,
   base.size = base.size,
   theme.choice = theme.choice,
@@ -672,7 +683,7 @@ beta_trend_test_longitudinal_results <- generate_beta_trend_test_long(
                                                   subject.var = subject.var,
                                                   time.var = time.var,
                                                   group.var = group.var,
-                                                  adj.vars = adj.vars,
+                                                  adj.vars = test.adj.vars,
                                                   dist.name = dist.name)
 ```
 
@@ -738,7 +749,7 @@ beta_pc_trend_test_longitudinal_results <- generate_beta_pc_trend_test_long(
                                                   subject.var = subject.var,
                                                   time.var = time.var,
                                                   group.var = group.var,
-                                                  adj.vars = adj.vars,
+                                                  adj.vars = test.adj.vars,
                                                   dist.name = dist.name)
 ```
 
@@ -807,7 +818,7 @@ beta_volatility_test_longitudinal_results <- generate_beta_volatility_test_long(
                                                   subject.var = subject.var,
                                                   time.var = time.var,
                                                   group.var = group.var,
-                                                  adj.vars = adj.vars,
+                                                  adj.vars = test.adj.vars,
                                                   dist.name = dist.name)
 ```
 
@@ -878,7 +889,7 @@ beta_pc_volatility_test_longitudinal_results <- generate_beta_pc_volatility_test
                                                   subject.var = subject.var,
                                                   time.var = time.var,
                                                   group.var = group.var,
-                                                  adj.vars = adj.vars,
+                                                  adj.vars = test.adj.vars,
                                                   dist.name = dist.name)
 ```
 
@@ -942,7 +953,7 @@ pander::pander(beta_pc_volatility_test_longitudinal_results)
 
 ```
 
-## 4. Taxonomic Feature Analysis
+## 4. Feature-level Analysis
 
 ### 4.1 Taxa Areaplot Longitudinal
 
@@ -1095,7 +1106,7 @@ taxa_trend_test_results <- generate_taxa_trend_test_long(
                                                subject.var = subject.var,
                                                time.var = time.var,
                                                group.var = group.var,
-                                               adj.vars = adj.vars,
+                                               adj.vars = test.adj.vars,
                                                prev.filter = prev.filter,
                                                abund.filter = abund.filter,
                                                feature.level = feature.level,
@@ -1174,7 +1185,7 @@ taxa_volatility_test_results <- generate_taxa_volatility_test_long(
                                                subject.var = subject.var,
                                                time.var = time.var,
                                                group.var = group.var,
-                                               adj.vars = adj.vars,
+                                               adj.vars = test.adj.vars,
                                                prev.filter = prev.filter,
                                                abund.filter = abund.filter,
                                                feature.level = feature.level,
@@ -1491,7 +1502,8 @@ rmd_code <- knitr::knit_expand(text = template,
                                data.obj = data.obj,
                                group.var = group.var,
                                strata.var = strata.var,
-                               adj.vars = adj.vars,
+                               test.adj.vars = test.adj.vars,
+                               vis.adj.vars = vis.adj.vars,
                                subject.var = subject.var,
                                time.var = time.var,
                                t0.level = t0.level,
