@@ -46,7 +46,7 @@ is_count_data <- function(data_mat) {
 #' @export
 mStat_normalize_data <-
   function(data.obj,
-           method = c("Rarefy-TSS", "Rarefy", "TSS", "GMPR", "CSS", "DESeq", "TMM", "CLR"),
+           method = c("Rarefy-TSS", "Rarefy", "TSS", "GMPR", "CSS", "DESeq", "TMM"),
            depth = NULL) {
     # Check if data.obj is the correct type
     if (!is.list(data.obj)) {
@@ -83,21 +83,6 @@ mStat_normalize_data <-
       rarefied_otu_tab <-
         t(vegan::rrarefy(t(otu_tab), sample = rarefy_depth))
       scale_factor <- rarefy_depth
-    } else if (method == "CLR") {
-      if (is_count_data(otu_tab)) {
-        otu_tab <- otu_tab + 0.5
-      } else {
-        min_prop <- apply(otu_tab, 1, function(x) min(x[x > 0]))
-        for (i in 1:nrow(otu_tab)) {
-          otu_tab[i, otu_tab[i, ] == 0] <- min_prop[i] / 2
-        }
-      }
-      clr_transformed <- apply(otu_tab, 1, function(x) {
-        gm_mean <- exp(mean(log(x)))
-        log(x / gm_mean)
-      })
-      clr_transformed <- t(clr_transformed)
-      scale_factor <- NULL
     } else if (method == "TSS") {
       scale_factor <- colSums(otu_tab)
     } else if (method == "GMPR") {
@@ -120,8 +105,6 @@ mStat_normalize_data <-
       # Normalize the data
       data.obj.norm <-
         update_data_obj_count(data.obj, sweep(otu_tab, 2, scale_factor, "/"))
-    } else if (method == "CLR"){
-      data.obj.norm <- update_data_obj_count(data.obj, clr_transformed)
     } else {
       data.obj.norm <-
         update_data_obj_count(data.obj, rarefied_otu_tab)
@@ -131,7 +114,7 @@ mStat_normalize_data <-
     if ('feature.agg.list' %in% names(data.obj.norm)) {
         data.obj.norm <-
           mStat_aggregate_by_taxonomy(data.obj.norm, names(data.obj.norm$feature.agg.list))
-      message("feature.agg.list has been normalized.")
+        message("The feature.agg.list has been re-aggregated based on the normalized data.")
     }
 
     data.obj <- data.obj.norm

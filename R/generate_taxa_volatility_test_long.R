@@ -63,11 +63,11 @@
 #' subject.var = "subject_id",
 #' group.var = "subject_gender",
 #' adj.vars = NULL,
-#' prev.filter = 1e-7,
-#' abund.filter = 0,
+#' prev.filter = 0.1,
+#' abund.filter = 0.0001,
 #' feature.mt.method = "fdr",
 #' feature.sig.level = 0.1,
-#' feature.level = c("Phylum"),
+#' feature.level = c("original"),
 #' feature.dat.type = "count"
 #' )
 #' @export
@@ -106,62 +106,64 @@ generate_taxa_volatility_test_long <- function(data.obj,
 
   reference_level <- group_level[1]
 
-  if (feature.dat.type %in% c("count", "proportion")) {
-    otu_tab <-
-      load_data_obj_count(mStat_normalize_data(data.obj, method = transform)$data.obj.norm)
-  } else {
-    otu_tab <- load_data_obj_count(data.obj)
-  }
-
-  tax_tab <- load_data_obj_taxonomy(data.obj) %>%
-    as.data.frame() %>%
-    {
-      if ("original" %in% feature.level)
-        dplyr::mutate(., original = rownames(.))
-      else
-        .
-    } %>%
-    select(all_of(feature.level))
-
   if (transform == "CLR"){
     abund.filter <- 0
   }
 
   test.list <- lapply(feature.level, function(feature.level) {
 
-    otu_tax <-
-      cbind(otu_tab,
-            tax_tab %>% select(all_of(feature.level)))
+    if (feature.dat.type == "count"){
+      message(
+        "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
+      )
+      data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
+    }
 
-    # 聚合 OTU 表
-    otu_tax_filtered <- otu_tax %>%
-      tidyr::gather(key = "sample", value = "value",-one_of(feature.level)) %>%
-      dplyr::group_by_at(vars(!!sym(feature.level))) %>%
-      dplyr::summarise(total_count = mean(value),
-                       prevalence = sum(value > 0) / dplyr::n()) %>%
-      filter(prevalence >= prev.filter, total_count >= abund.filter) %>%
-      select(-total_count,-prevalence) %>%
-      dplyr::left_join(otu_tax, by = feature.level)
+    if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
+      data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
+    }
 
-    otu_tax_agg <- otu_tax_filtered %>%
-      tidyr::gather(key = "sample", value = "value",-one_of(feature.level)) %>%
-      dplyr::group_by_at(vars(sample,!!sym(feature.level))) %>%
-      dplyr::summarise(value = sum(value)) %>%
-      tidyr::spread(key = "sample", value = "value")
+    if (feature.level != "original"){
+      otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
+    } else {
+      otu_tax_agg <- load_data_obj_count(data.obj)
+    }
 
-    # 转换计数为数值类型
-    otu_tax_agg_numeric <-
-      otu_tax_agg %>%
-      dplyr::mutate_at(vars(-!!sym(feature.level)), as.numeric) %>%
-      dplyr::mutate(!!sym(feature.level) := tidyr::replace_na(!!sym(feature.level), "unclassified")) %>%
-      column_to_rownames(feature.level)
+    # 对数据进行CLR转换的函数
+    clr_transform <- function(x) {
+      gm = exp(mean(log(x)))
+      return(log(x / gm))
+    }
+
+    impute_zeros_rowwise <- function(row) {
+      min_nonzero <- min(row[row > 0])
+      row[row == 0] <- min_nonzero / 2
+      return(row)
+    }
+
+    otu_tax_agg_imputed_temp <- apply(otu_tax_agg, 1, impute_zeros_rowwise)
+
+    # 转置矩阵，以便行和列回到原来的位置
+    otu_tax_agg_imputed <- t(otu_tax_agg_imputed_temp)
+
+    # 应用CLR转换
+    otu_tax_agg_clr <- apply(otu_tax_agg_imputed, 1, clr_transform)
+
+    # 转置回来
+    otu_tax_agg_clr <- t(otu_tax_agg_clr)
+
+    otu_tax_agg_clr_long <- otu_tax_agg_clr %>%
+      as.data.frame() %>%
+      mStat_filter(prev.filter = prev.filter,
+                   abund.filter = abund.filter) %>%
+      rownames_to_column(feature.level) %>%
+      tidyr::gather(key = "sample", value = "value",-feature.level)
 
     sub_test.list <-
-      lapply(rownames(otu_tax_agg_numeric), function(taxon) {
-        taxa_df <- otu_tax_agg_numeric %>%
-          rownames_to_column("taxa") %>%
-          tidyr::gather(key = "sample", value = "value",-taxa) %>%
-          dplyr::filter(taxa == taxon) %>%
+      lapply(otu_tax_agg_clr_long %>% select(all_of(feature.level)) %>% pull() %>% unique(), function(taxon) {
+        print(taxon)
+        taxa_df <- otu_tax_agg_clr_long %>%
+          dplyr::filter(!!sym(feature.level) == taxon) %>%
           dplyr::left_join(meta_tab, by = "sample")
 
         # Group data by subject and calculate volatility
@@ -225,7 +227,7 @@ generate_taxa_volatility_test_long <- function(data.obj,
       })
 
     # Assign names to the elements of test.list
-    names(sub_test.list) <- rownames(otu_tax_agg_numeric)
+    names(sub_test.list) <- otu_tax_agg_clr_long %>% select(all_of(feature.level)) %>% pull() %>% unique()
     return(sub_test.list)
   })
 

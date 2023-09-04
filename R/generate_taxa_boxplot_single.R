@@ -214,14 +214,14 @@ generate_taxa_boxplot_single <-
       abund.filter <- 0
     }
 
-    plot_list <- lapply(feature.level, function(feature.level) {
+    if (feature.dat.type == "count"){
+      message(
+        "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
+      )
+      data.obj <- mStat_normalize_data(data.obj, method = "Rarefy-TSS")$data.obj.norm
+    }
 
-      if (feature.dat.type == "count"){
-        message(
-          "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
-        )
-        data.obj <- mStat_normalize_data(data.obj, method = "Rarefy-TSS")$data.obj.norm
-      }
+    plot_list <- lapply(feature.level, function(feature.level) {
 
       if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
         data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)

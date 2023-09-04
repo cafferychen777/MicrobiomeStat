@@ -13,7 +13,7 @@
 #' }
 #'
 #' @details
-#' The function first checks if 'data.obj' is a list and contains 'norm.status'. It then checks if 'meta.dat' is a data frame and converts it to one if it isn't. The function then checks two rules: whether the row names of 'feature.tab' match the row names of 'feature.ann', and whether the column names of 'feature.tab' match the row names of 'meta.dat'. If either of these checks fail, the function adjusts the relevant parts of the data object to meet these rules.
+#' The function checks if 'meta.dat' is a data frame and converts it to one if it isn't. The function then checks two rules: whether the row names of 'feature.tab' match the row names of 'feature.ann', and whether the column names of 'feature.tab' match the row names of 'meta.dat'. If either of these checks fail, the function adjusts the relevant parts of the data object to meet these rules.
 #'
 #' @export
 mStat_validate_data <- function(data.obj) {
@@ -51,10 +51,30 @@ mStat_validate_data <- function(data.obj) {
     message("Rule 4 passed: The column names of feature.tab match the row names of meta.dat.")
   }
 
+  # Rule 5: Check if feature.tab is a matrix
+  if (!is.matrix(data.obj$feature.tab)) {
+    stop("Rule 5 failed: feature.tab should be a matrix.")
+  } else {
+    message("Rule 5 passed: feature.tab is a matrix.")
+  }
+
+  # Rule 6: Check if feature.ann is a matrix
+  if (!is.matrix(data.obj$feature.ann)) {
+    stop("Rule 6 failed: feature.ann should be a matrix.")
+  } else {
+    message("Rule 6 passed: feature.ann is a matrix.")
+  }
+
   # Add additional rules here...
+
+  # Add a message to remind the user about using base R data structures
+  message("Please note: The data components should follow base R data.frame and matrix structures, not phyloseq's formal class.")
 
   # If all checks passed, print a validation passed message
   message("Validation passed.")
+
+  # Add a final message to remind the user that validation is not exhaustive
+  message("Note: Passing validation does not guarantee the absence of all data issues. Further data exploration may be needed.")
 
   return(data.obj)
 }

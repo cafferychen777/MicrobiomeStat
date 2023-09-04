@@ -52,6 +52,7 @@ winsor.fun <- function(Y, quan, feature.dat.type) {
 #' on the centered log2-ratio transformed data, identifies a bias term due to the transformation
 #' and compositional effect, and corrects the bias using the mode of the regression coefficients.
 #' It could fit mixed-effect models.
+#' Note that linda is developed separately from other MicrobiomeStat functions, so its usage is different.
 #'
 #' @param feature.dat A data frame or matrix representing observed OTU table. Rows represent taxa; columns represent samples.
 #' NAs are not expected in OTU tables so are not allowed in function linda.
@@ -59,7 +60,10 @@ winsor.fun <- function(Y, quan, feature.dat.type) {
 #' NAs are allowed. If there are NAs, the corresponding samples will be removed in the analysis.
 #' @param phyloseq.obj A phyloseq object (optional). If provided, the feature.dat and meta.dat will be extracted from this object.
 #' @param formula Character. For example: formula = '~x1*x2+x3+(1|id)'. At least one fixed effect is required.
-#' @param feature.dat.type Character. Specifies the type of the data in feature.dat. Options are "count" (default) or "proportion".
+#' @param feature.dat.type Character. Specifies the type of the data in feature.dat. Options are "count" (default), "proportion" or "other".
+#' If "count", the data will be treated as count data and undergo zero-handling.
+#' If "proportion", the data will be treated as compositional data and undergo half minimum imputation for zeros.
+#' If "other", all filters (max.abund.filter, mean.abund.filter, and prev.filter) will be reset to 0.
 #' @param prev.filter A real value between 0 and 1; taxa with prevalence (percentage of nonzeros) less than prev.filter are excluded. Default is 0 (no taxa will be excluded).
 #' @param mean.abund.filter A real value; taxa with mean abundance less than mean.abund.filter are excluded. Default is 0 (no taxa will be excluded).
 #' @param max.abund.filter A real value; taxa with max abundance less than max.abund.filter are excluded. Default is 0 (no taxa will be excluded).

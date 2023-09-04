@@ -60,10 +60,7 @@ mStat_aggregate_by_taxonomy <-
 
     data.obj$feature.agg.list <-
       setNames(lapply(feature.level, function(feature.level) {
-        # 将 OTU 表与分类表合并
-        message(
-          "Performing an inner join on two tables. Rows with non-matching names will be excluded."
-        )
+
         otu_tax <-
           otu_tab %>% rownames_to_column("sample") %>%
           dplyr::inner_join(tax_tab %>%
