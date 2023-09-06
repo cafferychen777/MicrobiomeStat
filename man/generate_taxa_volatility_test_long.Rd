@@ -101,10 +101,10 @@ subject.var = "subject_id",
 group.var = "subject_gender",
 adj.vars = NULL,
 prev.filter = 0.1,
-abund.filter = 0.01,
+abund.filter = 0.0001,
 feature.mt.method = "fdr",
 feature.sig.level = 0.1,
-feature.level = c("Phylum"),
+feature.level = c("original"),
 feature.dat.type = "count"
 )
 }

@@ -24,6 +24,8 @@ generate_alpha_change_test_pair(
 
 \item{alpha.name}{The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou". Previously named as `alpha.index`.}
 
+\item{depth}{An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.}
+
 \item{time.var}{Character string specifying the column name in metadata containing
 time values for each sample. Required to identify pairs of time
 points to calculate changes between.}

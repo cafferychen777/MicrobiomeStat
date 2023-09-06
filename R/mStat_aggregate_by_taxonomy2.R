@@ -1,21 +1,22 @@
 #' Aggregate OTU Table by Taxonomy Level
 #'
-#' This function, part of the MicrobiomeStat package, aggregates an OTU table by a specified taxonomy level.
-#' It checks for the consistency of row names between the OTU table and the taxonomy table and stops execution if any mismatches are found.
-#' @name mStat_aggregate_by_taxonomy2
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param feature.level A character vector that specifies the taxonomy levels to aggregate by.
+#' This function aggregates an OTU table by a specified taxonomy level.
+#' It checks for consistency between OTU and taxonomy tables before aggregation.
 #'
-#' @return A list that is the modified version of the input data object. It includes the original data object and an additional element, 'feature.agg.list',
-#' which is a list of aggregated OTU tables for each specified taxonomy level.
+#' @param feature.tab OTU table as matrix or data.frame
+#' @param feature.ann Taxonomy table as matrix or data.frame
+#' @param feature.level Taxonomy level to aggregate by as character vector.
+#'
+#' @return Aggregated OTU table matrix.
+#'
 #'
 #' @details
-#' The function first checks for the consistency of row names between the OTU table and the taxonomy table. If any mismatches are found,
-#' it displays a message and stops execution. If the row names are consistent, it merges the OTU table with the taxonomy table and aggregates
-#' the OTU table by the specified taxonomy level. The aggregation is done by summing the values for each sample at each taxonomy level.
-#' The aggregated OTU tables are added to the data object as a list named 'feature.agg.list'.
+#' The function first checks that the row names of OTU and taxonomy tables match.
+#' If any mismatches are found, a message is displayed but the function continues.
+#' The OTU and taxonomy tables are joined by row names.
+#' The OTU table is then aggregated by summing abundance values for each sample at the specified taxonomy level.
+#' Rows with all zero values after aggregation are removed.
 #'
-#' @author Caffery(Chen) YANG
 #' @examples
 #' \dontrun{
 #' # Load required libraries

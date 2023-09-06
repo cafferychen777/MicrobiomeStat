@@ -36,7 +36,10 @@ NAs are allowed. If there are NAs, the corresponding samples will be removed in 
 
 \item{formula}{Character. For example: formula = '~x1*x2+x3+(1|id)'. At least one fixed effect is required.}
 
-\item{feature.dat.type}{Character. Specifies the type of the data in feature.dat. Options are "count" (default) or "proportion".}
+\item{feature.dat.type}{Character. Specifies the type of the data in feature.dat. Options are "count" (default), "proportion" or "other".
+If "count", the data will be treated as count data and undergo zero-handling.
+If "proportion", the data will be treated as compositional data and undergo half minimum imputation for zeros.
+If "other", all filters (max.abund.filter, mean.abund.filter, and prev.filter) will be reset to 0.}
 
 \item{prev.filter}{A real value between 0 and 1; taxa with prevalence (percentage of nonzeros) less than prev.filter are excluded. Default is 0 (no taxa will be excluded).}
 
@@ -100,6 +103,7 @@ the compositional effects in differential abundance analysis. It fits linear reg
 on the centered log2-ratio transformed data, identifies a bias term due to the transformation
 and compositional effect, and corrects the bias using the mode of the regression coefficients.
 It could fit mixed-effect models.
+Note that linda is developed separately from other MicrobiomeStat functions, so its usage is different.
 }
 \examples{
 \dontrun{

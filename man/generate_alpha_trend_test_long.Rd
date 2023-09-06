@@ -23,6 +23,8 @@ generate_alpha_trend_test_long(
 \item{alpha.name}{A string with the name of the alpha diversity index to compute.
 Options could include: "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".}
 
+\item{depth}{An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.}
+
 \item{time.var}{Character string specifying the column name in metadata containing the
 numeric time variable. Should contain ordered time points for each subject.
 Required to calculate volatility over time.}
@@ -65,7 +67,7 @@ data.obj = subset_T2D.obj2,
 alpha.name = c("shannon","simpson"),
 time.var = "visit_number",
 subject.var = "subject_id",
-group.var = "subject_gender",
+group.var = "subject_race",
 adj.vars = NULL
 )
 }

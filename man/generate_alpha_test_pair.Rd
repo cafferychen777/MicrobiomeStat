@@ -24,6 +24,8 @@ generate_alpha_test_pair(
 indices to compute. Options include: "shannon", "simpson",
 "observed_species", "chao1", "ace", and "pielou".}
 
+\item{depth}{An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.}
+
 \item{time.var}{A string representing the time variable's name in the
 metadata. The default is NULL.}
 
@@ -55,7 +57,7 @@ index. Each table includes the term, estimate, standard error, t value, and
 p-value for each fixed effect in the model.
 }
 \examples{
-\dontrun{
+
 data(peerj32.obj)
 alpha_test_results <- generate_alpha_test_pair(
 data.obj = peerj32.obj,
@@ -66,5 +68,5 @@ subject.var = "subject",
 group.var = "group",
 adj.vars = "sex"
 )
-}
+
 }

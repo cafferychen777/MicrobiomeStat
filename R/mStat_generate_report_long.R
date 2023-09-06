@@ -6,7 +6,7 @@
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list).
 #' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
 #' @param alpha.name The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".
-#' @param depth
+#' @param depth An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.
 #' @param dist.obj Distance matrix between samples, usually calculated using
 #' \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
 #' If NULL, beta diversity will be automatically computed from \code{data.obj}
@@ -203,7 +203,7 @@
 #'   ts.levels = unique(sort(subset_T2D.obj$meta.dat$visit_number_num))[-1],
 #'   feature.mt.method = "none",
 #'   feature.sig.level = 0.1,
-#'   feature.level = c("Phylum"),
+#'   feature.level = c("Family"),
 #'   feature.change.func = "relative change",
 #'   feature.dat.type = "count",
 #'   prev.filter = 1e-5,
@@ -211,37 +211,9 @@
 #'   transform = "sqrt",
 #'   theme.choice = "bw",
 #'   base.size = 12,
-#'   output.file = "path/report.pdf"
-#' )
-#' }
-#' data(subset_T2D.obj)
-#' mStat_generate_report_long(
-#'   data.obj = subset_T2D.obj,
-#'   dist.obj = NULL,
-#'   alpha.obj = NULL,
-#'   pc.obj = NULL,
-#'   group.var = "subject_gender",
-#'   strata.var = "subject_race",
-#'   test.adj.vars = NULL,
-#'   vis.adj.vars = NULL,
-#'   subject.var = "subject_id",
-#'   time.var = "visit_number_num",
-#'   alpha.name = c("shannon","simpson"),
-#'   dist.name = c("BC",'Jaccard'),
-#'   t0.level = unique(sort(subset_T2D.obj$meta.dat$visit_number_num))[1],
-#'   ts.levels = unique(sort(subset_T2D.obj$meta.dat$visit_number_num))[-1],
-#'   feature.mt.method = "none",
-#'   feature.sig.level = 0.1,
-#'   feature.level = c("Phylum"),
-#'   feature.change.func = "relative change",
-#'   feature.dat.type = "count",
-#'   prev.filter = 0.1,
-#'   abund.filter = 1e-5,
-#'   transform = "sqrt",
-#'   theme.choice = "bw",
-#'   base.size = 12,
 #'   output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/报告/mStat_generate_report_long_example.pdf"
 #' )
+#' }
 #' @export
 mStat_generate_report_long <- function(data.obj,
                                        group.var,
@@ -295,6 +267,8 @@ output:
 
 ```{r input-parameters-summary, echo=FALSE, message=FALSE, results='asis'}
 
+custom_depth_status <- ifelse(is.null(depth), 'NULL', toString(depth))
+
 # 判断 custom.theme 是否为 NULL
 custom_theme_status <- ifelse(is.null(custom.theme), 'NULL', 'Not NULL')
 
@@ -303,6 +277,7 @@ custom_palette_status <- ifelse(is.null(palette), 'NULL', 'Not NULL')
 custom_file.ann_status <- ifelse(is.null(file.ann), 'NULL', 'Not NULL')
 
 custom_test.adj.vars_status <- ifelse(is.null(test.adj.vars), 'NULL', toString(test.adj.vars))
+
 custom_vis.adj.vars_status <- ifelse(is.null(vis.adj.vars), 'NULL', toString(vis.adj.vars))
 
 # 创建一个数据框，其中包含参数的名称和对应的值
@@ -348,12 +323,12 @@ params_data <- data.frame(Parameter = c('data.obj',
                                         time.var,
                                         t0.level,
                                         toString(ts.levels),
-                                        c(deparse(substitute(alpha.obj)),
+                                        deparse(substitute(alpha.obj)),
                                         toString(alpha.name),
-                                        depth,
-                                        c(deparse(substitute(dist.obj)),
+                                        custom_depth_status,
+                                        deparse(substitute(dist.obj)),
                                         toString(dist.name),
-                                        c(deparse(substitute(pc.obj)),
+                                        deparse(substitute(pc.obj)),
                                         prev.filter,
                                         abund.filter,
                                         feature.change.func,
@@ -414,6 +389,7 @@ if (is.null(pc.obj)){
 alpha_boxplot_results <- generate_alpha_boxplot_long(data.obj = data.obj,
                                                        alpha.obj = alpha.obj,
                                                        alpha.name = alpha.name,
+                                                       depth = depth,
                                                        subject.var = subject.var,
                                                        time.var = time.var,
                                                        t0.level = t0.level,
@@ -439,6 +415,7 @@ alpha_spaghettiplot_results <- generate_alpha_spaghettiplot_long(
                                                        data.obj = data.obj,
                                                        alpha.obj = alpha.obj,
                                                        alpha.name = alpha.name,
+                                                       depth = depth,
                                                        subject.var = subject.var,
                                                        time.var = time.var,
                                                        t0.level = t0.level,
@@ -464,6 +441,7 @@ alpha_trend_test_results <- generate_alpha_trend_test_long(
                                                  data.obj = data.obj,
                                                  alpha.obj = alpha.obj,
                                                  alpha.name = alpha.name,
+                                                 depth = depth,
                                                  time.var = time.var,
                                                  subject.var = subject.var,
                                                  group.var = group.var,
@@ -473,10 +451,20 @@ alpha_trend_test_results <- generate_alpha_trend_test_long(
 ```{r alpha-trend-test-results-print, echo=FALSE, message=FALSE, results='asis'}
 
 # Initial description
+has_random_slope <- !is.null(time.var)
+
 if (!is.null(group.var)) {
-    cat(sprintf('In this analysis, we utilized a linear mixed effects model to investigate potential interactions. Specifically, we tested the interaction between the variables %s and %s.\n\n', group.var, time.var))
+    if (has_random_slope) {
+        cat(sprintf('In this analysis, we utilized a linear mixed effects model with both random intercept and random slope to investigate potential interactions. Specifically, we tested the interaction between the variables %s and %s.\n\n', group.var, time.var))
+    } else {
+        cat(sprintf('In this analysis, we utilized a linear mixed effects model with a random intercept to investigate potential interactions. Specifically, we tested the interaction between the variables %s and %s without considering the random slope effect of %s.\n\n', group.var, time.var, time.var))
+    }
 } else {
-    cat('In this analysis, we utilized a linear mixed effects model. Since no group variable (group.var) was provided, we tested the slope, i.e., the linear trend, of', time.var, 'only.\n\n')
+    if (has_random_slope) {
+        cat(sprintf('In this analysis, we utilized a linear mixed effects model with both random intercept and random slope. Since no group variable (group.var) was provided, we tested the slope, i.e., the linear trend, of %s.\n\n', time.var))
+    } else {
+        cat(sprintf('In this analysis, we utilized a linear mixed effects model with a random intercept. Since no group variable (group.var) was provided, we tested the linear trend of %s without considering the random slope effect.\n\n', time.var))
+    }
 }
 
 # Define a function to report the significance of interaction terms
@@ -529,6 +517,7 @@ alpha_volatility_test_results <- generate_alpha_volatility_test_long(
                                                  data.obj = data.obj,
                                                  alpha.obj = alpha.obj,
                                                  alpha.name = alpha.name,
+                                                 depth = depth,
                                                  time.var = time.var,
                                                  subject.var = subject.var,
                                                  group.var = group.var,
@@ -621,7 +610,7 @@ beta_ordination_results
 ### 3.2 Beta Diversity PC Boxplot
 
 ```{r pc-boxplot-longitudinal-generation, message=FALSE, fig.align='center', fig.width = 20, fig.height = 8, results='asis'}
-pc_boxplot_longitudinal_results <- generate_beta_pc_boxplot_long(
+pc_boxplot_longitudinal_results <- generate_beta_pc_spaghettiplot_long(
   data.obj = data.obj,
   dist.obj = dist.obj,
   pc.obj = pc.obj,
@@ -899,9 +888,9 @@ beta_pc_volatility_test_longitudinal_results <- generate_beta_pc_volatility_test
 num_levels <- length(unique(data.obj[[group.var]]))
 
 if(num_levels > 2) {
-    cat(sprintf('In this analysis, we employed a general linear model followed by ANOVA to test the effect of %s on beta diversity PC volatility.\n\n', group.var))
+    cat(sprintf('In this analysis, we employed a general linear model followed by ANOVA to test the effect of %s on beta diversity PC volatility.', group.var))
 } else {
-    cat(sprintf('In this analysis, we utilized a general linear model to examine the influence of the variable %s on beta diversity PC volatility.\n\n', group.var))
+    cat(sprintf('In this analysis, we utilized a general linear model to examine the influence of the variable %s on beta diversity PC volatility.', group.var))
 }
 
 cat('The beta diversity PC volatility is calculated by averaging the rate of change in principal components of beta diversity across consecutive time points. Specifically, for each pair of adjacent time points, we compute the difference in principal components, normalize it by the time difference, and then take the average over all such pairs.\n\n')
@@ -913,19 +902,19 @@ report_pc_volatility_significance <- function(data_frame, group.var) {
   terms <- grep(group.var, data_frame$Term, value = TRUE)
   terms <- terms[!terms %in% c('(Intercept)', 'Residuals', group.var)]
 
-  for(term in terms) {
-    p_val <- data_frame[data_frame$Term == term,]$P.Value
-
-    # Extract only the level part from the term by removing the group.var prefix and underscore
-    level <- sub(group.var, '', term)
-
-    # Describing significance based on lm model
-    if(p_val < 0.05) {
-      cat(sprintf('Based on the general linear model, the level %s of the variable %s significantly affected the beta diversity PC volatility, with a p-value of %.3f.\n\n', level, group.var, p_val))
-    } else {
-      cat(sprintf('Based on the general linear model, the level %s of the variable %s did not significantly influence the beta diversity PC volatility, with a p-value of %.3f.\n\n', level, group.var, p_val))
-    }
-  }
+  # for(term in terms) {
+  #   p_val <- data_frame[data_frame$Term == term,]$P.Value
+  #
+  #   # Extract only the level part from the term by removing the group.var prefix and underscore
+  #   level <- sub(group.var, '', term)
+  #
+  #   # Describing significance based on lm model
+  #   if(p_val < 0.05) {
+  #     cat(sprintf('Based on the general linear model, the level %s of the variable %s significantly affected the beta diversity PC volatility, with a p-value of %.3f.\n\n', level, group.var, p_val))
+  #   } else {
+  #     cat(sprintf('Based on the general linear model, the level %s of the variable %s did not significantly influence the beta diversity PC volatility, with a p-value of %.3f.\n\n', level, group.var, p_val))
+  #   }
+  # }
 
   # Reporting significance for ANOVA
   p_val_anova <- data_frame[data_frame$Term == group.var,]$P.Value
@@ -955,7 +944,7 @@ pander::pander(beta_pc_volatility_test_longitudinal_results)
 
 ## 4. Feature-level Analysis
 
-### 4.1 Taxa Areaplot Longitudinal
+### 4.1 Feature Areaplot Longitudinal
 
 ```{r taxa-areaplot-longitudinal-generation, message=FALSE, fig.align='center', fig.width = 20, fig.height = 8}
 taxa_areaplot_long_results <- generate_taxa_areaplot_long(
@@ -985,7 +974,7 @@ cat('### Average Version: This plot displays the average proportions for each ti
 taxa_areaplot_long_results
 ```
 
-### 4.2 Taxa Heatmap Longitudinal
+### 4.2 Feature Heatmap Longitudinal
 
 ```{r taxa-heatmap-longitudinal-generation, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8, results='hide', warning = FALSE}
 taxa_heatmap_long_results <- generate_taxa_heatmap_long(
@@ -1019,7 +1008,7 @@ cat('### Average Version: This plot displays the average proportions for each ti
 taxa_heatmap_long_results
 ```
 
-### 4.3 Taxa Change Heatmap Longitudinal
+### 4.3 Feature Change Heatmap Longitudinal
 
 ```{r taxa-change-heatmap-longitudinal-generation, message=FALSE, fig.align='center', fig.width = 15, fig.height = 12, results='hide', warning = FALSE}
 taxa_change_heatmap_long_results <- generate_taxa_change_heatmap_long(
@@ -1068,7 +1057,7 @@ cat('### Average Change: This plot displays the average changes for each time po
 taxa_change_heatmap_long_results
 ```
 
-### 4.4 Taxa Barplot Longitudinal
+### 4.4 Feature Barplot Longitudinal
 
 ```{r taxa-barplot-longitudinal-generation, message=FALSE, warning = FALSE}
 taxa_barplot_long_results <- generate_taxa_barplot_long(
@@ -1098,7 +1087,7 @@ cat('### Average Version: This plot displays the average proportions for each ti
 taxa_barplot_long_results
 ```
 
-### 4.5 Taxa Trend Test
+### 4.5 Feature Trend Test
 
 ```{r taxa-trend-test-longitudinal-generation, message=FALSE, results='hide', warning = FALSE}
 taxa_trend_test_results <- generate_taxa_trend_test_long(
@@ -1154,7 +1143,7 @@ for(taxon_rank in names(taxa_trend_test_results)) {
     if (nrow(interaction_terms_results) == 0) {
         cat(sprintf('For the taxa investigated under the %s category, no significant interactions were detected between %s and %s using the %s method for p-value adjustment, at a %s threshold of %s.\n\n', taxon_rank, group.var, time.var, feature.mt.method, p_value_str, feature.sig.level))
     } else {
-        cat('## Significant features in volatility test results \n')
+        cat('## Significant features in trend test results \n')
         cat(sprintf('For the taxon %s, significant interactions were identified in the Taxa Trend Test Results using the %s method for p-value adjustment, based on a threshold of %s:\n\n', taxon_rank, feature.mt.method, feature.sig.level))
     }
 }
@@ -1177,7 +1166,7 @@ cat(sprintf('The taxa trend test results for individual taxa or features have be
 
 ```
 
-### 4.6 Taxa Volatility Test
+### 4.6 Feature Volatility Test
 
 ```{r taxa-volatility-test-longitudinal-generation, message=FALSE, results='hide', warning = FALSE}
 taxa_volatility_test_results <- generate_taxa_volatility_test_long(
@@ -1282,7 +1271,7 @@ significant_taxa_from_volatility <- names(significant_results_list)[sapply(signi
 combined_significant_taxa <- unique(c(significant_taxa_from_trend, significant_taxa_from_volatility))
 ```
 
-### 4.7 Taxa Boxplot for Significant Taxa
+### 4.7 Feature Boxplot for Significant Taxa
 
 ```{r taxa-test-boxplot-longitudinal-generation, message=FALSE, fig.height=10, fig.width=10, fig.align='center', results='asis'}
 
@@ -1341,7 +1330,7 @@ taxa_indiv_boxplot_results <- generate_taxa_indiv_boxplot_long(
 ```
 
 ```{r taxa-test-boxplot-longitudinal-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 12, fig.height = 12}
-taxa_boxplot_results
+#taxa_boxplot_results
 ```
 
 ```{r boxplot-pdf-name-creation, echo=FALSE, message=FALSE, results='asis'}
@@ -1383,7 +1372,7 @@ cat(paste0('The boxplot results for individual taxa or features can be found in 
 }
 ```
 
-### 4.8 Taxa Spaghettiplot for Significant Taxa
+### 4.8 Feature Spaghettiplot for Significant Taxa
 
 ```{r taxa-spaghettiplot-longitudinal-generation, message=FALSE, fig.height=15, fig.width=10, fig.align='center', results='asis'}
 

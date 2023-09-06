@@ -110,8 +110,6 @@ mStat_summarize_data_obj <-
     count_single_occurrence <-
       length(which(rowSums(feature_tab) == 1))
 
-
-
     # Handling the time-series data
     if (!is.null(time.var) && "meta.dat" %in% names(data.obj)) {
       if (time.var %in% colnames(data.obj$meta.dat)) {
@@ -119,12 +117,6 @@ mStat_summarize_data_obj <-
 
         # cat("Time-Series Information:\n",
         #     "========================\n")
-
-        # Numeric time data
-        if (is.numeric(time_var_data)) {
-
-        }
-
 
         # Create a histogram for the time variable
         if (!is.null(group.var) &&
@@ -198,6 +190,42 @@ mStat_summarize_data_obj <-
               scale_y_continuous(expand = expansion(mult = c(0, 0.05)), limits = c(0, NA))
           )
         }
+
+        # Explanation for the boxplot
+        message("Since the presence of those low-abundance features depends highly on the sequencing depth, the association between the sequence depth and a variable of interest could lead to false associations of the observed abundance of these low-abundance features with the variable of interest. In this case, rarefaction may be needed to reduce the sequencing depth confounding. The sequence depth plot will help diagnose such potential confounding.\n")
+
+        # Compute sequencing depth for each sample
+        seq_depth <- colSums(feature_tab)
+
+        # Convert it to a data.frame for plotting
+        seq_depth_df <- data.frame(
+          TimePoint = data.obj$meta.dat[[time.var]],
+          SequencingDepth = seq_depth
+        )
+
+        # If group.var is provided, add it to the data.frame
+        if (!is.null(group.var) && group.var %in% colnames(data.obj$meta.dat)) {
+          seq_depth_df$Group <- data.obj$meta.dat[[group.var]]
+        }
+
+        seq_depth_df$TimePoint <- as.factor(seq_depth_df$TimePoint)
+
+        # Plotting the sequencing depth boxplot
+        seq_depth_plot <- ggplot(seq_depth_df, aes(x = TimePoint, y = SequencingDepth, fill = Group)) +
+          geom_boxplot() +
+          theme_minimal() +
+          #geom_jitter(position = position_dodge(width = 0.75), alpha = 0.5, size = 2) +
+          theme(plot.title = element_text(hjust = 0.5)) +
+          labs(
+            title = "Boxplot of Sequencing Depth over Time",
+            x = time.var,
+            y = "Sequencing Depth"
+          )
+        if (!is.null(group.var) && group.var %in% colnames(data.obj$meta.dat)) {
+          seq_depth_plot <- seq_depth_plot + scale_fill_manual(values = palette, name = "Group")
+        }
+        print(seq_depth_plot)
+
       } else {
         #cat("The provided time variable does not exist in the metadata.\n")
       }

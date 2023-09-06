@@ -85,7 +85,7 @@
 #'   group.var = "subject_gender",
 #'   strata.var = "subject_race",
 #'   adj.vars = NULL,
-#'   dist.name = c("BC"),
+#'   dist.name = 'BC',
 #'   base.size = 12,
 #'   theme.choice = "bw",
 #'   custom.theme = NULL,
@@ -103,14 +103,14 @@ generate_beta_ordination_long <-
            pc.obj = NULL,
            subject.var,
            time.var,
-           t0.level,
-           ts.levels,
+           t0.level = NULL,
+           ts.levels = NULL,
            group.var = NULL,
            strata.var = NULL,
            adj.vars = NULL,
            dist.name = c('BC', 'Jaccard'),
            base.size = 16,
-           theme.choice = "prism",
+           theme.choice = "bw",
            custom.theme = NULL,
            palette = NULL,
            pdf = TRUE,
@@ -212,7 +212,7 @@ generate_beta_ordination_long <-
 
       p <- ggplot2::ggplot(df, ggplot2::aes(PC1, PC2)) +
         ggplot2::geom_point(
-          size = 15,
+          size = 5,
           aes_function,
           show.legend = T
         ) +
@@ -224,8 +224,8 @@ generate_beta_ordination_long <-
             yend = y_end
           ),
           arrow = ggplot2::arrow(length = unit(0.25, "cm"), type = "open"),
-          size = 1,
-          color = "black"
+          size = 0.7,
+          color = "gray70"
         ) +
         ggplot2::labs(
           x = ifelse(
@@ -272,7 +272,7 @@ generate_beta_ordination_long <-
         )
 
       if (!is.null(strata.var)) {
-        p <- p + ggh4x::facet_nested(as.formula(paste(".~", strata.var)))
+        p <- p + ggh4x::facet_nested_wrap(as.formula(paste(".~", strata.var)), ncol = 3)
       }
 
       # Save the plots as a PDF file

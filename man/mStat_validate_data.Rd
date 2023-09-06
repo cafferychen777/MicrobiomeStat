@@ -16,7 +16,7 @@ A list. The validated and possibly adjusted data object.
 This function is a part of the MicrobiomeStat package. It validates a data object, checks if it meets certain rules, and adjusts it if necessary.
 }
 \details{
-The function first checks if 'data.obj' is a list and contains 'norm.status'. It then checks if 'meta.dat' is a data frame and converts it to one if it isn't. The function then checks two rules: whether the row names of 'feature.tab' match the row names of 'feature.ann', and whether the column names of 'feature.tab' match the row names of 'meta.dat'. If either of these checks fail, the function adjusts the relevant parts of the data object to meet these rules.
+The function checks if 'meta.dat' is a data frame and converts it to one if it isn't. The function then checks two rules: whether the row names of 'feature.tab' match the row names of 'feature.ann', and whether the column names of 'feature.tab' match the row names of 'meta.dat'. If either of these checks fail, the function adjusts the relevant parts of the data object to meet these rules.
 }
 \examples{
 \dontrun{

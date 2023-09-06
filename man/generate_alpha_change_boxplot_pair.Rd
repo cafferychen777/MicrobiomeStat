@@ -34,6 +34,8 @@ generate_alpha_change_boxplot_pair(
 
 \item{alpha.name}{The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou". Previously named as `alpha.index`.}
 
+\item{depth}{An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.}
+
 \item{subject.var}{The variable in the metadata table that represents the subject.}
 
 \item{time.var}{The variable in the metadata table that represents the time.}

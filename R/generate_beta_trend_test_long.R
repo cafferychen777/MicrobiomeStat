@@ -68,6 +68,16 @@ create_mixed_effects_formula <- function(response.var, time.var, group.var = NUL
 #'   group.var = "diet",
 #'   adj.vars = c("antiexposedall","delivery"),
 #'   dist.name = c("BC", "Jaccard")
+#'
+#' data(esubset_T2D.obj)
+#' generate_beta_trend_test_long(
+#'   data.obj = subset_T2D.obj,
+#'   dist.obj = NULL,
+#'   subject.var = "subject_id",
+#'   time.var = "visit_number",
+#'   group.var = "subject_race",
+#'   adj.vars = c("subject_gender","sample_body_site"),
+#'   dist.name = c("BC", "Jaccard")
 #' )
 #' }
 #' @export
@@ -143,7 +153,33 @@ generate_beta_trend_test_long <-
 
       model <- lmer(formula, data = long.df)
 
-      coef.tab <- extract_coef(model)
+      # Check if group.var is multi-category
+      if (length(unique(long.df[[group.var]])) > 2) {
+        anova_result <- anova(model, type = "III")
+
+        # Here, I assume you want to append this p-value to the result.
+        # Adjust the way of appending the p-value based on your desired output.
+        coef.tab <- extract_coef(model)
+        # Append the last row of the anova_result to the coef.tab
+        last_row <- utils::tail(anova_result, 1)
+        # 获取last_row的列名
+        var_name <- rownames(last_row)[1]
+
+        # 调整last_row以匹配coef.tab的格式
+        adjusted_last_row <- data.frame(
+          Term = var_name,
+          Estimate = NA,  # 你可以根据需求进行更改
+          Std.Error = NA,  # 你可以根据需求进行更改
+          Statistic = last_row$`F value`,
+          P.Value = last_row$`Pr(>F)`
+        )
+
+        # 合并coef.tab和adjusted_last_row
+        coef.tab <- rbind(coef.tab, adjusted_last_row)
+
+      } else {
+        coef.tab <- extract_coef(model)
+      }
 
       return(as_tibble(coef.tab))
     })

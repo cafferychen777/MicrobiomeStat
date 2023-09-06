@@ -47,6 +47,7 @@ construct_formula <- function(index, group.var, time.var, subject.var, adj.vars)
 #' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
 #' @param alpha.name A string with the name of the alpha diversity index to compute.
 #' Options could include: "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".
+#' @param depth An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.
 #' @param time.var Character string specifying the column name in metadata containing the
 #'                numeric time variable. Should contain ordered time points for each subject.
 #'                Required to calculate volatility over time.
@@ -69,7 +70,7 @@ construct_formula <- function(index, group.var, time.var, subject.var, adj.vars)
 #' alpha.name = c("shannon","simpson"),
 #' time.var = "visit_number",
 #' subject.var = "subject_id",
-#' group.var = "subject_gender",
+#' group.var = "subject_race",
 #' adj.vars = NULL
 #' )
 #' }
@@ -131,7 +132,33 @@ generate_alpha_trend_test_long <- function(data.obj,
 
     model <- lmer(formula, data = alpha_df)
 
-    coef.tab <- extract_coef(model)
+    # Check if group.var is multi-category
+    if (length(unique(alpha_df[[group.var]])) > 2) {
+      anova_result <- anova(model, type = "III")
+
+      # Here, I assume you want to append this p-value to the result.
+      # Adjust the way of appending the p-value based on your desired output.
+      coef.tab <- extract_coef(model)
+      # Append the last row of the anova_result to the coef.tab
+      last_row <- utils::tail(anova_result, 1)
+      # 获取last_row的列名
+      var_name <- rownames(last_row)[1]
+
+      # 调整last_row以匹配coef.tab的格式
+      adjusted_last_row <- data.frame(
+        Term = var_name,
+        Estimate = NA,  # 你可以根据需求进行更改
+        Std.Error = NA,  # 你可以根据需求进行更改
+        Statistic = last_row$`F value`,
+        P.Value = last_row$`Pr(>F)`
+      )
+
+      # 合并coef.tab和adjusted_last_row
+      coef.tab <- rbind(coef.tab, adjusted_last_row)
+
+    } else {
+      coef.tab <- extract_coef(model)
+    }
 
     return(as_tibble(coef.tab))
   })

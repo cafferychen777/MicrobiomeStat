@@ -8,7 +8,7 @@ generate_alpha_volatility_test_long(
   data.obj,
   alpha.obj = NULL,
   alpha.name = NULL,
-  depth = depth,
+  depth = NULL,
   time.var,
   subject.var,
   group.var,
@@ -25,6 +25,8 @@ If NULL (the default), alpha diversity will be calculated from the data.obj usin
 
 \item{alpha.name}{A string with the name of the alpha diversity index to compute.
 Options could include: "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".}
+
+\item{depth}{An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.}
 
 \item{time.var}{A string representing the time variable's name in the
 metadata. The default is NULL.}

@@ -20,6 +20,7 @@
 #' `mStat_calculate_alpha_diversity`.
 #' @param alpha.name A string with the name of the alpha diversity index to compute.
 #' Options could include: "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".
+#' @param depth An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.
 #' @param time.var A string representing the time variable's name in the
 #' metadata. The default is NULL.
 #' @param subject.var A string indicating the variable for subject identifiers.
@@ -49,7 +50,7 @@
 generate_alpha_volatility_test_long <- function(data.obj,
                                                 alpha.obj = NULL,
                                                 alpha.name = NULL,
-                                                depth = depth,
+                                                depth = NULL,
                                                 time.var,
                                                 subject.var,
                                                 group.var,

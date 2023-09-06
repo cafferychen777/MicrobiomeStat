@@ -17,6 +17,7 @@
 #' library(GUniFrac)
 #' library(ape)
 #' library(philentropy)
+#' library(phyloseq)
 #'
 #' # Load example data
 #' data(GlobalPatterns)
@@ -32,7 +33,8 @@
 #' }
 #'
 #' @export
-mStat_calculate_beta_diversity <- function(data.obj, dist.name = c('BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS')) {
+mStat_calculate_beta_diversity <- function(data.obj,
+                                           dist.name = c('BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS')) {
 
   otu_tab <- load_data_obj_count(data.obj)
   tax_tab <- load_data_obj_taxonomy(data.obj)
