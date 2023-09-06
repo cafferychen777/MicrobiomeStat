@@ -191,8 +191,8 @@
 #'   dist.obj = NULL,
 #'   alpha.obj = NULL,
 #'   pc.obj = NULL,
-#'   group.var = "subject_gender",
-#'   strata.var = "subject_race",
+#'   group.var = "subject_race",
+#'   strata.var = "subject_gender",
 #'   test.adj.vars = NULL,
 #'   vis.adj.vars = NULL,
 #'   subject.var = "subject_id",
@@ -206,8 +206,8 @@
 #'   feature.level = c("Family"),
 #'   feature.change.func = "relative change",
 #'   feature.dat.type = "count",
-#'   prev.filter = 1e-5,
-#'   abund.filter = 1e-5,
+#'   prev.filter = 0.1,
+#'   abund.filter = 1e-4,
 #'   transform = "sqrt",
 #'   theme.choice = "bw",
 #'   base.size = 12,
@@ -902,19 +902,19 @@ report_pc_volatility_significance <- function(data_frame, group.var) {
   terms <- grep(group.var, data_frame$Term, value = TRUE)
   terms <- terms[!terms %in% c('(Intercept)', 'Residuals', group.var)]
 
-  # for(term in terms) {
-  #   p_val <- data_frame[data_frame$Term == term,]$P.Value
-  #
-  #   # Extract only the level part from the term by removing the group.var prefix and underscore
-  #   level <- sub(group.var, '', term)
-  #
-  #   # Describing significance based on lm model
-  #   if(p_val < 0.05) {
-  #     cat(sprintf('Based on the general linear model, the level %s of the variable %s significantly affected the beta diversity PC volatility, with a p-value of %.3f.\n\n', level, group.var, p_val))
-  #   } else {
-  #     cat(sprintf('Based on the general linear model, the level %s of the variable %s did not significantly influence the beta diversity PC volatility, with a p-value of %.3f.\n\n', level, group.var, p_val))
-  #   }
-  # }
+  for(term in terms) {
+    p_val <- data_frame[data_frame$Term == term,]$P.Value
+
+    # Extract only the level part from the term by removing the group.var prefix and underscore
+    level <- sub(group.var, '', term)
+
+    # Describing significance based on lm model
+    if(p_val < 0.05) {
+      cat(sprintf('Based on the general linear model, the level %s of the variable %s significantly affected the beta diversity PC volatility, with a p-value of %.3f.\n\n', level, group.var, p_val))
+    } else {
+      cat(sprintf('Based on the general linear model, the level %s of the variable %s did not significantly influence the beta diversity PC volatility, with a p-value of %.3f.\n\n', level, group.var, p_val))
+    }
+  }
 
   # Reporting significance for ANOVA
   p_val_anova <- data_frame[data_frame$Term == group.var,]$P.Value

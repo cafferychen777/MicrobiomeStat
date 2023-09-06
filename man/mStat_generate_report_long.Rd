@@ -7,14 +7,15 @@
 mStat_generate_report_long(
   data.obj,
   group.var,
-  adj.vars = NULL,
+  vis.adj.vars = NULL,
+  test.adj.vars = NULL,
   strata.var = NULL,
   subject.var,
   time.var,
   t0.level,
   ts.levels,
   alpha.obj = NULL,
-  alpha.name = c("shannon", "simpson"),
+  alpha.name = c("shannon", "observed_species"),
   depth = NULL,
   dist.obj = NULL,
   dist.name = c("BC", "Jaccard"),
@@ -45,7 +46,9 @@ mStat_generate_report_long(
 
 \item{group.var}{Character, column name in metadata containing grouping variable, e.g. "treatment". Required if present in metadata.}
 
-\item{adj.vars}{Character vector, names of columns in metadata containing covariates to adjust for, default is NULL.}
+\item{vis.adj.vars}{Character vector, names of columns in the metadata containing covariates to visualize in plots, in addition to the primary variables of interest such as groups. For example, if sex is provided in vis.adj.vars, plots will display facets or colors for different sex groups. This allows visualization of effects across multiple covariates. Default is NULL, which indicates only the primary variables of interest will be visualized without additional covariates.}
+
+\item{test.adj.vars}{Character vector, names of columns in the metadata containing covariates to be adjusted for in statistical tests and models, such as linear mixed effects models for longitudinal data analysis. This allows the user to account for the effects of additional variables in assessing the effects of primary variables of interest such as time and groups. Default is NULL, which indicates no covariates are adjusted for in statistical testing.}
 
 \item{strata.var}{Character, column name in metadata containing stratification variable, e.g "sex". Optional.}
 
@@ -60,6 +63,8 @@ mStat_generate_report_long(
 \item{alpha.obj}{An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.}
 
 \item{alpha.name}{The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".}
+
+\item{depth}{An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.}
 
 \item{dist.obj}{Distance matrix between samples, usually calculated using
 \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
@@ -235,7 +240,8 @@ mStat_generate_report_long(
   dist.obj = NULL,
   alpha.obj = NULL,
   group.var = "group",
-  adj.vars = c("sex"),
+  test.adj.vars = c("sex"),
+  vis.test.vars = c("sex"),
   subject.var = "subject",
   time.var = "time",
   alpha.name = c("shannon","simpson"),
@@ -258,7 +264,8 @@ mStat_generate_report_long(
   pc.obj = NULL,
   group.var = "subject_gender",
   strata.var = "subject_race",
-  adj.vars = NULL,
+  test.adj.vars = NULL,
+  vis.adj.vars = NULL,
   subject.var = "subject_id",
   time.var = "visit_number_num",
   alpha.name = c("shannon","simpson"),
@@ -278,33 +285,6 @@ mStat_generate_report_long(
   output.file = "path/report.pdf"
 )
 }
-data(subset_T2D.obj)
-mStat_generate_report_long(
-  data.obj = subset_T2D.obj,
-  dist.obj = NULL,
-  alpha.obj = NULL,
-  pc.obj = NULL,
-  group.var = "subject_gender",
-  strata.var = "subject_race",
-  adj.vars = NULL,
-  subject.var = "subject_id",
-  time.var = "visit_number_num",
-  alpha.name = c("shannon","simpson"),
-  dist.name = c("BC",'Jaccard'),
-  t0.level = unique(sort(subset_T2D.obj$meta.dat$visit_number_num))[1],
-  ts.levels = unique(sort(subset_T2D.obj$meta.dat$visit_number_num))[-1],
-  feature.mt.method = "none",
-  feature.sig.level = 0.1,
-  feature.level = c("Phylum"),
-  feature.change.func = "relative change",
-  feature.dat.type = "count",
-  prev.filter = 1e-5,
-  abund.filter = 1e-5,
-  transform = "sqrt",
-  theme.choice = "bw",
-  base.size = 12,
-  output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/报告/mStat_generate_report_long_example.pdf"
-)
 }
 \seealso{
 \code{\link{mStat_calculate_alpha_diversity}},
