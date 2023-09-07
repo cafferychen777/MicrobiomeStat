@@ -191,8 +191,8 @@
 #'   dist.obj = NULL,
 #'   alpha.obj = NULL,
 #'   pc.obj = NULL,
-#'   group.var = "subject_race",
-#'   strata.var = "subject_gender",
+#'   group.var = "subject_gender",
+#'   strata.var = "subject_race",
 #'   test.adj.vars = NULL,
 #'   vis.adj.vars = NULL,
 #'   subject.var = "subject_id",
@@ -560,7 +560,7 @@ for(term in terms) {
 
   # Reporting significance for ANOVA
   p_val_anova <- data_frame[data_frame$Term == group.var,]$P.Value
-  if(!is.na(p_val_anova)) {
+  if(num_levels > 2) {
     if(p_val_anova < 0.05) {
       cat(sprintf('The ANOVA test indicated a significant effect of the variable %s on alpha diversity volatility, with a p-value of %.3f.\n\n', group.var, p_val_anova))
     } else {
@@ -573,7 +573,7 @@ for(term in terms) {
 # Report significance for each diversity index
 for(index_name in names(alpha_volatility_test_results)) {
   cat(sprintf('\n## Results for %s diversity index: \n', index_name))
-  report_volatility_significance(alpha_volatility_test_results[[index_name]], group.var)
+  report_volatility_significance(data_frame = alpha_volatility_test_results[[index_name]], group.var = group.var)
 }
 
 cat('## Alpha Diversity Volatility Test Results \n')
@@ -847,7 +847,7 @@ report_beta_volatility_significance <- function(data_frame, group.var) {
 
   # Reporting significance for ANOVA
   p_val_anova <- data_frame[data_frame$Term == group.var,]$P.Value
-  if(!is.na(p_val_anova)) {
+  if(num_levels > 2) {
     if(p_val_anova < 0.05) {
       cat(sprintf('The ANOVA test indicated a significant effect of the variable %s on beta diversity volatility, with a p-value of %.3f.\n\n', group.var, p_val_anova))
     } else {
@@ -918,7 +918,7 @@ report_pc_volatility_significance <- function(data_frame, group.var) {
 
   # Reporting significance for ANOVA
   p_val_anova <- data_frame[data_frame$Term == group.var,]$P.Value
-  if(!is.na(p_val_anova)) {
+  if(num_levels > 2) {
     if(p_val_anova < 0.05) {
       cat(sprintf('The ANOVA test indicated a significant effect of the variable %s on beta diversity PC volatility, with a p-value of %.3f.\n\n', group.var, p_val_anova))
     } else {
