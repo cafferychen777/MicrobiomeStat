@@ -262,8 +262,8 @@ mStat_generate_report_long(
   dist.obj = NULL,
   alpha.obj = NULL,
   pc.obj = NULL,
-  group.var = "subject_gender",
-  strata.var = "subject_race",
+  group.var = "subject_race",
+  strata.var = "subject_gender",
   test.adj.vars = NULL,
   vis.adj.vars = NULL,
   subject.var = "subject_id",
@@ -274,15 +274,15 @@ mStat_generate_report_long(
   ts.levels = unique(sort(subset_T2D.obj$meta.dat$visit_number_num))[-1],
   feature.mt.method = "none",
   feature.sig.level = 0.1,
-  feature.level = c("Phylum"),
+  feature.level = c("Family"),
   feature.change.func = "relative change",
   feature.dat.type = "count",
-  prev.filter = 1e-5,
-  abund.filter = 1e-5,
+  prev.filter = 0.1,
+  abund.filter = 1e-4,
   transform = "sqrt",
   theme.choice = "bw",
   base.size = 12,
-  output.file = "path/report.pdf"
+  output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/报告/mStat_generate_report_long_example.pdf"
 )
 }
 }

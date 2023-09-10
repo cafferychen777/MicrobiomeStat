@@ -76,7 +76,7 @@
 #' generate_taxa_boxplot_long(
 #'   data.obj = ecam.obj,
 #'   subject.var = "studyid",
-#'   time.var = "month",
+#'   time.var = "month_num",
 #'   t0.level = NULL,
 #'   ts.levels = NULL,
 #'   group.var = "diet",
@@ -391,7 +391,9 @@ generate_taxa_boxplot_long <-
       }
 
       boxplot <-
-        ggplot(sub_otu_tax_agg_merged %>% filter(!!sym(feature.level) %in% features.plot),
+        ggplot(sub_otu_tax_agg_merged  %>%
+                 dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var))) %>%
+                 filter(!!sym(feature.level) %in% features.plot),
                aes_function) +
         geom_violin(trim = FALSE, alpha = 0.8) +
         stat_boxplot(geom = "errorbar",
@@ -409,9 +411,9 @@ generate_taxa_boxplot_long <-
           color = "black",
           linetype = "dashed",
           data = if (!is.null(average_sub_otu_tax_agg_merged))
-            average_sub_otu_tax_agg_merged  %>% filter(!!sym(feature.level) %in% features.plot)
+            average_sub_otu_tax_agg_merged   %>% dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var))) %>% filter(!!sym(feature.level) %in% features.plot)
           else
-            sub_otu_tax_agg_merged %>% filter(!!sym(feature.level) %in% features.plot)
+            sub_otu_tax_agg_merged  %>% dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var))) %>% filter(!!sym(feature.level) %in% features.plot)
         ) +
         scale_fill_manual(values = col) +
         {

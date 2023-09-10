@@ -57,9 +57,10 @@ It takes a data object as input and returns a list of association tests for each
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">generate_alpha_test_single</span><span class="op">(</span></span>
 <span>  <span class="va">data.obj</span>,</span>
 <span>  alpha.obj <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  alpha.name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  depth <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  time.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  t.level <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">alpha.name</span>,</span>
 <span>  <span class="va">group.var</span>,</span>
 <span>  <span class="va">adj.vars</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -75,6 +76,15 @@ It takes a data object as input and returns a list of association tests for each
 <dd><p>An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.</p></dd>
 
 
+<dt>alpha.name</dt>
+<dd><p>character vector containing the names of alpha diversity indices to calculate.
+Possible values are: "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".</p></dd>
+
+
+<dt>depth</dt>
+<dd><p>An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.</p></dd>
+
+
 <dt>time.var</dt>
 <dd><p>Character string specifying the column name in metadata containing time variable.
 Used to subset to a single time point if provided. Default NULL does not subset data.</p></dd>
@@ -83,11 +93,6 @@ Used to subset to a single time point if provided. Default NULL does not subset 
 <dt>t.level</dt>
 <dd><p>Character string specifying the time level/value to subset data to,
 if a time variable is provided. Default NULL does not subset data.</p></dd>
-
-
-<dt>alpha.name</dt>
-<dd><p>character vector containing the names of alpha diversity indices to calculate.
-Possible values are: "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".</p></dd>
 
 
 <dt>group.var</dt>

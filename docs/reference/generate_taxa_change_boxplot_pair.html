@@ -61,7 +61,7 @@ It also allows for a prevalence and abundance filter to be applied to the data, 
 <span>  group.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  change.base <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  change.func <span class="op">=</span> <span class="st">"relative difference"</span>,</span>
+<span>  feature.change.func <span class="op">=</span> <span class="st">"relative change"</span>,</span>
 <span>  feature.level <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  feature.dat.type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"count"</span>, <span class="st">"proportion"</span>, <span class="st">"other"</span><span class="op">)</span>,</span>
 <span>  features.plot <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -107,14 +107,14 @@ It also allows for a prevalence and abundance filter to be applied to the data, 
 <dd><p>The time point value to be used as the baseline for calculating change in abundance between time points. Should be one of the values from `time.var`. The change will be calculated as the difference between this baseline time point and the subsequent time point.</p></dd>
 
 
-<dt>change.func</dt>
+<dt>feature.change.func</dt>
 <dd><p>The function used to calculate change in abundance between time points.
-This can be one of "relative difference", "lfc" (log2 fold change),
+This can be one of "relative change", "lfc" (log2 fold change),
 or a custom function. For custom functions, the function should take two numeric vectors
 as input (abundances at time 1 and time 2) and return a numeric vector of differences.
 The function should handle zero values appropriately. For "lfc", zero values
 are imputed as half the minimum nonzero value before taking the logarithm.
-Default is "relative difference".</p></dd>
+Default is "relative change".</p></dd>
 
 
 <dt>feature.level</dt>
@@ -237,20 +237,20 @@ my_theme &lt;- ggplot2::theme(
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
 <span class="r-in"><span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  change.base <span class="op">=</span> <span class="st">"1"</span>,</span></span>
-<span class="r-in"><span>  change.func <span class="op">=</span> <span class="st">"lfc"</span>,</span></span>
-<span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Family"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  feature.change.func <span class="op">=</span> <span class="st">"lfc"</span>,</span></span>
+<span class="r-in"><span>  feature.level <span class="op">=</span> <span class="st">"original"</span>,</span></span>
 <span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"count"</span>,</span></span>
 <span class="r-in"><span>  features.plot <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  top.k.plot <span class="op">=</span> <span class="fl">6</span>,</span></span>
 <span class="r-in"><span>  top.k.func <span class="op">=</span> <span class="st">"sd"</span>,</span></span>
 <span class="r-in"><span>  prev.filter <span class="op">=</span> <span class="fl">0.01</span>,</span></span>
 <span class="r-in"><span>  abund.filter <span class="op">=</span> <span class="fl">0.01</span>,</span></span>
-<span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">20</span>,</span></span>
+<span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">16</span>,</span></span>
 <span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
 <span class="r-in"><span>  custom.theme <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  palette <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  pdf <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
-<span class="r-in"><span>  file.ann <span class="op">=</span> <span class="st">"test"</span>,</span></span>
+<span class="r-in"><span>  file.ann <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  pdf.wid <span class="op">=</span> <span class="fl">11</span>,</span></span>
 <span class="r-in"><span>  pdf.hei <span class="op">=</span> <span class="fl">8.5</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>

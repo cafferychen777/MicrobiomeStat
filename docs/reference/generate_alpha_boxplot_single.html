@@ -52,6 +52,7 @@
 <span>  <span class="va">data.obj</span>,</span>
 <span>  alpha.obj <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  alpha.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shannon"</span>, <span class="st">"simpson"</span>, <span class="st">"observed_species"</span>, <span class="st">"chao1"</span>, <span class="st">"ace"</span>, <span class="st">"pielou"</span><span class="op">)</span>,</span>
+<span>  depth <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">subject.var</span>,</span>
 <span>  time.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  t.level <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -82,6 +83,10 @@
 
 <dt>alpha.name</dt>
 <dd><p>The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".</p></dd>
+
+
+<dt>depth</dt>
+<dd><p>An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.</p></dd>
 
 
 <dt>subject.var</dt>

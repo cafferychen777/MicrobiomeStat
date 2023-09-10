@@ -416,5 +416,7 @@ generate_taxa_spaghettiplot_long <-
       return(lineplot)
     })
 
+    names(plot_list) <- feature.level
+
     return(plot_list)
   }

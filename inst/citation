@@ -1,0 +1,25 @@
+citHeader("To cite 'MicrobiomeStat' in publications, please use:")
+
+citEntry(entry = "Article",
+         author = "Huijuan Zhou and Kejun He and Jun Chen and Xianyang Zhang",
+         title = "LinDA: linear models for differential abundance analysis of microbiome compositional data",
+         journal = "Genome Biology",
+         volume = "23",
+         number = "1",
+         pages = "95",
+         year = "2022",
+         url = "https://doi.org/10.1186/s13059-022-02655-5",
+         note = "Please cite this reference when using the 'linda' and 'linda.plot' functions.",
+         textVersion = "Zhou, Huijuan et al. (2022). LinDA: linear models for differential abundance analysis of microbiome compositional data. Genome Biology, 23(1), 95. https://doi.org/10.1186/s13059-022-02655-5"
+)
+
+citEntry(entry = "Manual",
+         author = "Caffery (Chen) Yang and Jun Chen",
+         title = "MicrobiomeStat: [Repository Description]", # You can provide a brief description or just the title of the repository here
+         year = "2023",
+         url = "https://github.com/cafferychen777/MicrobiomeStat",
+         note = "GitHub repository for the 'MicrobiomeStat' R package.",
+         textVersion = "Yang, Caffery (Chen) & Chen, Jun. (2023). MicrobiomeStat. GitHub repository. https://github.com/cafferychen777/MicrobiomeStat"
+)
+
+# 如果您有更多的引用，请在此处继续使用citEntry()函数添加。

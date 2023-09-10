@@ -60,6 +60,12 @@ mStat_rarefy_data <- function(data.obj, depth = NULL) {
     data.obj <- update_data_obj_count(data.obj, rarefied_otu_tab)
   }
 
+  non_zero_col_names <- colnames(rarefied_otu_tab)[which(colSums(rarefied_otu_tab) != 0)]
+
+  if (length(non_zero_col_names) > 0){
+    data.obj <- mStat_subset_data(data.obj = data.obj, samIDs = non_zero_col_names)
+  }
+
   # Normalize feature.agg.list if it exists
   if ('feature.agg.list' %in% names(data.obj)) {
     data.obj <- mStat_aggregate_by_taxonomy(data.obj, names(data.obj$feature.agg.list))

@@ -89,7 +89,8 @@ mStat_subset_data <- function (data.obj, samIDs = NULL, condition = NULL) {
   if (!is.null(data.obj$feature.tab) & !is.null(data.obj$feature.ann)) {
     data.obj$feature.ann <- data.obj$feature.ann %>%
       as.data.frame() %>%
-      dplyr::filter(rownames(data.obj$feature.ann) %in% rownames(data.obj$feature.tab))
+      dplyr::filter(rownames(data.obj$feature.ann) %in% rownames(data.obj$feature.tab)) %>%
+      as.matrix()
 
     message("Updated feature annotation to match the subsetted data.")
   }

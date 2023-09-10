@@ -63,12 +63,12 @@ using the “pheatmap” package. It can also save the resulting heatmap as a PD
 <span>  group.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">feature.level</span>,</span>
+<span>  feature.change.func <span class="op">=</span> <span class="st">"relative change"</span>,</span>
 <span>  feature.dat.type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"count"</span>, <span class="st">"proportion"</span>, <span class="st">"other"</span><span class="op">)</span>,</span>
 <span>  features.plot <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  top.k.plot <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  top.k.func <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  change.func <span class="op">=</span> <span class="st">"relative difference"</span>,</span>
-<span>  prev.filter <span class="op">=</span> <span class="fl">1e-08</span>,</span>
+<span>  prev.filter <span class="op">=</span> <span class="fl">0.01</span>,</span>
 <span>  abund.filter <span class="op">=</span> <span class="fl">0.01</span>,</span>
 <span>  base.size <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  palette <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -116,6 +116,20 @@ using the “pheatmap” package. It can also save the resulting heatmap as a PD
 <dd><p>A character string defining the taxonomic level to analyze ('Phylum', 'Family', or 'Genus').</p></dd>
 
 
+<dt>feature.change.func</dt>
+<dd><p>A function or character string specifying how to calculate
+the change from baseline value. This allows flexible options:
+- If a function is provided, it will be applied to each row to calculate change.
+  The function should take 2 arguments: value at timepoint t and value at baseline t0.
+- If a character string is provided, following options are supported:
+  - 'relative change': (value_t - value_t0) / (value_t + value_t0)
+  - 'difference': value_t - value_t0
+  - 'lfc': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
+- Default is 'relative change'.</p>
+<p>If none of the above options are matched, an error will be thrown indicating
+the acceptable options or prompting the user to provide a custom function.</p></dd>
+
+
 <dt>feature.dat.type</dt>
 <dd><p>The type of the feature data, which determines how the data is handled in downstream analyses.
 Should be one of:
@@ -137,20 +151,6 @@ Default is NULL, in which case features will be selected based on `top.k.plot` a
 
 <dt>top.k.func</dt>
 <dd><p>A function to compute the top k taxa if features.plot is NULL. If NULL (default), the mean function will be used.</p></dd>
-
-
-<dt>change.func</dt>
-<dd><p>A function or character string specifying how to calculate
-the change from baseline value. This allows flexible options:
-- If a function is provided, it will be applied to each row to calculate change.
-  The function should take 2 arguments: value at timepoint t and value at baseline t0.
-- If a character string is provided, following options are supported:
-  - 'relative difference': (value_t - value_t0) / (value_t + value_t0)
-  - 'difference': value_t - value_t0
-  - 'lfc': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
-- Default is 'relative difference'.</p>
-<p>If none of the above options are matched, an error will be thrown indicating
-the acceptable options or prompting the user to provide a custom function.</p></dd>
 
 
 <dt>prev.filter</dt>
@@ -245,11 +245,11 @@ Default 0 removes no taxa by abundance filtering.</p></dd>
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"antiexposedall"</span>,</span></span>
 <span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"diet"</span>,</span></span>
 <span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Family"</span>,<span class="st">"Class"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  feature.change.func <span class="op">=</span> <span class="st">"lfc"</span>,</span></span>
 <span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"proportion"</span>,</span></span>
 <span class="r-in"><span>  features.plot <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  top.k.plot <span class="op">=</span> <span class="fl">10</span>,</span></span>
 <span class="r-in"><span>  top.k.func <span class="op">=</span> <span class="st">"sd"</span>,</span></span>
-<span class="r-in"><span>  change.func <span class="op">=</span> <span class="st">"lfc"</span>,</span></span>
 <span class="r-in"><span>  palette <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  prev.filter <span class="op">=</span> <span class="fl">0.01</span>,</span></span>
 <span class="r-in"><span>  abund.filter <span class="op">=</span> <span class="fl">0.01</span>,</span></span>
@@ -261,18 +261,18 @@ Default 0 removes no taxa by abundance filtering.</p></dd>
 <span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">subset_T2D.obj</span>,</span></span>
 <span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"subject_id"</span>,</span></span>
 <span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"visit_number_num"</span>,</span></span>
-<span class="r-in"><span>  t0.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">subset_T2D.obj</span><span class="op">$</span><span class="va">meta.dat</span><span class="op">$</span><span class="va">visit_number_num</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span></span>
-<span class="r-in"><span>  ts.levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">subset_T2D.obj</span><span class="op">$</span><span class="va">meta.dat</span><span class="op">$</span><span class="va">visit_number_num</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>,</span></span>
-<span class="r-in"><span>  group.var <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  t0.level <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  ts.levels <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"subject_gender"</span>,</span></span>
+<span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"subject_race"</span>,</span></span>
 <span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Phylum"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  feature.change.func <span class="op">=</span> <span class="st">"lfc"</span>,</span></span>
 <span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"count"</span>,</span></span>
 <span class="r-in"><span>  features.plot <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  top.k.plot <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  top.k.func <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  change.func <span class="op">=</span> <span class="st">"relative difference"</span>,</span></span>
-<span class="r-in"><span>  prev.filter <span class="op">=</span> <span class="fl">0.0001</span>,</span></span>
-<span class="r-in"><span>  abund.filter <span class="op">=</span> <span class="fl">0.0001</span>,</span></span>
+<span class="r-in"><span>  top.k.plot <span class="op">=</span> <span class="fl">10</span>,</span></span>
+<span class="r-in"><span>  top.k.func <span class="op">=</span> <span class="st">"sd"</span>,</span></span>
+<span class="r-in"><span>  prev.filter <span class="op">=</span> <span class="fl">0.01</span>,</span></span>
+<span class="r-in"><span>  abund.filter <span class="op">=</span> <span class="fl">0.01</span>,</span></span>
 <span class="r-in"><span>  pdf <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>  file.ann <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  pdf.wid <span class="op">=</span> <span class="fl">11</span>,</span></span>

@@ -104,8 +104,8 @@
 #'   feature.change.func = "lfc",
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
-#'   top.k.plot = 10,
-#'   top.k.func = "sd",
+#'   top.k.plot = 50,
+#'   top.k.func = "mean",
 #'   prev.filter = 0.01,
 #'   abund.filter = 0.01,
 #'   pdf = TRUE,
@@ -509,26 +509,6 @@ generate_taxa_change_heatmap_long <- function(data.obj,
         breaks = break_points,
         ...
       )
-    # } else {
-    #   # 创建颜色映射函数
-    #   my_palette <- colorRampPalette(palette)
-    #
-    #   # Plot stacked heatmap
-    #   heatmap_plot <- pheatmap::pheatmap(
-    #     wide_data_sorted,
-    #     annotation_col = annotation_col_sorted,
-    #     cluster_rows = cluster.rows,
-    #     cluster_cols = cluster.cols,
-    #     show_colnames = FALSE,
-    #     gaps_col = gaps,
-    #     fontsize = base.size,
-    #     silent = TRUE,
-    #     color = my_palette(n_colors)
-    #   )
-    # }
-
-    # 计算颜色的数量
-    # 这通常取决于你的数据，你可能需要根据你的实际情况进行调整
 
     gg_heatmap_plot <- as.ggplot(heatmap_plot)
 

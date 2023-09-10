@@ -69,17 +69,42 @@
 <img src="logo.png" class="logo" alt=""><h1 id="microbiomestat-comprehensive--longitudinal-microbiome-analysis-in-r">MicrobiomeStat: Comprehensive &amp; Longitudinal Microbiome Analysis in R<a class="anchor" aria-label="anchor" href="#microbiomestat-comprehensive--longitudinal-microbiome-analysis-in-r"></a>
 </h1>
 </div>
+<p align="center" style="margin:0; padding:0;">
+<img src="reference/figures/logo.png" alt="MicrobiomeStat Logo" width="400" style="margin:0; padding:0;"></p>
 <!-- badges: start -->
 
 <p>The <code>MicrobiomeStat</code> package is a state-of-the-art R tool with a <strong>special focus on the analysis of longitudinal microbiome data</strong>. While capable of handling multi-omics data and cross-sectional studies, its <strong>core strength lies in its proficiency in longitudinal analysis</strong>. This makes it an invaluable resource for researchers conducting extensive biological studies over time.</p>
+</div>
+<div class="section level1">
+<h1 id="citations">Citations<a class="anchor" aria-label="anchor" href="#citations"></a>
+</h1>
+<div class="section level2">
+<h2 id="general-citation-for-microbiomestat">General Citation for MicrobiomeStat<a class="anchor" aria-label="anchor" href="#general-citation-for-microbiomestat"></a>
+</h2>
+<p>If you are using features beyond the <code>linda</code> and <code>linda.plot</code> functions, please cite as follows, until a preprint version is published:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="sc">@</span>Manual{,</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>  title <span class="ot">=</span> {MicrobiomeStat<span class="sc">:</span> Comprehensive Statistical and Visualization Methods <span class="cf">for</span> Microbiome and Multi<span class="sc">-</span>Omics Data},</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>  author <span class="ot">=</span> {Xianyang Zhang and Jun Chen and <span class="fu">Caffery</span>(Chen) Yang},</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>  year <span class="ot">=</span> {<span class="dv">2023</span>},</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>  note <span class="ot">=</span> {R package version <span class="dv">1</span>.<span class="fl">1.1</span>},</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>  url <span class="ot">=</span> {www.microbiomestat.wiki},</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>}</span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="special-citation-for-linda-and-lindaplot-functions">Special Citation for <code>linda</code> and <code>linda.plot</code> Functions<a class="anchor" aria-label="anchor" href="#special-citation-for-linda-and-lindaplot-functions"></a>
+</h2>
+<p>If you are using <code>linda</code> or <code>linda.plot</code> functions, please cite the following paper:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>Zhou, H., He, K., Chen, J. et al. LinDA<span class="sc">:</span> linear models <span class="cf">for</span> differential abundance analysis of microbiome compositional data. Genome Biol <span class="dv">23</span>, <span class="dv">95</span> (<span class="dv">2022</span>). https<span class="sc">:</span><span class="er">//</span>doi.org<span class="sc">/</span><span class="fl">10.1186</span><span class="sc">/</span>s13059<span class="dv">-022-02655-5</span></span></code></pre></div>
+<p>We will update the citation guidelines as soon as the preprint is published.</p>
+</div>
 <div class="section level2">
 <h2 id="important-note-on-cran-version">Important Note on CRAN Version<a class="anchor" aria-label="anchor" href="#important-note-on-cran-version"></a>
 </h2>
 <p>Due to the <strong>ongoing development cycle</strong>, the <strong>most up-to-date features</strong> of <code>MicrobiomeStat</code> have <strong>not yet been uploaded to the CRAN repository</strong>. The current CRAN version <strong>only supports the <code>linda</code> and <code>linda.plot</code> functions</strong>. If you <strong>require additional functionalities</strong>, particularly for <strong>analyzing longitudinal data</strong>, we recommend <strong>installing the development version from GitHub</strong>. To do this, you’ll first need to <strong>install the <code>devtools</code> package</strong> if you haven’t already:</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span></span></code></pre></div>
 <p>Once <code>devtools</code> is installed, you can install <code>MicrobiomeStat</code> from GitHub using the following command:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"cafferychen777/MicrobiomeStat"</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
@@ -92,6 +117,7 @@
 <li><a href="#features-at-a-glance">Key Features</a></li>
 <li><a href="#support-contact">Assistance &amp; Contact Information</a></li>
 <li><a href="#discord-community">Join Our Discord Community</a></li>
+<li><a href="#share-and-connect">Share and Connect</a></li>
 </ol>
 </div>
 <div class="section level1">
@@ -100,13 +126,14 @@
 <p><code>MicrobiomeStat</code> represents a comprehensive toolset for microbiome data analysis, boasting extensive capabilities from data input to visualization.</p>
 <p>For an in-depth understanding of <code>MicrobiomeStat</code>, we have curated a comprehensive online tutorial using GitBook, encompassing:</p>
 <ul>
-<li>Comprehensive installation and configuration guidance</li>
-<li>Analysis walkthroughs driven by real-world cases</li>
-<li>Hands-on code examples</li>
-<li>Detailed guides on result interpretation and visualization</li>
-<li>Frequently Asked Questions</li>
+<li><p>Comprehensive <strong>installation and configuration</strong> guidance</p></li>
+<li><p><strong>Analysis walkthroughs</strong> driven by real-world cases</p></li>
+<li><p>Hands-on code examples</p></li>
+<li><p>Detailed guides on result <strong>interpretation and visualization</strong></p></li>
+<li><p>Frequently Asked Questions</p></li>
 </ul>
-<p>For a seamless experience with <code>MicrobiomeStat</code>, we recommend acquainting yourself with these online tutorials: <strong>MicrobiomeStat Tutorials:</strong> <a href="https://www.microbiomestat.wiki" class="external-link uri">https://www.microbiomestat.wiki</a></p>
+<p>For a seamless experience with <code>MicrobiomeStat</code>, we recommend acquainting yourself with these online tutorials:</p>
+<p><strong>MicrobiomeStat Tutorials:</strong> <a href="https://www.microbiomestat.wiki" class="external-link uri">https://www.microbiomestat.wiki</a></p>
 <div class="section level2">
 <h2 id="benefits-of-using-microbiomestat">Benefits of Using MicrobiomeStat<a class="anchor" aria-label="anchor" href="#benefits-of-using-microbiomestat"></a>
 </h2>
@@ -123,22 +150,22 @@
 <div class="section level3">
 <h3 id="user-support">User Support<a class="anchor" aria-label="anchor" href="#user-support"></a>
 </h3>
-<p><code>MicrobiomeStat</code> is designed with users in mind. Comprehensive documentation and tutorials are available to assist both novice and experienced researchers.</p>
+<p><code>MicrobiomeStat</code> is designed with users in mind. Comprehensive <strong>documentation and tutorials</strong> are available to assist both novice and experienced researchers.</p>
 </div>
 <div class="section level3">
 <h3 id="ongoing-development">Ongoing Development<a class="anchor" aria-label="anchor" href="#ongoing-development"></a>
 </h3>
-<p>Ensuring that <code>MicrobiomeStat</code> remains a leading tool in its category requires ongoing development. We’re dedicated to regular updates and addressing user feedback.</p>
+<p>Ensuring that <code>MicrobiomeStat</code> remains a leading tool in its category requires <strong>ongoing development</strong>. We’re dedicated to regular updates and addressing user feedback.</p>
 </div>
 <div class="section level3">
 <h3 id="collaborative-development">Collaborative Development<a class="anchor" aria-label="anchor" href="#collaborative-development"></a>
 </h3>
-<p><code>MicrobiomeStat</code> is an open-source tool, and we value contributions from the community. If you have suggestions or improvements, pull requests are welcomed.</p>
+<p><code>MicrobiomeStat</code> is an open-source tool, and we value contributions from the community. If you have suggestions or improvements, <strong>pull requests are welcomed</strong>.</p>
 </div>
 <div class="section level3">
 <h3 id="conclusion">Conclusion<a class="anchor" aria-label="anchor" href="#conclusion"></a>
 </h3>
-<p><code>MicrobiomeStat</code> aims to be a reliable and efficient tool for microbiome data analysis. For those who value open-source collaboration, we invite you to be part of our community and contribute to its continuous improvement.</p>
+<p><code>MicrobiomeStat</code> aims to be a reliable and efficient tool for microbiome data analysis. For those who value <strong>open-source collaboration</strong>, we invite you to be part of our community and contribute to its continuous improvement.</p>
 </div>
 </div>
 <div class="section level2">
@@ -164,15 +191,17 @@
 </tr>
 <tr class="odd">
 <td>Paired Sample Analysis</td>
-<td>Excellent tool for analyzing paired samples</td>
+<td>Excellent tool for analyzing <strong>paired samples</strong>
+</td>
 </tr>
 <tr class="even">
 <td>Longitudinal Study Analysis</td>
-<td>Allows for exploring the temporal dynamics of the microbiome</td>
+<td>Allows for exploring the <strong>temporal dynamics</strong> of the microbiome</td>
 </tr>
 <tr class="odd">
 <td>Visualization Capabilities</td>
-<td>Offers a wide variety of visualization styles</td>
+<td>Offers a wide variety of <strong>visualization styles</strong>
+</td>
 </tr>
 <tr class="even">
 <td>Data Export</td>
@@ -180,7 +209,7 @@
 </tr>
 <tr class="odd">
 <td>Ongoing Development</td>
-<td>Continual feature refinement and new functionality addition</td>
+<td>Continual <strong>feature refinement</strong> and <strong>new functionality</strong> addition</td>
 </tr>
 </tbody>
 </table>
@@ -190,17 +219,21 @@
 </h2>
 <p>For assistance or inquiries, feel free to reach out to:</p>
 <table class="table">
+<colgroup>
+<col width="72%">
+<col width="27%">
+</colgroup>
 <thead><tr class="header">
 <th>Name</th>
 <th>Email</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td>Dr. Jun Chen</td>
+<td><a href="https://scholar.google.com/citations?user=gonDvdwAAAAJ&amp;hl=en" class="external-link">Dr. Jun Chen</a></td>
 <td><a href="mailto:Chen.Jun2@mayo.edu" class="email">Chen.Jun2@mayo.edu</a></td>
 </tr>
 <tr class="even">
-<td>Chen Yang</td>
+<td><a href="https://cafferyyang.owlstown.net/" class="external-link">Chen Yang</a></td>
 <td><a href="mailto:cafferychen7850@gmail.com" class="email">cafferychen7850@gmail.com</a></td>
 </tr>
 </tbody>
@@ -211,7 +244,16 @@
 </h2>
 <p>Join our Discord community to stay abreast of the latest developments in <code>MicrobiomeStat</code>, engage in discussions, and avail support:</p>
 <p><a href="https://discord.gg/BfNvTJAt" class="external-link">Join the MicrobiomeStat Discord Server!</a></p>
-<p>Our active community fosters an environment of collaboration, feedback, and continuous learning.</p>
+<p>Our active community fosters an environment of <strong>collaboration, feedback, and continuous learning</strong>.</p>
+</div>
+<div class="section level2">
+<h2 id="share-and-connect">Share and Connect<a class="anchor" aria-label="anchor" href="#share-and-connect"></a>
+</h2>
+<p>Spread the word about <code>MicrobiomeStat</code> and stay connected through various platforms!</p>
+<p><a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fgithub.com%2Fcafferychen777%2FMicrobiomeStat&amp;text=Check%20out%20this%20awesome%20package%20for%20comprehensive%20and%20longitudinal%20microbiome%20analysis%20in%20R!" class="external-link"><img src="https://img.shields.io/twitter/url?url=https%3A%2F%2Fgithub.com%2Fcafferychen777%2FMicrobiomeStat&amp;style=social" alt="Twitter"></a></p>
+<p><a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fgithub.com%2Fcafferychen777%2FMicrobiomeStat&amp;quote=Check%20out%20this%20awesome%20package%20for%20comprehensive%20and%20longitudinal%20microbiome%20analysis%20in%20R!" class="external-link"><img src="https://img.shields.io/badge/Share_on-Facebook-1877F2?logo=facebook&amp;style=social" alt="Facebook"></a></p>
+<p><a href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3A%2F%2Fgithub.com%2Fcafferychen777%2FMicrobiomeStat&amp;title=Check%20out%20this%20awesome%20package%20for%20comprehensive%20and%20longitudinal%20microbiome%20analysis%20in%20R!" class="external-link"><img src="https://img.shields.io/badge/Share_on-LinkedIn-0077B5?logo=linkedin&amp;style=social" alt="LinkedIn"></a></p>
+<p><a href="https://www.reddit.com/submit?url=https%3A%2F%2Fgithub.com%2Fcafferychen777%2FMicrobiomeStat&amp;title=Check%20out%20this%20awesome%20package%20for%20comprehensive%20and%20longitudinal%20microbiome%20analysis%20in%20R!" class="external-link"><img src="https://img.shields.io/badge/Share_on-Reddit-FF4500?logo=reddit&amp;style=social" alt="Reddit"></a></p>
 </div>
 </div>
 

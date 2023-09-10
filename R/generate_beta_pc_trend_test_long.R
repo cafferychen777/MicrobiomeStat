@@ -69,8 +69,8 @@
 #' @examples
 #' \dontrun{
 #' library(vegan)
-#'   data(ecam.obj)
-#'   generate_beta_pc_trend_test_long(
+#' data("ecam.obj")
+#' generate_beta_pc_trend_test_long(
 #'   data.obj = ecam.obj,
 #'   dist.obj = NULL,
 #'   pc.obj = NULL,
@@ -79,6 +79,19 @@
 #'   time.var = "month",
 #'   group.var = "diet",
 #'   adj.vars = "delivery",
+#'   dist.name = c('BC')
+#' )
+#'
+#' data("subset_T2D.obj")
+#' generate_beta_pc_trend_test_long(
+#'   data.obj = subset_T2D.obj,
+#'   dist.obj = NULL,
+#'   pc.obj = NULL,
+#'   pc.ind = c(1, 2),
+#'   subject.var = "subject_id",
+#'   time.var = "visit_number_num",
+#'   group.var = "subject_race",
+#'   adj.vars = "subject_gender",
 #'   dist.name = c('BC')
 #' )
 #' }
@@ -172,7 +185,32 @@ generate_beta_pc_trend_test_long <- function(data.obj = NULL,
 
       model <- lmer(formula, data = sub_df, ...)
 
-      coef.tab <- extract_coef(model)
+      # Check if group.var is multi-category
+      if (length(unique(sub_df[[group.var]])) > 2) {
+        anova_result <- anova(model, type = "III")
+
+        # Adjust the way of appending the p-value based on your desired output.
+        coef.tab <- extract_coef(model)
+        # Append the last row of the anova_result to the coef.tab
+        last_row <- utils::tail(anova_result, 1)
+        # 获取last_row的列名
+        var_name <- rownames(last_row)[1]
+
+        # 调整last_row以匹配coef.tab的格式
+        adjusted_last_row <- data.frame(
+          Term = var_name,
+          Estimate = NA,
+          Std.Error = NA,
+          Statistic = last_row$`F value`,
+          P.Value = last_row$`Pr(>F)`
+        )
+
+        # 合并coef.tab和adjusted_last_row
+        coef.tab <- rbind(coef.tab, adjusted_last_row)
+
+      } else {
+        coef.tab <- extract_coef(model)
+      }
 
       return(as_tibble(coef.tab))
     })

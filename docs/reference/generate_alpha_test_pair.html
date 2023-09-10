@@ -60,8 +60,9 @@ input and returns a list of tests, one for each alpha diversity index.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">generate_alpha_test_pair</span><span class="op">(</span></span>
 <span>  <span class="va">data.obj</span>,</span>
 <span>  alpha.obj <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  alpha.name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  depth <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">time.var</span>,</span>
-<span>  <span class="va">alpha.name</span>,</span>
 <span>  <span class="va">subject.var</span>,</span>
 <span>  <span class="va">group.var</span>,</span>
 <span>  <span class="va">adj.vars</span></span>
@@ -78,15 +79,19 @@ input and returns a list of tests, one for each alpha diversity index.</p>
 <dd><p>An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.</p></dd>
 
 
-<dt>time.var</dt>
-<dd><p>A string representing the time variable's name in the
-metadata. The default is NULL.</p></dd>
-
-
 <dt>alpha.name</dt>
 <dd><p>A character vector with the names of alpha diversity
 indices to compute. Options include: "shannon", "simpson",
 "observed_species", "chao1", "ace", and "pielou".</p></dd>
+
+
+<dt>depth</dt>
+<dd><p>An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.</p></dd>
+
+
+<dt>time.var</dt>
+<dd><p>A string representing the time variable's name in the
+metadata. The default is NULL.</p></dd>
 
 
 <dt>subject.var</dt>
@@ -122,7 +127,7 @@ p-value for each fixed effect in the model.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">peerj32.obj</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">alpha_test_results</span> <span class="op">&lt;-</span> <span class="fu">generate_alpha_test_pair</span><span class="op">(</span></span></span>
 <span class="r-in"><span>data.obj <span class="op">=</span> <span class="va">peerj32.obj</span>,</span></span>
@@ -133,7 +138,16 @@ p-value for each fixed effect in the model.</p>
 <span class="r-in"><span>group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
 <span class="r-in"><span>adj.vars <span class="op">=</span> <span class="st">"sex"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using table 'feature.tab' in 'data.obj'.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Diversity analysis needs rarefaction! Call 'mStat_rarefy_data' to rarefy the data!</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using table 'feature.tab' in 'data.obj'.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> No depth specified, using the smallest column sum:  21230</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using table 'feature.tab' in 'data.obj'.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Calculating shannon diversity...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Calculating simpson diversity...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Diversity calculations complete.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using table 'meta.dat' in 'data.obj'.</span>
+<span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

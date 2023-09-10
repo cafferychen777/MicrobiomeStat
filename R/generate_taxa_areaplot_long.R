@@ -65,14 +65,14 @@
 #' generate_taxa_areaplot_long(
 #'   data.obj = ecam.obj,
 #'   subject.var = "studyid",
-#'   time.var = "month",
+#'   time.var = "month_num",
 #'   group.var = "diet",
 #'   strata.var = "antiexposedall",
 #'   feature.level = c("Family","Genus","Order"),
 #'   feature.dat.type = "proportion",
 #'   feature.number = 20,
-#'   t0.level = unique(ecam.obj$meta.dat$month)[1],
-#'   ts.levels = unique(ecam.obj$meta.dat$month)[-1],
+#'   t0.level = NULL,
+#'   ts.levels = NULL,
 #'   base.size = 10,
 #'   theme.choice = "bw",
 #'   palette = NULL,
@@ -220,7 +220,8 @@ generate_taxa_areaplot_long <-
 
       # 将 otu_tab_long 和 meta_tab_sorted 合并
       merged_long_df <- otu_tab_long %>%
-        dplyr::inner_join(meta_tab_sorted  %>% rownames_to_column("sample"), by = "sample")
+        dplyr::inner_join(meta_tab_sorted  %>%
+                            rownames_to_column("sample"), by = "sample")
 
       sorted_merged_long_df <- merged_long_df %>%
         dplyr::arrange(!!sym(subject.var), !!sym(time.var))
@@ -229,7 +230,8 @@ generate_taxa_areaplot_long <-
         dplyr::group_by(!!sym(subject.var)) %>%
         dplyr::summarize(last_sample_id = dplyr::last(sample))
 
-      sorted_merged_long_df <- sorted_merged_long_df %>% dplyr::mutate(!!sym(feature.level) := as.factor(!!sym(feature.level)))
+      sorted_merged_long_df <- sorted_merged_long_df %>%
+        dplyr::mutate(!!sym(feature.level) := as.factor(!!sym(feature.level)))
 
       original_levels <- levels(sorted_merged_long_df[[feature.level]])
 
@@ -260,7 +262,13 @@ generate_taxa_areaplot_long <-
       bar_spacing <- bar_width / 2
 
       # 以下为average barplot的绘制
-      last_time_ids <- dplyr::last(levels(meta_tab[,time.var]))
+      if (is.factor(meta_tab[, time.var])) {
+        last_time_ids <- dplyr::last(levels(meta_tab[, time.var]))
+      } else if (is.numeric(meta_tab[, time.var])) {
+        last_time_ids <- max(meta_tab[, time.var], na.rm = TRUE)
+      } else {
+        stop("The variable is neither factor nor numeric.")
+      }
 
       if (!is.null(strata.var)){
         if (!is.null(group.var)){

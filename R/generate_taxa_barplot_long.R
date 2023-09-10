@@ -68,7 +68,7 @@
 #' generate_taxa_barplot_long(
 #'   data.obj = ecam.obj,
 #'   subject.var = "studyid",
-#'   time.var = "month",
+#'   time.var = "month_num",
 #'   group.var = "delivery",
 #'   strata.var = "diet",
 #'   feature.level = "Family",
@@ -261,7 +261,13 @@ generate_taxa_barplot_long <-
       bar_spacing <- bar_width / 2
 
       # 以下为average barplot的绘制
-      last_time_ids <- dplyr::last(levels(meta_tab[,time.var]))
+      if (is.factor(meta_tab[, time.var])) {
+        last_time_ids <- dplyr::last(levels(meta_tab[, time.var]))
+      } else if (is.numeric(meta_tab[, time.var])) {
+        last_time_ids <- max(meta_tab[, time.var], na.rm = TRUE)
+      } else {
+        stop("The variable is neither factor nor numeric.")
+      }
 
       if (!is.null(strata.var)){
         if (!is.null(group.var)){

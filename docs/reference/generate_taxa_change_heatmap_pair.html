@@ -61,7 +61,7 @@ The plot can either be displayed interactively or saved as a PDF file.</p>
 <span>  group.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  change.base <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  change.func <span class="op">=</span> <span class="st">"relative difference"</span>,</span>
+<span>  feature.change.func <span class="op">=</span> <span class="st">"relative change"</span>,</span>
 <span>  feature.level <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  feature.dat.type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"count"</span>, <span class="st">"proportion"</span>, <span class="st">"other"</span><span class="op">)</span>,</span>
 <span>  features.plot <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -107,11 +107,11 @@ The plot can either be displayed interactively or saved as a PDF file.</p>
 <dd><p>A numeric value specifying the baseline time point for computing change. This should match one of the time points in the time variable. Default is 1, which assumes the first time point is the baseline.</p></dd>
 
 
-<dt>change.func</dt>
+<dt>feature.change.func</dt>
 <dd><p>A function or character string specifying the method for computing change between time points. Options are:
 - "difference": Compute simple difference of abundances between time points.
 - "lfc": Compute log2 fold change between time points.
-- "relative difference": Compute relative difference of abundances between time points.
+- "relative change": Compute relative change of abundances between time points.
 - "custom function": Apply a custom function to compute change. The custom function should take two arguments value_time_2 and value_time_1.
 Default is "difference".</p></dd>
 
@@ -221,12 +221,12 @@ Default 0 removes no taxa by abundance filtering.</p></dd>
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
 <span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
 <span class="r-in"><span>  change.base <span class="op">=</span> <span class="st">"1"</span>,</span></span>
-<span class="r-in"><span>  change.func <span class="op">=</span> <span class="st">"relative difference"</span>,</span></span>
+<span class="r-in"><span>  feature.change.func <span class="op">=</span> <span class="st">"relative change"</span>,</span></span>
 <span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Family"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"count"</span>,</span></span>
 <span class="r-in"><span>  features.plot <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  top.k.plot <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  top.k.func <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  top.k.plot <span class="op">=</span> <span class="fl">10</span>,</span></span>
+<span class="r-in"><span>  top.k.func <span class="op">=</span> <span class="st">"sd"</span>,</span></span>
 <span class="r-in"><span>  prev.filter <span class="op">=</span> <span class="fl">0.01</span>,</span></span>
 <span class="r-in"><span>  abund.filter <span class="op">=</span> <span class="fl">0.01</span>,</span></span>
 <span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">10</span>,</span></span>

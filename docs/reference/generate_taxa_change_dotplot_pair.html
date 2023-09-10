@@ -61,7 +61,7 @@ interactively or saved as a PDF file.</p>
 <span>  group.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  change.base <span class="op">=</span> <span class="st">"1"</span>,</span>
-<span>  change.func <span class="op">=</span> <span class="st">"lfc"</span>,</span>
+<span>  feature.change.func <span class="op">=</span> <span class="st">"lfc"</span>,</span>
 <span>  feature.level <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  feature.dat.type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"count"</span>, <span class="st">"proportion"</span>, <span class="st">"other"</span><span class="op">)</span>,</span>
 <span>  features.plot <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -107,7 +107,7 @@ interactively or saved as a PDF file.</p>
 <dd><p>A numeric value setting base for the change (usually 1)</p></dd>
 
 
-<dt>change.func</dt>
+<dt>feature.change.func</dt>
 <dd><p>A function or character string specifying the method for computing the change. Default is "difference".</p></dd>
 
 
@@ -232,14 +232,14 @@ my_theme &lt;- ggplot2::theme(
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
 <span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
 <span class="r-in"><span>  change.base <span class="op">=</span> <span class="st">"1"</span>,</span></span>
-<span class="r-in"><span>  change.func <span class="op">=</span> <span class="st">"lfc"</span>,</span></span>
+<span class="r-in"><span>  feature.change.func <span class="op">=</span> <span class="st">"lfc"</span>,</span></span>
 <span class="r-in"><span>  feature.level <span class="op">=</span> <span class="st">"Family"</span>,</span></span>
 <span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"count"</span>,</span></span>
 <span class="r-in"><span>  features.plot <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  top.k.plot <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  top.k.func <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  prev.filter <span class="op">=</span> <span class="fl">0.001</span>,</span></span>
-<span class="r-in"><span>  abund.filter <span class="op">=</span> <span class="fl">0.01</span>,</span></span>
+<span class="r-in"><span>  prev.filter <span class="op">=</span> <span class="fl">0.01</span>,</span></span>
+<span class="r-in"><span>  abund.filter <span class="op">=</span> <span class="fl">0.0001</span>,</span></span>
 <span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">16</span>,</span></span>
 <span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
 <span class="r-in"><span>  custom.theme <span class="op">=</span> <span class="cn">NULL</span>,</span></span>

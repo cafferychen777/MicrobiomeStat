@@ -161,7 +161,7 @@ generate_taxa_volatility_test_long <- function(data.obj,
 
     sub_test.list <-
       lapply(otu_tax_agg_clr_long %>% select(all_of(feature.level)) %>% pull() %>% unique(), function(taxon) {
-        print(taxon)
+
         taxa_df <- otu_tax_agg_clr_long %>%
           dplyr::filter(!!sym(feature.level) == taxon) %>%
           dplyr::left_join(meta_tab, by = "sample")

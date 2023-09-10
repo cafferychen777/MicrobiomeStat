@@ -40,6 +40,7 @@ reference:
       - generate_beta_pc_change_boxplot_pair
       - generate_beta_change_test_pair
       - generate_beta_pc_boxplot_long
+      - generate_beta_pc_spaghettiplot_long
       - generate_beta_pc_trend_test_long
       - generate_beta_pc_volatility_test_long
       - generate_beta_test_pair
@@ -49,7 +50,7 @@ reference:
       - mStat_calculate_adjusted_distance
       - mStat_calculate_PC
 
-  - title: "Taxa Analysis"
+  - title: "Feature-level Analysis"
     contents:
       - generate_taxa_barplot_pair
       - generate_taxa_barplot_single
@@ -76,11 +77,14 @@ reference:
       - generate_taxa_spaghettiplot_long
       - generate_taxa_test_pair
       - generate_taxa_test_single
+      - generate_taxa_association_test_long
+      - generate_taxa_association_volcano_long
       - generate_taxa_trend_test_long
       - generate_taxa_trend_volcano_long
       - generate_taxa_volatility_test_long
       - generate_taxa_volatility_volcano_long
       - mStat_aggregate_by_taxonomy
+      - mStat_aggregate_by_taxonomy2
 
   - title: "Data Management"
     contents:
@@ -99,6 +103,7 @@ reference:
       - mStat_import_qiime2_as_data_obj
       - mStat_normalize_data
       - mStat_rarefy_data
+      - mStat_filter
       - mStat_remove_feature
       - mStat_subset_data
       - mStat_update_meta_data

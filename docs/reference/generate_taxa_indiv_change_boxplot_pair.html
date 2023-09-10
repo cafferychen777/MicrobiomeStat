@@ -58,7 +58,7 @@ It also provides options for grouping and stratifying data, and selecting the to
 <span>  group.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  change.base <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  change.func <span class="op">=</span> <span class="st">"relative difference"</span>,</span>
+<span>  feature.change.func <span class="op">=</span> <span class="st">"relative change"</span>,</span>
 <span>  feature.level <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  features.plot <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  feature.dat.type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"count"</span>, <span class="st">"proportion"</span>, <span class="st">"other"</span><span class="op">)</span>,</span>
@@ -104,10 +104,10 @@ It also provides options for grouping and stratifying data, and selecting the to
 <dd><p>A string indicating the base time point for change computation. This should match one of the time points present in the metadata for the 'time.var' variable.</p></dd>
 
 
-<dt>change.func</dt>
+<dt>feature.change.func</dt>
 <dd><p>A string or function to compute the change in abundance between two time points. If a string, options are:
 - 'difference': Computes absolute difference in abundance
-- 'relative difference': Computes relative difference in abundance, calculated as (abundance_time2 - abundance_time1) / (abundance_time2 + abundance_time1)
+- 'relative change': Computes relative change in abundance, calculated as (abundance_time2 - abundance_time1) / (abundance_time2 + abundance_time1)
 - 'lfc': Computes log2 fold change. Zero abundances are imputed before log transform.
 If a function, it should take two numeric vectors of abundances at time 1 and time 2 and return a numeric vector of computed changes.</p></dd>
 
@@ -237,9 +237,9 @@ The function also has options to customize the size, theme, and color palette of
 <span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"subject"</span>,</span></span>
 <span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"time"</span>,</span></span>
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
-<span class="r-in"><span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
 <span class="r-in"><span>  change.base <span class="op">=</span> <span class="st">"1"</span>,</span></span>
-<span class="r-in"><span>  change.func <span class="op">=</span> <span class="st">"lfc"</span>,</span></span>
+<span class="r-in"><span>  feature.change.func <span class="op">=</span> <span class="st">"lfc"</span>,</span></span>
 <span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Family"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  features.plot <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"count"</span>,</span></span>

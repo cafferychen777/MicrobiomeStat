@@ -66,10 +66,10 @@
 #' generate_taxa_indiv_boxplot_long(
 #'   data.obj = ecam.obj,
 #'   subject.var = "studyid",
-#'   time.var = "month",
+#'   time.var = "month_num",
 #'   t0.level = NULL,
 #'   ts.levels = NULL,
-#'   group.var = NULL,
+#'   group.var = "diet",
 #'   strata.var = NULL,
 #'   feature.level = c("Phylum"),
 #'   feature.dat.type = "proportion",
@@ -361,7 +361,8 @@ generate_taxa_indiv_boxplot_long <-
         }
 
         boxplot <-
-          ggplot(sub_otu_tax_agg_merged,
+          ggplot(sub_otu_tax_agg_merged  %>%
+                   dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var))),
                  aes_function) +
           geom_violin(trim = FALSE, alpha = 0.8) +
           stat_boxplot(
@@ -380,7 +381,9 @@ generate_taxa_indiv_boxplot_long <-
             linewidth = 0.6,
             color = "black",
             linetype = "dashed", # 更改线条类型为虚线
-            data = if (!is.null(average_sub_otu_tax_agg_merged)) average_sub_otu_tax_agg_merged else sub_otu_tax_agg_merged
+            data = if (!is.null(average_sub_otu_tax_agg_merged)) average_sub_otu_tax_agg_merged %>%
+              dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var))) else sub_otu_tax_agg_merged %>%
+              dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var)))
           ) +
           scale_fill_manual(values = col) +
           {

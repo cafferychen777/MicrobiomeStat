@@ -168,8 +168,8 @@ generate_beta_trend_test_long <-
         # 调整last_row以匹配coef.tab的格式
         adjusted_last_row <- data.frame(
           Term = var_name,
-          Estimate = NA,  # 你可以根据需求进行更改
-          Std.Error = NA,  # 你可以根据需求进行更改
+          Estimate = NA,
+          Std.Error = NA,
           Statistic = last_row$`F value`,
           P.Value = last_row$`Pr(>F)`
         )

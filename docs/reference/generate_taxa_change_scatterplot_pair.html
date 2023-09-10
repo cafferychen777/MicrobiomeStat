@@ -58,7 +58,7 @@ at a specified taxonomic level between two time points, with grouping and strati
 <span>  group.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  change.base <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  change.func <span class="op">=</span> <span class="st">"difference"</span>,</span>
+<span>  feature.change.func <span class="op">=</span> <span class="st">"difference"</span>,</span>
 <span>  feature.level <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  feature.dat.type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"count"</span>, <span class="st">"proportion"</span>, <span class="st">"other"</span><span class="op">)</span>,</span>
 <span>  features.plot <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -104,10 +104,10 @@ at a specified taxonomic level between two time points, with grouping and strati
 <dd><p>Character string specifying the baseline time point. This should match one of the time points present in the metadata for the 'time.var' variable. The change will be calculated by comparing the other time points to this baseline time point.</p></dd>
 
 
-<dt>change.func</dt>
+<dt>feature.change.func</dt>
 <dd><p>Function or character string specifying method to compute change between time points. Options are:
 - 'difference' (default): Computes absolute difference in counts between time points.
-- 'relative difference': Computes relative difference in counts between time points, calculated as (count_time2 - count_time1) / (count_time2 + count_time1).
+- 'relative change': Computes relative change in counts between time points, calculated as (count_time2 - count_time1) / (count_time2 + count_time1).
 - 'lfc': Computes log2 fold change between time points. Zero counts are imputed with half the minimum nonzero value before log transform.
 - Custom function: A user-defined function can also be provided, which should take two vectors of counts (at time 1 and time 2) as input and return the computed change.</p></dd>
 
@@ -231,7 +231,7 @@ my_theme &lt;- ggplot2::theme(
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"cons"</span>,</span></span>
 <span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
 <span class="r-in"><span>  change.base <span class="op">=</span> <span class="st">"1"</span>,</span></span>
-<span class="r-in"><span>  change.func <span class="op">=</span> <span class="st">"lfc"</span>,</span></span>
+<span class="r-in"><span>  feature.change.func <span class="op">=</span> <span class="st">"lfc"</span>,</span></span>
 <span class="r-in"><span>  feature.level <span class="op">=</span> <span class="st">"Genus"</span>,</span></span>
 <span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"other"</span>,</span></span>
 <span class="r-in"><span>  features.plot <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
@@ -240,11 +240,11 @@ my_theme &lt;- ggplot2::theme(
 <span class="r-in"><span>  prev.filter <span class="op">=</span> <span class="fl">0.01</span>,</span></span>
 <span class="r-in"><span>  abund.filter <span class="op">=</span> <span class="fl">0.01</span>,</span></span>
 <span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">16</span>,</span></span>
-<span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"classic"</span>,</span></span>
+<span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
 <span class="r-in"><span>  custom.theme <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  palette <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  pdf <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
-<span class="r-in"><span>  file.ann <span class="op">=</span> <span class="st">"test"</span>,</span></span>
+<span class="r-in"><span>  file.ann <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  pdf.wid <span class="op">=</span> <span class="fl">11</span>,</span></span>
 <span class="r-in"><span>  pdf.hei <span class="op">=</span> <span class="fl">8.5</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>

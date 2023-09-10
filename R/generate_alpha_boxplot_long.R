@@ -48,8 +48,8 @@
 #'   alpha.name = c("shannon"),
 #'   subject.var = "subject_id",
 #'   time.var = "visit_number",
-#'   t0.level = sort(unique(subset_T2D.obj$meta.dat$visit_number))[1],
-#'   ts.levels = sort(unique(subset_T2D.obj$meta.dat$visit_number))[2:6],
+#'   t0.level = NULL,
+#'   ts.levels = NULL,
 #'   group.var = "subject_race",
 #'   strata.var = "subject_gender",
 #'   adj.vars = c("sample_body_site","subject_gender"),
@@ -99,7 +99,7 @@ generate_alpha_boxplot_long <- function (data.obj,
                                          strata.var = NULL,
                                          adj.vars = NULL,
                                          base.size = 12,
-                                         theme.choice = "prism",
+                                         theme.choice = "bw",
                                          custom.theme = NULL,
                                          palette = NULL,
                                          pdf = TRUE,
@@ -129,7 +129,7 @@ generate_alpha_boxplot_long <- function (data.obj,
       message(
         "Diversity analysis needs rarefaction! Call \"mStat_rarefy_data\" to rarefy the data!"
       )
-      data.obj <- mStat_rarefy_data(data.obj, depth = depth)
+      data.obj <- mStat_rarefy_data(data.obj = data.obj, depth = depth)
     }
     otu_tab <- load_data_obj_count(data.obj)
     alpha.obj <-
@@ -171,8 +171,7 @@ generate_alpha_boxplot_long <- function (data.obj,
 
   theme_to_use <-
     if (!is.null(custom.theme))
-      custom.theme
-  else
+      custom.theme else
     theme_function
 
   if (is.null(palette)) {
@@ -284,6 +283,8 @@ generate_alpha_boxplot_long <- function (data.obj,
     } else {
       y_label <- paste0(index, " index")
     }
+
+    alpha_df <- alpha_df %>% dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var)))
 
     boxplot <- ggplot(alpha_df,
                       aes_function) +

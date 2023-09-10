@@ -194,13 +194,21 @@ generate_beta_change_spaghettiplot_long <-
 
       meta_tab <- meta_tab %>% rownames_to_column("sample")
 
+      if (is.factor(meta_tab[, time.var])) {
+        change.base <- levels(meta_tab[, time.var])[1]
+      } else if (is.numeric(meta_tab[, time.var])) {
+        change.base <- min(meta_tab[, time.var], na.rm = TRUE)
+      } else {
+        stop("The variable is neither factor nor numeric.")
+      }
+
       long.df <- dist.df %>%
         tidyr::gather(key = "sample2", value = "distance", -sample) %>%
         dplyr::left_join(meta_tab, by = "sample") %>%
         dplyr::left_join(meta_tab, by = c("sample2" = "sample"), suffix = c(".subject", ".sample")) %>%
         filter(!!sym(paste0(subject.var, ".subject")) == !!sym(paste0(subject.var, ".sample"))) %>%
         dplyr::group_by(!!sym(paste0(subject.var, ".subject"))) %>%
-        filter(!!sym(paste0(time.var,".sample")) == levels(meta_tab[,time.var])[1]) %>%
+        filter(!!sym(paste0(time.var,".sample")) == change.base) %>%
         filter(!!sym(paste0(time.var,".subject")) != !!sym(paste0(time.var,".sample"))) %>%
         dplyr::ungroup() %>%
         select(!!sym(paste0(subject.var, ".subject")), !!sym(paste0(time.var, ".subject")), distance) %>%
