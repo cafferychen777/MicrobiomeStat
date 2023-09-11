@@ -780,7 +780,16 @@ report_beta_significance <- function(data_frame, group.var, time.var) {
     # Extracting interaction terms
     interaction_terms <- grep(paste0(group.var, '.+:', time.var), data_frame$Term, value = TRUE)
 
-    for(term in interaction_terms) {
+    if(length(interaction_terms) > 1){
+      p_val <- data_frame[data_frame$Term == paste0(group.var, ":", time.var),]$P.Value
+        # Describing interaction terms
+      if(p_val < 0.05) {
+        cat(sprintf('\n Based on the linear mixed effects model, a significant interaction was observed between %s and %s, with regards to the distances to the first/reference time point, with a p-value of %.3f.\n\n', time.var, group.var, p_val))
+      } else {
+        cat(sprintf('\n Based on the linear mixed effects model, no significant interaction was detected between %s and %s, in terms of the distances to the first/reference time point, with a p-value of %.3f.\n\n', time.var, group.var, p_val))
+      }
+    } else {
+        for(term in interaction_terms) {
       p_val <- data_frame[data_frame$Term == term,]$P.Value
 
       level <- gsub(group.var, '', strsplit(term, ':')[[1]][1])
@@ -792,6 +801,7 @@ report_beta_significance <- function(data_frame, group.var, time.var) {
       } else {
         cat(sprintf('\n Based on the linear mixed effects model, no significant interaction was detected between %s and the level %s of the variable %s, in terms of the distances to the first/reference time point, with a p-value of %.3f.\n\n', time.var, level, group.var, p_val))
       }
+    }
     }
   } else {
     p_val <- data_frame[data_frame$Term == time.var,]$P.Value
