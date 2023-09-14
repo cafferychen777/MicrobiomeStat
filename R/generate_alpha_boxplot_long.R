@@ -47,7 +47,7 @@
 #'   alpha.obj = NULL,
 #'   alpha.name = c("shannon"),
 #'   subject.var = "subject_id",
-#'   time.var = "visit_number",
+#'   time.var = "visit_number_num",
 #'   t0.level = NULL,
 #'   ts.levels = NULL,
 #'   group.var = "subject_race",
@@ -309,8 +309,8 @@ generate_alpha_boxplot_long <- function (data.obj,
       {
         if (!is.null(strata.var) & !is.null(group.var)) {
           ggh4x::facet_nested(
-            cols = vars(!!sym(strata.var)),
-            rows = vars(!!sym(group.var)),
+            cols = vars(!!sym(group.var)),
+            rows = vars(!!sym(strata.var)),
             scale = "free",
             space = "free"
           )

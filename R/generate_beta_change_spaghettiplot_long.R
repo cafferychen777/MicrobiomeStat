@@ -275,7 +275,7 @@ generate_beta_change_spaghettiplot_long <-
             group = group.var,
             color = group.var
           ),
-          size = 2
+          linewidth = 2
         ) +
         # geom_errorbar(
         #   data = summary.df,

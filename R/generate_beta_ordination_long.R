@@ -82,11 +82,35 @@
 #'   time.var = "visit_number_num",
 #'   t0.level = NULL,
 #'   ts.levels = NULL,
-#'   group.var = "subject_gender",
-#'   strata.var = "subject_race",
+#'   group.var = "subject_race",
+#'   strata.var = NULL,
 #'   adj.vars = NULL,
 #'   dist.name = 'BC',
 #'   base.size = 12,
+#'   theme.choice = "bw",
+#'   custom.theme = NULL,
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#'
+#' data(ecam.obj)
+#'
+#' generate_beta_ordination_long(
+#'   data.obj = ecam.obj,
+#'   dist.obj = NULL,
+#'   pc.obj = NULL,
+#'   subject.var = "subject.id",
+#'   time.var = "month_num",
+#'   t0.level = NULL,
+#'   ts.levels = NULL,
+#'   group.var = NULL,
+#'   strata.var = NULL,
+#'   adj.vars = NULL,
+#'   dist.name = 'BC',
+#'   base.size = 20,
 #'   theme.choice = "bw",
 #'   custom.theme = NULL,
 #'   palette = NULL,
@@ -187,8 +211,7 @@ generate_beta_ordination_long <-
 
     theme_to_use <-
       if (!is.null(custom.theme))
-        custom.theme
-    else
+        custom.theme else
       theme_function
 
     plot_list <- lapply(dist.name, function(dist.name) {
@@ -210,6 +233,53 @@ generate_beta_ordination_long <-
                y_end = dplyr::if_else(!!sym(time.var) == max(levels(!!sym(time.var))), NA_real_, dplyr::lead(PC2))) %>%
         dplyr::ungroup()
 
+      # If strata.var is not NULL, include it in the grouping
+      if (!is.null(strata.var) & !is.null(group.var)) {
+        df_mean <- df %>%
+          dplyr::group_by(!!sym(time.var), !!sym(group.var), !!sym(strata.var)) %>%
+          dplyr::summarise(mean_PC1 = mean(PC1, na.rm = TRUE),
+                           mean_PC2 = mean(PC2, na.rm = TRUE)) %>%
+          dplyr::ungroup()
+
+        df_mean <- df_mean %>%
+          dplyr::group_by(!!sym(group.var), !!sym(strata.var)) %>%
+          dplyr::arrange(!!sym(time.var)) %>%
+          dplyr::mutate(x_end = dplyr::if_else(!!sym(time.var) == max(levels(!!sym(time.var))), NA_real_, dplyr::lead(mean_PC1)),
+                        y_end = dplyr::if_else(!!sym(time.var) == max(levels(!!sym(time.var))), NA_real_, dplyr::lead(mean_PC2))) %>%
+          dplyr::ungroup() %>%
+          dplyr::mutate(x_start = mean_PC1,
+                        y_start = mean_PC2)
+      } else if (!is.null(group.var)){
+        df_mean <- df %>%
+          dplyr::group_by(!!sym(time.var), !!sym(group.var)) %>%
+          dplyr::summarise(mean_PC1 = median(PC1, na.rm = TRUE),
+                           mean_PC2 = median(PC2, na.rm = TRUE)) %>%
+          dplyr::ungroup()
+
+        df_mean <- df_mean %>%
+          dplyr::group_by(!!sym(group.var)) %>%
+          dplyr::arrange(!!sym(time.var)) %>%
+          dplyr::mutate(x_end = dplyr::if_else(!!sym(time.var) == max(levels(!!sym(time.var))), NA_real_, dplyr::lead(mean_PC1)),
+                        y_end = dplyr::if_else(!!sym(time.var) == max(levels(!!sym(time.var))), NA_real_, dplyr::lead(mean_PC2))) %>%
+          dplyr::ungroup() %>%
+          dplyr::mutate(x_start = mean_PC1,
+                        y_start = mean_PC2)
+      } else {
+        df_mean <- df %>%
+          dplyr::group_by(!!sym(time.var)) %>%
+          dplyr::summarise(mean_PC1 = mean(PC1, na.rm = TRUE),
+                           mean_PC2 = mean(PC2, na.rm = TRUE)) %>%
+          dplyr::ungroup()
+
+        df_mean <- df_mean %>%
+          dplyr::arrange(!!sym(time.var)) %>%
+          dplyr::mutate(x_end = dplyr::if_else(!!sym(time.var) == max(levels(!!sym(time.var))), NA_real_, dplyr::lead(mean_PC1)),
+                        y_end = dplyr::if_else(!!sym(time.var) == max(levels(!!sym(time.var))), NA_real_, dplyr::lead(mean_PC2))) %>%
+          dplyr::ungroup() %>%
+          dplyr::mutate(x_start = mean_PC1,
+                        y_start = mean_PC2)
+      }
+
       p <- ggplot2::ggplot(df, ggplot2::aes(PC1, PC2)) +
         ggplot2::geom_point(
           size = 5,
@@ -225,8 +295,30 @@ generate_beta_ordination_long <-
           ),
           arrow = ggplot2::arrow(length = unit(0.25, "cm"), type = "open"),
           size = 0.7,
-          color = "gray70"
+          color = "gray70",
+          alpha = 0.3
         ) +
+        {
+          if (!is.null(group.var)){
+            ggplot2::geom_segment(data = df_mean,
+                                  aes(x = x_start,
+                                      y = y_start,
+                                      xend = x_end,
+                                      yend = y_end,
+                                      color = !!sym(group.var)),
+                                  arrow = ggplot2::arrow(length = unit(0.25, "cm"), type = "open"),
+                                  size = 1.5)
+          } else {
+            ggplot2::geom_segment(data = df_mean,
+                                  aes(x = x_start,
+                                      y = y_start,
+                                      xend = x_end,
+                                      yend = y_end,
+                                      color = !!sym(time.var)),
+                                  arrow = ggplot2::arrow(length = unit(0.25, "cm"), type = "open"),
+                                  size = 1.5)
+          }
+        } +
         ggplot2::labs(
           x = ifelse(
             !is.null(pc.obj[[dist.name]]$eig),
@@ -243,7 +335,13 @@ generate_beta_ordination_long <-
             "Axis 2"
           )
         ) +
-        scale_color_manual(values = col) +
+        {
+          if (!is.null(group.var) | !is.null(strata.var)){
+            scale_color_manual(values = col)
+          } else {
+            ggplot2::scale_color_gradientn(colors = c("#92c5de", "#0571b0", "#f4a582", "#ca0020"))
+          }
+        } +
         ggplot2::geom_vline(xintercept = 0,
                             linetype = "dashed",
                             color = "black") +

@@ -207,8 +207,6 @@
 #'   time.var = "visit_number_num",
 #'   alpha.name = c("shannon","observed_species"),
 #'   dist.name = c("BC",'Jaccard'),
-#'   #t0.level = unique(sort(subset_T2D.obj$meta.dat$visit_number_num))[1],
-#'   #ts.levels = unique(sort(subset_T2D.obj$meta.dat$visit_number_num))[-1],
 #'   t0.level = NULL,
 #'   ts.levels = NULL,
 #'   feature.mt.method = "none",
@@ -223,7 +221,7 @@
 #'   heatmap.feature.no = 40,
 #'   feature.box.axis.transform = "sqrt",
 #'   theme.choice = "bw",
-#'   base.size = 12,
+#'   base.size = 20,
 #'   output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/报告/Omics Analysis Report.pdf"
 #' )
 #' }
@@ -252,7 +250,7 @@ mStat_generate_report_long <- function(data.obj,
                                        feature.dat.type = c("count", "proportion", "other"),
                                        feature.analysis.rarafy = TRUE,
                                        feature.change.func = "relative change",
-                                       feature.mt.method = c("fdr","none"),
+                                       feature.mt.method = c("fdr", "none"),
                                        feature.sig.level = 0.1,
                                        feature.box.axis.transform = c("identity", "sqrt", "log"),
                                        base.size = 16,
@@ -265,7 +263,6 @@ mStat_generate_report_long <- function(data.obj,
                                        pdf.hei = 8.5,
                                        output.file,
                                        ...) {
-
   template <- "
 ---
 title: '`r sub(\".pdf$\", \"\", basename(output.file))`'
@@ -397,25 +394,26 @@ rarefy.data.obj <- mStat_normalize_data(data.obj = data.obj, method = 'Rarefy', 
 
 if (is.null(depth)){
   depth <- min(colSums(data.obj$feature.tab))
-  cat(sprintf('No rarefaction depth was specified. The minimum column sum, %d, has been selected as the depth.', depth))
+  cat(sprintf('No rarefaction depth is specified. The minimum depth, %d, is used as the rarefaction depth. ', depth))
 }
 
 # Now, let's tell the user how many samples remain after rarefaction.
   remaining_samples <- ncol(rarefy.data.obj$feature.tab)
-  cat(sprintf('After rarefaction, %d samples remain in the analysis.\n', remaining_samples))
+  cat(sprintf('After rarefaction, %d samples remain in the analysis. ', remaining_samples))
 
 if (is.null(alpha.obj)){
   alpha.obj <- mStat_calculate_alpha_diversity(x = rarefy.data.obj$feature.tab, alpha.name = alpha.name)
-  cat('alpha.obj has been calculated based on the rarefied data.obj.')
+  cat('alpha.obj is calculated based on the rarefied data.obj. ')
 }
 
 if (is.null(dist.obj)){
   dist.obj <- mStat_calculate_beta_diversity(data.obj = rarefy.data.obj, dist.name = dist.name)
-  cat('dist.obj has been calculated based on the rarefied data.obj.\n')
+  cat('dist.obj is calculated based on the rarefied data.obj.\n')
 }
 
 if (is.null(pc.obj)){
   pc.obj <- mStat_calculate_PC(dist.obj = dist.obj, dist.name = dist.name)
+  cat('pc.obj is calculated based on the dist.obj.\n')
 }
 
 ```
@@ -424,11 +422,7 @@ if (is.null(pc.obj)){
 
 ## 2.1 Data visualization
 
-```{r 2.1.1, echo=FALSE, message=FALSE, results='asis'}
-
-cat('### 2.1.1 Alpha diversity boxplot \n\n')
-
-```
+### 2.1.1 Alpha diversity boxplot
 
 ```{r alpha-boxplot-generation, message=FALSE, warning = FALSE, fig.align='center', fig.width = 20, fig.height = 8, results='asis'}
 alpha_boxplot_results <- generate_alpha_boxplot_long(data.obj = data.obj,
@@ -453,11 +447,7 @@ alpha_boxplot_results <- generate_alpha_boxplot_long(data.obj = data.obj,
 alpha_boxplot_results
 ```
 
-```{r 2.1.2, echo=FALSE, message=FALSE, results='asis'}
-
-cat('### 2.1.2 Alpha diversity spaghettiplot \n\n')
-
-```
+### 2.1.2 Alpha diversity spaghettiplot
 
 ```{r alpha-spaghettiplot-generation, message=FALSE, fig.align='center', fig.width = 20, fig.height = 8, results='asis'}
 
@@ -500,21 +490,17 @@ alpha_trend_test_results <- generate_alpha_trend_test_long(
 
 ```{r alpha-trend-test-results-print, echo=FALSE, message=FALSE, results='asis'}
 
-# Initial description
-has_random_slope <- !is.null(time.var)
+# 如果adj.vars是一个向量，将其转换为逗号分隔的字符串，否则设置为空字符串
+if (!is.null(adj.vars)) {
+    adj_vars_string <- paste0(', including ', paste(adj.vars, collapse = ', '), ' as covariates')
+} else {
+    adj_vars_string <- ''
+}
 
 if (!is.null(group.var)) {
-    if (has_random_slope) {
-        cat(sprintf('In this analysis, we utilized a linear mixed effects model with both random intercept and random slope to investigate potential interactions. Specifically, we tested the interaction between the variables %s and %s.\n\n', group.var, time.var))
-    } else {
-        cat(sprintf('In this analysis, we utilized a linear mixed effects model with a random intercept to investigate potential interactions. Specifically, we tested the interaction between the variables %s and %s without considering the random slope effect of %s.\n\n', group.var, time.var, time.var))
-    }
+    cat(sprintf('In this analysis, we utilized a linear mixed effects model with both a random intercept and a random slope%s. Specifically, we tested the interaction between the variables %s and %s.\n\n', adj_vars_string, group.var, time.var))
 } else {
-    if (has_random_slope) {
-        cat(sprintf('In this analysis, we utilized a linear mixed effects model with both random intercept and random slope. Since no group variable (group.var) was provided, we tested the slope, i.e., the linear trend, of %s.\n\n', time.var))
-    } else {
-        cat(sprintf('In this analysis, we utilized a linear mixed effects model with a random intercept. Since no group variable (group.var) was provided, we tested the linear trend of %s without considering the random slope effect.\n\n', time.var))
-    }
+    cat(sprintf('In this analysis, we utilized a linear mixed effects model with both a random intercept and a random slope%s. Since no group variable (group.var) was provided, we tested the slope, i.e., the linear trend, of %s.\n\n', adj_vars_string, time.var))
 }
 
 # Define a function to report the significance of interaction terms
@@ -603,12 +589,12 @@ alpha_volatility_test_results <- generate_alpha_volatility_test_long(
 ```{r alpha-volatility-test-results-print, echo=FALSE, message=FALSE, results='asis'}
 
 # Initial description for volatility
-    num_levels <- length(unique(data.obj[[group.var]]))
+    num_levels <- length(unique(data.obj$meta.dat[[group.var]]))
 
     if(num_levels > 2) {
-        cat(sprintf('\n In this analysis, we employed a general linear model followed by ANOVA to test the effect of %s on volatility.\n\n', group.var))
+        cat(sprintf('\n In this analysis, we employed a general linear model followed by ANOVA to test the effect of %s on volatility.\n', group.var))
     } else {
-        cat(sprintf('\n In this analysis, we utilized a general linear model to examine the influence of the variable %s on volatility.\n\n', group.var))
+        cat(sprintf('\n In this analysis, we utilized a general linear model to examine the influence of the variable %s on volatility.\n', group.var))
     }
 
 cat('The alpha diversity volatility is calculated by averaging the rate of change in alpha diversity across consecutive time points. Specifically, for each pair of adjacent time points, we compute the difference in alpha diversity, normalize it by the time difference, and then take the average over all such pairs.\n\n')
@@ -628,9 +614,9 @@ for(term in terms) {
 
     # Describing significance based on lm model
     if(p_val < 0.05) {
-      cat(sprintf('\n Based on the general linear model, the level %s of the variable %s significantly affected the alpha diversity volatility, with a p-value of %.3f.\n\n', level, group.var, p_val))
+      cat(sprintf('\n Based on the general linear model, the level %s of the variable %s significantly affected the alpha diversity volatility, with a p-value of %.3f.', level, group.var, p_val))
     } else {
-      cat(sprintf('\n Based on the general linear model, the level %s of the variable %s did not significantly influence the alpha diversity volatility, with a p-value of %.3f.\n\n', level, group.var, p_val))
+      cat(sprintf('\n Based on the general linear model, the level %s of the variable %s did not significantly influence the alpha diversity volatility, with a p-value of %.3f.', level, group.var, p_val))
     }
 }
 
@@ -638,9 +624,9 @@ for(term in terms) {
   p_val_anova <- data_frame[data_frame$Term == group.var,]$P.Value
   if(num_levels > 2) {
     if(p_val_anova < 0.05) {
-      cat(sprintf('The ANOVA test indicated a significant effect of the variable %s on alpha diversity volatility, with a p-value of %.3f.\n\n', group.var, p_val_anova))
+      cat(sprintf('The ANOVA test indicated a significant effect of the variable %s on alpha diversity volatility, with a p-value of %.3f.', group.var, p_val_anova))
     } else {
-      cat(sprintf('The ANOVA test showed no significant effect of the variable %s on alpha diversity volatility, with a p-value of %.3f.\n\n', group.var, p_val_anova))
+      cat(sprintf('The ANOVA test showed no significant effect of the variable %s on alpha diversity volatility, with a p-value of %.3f.', group.var, p_val_anova))
     }
   }
 
@@ -657,6 +643,7 @@ for(index_name in names(alpha_volatility_test_results)) {
 
   # Report significance
   report_volatility_significance(data_frame = alpha_volatility_test_results[[index_name]], group.var = group.var)
+  cat('\n')
 
   output <- pander::pander(alpha_volatility_test_results[[index_name]])
   cat(output)
@@ -748,11 +735,15 @@ spaghettiplot_longitudinal_results <- generate_beta_change_spaghettiplot_long(
   pdf.wid = pdf.wid,
   pdf.hei = pdf.hei
 )
+```
+
+```{r spaghettiplot-longitudinal-print, echo = FALSE, message=FALSE, fig.align='center', results='asis', fig.width = 20, fig.height = 8}
+cat(sprintf('\n In this visualization, the beta change represents the distance of each subject from their first/reference time point.\n\n'))
 
 spaghettiplot_longitudinal_results
 ```
 
-## 3.2 Trend test
+## 3.2 Distance-based trend test
 
 ```{r beta-trend-test-longitudinal-generation, message=FALSE, fig.align='center'}
 beta_trend_test_longitudinal_results <- generate_beta_trend_test_long(
@@ -780,37 +771,56 @@ report_beta_significance <- function(data_frame, group.var, time.var) {
     # Extracting interaction terms
     interaction_terms <- grep(paste0(group.var, '.+:', time.var), data_frame$Term, value = TRUE)
 
-    if(length(interaction_terms) > 1){
-      p_val <- data_frame[data_frame$Term == paste0(group.var, ":", time.var),]$P.Value
-        # Describing interaction terms
-      if(p_val < 0.05) {
-        cat(sprintf('\n Based on the linear mixed effects model, a significant interaction was observed between %s and %s, with regards to the distances to the first/reference time point, with a p-value of %.3f.\n\n', time.var, group.var, p_val))
-      } else {
-        cat(sprintf('\n Based on the linear mixed effects model, no significant interaction was detected between %s and %s, in terms of the distances to the first/reference time point, with a p-value of %.3f.\n\n', time.var, group.var, p_val))
-      }
-    } else {
-        for(term in interaction_terms) {
-      p_val <- data_frame[data_frame$Term == term,]$P.Value
-
-      level <- gsub(group.var, '', strsplit(term, ':')[[1]][1])
-      level <- gsub('_', '', level) # Remove any underscores if they exist
+    if (length(interaction_terms) > 1) {
+      p_val <- data_frame[data_frame$Term == paste0(group.var, ':', time.var),]$P.Value
 
       # Describing interaction terms
-      if(p_val < 0.05) {
-        cat(sprintf('\n Based on the linear mixed effects model, a significant interaction was observed between %s and the level %s of the variable %s, with regards to the distances to the first/reference time point, with a p-value of %.3f.\n\n', time.var, level, group.var, p_val))
+      if (p_val < 0.05) {
+        cat(sprintf(
+          '\n Based on the linear mixed effects model, a significant interaction was observed between %s and %s, with regards to the distances to the first/reference time point, with a p-value of %.3f.\n\n',
+          time.var, group.var, p_val
+        ))
       } else {
-        cat(sprintf('\n Based on the linear mixed effects model, no significant interaction was detected between %s and the level %s of the variable %s, in terms of the distances to the first/reference time point, with a p-value of %.3f.\n\n', time.var, level, group.var, p_val))
+        cat(sprintf(
+          '\n Based on the linear mixed effects model, no significant interaction was detected between %s and %s, in terms of the distances to the first/reference time point, with a p-value of %.3f.\n\n',
+          time.var, group.var, p_val
+        ))
       }
-    }
+    } else {
+      for (term in interaction_terms) {
+        p_val <- data_frame[data_frame$Term == term,]$P.Value
+
+        level <- gsub(group.var, '', strsplit(term, ':')[[1]][1])
+        level <- gsub('_', '', level)  # Remove any underscores if they exist
+
+        # Describing interaction terms
+        if (p_val < 0.05) {
+          cat(sprintf(
+            '\n Based on the linear mixed effects model, a significant interaction was observed between %s and the level %s of the variable %s, with regards to the distances to the first/reference time point, with a p-value of %.3f.\n\n',
+            time.var, level, group.var, p_val
+          ))
+        } else {
+          cat(sprintf(
+            '\n Based on the linear mixed effects model, no significant interaction was detected between %s and the level %s of the variable %s, in terms of the distances to the first/reference time point, with a p-value of %.3f.\n\n',
+            time.var, level, group.var, p_val
+          ))
+        }
+      }
     }
   } else {
     p_val <- data_frame[data_frame$Term == time.var,]$P.Value
 
     # Describing the linear trend
-    if(p_val < 0.05) {
-      cat(sprintf('\n Based on the linear mixed effects model, a significant linear trend with respect to %s was identified, concerning the distances to the first/reference time point, with a p-value of %.3f.\n\n', time.var, p_val))
+    if (p_val < 0.05) {
+      cat(sprintf(
+        '\n Based on the linear mixed effects model, a significant linear trend with respect to %s was identified, concerning the distances to the first/reference time point, with a p-value of %.3f.\n\n',
+        time.var, p_val
+      ))
     } else {
-      cat(sprintf('\n Based on the linear mixed effects model, no significant linear trend was observed with respect to %s, when considering the distances to the first/reference time point, with a p-value of %.3f.\n\n', time.var, p_val))
+      cat(sprintf(
+        '\n Based on the linear mixed effects model, no significant linear trend was observed with respect to %s, when considering the distances to the first/reference time point, with a p-value of %.3f.\n\n',
+        time.var, p_val
+      ))
     }
   }
 }
@@ -830,85 +840,7 @@ for(index_name in names(beta_trend_test_longitudinal_results)) {
 
 ```
 
-## 3.3 Principal coordinate trend test
-
-```{r beta-pc-trend-test-longitudinal-generation, message=FALSE, fig.align='center'}
-beta_pc_trend_test_longitudinal_results <- generate_beta_pc_trend_test_long(
-                                                  data.obj = data.obj,
-                                                  dist.obj = dist.obj,
-                                                  pc.obj = pc.obj,
-                                                  subject.var = subject.var,
-                                                  time.var = time.var,
-                                                  group.var = group.var,
-                                                  adj.vars = test.adj.vars,
-                                                  dist.name = dist.name)
-```
-
-```{r beta-pc-trend-test-results-print, echo=FALSE, message=FALSE, results='asis'}
-# Initial description
-if (!is.null(group.var)) {
-    cat(sprintf('\n In this analysis, we utilized a linear mixed effects model to investigate potential interactions. Specifically, we tested the interaction between the variables %s and %s, while considering individual principal components.\n\n', group.var, time.var))
-} else {
-    cat('\n In this analysis, we utilized a linear mixed effects model. Since no group variable (group.var) was provided, we tested the slope, i.e., the linear trend, of', time.var, 'only, for each individual principal component.\n\n')
-}
-
-report_beta_pc_significance <- function(data_frame, group.var, time.var) {
-  if (!is.null(group.var)) {
-    # Extracting interaction terms
-    interaction_terms <- grep(paste0(group.var, '.+:', time.var), data_frame$Term, value = TRUE)
-
-    for(term in interaction_terms) {
-      p_val <- data_frame[data_frame$Term == term,]$P.Value
-
-      level <- gsub(group.var, '', strsplit(term, ':')[[1]][1])
-      level <- gsub('_', '', level) # Remove any underscores if they exist
-
-      # Describing interaction terms
-      if(p_val < 0.05) {
-        cat(sprintf('\n Significant interaction observed between %s and the level %s of the variable %s, p-value = %.3f.\n\n', time.var, level, group.var, p_val))
-      } else {
-        cat(sprintf('\n No significant interaction detected between %s and the level %s of the variable %s, p-value = %.3f.\n\n', time.var, level, group.var, p_val))
-      }
-    }
-  } else {
-    p_val <- data_frame[data_frame$Term == time.var,]$P.Value
-
-    # Describing the linear trend for this PC
-    if(p_val < 0.05) {
-      cat(sprintf('\n Significant linear trend observed with respect to %s, p-value = %.3f.\n\n', time.var, p_val))
-    } else {
-      cat(sprintf('\n No significant linear trend observed with respect to %s, p-value = %.3f.\n\n', time.var, p_val))
-    }
-  }
-}
-
-counter <- 1
-subcounter <- 1
-
-for(index_name in names(beta_pc_trend_test_longitudinal_results)) {
-  cat(sprintf('\n### 3.3.%d %s distance \n\n', counter, ifelse(index_name == 'BC', 'Bray–Curtis', index_name)))
-  cat('\n')
-  counter <- counter + 1
-
-  # Reset the sub-counter for each index_name
-  subcounter <- 1
-
-  # For each principal component in the index
-  for(pc_name in names(beta_pc_trend_test_longitudinal_results[[index_name]])) {
-    cat(sprintf('\n#### %s \n\n', pc_name))
-    cat('\n')
-
-    df <- beta_pc_trend_test_longitudinal_results[[index_name]][[pc_name]]
-    report_beta_pc_significance(df, group.var, time.var)
-    output <- pander::pander(df)
-    cat(output)
-    subcounter <- subcounter + 1
-  }
-}
-
-```
-
-## 3.4 Volatility test
+## 3.3 Distance-based volatility test
 
 ```{r beta-volatility-test-longitudinal-generation, message=FALSE, fig.align='center'}
 beta_volatility_test_longitudinal_results <- generate_beta_volatility_test_long(
@@ -924,12 +856,12 @@ beta_volatility_test_longitudinal_results <- generate_beta_volatility_test_long(
 ```{r beta-volatility-test-results-print, echo=FALSE, message=FALSE, results='asis'}
 
 # Initial description for volatility
-num_levels <- length(unique(data.obj[[group.var]]))
+num_levels <- length(unique(data.obj$meta.dat[[group.var]]))
 
 if(num_levels > 2) {
-    cat(sprintf('In this analysis, we employed a general linear model followed by ANOVA to test the effect of %s on beta diversity volatility.\n\n', group.var))
+    cat(sprintf('In this analysis, we employed a general linear model followed by ANOVA to test the effect of %s on beta diversity volatility.\n', group.var))
 } else {
-    cat(sprintf('In this analysis, we utilized a general linear model to examine the influence of the variable %s on beta diversity volatility.\n\n', group.var))
+    cat(sprintf('In this analysis, we utilized a general linear model to examine the influence of the variable %s on beta diversity volatility.\n', group.var))
 }
 
 cat('The beta diversity volatility is calculated by averaging the rate of change in beta diversity across consecutive time points. Specifically, for each pair of adjacent time points, we compute the difference in beta diversity, normalize it by the time difference, and then take the average over all such pairs.\n\n')
@@ -949,9 +881,9 @@ report_beta_volatility_significance <- function(data_frame, group.var) {
 
     # Describing significance based on lm model
     if(p_val < 0.05) {
-      cat(sprintf('Based on the general linear model, the level %s of the variable %s significantly affected the beta diversity volatility, with a p-value of %.3f.\n\n', level, group.var, p_val))
+      cat(sprintf('\n Based on the general linear model, the level %s of the variable %s significantly affected the beta diversity volatility, with a p-value of %.3f.', level, group.var, p_val))
     } else {
-      cat(sprintf('Based on the general linear model, the level %s of the variable %s did not significantly influence the beta diversity volatility, with a p-value of %.3f.\n\n', level, group.var, p_val))
+      cat(sprintf('\n Based on the general linear model, the level %s of the variable %s did not significantly influence the beta diversity volatility, with a p-value of %.3f.', level, group.var, p_val))
     }
   }
 
@@ -959,9 +891,9 @@ report_beta_volatility_significance <- function(data_frame, group.var) {
   p_val_anova <- data_frame[data_frame$Term == group.var,]$P.Value
   if(num_levels > 2) {
     if(p_val_anova < 0.05) {
-      cat(sprintf('The ANOVA test indicated a significant effect of the variable %s on beta diversity volatility, with a p-value of %.3f.\n\n', group.var, p_val_anova))
+      cat(sprintf('The ANOVA test indicated a significant effect of the variable %s on beta diversity volatility, with a p-value of %.3f.', group.var, p_val_anova))
     } else {
-      cat(sprintf('The ANOVA test showed no significant effect of the variable %s on beta diversity volatility, with a p-value of %.3f.\n\n', group.var, p_val_anova))
+      cat(sprintf('The ANOVA test showed no significant effect of the variable %s on beta diversity volatility, with a p-value of %.3f.', group.var, p_val_anova))
     }
   }
 
@@ -970,91 +902,13 @@ report_beta_volatility_significance <- function(data_frame, group.var) {
 counter <- 1
 
 for(index_name in names(beta_volatility_test_longitudinal_results)) {
-  cat(sprintf('\n### 3.4.%d %s distance \n\n', counter, ifelse(index_name == 'BC', 'Bray–Curtis', index_name)))
+  cat(sprintf('\n### 3.3.%d %s distance \n\n', counter, ifelse(index_name == 'BC', 'Bray–Curtis', index_name)))
 
   report_beta_volatility_significance(beta_volatility_test_longitudinal_results[[index_name]], group.var)
 
+  cat('\n')
   output <- pander::pander(beta_volatility_test_longitudinal_results[[index_name]])
   cat(output)
-
-  counter <- counter + 1
-}
-
-```
-
-## 3.5 Principal coordinate volatility test
-
-```{r beta-pc-volatility-test-longitudinal-generation, message=FALSE, fig.align='center'}
-beta_pc_volatility_test_longitudinal_results <- generate_beta_pc_volatility_test_long(
-                                                  data.obj = data.obj,
-                                                  dist.obj = dist.obj,
-                                                  pc.obj = pc.obj,
-                                                  subject.var = subject.var,
-                                                  time.var = time.var,
-                                                  group.var = group.var,
-                                                  adj.vars = test.adj.vars,
-                                                  dist.name = dist.name)
-```
-
-```{r beta-pc-volatility-test-results-print, echo=FALSE, message=FALSE, results='asis'}
-
-# Initial description for PC volatility
-num_levels <- length(unique(data.obj[[group.var]]))
-
-if(num_levels > 2) {
-    cat(sprintf('In this analysis, we employed a general linear model followed by ANOVA to test the effect of %s on beta diversity PC volatility. ', group.var))
-} else {
-    cat(sprintf('In this analysis, we utilized a general linear model to examine the influence of the variable %s on beta diversity PC volatility. ', group.var))
-}
-
-cat('The beta diversity PC volatility is calculated by averaging the rate of change in principal components of beta diversity across consecutive time points. Specifically, for each pair of adjacent time points, we compute the difference in principal components, normalize it by the time difference, and then take the average over all such pairs.\n\n')
-
-# Define a function to report the significance of PC volatility based on group.var
-report_pc_volatility_significance <- function(data_frame, group.var) {
-
-  # Extracting terms excluding ANOVA and intercept
-  terms <- grep(group.var, data_frame$Term, value = TRUE)
-  terms <- terms[!terms %in% c('(Intercept)', 'Residuals', group.var)]
-
-  for(term in terms) {
-    p_val <- data_frame[data_frame$Term == term,]$P.Value
-
-    # Extract only the level part from the term by removing the group.var prefix and underscore
-    level <- sub(group.var, '', term)
-
-    # Describing significance based on lm model
-    if(p_val < 0.05) {
-      cat(sprintf('Based on the general linear model, the level %s of the variable %s significantly affected the beta diversity PC volatility, with a p-value of %.3f.\n\n', level, group.var, p_val))
-    } else {
-      cat(sprintf('Based on the general linear model, the level %s of the variable %s did not significantly influence the beta diversity PC volatility, with a p-value of %.3f.\n\n', level, group.var, p_val))
-    }
-  }
-
-  # Reporting significance for ANOVA
-  p_val_anova <- data_frame[data_frame$Term == group.var,]$P.Value
-  if(num_levels > 2) {
-    if(p_val_anova < 0.05) {
-      cat(sprintf('The ANOVA test indicated a significant effect of the variable %s on beta diversity PC volatility, with a p-value of %.3f.\n\n', group.var, p_val_anova))
-    } else {
-      cat(sprintf('The ANOVA test showed no significant effect of the variable %s on beta diversity PC volatility, with a p-value of %.3f.\n\n', group.var, p_val_anova))
-    }
-  }
-
-}
-
-counter <- 1
-
-for(dist_name in names(beta_pc_volatility_test_longitudinal_results)) {
-  cat(sprintf('\n### 3.5.%d %s distance \n\n', counter, ifelse(index_name == 'BC', 'Bray–Curtis', dist_name)))
-
-  for(pc_name in names(beta_pc_volatility_test_longitudinal_results[[dist_name]])) {
-    cat(sprintf('\n#### %s \n', pc_name))
-    report_pc_volatility_significance(beta_pc_volatility_test_longitudinal_results[[dist_name]][[pc_name]], group.var)
-
-    output <- pander::pander(beta_pc_volatility_test_longitudinal_results[[dist_name]][[pc_name]])
-    cat(output)
-
-  }
 
   counter <- counter + 1
 }
@@ -1106,8 +960,8 @@ taxa_areaplot_long_results <- generate_taxa_areaplot_long(
 )
 ```
 
-```{r taxa-areaplot-longitudinal-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 15, fig.height = 8}
-cat('- Average Version: This plot displays the average proportions for each time point, group, and strata. \n\n')
+```{r taxa-areaplot-longitudinal-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 25, fig.height = 15}
+cat('The following plots display the average proportions for each time point, group, and stratum. \n\n')
 taxa_areaplot_long_results
 ```
 
@@ -1141,13 +995,13 @@ taxa_heatmap_long_results <- generate_taxa_heatmap_long(
 ```
 
 ```{r taxa-heatmap-longitudinal-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 20, fig.height = 12}
-cat('- Average Version: This plot displays the average proportions for each time point, group, and strata. \n\n')
+cat('The following plots display the average proportions for each time point, group, and stratum. \n\n')
 taxa_heatmap_long_results
 ```
 
 ### 4.1.3 Feature change heatmap
 
-```{r taxa-change-heatmap-longitudinal-generation, message=FALSE, fig.align='center', fig.width = 15, fig.height = 12, results='hide', warning = FALSE}
+```{r taxa-change-heatmap-longitudinal-generation, message=FALSE, fig.align='center', fig.width = 25, fig.height = 12, results='hide', warning = FALSE}
 taxa_change_heatmap_long_results <- generate_taxa_change_heatmap_long(
   data.obj = data.obj,
   subject.var = subject.var,
@@ -1177,20 +1031,16 @@ taxa_change_heatmap_long_results <- generate_taxa_change_heatmap_long(
 
 ```{r taxa-change-heatmap-longitudinal-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 20, fig.height = 12}
 if (is.function(feature.change.func)) {
-  cat('- Change Calculation: Custom Function\n')
-  cat('The changes from t0.level were computed using a custom function provided by the user.\n\n')
+  cat('The changes from t0.level were computed using a custom function provided by the user.')
 } else if (feature.change.func == 'relative change') {
-  cat('- Change Calculation: Relative Change\n')
-  cat('The changes from t0.level were computed as the difference between the current value and t0.level divided by the sum of the two.\n\n')
+  cat('The changes from t0.level were computed as the difference between the current value and t0.level divided by the sum of the two.')
 } else if (feature.change.func == 'difference') {
-  cat('- Change Calculation: Difference\n')
-  cat('The changes from t0.level were computed as the difference between the current value and t0.level.\n\n')
+  cat('The changes from t0.level were computed as the difference between the current value and t0.level.')
 } else if (feature.change.func == 'lfc') {
-  cat('- Change Calculation: Log2 Fold Change (lfc)\n')
-  cat('The changes from t0.level were computed as the log2 difference between the current value and t0.level, with a small constant added to avoid taking log of zero.\n\n')
+  cat('The changes from t0.level were computed as the log2 difference between the current value and t0.level, with a small constant added to avoid taking log of zero.')
 }
 
-cat('- Average Change: This plot displays the average changes for each time point, group, and strata. \n\n')
+cat('The following plots display the average changes for each time point, group, and stratum. \n\n')
 taxa_change_heatmap_long_results
 ```
 
@@ -1219,8 +1069,8 @@ taxa_barplot_long_results <- generate_taxa_barplot_long(
 )
 ```
 
-```{r taxa-barplot-longitudinal-print, echo=FALSE, message=FALSE, warning = FALSE, results='asis', fig.width = 15, fig.height = 8, fig.align='center'}
-cat('- Average Version: This plot displays the average proportions for each time point, group, and strata. \n\n')
+```{r taxa-barplot-longitudinal-print, echo=FALSE, message=FALSE, warning = FALSE, results='asis', fig.width = 25, fig.height = 15, fig.align='center'}
+cat('The following plots display the average proportions for each time point, group, and stratum. \n\n')
 taxa_barplot_long_results
 ```
 
@@ -1330,7 +1180,7 @@ volatility_volcano_plots <- generate_taxa_volatility_volcano_long(data.obj = dat
 volatility_volcano_plots
 
 # Initial description for Feature Volatility
-num_levels <- length(unique(data.obj[[group.var]]))
+num_levels <- length(unique(data.obj$meta.dat[[group.var]]))
 
 if(num_levels > 2) {
     cat(sprintf('In this analysis, a general linear model followed by ANOVA was employed to test the effect of %s on the volatility of various taxa abundances.\n\n', group.var))
@@ -1343,8 +1193,14 @@ cat('Feature abundances were transformed using the centered log-ratio (CLR) tran
 # Function to check and report significance for taxa
 report_taxa_volatility_significance <- function(data_frame, group_var) {
     significant_group_var <- data_frame %>%
-                             filter(Term == group_var) %>%
-                             filter(P.Value < feature.sig.level)
+    filter(
+            ifelse(
+            num_levels > 2,
+            Term == group_var,
+            grepl(paste0('^', group_var), Term)
+        )
+    ) %>%
+    filter(P.Value < feature.sig.level)
 
     if(nrow(significant_group_var) > 0) {
         return(data_frame)
@@ -1366,12 +1222,12 @@ for(taxon_rank in names(taxa_volatility_test_results)) {
     # Report significant results for each taxon under the current rank
     if(length(significant_results_list) > 0) {
       cat('- Significant features in volatility test results \n\n')
+      output <- pander::pander(significant_results_list)
+      cat(output)
     } else {
         cat(sprintf('No significant results were detected for the volatility test at a p-value threshold of %s for %s.\n\n', feature.sig.level, taxon_rank))
     }
 }
-
-pander::pander(significant_results_list)
 
 # 指定文件名前缀和后缀
 filename_prefix <- 'feature_volatility_test_results_'
@@ -1625,48 +1481,52 @@ cat(paste0('The spaghettiplot results for individual taxa or features can be fou
 
 "
 
-rmd_code <- knitr::knit_expand(text = template,
-                               data.obj = data.obj,
-                               group.var = group.var,
-                               strata.var = strata.var,
-                               test.adj.vars = test.adj.vars,
-                               vis.adj.vars = vis.adj.vars,
-                               subject.var = subject.var,
-                               time.var = time.var,
-                               t0.level = t0.level,
-                               ts.levels = ts.levels,
-                               alpha.obj = alpha.obj,
-                               alpha.name = alpha.name,
-                               depth = depth,
-                               dist.obj = dist.obj,
-                               dist.name = dist.name,
-                               pc.obj = pc.obj,
-                               prev.filter = prev.filter,
-                               abund.filter = abund.filter,
-                               feature.dat.type = feature.dat.type,
-                               feature.analysis.rarafy = feature.analysis.rarafy,
-                               feature.change.func = feature.change.func,
-                               bar.area.feature.no = bar.area.feature.no,
-                               vis.feature.level = vis.feature.level,
-                               test.feature.level = test.feature.level,
-                               feature.mt.method = feature.mt.method,
-                               feature.sig.level = feature.sig.level,
-                               feature.box.axis.transform = feature.box.axis.transform,
-                               base.size = base.size,
-                               theme.choice = theme.choice,
-                               custom.theme = custom.theme,
-                               palette = palette,
-                               pdf = pdf,
-                               file.ann = file.ann,
-                               pdf.wid = pdf.wid,
-                               pdf.hei = pdf.hei,
-                               output.file = output.file
-                               )
+rmd_code <- knitr::knit_expand(
+  text = template,
+  data.obj = data.obj,
+  group.var = group.var,
+  strata.var = strata.var,
+  test.adj.vars = test.adj.vars,
+  vis.adj.vars = vis.adj.vars,
+  subject.var = subject.var,
+  time.var = time.var,
+  t0.level = t0.level,
+  ts.levels = ts.levels,
+  alpha.obj = alpha.obj,
+  alpha.name = alpha.name,
+  depth = depth,
+  dist.obj = dist.obj,
+  dist.name = dist.name,
+  pc.obj = pc.obj,
+  prev.filter = prev.filter,
+  abund.filter = abund.filter,
+  feature.dat.type = feature.dat.type,
+  feature.analysis.rarafy = feature.analysis.rarafy,
+  feature.change.func = feature.change.func,
+  bar.area.feature.no = bar.area.feature.no,
+  vis.feature.level = vis.feature.level,
+  test.feature.level = test.feature.level,
+  feature.mt.method = feature.mt.method,
+  feature.sig.level = feature.sig.level,
+  feature.box.axis.transform = feature.box.axis.transform,
+  base.size = base.size,
+  theme.choice = theme.choice,
+  custom.theme = custom.theme,
+  palette = palette,
+  pdf = pdf,
+  file.ann = file.ann,
+  pdf.wid = pdf.wid,
+  pdf.hei = pdf.hei,
+  output.file = output.file
+)
 
 rmd_file <- tempfile(fileext = ".Rmd")
 writeLines(rmd_code, con = rmd_file)
 
-report_file <- rmarkdown::render(input = rmd_file, output_file = output.file, quiet = FALSE)
+report_file <-
+  rmarkdown::render(input = rmd_file,
+                    output_file = output.file,
+                    quiet = FALSE)
 
 return(report_file)
 }

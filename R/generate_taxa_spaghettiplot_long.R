@@ -336,9 +336,9 @@ generate_taxa_spaghettiplot_long <-
         } +
         {
           if (!is.null(strata.var)) {
-            ggh4x::facet_nested_wrap(as.formula(paste('~', feature.level,"+",strata.var)))  # Use facet_wrap with strata.var as the faceting variable
+            ggh4x::facet_nested_wrap(as.formula(paste('~', feature.level,"+",strata.var)), scales = "free_y")  # Use facet_wrap with strata.var as the faceting variable
           } else {
-            ggh4x::facet_nested_wrap(as.formula(paste('~',feature.level)))
+            ggh4x::facet_nested_wrap(as.formula(paste('~',feature.level)), scales = "free_y")
           }
         } +
         theme_to_use +

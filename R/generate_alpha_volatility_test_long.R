@@ -34,13 +34,11 @@
 #' @examples
 #' \dontrun{
 #' data("subset_T2D.obj")
-#' subset_T2D.obj2 <- subset_T2D.obj
-#' subset_T2D.obj2$meta.dat$visit_number <- as.numeric(subset_T2D.obj2$meta.dat$visit_number)
 #' generate_alpha_volatility_test_long(
-#' data.obj = subset_T2D.obj2,
+#' data.obj = subset_T2D.obj,
 #' alpha.obj = NULL,
 #' alpha.name = c("shannon","simpson"),
-#' time.var = "visit_number",
+#' time.var = "visit_number_num",
 #' subject.var = "subject_id",
 #' group.var = "subject_race",
 #' adj.vars = "sample_body_site"
@@ -55,7 +53,6 @@ generate_alpha_volatility_test_long <- function(data.obj,
                                                 subject.var,
                                                 group.var,
                                                 adj.vars = NULL) {
-
   if (is.null(alpha.obj)) {
     if (!is_rarefied(data.obj)) {
       message(
@@ -86,7 +83,8 @@ generate_alpha_volatility_test_long <- function(data.obj,
     "You can ensure the time variable is numeric by mutating it in the metadata."
   )
 
-  data.obj$meta.dat <- data.obj$meta.dat %>% dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
+  data.obj$meta.dat <-
+    data.obj$meta.dat %>% dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
 
   meta_tab <-
     load_data_obj_metadata(data.obj) %>% as.data.frame() %>% select(all_of(c(
@@ -99,70 +97,98 @@ generate_alpha_volatility_test_long <- function(data.obj,
                       by = c("sample"))
 
   test.list <- lapply(alpha.name, function(index) {
+    if (!is.null(adj.vars)) {
+      data_subset <- alpha_df %>%
+        select(all_of(adj.vars)) %>%
+        dplyr::mutate(dplyr::across(where(is.character) &
+                                      !is.factor, factor))
 
-  if (!is.null(adj.vars)){
-    # Obtain the residuals by fitting lm(alpha ~ adj.vars)
-    residuals_lm <- stats::lm(as.formula(paste0(index, "~", paste(adj.vars, collapse = "+"))), data = alpha_df)$residuals
-  } else {
-    residuals_lm <- alpha_df %>% dplyr::select(all_of(c(index))) %>% dplyr::pull()
-  }
+      M <-
+        model.matrix(
+          ~ 0 + .,
+          data = data_subset,
+          contrasts.arg = lapply(data_subset, stats::contrasts, contrasts = FALSE)
+        )
 
-  # Calculate the volatility for each subject
-  # Add residuals to alpha_df
-  alpha_df$residuals <- residuals_lm
+      # 去掉截距
+      # M <- M[, -1] 这一步在创建模型矩阵时通过 ~ 0 + . 已经实现了
 
-  # Group data by subject and calculate volatility
-  volatility_df <- alpha_df %>%
-    dplyr::group_by(!!sym(subject.var)) %>%
-    dplyr::arrange(!!sym(time.var)) %>%
-    dplyr::mutate(diff_residuals = abs(residuals - dplyr::lag(residuals)),
-           diff_time = !!sym(time.var) - dplyr::lag(!!sym(time.var))) %>%
-    dplyr::filter(!is.na(diff_residuals), !is.na(diff_time)) %>%
-    dplyr::filter(diff_time != 0) %>%
-    dplyr::summarize(volatility = mean(diff_residuals / diff_time), .groups = 'drop')
+      # Center the covariates
+      M_centered <- scale(M, scale = FALSE)
 
-  test_df <- volatility_df %>%
-    dplyr::left_join(meta_tab %>%
-                select(all_of(c(subject.var, group.var))) %>%
-                  dplyr::distinct(),
-              by = subject.var)
+      # Fit regression model
+      fit <- lm(alpha_df[[index]] ~ M_centered)
 
-  # Test the association between the volatility and the grp.var
-  formula <- as.formula(paste("volatility ~", group.var))
+      # Compute the adjusted value
+      adjusted_value <- fit$coefficients[1] + residuals(fit)
 
-  test_result <- stats::lm(formula, data = test_df)
+      # Update the alpha_df
+      alpha_df[[index]] <- adjusted_value
 
-  coef.tab <- extract_coef(test_result)
-
-  # Run ANOVA on the model if group.var is multi-categorical
-  if (length(unique(alpha_df[[group.var]])) > 2) {
-    anova.tab <- broom::tidy(anova(test_result))
-
-    # Rearrange the table and add missing columns
-    anova.tab <- anova.tab %>%
-      select(
-        term = term,
-        Statistic = statistic,
-        df = df,
-        P.Value = p.value
-      ) %>%
-      dplyr::mutate(Estimate = NA, Std.Error = NA)
-
-    # Reorder the columns to match coef.tab
-    anova.tab <- anova.tab %>%
-      select(
-        Term = term,
-        Estimate = Estimate,
-        Std.Error = Std.Error,
-        Statistic = Statistic,
-        P.Value = P.Value
+      message(
+        "Alpha diversity has been adjusted for the following covariates: ",
+        paste(adj.vars, collapse = ", "),
+        "."
       )
+    }
 
-    coef.tab <-
-      rbind(coef.tab, anova.tab) # Append the anova.tab to the coef.tab
-  }
+    # Group data by subject and calculate volatility
+    volatility_df <- alpha_df %>%
+      dplyr::group_by(!!sym(subject.var)) %>%
+      dplyr::arrange(!!sym(time.var)) %>%
+      dplyr::mutate(
+        diff_residuals = abs(!!sym(index) - dplyr::lag(!!sym(index))),
+        diff_time = !!sym(time.var) - dplyr::lag(!!sym(time.var))
+      ) %>%
+      dplyr::filter(!is.na(diff_residuals),!is.na(diff_time)) %>%
+      dplyr::filter(diff_time != 0) %>%
+      dplyr::summarize(volatility = mean(diff_residuals / diff_time),
+                       .groups = 'drop')
 
-  return(as_tibble(coef.tab))
+    test_df <- volatility_df %>%
+      dplyr::left_join(meta_tab %>%
+                         select(all_of(c(
+                           subject.var, group.var
+                         ))) %>%
+                         dplyr::distinct(),
+                       by = subject.var)
+
+    # Test the association between the volatility and the grp.var
+    formula <- as.formula(paste("volatility ~", group.var))
+
+    test_result <- stats::lm(formula, data = test_df)
+
+    coef.tab <- extract_coef(test_result)
+
+    # Run ANOVA on the model if group.var is multi-categorical
+    if (length(unique(alpha_df[[group.var]])) > 2) {
+      anova.tab <- broom::tidy(anova(test_result))
+
+      # Rearrange the table and add missing columns
+      anova.tab <- anova.tab %>%
+        select(
+          term = term,
+          Statistic = statistic,
+          df = df,
+          P.Value = p.value
+        ) %>%
+        dplyr::mutate(Estimate = NA, Std.Error = NA)
+
+      # Reorder the columns to match coef.tab
+      anova.tab <- anova.tab %>%
+        select(
+          Term = term,
+          Estimate = Estimate,
+          Std.Error = Std.Error,
+          Statistic = Statistic,
+          P.Value = P.Value
+        )
+
+      coef.tab <-
+        rbind(coef.tab, anova.tab) # Append the anova.tab to the coef.tab
+    }
+
+    return(as_tibble(coef.tab))
   })
 
   # Assign names to the elements of test.list

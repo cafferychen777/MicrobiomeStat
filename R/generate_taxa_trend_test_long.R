@@ -320,7 +320,6 @@ generate_taxa_trend_test_long <-
         feature.sig.level = feature.sig.level,
         feature.mt.method = feature.mt.method
       )
-    print(plot.list)
 
     return(test.list)
   }

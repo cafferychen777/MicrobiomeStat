@@ -239,8 +239,6 @@ generate_taxa_volatility_test_long <- function(data.obj,
                                                          feature.sig.level = feature.sig.level,
                                                          feature.mt.method = feature.mt.method)
 
-  print(volcano_plots)
-
   return(test.list)
 }
 

@@ -76,9 +76,9 @@ generate_taxa_association_test_long <-
            subject.var,
            group.var = NULL,
            adj.vars = NULL,
-           feature.level,
            prev.filter = 0,
            abund.filter = 0,
+           feature.level,
            feature.dat.type = c("count", "proportion"),
            feature.sig.level = 0.1,
            feature.mt.method = "fdr",
@@ -87,7 +87,7 @@ generate_taxa_association_test_long <-
     mStat_validate_data(data.obj)
 
     message(
-      "The trend test calculation relies on a numeric time variable.\n",
+      "The association test calculation relies on a numeric time variable.\n",
       "Please check that your time variable is coded as numeric.\n",
       "If the time variable is not numeric, it may cause issues in computing the test results.\n",
       "You can ensure the time variable is numeric by mutating it in the metadata."
