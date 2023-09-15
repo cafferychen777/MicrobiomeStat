@@ -449,12 +449,12 @@ generate_taxa_boxplot_long <-
           boxplot <-
             boxplot + ggh4x::facet_nested(as.formula(paste(
               "~", feature.level, "+", group.var
-            )), scales = "free")
+            )), scales = "free_y")
         } else {
           boxplot <- boxplot + ggh4x::facet_nested(
             rows = vars(!!sym(strata.var)),
             cols = vars(!!sym(feature.level), !!sym(group.var)),
-            scales = "free"
+            scales = "free_y"
           )
         }
       }

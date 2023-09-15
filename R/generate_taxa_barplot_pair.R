@@ -73,7 +73,7 @@
 #'   custom.theme = NULL,
 #'   palette = NULL,
 #'   pdf = TRUE,
-#'   file.ann = "test",
+#'   file.ann = NULL,
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
@@ -97,71 +97,235 @@ generate_taxa_barplot_pair <-
            pdf.wid = 11,
            pdf.hei = 8.5,
            ...) {
-
     feature.dat.type <- match.arg(feature.dat.type)
 
     # Extract data
     mStat_validate_data(data.obj)
 
-    meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var,group.var,time.var,strata.var)))
+    meta_tab <-
+      load_data_obj_metadata(data.obj) %>% select(all_of(c(
+        subject.var, group.var, time.var, strata.var
+      )))
 
-    theme_function <- switch(theme.choice,
-                             prism = ggprism::theme_prism(),
-                             classic = theme_classic(),
-                             gray = theme_gray(),
-                             bw = theme_bw(),
-                             ggprism::theme_prism()) # 根据用户选择设置主题
+    theme_function <- switch(
+      theme.choice,
+      prism = ggprism::theme_prism(),
+      classic = theme_classic(),
+      gray = theme_gray(),
+      bw = theme_bw(),
+      ggprism::theme_prism()
+    ) # 根据用户选择设置主题
 
     # 使用用户自定义主题（如果提供），否则使用默认主题
-    theme_to_use <- if (!is.null(custom.theme)) custom.theme else theme_function
+    theme_to_use <-
+      if (!is.null(custom.theme))
+        custom.theme
+    else
+      theme_function
 
-    if (is.null(palette)){
-      pal <- rep(c("#E41A1C","#1E90FF","#FF8C00","#4DAF4A","#984EA3","#40E0D0","#FFC0CB",
-                   "#00BFFF","#FFDEAD","#90EE90","#EE82EE","#00FFFF","#F0A3FF", "#0075DC",
-                   "#993F00","#4C005C","#2BCE48","#FFCC99","#808080","#94FFB5","#8F7C00",
-                   "#9DCC00","#C20088","#003380","#FFA405","#FFA8BB","#426600","#FF0010",
-                   "#5EF1F2","#00998F","#740AFF","#990000","#FFFF00",
-                   "#FF6A6A", "#FF8247", "#FFE7BA", "#87CEFA", "#B0E0E6", "#48D1CC", "#5F9EA0", "#66CDAA", "#458B00",
-                   "#BCEE68", "#FFF68F", "#EEEE00", "#FFFFE0", "#8B8682", "#FFB6C1", "#9370DB", "#FFDAB9", "#FA8072",
-                   "#90EE90", "#00FFFF", "#00BFFF", "#FFA07A", "#F08080", "#FFD700", "#ADFF2F", "#9ACD32", "#9400D3",
-                   "#7B68EE", "#BA55D3", "#FFC0CB", "#FAEBD7", "#F0E68C", "#FFFACD", "#D2B48C", "#C0C0C0", "#696969",
-                   "#CD5C5C", "#F08080", "#FA8072", "#E9967A", "#FFA07A", "#FF7F50", "#FF6347", "#FF4500", "#FF8C00",
-                   "#FFA500", "#FFDAB9", "#FFE4B5", "#FFE4C4", "#FFDEAD", "#EEE8AA", "#F0E68C", "#BDB76B", "#FFD700",
-                   "#DAA520", "#808000", "#7CFC00", "#00FF00", "#32CD32", "#00FA9A", "#90EE90", "#98FB98", "#8FBC8F",
-                   "#3CB371", "#2E8B57", "#228B22", "#008000", "#006400", "#66CDAA", "#00FFFF", "#40E0D0", "#48D1CC",
-                   "#AFEEEE", "#7FFFD4", "#B0C4DE", "#ADD8E6", "#87CEEB", "#87CEFA", "#6495ED", "#00BFFF", "#1E90FF",
-                   "#4169E1", "#0000FF", "#00008B", "#000080", "#191970", "#6A5ACD", "#483D8B", "#9400D3", "#8A2BE2",
-                   "#4B0082", "#FF00FF", "#FF69B4", "#FF1493", "#C71585", "#DB7093", "#FFC0CB", "#FFB6C1", "#FF69B4",
-                   "#FF5F5F", "#DC143C", "#C0C0C0", "#A9A9A9", "#808080", "#696969", "#000000", "#FF1493", "#FF69B4",
-                   "#FFB6C1", "#FFC0CB", "#FFDAB9", "#F4A460", "#FFA07A", "#FF7F50", "#FF6347", "#FF4500", "#FF8C00",
-                   "#FFA500", "#FFFF00", "#9ACD32", "#32CD32", "#00FF00", "#7FFF00", "#7CFC00", "#00FA9A", "#90EE90",
-                   "#98FB98", "#8FBC8F", "#3CB371", "#2E8B57", "#228B22", "#008000", "#006400"
-      ),5)
+    if (is.null(palette)) {
+      pal <-
+        rep(
+          c(
+            "#E41A1C",
+            "#1E90FF",
+            "#FF8C00",
+            "#4DAF4A",
+            "#984EA3",
+            "#40E0D0",
+            "#FFC0CB",
+            "#00BFFF",
+            "#FFDEAD",
+            "#90EE90",
+            "#EE82EE",
+            "#00FFFF",
+            "#F0A3FF",
+            "#0075DC",
+            "#993F00",
+            "#4C005C",
+            "#2BCE48",
+            "#FFCC99",
+            "#808080",
+            "#94FFB5",
+            "#8F7C00",
+            "#9DCC00",
+            "#C20088",
+            "#003380",
+            "#FFA405",
+            "#FFA8BB",
+            "#426600",
+            "#FF0010",
+            "#5EF1F2",
+            "#00998F",
+            "#740AFF",
+            "#990000",
+            "#FFFF00",
+            "#FF6A6A",
+            "#FF8247",
+            "#FFE7BA",
+            "#87CEFA",
+            "#B0E0E6",
+            "#48D1CC",
+            "#5F9EA0",
+            "#66CDAA",
+            "#458B00",
+            "#BCEE68",
+            "#FFF68F",
+            "#EEEE00",
+            "#FFFFE0",
+            "#8B8682",
+            "#FFB6C1",
+            "#9370DB",
+            "#FFDAB9",
+            "#FA8072",
+            "#90EE90",
+            "#00FFFF",
+            "#00BFFF",
+            "#FFA07A",
+            "#F08080",
+            "#FFD700",
+            "#ADFF2F",
+            "#9ACD32",
+            "#9400D3",
+            "#7B68EE",
+            "#BA55D3",
+            "#FFC0CB",
+            "#FAEBD7",
+            "#F0E68C",
+            "#FFFACD",
+            "#D2B48C",
+            "#C0C0C0",
+            "#696969",
+            "#CD5C5C",
+            "#F08080",
+            "#FA8072",
+            "#E9967A",
+            "#FFA07A",
+            "#FF7F50",
+            "#FF6347",
+            "#FF4500",
+            "#FF8C00",
+            "#FFA500",
+            "#FFDAB9",
+            "#FFE4B5",
+            "#FFE4C4",
+            "#FFDEAD",
+            "#EEE8AA",
+            "#F0E68C",
+            "#BDB76B",
+            "#FFD700",
+            "#DAA520",
+            "#808000",
+            "#7CFC00",
+            "#00FF00",
+            "#32CD32",
+            "#00FA9A",
+            "#90EE90",
+            "#98FB98",
+            "#8FBC8F",
+            "#3CB371",
+            "#2E8B57",
+            "#228B22",
+            "#008000",
+            "#006400",
+            "#66CDAA",
+            "#00FFFF",
+            "#40E0D0",
+            "#48D1CC",
+            "#AFEEEE",
+            "#7FFFD4",
+            "#B0C4DE",
+            "#ADD8E6",
+            "#87CEEB",
+            "#87CEFA",
+            "#6495ED",
+            "#00BFFF",
+            "#1E90FF",
+            "#4169E1",
+            "#0000FF",
+            "#00008B",
+            "#000080",
+            "#191970",
+            "#6A5ACD",
+            "#483D8B",
+            "#9400D3",
+            "#8A2BE2",
+            "#4B0082",
+            "#FF00FF",
+            "#FF69B4",
+            "#FF1493",
+            "#C71585",
+            "#DB7093",
+            "#FFC0CB",
+            "#FFB6C1",
+            "#FF69B4",
+            "#FF5F5F",
+            "#DC143C",
+            "#C0C0C0",
+            "#A9A9A9",
+            "#808080",
+            "#696969",
+            "#000000",
+            "#FF1493",
+            "#FF69B4",
+            "#FFB6C1",
+            "#FFC0CB",
+            "#FFDAB9",
+            "#F4A460",
+            "#FFA07A",
+            "#FF7F50",
+            "#FF6347",
+            "#FF4500",
+            "#FF8C00",
+            "#FFA500",
+            "#FFFF00",
+            "#9ACD32",
+            "#32CD32",
+            "#00FF00",
+            "#7FFF00",
+            "#7CFC00",
+            "#00FA9A",
+            "#90EE90",
+            "#98FB98",
+            "#8FBC8F",
+            "#3CB371",
+            "#2E8B57",
+            "#228B22",
+            "#008000",
+            "#006400"
+          ),
+          5
+        )
     } else{
-
       if (feature.number > length(palette)) {
-        stop("The number of unique features exceeds the length of the provided palette. Please provide a larger palette.")
+        stop(
+          "The number of unique features exceeds the length of the provided palette. Please provide a larger palette."
+        )
       }
 
       pal = palette
     }
 
-    if (feature.dat.type == "count"){
+    if (feature.dat.type == "count") {
       message(
         "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
       )
-      data.obj <- mStat_normalize_data(data.obj, method = "Rarefy-TSS")$data.obj.norm
-    } else if (feature.dat.type == "other"){
-      stop("The 'other' type is suitable for situations where the user has analyzed the data using a method not provided in 'mStat_normalize_data' method, and the 'areaplot' is only applicable to raw data that has not undergone any processing or proportion data that adds up to 1. If you believe your data falls into these two categories, please modify 'feature.dat.type'.")
+      data.obj <-
+        mStat_normalize_data(data.obj, method = "Rarefy-TSS")$data.obj.norm
+    } else if (feature.dat.type == "other") {
+      stop(
+        "The 'other' type is suitable for situations where the user has analyzed the data using a method not provided in 'mStat_normalize_data' method, and the 'areaplot' is only applicable to raw data that has not undergone any processing or proportion data that adds up to 1. If you believe your data falls into these two categories, please modify 'feature.dat.type'."
+      )
     }
 
-    plot_list_all <- lapply(feature.level,function(feature.level){
-
-      if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
-        data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
+    plot_list_all <- lapply(feature.level, function(feature.level) {
+      if (is.null(data.obj$feature.agg.list[[feature.level]]) &
+          feature.level != "original") {
+        data.obj <-
+          mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
       }
 
-      if (feature.level != "original"){
+      if (feature.level != "original") {
         otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
       } else {
         otu_tax_agg <- load_data_obj_count(data.obj)
@@ -172,10 +336,13 @@ generate_taxa_barplot_pair <-
         rownames_to_column(feature.level)
 
       # 标准化数据
-      otu_tab_norm <- apply(t(otu_tax_agg %>% select(-feature.level)), 1, function(x) x)
-      rownames(otu_tab_norm) <- as.matrix(otu_tax_agg[, feature.level])
+      otu_tab_norm <-
+        apply(t(otu_tax_agg %>% select(-feature.level)), 1, function(x)
+          x)
+      rownames(otu_tab_norm) <-
+        as.matrix(otu_tax_agg[, feature.level])
 
-      meta_tab_sorted <- meta_tab[colnames(otu_tab_norm), ]
+      meta_tab_sorted <- meta_tab[colnames(otu_tab_norm),]
 
       # 计算每个taxon的平均相对丰度
       avg_abund <- rowMeans(otu_tab_norm)
@@ -185,31 +352,35 @@ generate_taxa_barplot_pair <-
         as.data.frame() %>%
         rownames_to_column(feature.level)
       # 将feature.number之后以下的相对丰度定为阈值
-      other.abund.cutoff <- sort(avg_abund, decreasing=TRUE)[feature.number]
-      if (!is.na(other.abund.cutoff)){
-        otu_tab_other[, feature.level][avg_abund < other.abund.cutoff] <- "Other"
+      other.abund.cutoff <-
+        sort(avg_abund, decreasing = TRUE)[feature.number]
+      if (!is.na(other.abund.cutoff)) {
+        otu_tab_other[, feature.level][avg_abund < other.abund.cutoff] <-
+          "Other"
       }
 
       # 转换数据框为长格式
       otu_tab_long <- otu_tab_other %>%
         dplyr::group_by(!!sym(feature.level)) %>%
         dplyr::summarize_all(sum) %>%
-        tidyr::gather(key = "sample", value = "value", -feature.level)
+        tidyr::gather(key = "sample", value = "value",-feature.level)
 
       # 将 otu_tab_long 和 meta_tab_sorted 合并
       merged_long_df <- otu_tab_long %>%
         dplyr::inner_join(meta_tab_sorted  %>% rownames_to_column("sample"), by = "sample")
 
       sorted_merged_long_df <- merged_long_df %>%
-        dplyr::arrange(!!sym(subject.var), !!sym(time.var))
+        dplyr::arrange(!!sym(subject.var),!!sym(time.var))
 
       last_sample_ids <- sorted_merged_long_df %>%
         dplyr::group_by(!!sym(subject.var)) %>%
         dplyr::summarize(last_sample_id = dplyr::last(sample))
 
-      sorted_merged_long_df <- sorted_merged_long_df %>% dplyr::mutate(!!sym(feature.level) := as.factor(!!sym(feature.level)))
-      original_levels <- levels(sorted_merged_long_df[[feature.level]])
-      if (!is.na(other.abund.cutoff)){
+      sorted_merged_long_df <-
+        sorted_merged_long_df %>% dplyr::mutate(!!sym(feature.level) := as.factor(!!sym(feature.level)))
+      original_levels <-
+        levels(sorted_merged_long_df[[feature.level]])
+      if (!is.na(other.abund.cutoff)) {
         new_levels <- c("Other", setdiff(original_levels, "Other"))
       } else {
         new_levels <- original_levels
@@ -224,25 +395,41 @@ generate_taxa_barplot_pair <-
         dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = original_levels)) %>%
         dplyr::mutate(!!sym(feature.level) := forcats::fct_relevel(!!sym(feature.level), new_levels)) %>%
         dplyr::arrange(match(!!sym(feature.level), new_levels)) %>%
-        dplyr::mutate(cumulative_value = (1-cumsum(value))) %>%
+        dplyr::mutate(cumulative_value = (1 - cumsum(value))) %>%
         dplyr::ungroup() %>%
         dplyr::group_by(!!sym(feature.level)) %>%
-        dplyr::mutate(next_cumulative_value = dplyr::if_else(sample %in% last_sample_ids$last_sample_id, NA_real_, dplyr::lead(cumulative_value))) %>%
+        dplyr::mutate(
+          next_cumulative_value = dplyr::if_else(
+            sample %in% last_sample_ids$last_sample_id,
+            NA_real_,
+            dplyr::lead(cumulative_value)
+          )
+        ) %>%
         dplyr::ungroup()
 
-      color_pal <- setNames(pal, as.matrix(unique(df %>% select(!!sym(feature.level)))))
+      color_pal <-
+        setNames(pal, as.matrix(unique(df %>% select(
+          !!sym(feature.level)
+        ))))
 
       bar_width <- 0.6
       bar_spacing <- bar_width / 2
 
       df <- df %>%
-        dplyr::mutate(x_offset = ifelse(cumulative_value == 0, (bar_width + bar_spacing) / 2, -(bar_width + bar_spacing) / 2))
+        dplyr::mutate(x_offset = ifelse(
+          cumulative_value == 0,
+          (bar_width + bar_spacing) / 2,
+          -(bar_width + bar_spacing) / 2
+        ))
 
-      if (!is.null(group.var) && !is.null(strata.var)){
-        df <- df %>% dplyr::arrange(!!sym(strata.var), !!sym(group.var), !!sym(subject.var))
-      } else if (is.null(strata.var) && !is.null(group.var)){
-        df <- df %>% dplyr::arrange(!!sym(group.var), !!sym(subject.var))
-      } else if (is.null(group.var)){
+      if (!is.null(group.var) && !is.null(strata.var)) {
+        df <-
+          df %>% dplyr::arrange(!!sym(strata.var),
+                                !!sym(group.var),
+                                !!sym(subject.var))
+      } else if (is.null(strata.var) && !is.null(group.var)) {
+        df <- df %>% dplyr::arrange(!!sym(group.var),!!sym(subject.var))
+      } else if (is.null(group.var)) {
         df <- df %>% dplyr::arrange(!!sym(subject.var))
       }
 
@@ -251,7 +438,7 @@ generate_taxa_barplot_pair <-
         dplyr::mutate(!!sym(subject.var) := factor(!!sym(subject.var), levels = unique(!!sym(subject.var))))
 
       df <- df %>%
-        dplyr::mutate(joint_factor = interaction(!!sym(time.var), !!sym(subject.var)))
+        dplyr::mutate(joint_factor = interaction(!!sym(time.var),!!sym(subject.var)))
 
       df$joint_factor <- as.numeric(df$joint_factor)
 
@@ -259,104 +446,195 @@ generate_taxa_barplot_pair <-
       result <- numeric(length(unique_values) %/% 2)
 
       for (i in 1:length(result)) {
-        result[i] <- (unique_values[2*i-1] + unique_values[2*i]) / 2
+        result[i] <- (unique_values[2 * i - 1] + unique_values[2 * i]) / 2
       }
 
       stack_barplot_indiv  <- # Main plot code
         df %>%
-        ggplot(aes(x = joint_factor, y = value, fill = !!sym(feature.level))) +
-        geom_bar(stat = "identity", position = "fill", width = bar_width) +
-        geom_segment(aes(x = joint_factor + bar_spacing, xend = joint_factor + 1 - bar_spacing, y = cumulative_value, yend = next_cumulative_value, group = !!sym(feature.level), color = !!sym(feature.level)),linewidth = 1) +
+        ggplot(aes(
+          x = joint_factor,
+          y = value,
+          fill = !!sym(feature.level)
+        )) +
+        geom_bar(stat = "identity",
+                 position = "fill",
+                 width = bar_width) +
+        geom_segment(
+          aes(
+            x = joint_factor + bar_spacing,
+            xend = joint_factor + 1 - bar_spacing,
+            y = cumulative_value,
+            yend = next_cumulative_value,
+            group = !!sym(feature.level),
+            color = !!sym(feature.level)
+          ),
+          linewidth = 1
+        ) +
         {
           if (!is.null(group.var) && !is.null(strata.var)) {
-            ggh4x::facet_nested(as.formula(paste(". ~", strata.var, "+", group.var)), drop = T, scale = "free", space = "free", switch = "y")
+            ggh4x::facet_nested(
+              as.formula(paste(". ~", strata.var, "+", group.var)),
+              drop = T,
+              scale = "free",
+              space = "free",
+              switch = "y"
+            )
           } else if (!is.null(group.var)) {
-            ggh4x::facet_nested(as.formula(paste(". ~", group.var)), drop = T, scale = "free", space = "free", switch = "y")
+            ggh4x::facet_nested(
+              as.formula(paste(". ~", group.var)),
+              drop = T,
+              scale = "free",
+              space = "free",
+              switch = "y"
+            )
           } else if (!is.null(strata.var)) {
-            ggh4x::facet_nested(as.formula(paste(". ~", strata.var)), drop = T, scale = "free", space = "free", switch = "y")
+            ggh4x::facet_nested(
+              as.formula(paste(". ~", strata.var)),
+              drop = T,
+              scale = "free",
+              space = "free",
+              switch = "y"
+            )
           }
         } +
         labs(x = NULL, y = NULL) +
         scale_y_continuous(expand = c(0, 0), labels = scales::percent) +
-        scale_x_continuous(expand = c(0.001, 0.001), breaks = result, labels = levels(df %>% select(all_of(c(subject.var))) %>% dplyr::pull())) +
+        scale_x_continuous(
+          expand = c(0.001, 0.001),
+          breaks = result,
+          labels = levels(df %>% select(all_of(c(
+            subject.var
+          ))) %>% dplyr::pull())
+        ) +
         labs(fill = feature.level) +
         scale_fill_manual(values = color_pal) +
         scale_color_manual(values = color_pal) +
         theme_to_use +
-        theme(strip.background = element_rect(fill="white",color="black"),
-              panel.spacing = unit(0,"lines"),
-              strip.text.x = element_text(size= base.size,color="black"),
-              axis.text.y=element_text(size= base.size,color="black"),
-              axis.text.x = element_text(angle = 90, color = "black", vjust = 0.5),
-              axis.title.y = element_text(size= base.size,color="black"),
-              legend.key=element_blank(),
-              legend.text = element_text(color="black",size= base.size),
-              legend.title = element_text(color="black",size= base.size),
-              legend.spacing.x=unit(0.1,'cm'),
-              legend.spacing.y=unit(0.1,'cm'),
-              legend.key.width=unit(0.4,'cm'),
-              legend.key.height=unit(0.4,'cm'),
-              legend.background=element_blank(),
-              panel.grid.major=element_blank(),
-              panel.grid.minor=element_blank())
+        theme(
+          strip.background = element_rect(fill = "white", color = "black"),
+          panel.spacing = unit(0, "lines"),
+          strip.text.x = element_text(size = base.size, color = "black"),
+          axis.text.y = element_text(size = base.size, color = "black"),
+          axis.text.x = element_text(
+            angle = 90,
+            color = "black",
+            vjust = 0.5
+          ),
+          axis.title.y = element_text(size = base.size, color = "black"),
+          legend.key = element_blank(),
+          legend.text = element_text(color = "black", size = base.size),
+          legend.title = element_text(color = "black", size = base.size),
+          legend.spacing.x = unit(0.1, 'cm'),
+          legend.spacing.y = unit(0.1, 'cm'),
+          legend.key.width = unit(0.4, 'cm'),
+          legend.key.height = unit(0.4, 'cm'),
+          legend.background = element_blank(),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank()
+        )
 
       # 以下为average barplot的绘制
       last_time_ids <- sorted_merged_long_df %>%
         select(!!sym(time.var)) %>% dplyr::pull() %>% as.factor() %>% levels() %>% dplyr::last()
 
-      if (!is.null(strata.var)){
-        if (is.null(group.var)){
-          sorted_merged_long_df <- sorted_merged_long_df %>% dplyr::mutate("ALL" = "ALL")
+      if (!is.null(strata.var)) {
+        if (is.null(group.var)) {
+          sorted_merged_long_df <-
+            sorted_merged_long_df %>% dplyr::mutate("ALL" = "ALL")
           group.var = "ALL"
         }
-        sorted_merged_long_df <- sorted_merged_long_df %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(group.var),!!sym(strata.var)))
+        sorted_merged_long_df <-
+          sorted_merged_long_df %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(group.var), !!sym(strata.var)))
       } else {
-        if (is.null(group.var)){
-          sorted_merged_long_df <- sorted_merged_long_df %>% dplyr::mutate("ALL" = "ALL")
+        if (is.null(group.var)) {
+          sorted_merged_long_df <-
+            sorted_merged_long_df %>% dplyr::mutate("ALL" = "ALL")
           group.var = "ALL"
         }
       }
 
       df_average <- sorted_merged_long_df %>%
-        dplyr::group_by(!!sym(feature.level),!!sym(group.var),!!sym(time.var)) %>%
+        dplyr::group_by(!!sym(feature.level), !!sym(group.var), !!sym(time.var)) %>%
         dplyr::summarise(mean_value  = mean(value)) %>%
         dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = original_levels)) %>%
         dplyr::mutate(!!sym(feature.level) := forcats::fct_relevel(!!sym(feature.level), new_levels)) %>%
         dplyr::arrange(match(!!sym(feature.level), new_levels)) %>%
-        dplyr::group_by(!!sym(group.var),!!sym(time.var)) %>%
-        dplyr::mutate(cumulative_mean_value = (1-cumsum(mean_value))) %>%
+        dplyr::group_by(!!sym(group.var), !!sym(time.var)) %>%
+        dplyr::mutate(cumulative_mean_value = (1 - cumsum(mean_value))) %>%
         dplyr::ungroup() %>%
         dplyr::group_by(!!sym(feature.level)) %>%
-        dplyr::mutate(next_cumulative_mean_value = dplyr::if_else(!!sym(time.var) %in% last_time_ids, NA_real_, dplyr::lead(cumulative_mean_value))) %>%
+        dplyr::mutate(
+          next_cumulative_mean_value = dplyr::if_else(
+            !!sym(time.var) %in% last_time_ids,
+            NA_real_,
+            dplyr::lead(cumulative_mean_value)
+          )
+        ) %>%
         dplyr::ungroup()
 
       df_average <- df_average %>%
-        dplyr::mutate(x_offset = ifelse(cumulative_mean_value == 0, (bar_width + bar_spacing) / 2, -(bar_width + bar_spacing) / 2))
+        dplyr::mutate(x_offset = ifelse(
+          cumulative_mean_value == 0,
+          (bar_width + bar_spacing) / 2,
+          -(bar_width + bar_spacing) / 2
+        ))
 
       df_average <- df_average %>%
-        dplyr::mutate(joint_factor = interaction(!!sym(time.var), !!sym(group.var)))
+        dplyr::mutate(joint_factor = interaction(!!sym(time.var),!!sym(group.var)))
 
-      df_average$joint_factor_numeric <- as.numeric(df_average$joint_factor)
+      df_average$joint_factor_numeric <-
+        as.numeric(df_average$joint_factor)
 
-      if(!is.null(strata.var)){
+      if (!is.null(strata.var)) {
         df_average <- df_average %>%
-          tidyr::separate(!!sym(group.var), into = c(group.var, strata.var), sep = "\\.")
+          tidyr::separate(!!sym(group.var),
+                          into = c(group.var, strata.var),
+                          sep = "\\.")
       }
 
       stack_barplot_average  <- # Main plot code
         df_average %>%
-        ggplot(aes(x = joint_factor_numeric, y = mean_value, fill = !!sym(feature.level))) +
-        geom_bar(stat = "identity", position = "fill", width = bar_width) +
-        geom_segment(aes(x = joint_factor_numeric + bar_spacing, xend = joint_factor_numeric + 1 - bar_spacing, y = cumulative_mean_value, yend = next_cumulative_mean_value, group = !!sym(feature.level), color = !!sym(feature.level)),linewidth = 1) +
+        ggplot(aes(
+          x = joint_factor_numeric,
+          y = mean_value,
+          fill = !!sym(feature.level)
+        )) +
+        geom_bar(stat = "identity",
+                 position = "fill",
+                 width = bar_width) +
+        geom_segment(
+          aes(
+            x = joint_factor_numeric + bar_spacing,
+            xend = joint_factor_numeric + 1 - bar_spacing,
+            y = cumulative_mean_value,
+            yend = next_cumulative_mean_value,
+            group = !!sym(feature.level),
+            color = !!sym(feature.level)
+          ),
+          linewidth = 1
+        ) +
         scale_y_continuous(expand = c(0, 0), labels = scales::percent) +
         {
-          if (!is.null(group.var) & group.var != "ALL"){
-            if (group.var == ""){
+          if (!is.null(group.var) & group.var != "ALL") {
+            if (group.var == "") {
+
             } else {
-              if (!is.null(strata.var)){
-                ggh4x::facet_nested(as.formula(paste(". ~", strata.var, "+", group.var)), drop = T, scale = "free", space = "free")
+              if (!is.null(strata.var)) {
+                ggh4x::facet_nested(
+                  as.formula(paste(
+                    ". ~", strata.var, "+", group.var
+                  )),
+                  drop = T,
+                  scale = "free",
+                  space = "free"
+                )
               } else {
-                ggh4x::facet_nested(as.formula(paste(". ~", group.var)), drop = T, scale = "free", space = "free")
+                ggh4x::facet_nested(
+                  as.formula(paste(". ~", group.var)),
+                  drop = T,
+                  scale = "free",
+                  space = "free"
+                )
               }
             }
           }
@@ -366,33 +644,45 @@ generate_taxa_barplot_pair <-
         scale_fill_manual(values = color_pal) +
         scale_color_manual(values = color_pal) +
         theme_to_use +
-        theme(strip.background = element_rect(fill="white",color="black"),
-              panel.spacing = unit(0,"lines"),
-              strip.text.x = element_text(size= base.size,color="black"),
-              axis.text.y=element_text(size= base.size,color="black"),
-              axis.text.x = element_text(angle = 90, color = "black", vjust = 0.5),
-              axis.title.y = element_text(size= base.size,color="black"),
-              legend.key=element_blank(),
-              legend.text = element_text(color="black",size= base.size),
-              legend.spacing.x=unit(0.1,'cm'),
-              legend.spacing.y=unit(0.1,'cm'),
-              legend.key.width=unit(0.4,'cm'),
-              legend.key.height=unit(0.4,'cm'),
-              legend.background=element_blank(),
-              panel.grid.major=element_blank(),
-              panel.grid.minor=element_blank())
+        theme(
+          strip.background = element_rect(fill = "white", color = "black"),
+          panel.spacing = unit(0, "lines"),
+          strip.text.x = element_text(size = base.size, color = "black"),
+          axis.text.y = element_text(size = base.size, color = "black"),
+          axis.text.x = element_text(
+            angle = 90,
+            color = "black",
+            vjust = 0.5
+          ),
+          axis.title.y = element_text(size = base.size, color = "black"),
+          legend.key = element_blank(),
+          legend.text = element_text(color = "black", size = base.size),
+          legend.spacing.x = unit(0.1, 'cm'),
+          legend.spacing.y = unit(0.1, 'cm'),
+          legend.key.width = unit(0.4, 'cm'),
+          legend.key.height = unit(0.4, 'cm'),
+          legend.background = element_blank(),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank()
+        )
 
       # Save the stacked barplots as a PDF file
       if (pdf) {
-        pdf_name <- paste0("taxa_barplot_pair",
-                           "_",
-                           "subject_", subject.var,
-                           "_",
-                           "time_", time.var,
-                           "_",
-                           "feature_level_", feature.level,
-                           "_",
-                           "feature_number_", feature.number)
+        pdf_name <- paste0(
+          "taxa_barplot_pair",
+          "_",
+          "subject_",
+          subject.var,
+          "_",
+          "time_",
+          time.var,
+          "_",
+          "feature_level_",
+          feature.level,
+          "_",
+          "feature_number_",
+          feature.number
+        )
         if (!is.null(group.var)) {
           pdf_name <- paste0(pdf_name, "_", "group_", group.var)
         }
@@ -403,20 +693,31 @@ generate_taxa_barplot_pair <-
           pdf_name <- paste0(pdf_name, "_", file.ann)
         }
         pdf_name <- paste0(pdf_name, ".pdf")
-        ggsave(filename = pdf_name, plot = stack_barplot_indiv, width = pdf.wid, height = pdf.hei)
+        ggsave(
+          filename = pdf_name,
+          plot = stack_barplot_indiv,
+          width = pdf.wid,
+          height = pdf.hei
+        )
       }
 
       # Save the stacked barplots as a PDF file
       if (pdf) {
-        pdf_name <- paste0("taxa_barplot_pair",
-                           "_",
-                           "subject_", subject.var,
-                           "_",
-                           "time_", time.var,
-                           "_",
-                           "feature_level_", feature.level,
-                           "_",
-                           "feature_number_", feature.number)
+        pdf_name <- paste0(
+          "taxa_barplot_pair",
+          "_",
+          "subject_",
+          subject.var,
+          "_",
+          "time_",
+          time.var,
+          "_",
+          "feature_level_",
+          feature.level,
+          "_",
+          "feature_number_",
+          feature.number
+        )
         if (!is.null(group.var)) {
           pdf_name <- paste0(pdf_name, "_", "group_", group.var)
         }
@@ -426,13 +727,23 @@ generate_taxa_barplot_pair <-
         if (!is.null(file.ann)) {
           pdf_name <- paste0(pdf_name, "_", file.ann)
         }
-        pdf_name <- paste0(pdf_name,"_avergae", ".pdf")
-        ggsave(filename = pdf_name, plot = stack_barplot_average, width = pdf.wid, height = pdf.hei)
+        pdf_name <- paste0(pdf_name, "_avergae", ".pdf")
+        ggsave(
+          filename = pdf_name,
+          plot = stack_barplot_average,
+          width = pdf.wid,
+          height = pdf.hei
+        )
       }
 
-      stack_barplot_list <- list(stack_barplot_indiv,stack_barplot_average)
+      stack_barplot_list <-
+        list(stack_barplot_indiv, stack_barplot_average)
+
+      names(stack_barplot_list) <- c("indiv","average")
       # 返回堆叠条形图以进行显示
       return(stack_barplot_list)
     })
-  return(plot_list_all)
+
+    names(plot_list_all) <- feature.level
+    return(plot_list_all)
   }

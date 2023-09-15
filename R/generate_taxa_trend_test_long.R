@@ -86,7 +86,7 @@
 #'   adj.vars = "sample_body_site",
 #'   prev.filter = 0.1,
 #'   abund.filter = 0.001,
-#'   feature.level = "Genus",
+#'   feature.level = c("Genus","Family"),
 #'   feature.dat.type = c("count")
 #' )
 #' }
@@ -200,13 +200,13 @@ generate_taxa_trend_test_long <-
         otu_tax_agg <- load_data_obj_count(data.obj)
       }
 
-      otu_tax_agg <-  otu_tax_agg %>%
+      otu_tax_agg_filter <-  otu_tax_agg %>%
         as.data.frame() %>%
         mStat_filter(prev.filter = prev.filter,
                      abund.filter = abund.filter)
 
       linda.obj <- linda(
-        feature.dat = otu_tax_agg,
+        feature.dat = otu_tax_agg_filter,
         meta.dat = meta_tab,
         formula = paste("~", formula),
         feature.dat.type = "proportion",
@@ -215,111 +215,96 @@ generate_taxa_trend_test_long <-
         ...
       )
 
-      # Extract relevant information
-      significant_taxa <- rownames(linda.obj$feature.dat.use)
-
-      if (is.null(group.var)) {
-        linda.obj$meta.dat.use$group <- "No Group"
-        group.var <- "group"
+      if (!is.null(group.var)){
+        reference_level <- levels(as.factor(meta_tab[,group.var]))[1]
       }
 
       # 计算每个分组的平均丰度
       prop_prev_data <-
-        linda.obj$feature.dat.use %>% as.data.frame() %>% rownames_to_column(feature.level) %>%
-        tidyr::gather(-!!sym(feature.level),
-                      key = "sample",
-                      value = "count") %>%
-        dplyr::inner_join(
-          linda.obj$meta.dat.use %>% rownames_to_column("sample"),
-          by = "sample",
-          relationship = "many-to-many"
-        ) %>%
-        dplyr::group_by(!!sym(group.var),!!sym(feature.level)) %>%
-        dplyr::summarise(mean_abundance = mean(count),
-                         prevalence = sum(count > 0) / dplyr::n())
+        otu_tax_agg %>%
+        as.matrix() %>%
+        as.table() %>%
+        as.data.frame() %>%
+        dplyr::group_by(Var1) %>%  # Var1是taxa
+        dplyr::summarise(
+          avg_abundance = mean(Freq),
+          prevalence = sum(Freq > 0) / dplyr::n()
+        ) %>% column_to_rownames("Var1") %>%
+        rownames_to_column(feature.level)
 
-      # Initialize results table
-      results <- data.frame()
+      extract_data_frames <- function(linda_object, group_var = NULL, time_var) {
 
-      # Iterate over each element in linda.obj$output
-      for (output_element in names(linda.obj$output)) {
-        current_output <- linda.obj$output[[output_element]]
+        # 初始化一个空的list来存储提取的数据框
+        result_list <- list()
 
-        for (taxa in significant_taxa) {
-          baseMean <- current_output[taxa, "baseMean"]
-          log2FoldChange <- current_output[taxa, "log2FoldChange"]
-          lfcSE <- current_output[taxa, "lfcSE"]
-          stat <- current_output[taxa, "stat"]
-          pvalue <- current_output[taxa, "pvalue"]
-          padj <- current_output[taxa, "padj"]
+        # 如果group.var不为NULL
+        if (!is.null(group_var)) {
+          # 获取所有匹配的数据框名
+          matching_dfs <- grep(paste0(group_var, ".*:", time_var), names(linda_object$output), value = TRUE)
 
-          # 检查group.var是不是因子
-          if (is_categorical(linda.obj$meta.dat.use[[group.var]])) {
-            for (group in unique(linda.obj$meta.dat.use[[group.var]])) {
-              group_data <-
-                prop_prev_data[which(prop_prev_data[[feature.level]] == taxa &
-                                       prop_prev_data[[group.var]] == group),]
-              mean_prop <- group_data$mean_abundance
-              mean_prev <- group_data$prevalence
+          # 循环遍历所有匹配的数据框名并提取它们
+          for (df_name in matching_dfs) {
+            # 从数据框名中提取组值
+            group_prefix <- paste0(group_var)
 
-              results <- rbind(
-                results,
-                data.frame(
-                  Variable = taxa,
-                  Group = group,
-                  Base.Mean = baseMean,
-                  Log2.Fold.Change = log2FoldChange,
-                  LFC.SE = lfcSE,
-                  Stat = stat,
-                  P.Value = pvalue,
-                  Adjusted.P.Value = padj,
-                  Mean.Abundance = mean_prop,
-                  Mean.Prevalence = mean_prev,
-                  Output.Element = output_element
-                )
-              )
-            }
+            # 提取group_prefix后面的内容，并在":"之前停止
+            group_value <- unlist(strsplit(df_name, split = ":"))[1]
+            group_value <- gsub(pattern = group_prefix, replacement = "", x = group_value)
+
+            # 将数据框添加到结果列表中
+            result_list[[paste0(group_value," vs ", reference_level, " (Reference)")]] <- linda_object$output[[df_name]]
+          }
+
+        } else {
+          # 如果group.var为NULL，则直接提取名字为time.var的数据框
+          df <- linda_object$output[[time_var]]
+          if (!is.null(df)) {
+            result_list[[time_var]] <- df
           } else {
-            total_data <-
-              prop_prev_data[which(prop_prev_data[[feature.level]] == taxa),]
-            mean_prop <- total_data$mean_abundance
-            mean_prev <- total_data$prevalence
-
-            results <- rbind(
-              results,
-              data.frame(
-                Variable = taxa,
-                Base.Mean = baseMean,
-                Log2.Fold.Change = log2FoldChange,
-                LFC.SE = lfcSE,
-                Stat = stat,
-                P.Value = pvalue,
-                Adjusted.P.Value = padj,
-                Mean.Abundance = mean_prop,
-                Mean.Prevalence = mean_prev,
-                Output.Element = output_element
-              )
-            )
+            warning(paste("No data frame found with the name:", time_var))
           }
         }
+
+        return(result_list)
       }
 
-      return(results)
+      # 使用函数提取数据框
+      sub_test.list <- extract_data_frames(linda_object = linda.obj, group_var = group.var, time_var = time.var)
+
+      sub_test.list <- lapply(sub_test.list, function(df){
+        df <- df %>%
+          rownames_to_column(feature.level) %>%
+          dplyr::left_join(prop_prev_data, by = feature.level) %>%
+          dplyr::select(all_of(all_of(c(feature.level,"log2FoldChange","lfcSE","pvalue","padj","avg_abundance","prevalence")))) %>%
+          dplyr::rename(Variable = feature.level,
+                        Coefficient = log2FoldChange,
+                        SE = lfcSE,
+                        P.Value = pvalue,
+                        Adjusted.P.Value = padj,
+                        Mean.Abundance = avg_abundance,
+                        Prevalence = prevalence)
+
+        return(df)
+      })
+
+      return(sub_test.list)
 
     })
 
     # Assign names to the elements of test.list
     names(test.list) <- feature.level
 
-    plot.list <-
-      generate_taxa_trend_volcano_long(
-        data.obj = data.obj,
-        group.var = group.var,
-        time.var = time.var,
-        test.list = test.list,
-        feature.sig.level = feature.sig.level,
-        feature.mt.method = feature.mt.method
-      )
+    # plot.list <-
+    #   generate_taxa_trend_volcano_long(
+    #     data.obj = data.obj,
+    #     group.var = group.var,
+    #     time.var = time.var,
+    #     test.list = test.list,
+    #     feature.sig.level = feature.sig.level,
+    #     feature.mt.method = feature.mt.method
+    #   )
+    #
+    # print(plot.list)
 
     return(test.list)
   }
@@ -377,137 +362,79 @@ generate_taxa_trend_volcano_long <-
 
         reference_level <- group_level[1]
 
-        test.result <- sub_test.list %>%
-          dplyr::filter(grepl(
-            paste0('^', group.var, '.*', time.var, '$'),
-            Output.Element
-          ))
-
         sub_plot.list <-
-          lapply(group_level[-1], function(group_level) {
-            if (!is.null(time.var)){
-              sub_test.result <- test.result %>%
-                dplyr::filter(Output.Element == paste0(group.var, group_level, ":", time.var))
-            } else {
-              sub_test.result <- test.result %>%
-                dplyr::filter(Output.Element == paste0(group.var, group_level))
-            }
+          lapply(names(sub_test.list), function(group.level) {
+
+            sub_test.result <- sub_test.list[[group.level]]
 
             # Find max absolute log2FoldChange for symmetric x-axis
             max_abs_log2FC <-
-              max(abs(sub_test.result$Log2.Fold.Change), na.rm = TRUE)
+              max(abs(sub_test.result$Coefficient), na.rm = TRUE)
 
             p <-
-              ggplot(sub_test.result,
-                     aes(
-                       x = Log2.Fold.Change,
-                       y = -log10(get(p_val_var)),
-                       color = -log10(get(p_val_var))
-                     )) +
-              geom_point(aes(shape = get(p_val_var) < feature.sig.level), size = 7) +
-              geom_vline(
-                aes(xintercept = 0),
-                linetype = "dashed",
-                linewidth = 1.5,
-                color = "grey"
-              ) +
-              geom_hline(
-                aes(yintercept = -log10(feature.sig.level)),
-                linetype = "dashed",
-                linewidth = 1.5,
-                color = "grey"
-              ) +
-              geom_text(
-                aes(label = ifelse(
-                  get(p_val_var) < feature.sig.level,
-                  as.character(Variable),
-                  ''
-                )),
-                vjust = -0.5,
-                hjust = 0.5,
-                size = 3.5
-              ) +
+              ggplot(sub_test.result, aes(x = Coefficient, y = -log10(get(p_val_var)),
+                                          color = Prevalence, size = Mean.Abundance)) +
+              geom_point() +
+              geom_vline(aes(xintercept = 0), linetype = "dashed", linewidth = 1.5, color = "grey") +
+              geom_hline(aes(yintercept = -log10(feature.sig.level)), linetype = "dashed", linewidth = 1.5, color = "grey") +
+              geom_text(aes(label = ifelse(get(p_val_var) < feature.sig.level, as.character(Variable), '')),
+                        vjust = -0.5, hjust = 0.5, size = 3.5) +
               scale_shape_manual(values = c(16, 17)) +
-              labs(
-                title = paste(group_level, "vs", reference_level, "(Reference)"),
-                x = "Log2 Fold Change",
-                y = "-log10(p-value)",
-                shape = "Significant",
-                color = "-log10(p-value)"
-              ) +
-              theme_minimal() +
+              labs(title = group.level, x = "Coefficient", y = "-log10(p-value)", color = "Prevalence", size = "Mean Abundance") +
+              theme_bw() +
               theme(
                 plot.title.position = "plot",
-                plot.title = element_text(hjust = 0.5),
+                plot.title = element_text(hjust = 0.5, size = 12),
                 panel.grid.major = element_line(color = "grey", linetype = "dashed"),
                 panel.grid.minor = element_line(color = "grey", linetype = "dotted"),
-                legend.position = "bottom"
+                legend.position = "bottom",
+                legend.text = element_text(size = 12),       # 调整图例文本大小
+                legend.title = element_text(size = 14),      # 调整图例标题大小
+                axis.text = element_text(size = 12),          # 调整轴文本大小
+                axis.title = element_text(size = 14)          # 调整轴标题大小
               ) +
               scale_color_gradientn(colors = color_palette) +
+              scale_size_continuous(range = c(3, 7)) +
               coord_cartesian(xlim = c(-max_abs_log2FC, max_abs_log2FC))
 
             return(p)
           })
 
         names(sub_plot.list) <-
-          paste(group_level[-1], "vs", reference_level, "(Reference)")
+          names(sub_test.list)
       } else {
         # 当group.var为NULL时
-        sub_test.result <- sub_test.list %>%
-          dplyr::filter(Output.Element == time.var)
+        sub_test.result <- sub_test.list[[time.var]]
 
         # Find max absolute log2FoldChange for symmetric x-axis
         max_abs_log2FC <-
-          max(abs(sub_test.result$Log2.Fold.Change), na.rm = TRUE)
+          max(abs(sub_test.result$Coefficient), na.rm = TRUE)
 
         sub_plot.list <- lapply("time", function(time) {
           p <-
-            ggplot(sub_test.result,
-                   aes(
-                     x = Log2.Fold.Change,
-                     y = -log10(get(p_val_var)),
-                     color = -log10(get(p_val_var))
-                   )) +
-            geom_point(aes(shape = get(p_val_var) < feature.sig.level), size = 7) +
-            geom_vline(
-              aes(xintercept = 0),
-              linetype = "dashed",
-              linewidth = 1.5,
-              color = "grey"
-            ) +
-            geom_hline(
-              aes(yintercept = -log10(feature.sig.level)),
-              linetype = "dashed",
-              linewidth = 1.5,
-              color = "grey"
-            ) +
-            geom_text(
-              aes(label = ifelse(
-                get(p_val_var) < feature.sig.level,
-                as.character(Variable),
-                ''
-              )),
-              vjust = -0.5,
-              hjust = 0.5,
-              size = 3.5
-            ) +
+            ggplot(sub_test.result, aes(x = Coefficient, y = -log10(get(p_val_var)),
+                                        color = Prevalence, size = Mean.Abundance)) +
+            geom_point() +
+            geom_vline(aes(xintercept = 0), linetype = "dashed", linewidth = 1.5, color = "grey") +
+            geom_hline(aes(yintercept = -log10(feature.sig.level)), linetype = "dashed", linewidth = 1.5, color = "grey") +
+            geom_text(aes(label = ifelse(get(p_val_var) < feature.sig.level, as.character(Variable), '')),
+                      vjust = -0.5, hjust = 0.5, size = 3.5) +
             scale_shape_manual(values = c(16, 17)) +
-            labs(
-              title = time.var,
-              x = "Log2 Fold Change",
-              y = "-log10(p-value)",
-              shape = "Significant",
-              color = "-log10(p-value)"
-            ) +
-            theme_minimal() +
+            labs(x = "Coefficient", y = "-log10(p-value)", color = "Mean Prevalence", size = "Mean Abundance") +
+            theme_bw() +
             theme(
               plot.title.position = "plot",
-              plot.title = element_text(hjust = 0.5),
+              plot.title = element_text(hjust = 0.5, size = 12),  # 这里的size = 14只是示例，您可以根据需要调整此值
               panel.grid.major = element_line(color = "grey", linetype = "dashed"),
               panel.grid.minor = element_line(color = "grey", linetype = "dotted"),
-              legend.position = "bottom"
+              legend.position = "bottom",
+              legend.text = element_text(size = 12),       # 调整图例文本大小
+              legend.title = element_text(size = 14),      # 调整图例标题大小
+              axis.text = element_text(size = 12),          # 调整轴文本大小
+              axis.title = element_text(size = 14)          # 调整轴标题大小
             ) +
             scale_color_gradientn(colors = color_palette) +
+            scale_size_continuous(range = c(3, 7)) +  # 可以根据您的实际需求调整大小范围
             coord_cartesian(xlim = c(-max_abs_log2FC, max_abs_log2FC))
 
           return(p)
