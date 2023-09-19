@@ -77,7 +77,7 @@
 #'   time.var = NULL,
 #'   t.level = NULL,
 #'   group.var = "group",
-#'   strata.var = NULL,
+#'   strata.var = "sex",
 #'   feature.level = c("Family"),
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
@@ -189,28 +189,22 @@ generate_taxa_dotplot_single <- function(data.obj,
       otu_tax_agg <- load_data_obj_count(data.obj)
     }
 
-    otu_tax_agg <-  otu_tax_agg %>%
-      as.data.frame() %>%
-      mStat_filter(prev.filter = prev.filter,
-                   abund.filter = abund.filter) %>%
-      rownames_to_column(feature.level)
-
     compute_function <- function(top.k.func) {
       if (is.function(top.k.func)) {
         results <-
-          top.k.func(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
+          top.k.func(otu_tax_agg %>% as.matrix())
       } else {
         switch(top.k.func,
                "mean" = {
                  results <-
-                   rowMeans(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
+                   rowMeans(otu_tax_agg %>% as.matrix(),
                             na.rm = TRUE)
                },
                "sd" = {
                  results <-
-                   matrixStats::rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
+                   matrixStats::rowSds(otu_tax_agg %>% as.matrix(),
                           na.rm = TRUE)
-                 names(results) <- rownames(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
+                 names(results) <- rownames(otu_tax_agg %>% as.matrix())
                },
                stop("Invalid function specified"))
       }
@@ -223,36 +217,32 @@ generate_taxa_dotplot_single <- function(data.obj,
       features.plot <- names(sort(compute_function(top.k.func), decreasing = TRUE)[1:top.k.plot])
     }
 
-    # 转换计数为数值类型
-    otu_tax_agg_numeric <-
-      dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
-
-    otu_tab_norm <- otu_tax_agg_numeric %>%
-      dplyr::mutate(!!sym(feature.level) := tidyr::replace_na(!!sym(feature.level), "Unclassified")) %>%
-      column_to_rownames(var = feature.level) %>%
-      as.matrix()
-
-    # 计算每个分组的平均丰度和患病率
-    otu_tab_norm_agg <- otu_tax_agg_numeric %>%
-      tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
-      dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
-      dplyr::group_by(!!sym(group.var),!!sym(feature.level)) %>%
-      dplyr::summarise(prevalence = sum(count > 0) / dplyr::n(),
-                mean_abundance = mean(count)) %>%
-      dplyr::ungroup()
+    otu_tax_agg_filter <-  otu_tax_agg %>%
+      as.data.frame() %>%
+      mStat_filter(prev.filter = prev.filter,
+                   abund.filter = abund.filter) %>%
+      rownames_to_column(feature.level)
 
     # 计算每个分组的平均丰度
-    otu_tab_norm_agg <- otu_tax_agg_numeric %>%
+    otu_tab_norm_agg <- otu_tax_agg_filter %>%
       tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
       dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
       dplyr::group_by(!!sym(group.var),!!sym(feature.level)) %>% # Add time.var to dplyr::group_by
       dplyr::summarise(mean_abundance = sqrt(mean(count)))
 
     # 计算所有样本中的prevalence
-    prevalence_all <- otu_tax_agg_numeric %>%
-      tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
-      dplyr::group_by(!!sym(feature.level)) %>%
-      dplyr::summarise(prevalence = sum(count > 0) / dplyr::n())
+    prevalence_all <- otu_tax_agg_filter %>%
+      column_to_rownames(feature.level) %>%
+      as.matrix() %>%
+      as.table() %>%
+      as.data.frame() %>%
+      dplyr::group_by(Var1) %>%
+      dplyr::summarise(
+        prevalence = sum(Freq > 0) / dplyr::n()
+      ) %>%
+      column_to_rownames("Var1") %>%
+      rownames_to_column(feature.level)
+
 
     # 将两个结果合并
     otu_tab_norm_agg <-
@@ -285,8 +275,6 @@ generate_taxa_dotplot_single <- function(data.obj,
         )
       ) +
       geom_point(aes(group = !!sym(feature.level), fill = mean_abundance), shape = 21, color = "black", position = position_dodge(0.9)) +
-      xlab(feature.level) + # Change x-label to "Time"
-      ylab(group.var) +
       {
         if(feature.dat.type == "other") {
           quantiles <- quantile(otu_tab_norm_agg$mean_abundance, probs = c(0, 0.25, 0.5, 0.75, 1))
@@ -303,7 +291,7 @@ generate_taxa_dotplot_single <- function(data.obj,
       scale_shape_manual(values = c(19, 1)) +
       {
           if (!is.null(strata.var)){
-            ggh4x::facet_nested(rows = vars(!!sym(paste0(group.var,"2")),!!sym(strata.var)), cols = vars(!!sym(feature.level)), scales = "free", switch = "y")
+            ggh4x::facet_nested(rows = vars(!!sym(strata.var), !!sym(paste0(group.var,"2"))), cols = vars(!!sym(feature.level)), scales = "free", switch = "y")
           } else {
             ggh4x::facet_nested(rows = vars(!!sym(group.var)), cols = vars(!!sym(feature.level)), scales = "free", switch = "y")}
       } +
@@ -375,5 +363,8 @@ generate_taxa_dotplot_single <- function(data.obj,
 
     return(dotplot)
   })
+
+  names(plot_list) <- feature.level
+
   return(plot_list)
 }

@@ -454,6 +454,8 @@ generate_taxa_barplot_single <-
       }
 
       stack_barplot_list <- list(stack_barplot_indiv,stack_barplot_average)
+
+      names(stack_barplot_list) <- c("indiv", "average")
       # 返回堆叠条形图以进行显示
       return(stack_barplot_list)
     })

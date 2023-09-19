@@ -327,5 +327,6 @@ generate_beta_ordination_single <-
       return(p)
     })
 
+    names(plot_list) <- dist.name
     return(plot_list)
   }

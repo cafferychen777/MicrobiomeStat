@@ -147,7 +147,6 @@ generate_taxa_boxplot_single <-
            pdf.wid = 11,
            pdf.hei = 8.5,
            ...) {
-
     feature.dat.type <- match.arg(feature.dat.type)
 
     mStat_validate_data(data.obj)
@@ -162,11 +161,15 @@ generate_taxa_boxplot_single <-
       stop("`strata.var` should be a character string or NULL.")
 
     if (!is.null(time.var) & !is.null(t.level)) {
-        condition <- paste(time.var, "== '", t.level, "'", sep = "")
-        data.obj <- mStat_subset_data(data.obj, condition = condition)
+      condition <- paste(time.var, "== '", t.level, "'", sep = "")
+      data.obj <-
+        mStat_subset_data(data.obj, condition = condition)
     }
 
-    meta_tab <- load_data_obj_metadata(data.obj) %>% as.data.frame() %>% select(all_of(c(subject.var,group.var,time.var,strata.var)))
+    meta_tab <-
+      load_data_obj_metadata(data.obj) %>% as.data.frame() %>% select(all_of(c(
+        subject.var, group.var, time.var, strata.var
+      )))
 
     aes_function <- aes(
       x = !!sym(group.var),
@@ -205,8 +208,9 @@ generate_taxa_boxplot_single <-
     # 使用用户自定义主题（如果提供），否则使用默认主题
     theme_to_use <-
       if (!is.null(custom.theme))
-        custom.theme else
-          theme_function
+        custom.theme
+    else
+      theme_function
 
     if (feature.dat.type == "other" || !is.null(features.plot) ||
         (!is.null(top.k.func) && !is.null(top.k.plot))) {
@@ -214,20 +218,22 @@ generate_taxa_boxplot_single <-
       abund.filter <- 0
     }
 
-    if (feature.dat.type == "count"){
+    if (feature.dat.type == "count") {
       message(
         "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
       )
-      data.obj <- mStat_normalize_data(data.obj, method = "Rarefy-TSS")$data.obj.norm
+      data.obj <-
+        mStat_normalize_data(data.obj, method = "Rarefy-TSS")$data.obj.norm
     }
 
     plot_list <- lapply(feature.level, function(feature.level) {
-
-      if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
-        data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
+      if (is.null(data.obj$feature.agg.list[[feature.level]]) &
+          feature.level != "original") {
+        data.obj <-
+          mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
       }
 
-      if (feature.level != "original"){
+      if (feature.level != "original") {
         otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
       } else {
         otu_tax_agg <- load_data_obj_count(data.obj)
@@ -253,8 +259,9 @@ generate_taxa_boxplot_single <-
                  "sd" = {
                    results <-
                      matrixStats::rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
-                            na.rm = TRUE)
-                   names(results) <- rownames(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
+                                         na.rm = TRUE)
+                   names(results) <-
+                     rownames(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
                  },
                  stop("Invalid function specified"))
         }
@@ -264,17 +271,18 @@ generate_taxa_boxplot_single <-
 
       if (is.null(features.plot) &&
           !is.null(top.k.plot) && !is.null(top.k.func)) {
-        features.plot <- names(sort(compute_function(top.k.func), decreasing = TRUE)[1:top.k.plot])
+        features.plot <-
+          names(sort(compute_function(top.k.func), decreasing = TRUE)[1:top.k.plot])
       }
 
       otu_tax_agg_numeric <- otu_tax_agg %>%
-        tidyr::gather(key = "sample", value = "value",-one_of(feature.level)) %>%
+        tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
         dplyr::mutate(value = as.numeric(value))
 
       otu_tax_agg_merged <-
         dplyr::left_join(otu_tax_agg_numeric,
-                  meta_tab %>% rownames_to_column("sample"),
-                  by = "sample") %>%
+                         meta_tab %>% rownames_to_column("sample"),
+                         by = "sample") %>%
         select(one_of(
           c(
             "sample",
@@ -287,7 +295,7 @@ generate_taxa_boxplot_single <-
           )
         ))
 
-      if (feature.dat.type %in% c("count","proportion")){
+      if (feature.dat.type %in% c("count", "proportion")) {
         # Apply transformation
         if (transform %in% c("identity", "sqrt", "log")) {
           if (transform == "identity") {
@@ -331,6 +339,10 @@ generate_taxa_boxplot_single <-
         }
       }
 
+      if (!is.null(group.var)){
+        group.levels <- sub_otu_tax_agg_merged %>% select(!!sym(group.var)) %>% pull() %>% unique() %>% length()
+      }
+
       boxplot <-
         ggplot(sub_otu_tax_agg_merged %>% filter(!!sym(feature.level) %in% features.plot),
                aes_function) +
@@ -348,12 +360,10 @@ generate_taxa_boxplot_single <-
                     size = 1) +
         scale_fill_manual(values = col) +
         {
-          if (feature.dat.type == "other"){
-            labs(
-                 y = "Abundance")
+          if (feature.dat.type == "other") {
+            labs(y = "Abundance")
           } else {
-            labs(
-                 y = paste("Relative Abundance(", transform, ")"))
+            labs(y = paste("Relative Abundance(", transform, ")"))
           }
         } +
         theme_to_use +
@@ -363,7 +373,7 @@ generate_taxa_boxplot_single <-
           strip.text.x = element_text(size = base.size, color = "black"),
           strip.text.y = element_text(size = base.size, color = "black"),
           axis.text = element_text(color = "black"),
-          axis.text.x = element_text(color = "black", size = base.size),
+          axis.text.x =  element_blank(),
           axis.text.y = element_text(color = "black", size = (base.size -
                                                                 2)),
           axis.title.x = element_blank(),
@@ -377,19 +387,18 @@ generate_taxa_boxplot_single <-
       if (!is.null(group.var)) {
         if (is.null(strata.var)) {
           boxplot <-
-            boxplot + ggh4x::facet_nested(as.formula(paste(
+            boxplot + ggh4x::facet_nested_wrap(as.formula(paste(
               "~", feature.level, "+", group.var
-            )), scales = "free")
+            )), scales = "free_x", ncol = group.levels*4)
         } else {
-          boxplot <- boxplot + ggh4x::facet_nested(
-            rows = vars(!!sym(strata.var)),
-            cols = vars(!!sym(feature.level), !!sym(group.var)),
-            scales = "free"
+          boxplot <- boxplot + ggh4x::facet_nested_wrap(
+            as.formula(paste('~', feature.level, '+', strata.var, '+', group.var)),
+            scales = "free_x", ncol = group.levels*4
           )
         }
       }
 
-      if (feature.dat.type != "other"){
+      if (feature.dat.type != "other") {
         # 添加对Y轴刻度的修改
         if (transform == "sqrt") {
           boxplot <- boxplot + scale_y_continuous(
@@ -450,6 +459,8 @@ generate_taxa_boxplot_single <-
       # Close the PDF device
       dev.off()
     }
+
+    names(plot_list) <- feature.level
 
     return(plot_list)
   }

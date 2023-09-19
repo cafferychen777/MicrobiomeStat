@@ -292,5 +292,6 @@ generate_beta_change_boxplot_pair <-
       }
       return(p)
     })
+    names(plot_list) <- dist.name
     return(plot_list)
   }

@@ -105,7 +105,7 @@ generate_alpha_change_test_pair <-
 
     # Convert the alpha.obj list to a data frame
     alpha_df <-
-      dplyr::bind_cols(alpha.obj) %>% dplyr::bind_cols(tibble("sample" = colnames(otu_tab))) %>%
+      dplyr::bind_cols(alpha.obj) %>% rownames_to_column("sample") %>%
       dplyr::inner_join(meta_tab %>% rownames_to_column("sample"),
                  by = c("sample"))
 

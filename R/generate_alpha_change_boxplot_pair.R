@@ -19,11 +19,10 @@
 #'     representing the alpha diversity values at t and t0.
 #'
 #'   - If a string is provided, following options are supported:
-#'     - 'log': Calculate log-ratio of alpha diversity at t vs t0.
-#'     - 'absolute': Calculate absolute difference in alpha diversity at t vs t0.
+#'     - 'lfc': Calculate log2 fold change of alpha diversity at t vs t0.
+#'     - Otherwise, it will calculate the absolute difference in alpha diversity at t vs t0.
 #'
-#'   - Default is 'log', which calculates log2 fold change between t and t0.
-#'
+#'   - Default is the absolute difference between t and t0.
 #' @details This parameter allows flexible quantification of how alpha diversity
 #'   changes from baseline. Log-ratio is commonly used to compare relative
 #'   difference. Absolute difference indicates the magnitude of change.
@@ -88,12 +87,7 @@
 generate_alpha_change_boxplot_pair <-
   function(data.obj,
            alpha.obj = NULL,
-           alpha.name = c("shannon",
-                          "simpson",
-                          "observed_species",
-                          "chao1",
-                          "ace",
-                          "pielou"),
+           alpha.name = c("shannon", "observed_species"),
            depth = NULL,
            subject.var,
            time.var,
@@ -103,7 +97,7 @@ generate_alpha_change_boxplot_pair <-
            change.base = NULL,
            change.func = c("lfc"),
            base.size = 16,
-           theme.choice = "prism",
+           theme.choice = "bw",
            custom.theme = NULL,
            palette = NULL,
            pdf = TRUE,
@@ -130,7 +124,7 @@ generate_alpha_change_boxplot_pair <-
 
     # Convert the alpha.obj list to a data frame
     alpha_df <-
-      dplyr::bind_cols(alpha.obj) %>% dplyr::bind_cols(tibble("sample" = colnames(otu_tab))) %>%
+      dplyr::bind_cols(alpha.obj) %>% rownames_to_column("sample") %>%
       dplyr::inner_join(meta_tab %>% rownames_to_column("sample"),
                  by = c("sample"))
 
@@ -160,7 +154,6 @@ generate_alpha_change_boxplot_pair <-
       diff_col_name <- paste0(index, "_diff")
 
       if (is.function(change.func)) {
-
         combined_alpha <- combined_alpha %>%
           dplyr::mutate(!!diff_col_name := change.func(!!sym(paste0(
             index, "_time_2"
@@ -169,7 +162,6 @@ generate_alpha_change_boxplot_pair <-
           )))) %>%
           select(all_of(diff_col_name))
       } else {
-
         if (change.func == "lfc") {
           combined_alpha <- combined_alpha %>%
             dplyr::mutate(!!sym(diff_col_name) := log(!!sym(paste0(
@@ -404,6 +396,6 @@ generate_alpha_change_boxplot_pair <-
         )
       }
     }
-
+    names(plot_list) <- alpha.name
     return(plot_list)
   }

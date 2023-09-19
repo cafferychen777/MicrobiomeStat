@@ -483,5 +483,6 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
     return(gg_heatmap_plot)
   })
 
+  names(plot_list) <- feature.level
   return(plot_list)
 }

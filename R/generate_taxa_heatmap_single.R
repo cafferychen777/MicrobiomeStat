@@ -213,7 +213,7 @@ generate_taxa_heatmap_single <- function(data.obj,
     # Sort samples by group.var if not NULL
     if (!is.null(group.var) & !is.null(strata.var)) {
       meta_tab_sorted <-
-        meta_tab[order(meta_tab[[group.var]], meta_tab[[strata.var]]), ]
+        meta_tab[order(meta_tab[[strata.var]], meta_tab[[group.var]]), ]
       otu_tab_norm_sorted <-
         otu_tab_norm[, rownames(meta_tab_sorted)]
     } else if (!is.null(group.var) & is.null(strata.var)) {
@@ -224,12 +224,12 @@ generate_taxa_heatmap_single <- function(data.obj,
       otu_tab_norm_sorted <- otu_tab_norm
     }
 
-    # Calculate gaps if group.var is not NULL
-    if (!is.null(group.var)) {
-      if (!is.numeric(meta_tab[[group.var]])) {
-        gaps <-
-          cumsum(table(meta_tab_sorted[[group.var]]))[-length(table(meta_tab_sorted[[group.var]]))]
-      }
+    if (!is.null(strata.var) & !is.numeric(meta_tab[[strata.var]])){
+      gaps <-
+        cumsum(table(meta_tab_sorted[[strata.var]]))[-length(table(meta_tab_sorted[[strata.var]]))]
+    } else if (!is.null(group.var) & !is.numeric(meta_tab[[group.var]])){
+      gaps <-
+        cumsum(table(meta_tab_sorted[[group.var]]))[-length(table(meta_tab_sorted[[group.var]]))]
     } else {
       gaps <- NULL
     }
@@ -237,7 +237,7 @@ generate_taxa_heatmap_single <- function(data.obj,
     # Set up annotation_col based on group.var and strata.var values
     if (!is.null(group.var) & !is.null(strata.var)) {
       annotation_col <-
-        meta_tab %>% select(all_of(c(strata.var, group.var)))
+        meta_tab %>% select(all_of(c(group.var, strata.var)))
     } else if (!is.null(group.var) & is.null(strata.var)) {
       annotation_col <- meta_tab %>% select(all_of(c(group.var)))
     } else {
@@ -313,9 +313,9 @@ generate_taxa_heatmap_single <- function(data.obj,
       cluster_cols = cluster.cols,
       gaps_col = gaps,
       color = my_col(n_colors),
-      # 使用自定义颜色
       fontsize = base.size,
       main = heatmap_title,
+      silent = TRUE,
       ...
     )
 
@@ -365,5 +365,6 @@ generate_taxa_heatmap_single <- function(data.obj,
     return(gg_heatmap_plot)
   })
 
+  names(plot_list) <- feature.level
   return(plot_list)
 }

@@ -193,7 +193,7 @@ generate_beta_ordination_pair <-
 
       p <- ggplot2::ggplot(df, ggplot2::aes(PC1, PC2)) +
         ggplot2::geom_point(
-          size = 15,
+          size = 10,
           aes_function,
           show.legend = T,
           alpha = 0.8
@@ -289,6 +289,6 @@ generate_beta_ordination_pair <-
       }
       return(p)
     })
-
+    names(plot_list) <- dist.name
     return(plot_list)
   }

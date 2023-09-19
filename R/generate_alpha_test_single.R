@@ -28,9 +28,17 @@
 #' generate_alpha_test_single(data.obj = subset_T2D.obj,
 #'                            time.var = "visit_number",
 #'                            t.level = "   4",
-#'                            alpha.name = c("shannon", "simpson"),
+#'                            alpha.name = c("shannon", "observed_species"),
 #'                            group.var = "subject_race",
 #'                            adj.vars = "subject_gender")
+#'
+#' data("peerj32.obj")
+#' generate_alpha_test_single(data.obj = peerj32.obj,
+#'                            time.var = "time",
+#'                            t.level = "1",
+#'                            alpha.name = c("shannon", "observed_species"),
+#'                            group.var = "group",
+#'                            adj.vars = "sex")
 #' }
 #' @export
 generate_alpha_test_single <-
@@ -90,7 +98,7 @@ generate_alpha_test_single <-
         )
 
       # Run ANOVA on the model if group.var is multi-categorical
-      if (length(unique(merged_df[[group.var]])) > 2) {
+      if (length(na.omit(unique(merged_df[[group.var]]))) > 2) {
         anova.tab <- broom::tidy(anova(lm.model))
 
         # Rearrange the table and add missing columns
@@ -105,12 +113,15 @@ generate_alpha_test_single <-
 
         # Reorder the columns to match coef.tab
         anova.tab <- anova.tab %>%
-          select(
+          dplyr::select(
             Term = term,
             Estimate = Estimate,
             Std.Error = Std.Error,
             Statistic = Statistic,
             P.Value = P.Value
+          ) %>%
+          dplyr::filter(
+            Term == group.var
           )
 
         coef.tab <-

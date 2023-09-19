@@ -84,12 +84,7 @@
 #' @export
 generate_alpha_boxplot_long <- function (data.obj,
                                          alpha.obj = NULL,
-                                         alpha.name = c("shannon",
-                                                        "simpson",
-                                                        "observed_species",
-                                                        "chao1",
-                                                        "ace",
-                                                        "pielou"),
+                                         alpha.name = c("shannon", "observed_species"),
                                          depth = NULL,
                                          subject.var,
                                          time.var,

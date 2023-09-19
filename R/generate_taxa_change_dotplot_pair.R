@@ -412,8 +412,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
         # 添加次要网格线
         legend.text = ggplot2::element_text(size = 16),
         legend.title = ggplot2::element_text(size = 16)
-      ) +
-      + guides(color = "none") # Add this line to remove the color legend
+      ) + guides(color = "none") # Add this line to remove the color legend
 
     # Save the stacked dotplot as a PDF file
     if (pdf) {
@@ -456,5 +455,6 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
     return(dotplot)
   })
 
+  names(plot_list) <- feature.level
   return(plot_list)
 }

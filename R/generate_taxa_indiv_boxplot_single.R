@@ -348,7 +348,7 @@ generate_taxa_indiv_boxplot_single <-
             panel.spacing.x = unit(0, "cm"),
             panel.spacing.y = unit(0, "cm"),
             plot.title = element_text(hjust = 0.5, size = 20),
-            strip.text.x = element_text(size = 12, color = "black"),
+            strip.text.x = element_text(size = base.size, color = "black"),
             axis.text = element_text(color = "black"),
             axis.text.x = element_text(color = "black", size = base.size),
             axis.text.y = element_text(color = "black", size = (base.size-2)),
@@ -422,7 +422,10 @@ generate_taxa_indiv_boxplot_single <-
         dev.off()
       }
 
+      names(plot_list) <- taxa.levels
       return(plot_list)
     })
+
+    names(plot_list_all) <- feature.level
     return(plot_list_all)
   }

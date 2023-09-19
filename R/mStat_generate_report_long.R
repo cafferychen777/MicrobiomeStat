@@ -233,18 +233,18 @@ mStat_generate_report_long <- function(data.obj,
                                        strata.var = NULL,
                                        subject.var,
                                        time.var,
-                                       t0.level,
-                                       ts.levels,
+                                       t0.level = NULL,
+                                       ts.levels = NULL,
                                        alpha.obj = NULL,
                                        alpha.name = c("shannon", "observed_species"),
                                        depth = NULL,
                                        dist.obj = NULL,
                                        dist.name = c('BC', 'Jaccard'),
                                        pc.obj = NULL,
-                                       prev.filter = 0,
-                                       abund.filter = 0,
-                                       bar.area.feature.no = 15,
-                                       heatmap.feature.no = 20,
+                                       prev.filter = 0.1,
+                                       abund.filter = 0.0001,
+                                       bar.area.feature.no = 30,
+                                       heatmap.feature.no = 30,
                                        vis.feature.level = NULL,
                                        test.feature.level = NULL,
                                        feature.dat.type = c("count", "proportion", "other"),
@@ -765,13 +765,13 @@ alpha_volatility_test_results <- generate_alpha_volatility_test_long(
 ```{r alpha-volatility-test-results-print, echo=FALSE, message=FALSE, results='asis'}
 
 # Initial description for volatility
-    num_levels <- length(unique(data.obj$meta.dat[[group.var]]))
+num_levels <- length(unique(data.obj$meta.dat[[group.var]]))
 
-    if(num_levels > 2) {
-        cat(sprintf('\n In this analysis, we employed a general linear model followed by ANOVA to test the effect of %s on volatility.\n', group.var))
-    } else {
-        cat(sprintf('\n In this analysis, we utilized a general linear model to examine the influence of the variable %s on volatility.\n', group.var))
-    }
+if(num_levels > 2) {
+    cat(sprintf('\n In this analysis, we employed a general linear model followed by ANOVA to test the effect of %s on volatility.\n', group.var))
+} else {
+    cat(sprintf('\n In this analysis, we utilized a general linear model to examine the influence of the variable %s on volatility.\n', group.var))
+}
 
 cat('The alpha diversity volatility is calculated by averaging the rate of change in alpha diversity across consecutive time points. Specifically, for each pair of adjacent time points, we compute the difference in alpha diversity, normalize it by the time difference, and then take the average over all such pairs.\n\n')
 
@@ -779,22 +779,22 @@ cat('The alpha diversity volatility is calculated by averaging the rate of chang
 report_volatility_significance <- function(data_frame, group.var) {
 
   # Extracting terms excluding ANOVA and intercept
-terms <- grep(group.var, data_frame$Term, value = TRUE)
-terms <- terms[!terms %in% c('(Intercept)', 'Residuals', group.var)]
+  terms <- grep(group.var, data_frame$Term, value = TRUE)
+  terms <- terms[!terms %in% c('(Intercept)', 'Residuals', group.var)]
 
-for(term in terms) {
-    p_val <- data_frame[data_frame$Term == term,]$P.Value
+  for(term in terms) {
+      p_val <- data_frame[data_frame$Term == term,]$P.Value
 
-    # Extract only the level part from the term by removing the group.var prefix and underscore
-    level <- sub(group.var, '', term)
+      # Extract only the level part from the term by removing the group.var prefix and underscore
+      level <- sub(group.var, '', term)
 
-    # Describing significance based on lm model
-    if(p_val < 0.05) {
-      cat(sprintf('\n Based on the general linear model, the level %s of the variable %s significantly differs from level %s, with a p-value of %.3f. ', level, group.var, reference_level, p_val))
-    } else {
-      cat(sprintf('\n Based on the general linear model, the level %s of the variable %s did not significantly differ from level %s, with a p-value of %.3f. ', level, group.var, reference_level, p_val))
-    }
-}
+      # Describing significance based on lm model
+      if(p_val < 0.05) {
+          cat(sprintf('\n Based on the general linear model, the level %s of the variable %s significantly differs from level %s, with a p-value of %.3f. ', level, group.var, reference_level, p_val))
+      } else {
+          cat(sprintf('\n Based on the general linear model, the level %s of the variable %s did not significantly differ from level %s, with a p-value of %.3f. ', level, group.var, reference_level, p_val))
+      }
+  }
 
   # Reporting significance for ANOVA
   p_val_anova <- data_frame[data_frame$Term == group.var,]$P.Value
@@ -1564,6 +1564,7 @@ rmd_code <- knitr::knit_expand(
   feature.analysis.rarafy = feature.analysis.rarafy,
   feature.change.func = feature.change.func,
   bar.area.feature.no = bar.area.feature.no,
+  heatmap.feature.no = heatmap.feature.no,
   vis.feature.level = vis.feature.level,
   test.feature.level = test.feature.level,
   feature.mt.method = feature.mt.method,
@@ -1591,8 +1592,6 @@ setwd(working_directory)
 
 # 获取当前工作目录
 original_wd <- getwd()
-
-print(original_wd)
 
 report_file <-
   rmarkdown::render(input = rmd_file,

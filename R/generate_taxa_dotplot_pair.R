@@ -359,5 +359,7 @@ generate_taxa_dotplot_pair <- function(data.obj,
 
     return(dotplot)
   })
+
+  names(plot_list) <- feature.level
   return(plot_list)
 }

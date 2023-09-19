@@ -61,30 +61,18 @@
 #' @examples
 #' \dontrun{
 #' data(peerj32.obj)
-#' generate_taxa_test_single(
+#' test.list <- generate_taxa_test_single(
 #'     data.obj = peerj32.obj,
 #'     time.var = "time",
-#'     t.level = "1",
+#'     t.level = "2",
 #'     group.var = "group",
 #'     adj.vars = "sex",
 #'     feature.dat.type = "count",
-#'     feature.level = "Genus",
-#'     prev.filter = 0,
-#'     abund.filter = 0,
-#'     is.winsor = TRUE,
-#'     outlier.pct = 0.001,
-#'     winsor.end = 'top',
-#'     is.post.sample = TRUE,
-#'     post.sample.no = 25,
-#'     list(function (x) x^0.5, function (x) x^0.25),
-#'     stats.combine.func = max,
-#'     perm.no = 99,
-#'     strata = NULL,
-#'     ref.pct = 0.5,
-#'     stage.no = 6,
-#'     excl.pct = 0.2,
-#'     is.fwer = TRUE,
-#'     verbose = TRUE
+#'     feature.level = c("Phylum","Genus","Family"),
+#'     prev.filter = 0.1,
+#'     abund.filter = 0.0001,
+#'     feature.sig.level = 0.1,
+#'     feature.mt.method = "none"
 #' )
 #' }
 #' @export
@@ -97,6 +85,8 @@ generate_taxa_test_single <- function(data.obj,
                                       abund.filter = 0,
                                       feature.level,
                                       feature.dat.type = c("count", "proportion", "other"),
+                                      feature.sig.level = 0.1,
+                                      feature.mt.method = "fdr",
                                       ...) {
   # Extract data
   mStat_validate_data(data.obj)
@@ -113,19 +103,28 @@ generate_taxa_test_single <- function(data.obj,
       time.var, group.var, adj.vars
     )))
 
+  # 初始化formula为group.var
+  formula <- group.var
+
+  # 如果adj.vars不为空，则将其添加到formula中
+  if (!is.null(adj.vars)) {
+    adj.vars_string <- paste(adj.vars, collapse = " + ")
+    formula <- paste(formula, "+", adj.vars_string)
+  }
+
   if (feature.dat.type == "other") {
     prev.filter <- 0
     abund.filter <- 0
   }
 
-  test.list <- lapply(feature.level, function(feature.level) {
+  if (feature.dat.type == "count"){
+    message(
+      "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
+    )
+    data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
+  }
 
-    if (feature.dat.type == "count"){
-      message(
-        "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
-      )
-      data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
-    }
+  test.list <- lapply(feature.level, function(feature.level) {
 
     if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
       data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
@@ -137,133 +136,210 @@ generate_taxa_test_single <- function(data.obj,
       otu_tax_agg <- load_data_obj_count(data.obj)
     }
 
-    otu_tax_agg <-  otu_tax_agg %>%
+    otu_tax_agg_filter <-  otu_tax_agg %>%
       as.data.frame() %>%
       mStat_filter(prev.filter = prev.filter,
                    abund.filter = abund.filter)
 
-    # Remove rows that are all zeros
-    otu_tax_agg <-
-      otu_tax_agg[rowSums(otu_tax_agg != 0) > 0,]
-
-    # Run ZicoSeq
-    zico.obj <- GUniFrac::ZicoSeq(
+    linda.obj <- linda(
+      feature.dat = otu_tax_agg_filter,
       meta.dat = meta_tab,
-      feature.dat = otu_tax_agg %>% as.matrix(),
-      grp.name = group.var,
-      adj.name = adj.vars,
-      feature.dat.type = "other",
+      formula = paste("~", formula),
+      feature.dat.type = "proportion",
       prev.filter = prev.filter,
-      max.abund.filter = abund.filter,
+      mean.abund.filter = abund.filter,
       ...
     )
 
-    # Extract relevant information
-    significant_taxa <- names(which(zico.obj$p.adj.fdr <= 1))
+    if (!is.null(group.var)){
+      reference_level <- levels(as.factor(meta_tab[,group.var]))[1]
+    }
 
-    # Initialize results table
-    results <- data.frame()
-
-    prop_prev_data <- tidyr::gather(
+    # 计算每个分组的平均丰度
+    prop_prev_data <-
       otu_tax_agg %>%
-        as.data.frame() %>% rownames_to_column(feature.level),
-      key = "sample",
-      value = "count",-feature.level
-    )  %>%
-      dplyr::left_join(data.obj$meta.dat %>% select(all_of(c(
-        group.var, adj.vars
-      ))) %>%
-        rownames_to_column("sample"),
-      by = "sample") %>%
-      dplyr::group_by_at(vars(!!sym(feature.level),!!sym(group.var))) %>%
+      as.matrix() %>%
+      as.table() %>%
+      as.data.frame() %>%
+      dplyr::group_by(Var1) %>%  # Var1是taxa
       dplyr::summarise(
-        mean_proportion = mean(count),
-        sdev_count = sd(count),
-        prevalence = sum(count > 0) / dplyr::n(),
-        sdev_prevalence = sd(ifelse(count > 0, 1, 0))
-      )
+        avg_abundance = mean(Freq),
+        prevalence = sum(Freq > 0) / dplyr::n()
+      ) %>% column_to_rownames("Var1") %>%
+      rownames_to_column(feature.level)
 
-    is_categorical <- function(x) {
-      if (is.factor(x) || is.character(x) || is.logical(x)) {
-        return(TRUE)
-      } else if (is.numeric(x) &&
-                 length(unique(x)) < 10) {
-        # 这里的10你可以根据需要调整
-        return(TRUE)
-      } else {
-        return(FALSE)
-      }
-    }
+    extract_data_frames <- function(linda_object, group_var = NULL) {
 
-    for (taxa in significant_taxa) {
-      R.Squared <- zico.obj$R2[taxa, 1]
-      F.Statistic <- zico.obj$F0[taxa, 1]
+      # 初始化一个空的list来存储提取的数据框
+      result_list <- list()
 
-      Estimate <-
-        zico.obj$coef.list[[1]][startsWith(rownames(zico.obj$coef.list[[1]]), group.var), taxa]  # 选择 group.var 的估计值
+        # 获取所有匹配的数据框名
+        matching_dfs <- grep(paste0(group_var), names(linda_object$output), value = TRUE)
 
-      P.Value <- zico.obj$p.raw[taxa]
-      Adjusted.P.Value <- zico.obj$p.adj.fdr[taxa]
+        # 循环遍历所有匹配的数据框名并提取它们
+        for (df_name in matching_dfs) {
+          # 从数据框名中提取组值
+          group_prefix <- paste0(group_var)
 
-      # 检查group.var是不是因子
-      if (is_categorical(data.obj$meta.dat[[group.var]])) {
-        for (group in unique(data.obj$meta.dat[[group.var]])) {
-          group_data <-
-            prop_prev_data[Matrix::which(prop_prev_data[[feature.level]] == taxa &
-                                   prop_prev_data[[group.var]] == group),]
-          mean_prop <- group_data$mean_proportion
-          mean_prev <- group_data$prevalence
-          sd_abundance <- group_data$sdev_count
-          sd_prevalence <- group_data$sdev_prevalence
+          # 提取group_prefix后面的内容，并在":"之前停止
+          group_value <- unlist(strsplit(df_name, split = ":"))[1]
+          group_value <- gsub(pattern = group_prefix, replacement = "", x = group_value)
 
-          results <- rbind(
-            results,
-            data.frame(
-              Variable = taxa,
-              Group = group,
-              R.Squared = R.Squared,
-              F.Statistic = F.Statistic,
-              Estimate = toString(Estimate),
-              P.Value = P.Value,
-              Adjusted.P.Value = Adjusted.P.Value,
-              Mean.Proportion = mean_prop,
-              Mean.Prevalence = mean_prev,
-              SD.Abundance = sd_abundance,
-              SD.Prevalence = sd_prevalence
-            )
-          )
+          # 将数据框添加到结果列表中
+          result_list[[paste0(group_value," vs ", reference_level, " (Reference)")]] <- linda_object$output[[df_name]]
         }
-      } else {
-        total_data <-
-          prop_prev_data[which(prop_prev_data[[feature.level]] == taxa),]
-        mean_prop <- total_data$mean_proportion
-        mean_prev <- total_data$prevalence
-        sd_abundance <- total_data$sdev_count
-        sd_prevalence <- total_data$sdev_prevalence
 
-        results <- rbind(
-          results,
-          data.frame(
-            Variable = taxa,
-            R.Squared = R.Squared,
-            F.Statistic = F.Statistic,
-            Estimate = toString(Estimate),
-            P.Value = P.Value,
-            Adjusted.P.Value = Adjusted.P.Value,
-            Mean.Proportion = mean_prop,
-            Mean.Prevalence = mean_prev,
-            SD.Abundance = sd_abundance,
-            SD.Prevalence = sd_prevalence
-          )
-        )
-      }
+      return(result_list)
     }
-    return(as_tibble(results))
+
+    # 使用函数提取数据框
+    sub_test.list <- extract_data_frames(linda_object = linda.obj, group_var = group.var)
+
+    sub_test.list <- lapply(sub_test.list, function(df){
+      df <- df %>%
+        rownames_to_column(feature.level) %>%
+        dplyr::left_join(prop_prev_data, by = feature.level) %>%
+        dplyr::select(all_of(all_of(c(feature.level,"log2FoldChange","lfcSE","pvalue","padj","avg_abundance","prevalence")))) %>%
+        dplyr::rename(Variable = feature.level,
+                      Coefficient = log2FoldChange,
+                      SE = lfcSE,
+                      P.Value = pvalue,
+                      Adjusted.P.Value = padj,
+                      Mean.Abundance = avg_abundance,
+                      Prevalence = prevalence)
+
+      return(df)
+    })
+
+    return(sub_test.list)
   })
 
   # Assign names to the elements of test.list
   names(test.list) <- feature.level
 
+  # plot.list <-
+  #   generate_taxa_trend_volcano_long(
+  #     data.obj = data.obj,
+  #     group.var = group.var,
+  #     test.list = test.list,
+  #     feature.sig.level = feature.sig.level,
+  #     feature.mt.method = feature.mt.method
+  #   )
+  #
+  # print(plot.list)
+
   # Return the results table
   return(test.list)
 }
+
+#' Generate volcano plots for taxa differential test for a single time point
+#'
+#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
+#' @param group.var The grouping variable tested, found in metadata
+#' @param time.var The time variable used in the analysis
+#' @param test.list The list of test results returned by generate_taxa_trend_test_long
+#' @param feature.sig.level The significance level cutoff for highlighting taxa
+#' @param feature.mt.method Multiple testing correction method, "fdr" or "none"
+#'
+#' @return A list of ggplot objects of volcano plots for each taxonomic level
+#'
+#' @examples
+#' data(peerj32.obj)
+#' test.list <- generate_taxa_test_single(
+#'     data.obj = peerj32.obj,
+#'     time.var = "time",
+#'     t.level = "2",
+#'     group.var = "group",
+#'     adj.vars = "sex",
+#'     feature.dat.type = "count",
+#'     feature.level = c("Phylum","Genus","Family"),
+#'     prev.filter = 0.1,
+#'     abund.filter = 0.0001,
+#'     feature.sig.level = 0.1,
+#'     feature.mt.method = "none"
+#' )
+#'    volcano_plots <- generate_taxa_volcano_single(data.obj = peerj32.obj,
+#'                                                  group.var = "group",
+#'                                                  test.list = test.list,
+#'                                                  feature.sig.level = 0.05,
+#'                                                  feature.mt.method = "fdr")
+#'
+#' @importFrom dplyr distinct pull
+#' @export
+generate_taxa_volcano_single <-
+  function(data.obj,
+           group.var = NULL,
+           test.list,
+           feature.sig.level = 0.1,
+           feature.mt.method = "fdr") {
+    meta_tab <- load_data_obj_metadata(data.obj) %>%
+      dplyr::select(all_of(c(group.var))) %>% rownames_to_column("sample")
+
+    # Define the custom color palette
+    color_palette <- c("#2A9D8F", "#F9F871", "#F4A261", "#FF6347")
+
+    feature.level <- names(test.list)
+
+    # 使用条件表达式设置要使用的p值变量
+    p_val_var <-
+      ifelse(feature.mt.method == "fdr",
+             "Adjusted.P.Value",
+             "P.Value")
+
+    plot.list <- lapply(feature.level, function(feature.level) {
+      sub_test.list <- test.list[[feature.level]]
+
+        group_level <-
+          meta_tab %>% select(all_of(c(group.var))) %>% pull() %>% as.factor() %>% levels
+
+        reference_level <- group_level[1]
+
+        sub_plot.list <-
+          lapply(names(sub_test.list), function(group.level) {
+
+            sub_test.result <- sub_test.list[[group.level]]
+
+            # Find max absolute log2FoldChange for symmetric x-axis
+            max_abs_log2FC <-
+              max(abs(sub_test.result$Coefficient), na.rm = TRUE)
+
+            p <-
+              ggplot(sub_test.result, aes(x = Coefficient, y = -log10(get(p_val_var)),
+                                          color = Prevalence, size = Mean.Abundance)) +
+              geom_point() +
+              geom_vline(aes(xintercept = 0), linetype = "dashed", linewidth = 1.5, color = "grey") +
+              geom_hline(aes(yintercept = -log10(feature.sig.level)), linetype = "dashed", linewidth = 1.5, color = "grey") +
+              geom_text(aes(label = ifelse(get(p_val_var) < feature.sig.level, as.character(Variable), '')),
+                        vjust = -0.5, hjust = 0.5, size = 3.5) +
+              scale_shape_manual(values = c(16, 17)) +
+              labs(title = group.level, x = "Coefficient", y = "-log10(p-value)", color = "Prevalence", size = "Mean Abundance") +
+              theme_bw() +
+              theme(
+                plot.title.position = "plot",
+                plot.title = element_text(hjust = 0.5, size = 12),
+                panel.grid.major = element_line(color = "grey", linetype = "dashed"),
+                panel.grid.minor = element_line(color = "grey", linetype = "dotted"),
+                legend.position = "bottom",
+                legend.text = element_text(size = 12),       # 调整图例文本大小
+                legend.title = element_text(size = 14),      # 调整图例标题大小
+                axis.text = element_text(size = 12),          # 调整轴文本大小
+                axis.title = element_text(size = 14)          # 调整轴标题大小
+              ) +
+              scale_color_gradientn(colors = color_palette) +
+              scale_size_continuous(range = c(3, 7)) +
+              coord_cartesian(xlim = c(-max_abs_log2FC, max_abs_log2FC))
+
+            return(p)
+          })
+
+        names(sub_plot.list) <-
+          names(sub_test.list)
+
+      return(sub_plot.list)
+    })
+
+
+    names(plot.list) <- feature.level
+    return(plot.list)
+  }
+
