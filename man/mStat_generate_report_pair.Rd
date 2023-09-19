@@ -6,30 +6,41 @@
 \usage{
 mStat_generate_report_pair(
   data.obj,
-  dist.obj = NULL,
-  alpha.obj = NULL,
-  group.var,
-  adj.vars,
+  group.var = NULL,
+  strata.var = NULL,
+  test.adj.vars = NULL,
+  vis.adj.vars = NULL,
   subject.var,
   time.var,
-  alpha.name = c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou"),
-  dist.name = c("BC", "Jaccard", "UniFrac", "GUniFrac", "WUniFrac", "JS"),
   change.base,
-  change.func,
-  strata.var = NULL,
+  alpha.obj = NULL,
+  alpha.name = c("shannon", "observed_species"),
+  alpha.change.func = "lfc",
+  depth = NULL,
+  dist.obj = NULL,
+  dist.name = c("BC", "Jaccard"),
+  pc.obj = NULL,
+  prev.filter = 0.1,
+  abund.filter = 1e-04,
+  bar.area.feature.no = 30,
+  heatmap.feature.no = 30,
+  dotplot.feature.no = 30,
+  vis.feature.level,
+  test.feature.level,
+  feature.dat.type = c("count", "proportion", "other"),
+  feature.analysis.rarafy = TRUE,
+  feature.change.func = "lfc",
+  feature.mt.method = c("fdr"),
+  feature.sig.level = 0.1,
+  feature.box.axis.transform = c("sqrt"),
   base.size = 16,
-  theme.choice = "prism",
+  theme.choice = "bw",
   custom.theme = NULL,
   palette = NULL,
   pdf = TRUE,
   file.ann = NULL,
   pdf.wid = 11,
   pdf.hei = 8.5,
-  prev.filter = 0,
-  abund.filter = 0,
-  feature.level = NULL,
-  features.plot = NULL,
-  feature.dat.type = c("count", "proportion", "other"),
   output.file,
   ...
 )
@@ -37,30 +48,108 @@ mStat_generate_report_pair(
 \arguments{
 \item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
 
+\item{group.var}{Variable name used for grouping samples.}
+
+\item{strata.var}{Character, column name in metadata containing stratification variable, e.g "sex". Optional.}
+
+\item{test.adj.vars}{Character vector, names of columns in the metadata containing covariates to be adjusted for in statistical tests and models, such as linear mixed effects models for longitudinal data analysis. This allows the user to account for the effects of additional variables in assessing the effects of primary variables of interest such as time and groups. Default is NULL, which indicates no covariates are adjusted for in statistical testing.}
+
+\item{vis.adj.vars}{Character vector, names of columns in the metadata containing covariates to visualize in plots, in addition to the primary variables of interest such as groups. For example, if sex is provided in vis.adj.vars, plots will display facets or colors for different sex groups. This allows visualization of effects across multiple covariates. Default is NULL, which indicates only the primary variables of interest will be visualized without additional covariates.}
+
+\item{subject.var}{Variable name used for subject identification.}
+
+\item{time.var}{Character, column name in metadata containing time variable, e.g. "week". Required.}
+
+\item{change.base}{The base level for calculating changes in paired data.}
+
+\item{alpha.obj}{An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.}
+
+\item{alpha.name}{Names of alpha diversity indices to include in the analysis.}
+
+\item{alpha.change.func}{Function or method for calculating change in alpha diversity
+  between two timepoints. This allows flexible options to quantify change:
+
+  - If a function is provided, it will be applied to compare alpha diversity
+    at timepoint t vs baseline t0. The function should take two arguments
+    representing the alpha diversity values at t and t0.
+
+  - If a string is provided, following options are supported:
+    - 'lfc': Calculate log2 fold change of alpha diversity at t vs t0.
+    - Otherwise, it will calculate the absolute difference in alpha diversity at t vs t0.
+
+  - Default is the absolute difference between t and t0.}
+
+\item{depth}{An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.}
+
 \item{dist.obj}{Distance matrix between samples, usually calculated using
 \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
 If NULL, beta diversity will be automatically computed from \code{data.obj}
 using \code{mStat_calculate_beta_diversity}.}
 
-\item{alpha.obj}{An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.}
+\item{dist.name}{A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').}
 
-\item{group.var}{Variable name used for grouping samples.}
+\item{pc.obj}{A list containing the results of dimension reduction/Principal Component Analysis.
+This should be the output from functions like \code{\link[MicrobiomeStat]{mStat_calculate_PC}}, containing the PC coordinates and other metadata.
+If NULL (default), dimension reduction will be automatically performed using metric multidimensional scaling (MDS) via \code{\link[MicrobiomeStat]{mStat_calculate_PC}}.
+The pc.obj list structure should contain:
+\itemize{
+ \item{$points:}{A matrix with samples as rows and PCs as columns containing the coordinates.}
+ \item{$eig:}{Eigenvalues for each PC dimension.}
+ \item{$vectors:}{Loadings vectors for features onto each PC.}
+ \item{Other metadata like $method, $dist.name, etc.}
+}
+See \code{\link[MicrobiomeStat]{mStat_calculate_PC}} function for details on output format.}
 
-\item{adj.vars}{Variables to adjust for in the analysis.}
+\item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
+taxa before analysis. Taxa with prevalence below this value will be removed.
+Prevalence is calculated as the proportion of samples where the taxon is present.
+Default 0 removes no taxa by prevalence filtering.}
 
-\item{subject.var}{Variable name used for subject identification.}
+\item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering
+taxa before analysis. Taxa with mean abundance below this value will be removed.
+Abundance refers to counts or proportions depending on \code{feature.dat.type}.
+Default 0 removes no taxa by abundance filtering.}
 
-\item{time.var}{Variable name used for time points in paired data.}
+\item{bar.area.feature.no}{A numeric value indicating the number of top abundant features to retain in both barplot and areaplot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 40.}
 
-\item{alpha.name}{Names of alpha diversity indices to include in the analysis.}
+\item{heatmap.feature.no}{A numeric value indicating the number of top abundant features to retain in the heatmap. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 40.}
 
-\item{dist.name}{Names of beta diversity distance metrics to include in the analysis.}
+\item{dotplot.feature.no}{A numeric value indicating the number of top abundant features to retain in the dotplot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 40.}
 
-\item{change.base}{The base level for calculating changes in paired data.}
+\item{vis.feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
+to use for visualization and plotting. This can be the taxonomic level like "Phylum", or any other
+annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
+column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
+for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
+is also NULL.}
 
-\item{change.func}{The function for calculating changes in paired data.}
+\item{test.feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
+to use for testing or analytical purposes. This can be the taxonomic level like "Phylum", or any other
+annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
+column names in feature.ann. Multiple columns can be provided, and data will be analyzed separately
+for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
+is also NULL.}
 
-\item{strata.var}{Variable to stratify the analysis by (optional).}
+\item{feature.dat.type}{The type of the feature data, which determines how the data is handled in downstream analyses.
+Should be one of:
+- "count": Raw count data, will be normalized by the function.
+- "proportion": Data that has already been normalized to proportions/percentages.
+- "other": Custom abundance data that has unknown scaling. No normalization applied.
+The choice affects preprocessing steps as well as plot axis labels.
+Default is "count", which assumes raw OTU table input.}
+
+\item{feature.change.func}{A function or character string specifying how to calculate
+the change from baseline value. This allows flexible options:
+- If a function is provided, it will be applied to each row to calculate change.
+  The function should take 2 arguments: value at timepoint t and value at baseline t0.
+- If a character string is provided, following options are supported:
+  - 'relative change': (value_t - value_t0) / (value_t + value_t0)
+  - 'difference': value_t - value_t0
+  - 'lfc': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
+- Default is 'relative change'.
+
+If none of the above options are matched, an error will be thrown indicating
+the acceptable options or prompting the user to provide a custom function.}
 
 \item{base.size}{Base font size for the generated plots.}
 
@@ -92,26 +181,7 @@ Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the defa
 
 \item{pdf.hei}{Height of the PDF plots.}
 
-\item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
-taxa before analysis. Taxa with prevalence below this value will be removed.
-Prevalence is calculated as the proportion of samples where the taxon is present.
-Default 0 removes no taxa by prevalence filtering.}
-
-\item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering
-taxa before analysis. Taxa with mean abundance below this value will be removed.
-Abundance refers to counts or proportions depending on \code{feature.dat.type}.
-Default 0 removes no taxa by abundance filtering.}
-
-\item{feature.level}{Taxonomic level for feature analysis.}
-
-\item{features.plot}{A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
-Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.}
-
-\item{feature.dat.type}{Data type for feature analysis (count, proportion, or other).}
-
 \item{output.file}{Output file name for the report.}
-
-\item{...}{Additional arguments passed to internal functions.}
 }
 \value{
 A report file containing the microbial ecology analysis results for paired data.
@@ -123,11 +193,6 @@ The function is specifically designed for analysis of paired data.
 }
 \examples{
 \dontrun{
-library(GUniFrac)
-library(pheatmap)
-library(vegan)
-library(ggh4x)
-
 
 data(peerj32.obj)
 
@@ -139,19 +204,21 @@ mStat_generate_report_pair(
   dist.obj = NULL,
   alpha.obj = NULL,
   group.var = "group",
-  adj.vars = c("sex"),
+  test.adj.vars = c("sex"),
+  vis.adj.vars = c("sex"),
   subject.var = "subject",
   time.var = "time",
-  alpha.name = c("shannon","simpson"),
+  alpha.name = c("shannon", "observed_species"),
   dist.name = c("BC",'Jaccard'),
   change.base = "1",
-  change.func = "relative change",
+  feature.change.func = "relative change",
   strata.var = "sex",
-  feature.level = c("Phylum","Family"),
+  vis.feature.level = c("Phylum","Family","Genus"),
+  test.feature.level = c("Family"),
   feature.dat.type = "count",
   theme.choice = "bw",
-  base.size = 12,
-  output.file = "mStat_generate_report_pair_example.pdf"
+  base.size = 20,
+  output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/报告/mStat_generate_report_pair_example.pdf"
 )
 }
 }

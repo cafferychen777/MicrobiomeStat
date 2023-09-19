@@ -116,7 +116,7 @@ data(ecam.obj)
 generate_taxa_barplot_long(
   data.obj = ecam.obj,
   subject.var = "studyid",
-  time.var = "month",
+  time.var = "month_num",
   group.var = "delivery",
   strata.var = "diet",
   feature.level = "Family",

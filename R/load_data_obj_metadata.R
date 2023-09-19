@@ -17,7 +17,7 @@
 #' If it finds a single match, it returns the associated data.
 #' If it doesn't find a match, it performs a fuzzy search using a set of search words.
 #' If it finds a match, it returns the associated data. If it doesn't find a match, it displays a message and returns NULL.
-#'
+#' @name load_data_obj_metadata
 #' @author Chen Yang
 #' @seealso \code{\link[base]{intersect}}, \code{\link[base]{grep}}
 #' @keywords internal

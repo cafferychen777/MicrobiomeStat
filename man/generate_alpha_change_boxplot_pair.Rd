@@ -7,7 +7,7 @@
 generate_alpha_change_boxplot_pair(
   data.obj,
   alpha.obj = NULL,
-  alpha.name = c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou"),
+  alpha.name = c("shannon", "observed_species"),
   depth = NULL,
   subject.var,
   time.var,
@@ -17,7 +17,7 @@ generate_alpha_change_boxplot_pair(
   change.base = NULL,
   change.func = c("lfc"),
   base.size = 16,
-  theme.choice = "prism",
+  theme.choice = "bw",
   custom.theme = NULL,
   palette = NULL,
   pdf = TRUE,
@@ -56,10 +56,10 @@ generate_alpha_change_boxplot_pair(
     representing the alpha diversity values at t and t0.
 
   - If a string is provided, following options are supported:
-    - 'log': Calculate log-ratio of alpha diversity at t vs t0.
-    - 'absolute': Calculate absolute difference in alpha diversity at t vs t0.
+    - 'lfc': Calculate log2 fold change of alpha diversity at t vs t0.
+    - Otherwise, it will calculate the absolute difference in alpha diversity at t vs t0.
 
-  - Default is 'log', which calculates log2 fold change between t and t0.}
+  - Default is the absolute difference between t and t0.}
 
 \item{base.size}{The base font size for the plot.}
 

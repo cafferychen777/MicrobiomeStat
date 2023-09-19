@@ -61,13 +61,11 @@ and the group variable.
 \examples{
 \dontrun{
 data("subset_T2D.obj")
-subset_T2D.obj2 <- subset_T2D.obj
-subset_T2D.obj2$meta.dat$visit_number <- as.numeric(subset_T2D.obj2$meta.dat$visit_number)
 generate_alpha_volatility_test_long(
-data.obj = subset_T2D.obj2,
+data.obj = subset_T2D.obj,
 alpha.obj = NULL,
 alpha.name = c("shannon","simpson"),
-time.var = "visit_number",
+time.var = "visit_number_num",
 subject.var = "subject_id",
 group.var = "subject_race",
 adj.vars = "sample_body_site"

@@ -98,13 +98,14 @@ generate_taxa_volatility_test_long(
 data.obj = subset_T2D.obj,
 time.var = "visit_number",
 subject.var = "subject_id",
-group.var = "subject_gender",
-adj.vars = NULL,
+group.var = "subject_race",
+adj.vars = "sample_body_site",
 prev.filter = 0.1,
 abund.filter = 0.0001,
 feature.mt.method = "fdr",
 feature.sig.level = 0.1,
-feature.level = c("original"),
-feature.dat.type = "count"
+feature.level = c("Genus", "Family", "Species"),
+feature.dat.type = "count",
+transform = "CLR"
 )
 }

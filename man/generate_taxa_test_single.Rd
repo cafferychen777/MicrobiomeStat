@@ -14,6 +14,8 @@ generate_taxa_test_single(
   abund.filter = 0,
   feature.level,
   feature.dat.type = c("count", "proportion", "other"),
+  feature.sig.level = 0.1,
+  feature.mt.method = "fdr",
   ...
 )
 }
@@ -90,30 +92,18 @@ supported. Customizable taxonomic aggregation allows testing at different levels
 \examples{
 \dontrun{
 data(peerj32.obj)
-generate_taxa_test_single(
+test.list <- generate_taxa_test_single(
     data.obj = peerj32.obj,
     time.var = "time",
-    t.level = "1",
+    t.level = "2",
     group.var = "group",
     adj.vars = "sex",
     feature.dat.type = "count",
-    feature.level = "Genus",
-    prev.filter = 0,
-    abund.filter = 0,
-    is.winsor = TRUE,
-    outlier.pct = 0.001,
-    winsor.end = 'top',
-    is.post.sample = TRUE,
-    post.sample.no = 25,
-    list(function (x) x^0.5, function (x) x^0.25),
-    stats.combine.func = max,
-    perm.no = 99,
-    strata = NULL,
-    ref.pct = 0.5,
-    stage.no = 6,
-    excl.pct = 0.2,
-    is.fwer = TRUE,
-    verbose = TRUE
+    feature.level = c("Phylum","Genus","Family"),
+    prev.filter = 0.1,
+    abund.filter = 0.0001,
+    feature.sig.level = 0.1,
+    feature.mt.method = "none"
 )
 }
 }

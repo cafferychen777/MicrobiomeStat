@@ -114,12 +114,12 @@ data("subset_T2D.obj")
 generate_taxa_trend_test_long(
   data.obj = subset_T2D.obj,
   subject.var = "subject_id",
-  time.var = "visit_number",
+  time.var = "visit_number_num",
   group.var = "subject_race",
   adj.vars = "sample_body_site",
   prev.filter = 0.1,
   abund.filter = 0.001,
-  feature.level = "Genus",
+  feature.level = c("Genus","Family"),
   feature.dat.type = c("count")
 )
 }

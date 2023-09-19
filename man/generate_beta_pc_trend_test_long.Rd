@@ -93,8 +93,8 @@ Mixed effects models are fitted with lmer() and coefficients extracted.
 \examples{
 \dontrun{
 library(vegan)
-  data(ecam.obj)
-  generate_beta_pc_trend_test_long(
+data("ecam.obj")
+generate_beta_pc_trend_test_long(
   data.obj = ecam.obj,
   dist.obj = NULL,
   pc.obj = NULL,
@@ -103,6 +103,19 @@ library(vegan)
   time.var = "month",
   group.var = "diet",
   adj.vars = "delivery",
+  dist.name = c('BC')
+)
+
+data("subset_T2D.obj")
+generate_beta_pc_trend_test_long(
+  data.obj = subset_T2D.obj,
+  dist.obj = NULL,
+  pc.obj = NULL,
+  pc.ind = c(1, 2),
+  subject.var = "subject_id",
+  time.var = "visit_number_num",
+  group.var = "subject_race",
+  adj.vars = "subject_gender",
   dist.name = c('BC')
 )
 }

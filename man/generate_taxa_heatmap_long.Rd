@@ -109,7 +109,7 @@ generate_taxa_heatmap_long(
   ts.levels = NULL,
   group.var = "delivery",
   strata.var = "diet",
-  feature.level = c("Family","Phylum"),
+  feature.level = c("Family","Phylum","Genus"),
   feature.dat.type = "proportion",
   features.plot = NULL,
   top.k.plot = NULL,
@@ -123,15 +123,16 @@ generate_taxa_heatmap_long(
 )
 
 data(subset_T2D.obj)
-generate_taxa_heatmap_long(
-  data.obj = subset_T2D.obj,
+subset_T2D.obj2 <- mStat_subset_data(subset_T2D.obj, condition = 'subject_id \%in\% sample(unique(subset_T2D.obj$meta.dat$subject_id),10)')
+a <- generate_taxa_heatmap_long(
+  data.obj = subset_T2D.obj2,
   subject.var = "subject_id",
   time.var = "visit_number_num",
   t0.level = NULL,
   ts.levels = NULL,
   group.var = "subject_gender",
   strata.var = "subject_race",
-  feature.level = c("Family","Phylum"),
+  feature.level = c("Genus"),
   feature.dat.type = "count",
   features.plot = NULL,
   top.k.plot = NULL,
@@ -140,8 +141,8 @@ generate_taxa_heatmap_long(
   abund.filter = 0.001,
   pdf = TRUE,
   file.ann = NULL,
-  pdf.wid = 11,
-  pdf.hei = 8.5
+  pdf.wid = 30,
+  pdf.hei = 15
 )
 }
 }

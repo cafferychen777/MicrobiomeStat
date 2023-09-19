@@ -117,7 +117,7 @@ generate_taxa_barplot_pair(
   custom.theme = NULL,
   palette = NULL,
   pdf = TRUE,
-  file.ann = "test",
+  file.ann = NULL,
   pdf.wid = 11,
   pdf.hei = 8.5
 )

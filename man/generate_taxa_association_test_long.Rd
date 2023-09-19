@@ -9,9 +9,9 @@ generate_taxa_association_test_long(
   subject.var,
   group.var = NULL,
   adj.vars = NULL,
-  feature.level,
   prev.filter = 0,
   abund.filter = 0,
+  feature.level,
   feature.dat.type = c("count", "proportion"),
   feature.sig.level = 0.1,
   feature.mt.method = "fdr",
@@ -27,8 +27,6 @@ generate_taxa_association_test_long(
 
 \item{adj.vars}{A vector of character strings. Each string should denote a column name in the metadata that will serve as a covariate in the analysis. These variables might account for potential confounding influences. Default is NULL.}
 
-\item{feature.level}{A character string indicating the taxonomic resolution for analysis (e.g., "Phylum", "Class"). This choice will determine the granularity of the analysis.}
-
 \item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
 taxa before analysis. Taxa with prevalence below this value will be removed.
 Prevalence is calculated as the proportion of samples where the taxon is present.
@@ -38,6 +36,8 @@ Default 0 removes no taxa by prevalence filtering.}
 taxa before analysis. Taxa with mean abundance below this value will be removed.
 Abundance refers to counts or proportions depending on \code{feature.dat.type}.
 Default 0 removes no taxa by abundance filtering.}
+
+\item{feature.level}{A character string indicating the taxonomic resolution for analysis (e.g., "Phylum", "Class"). This choice will determine the granularity of the analysis.}
 
 \item{feature.dat.type}{A character string, either "count" or "proportion", indicating the nature of the data in the `data.obj`. This helps the function to determine if normalization is required. Default is "count".}
 

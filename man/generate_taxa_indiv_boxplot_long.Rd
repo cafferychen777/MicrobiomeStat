@@ -123,10 +123,10 @@ data(ecam.obj)
 generate_taxa_indiv_boxplot_long(
   data.obj = ecam.obj,
   subject.var = "studyid",
-  time.var = "month",
+  time.var = "month_num",
   t0.level = NULL,
   ts.levels = NULL,
-  group.var = NULL,
+  group.var = "diet",
   strata.var = NULL,
   feature.level = c("Phylum"),
   feature.dat.type = "proportion",

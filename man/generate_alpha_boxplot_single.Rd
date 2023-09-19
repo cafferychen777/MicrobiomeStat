@@ -16,7 +16,7 @@ generate_alpha_boxplot_single(
   strata.var = NULL,
   adj.vars = NULL,
   base.size = 16,
-  theme.choice = "prism",
+  theme.choice = "bw",
   custom.theme = NULL,
   palette = NULL,
   pdf = TRUE,

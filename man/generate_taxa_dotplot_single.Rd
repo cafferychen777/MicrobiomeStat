@@ -132,7 +132,7 @@ generate_taxa_dotplot_single(
   time.var = NULL,
   t.level = NULL,
   group.var = "group",
-  strata.var = NULL,
+  strata.var = "sex",
   feature.level = c("Family"),
   feature.dat.type = "count",
   features.plot = NULL,

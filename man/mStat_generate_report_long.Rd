@@ -12,23 +12,26 @@ mStat_generate_report_long(
   strata.var = NULL,
   subject.var,
   time.var,
-  t0.level,
-  ts.levels,
+  t0.level = NULL,
+  ts.levels = NULL,
   alpha.obj = NULL,
   alpha.name = c("shannon", "observed_species"),
   depth = NULL,
   dist.obj = NULL,
   dist.name = c("BC", "Jaccard"),
   pc.obj = NULL,
-  prev.filter = 0,
-  abund.filter = 0,
-  feature.number = 15,
-  feature.level = NULL,
+  prev.filter = 0.1,
+  abund.filter = 1e-04,
+  bar.area.feature.no = 30,
+  heatmap.feature.no = 30,
+  vis.feature.level = NULL,
+  test.feature.level = NULL,
   feature.dat.type = c("count", "proportion", "other"),
+  feature.analysis.rarafy = TRUE,
   feature.change.func = "relative change",
   feature.mt.method = c("fdr", "none"),
   feature.sig.level = 0.1,
-  transform = c("identity", "sqrt", "log"),
+  feature.box.axis.transform = c("identity", "sqrt", "log"),
   base.size = 16,
   theme.choice = "bw",
   custom.theme = NULL,
@@ -86,21 +89,30 @@ The pc.obj list structure should contain:
 See \code{\link[MicrobiomeStat]{mStat_calculate_PC}} function for details on output format.}
 
 \item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
-taxa before analysis. Taxa with prevalence below this value will be removed.
+taxa before analysis. Feature with prevalence below this value will be removed.
 Prevalence is calculated as the proportion of samples where the taxon is present.
 Default 0 removes no taxa by prevalence filtering.}
 
 \item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering
-taxa before analysis. Taxa with mean abundance below this value will be removed.
+taxa before analysis. Feature with mean abundance below this value will be removed.
 Abundance refers to counts or proportions depending on \code{feature.dat.type}.
 Default 0 removes no taxa by abundance filtering.}
 
-\item{feature.number}{A numeric value indicating the number of top abundant features to retain in the plot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.}
+\item{bar.area.feature.no}{A numeric value indicating the number of top abundant features to retain in both barplot and areaplot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.}
 
-\item{feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
-to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
+\item{heatmap.feature.no}{A numeric value indicating the number of top abundant features to retain in the heatmap. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.}
+
+\item{vis.feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
+to use for visualization and plotting. This can be the taxonomic level like "Phylum", or any other
 annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
 column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
+for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
+is also NULL.}
+
+\item{test.feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
+to use for testing or analytical purposes. This can be the taxonomic level like "Phylum", or any other
+annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
+column names in feature.ann. Multiple columns can be provided, and data will be analyzed separately
 for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
 is also NULL.}
 
@@ -129,9 +141,9 @@ the acceptable options or prompting the user to provide a custom function.}
 
 \item{feature.sig.level}{Numeric, significance level cutoff for highlighting features, default is 0.1.}
 
-\item{transform}{A string indicating the transformation to apply to the data before plotting. Options are:
-- "identity": No transformation (default)
-- "sqrt": Square root transformation
+\item{feature.box.axis.transform}{A string indicating the transformation to apply to the y-axis of the feature's boxplot visualization before plotting. Options are:
+- "identity": No transformation (default).
+- "sqrt": Square root transformation.
 - "log": Logarithmic transformation. Zeros are replaced with half of the minimum non-zero value for each taxon before log transformation.}
 
 \item{base.size}{Numeric, base font size for all plots, default is 16.}
@@ -191,15 +203,15 @@ A PDF report containing:
 
 - Beta volatility: Tables with LM results on distances
 
-- Taxa area plots: Stacked area plots showing composition
+- Feature area plots: Stacked area plots showing composition
 
-- Taxa heatmaps: Heatmaps colored by relative abundance
+- Feature heatmaps: Heatmaps colored by relative abundance
 
-- Taxa volcano plots: With trend/volatility significance
+- Feature volcano plots: With trend/volatility significance
 
-- Taxa boxplots: Distribution by time and groups
+- Feature boxplots: Distribution by time and groups
 
-- Taxa spaghetti plots: Individual line plots
+- Feature spaghetti plots: Individual line plots
 }
 \description{
 This function performs extensive and in-depth longitudinal analysis of microbiome data using MicrobiomeStat package and generates a comprehensive PDF report.
@@ -244,14 +256,15 @@ mStat_generate_report_long(
   vis.test.vars = c("sex"),
   subject.var = "subject",
   time.var = "time",
-  alpha.name = c("shannon","simpson"),
+  alpha.name = c("shannon","observed_species"),
   dist.name = c("BC",'Jaccard'),
   t0.level = "1",
   ts.levels = "2",
   strata.var = "sex",
-  feature.level = c("Phylum"),
+  vis.feature.level = c("Phylum"),
+  test.feature.level = c("Phylum"),
   feature.dat.type = "count",
-  transform = "log",
+  feature.box.axis.transform = "log",
   theme.choice = "bw",
   base.size = 12,
   output.file = "path/report.pdf"
@@ -268,21 +281,24 @@ mStat_generate_report_long(
   vis.adj.vars = NULL,
   subject.var = "subject_id",
   time.var = "visit_number_num",
-  alpha.name = c("shannon","simpson"),
+  alpha.name = c("shannon","observed_species"),
   dist.name = c("BC",'Jaccard'),
-  t0.level = unique(sort(subset_T2D.obj$meta.dat$visit_number_num))[1],
-  ts.levels = unique(sort(subset_T2D.obj$meta.dat$visit_number_num))[-1],
+  t0.level = NULL,
+  ts.levels = NULL,
   feature.mt.method = "none",
-  feature.sig.level = 0.1,
-  feature.level = c("Family"),
+  feature.sig.level = 0.3,
+  vis.feature.level = c("Family","Genus"),
+  test.feature.level = c("Family"),
   feature.change.func = "relative change",
   feature.dat.type = "count",
   prev.filter = 0.1,
   abund.filter = 1e-4,
-  transform = "sqrt",
+  bar.area.feature.no = 40,
+  heatmap.feature.no = 40,
+  feature.box.axis.transform = "sqrt",
   theme.choice = "bw",
-  base.size = 12,
-  output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/报告/mStat_generate_report_long_example.pdf"
+  base.size = 20,
+  output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/报告/Omics Analysis Report.pdf"
 )
 }
 }

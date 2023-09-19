@@ -53,8 +53,16 @@ data("subset_T2D.obj")
 generate_alpha_test_single(data.obj = subset_T2D.obj,
                            time.var = "visit_number",
                            t.level = "   4",
-                           alpha.name = c("shannon", "simpson"),
+                           alpha.name = c("shannon", "observed_species"),
                            group.var = "subject_race",
                            adj.vars = "subject_gender")
+
+data("peerj32.obj")
+generate_alpha_test_single(data.obj = peerj32.obj,
+                           time.var = "time",
+                           t.level = "1",
+                           alpha.name = c("shannon", "observed_species"),
+                           group.var = "group",
+                           adj.vars = "sex")
 }
 }

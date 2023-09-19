@@ -130,11 +130,35 @@ generate_beta_ordination_long(
   time.var = "visit_number_num",
   t0.level = NULL,
   ts.levels = NULL,
-  group.var = "subject_gender",
-  strata.var = "subject_race",
+  group.var = "subject_race",
+  strata.var = NULL,
   adj.vars = NULL,
   dist.name = 'BC',
   base.size = 12,
+  theme.choice = "bw",
+  custom.theme = NULL,
+  palette = NULL,
+  pdf = TRUE,
+  file.ann = NULL,
+  pdf.wid = 11,
+  pdf.hei = 8.5
+)
+
+data(ecam.obj)
+
+generate_beta_ordination_long(
+  data.obj = ecam.obj,
+  dist.obj = NULL,
+  pc.obj = NULL,
+  subject.var = "subject.id",
+  time.var = "month_num",
+  t0.level = NULL,
+  ts.levels = NULL,
+  group.var = NULL,
+  strata.var = NULL,
+  adj.vars = NULL,
+  dist.name = 'BC',
+  base.size = 20,
   theme.choice = "bw",
   custom.theme = NULL,
   palette = NULL,
