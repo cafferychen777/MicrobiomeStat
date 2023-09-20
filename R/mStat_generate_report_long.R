@@ -266,7 +266,7 @@ mStat_generate_report_long <- function(data.obj,
   template <- "
 ---
 title: '`r sub(\".pdf$\", \"\", basename(output.file))`'
-author: 'Powered by MicrobiomeStat (Ver 1.1.1)'
+author: '[Powered by MicrobiomeStat (Ver 1.1.1)](http://www.microbiomestat.wiki)'
 date: '`r Sys.Date()`'
 output:
   pdf_document:
@@ -1127,8 +1127,7 @@ taxa_trend_test_results <- generate_taxa_trend_test_long(
                                                prev.filter = prev.filter,
                                                abund.filter = abund.filter,
                                                feature.level = test.feature.level,
-                                               feature.dat.type = feature.dat.type,
-                                               ...)
+                                               feature.dat.type = feature.dat.type)
 ```
 
 ```{r taxa-trend-test-results-print, echo=FALSE, message=FALSE, results='asis', warning = FALSE, fig.align='center', fig.width = 10, fig.height = 8}
@@ -1440,8 +1439,8 @@ if (length(combined_significant_taxa) != 0){
                                           feature.level = test.feature.level,
                                           feature.dat.type = feature.dat.type,
                                           features.plot = combined_significant_taxa,
-                                          top.k.plot = top.k.plot,
-                                          top.k.func = top.k.func,
+                                          top.k.plot = NULL,
+                                          top.k.func = NULL,
                                           prev.filter = prev.filter,
                                           abund.filter = abund.filter,
                                           base.size = 10,
@@ -1466,8 +1465,8 @@ taxa_indiv_spaghettiplot_results <- generate_taxa_indiv_spaghettiplot_long(
                                    feature.level = test.feature.level,
                                    features.plot = combined_significant_taxa,
                                    feature.dat.type = feature.dat.type,
-                                   top.k.plot = top.k.plot,
-                                   top.k.func = top.k.func,
+                                   top.k.plot = NULL,
+                                   top.k.func = NULL,
                                    prev.filter = prev.filter,
                                    abund.filter = abund.filter,
                                    base.size = 10,

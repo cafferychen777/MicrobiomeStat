@@ -111,6 +111,13 @@ generate_taxa_volatility_test_long <- function(data.obj,
     abund.filter <- 0
   }
 
+  # Create a formula including the group variable and adjustment variables (if any)
+  formula_str <- paste("volatility ~", group.var)
+  if (!is.null(adj.vars)) {
+    formula_str <- paste(formula_str, "+", paste(adj.vars, collapse = " + "))
+  }
+  formula <- as.formula(formula_str)
+
   test.list <- lapply(feature.level, function(feature.level) {
 
     if (feature.dat.type == "count"){
@@ -198,13 +205,6 @@ generate_taxa_volatility_test_long <- function(data.obj,
                              select(all_of(c(subject.var, group.var, adj.vars))) %>%
                              dplyr::distinct(),
                            by = subject.var)
-
-        # Create a formula including the group variable and adjustment variables (if any)
-        formula_str <- paste("volatility ~", group.var)
-        if (!is.null(adj.vars)) {
-          formula_str <- paste(formula_str, "+", paste(adj.vars, collapse = " + "))
-        }
-        formula <- as.formula(formula_str)
 
         # Run the linear model
         test_result <- lm(formula, data = test_df)

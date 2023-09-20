@@ -81,10 +81,12 @@ is_categorical <- function(x) {
 #'   adj.vars = c("sex"),
 #'   change.base = "1",
 #'   feature.change.func = "lfc",
-#'   feature.level = "original",
-#'   prev.filter = 0.01,
-#'   abund.filter = 0.01,
-#'   feature.dat.type = "count"
+#'   feature.level = c("Phylum", "Family", "Genus"),
+#'   prev.filter = 0.1,
+#'   abund.filter = 0.0001,
+#'   feature.dat.type = "count",
+#'   feature.mt.method = "none",
+#'   feature.sig.level = 0.1
 #' )
 #' }
 #'
@@ -103,6 +105,8 @@ generate_taxa_change_test_pair <-
            prev.filter = 0,
            abund.filter = 0,
            feature.dat.type = c("count", "proportion", "other"),
+           feature.mt.method = "fdr",
+           feature.sig.level = 0.1,
            ...) {
     # Extract data
     mStat_validate_data(data.obj)
@@ -111,6 +115,19 @@ generate_taxa_change_test_pair <-
       load_data_obj_metadata(data.obj) %>% select(all_of(c(
         time.var, group.var, adj.vars, subject.var
       )))
+
+    group_level <-
+      meta_tab %>% select(all_of(c(group.var))) %>% pull() %>% as.factor() %>% levels
+
+    reference_level <- group_level[1]
+
+    # Create a formula including the group variable and adjustment variables (if any)
+    formula_str <- paste("value ~", group.var)
+    if (!is.null(adj.vars)) {
+      formula_str <-
+        paste(formula_str, "+", paste(adj.vars, collapse = " + "))
+    }
+    formula <- as.formula(formula_str)
 
     if (is.null(change.base)) {
       change.base <- unique(meta_tab %>% select(all_of(c(time.var))))[1,]
@@ -125,26 +142,28 @@ generate_taxa_change_test_pair <-
       abund.filter <- 0
     }
 
-    if (feature.dat.type == "count"){
+    if (feature.dat.type == "count") {
       message(
         "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
       )
-      data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
+      data.obj <-
+        mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
     }
 
     test.list <- lapply(feature.level, function(feature.level) {
-
-      if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
-        data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
+      if (is.null(data.obj$feature.agg.list[[feature.level]]) &
+          feature.level != "original") {
+        data.obj <-
+          mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
       }
 
-      if (feature.level != "original"){
+      if (feature.level != "original") {
         otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
       } else {
         otu_tax_agg <- load_data_obj_count(data.obj)
       }
 
-      otu_tax_agg <-  otu_tax_agg %>%
+      otu_tax_agg_filter <- otu_tax_agg %>%
         as.data.frame() %>%
         mStat_filter(prev.filter = prev.filter,
                      abund.filter = abund.filter) %>%
@@ -152,7 +171,7 @@ generate_taxa_change_test_pair <-
 
       # 转换计数为数值类型
       otu_tax_agg_numeric <-
-        dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
+        dplyr::mutate_at(otu_tax_agg_filter, vars(-!!sym(feature.level)), as.numeric)
 
       # 将otu_tax_agg_numeric从宽格式转换为长格式
       otu_tax_long <- otu_tax_agg_numeric %>%
@@ -194,12 +213,12 @@ generate_taxa_change_test_pair <-
           filter(value_time_2 > 0) %>%
           dplyr::group_by(!!sym(feature.level)) %>%
           dplyr::summarize(half_nonzero_min = min(value_time_2) / 2,
-                    .groups = "drop")
+                           .groups = "drop")
         half_nonzero_min_time_1 <- combined_data %>%
           filter(value_time_1 > 0) %>%
           dplyr::group_by(!!sym(feature.level)) %>%
           dplyr::summarize(half_nonzero_min = min(value_time_1) / 2,
-                    .groups = "drop")
+                           .groups = "drop")
 
         combined_data <-
           dplyr::left_join(
@@ -258,106 +277,139 @@ generate_taxa_change_test_pair <-
       # 使用match()函数生成索引并对unique_meta_tab进行排序，再设回行名为 'subject'
       sorted_unique_meta_tab <- unique_meta_tab[cols_order,]
 
-      # Run ZicoSeq
-      zico.obj <- GUniFrac::ZicoSeq(
-        meta.dat = sorted_unique_meta_tab,
-        feature.dat = na.omit(value_diff_matrix),
-        grp.name = group.var,
-        adj.name = adj.vars,
-        feature.dat.type = "other",
-        prev.filter = prev.filter,
-        max.abund.filter = abund.filter,
-        ...
-      )
-
-      # Extract relevant information
-      significant_taxa <- names(which(zico.obj$p.adj.fdr <= 1))
-
       # 计算每个分组的平均丰度
       prop_prev_data <-
-        value_diff_matrix %>% as.data.frame() %>% rownames_to_column(feature.level) %>%
-        tidyr::gather(-!!sym(feature.level),
-               key = !!sym(subject.var),
-               value = "count") %>%
-        dplyr::inner_join(meta_tab, by = c(subject.var), relationship = "many-to-many") %>%
-        dplyr::group_by(!!sym(group.var), !!sym(feature.level)) %>% # Add time.var to dplyr::group_by
-        dplyr::summarise(mean_proportion = mean(count),
-                  sdev_count = sd(count),
-                  prevalence = sum(count > 0) / dplyr::n(),
-                  sdev_prevalence = sd(ifelse(count > 0, 1, 0)))
+        otu_tax_agg %>%
+        as.matrix() %>%
+        as.table() %>%
+        as.data.frame() %>%
+        dplyr::group_by(Var1) %>%  # Var1是taxa
+        dplyr::summarise(avg_abundance = mean(Freq),
+                         prevalence = sum(Freq > 0) / dplyr::n()) %>% column_to_rownames("Var1") %>%
+        rownames_to_column(feature.level)
 
-      # Initialize results table
-      results <- data.frame()
+      value_diff_long <- value_diff_matrix %>%
+        as.data.frame() %>%
+        rownames_to_column(feature.level) %>%
+        tidyr::gather(key = "subject", value = "value", -feature.level)
 
-      for (taxa in significant_taxa) {
-        R.Squared <- zico.obj$R2[taxa, 1]
-        F.Statistic <- zico.obj$F0[taxa, 1]
+      sub_test.list <-
+        lapply(value_diff_long %>% select(all_of(feature.level)) %>% pull() %>% unique(), function(taxon) {
+          test_df <- value_diff_long %>%
+            dplyr::filter(!!sym(feature.level) == taxon) %>%
+            dplyr::left_join(sorted_unique_meta_tab %>% rownames_to_column("subject"),
+                             by = "subject")
 
-        Estimate <-
-          zico.obj$coef.list[[1]][startsWith(rownames(zico.obj$coef.list[[1]]), group.var), taxa]  # 选择 group.var 的估计值
+          # Run the linear model
+          test_result <- lm(formula, data = test_df)
 
-        P.Value <- zico.obj$p.raw[taxa]
-        Adjusted.P.Value <- zico.obj$p.adj.fdr[taxa]
+          coef.tab <- extract_coef(test_result)
 
-        if (is_categorical(data.obj$meta.dat[[group.var]])) {
-          for (group in unique(data.obj$meta.dat[[group.var]])) {
-            group_data <-
-              prop_prev_data[which(prop_prev_data[[feature.level]] == taxa &
-                                     prop_prev_data[[group.var]] == group), ]
-            mean_prop <- group_data$mean_proportion
-            mean_prev <- group_data$prevalence
-            sd_abundance <- group_data$sdev_count
-            sd_prevalence <- group_data$sdev_prevalence
+          # Run ANOVA on the model if group.var is multi-categorical
+          if (length(unique(test_df[[group.var]])) > 2) {
+            anova.tab <- broom::tidy(anova(test_result))
 
-            results <- rbind(
-              results,
-              data.frame(
-                Variable = taxa,
-                Group = group,
-                R.Squared = R.Squared,
-                F.Statistic = F.Statistic,
-                Estimate = toString(Estimate),
-                P.Value = P.Value,
-                Adjusted.P.Value = Adjusted.P.Value,
-                Mean.Abundance_Change = mean_prop,
-                Mean.Prevalence_Change = mean_prev,
-                SD.Abundance_Change = sd_abundance,
-                SD.Prevalence_Change = sd_prevalence
+            # Rearrange the table and add missing columns
+            anova.tab <- anova.tab %>%
+              select(
+                term = term,
+                Statistic = statistic,
+                df = df,
+                P.Value = p.value
+              ) %>%
+              dplyr::mutate(Estimate = NA, Std.Error = NA)
+
+            # Reorder the columns to match coef.tab
+            anova.tab <- anova.tab %>%
+              select(
+                Term = term,
+                Estimate = Estimate,
+                Std.Error = Std.Error,
+                Statistic = Statistic,
+                P.Value = P.Value
               )
-            )
+
+            coef.tab <-
+              rbind(coef.tab, anova.tab) # Append the anova.tab to the coef.tab
           }
-        } else {
-          total_data <-
-            prop_prev_data[which(prop_prev_data[[feature.level]] == taxa), ]
-          mean_prop <- total_data$mean_proportion
-          mean_prev <- total_data$prevalence
-          sd_abundance <- total_data$sdev_count
-          sd_prevalence <- total_data$sdev_prevalence
+          return(as_tibble(coef.tab))
+        })
 
-          results <- rbind(
-            results,
-            data.frame(
-              Variable = taxa,
-              R.Squared = R.Squared,
-              F.Statistic = F.Statistic,
-              Estimate = toString(Estimate),
-              P.Value = P.Value,
-              Adjusted.P.Value = Adjusted.P.Value,
-              Mean.Abundance_Change = mean_prop,
-              Mean.Prevalence_Change = mean_prev,
-              SD.Abundance_Change = sd_abundance,
-              SD.Prevalence_Change = sd_prevalence
+      # Assign names to the elements of test.list
+      names(sub_test.list) <- value_diff_long %>%
+        select(all_of(feature.level)) %>%
+        pull() %>%
+        unique()
+
+      # 找到所有唯一的Term
+      unique_terms <-
+        grep(paste0("^", group.var, "$|^", group.var, ".*"),
+             unique(unlist(
+               lapply(sub_test.list, function(df)
+                 unique(df$Term))
+             )),
+             value = TRUE)
+
+      # 为每一个Term提取数据并存入新list
+      result_list <- lapply(unique_terms, function(term) {
+        do.call(rbind, lapply(sub_test.list, function(df) {
+          df %>% dplyr::filter(Term == term)
+        })) %>%
+          dplyr::mutate(!!sym(feature.level) := names(sub_test.list)) %>%
+          dplyr::left_join(prop_prev_data, by = feature.level) %>%
+          dplyr::mutate(Adjusted.P.Value = p.adjust(P.Value, method = "fdr")) %>%
+          dplyr::select(all_of(
+            c(
+              feature.level,
+              "Estimate",
+              "Std.Error",
+              "P.Value",
+              "Adjusted.P.Value",
+              "avg_abundance",
+              "prevalence"
             )
+          )) %>%
+          dplyr::rename(
+            Coefficient = Estimate,
+            SE = Std.Error,
+            Variable = feature.level,
+            Mean.Abundance = avg_abundance,
+            Prevalence = prevalence
           )
-        }
-      }
+      })
 
-      return(results)
+      # 给新list命名
+      names(result_list) <- unique_terms
+
+      new_names <- sapply(names(result_list), function(name) {
+        # 检查名称是否匹配指定模式，并且不是ANOVA的结果
+        if (grepl(paste0("^", group.var), name) &&
+            !grepl(paste0("^", group.var, "$"), name)) {
+          sub_name <- sub(paste0(group.var), "", name)
+          return(paste(sub_name, "vs", reference_level, "(Reference)"))
+        }
+        return(name)
+      })
+
+      names(result_list) <- new_names
+
+      return(result_list)
 
     })
 
     # Assign names to the elements of test.list
     names(test.list) <- feature.level
+
+    # plot.list <-
+    #   generate_taxa_volcano_single(
+    #     data.obj = data.obj,
+    #     group.var = group.var,
+    #     test.list = test.list,
+    #     feature.sig.level = feature.sig.level,
+    #     feature.mt.method = feature.mt.method
+    #   )
+    #
+    # print(plot.list)
 
     return(test.list)
 

@@ -159,7 +159,7 @@ mStat_generate_report_single <- function(data.obj,
   template <- "
 ---
 title: '`r sub(\".pdf$\", \"\", basename(output.file))`'
-author: 'Powered by MicrobiomeStat (Ver 1.1.1)'
+author: '[Powered by MicrobiomeStat (Ver 1.1.1)](http://www.microbiomestat.wiki)'
 date: '`r Sys.Date()`'
 output:
   pdf_document:
@@ -421,7 +421,7 @@ taxa_heatmap_results <- generate_taxa_heatmap_single(data.obj = data.obj,
 ```
 
 ```{r taxa-heatmap-indiv-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 20, fig.height = 12}
-cat('The following plots display the individual proportions for each group, and stratum. \n\n')
+cat('The following plots display the individual proportions for each sample. \n\n')
 taxa_heatmap_results
 ```
 

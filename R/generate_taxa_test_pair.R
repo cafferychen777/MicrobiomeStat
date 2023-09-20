@@ -33,6 +33,8 @@
 #' - "other": Custom abundance data that has unknown scaling. No normalization applied.
 #' The choice affects preprocessing steps as well as plot axis labels.
 #' Default is "count", which assumes raw OTU table input.
+#' @param feature.sig.level A numeric threshold, usually between 0 and 1, for assessing the significance of individual taxa. Default is 0.1.
+#' @param feature.mt.method A character string specifying the method employed for multiple testing correction (e.g., "fdr" for False Discovery Rate). Default is "fdr".
 #' @param ... Additional parameters to be passed to the linda function.
 #'
 #' @examples
@@ -46,9 +48,9 @@
 #'   time.var = "time",
 #'   group.var = "group",
 #'   adj.vars = c("sex"),
-#'   feature.level = "Family",
+#'   feature.level = c("Phylum","Genus","Family"),
 #'   prev.filter = 0.1,
-#'   abund.filter = 0.001,
+#'   abund.filter = 0.0001,
 #'   feature.dat.type = "count"
 #' )
 #' }
@@ -69,6 +71,8 @@ generate_taxa_test_pair <-
            prev.filter = 0,
            abund.filter = 0,
            feature.dat.type = c("count", "proportion"),
+           feature.sig.level = 0.1,
+           feature.mt.method = "fdr",
            ...) {
     # Extract data
     mStat_validate_data(data.obj)
@@ -102,103 +106,94 @@ generate_taxa_test_pair <-
         otu_tax_agg <- load_data_obj_count(data.obj)
       }
 
-      otu_tax_agg <-  otu_tax_agg %>%
+      otu_tax_agg_filter <-  otu_tax_agg %>%
         as.data.frame() %>%
         mStat_filter(prev.filter = prev.filter,
                      abund.filter = abund.filter)
 
-      linda.obj <- linda(feature.dat = otu_tax_agg,
+      linda.obj <- linda(feature.dat = otu_tax_agg_filter,
                          meta.dat = meta_tab,
                          formula = paste("~",formula),
                          feature.dat.type = "proportion",
                          ...)
 
-      # Extract relevant information
-      significant_taxa <- rownames(linda.obj$feature.dat.use)
+      if (!is.null(group.var)){
+        reference_level <- levels(as.factor(meta_tab[,group.var]))[1]
+      }
 
       # 计算每个分组的平均丰度
       prop_prev_data <-
-        linda.obj$feature.dat.use %>% as.data.frame() %>% rownames_to_column(feature.level) %>%
-        tidyr::gather(-!!sym(feature.level),
-               key = "sample",
-               value = "count") %>%
-        dplyr::inner_join(linda.obj$meta.dat.use %>% rownames_to_column("sample"), by = "sample", relationship = "many-to-many") %>%
-        dplyr::group_by(!!sym(group.var), !!sym(feature.level)) %>%
-        dplyr::summarise(mean_abundance = mean(count),
-                  prevalence = sum(count > 0) / dplyr::n())
+        otu_tax_agg %>%
+        as.matrix() %>%
+        as.table() %>%
+        as.data.frame() %>%
+        dplyr::group_by(Var1) %>%  # Var1是taxa
+        dplyr::summarise(
+          avg_abundance = mean(Freq),
+          prevalence = sum(Freq > 0) / dplyr::n()
+        ) %>% column_to_rownames("Var1") %>%
+        rownames_to_column(feature.level)
 
-      # Initialize results table
-      results <- data.frame()
+      extract_data_frames <- function(linda_object, group_var = NULL) {
 
-      # Iterate over each element in linda.obj$output
-      for (output_element in names(linda.obj$output)) {
-        current_output <- linda.obj$output[[output_element]]
+        # 初始化一个空的list来存储提取的数据框
+        result_list <- list()
 
-        for (taxa in significant_taxa) {
-          baseMean <- current_output[taxa, "baseMean"]
-          log2FoldChange <- current_output[taxa, "log2FoldChange"]
-          lfcSE <- current_output[taxa, "lfcSE"]
-          stat <- current_output[taxa, "stat"]
-          pvalue <- current_output[taxa, "pvalue"]
-          padj <- current_output[taxa, "padj"]
+        # 获取所有匹配的数据框名
+        matching_dfs <- grep(paste0(group_var), names(linda_object$output), value = TRUE)
 
-          # 检查group.var是不是因子
-          if (is_categorical(linda.obj$meta.dat.use[[group.var]])) {
-            for (group in unique(linda.obj$meta.dat.use[[group.var]])) {
-              group_data <-
-                prop_prev_data[which(prop_prev_data[[feature.level]] == taxa &
-                                       prop_prev_data[[group.var]] == group), ]
-              mean_prop <- group_data$mean_abundance
-              mean_prev <- group_data$prevalence
+        # 循环遍历所有匹配的数据框名并提取它们
+        for (df_name in matching_dfs) {
+          # 从数据框名中提取组值
+          group_prefix <- paste0(group_var)
 
-              results <- rbind(
-                results,
-                data.frame(
-                  Variable = taxa,
-                  Group = group,
-                  Base.Mean = baseMean,
-                  Log2.Fold.Change = log2FoldChange,
-                  LFC.SE = lfcSE,
-                  Stat = stat,
-                  P.Value = pvalue,
-                  Adjusted.P.Value = padj,
-                  Mean.Abundance = mean_prop,
-                  Mean.Prevalence = mean_prev,
-                  Output.Element = output_element
-                )
-              )
-            }
-          } else {
-            total_data <-
-              prop_prev_data[which(prop_prev_data[[feature.level]] == taxa), ]
-            mean_prop <- total_data$mean_abundance
-            mean_prev <- total_data$prevalence
+          # 提取group_prefix后面的内容，并在":"之前停止
+          group_value <- unlist(strsplit(df_name, split = ":"))[1]
+          group_value <- gsub(pattern = group_prefix, replacement = "", x = group_value)
 
-            results <- rbind(
-              results,
-              data.frame(
-                Variable = taxa,
-                Base.Mean = baseMean,
-                Log2.Fold.Change = log2FoldChange,
-                LFC.SE = lfcSE,
-                Stat = stat,
-                P.Value = pvalue,
-                Adjusted.P.Value = padj,
-                Mean.Abundance = mean_prop,
-                Mean.Prevalence = mean_prev,
-                Output.Element = output_element
-              )
-            )
-          }
+          # 将数据框添加到结果列表中
+          result_list[[paste0(group_value," vs ", reference_level, " (Reference)")]] <- linda_object$output[[df_name]]
         }
+
+        return(result_list)
       }
 
-      return(results)
+      # 使用函数提取数据框
+      sub_test.list <- extract_data_frames(linda_object = linda.obj, group_var = group.var)
+
+      sub_test.list <- lapply(sub_test.list, function(df){
+        df <- df %>%
+          rownames_to_column(feature.level) %>%
+          dplyr::left_join(prop_prev_data, by = feature.level) %>%
+          dplyr::select(all_of(all_of(c(feature.level,"log2FoldChange","lfcSE","pvalue","padj","avg_abundance","prevalence")))) %>%
+          dplyr::rename(Variable = feature.level,
+                        Coefficient = log2FoldChange,
+                        SE = lfcSE,
+                        P.Value = pvalue,
+                        Adjusted.P.Value = padj,
+                        Mean.Abundance = avg_abundance,
+                        Prevalence = prevalence)
+
+        return(df)
+      })
+
+      return(sub_test.list)
 
     })
 
     # Assign names to the elements of test.list
     names(test.list) <- feature.level
+
+    # plot.list <-
+    #   generate_taxa_trend_volcano_long(
+    #     data.obj = data.obj,
+    #     group.var = group.var,
+    #     test.list = test.list,
+    #     feature.sig.level = feature.sig.level,
+    #     feature.mt.method = feature.mt.method
+    #   )
+    #
+    # print(plot.list)
 
     return(test.list)
 

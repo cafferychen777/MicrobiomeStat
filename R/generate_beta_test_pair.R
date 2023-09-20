@@ -95,13 +95,15 @@ generate_beta_test_pair <- function(data.obj,
     ) %>%
     dplyr::rename(
       `DF` = Df,
-      `Sum_Sq` = SumsOfSqs,
-      `Mean_Sq` = MeanSqs,
-      `F_Statistic` = F.Model,
-      `R_Squared` = R2,
-      `P_Value` = `Pr(>F)`
+      `Sum.Sq` = SumsOfSqs,
+      `Mean.Sq` = MeanSqs,
+      `F.Statistic` = F.Model,
+      `R.Squared` = R2,
+      `P.Value` = `Pr(>F)`
     ) %>%
     dplyr::mutate(dplyr::across(where(is.numeric), ~ ifelse(is.na(.), "NA", round(., 3))))
+
+  aov.tab <- aov.tab %>% select(Distance, everything())
 
   return(list("p.tab" = p.tab, "aov.tab" = aov.tab))
 }

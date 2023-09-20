@@ -272,7 +272,7 @@ generate_beta_pc_change_boxplot_pair <-
           combined_data$ALL <- "ALL"
         }
 
-        lapply(paste0("PC", pc.ind), function(pc.index) {
+        sub.plot_list <- lapply(paste0("PC", pc.ind), function(pc.index) {
           boxplot <- ggplot(
             combined_data %>% filter(PC == pc.index),
             aes(
@@ -373,6 +373,8 @@ generate_beta_pc_change_boxplot_pair <-
           }
           return(boxplot)
       })
+        names(sub.plot_list) <- paste0("PC", pc.ind)
+        return(sub.plot_list)
     })
     names(plot_list) <- dist.name
     return(plot_list)

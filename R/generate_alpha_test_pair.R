@@ -135,6 +135,31 @@ generate_alpha_test_pair <-
       lme.model <- lmerTest::lmer(formula, data = alpha_df)
       coef.tab <- extract_coef(lme.model)
 
+      # Run ANOVA on the model if group.var is multi-categorical
+      if (length(na.omit(unique(alpha_df[[group.var]]))) > 2) {
+        anova.tab <- broom::tidy(anova(lme.model))
+
+        # Rearrange the table and add missing columns
+        anova.tab <- anova.tab %>%
+          dplyr::mutate(Estimate = NA, Std.Error = NA)
+
+        # Reorder the columns to match coef.tab
+        anova.tab <- anova.tab %>%
+          dplyr::select(
+            Term = term,
+            Estimate = Estimate,
+            Std.Error = Std.Error,
+            Statistic = statistic,
+            P.Value = p.value
+          ) %>%
+          dplyr::filter(
+            Term == group.var
+          )
+
+        coef.tab <-
+          rbind(coef.tab, anova.tab) # Append the anova.tab to the coef.tab
+      }
+
       return(as_tibble(coef.tab))
     })
 

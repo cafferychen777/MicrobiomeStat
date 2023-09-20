@@ -390,6 +390,10 @@ generate_taxa_boxplot_long <-
         }
       }
 
+      if (!is.null(group.var)){
+        group.levels <- sub_otu_tax_agg_merged %>% select(!!sym(group.var)) %>% pull() %>% unique() %>% length()
+      }
+
       boxplot <-
         ggplot(sub_otu_tax_agg_merged  %>%
                  dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var))) %>%
@@ -430,8 +434,8 @@ generate_taxa_boxplot_long <-
           panel.spacing.x = unit(0, "cm"),
           panel.spacing.y = unit(0.1, "cm"),
           plot.title = element_text(hjust = 0.5, size = 20),
-          strip.text.x = element_text(size = base.size, color = "black"),
-          strip.text.y = element_text(size = base.size, color = "black"),
+          strip.text.x = element_text(size = base.size*0.8, color = "black"),
+          strip.text.y = element_text(size = base.size*0.8, color = "black"),
           axis.text = element_text(color = "black"),
           axis.text.x = element_text(color = "black", size = base.size),
           axis.text.y = element_text(color = "black", size = (base.size -
@@ -447,14 +451,13 @@ generate_taxa_boxplot_long <-
       if (!is.null(group.var)) {
         if (is.null(strata.var)) {
           boxplot <-
-            boxplot + ggh4x::facet_nested(as.formula(paste(
+            boxplot + ggh4x::facet_nested_wrap(as.formula(paste(
               "~", feature.level, "+", group.var
-            )), scales = "free_y")
+            )), scales = "free", ncol = group.levels*4)
         } else {
-          boxplot <- boxplot + ggh4x::facet_nested(
-            rows = vars(!!sym(strata.var)),
-            cols = vars(!!sym(feature.level), !!sym(group.var)),
-            scales = "free_y"
+          boxplot <- boxplot + ggh4x::facet_nested_wrap(
+            as.formula(paste('~', feature.level, '+', strata.var, '+', group.var)),
+            scales = "free", ncol = group.levels*4
           )
         }
       }

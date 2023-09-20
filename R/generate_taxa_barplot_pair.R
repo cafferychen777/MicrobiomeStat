@@ -518,7 +518,8 @@ generate_taxa_barplot_pair <-
           axis.text.x = element_text(
             angle = 90,
             color = "black",
-            vjust = 0.5
+            vjust = 0.5,
+            size = base.size
           ),
           axis.title.y = element_text(size = base.size, color = "black"),
           legend.key = element_blank(),
