@@ -93,6 +93,7 @@ the grouping variable using linear models. If the grouping variable has multiple
 an ANOVA is performed.
 }
 \examples{
+\dontrun{
 data("subset_T2D.obj")
 generate_taxa_volatility_test_long(
 data.obj = subset_T2D.obj,
@@ -108,4 +109,5 @@ feature.level = c("Genus", "Family", "Species"),
 feature.dat.type = "count",
 transform = "CLR"
 )
+}
 }

@@ -78,6 +78,8 @@
 #' column names in feature.ann. Multiple columns can be provided, and data will be analyzed separately
 #' for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
 #' is also NULL.
+#' @param feature.analysis.rarafy Logical, indicating whether to rarefy the data at the feature-level for analysis.
+#' If TRUE, the feature data will be rarefied before analysis. Default is TRUE.
 #' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
 #' Should be one of:
 #' - "count": Raw count data, will be normalized by the function.
@@ -85,6 +87,12 @@
 #' - "other": Custom abundance data that has unknown scaling. No normalization applied.
 #' The choice affects preprocessing steps as well as plot axis labels.
 #' Default is "count", which assumes raw OTU table input.
+#' @param feature.mt.method Character, multiple testing method for features, "fdr" or "none", default is "fdr".
+#' @param feature.sig.level Numeric, significance level cutoff for highlighting features, default is 0.1.
+#' @param feature.box.axis.transform A string indicating the transformation to apply to the y-axis of the feature's boxplot visualization before plotting. Options are:
+#' - "identity": No transformation (default).
+#' - "sqrt": Square root transformation.
+#' - "log": Logarithmic transformation. Zeros are replaced with half of the minimum non-zero value for each taxon before log transformation.
 #' @param base.size Base font size for the generated plots.
 #' @param theme.choice Plot theme choice. Can be one of:
 #'   - "prism": ggprism::theme_prism()
@@ -115,10 +123,7 @@
 #'
 #' @examples
 #' \dontrun{
-#'
 #' data(peerj32.obj)
-#'
-#' # Generate a report for microbial ecology analysis
 #' mStat_generate_report_pair(
 #'   data.obj = peerj32.obj,
 #'   dist.obj = NULL,
@@ -140,7 +145,32 @@
 #'   feature.sig.level = 0.1,
 #'   theme.choice = "bw",
 #'   base.size = 18,
-#'   output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/报告/mStat_generate_report_pair_example.pdf"
+#'   output.file = "path/report.pdf"
+#' )
+#'
+#' data(peerj32.obj)
+#' mStat_generate_report_pair(
+#'   data.obj = peerj32.obj,
+#'   dist.obj = NULL,
+#'   alpha.obj = NULL,
+#'   group.var = "group",
+#'   test.adj.vars = c("sex"),
+#'   vis.adj.vars = c("sex"),
+#'   subject.var = "subject",
+#'   time.var = "time",
+#'   alpha.name = c("shannon", "observed_species"),
+#'   dist.name = c("BC",'Jaccard'),
+#'   change.base = "1",
+#'   feature.change.func = "relative change",
+#'   strata.var = "sex",
+#'   vis.feature.level = c("Phylum","Family","Genus"),
+#'   test.feature.level = c("Genus"),
+#'   feature.dat.type = "count",
+#'   feature.mt.method = "none",
+#'   feature.sig.level = 0.1,
+#'   theme.choice = "bw",
+#'   base.size = 18,
+#'   output.file = "path/report.pdf"
 #' )
 #' }
 #' @export
@@ -180,8 +210,7 @@ mStat_generate_report_pair <- function(data.obj,
                                        file.ann = NULL,
                                        pdf.wid = 11,
                                        pdf.hei = 8.5,
-                                       output.file,
-                                       ...) {
+                                       output.file) {
   template <- "
 ---
 title: '`r sub(\".pdf$\", \"\", basename(output.file))`'
@@ -202,7 +231,6 @@ output:
 
 custom_depth_status <- ifelse(is.null(depth), 'NULL', toString(depth))
 
-# 判断 custom.theme 是否为 NULL
 custom_theme_status <- ifelse(is.null(custom.theme), 'NULL', 'Not NULL')
 
 custom_palette_status <- ifelse(is.null(palette), 'NULL', 'Not NULL')
@@ -215,7 +243,6 @@ custom_test.adj.vars_status <- ifelse(is.null(test.adj.vars), 'NULL', toString(t
 
 custom_vis.adj.vars_status <- ifelse(is.null(vis.adj.vars), 'NULL', toString(vis.adj.vars))
 
-# 创建一个数据框，其中包含参数的名称和对应的值
 params_data <- data.frame(Parameter = c('data.obj',
                                         'feature.dat.type',
                                         'group.var',
@@ -289,7 +316,6 @@ params_data <- data.frame(Parameter = c('data.obj',
                                         pdf.wid,
                                         pdf.hei))
 
-# 使用pander来渲染数据框
 pander::pander(params_data)
 ```
 
@@ -413,10 +439,9 @@ taxa_barplot_pair_results <- generate_taxa_barplot_pair(
 
 ```{r taxa-barplot-pair-avergae-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 20, fig.height = 12, warning = FALSE}
 cat('The following plots display the average proportions for each time point, group, and stratum. \n\n')
-# 提取indiv的图到一个列表中
+
 indiv_list <- lapply(taxa_barplot_pair_results, function(x) x$indiv)
 
-# 提取average的图到一个列表中
 average_list <- lapply(taxa_barplot_pair_results, function(x) x$average)
 
 average_list
@@ -899,14 +924,13 @@ beta_test_pair_results <- generate_beta_test_pair(data.obj = data.obj,
 ```
 
 ```{r beta-test-pair-results-analysis, echo=FALSE, message=FALSE, results='asis'}
-# 首先，根据adj.vars的情况生成一个描述语句片段
+
 if (!is.null(test.adj.vars)) {
     adj.description <- sprintf(' while adjusting for covariates %s', paste(test.adj.vars, collapse=' and '))
 } else {
     adj.description <- ''
 }
 
-# 然后，使用上述描述在cat语句中
 if (length(dist.name) == 1) {
     cat(sprintf('\n In this analysis, we employed the PermanovaG2 function from the GUniFrac package to assess the impact of %s on beta diversity using the %s distance metric%s.\n', group.var, dist.name[1], adj.description))
 } else {
@@ -944,7 +968,7 @@ for(distance in distance_metrics) {
   # Skip distance named 'Total'
   if(distance != 'Total') {
     # Print with updated counter and distance name
-    cat(sprintf('\n### 3.2.%d %s distance \n\n', counter, ifelse(distance == 'BC', 'Bray–Curtis', distance)))
+    cat(sprintf('\n### 3.2.%d %s distance \n\n', counter, ifelse(distance == 'BC', 'Bray-Curtis', distance)))
 
     # Report significance
     report_beta_significance(data_frame = beta_test_pair_results$aov.tab, distance = distance)
@@ -952,7 +976,6 @@ for(distance in distance_metrics) {
 
     output <- pander::pander(beta_test_pair_results$aov.tab %>% filter(Distance == distance) %>% select(-all_of(c('Distance'))))
     cat(output)
-
 
     # Increment the counter
     counter <- counter + 1
@@ -1036,7 +1059,7 @@ report_beta_change_significance <- function(data_frame, group.var) {
 counter <- 1
 
 for(index_name in names(beta_change_test_results)) {
-  cat(sprintf('\n### 3.3.%d %s distance \n\n', counter, ifelse(index_name == 'BC', 'Bray–Curtis', index_name)))
+  cat(sprintf('\n### 3.3.%d %s distance \n\n', counter, ifelse(index_name == 'BC', 'Bray-Curtis', index_name)))
 
   report_beta_change_significance(beta_change_test_results[[index_name]], group.var)
 
@@ -1130,28 +1153,24 @@ for(taxon_rank in names(taxa_test_results)) {
   }
 }
 
-# 指定文件名前缀和后缀
 filename_prefix <- 'taxa_test_results_'
 file_ext <- '.csv'
 
-# 遍历taxa_test_results列表
 for(taxon_rank in names(taxa_test_results)) {
-    # 获取当前taxon_rank的所有比较
+
     comparisons <- names(taxa_test_results[[taxon_rank]])
 
-    # 遍历每个比较并保存其对应的data.frame
     for(comparison in comparisons) {
-        # 创建文件名
+
         file_name <- paste0(filename_prefix, taxon_rank, '_', gsub(' ', '_', gsub('/', '_or_', comparison)), file_ext)
 
-        # 保存data.frame
+
         write.csv(taxa_test_results[[taxon_rank]][[comparison]],
                   file = file_name,
                   row.names = FALSE)
     }
 }
 
-# 通知用户
 cat(sprintf('\n\nThe differential abundance test results for features have been saved in the current working directory. Each taxa rank and its corresponding comparison have their own file named with the prefix: %s followed by the taxon rank, the comparison, and the file extension %s. Please refer to these files for more detailed data.', filename_prefix, file_ext))
 
 ```
@@ -1236,28 +1255,23 @@ for(taxon_rank in names(taxa_change_test_results)) {
   }
 }
 
-# 指定文件名前缀和后缀
 filename_prefix <- 'taxa_change_test_results_'
 file_ext <- '.csv'
 
-# 遍历taxa_change_test_results列表
 for(taxon_rank in names(taxa_change_test_results)) {
-    # 获取当前taxon_rank的所有比较
+
     comparisons <- names(taxa_change_test_results[[taxon_rank]])
 
-    # 遍历每个比较并保存其对应的data.frame
     for(comparison in comparisons) {
-        # 创建文件名
+
         file_name <- paste0(filename_prefix, taxon_rank, '_', gsub(' ', '_', gsub('/', '_or_', comparison)), file_ext)
 
-        # 保存data.frame
         write.csv(taxa_change_test_results[[taxon_rank]][[comparison]],
                   file = file_name,
                   row.names = FALSE)
     }
 }
 
-# 通知用户
 cat(sprintf('\n\n The change test results for individual feature have been saved in the current working directory. Each taxa rank and its corresponding comparison have their own file named with the prefix: %s followed by the taxon rank, the comparison, and the file extension %s. Please refer to these files for more detailed data.', filename_prefix, file_ext))
 
 ```
@@ -1543,15 +1557,6 @@ rmd_code <- knitr::knit_expand(
 
 rmd_file <- tempfile(fileext = ".Rmd")
 writeLines(rmd_code, con = rmd_file)
-
-# 从output.file中提取目录
-working_directory <- dirname(output.file)
-
-# 设置新的工作目录
-setwd(working_directory)
-
-# 获取当前工作目录
-original_wd <- getwd()
 
 report_file <-
   rmarkdown::render(input = rmd_file,

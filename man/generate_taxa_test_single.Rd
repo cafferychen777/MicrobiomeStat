@@ -59,6 +59,10 @@ Should be one of:
 The choice affects preprocessing steps as well as plot axis labels.
 Default is "count", which assumes raw OTU table input.}
 
+\item{feature.sig.level}{A numeric threshold, usually between 0 and 1, for assessing the significance of individual taxa. Default is 0.1.}
+
+\item{feature.mt.method}{A character string specifying the method employed for multiple testing correction (e.g., "fdr" for False Discovery Rate). Default is "fdr".}
+
 \item{...}{Additional arguments to be passed to the ZicoSeq function.}
 }
 \value{

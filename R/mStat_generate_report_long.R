@@ -4,6 +4,14 @@
 #' The report contains thorough statistical analysis along with data visualizations, statistical graphics, and result tables for microbial alpha diversity, beta diversity, taxonomic composition, and their temporal dynamics with MicrobiomeStat.
 #'
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list).
+#' @param group.var Character, column name in metadata containing grouping variable, e.g. "treatment". Required if present in metadata.
+#' @param strata.var Character, column name in metadata containing stratification variable, e.g "sex". Optional.
+#' @param test.adj.vars Character vector, names of columns in the metadata containing covariates to be adjusted for in statistical tests and models, such as linear mixed effects models for longitudinal data analysis. This allows the user to account for the effects of additional variables in assessing the effects of primary variables of interest such as time and groups. Default is NULL, which indicates no covariates are adjusted for in statistical testing.
+#' @param vis.adj.vars Character vector, names of columns in the metadata containing covariates to visualize in plots, in addition to the primary variables of interest such as groups. For example, if sex is provided in vis.adj.vars, plots will display facets or colors for different sex groups. This allows visualization of effects across multiple covariates. Default is NULL, which indicates only the primary variables of interest will be visualized without additional covariates.
+#' @param subject.var Character, column name in metadata containing subject/sample IDs, e.g. "subject_id". Required.
+#' @param time.var Character, column name in metadata containing time variable, e.g. "week". Required.
+#' @param t0.level Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.
+#' @param ts.levels Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.
 #' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
 #' @param alpha.name The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".
 #' @param depth An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.
@@ -23,14 +31,6 @@
 #'  \item{Other metadata like $method, $dist.name, etc.}
 #' }
 #' See \code{\link[MicrobiomeStat]{mStat_calculate_PC}} function for details on output format.
-#' @param group.var Character, column name in metadata containing grouping variable, e.g. "treatment". Required if present in metadata.
-#' @param strata.var Character, column name in metadata containing stratification variable, e.g "sex". Optional.
-#' @param test.adj.vars Character vector, names of columns in the metadata containing covariates to be adjusted for in statistical tests and models, such as linear mixed effects models for longitudinal data analysis. This allows the user to account for the effects of additional variables in assessing the effects of primary variables of interest such as time and groups. Default is NULL, which indicates no covariates are adjusted for in statistical testing.
-#' @param vis.adj.vars Character vector, names of columns in the metadata containing covariates to visualize in plots, in addition to the primary variables of interest such as groups. For example, if sex is provided in vis.adj.vars, plots will display facets or colors for different sex groups. This allows visualization of effects across multiple covariates. Default is NULL, which indicates only the primary variables of interest will be visualized without additional covariates.
-#' @param subject.var Character, column name in metadata containing subject/sample IDs, e.g. "subject_id". Required.
-#' @param time.var Character, column name in metadata containing time variable, e.g. "week". Required.
-#' @param t0.level Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.
-#' @param ts.levels Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.
 #' @param feature.change.func A function or character string specifying how to calculate
 #' the change from baseline value. This allows flexible options:
 #' - If a function is provided, it will be applied to each row to calculate change.
@@ -72,6 +72,8 @@
 #' - "other": Custom abundance data that has unknown scaling. No normalization applied.
 #' The choice affects preprocessing steps as well as plot axis labels.
 #' Default is "count", which assumes raw OTU table input.
+#' @param feature.analysis.rarafy Logical, indicating whether to rarefy the data at the feature-level for analysis.
+#' If TRUE, the feature data will be rarefied before analysis. Default is TRUE.
 #' @param feature.mt.method Character, multiple testing method for features, "fdr" or "none", default is "fdr".
 #' @param feature.sig.level Numeric, significance level cutoff for highlighting features, default is 0.1.
 #' @param feature.box.axis.transform A string indicating the transformation to apply to the y-axis of the feature's boxplot visualization before plotting. Options are:
@@ -193,7 +195,8 @@
 #'   base.size = 12,
 #'   output.file = "path/report.pdf"
 #' )
-#' data(subset_T2D.obj)
+#'
+#' #' data(subset_T2D.obj)
 #' mStat_generate_report_long(
 #'   data.obj = subset_T2D.obj,
 #'   dist.obj = NULL,
@@ -222,7 +225,7 @@
 #'   feature.box.axis.transform = "sqrt",
 #'   theme.choice = "bw",
 #'   base.size = 20,
-#'   output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/报告/Omics Analysis Report.pdf"
+#'   output.file = "path/report.pdf"
 #' )
 #' }
 #' @export
@@ -283,7 +286,6 @@ output:
 
 custom_depth_status <- ifelse(is.null(depth), 'NULL', toString(depth))
 
-# 判断 custom.theme 是否为 NULL
 custom_theme_status <- ifelse(is.null(custom.theme), 'NULL', 'Not NULL')
 
 custom_palette_status <- ifelse(is.null(palette), 'NULL', 'Not NULL')
@@ -298,7 +300,6 @@ custom_test.adj.vars_status <- ifelse(is.null(test.adj.vars), 'NULL', toString(t
 
 custom_vis.adj.vars_status <- ifelse(is.null(vis.adj.vars), 'NULL', toString(vis.adj.vars))
 
-# 创建一个数据框，其中包含参数的名称和对应的值
 params_data <- data.frame(Parameter = c('data.obj',
                                         'feature.dat.type',
                                         'group.var',
@@ -370,7 +371,6 @@ params_data <- data.frame(Parameter = c('data.obj',
                                         pdf.wid,
                                         pdf.hei))
 
-# 使用pander来渲染数据框
 pander::pander(params_data)
 ```
 
@@ -501,10 +501,10 @@ taxa_heatmap_long_results <- generate_taxa_heatmap_long(
 
 ```{r taxa-heatmap-longitudinal-avergae-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 20, fig.height = 12}
 cat('The following plots display the average proportions for each time point, group, and stratum. \n\n')
-# 提取indiv的图到一个列表中
+
 indiv_list <- lapply(taxa_heatmap_long_results, function(x) x$indiv)
 
-# 提取average的图到一个列表中
+
 average_list <- lapply(taxa_heatmap_long_results, function(x) x$average)
 
 average_list
@@ -662,12 +662,11 @@ alpha_trend_test_results <- generate_alpha_trend_test_long(
 
 ```{r alpha-trend-test-results-print, echo=FALSE, message=FALSE, results='asis'}
 
-group_levels <- data.obj$meta.dat %>% select(!!sym(group.var)) %>% pull() %>% as.factor() %>% levels
+group_levels <- data.obj$meta.dat %>% select(!!sym(group.var)) %>% dplyr::pull() %>% as.factor() %>% levels
 
 reference_level <- group_levels[1]
 
 if (!is.null(group.var)) {
-    # 将字符型向量转换为逗号分隔的字符串
 if (!is.null(test.adj.vars)) {
     adj.vars_string <- paste(test.adj.vars, collapse = ', ')
 
@@ -954,7 +953,6 @@ beta_trend_test_longitudinal_results <- generate_beta_trend_test_long(
 ```{r beta-trend-test-results-print, echo=FALSE, message=FALSE, results='asis'}
 
 if (!is.null(group.var)) {
-    # 将字符型向量转换为逗号分隔的字符串
 if (!is.null(test.adj.vars)) {
     adj.vars_string <- paste(test.adj.vars, collapse = ', ')
 
@@ -1013,7 +1011,7 @@ counter <- 1
 
 # Report significance for each Beta diversity index in beta_trend_test_longitudinal_results
 for(index_name in names(beta_trend_test_longitudinal_results)) {
-  cat(sprintf('\n### 3.2.%d %s distance \n\n', counter, ifelse(index_name == 'BC', 'Bray–Curtis', index_name)))
+  cat(sprintf('\n### 3.2.%d %s distance \n\n', counter, ifelse(index_name == 'BC', 'Bray-Curtis', index_name)))
   cat('\n')
 
   report_beta_significance(beta_trend_test_longitudinal_results[[index_name]], group.var, time.var)
@@ -1039,7 +1037,6 @@ beta_volatility_test_longitudinal_results <- generate_beta_volatility_test_long(
 
 ```{r beta-volatility-test-results-print, echo=FALSE, message=FALSE, results='asis'}
 
-# Initial description for volatility
 num_levels <- length(unique(data.obj$meta.dat[[group.var]]))
 
 if(num_levels > 2) {
@@ -1082,7 +1079,7 @@ report_beta_volatility_significance <- function(data_frame, group.var) {
 counter <- 1
 
 for(index_name in names(beta_volatility_test_longitudinal_results)) {
-  cat(sprintf('\n### 3.3.%d %s distance \n\n', counter, ifelse(index_name == 'BC', 'Bray–Curtis', index_name)))
+  cat(sprintf('\n### 3.3.%d %s distance \n\n', counter, ifelse(index_name == 'BC', 'Bray-Curtis', index_name)))
 
   report_beta_volatility_significance(beta_volatility_test_longitudinal_results[[index_name]], group.var)
 
@@ -1185,28 +1182,25 @@ for(taxon_rank in names(taxa_trend_test_results)) {
   }
 }
 
-# 指定文件名前缀和后缀
+
 filename_prefix <- 'taxa_trend_test_results_'
 file_ext <- '.csv'
 
-# 遍历taxa_trend_test_results列表
+
 for(taxon_rank in names(taxa_trend_test_results)) {
-    # 获取当前taxon_rank的所有比较
     comparisons <- names(taxa_trend_test_results[[taxon_rank]])
 
-    # 遍历每个比较并保存其对应的data.frame
     for(comparison in comparisons) {
-        # 创建文件名
+
         file_name <- paste0(filename_prefix, taxon_rank, '_', gsub(' ', '_', gsub('/', '_or_', comparison)), file_ext)
 
-        # 保存data.frame
+
         write.csv(taxa_trend_test_results[[taxon_rank]][[comparison]],
                   file = file_name,
                   row.names = FALSE)
     }
 }
 
-# 通知用户
 cat(sprintf('\n\nThe trend test results for features have been saved in the current working directory. Each taxa rank and its corresponding comparison have their own file named with the prefix: %s followed by the taxon rank, the comparison, and the file extension %s. Please refer to these files for more detailed data.', filename_prefix, file_ext))
 
 ```
@@ -1237,7 +1231,6 @@ volatility_volcano_plots <- generate_taxa_volatility_volcano_long(data.obj = dat
 
 volatility_volcano_plots
 
-# Initial description for Feature Volatility
 num_levels <- length(unique(data.obj$meta.dat[[group.var]]))
 
 if(num_levels > 2) {
@@ -1283,28 +1276,21 @@ for(taxon_rank in names(taxa_volatility_test_results)) {
   }
 }
 
-# 指定文件名前缀和后缀
 filename_prefix <- 'taxa_volatility_test_results_'
 file_ext <- '.csv'
 
-# 遍历taxa_volatility_test_results列表
 for(taxon_rank in names(taxa_volatility_test_results)) {
-    # 获取当前taxon_rank的所有比较
     comparisons <- names(taxa_volatility_test_results[[taxon_rank]])
 
-    # 遍历每个比较并保存其对应的data.frame
     for(comparison in comparisons) {
-        # 创建文件名
         file_name <- paste0(filename_prefix, taxon_rank, '_', gsub(' ', '_', gsub('/', '_or_', comparison)), file_ext)
 
-        # 保存data.frame
         write.csv(taxa_volatility_test_results[[taxon_rank]][[comparison]],
                   file = file_name,
                   row.names = FALSE)
     }
 }
 
-# 通知用户
 cat(sprintf('\n\n The volatility test results for individual feature have been saved in the current working directory. Each taxa rank and its corresponding comparison have their own file named with the prefix: %s followed by the taxon rank, the comparison, and the file extension %s. Please refer to these files for more detailed data.', filename_prefix, file_ext))
 
 ```
@@ -1582,15 +1568,6 @@ rmd_code <- knitr::knit_expand(
 
 rmd_file <- tempfile(fileext = ".Rmd")
 writeLines(rmd_code, con = rmd_file)
-
-# 从output.file中提取目录
-working_directory <- dirname(output.file)
-
-# 设置新的工作目录
-setwd(working_directory)
-
-# 获取当前工作目录
-original_wd <- getwd()
 
 report_file <-
   rmarkdown::render(input = rmd_file,

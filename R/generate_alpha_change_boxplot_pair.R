@@ -118,7 +118,7 @@ generate_alpha_change_boxplot_pair <-
     }
 
     meta_tab <-
-      load_data_obj_metadata(data.obj) %>% as.data.frame() %>% select(all_of(c(
+      load_data_obj_metadata(data.obj) %>% as.data.frame() %>% dplyr::select(all_of(c(
         subject.var, group.var, time.var, strata.var, adj.vars
       )))
 
@@ -129,12 +129,12 @@ generate_alpha_change_boxplot_pair <-
                  by = c("sample"))
 
     if (is.null(change.base)){
-      change.base <- unique(alpha_df %>% select(all_of(c(time.var))))[1,]
+      change.base <- unique(alpha_df %>% dplyr::select(all_of(c(time.var))))[1,]
       message("The 'change.base' variable was NULL. It has been set to the first unique value in the 'time.var' column of the 'alpha_df' data frame: ", change.base)
     }
 
     change.after <-
-      unique(alpha_df %>% select(all_of(c(time.var))))[unique(alpha_df %>% select(all_of(c(time.var)))) != change.base]
+      unique(alpha_df %>% dplyr::select(all_of(c(time.var))))[unique(alpha_df %>% dplyr::select(all_of(c(time.var)))) != change.base]
 
     alpha_grouped <- alpha_df %>% dplyr::group_by(time)
     alpha_split <- split(alpha_df, f = alpha_grouped$time)
@@ -160,7 +160,7 @@ generate_alpha_change_boxplot_pair <-
           )), !!sym(paste0(
             index, "_time_1"
           )))) %>%
-          select(all_of(diff_col_name))
+          dplyr::select(all_of(diff_col_name))
       } else {
         if (change.func == "lfc") {
           combined_alpha <- combined_alpha %>%
@@ -169,11 +169,11 @@ generate_alpha_change_boxplot_pair <-
             )) / !!sym(paste0(
               index, "_time_1"
             )))) %>%
-            select(all_of(c(diff_col_name)))
+            dplyr::select(all_of(c(diff_col_name)))
         } else {
           combined_alpha <- combined_alpha %>%
             dplyr::mutate(!!diff_col_name := !!sym(paste0(index, "_time_2")) -!!sym(paste0(index, "_time_1"))) %>%
-            select(all_of(diff_col_name))
+            dplyr::select(all_of(diff_col_name))
         }
       }
     })
@@ -209,7 +209,7 @@ generate_alpha_change_boxplot_pair <-
       combined_alpha$group <- "All"
     } else{
       combined_alpha <-
-        combined_alpha %>% dplyr::left_join(alpha_df %>% select(all_of(c(
+        combined_alpha %>% dplyr::left_join(alpha_df %>% dplyr::select(all_of(c(
           subject.var, group.var
         )))
         , by = c(subject.var, group.var)) %>% dplyr::rename(group = group.var)
@@ -217,7 +217,7 @@ generate_alpha_change_boxplot_pair <-
 
     if (!is.null(strata.var)) {
       combined_alpha <-
-        combined_alpha %>% dplyr::left_join(alpha_time_1 %>% select(all_of(c(
+        combined_alpha %>% dplyr::left_join(alpha_time_1 %>% dplyr::select(all_of(c(
           subject.var, strata.var
         )))
         , by = c(subject.var))
@@ -225,7 +225,7 @@ generate_alpha_change_boxplot_pair <-
 
     if (!is.null(adj.vars) && (is.null(strata.var) || strata.var != adj.vars)){
       combined_alpha <-
-        combined_alpha %>% dplyr::left_join(alpha_time_1 %>% select(all_of(c(
+        combined_alpha %>% dplyr::left_join(alpha_time_1 %>% dplyr::select(all_of(c(
           subject.var, adj.vars
         )))
         , by = c(subject.var))
@@ -264,7 +264,7 @@ generate_alpha_change_boxplot_pair <-
 
         # 对非数值型协变量进行因子转换
         data_subset <- combined_alpha %>%
-          select(all_of(adj.vars)) %>%
+          dplyr::select(all_of(adj.vars)) %>%
           dplyr::mutate(dplyr::across(where(is.character) & !is.factor, factor))
 
         # 创建模型矩阵，并为非数值型协变量设定对比度

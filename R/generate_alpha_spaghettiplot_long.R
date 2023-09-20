@@ -135,7 +135,7 @@ generate_alpha_spaghettiplot_long <-
     }
 
     meta_tab <-
-      load_data_obj_metadata(data.obj) %>% as.data.frame() %>% select(all_of(c(
+      load_data_obj_metadata(data.obj) %>% as.data.frame() %>% dplyr::select(all_of(c(
         subject.var, group.var, time.var, strata.var, adj.vars
       )))
 
@@ -143,7 +143,7 @@ generate_alpha_spaghettiplot_long <-
     alpha.df <-
       dplyr::bind_cols(alpha.obj) %>% rownames_to_column("sample") %>%
       dplyr::inner_join(
-        meta_tab %>% select(all_of(
+        meta_tab %>% dplyr::select(all_of(
           c(subject.var, time.var, group.var, strata.var, adj.vars)
         )) %>% rownames_to_column(var = "sample"),
         by = c("sample")
@@ -183,13 +183,13 @@ generate_alpha_spaghettiplot_long <-
 
     # Create a plot for each alpha diversity index
     plot_list <- lapply(alpha.name, function(index) {
-      sub_alpha.df <- alpha.df %>% select(all_of(c(index,subject.var, time.var, group.var, strata.var, adj.vars)))
+      sub_alpha.df <- alpha.df %>% dplyr::select(all_of(c(index,subject.var, time.var, group.var, strata.var, adj.vars)))
 
       if (!is.null(adj.vars)) {
 
         # 对非数值型协变量进行因子转换
         data_subset <- sub_alpha.df %>%
-          select(all_of(adj.vars)) %>%
+          dplyr::select(all_of(adj.vars)) %>%
           dplyr::mutate(dplyr::across(where(is.character) & !is.factor, factor))
 
         # 创建模型矩阵，并为非数值型协变量设定对比度

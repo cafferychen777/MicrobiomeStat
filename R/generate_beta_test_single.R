@@ -1,4 +1,8 @@
-#' This function calculates various beta diversity indices for a microbiome dataset and performs PERMANOVA tests on them to assess the effect of a grouping variable and any additional covariates on the beta diversity. It returns the PERMANOVA results for each of the specified beta diversity indices.
+#' Calculate Beta Diversity Indices and Perform PERMANOVA Tests
+#'
+#' This function computes a range of beta diversity indices for a microbiome dataset and evaluates them using
+#' PERMANOVA tests. The goal is to assess the effect of a specific grouping variable along with potential covariates
+#' on beta diversity. The function outputs the PERMANOVA results for the selected beta diversity indices.
 #'
 #' @name generate_beta_test_single
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
@@ -118,7 +122,7 @@ generate_beta_test_single <- function(data.obj,
   aov.tab <- dplyr::bind_rows(permanova.results$aov.tab) %>%
     dplyr::mutate(dplyr::across(where(is.numeric), ~ ifelse(is.na(.), "NA", round(., 3))))  # round all numeric values to 3 decimal places, replace NA with "NA"
 
-  aov.tab <- aov.tab %>% select(Distance, everything())
+  aov.tab <- aov.tab %>% dplyr::select(Distance, everything())
 
   return(list("p.tab" = p.tab, "aov.tab" = aov.tab))
 }

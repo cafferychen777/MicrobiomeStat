@@ -127,11 +127,11 @@ generate_alpha_boxplot_single <- function (data.obj,
 
     if (!is.null(time.var)) {
       if (!is.null(t.level)) {
-        meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(
+        meta_tab <- load_data_obj_metadata(data.obj) %>% dplyr::select(all_of(
           c(subject.var, time.var, group.var, strata.var, adj.vars)
         )) %>% filter(!!sym(time.var) == t.level)
       } else {
-        meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(
+        meta_tab <- load_data_obj_metadata(data.obj) %>% dplyr::select(all_of(
           c(subject.var, time.var, group.var, strata.var, adj.vars)
         ))
         if (length(levels(as.factor(meta_tab[, time.var]))) != 1) {
@@ -141,12 +141,12 @@ generate_alpha_boxplot_single <- function (data.obj,
         }
       }
     } else {
-      meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(c(
+      meta_tab <- load_data_obj_metadata(data.obj) %>% dplyr::select(all_of(c(
         subject.var, group.var, strata.var, adj.vars
       )))
     }
 
-    otu_tab <- otu_tab %>% select(all_of(c(rownames(meta_tab))))
+    otu_tab <- otu_tab %>% dplyr::select(all_of(c(rownames(meta_tab))))
     alpha.obj <-
       mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name)
   }
@@ -214,7 +214,7 @@ generate_alpha_boxplot_single <- function (data.obj,
     if (!is.null(adj.vars)) {
       # 对非数值型协变量进行因子转换
       data_subset <- alpha_df %>%
-        select(all_of(adj.vars)) %>%
+        dplyr::select(all_of(adj.vars)) %>%
         dplyr::mutate(dplyr::across(where(is.character) & !is.factor, factor))
 
       # 创建模型矩阵，并为非数值型协变量设定对比度

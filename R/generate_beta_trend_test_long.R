@@ -68,6 +68,7 @@ create_mixed_effects_formula <- function(response.var, time.var, group.var = NUL
 #'   group.var = "diet",
 #'   adj.vars = c("antiexposedall","delivery"),
 #'   dist.name = c("BC", "Jaccard")
+#'   )
 #'
 #' data(esubset_T2D.obj)
 #' generate_beta_trend_test_long(
@@ -101,7 +102,7 @@ generate_beta_trend_test_long <-
     )
 
     if (is.null(dist.obj)) {
-      meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var, time.var, group.var, adj.vars)))
+      meta_tab <- load_data_obj_metadata(data.obj) %>% dplyr::select(all_of(c(subject.var, time.var, group.var, adj.vars)))
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
       if (!is.null(adj.vars)){
@@ -109,9 +110,9 @@ generate_beta_trend_test_long <-
       }
     } else {
       if (!is.null(data.obj) & !is.null(data.obj$meta.dat)){
-        meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var, time.var, group.var, adj.vars)))
+        meta_tab <- load_data_obj_metadata(data.obj) %>% dplyr::select(all_of(c(subject.var, time.var, group.var, adj.vars)))
       } else {
-        meta_tab <- attr(dist.obj[[dist.name[1]]], "labels") %>% select(all_of(c(subject.var, time.var, group.var, adj.vars)))
+        meta_tab <- attr(dist.obj[[dist.name[1]]], "labels") %>% dplyr::select(all_of(c(subject.var, time.var, group.var, adj.vars)))
       }
     }
 
@@ -139,10 +140,10 @@ generate_beta_trend_test_long <-
         filter(!!sym(paste0(time.var,".sample")) == min(meta_tab[,time.var])) %>%
         filter(!!sym(paste0(time.var,".subject")) != !!sym(paste0(time.var,".sample"))) %>%
         dplyr::ungroup() %>%
-        select(!!sym(paste0(subject.var, ".subject")), !!sym(paste0(time.var, ".subject")), distance) %>%
+        dplyr::select(!!sym(paste0(subject.var, ".subject")), !!sym(paste0(time.var, ".subject")), distance) %>%
         dplyr::rename(!!sym(subject.var) := !!sym(paste0(subject.var, ".subject")), !!sym(time.var) := !!sym(paste0(time.var, ".subject")))
 
-      long.df <- long.df %>% dplyr::left_join(meta_tab %>% select(all_of(c(subject.var, group.var))) %>% dplyr::distinct(), by = subject.var, relationship = "many-to-many")
+      long.df <- long.df %>% dplyr::left_join(meta_tab %>% dplyr::select(all_of(c(subject.var, group.var))) %>% dplyr::distinct(), by = subject.var, relationship = "many-to-many")
 
       formula <- create_mixed_effects_formula(response.var = "distance",
                                               time.var = time.var,

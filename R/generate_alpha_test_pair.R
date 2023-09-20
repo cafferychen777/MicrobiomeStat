@@ -111,7 +111,7 @@ generate_alpha_test_pair <-
     }
 
     meta_tab <-
-      load_data_obj_metadata(data.obj) %>% as.data.frame() %>% select(all_of(c(
+      load_data_obj_metadata(data.obj) %>% as.data.frame() %>% dplyr::select(all_of(c(
         subject.var, group.var, time.var, adj.vars
       )))
 

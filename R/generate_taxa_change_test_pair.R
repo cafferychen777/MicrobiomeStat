@@ -67,6 +67,8 @@ is_categorical <- function(x) {
 #' - "other": Custom abundance data that has unknown scaling. No normalization applied.
 #' The choice affects preprocessing steps as well as plot axis labels.
 #' Default is "count", which assumes raw OTU table input.
+#' @param feature.mt.method Character, multiple testing method for features, "fdr" or "none", default is "fdr".
+#' @param feature.sig.level Numeric, significance level cutoff for highlighting features, default is 0.1.
 #' @param ... Additional parameters to be passed to the ZicoSeq function.
 #'
 #' @examples

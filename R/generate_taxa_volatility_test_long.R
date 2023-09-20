@@ -56,6 +56,7 @@
 #' @return A list of test results. The results are returned in a tidy dataframe format, including coefficients, standard errors, statistics, and p-values from linear models and ANOVA tests.
 #'
 #' @examples
+#' \dontrun{
 #' data("subset_T2D.obj")
 #' generate_taxa_volatility_test_long(
 #' data.obj = subset_T2D.obj,
@@ -71,6 +72,7 @@
 #' feature.dat.type = "count",
 #' transform = "CLR"
 #' )
+#' }
 #' @export
 generate_taxa_volatility_test_long <- function(data.obj,
                                                time.var,

@@ -56,30 +56,39 @@ to perform analysis on cross-sectional data, a single time point from longitudin
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mStat_generate_report_single</span><span class="op">(</span></span>
 <span>  <span class="va">data.obj</span>,</span>
-<span>  dist.obj <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  alpha.obj <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">group.var</span>,</span>
-<span>  <span class="va">adj.vars</span>,</span>
+<span>  vis.adj.vars <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  test.adj.vars <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">subject.var</span>,</span>
 <span>  <span class="va">time.var</span>,</span>
-<span>  <span class="va">transform</span>,</span>
-<span>  alpha.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shannon"</span>, <span class="st">"simpson"</span>, <span class="st">"observed_species"</span>, <span class="st">"chao1"</span>, <span class="st">"ace"</span>, <span class="st">"pielou"</span><span class="op">)</span>,</span>
-<span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BC"</span>, <span class="st">"Jaccard"</span>, <span class="st">"UniFrac"</span>, <span class="st">"GUniFrac"</span>, <span class="st">"WUniFrac"</span>, <span class="st">"JS"</span><span class="op">)</span>,</span>
 <span>  t.level <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  alpha.obj <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  alpha.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shannon"</span>, <span class="st">"observed_species"</span><span class="op">)</span>,</span>
+<span>  depth <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  dist.obj <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BC"</span>, <span class="st">"Jaccard"</span><span class="op">)</span>,</span>
+<span>  pc.obj <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  prev.filter <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>  abund.filter <span class="op">=</span> <span class="fl">1e-04</span>,</span>
+<span>  bar.area.feature.no <span class="op">=</span> <span class="fl">40</span>,</span>
+<span>  heatmap.feature.no <span class="op">=</span> <span class="fl">40</span>,</span>
+<span>  dotplot.feature.no <span class="op">=</span> <span class="fl">40</span>,</span>
+<span>  vis.feature.level <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  test.feature.level <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  feature.dat.type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"count"</span>, <span class="st">"proportion"</span>, <span class="st">"other"</span><span class="op">)</span>,</span>
+<span>  feature.analysis.rarafy <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  feature.mt.method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"fdr"</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
+<span>  feature.sig.level <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>  feature.box.axis.transform <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"identity"</span>, <span class="st">"sqrt"</span>, <span class="st">"log"</span><span class="op">)</span>,</span>
 <span>  base.size <span class="op">=</span> <span class="fl">16</span>,</span>
-<span>  theme.choice <span class="op">=</span> <span class="st">"prism"</span>,</span>
+<span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span>
 <span>  custom.theme <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  palette <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pdf <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  file.ann <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pdf.wid <span class="op">=</span> <span class="fl">11</span>,</span>
 <span>  pdf.hei <span class="op">=</span> <span class="fl">8.5</span>,</span>
-<span>  prev.filter <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  abund.filter <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  features.plot <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  feature.level <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  feature.dat.type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"count"</span>, <span class="st">"proportion"</span>, <span class="st">"other"</span><span class="op">)</span>,</span>
 <span>  <span class="va">output.file</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -91,23 +100,20 @@ to perform analysis on cross-sectional data, a single time point from longitudin
 <dd><p>A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.</p></dd>
 
 
-<dt>dist.obj</dt>
-<dd><p>Distance matrix between samples, usually calculated using
-<code><a href="mStat_calculate_beta_diversity.html">mStat_calculate_beta_diversity</a></code> function.
-If NULL, beta diversity will be automatically computed from <code>data.obj</code>
-using <code>mStat_calculate_beta_diversity</code>.</p></dd>
-
-
-<dt>alpha.obj</dt>
-<dd><p>An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.</p></dd>
-
-
 <dt>group.var</dt>
 <dd><p>Variable name used for grouping samples.</p></dd>
 
 
-<dt>adj.vars</dt>
-<dd><p>Variables to adjust for in the longitudinal analysis.</p></dd>
+<dt>vis.adj.vars</dt>
+<dd><p>Character vector, names of columns in the metadata containing covariates to visualize in plots, in addition to the primary variables of interest such as groups. For example, if sex is provided in vis.adj.vars, plots will display facets or colors for different sex groups. This allows visualization of effects across multiple covariates. Default is NULL, which indicates only the primary variables of interest will be visualized without additional covariates.</p></dd>
+
+
+<dt>test.adj.vars</dt>
+<dd><p>Character vector, names of columns in the metadata containing covariates to be adjusted for in statistical tests and models, such as linear mixed effects models for longitudinal data analysis. This allows the user to account for the effects of additional variables in assessing the effects of primary variables of interest such as time and groups. Default is NULL, which indicates no covariates are adjusted for in statistical testing.</p></dd>
+
+
+<dt>strata.var</dt>
+<dd><p>Variable to stratify the analysis by (optional).</p></dd>
 
 
 <dt>subject.var</dt>
@@ -118,28 +124,117 @@ using <code>mStat_calculate_beta_diversity</code>.</p></dd>
 <dd><p>Variable name used for time points.</p></dd>
 
 
-<dt>transform</dt>
-<dd><p>A string indicating the transformation to apply to the data before plotting. Options are:
-- "identity": No transformation (default)
-- "sqrt": Square root transformation
-- "log": Logarithmic transformation. Zeros are replaced with half of the minimum non-zero value for each taxon before log transformation.</p></dd>
+<dt>t.level</dt>
+<dd><p>Character string specifying the time level/value to subset data to,
+if a time variable is provided. Default NULL does not subset data.</p></dd>
+
+
+<dt>alpha.obj</dt>
+<dd><p>An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.</p></dd>
 
 
 <dt>alpha.name</dt>
 <dd><p>The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".</p></dd>
 
 
+<dt>depth</dt>
+<dd><p>An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.</p></dd>
+
+
+<dt>dist.obj</dt>
+<dd><p>Distance matrix between samples, usually calculated using
+<code><a href="mStat_calculate_beta_diversity.html">mStat_calculate_beta_diversity</a></code> function.
+If NULL, beta diversity will be automatically computed from <code>data.obj</code>
+using <code>mStat_calculate_beta_diversity</code>.</p></dd>
+
+
 <dt>dist.name</dt>
 <dd><p>A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').</p></dd>
 
 
-<dt>t.level</dt>
-<dd><p>Character string specifying the time level/value to subset data to,
-if a time variable is provided. Default NULL does not subset data.</p></dd>
+<dt>pc.obj</dt>
+<dd><p>A list containing the results of dimension reduction/Principal Component Analysis.
+This should be the output from functions like <code><a href="mStat_calculate_PC.html">mStat_calculate_PC</a></code>, containing the PC coordinates and other metadata.
+If NULL (default), dimension reduction will be automatically performed using metric multidimensional scaling (MDS) via <code><a href="mStat_calculate_PC.html">mStat_calculate_PC</a></code>.
+The pc.obj list structure should contain:</p><ul><li><p>$points:A matrix with samples as rows and PCs as columns containing the coordinates.</p></li>
+<li><p>$eig:Eigenvalues for each PC dimension.</p></li>
+<li><p>$vectors:Loadings vectors for features onto each PC.</p></li>
+<li><p>Other metadata like $method, $dist.name, etc.</p></li>
+</ul><p>See <code><a href="mStat_calculate_PC.html">mStat_calculate_PC</a></code> function for details on output format.</p></dd>
 
 
-<dt>strata.var</dt>
-<dd><p>Variable to stratify the analysis by (optional).</p></dd>
+<dt>prev.filter</dt>
+<dd><p>Numeric value specifying the minimum prevalence threshold for filtering
+taxa before analysis. Taxa with prevalence below this value will be removed.
+Prevalence is calculated as the proportion of samples where the taxon is present.
+Default 0 removes no taxa by prevalence filtering.</p></dd>
+
+
+<dt>abund.filter</dt>
+<dd><p>Numeric value specifying the minimum abundance threshold for filtering
+taxa before analysis. Taxa with mean abundance below this value will be removed.
+Abundance refers to counts or proportions depending on <code>feature.dat.type</code>.
+Default 0 removes no taxa by abundance filtering.</p></dd>
+
+
+<dt>bar.area.feature.no</dt>
+<dd><p>A numeric value indicating the number of top abundant features to retain in both barplot and areaplot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.</p></dd>
+
+
+<dt>heatmap.feature.no</dt>
+<dd><p>A numeric value indicating the number of top abundant features to retain in the heatmap. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.</p></dd>
+
+
+<dt>dotplot.feature.no</dt>
+<dd><p>A numeric value indicating the number of top abundant features to retain in the dotplot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 40.</p></dd>
+
+
+<dt>vis.feature.level</dt>
+<dd><p>The column name in the feature annotation matrix (feature.ann) of data.obj
+to use for visualization and plotting. This can be the taxonomic level like "Phylum", or any other
+annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
+column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
+for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
+is also NULL.</p></dd>
+
+
+<dt>test.feature.level</dt>
+<dd><p>The column name in the feature annotation matrix (feature.ann) of data.obj
+to use for testing or analytical purposes. This can be the taxonomic level like "Phylum", or any other
+annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
+column names in feature.ann. Multiple columns can be provided, and data will be analyzed separately
+for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
+is also NULL.</p></dd>
+
+
+<dt>feature.dat.type</dt>
+<dd><p>The type of the feature data, which determines how the data is handled in downstream analyses.
+Should be one of:
+- "count": Raw count data, will be normalized by the function.
+- "proportion": Data that has already been normalized to proportions/percentages.
+- "other": Custom abundance data that has unknown scaling. No normalization applied.
+The choice affects preprocessing steps as well as plot axis labels.
+Default is "count", which assumes raw OTU table input.</p></dd>
+
+
+<dt>feature.analysis.rarafy</dt>
+<dd><p>Logical, indicating whether to rarefy the data at the feature-level for analysis.
+If TRUE, the feature data will be rarefied before analysis. Default is TRUE.</p></dd>
+
+
+<dt>feature.mt.method</dt>
+<dd><p>Character, multiple testing method for features, "fdr" or "none", default is "fdr".</p></dd>
+
+
+<dt>feature.sig.level</dt>
+<dd><p>Numeric, significance level cutoff for highlighting features, default is 0.1.</p></dd>
+
+
+<dt>feature.box.axis.transform</dt>
+<dd><p>A string indicating the transformation to apply to the data before plotting. Options are:
+- "identity": No transformation (default)
+- "sqrt": Square root transformation
+- "log": Logarithmic transformation. Zeros are replaced with half of the minimum non-zero value for each taxon before log transformation.</p></dd>
 
 
 <dt>base.size</dt>
@@ -186,44 +281,6 @@ my_theme &lt;- ggplot2::theme(
 <dd><p>Height of the PDF plots.</p></dd>
 
 
-<dt>prev.filter</dt>
-<dd><p>Numeric value specifying the minimum prevalence threshold for filtering
-taxa before analysis. Taxa with prevalence below this value will be removed.
-Prevalence is calculated as the proportion of samples where the taxon is present.
-Default 0 removes no taxa by prevalence filtering.</p></dd>
-
-
-<dt>abund.filter</dt>
-<dd><p>Numeric value specifying the minimum abundance threshold for filtering
-taxa before analysis. Taxa with mean abundance below this value will be removed.
-Abundance refers to counts or proportions depending on <code>feature.dat.type</code>.
-Default 0 removes no taxa by abundance filtering.</p></dd>
-
-
-<dt>features.plot</dt>
-<dd><p>A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
-Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.</p></dd>
-
-
-<dt>feature.level</dt>
-<dd><p>The column name in the feature annotation matrix (feature.ann) of data.obj
-to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
-annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
-column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
-for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
-is also NULL.</p></dd>
-
-
-<dt>feature.dat.type</dt>
-<dd><p>The type of the feature data, which determines how the data is handled in downstream analyses.
-Should be one of:
-- "count": Raw count data, will be normalized by the function.
-- "proportion": Data that has already been normalized to proportions/percentages.
-- "other": Custom abundance data that has unknown scaling. No normalization applied.
-The choice affects preprocessing steps as well as plot axis labels.
-Default is "count", which assumes raw OTU table input.</p></dd>
-
-
 <dt>output.file</dt>
 <dd><p>Output file name for the report.</p></dd>
 
@@ -242,34 +299,55 @@ Default is "count", which assumes raw OTU table input.</p></dd>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">GUniFrac</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">pheatmap</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/vegandevs/vegan" class="external-link">vegan</a></span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/teunbrand/ggh4x" class="external-link">ggh4x</a></span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">peerj32.obj</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">dist.obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="mStat_calculate_beta_diversity.html">mStat_calculate_beta_diversity</a></span><span class="op">(</span><span class="va">peerj32.obj</span>, dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'BC'</span>, <span class="st">'Jaccard'</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Generate a report for microbial ecology analysis</span></span></span>
 <span class="r-in"><span><span class="fu">mStat_generate_report_single</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">peerj32.obj</span>,</span></span>
 <span class="r-in"><span>  dist.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  alpha.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
-<span class="r-in"><span>  adj.vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sex"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  vis.adj.vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sex"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  test.adj.vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sex"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"subject"</span>,</span></span>
 <span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"time"</span>,</span></span>
-<span class="r-in"><span>  alpha.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shannon"</span>,<span class="st">"simpson"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  alpha.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shannon"</span>, <span class="st">"observed_species"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  depth <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BC"</span>,<span class="st">'Jaccard'</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  t.level <span class="op">=</span> <span class="st">"1"</span>,</span></span>
-<span class="r-in"><span>  transform <span class="op">=</span> <span class="st">"identity"</span>,</span></span>
+<span class="r-in"><span>  feature.box.axis.transform <span class="op">=</span> <span class="st">"sqrt"</span>,</span></span>
 <span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
-<span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Phylum"</span>,<span class="st">"Family"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  vis.feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Phylum"</span>, <span class="st">"Family"</span>, <span class="st">"Genus"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  test.feature.level <span class="op">=</span> <span class="st">"Family"</span>,</span></span>
 <span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"count"</span>,</span></span>
 <span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
-<span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">12</span>,</span></span>
-<span class="r-in"><span>  output.file <span class="op">=</span> <span class="st">"mStat_generate_report_single_example.pdf"</span></span></span>
+<span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">20</span>,</span></span>
+<span class="r-in"><span>  feature.mt.method <span class="op">=</span> <span class="st">"none"</span>,</span></span>
+<span class="r-in"><span>  feature.sig.level <span class="op">=</span> <span class="fl">0.2</span>,</span></span>
+<span class="r-in"><span>  output.file <span class="op">=</span> <span class="st">"path/report.pdf"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">peerj32.obj</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">mStat_generate_report_single</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">peerj32.obj</span>,</span></span>
+<span class="r-in"><span>  dist.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  alpha.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
+<span class="r-in"><span>  vis.adj.vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sex"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  test.adj.vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sex"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"subject"</span>,</span></span>
+<span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"time"</span>,</span></span>
+<span class="r-in"><span>  alpha.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shannon"</span>, <span class="st">"observed_species"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  depth <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BC"</span>,<span class="st">'Jaccard'</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  t.level <span class="op">=</span> <span class="st">"1"</span>,</span></span>
+<span class="r-in"><span>  feature.box.axis.transform <span class="op">=</span> <span class="st">"sqrt"</span>,</span></span>
+<span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
+<span class="r-in"><span>  vis.feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Phylum"</span>, <span class="st">"Family"</span>, <span class="st">"Genus"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  test.feature.level <span class="op">=</span> <span class="st">"Family"</span>,</span></span>
+<span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"count"</span>,</span></span>
+<span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
+<span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">20</span>,</span></span>
+<span class="r-in"><span>  feature.mt.method <span class="op">=</span> <span class="st">"none"</span>,</span></span>
+<span class="r-in"><span>  feature.sig.level <span class="op">=</span> <span class="fl">0.2</span>,</span></span>
+<span class="r-in"><span>  output.file <span class="op">=</span> <span class="st">"path/report.pdf"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>

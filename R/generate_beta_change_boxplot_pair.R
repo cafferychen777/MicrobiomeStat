@@ -108,7 +108,7 @@ generate_beta_change_boxplot_pair <-
            ...) {
 
     if (is.null(dist.obj)) {
-      meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var, time.var, group.var, strata.var, adj.vars)))
+      meta_tab <- load_data_obj_metadata(data.obj) %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var, adj.vars)))
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
       if (!is.null(adj.vars)){
@@ -116,9 +116,9 @@ generate_beta_change_boxplot_pair <-
       }
     } else {
       if (!is.null(data.obj) & !is.null(data.obj$meta.dat)){
-        meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var, time.var, group.var, strata.var, adj.vars)))
+        meta_tab <- load_data_obj_metadata(data.obj) %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var, adj.vars)))
       } else {
-        meta_tab <- attr(dist.obj[[dist.name[1]]], "labels") %>% select(all_of(c(subject.var, time.var, group.var, strata.var, adj.vars)))
+        meta_tab <- attr(dist.obj[[dist.name[1]]], "labels") %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var, adj.vars)))
         data.obj <- list(meta.dat = meta_tab)
         meta_tab <- load_data_obj_metadata(data.obj)
       }
@@ -127,12 +127,12 @@ generate_beta_change_boxplot_pair <-
     meta_tab <- meta_tab %>% rownames_to_column("sample")
 
     if (is.null(change.base)){
-      change.base <- unique(meta_tab %>% select(all_of(c(time.var))))[1,]
+      change.base <- unique(meta_tab %>% dplyr::select(all_of(c(time.var))))[1,]
       message("The 'change.base' variable was NULL. It has been set to the first unique value in the 'time.var' column of the 'alpha_df' data frame: ", change.base)
     }
 
     change.after <-
-      unique(meta_tab %>% select(all_of(c(time.var))))[unique(meta_tab %>% select(all_of(c(time.var)))) != change.base]
+      unique(meta_tab %>% dplyr::select(all_of(c(time.var))))[unique(meta_tab %>% dplyr::select(all_of(c(time.var)))) != change.base]
 
     if (is.null(palette)){
       col <-
@@ -187,10 +187,10 @@ generate_beta_change_boxplot_pair <-
         filter(!!sym(paste0(time.var,".sample")) == change.base) %>%
         filter(!!sym(paste0(time.var,".subject")) != !!sym(paste0(time.var,".sample"))) %>%
         dplyr::ungroup() %>%
-        select(!!sym(paste0(subject.var, ".subject")), !!sym(paste0(time.var, ".subject")), distance) %>%
+        dplyr::select(!!sym(paste0(subject.var, ".subject")), !!sym(paste0(time.var, ".subject")), distance) %>%
         dplyr::rename(!!sym(subject.var) := !!sym(paste0(subject.var, ".subject")), !!sym(time.var) := !!sym(paste0(time.var, ".subject")))
 
-      long.df <- long.df %>% dplyr::left_join(meta_tab %>% select(-time.var) %>% dplyr::distinct(), by = subject.var)
+      long.df <- long.df %>% dplyr::left_join(meta_tab %>% dplyr::select(-time.var) %>% dplyr::distinct(), by = subject.var)
 
       facet_formula <-
         if (!is.null(strata.var)) {

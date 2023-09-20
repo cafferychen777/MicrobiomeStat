@@ -22,8 +22,6 @@ generate_taxa_volcano_single(
 \item{feature.sig.level}{The significance level cutoff for highlighting taxa}
 
 \item{feature.mt.method}{Multiple testing correction method, "fdr" or "none"}
-
-\item{time.var}{The time variable used in the analysis}
 }
 \value{
 A list of ggplot objects of volcano plots for each taxonomic level

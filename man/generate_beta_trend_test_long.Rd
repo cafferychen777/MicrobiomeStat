@@ -58,6 +58,7 @@ generate_beta_trend_test_long(
   group.var = "diet",
   adj.vars = c("antiexposedall","delivery"),
   dist.name = c("BC", "Jaccard")
+  )
 
 data(esubset_T2D.obj)
 generate_beta_trend_test_long(

@@ -124,6 +124,9 @@ Should be one of:
 The choice affects preprocessing steps as well as plot axis labels.
 Default is "count", which assumes raw OTU table input.}
 
+\item{feature.analysis.rarafy}{Logical, indicating whether to rarefy the data at the feature-level for analysis.
+If TRUE, the feature data will be rarefied before analysis. Default is TRUE.}
+
 \item{feature.change.func}{A function or character string specifying how to calculate
 the change from baseline value. This allows flexible options:
 - If a function is provided, it will be applied to each row to calculate change.
@@ -269,7 +272,8 @@ mStat_generate_report_long(
   base.size = 12,
   output.file = "path/report.pdf"
 )
-data(subset_T2D.obj)
+
+#' data(subset_T2D.obj)
 mStat_generate_report_long(
   data.obj = subset_T2D.obj,
   dist.obj = NULL,
@@ -298,7 +302,7 @@ mStat_generate_report_long(
   feature.box.axis.transform = "sqrt",
   theme.choice = "bw",
   base.size = 20,
-  output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/报告/Omics Analysis Report.pdf"
+  output.file = "path/report.pdf"
 )
 }
 }

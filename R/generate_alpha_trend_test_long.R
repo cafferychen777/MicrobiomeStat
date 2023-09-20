@@ -117,7 +117,7 @@ generate_alpha_trend_test_long <- function(data.obj,
   data.obj$meta.dat <- data.obj$meta.dat %>% dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
 
   meta_tab <-
-    load_data_obj_metadata(data.obj) %>% as.data.frame() %>% select(all_of(c(
+    load_data_obj_metadata(data.obj) %>% as.data.frame() %>% dplyr::select(all_of(c(
       subject.var, group.var, time.var, adj.vars
     )))
 

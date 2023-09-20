@@ -5,21 +5,71 @@
 #' to perform analysis on cross-sectional data, a single time point from longitudinal or paired data.
 #'
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
+#' @param group.var Variable name used for grouping samples.
+#' @param test.adj.vars Character vector, names of columns in the metadata containing covariates to be adjusted for in statistical tests and models, such as linear mixed effects models for longitudinal data analysis. This allows the user to account for the effects of additional variables in assessing the effects of primary variables of interest such as time and groups. Default is NULL, which indicates no covariates are adjusted for in statistical testing.
+#' @param vis.adj.vars Character vector, names of columns in the metadata containing covariates to visualize in plots, in addition to the primary variables of interest such as groups. For example, if sex is provided in vis.adj.vars, plots will display facets or colors for different sex groups. This allows visualization of effects across multiple covariates. Default is NULL, which indicates only the primary variables of interest will be visualized without additional covariates.
+#' @param strata.var Variable to stratify the analysis by (optional).
+#' @param subject.var Variable name used for subject identification.
+#' @param time.var Variable name used for time points.
+#' @param t.level Character string specifying the time level/value to subset data to,
+#' if a time variable is provided. Default NULL does not subset data.
+#' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
+#' @param alpha.name The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".
+#' @param depth An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.
 #' @param dist.obj Distance matrix between samples, usually calculated using
 #' \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
 #' If NULL, beta diversity will be automatically computed from \code{data.obj}
 #' using \code{mStat_calculate_beta_diversity}.
-#' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
-#' @param group.var Variable name used for grouping samples.
-#' @param test.adj.vars Character vector, names of columns in the metadata containing covariates to be adjusted for in statistical tests and models, such as linear mixed effects models for longitudinal data analysis. This allows the user to account for the effects of additional variables in assessing the effects of primary variables of interest such as time and groups. Default is NULL, which indicates no covariates are adjusted for in statistical testing.
-#' @param vis.adj.vars Character vector, names of columns in the metadata containing covariates to visualize in plots, in addition to the primary variables of interest such as groups. For example, if sex is provided in vis.adj.vars, plots will display facets or colors for different sex groups. This allows visualization of effects across multiple covariates. Default is NULL, which indicates only the primary variables of interest will be visualized without additional covariates.
-#' @param subject.var Variable name used for subject identification.
-#' @param time.var Variable name used for time points.
-#' @param alpha.name The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".
 #' @param dist.name A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').
-#' @param t.level Character string specifying the time level/value to subset data to,
-#' if a time variable is provided. Default NULL does not subset data.
-#' @param strata.var Variable to stratify the analysis by (optional).
+#' @param pc.obj A list containing the results of dimension reduction/Principal Component Analysis.
+#' This should be the output from functions like \code{\link[MicrobiomeStat]{mStat_calculate_PC}}, containing the PC coordinates and other metadata.
+#' If NULL (default), dimension reduction will be automatically performed using metric multidimensional scaling (MDS) via \code{\link[MicrobiomeStat]{mStat_calculate_PC}}.
+#' The pc.obj list structure should contain:
+#' \itemize{
+#'  \item{$points:}{A matrix with samples as rows and PCs as columns containing the coordinates.}
+#'  \item{$eig:}{Eigenvalues for each PC dimension.}
+#'  \item{$vectors:}{Loadings vectors for features onto each PC.}
+#'  \item{Other metadata like $method, $dist.name, etc.}
+#' }
+#' See \code{\link[MicrobiomeStat]{mStat_calculate_PC}} function for details on output format.
+#' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
+#' taxa before analysis. Taxa with prevalence below this value will be removed.
+#' Prevalence is calculated as the proportion of samples where the taxon is present.
+#' Default 0 removes no taxa by prevalence filtering.
+#' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering
+#' taxa before analysis. Taxa with mean abundance below this value will be removed.
+#' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
+#' Default 0 removes no taxa by abundance filtering.
+#' @param vis.feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
+#' to use for visualization and plotting. This can be the taxonomic level like "Phylum", or any other
+#' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
+#' column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
+#' for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
+#' is also NULL.
+#' @param test.feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
+#' to use for testing or analytical purposes. This can be the taxonomic level like "Phylum", or any other
+#' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
+#' column names in feature.ann. Multiple columns can be provided, and data will be analyzed separately
+#' for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
+#' is also NULL.
+#' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
+#' Should be one of:
+#' - "count": Raw count data, will be normalized by the function.
+#' - "proportion": Data that has already been normalized to proportions/percentages.
+#' - "other": Custom abundance data that has unknown scaling. No normalization applied.
+#' The choice affects preprocessing steps as well as plot axis labels.
+#' Default is "count", which assumes raw OTU table input.
+#' @param feature.analysis.rarafy Logical, indicating whether to rarefy the data at the feature-level for analysis.
+#' If TRUE, the feature data will be rarefied before analysis. Default is TRUE.
+#' @param bar.area.feature.no A numeric value indicating the number of top abundant features to retain in both barplot and areaplot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.
+#' @param heatmap.feature.no A numeric value indicating the number of top abundant features to retain in the heatmap. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.
+#' @param dotplot.feature.no A numeric value indicating the number of top abundant features to retain in the dotplot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 40.
+#' @param feature.mt.method Character, multiple testing method for features, "fdr" or "none", default is "fdr".
+#' @param feature.sig.level Numeric, significance level cutoff for highlighting features, default is 0.1.
+#' @param feature.box.axis.transform A string indicating the transformation to apply to the data before plotting. Options are:
+#' - "identity": No transformation (default)
+#' - "sqrt": Square root transformation
+#' - "log": Logarithmic transformation. Zeros are replaced with half of the minimum non-zero value for each taxon before log transformation.
 #' @param base.size Base font size for the generated plots.
 #' @param theme.choice Plot theme choice. Can be one of:
 #'   - "prism": ggprism::theme_prism()
@@ -42,39 +92,6 @@
 #' @param file.ann Annotation text for the PDF file names.
 #' @param pdf.wid Width of the PDF plots.
 #' @param pdf.hei Height of the PDF plots.
-#' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
-#' taxa before analysis. Taxa with prevalence below this value will be removed.
-#' Prevalence is calculated as the proportion of samples where the taxon is present.
-#' Default 0 removes no taxa by prevalence filtering.
-#' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering
-#' taxa before analysis. Taxa with mean abundance below this value will be removed.
-#' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
-#' Default 0 removes no taxa by abundance filtering.
-#' @param vis.feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
-#' to use for visualization and plotting. This can be the taxonomic level like "Phylum", or any other
-#' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
-#' column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
-#' for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
-#' is also NULL.
-#' @param test.feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
-#' to use for testing or analytical purposes. This can be the taxonomic level like "Phylum", or any other
-#' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
-#' column names in feature.ann. Multiple columns can be provided, and data will be analyzed separately
-#' for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
-#' is also NULL.
-#' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
-#' Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.
-#' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
-#' Should be one of:
-#' - "count": Raw count data, will be normalized by the function.
-#' - "proportion": Data that has already been normalized to proportions/percentages.
-#' - "other": Custom abundance data that has unknown scaling. No normalization applied.
-#' The choice affects preprocessing steps as well as plot axis labels.
-#' Default is "count", which assumes raw OTU table input.
-#' @param feature.box.axis.transform A string indicating the transformation to apply to the data before plotting. Options are:
-#' - "identity": No transformation (default)
-#' - "sqrt": Square root transformation
-#' - "log": Logarithmic transformation. Zeros are replaced with half of the minimum non-zero value for each taxon before log transformation.
 #' @param output.file Output file name for the report.
 #' @param ... Additional arguments passed to internal functions.
 #'
@@ -82,17 +99,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' library(GUniFrac)
-#' library(pheatmap)
-#' library(vegan)
-#' library(ggh4x)
-#'
-#'
 #' data(peerj32.obj)
-#'
-#' dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
-#'
-#' # Generate a report for microbial ecology analysis
 #' mStat_generate_report_single(
 #'   data.obj = peerj32.obj,
 #'   dist.obj = NULL,
@@ -115,7 +122,32 @@
 #'   base.size = 20,
 #'   feature.mt.method = "none",
 #'   feature.sig.level = 0.2,
-#'   output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/报告/mStat_generate_report_single_example.pdf"
+#'   output.file = "path/report.pdf"
+#' )
+#' data(peerj32.obj)
+#' mStat_generate_report_single(
+#'   data.obj = peerj32.obj,
+#'   dist.obj = NULL,
+#'   alpha.obj = NULL,
+#'   group.var = "group",
+#'   vis.adj.vars = c("sex"),
+#'   test.adj.vars = c("sex"),
+#'   subject.var = "subject",
+#'   time.var = "time",
+#'   alpha.name = c("shannon", "observed_species"),
+#'   depth = NULL,
+#'   dist.name = c("BC",'Jaccard'),
+#'   t.level = "1",
+#'   feature.box.axis.transform = "sqrt",
+#'   strata.var = "sex",
+#'   vis.feature.level = c("Phylum", "Family", "Genus"),
+#'   test.feature.level = "Family",
+#'   feature.dat.type = "count",
+#'   theme.choice = "bw",
+#'   base.size = 20,
+#'   feature.mt.method = "none",
+#'   feature.sig.level = 0.2,
+#'   output.file = "path/report.pdf"
 #' )
 #' }
 #' @export
@@ -176,7 +208,6 @@ output:
 
 custom_depth_status <- ifelse(is.null(depth), 'NULL', toString(depth))
 
-# 判断 custom.theme 是否为 NULL
 custom_theme_status <- ifelse(is.null(custom.theme), 'NULL', 'Not NULL')
 
 custom_palette_status <- ifelse(is.null(palette), 'NULL', 'Not NULL')
@@ -189,7 +220,6 @@ custom_test.adj.vars_status <- ifelse(is.null(test.adj.vars), 'NULL', toString(t
 
 custom_vis.adj.vars_status <- ifelse(is.null(vis.adj.vars), 'NULL', toString(vis.adj.vars))
 
-# 创建一个数据框，其中包含参数的名称和对应的值
 params_data <- data.frame(Parameter = c('data.obj',
                                         'feature.dat.type',
                                         'group.var',
@@ -259,7 +289,6 @@ params_data <- data.frame(Parameter = c('data.obj',
                                         pdf.wid,
                                         pdf.hei))
 
-# 使用pander来渲染数据框
 pander::pander(params_data)
 ```
 
@@ -273,7 +302,6 @@ mStat_results <- mStat_summarize_data_obj(data.obj = data.obj,
 ```
 
 ```{r mStat-data-summary-print, echo=FALSE, message=FALSE, results='asis'}
-# Display the results
 pander::pander(mStat_results)
 ```
 
@@ -353,10 +381,8 @@ taxa_barplot_results <- generate_taxa_barplot_single(data.obj = data.obj,
 
 ```{r taxa-barplot-avergae-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 25, fig.height = 15}
 cat('The following plots display the average proportions for each group, and stratum. \n\n')
-# 提取indiv的图到一个列表中
 indiv_list <- lapply(taxa_barplot_results, function(x) x$indiv)
 
-# 提取average的图到一个列表中
 average_list <- lapply(taxa_barplot_results, function(x) x$average)
 
 average_list
@@ -479,14 +505,12 @@ group_levels <- data.obj$meta.dat %>% select(!!sym(group.var)) %>% pull() %>% as
 
 reference_level <- group_levels[1]
 
-# 首先，根据adj.vars的情况生成一个描述语句片段
 if (!is.null(adj.vars)) {
     adj.description <- sprintf(' while adjusting for covariates %s', paste(adj.vars, collapse=' and '))
 } else {
     adj.description <- ''
 }
 
-# 使用上述描述在您给出的cat语句中
 if(num_levels > 2) {
     cat(sprintf('\n In this analysis, we employed a general linear model followed by ANOVA to test the effect of %s on alpha diversity%s.\n', group.var, adj.description))
 } else {
@@ -607,14 +631,12 @@ beta_test_results <- generate_beta_test_single(data.obj = data.obj,
 
 ```{r p-tab-results-and-permanova-analysis, echo=FALSE, message=FALSE, results='asis'}
 
-# 首先，根据adj.vars的情况生成一个描述语句片段
 if (!is.null(adj.vars)) {
     adj.description <- sprintf(' while adjusting for covariates %s', paste(adj.vars, collapse=' and '))
 } else {
     adj.description <- ''
 }
 
-# 然后，使用上述描述在cat语句中
 if (length(dist.name) == 1) {
     cat(sprintf('\n In this analysis, we employed the PermanovaG2 function from the GUniFrac package to assess the impact of %s on beta diversity using the %s distance metric%s.\n', group.var, dist.name[1], adj.description))
 } else {
@@ -652,7 +674,7 @@ for(distance in distance_metrics) {
   # Skip distance named 'Total'
   if(distance != 'Total') {
     # Print with updated counter and distance name
-    cat(sprintf('\n### 3.2.%d %s distance \n\n', counter, ifelse(distance == 'BC', 'Bray–Curtis', distance)))
+    cat(sprintf('\n### 3.2.%d %s distance \n\n', counter, ifelse(distance == 'BC', 'Bray-Curtis', distance)))
 
     # Report significance
     report_beta_significance(data_frame = beta_test_results$aov.tab, distance = distance)
@@ -770,28 +792,23 @@ for(taxon_rank in names(taxa_test_results)) {
   }
 }
 
-# 指定文件名前缀和后缀
 filename_prefix <- 'taxa_test_results_'
 file_ext <- '.csv'
 
-# 遍历taxa_test_results列表
 for(taxon_rank in names(taxa_test_results)) {
-    # 获取当前taxon_rank的所有比较
+
     comparisons <- names(taxa_test_results[[taxon_rank]])
 
-    # 遍历每个比较并保存其对应的data.frame
     for(comparison in comparisons) {
-        # 创建文件名
+
         file_name <- paste0(filename_prefix, taxon_rank, '_', gsub(' ', '_', gsub('/', '_or_', comparison)), file_ext)
 
-        # 保存data.frame
         write.csv(taxa_test_results[[taxon_rank]][[comparison]],
                   file = file_name,
                   row.names = FALSE)
     }
 }
 
-# 通知用户
 cat(sprintf('\n\nThe differential abundance test results for features have been saved in the current working directory. Each taxa rank and its corresponding comparison have their own file named with the prefix: %s followed by the taxon rank, the comparison, and the file extension %s. Please refer to these files for more detailed data.', filename_prefix, file_ext))
 
 ```
@@ -962,20 +979,9 @@ cat(paste0('The boxplot results for individual taxa or features can be found in 
                           pdf.wid = pdf.wid,
                           pdf.hei = pdf.hei)
 
-  # 将生成的R Markdown代码写入.Rmd文件
   rmd_file <- tempfile(fileext = ".Rmd")
   writeLines(rmd_code, con = rmd_file)
 
-  # 从output.file中提取目录
-  working_directory <- dirname(output.file)
-
-  # 设置新的工作目录
-  setwd(working_directory)
-
-  # 获取当前工作目录
-  original_wd <- getwd()
-
-  # 使用rmarkdown::render()函数将.Rmd文件转化为报告
   report_file <-
     rmarkdown::render(input = rmd_file,
                       output_file = output.file,

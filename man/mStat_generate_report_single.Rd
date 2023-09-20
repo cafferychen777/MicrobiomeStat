@@ -65,12 +65,26 @@ if a time variable is provided. Default NULL does not subset data.}
 
 \item{alpha.name}{The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".}
 
+\item{depth}{An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.}
+
 \item{dist.obj}{Distance matrix between samples, usually calculated using
 \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
 If NULL, beta diversity will be automatically computed from \code{data.obj}
 using \code{mStat_calculate_beta_diversity}.}
 
 \item{dist.name}{A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').}
+
+\item{pc.obj}{A list containing the results of dimension reduction/Principal Component Analysis.
+This should be the output from functions like \code{\link[MicrobiomeStat]{mStat_calculate_PC}}, containing the PC coordinates and other metadata.
+If NULL (default), dimension reduction will be automatically performed using metric multidimensional scaling (MDS) via \code{\link[MicrobiomeStat]{mStat_calculate_PC}}.
+The pc.obj list structure should contain:
+\itemize{
+ \item{$points:}{A matrix with samples as rows and PCs as columns containing the coordinates.}
+ \item{$eig:}{Eigenvalues for each PC dimension.}
+ \item{$vectors:}{Loadings vectors for features onto each PC.}
+ \item{Other metadata like $method, $dist.name, etc.}
+}
+See \code{\link[MicrobiomeStat]{mStat_calculate_PC}} function for details on output format.}
 
 \item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
 taxa before analysis. Taxa with prevalence below this value will be removed.
@@ -81,6 +95,12 @@ Default 0 removes no taxa by prevalence filtering.}
 taxa before analysis. Taxa with mean abundance below this value will be removed.
 Abundance refers to counts or proportions depending on \code{feature.dat.type}.
 Default 0 removes no taxa by abundance filtering.}
+
+\item{bar.area.feature.no}{A numeric value indicating the number of top abundant features to retain in both barplot and areaplot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.}
+
+\item{heatmap.feature.no}{A numeric value indicating the number of top abundant features to retain in the heatmap. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.}
+
+\item{dotplot.feature.no}{A numeric value indicating the number of top abundant features to retain in the dotplot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 40.}
 
 \item{vis.feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
 to use for visualization and plotting. This can be the taxonomic level like "Phylum", or any other
@@ -103,6 +123,13 @@ Should be one of:
 - "other": Custom abundance data that has unknown scaling. No normalization applied.
 The choice affects preprocessing steps as well as plot axis labels.
 Default is "count", which assumes raw OTU table input.}
+
+\item{feature.analysis.rarafy}{Logical, indicating whether to rarefy the data at the feature-level for analysis.
+If TRUE, the feature data will be rarefied before analysis. Default is TRUE.}
+
+\item{feature.mt.method}{Character, multiple testing method for features, "fdr" or "none", default is "fdr".}
+
+\item{feature.sig.level}{Numeric, significance level cutoff for highlighting features, default is 0.1.}
 
 \item{feature.box.axis.transform}{A string indicating the transformation to apply to the data before plotting. Options are:
 - "identity": No transformation (default)
@@ -142,9 +169,6 @@ Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the defa
 \item{output.file}{Output file name for the report.}
 
 \item{...}{Additional arguments passed to internal functions.}
-
-\item{features.plot}{A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
-Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.}
 }
 \value{
 A report file containing the microbial ecology analysis results.
@@ -156,17 +180,7 @@ to perform analysis on cross-sectional data, a single time point from longitudin
 }
 \examples{
 \dontrun{
-library(GUniFrac)
-library(pheatmap)
-library(vegan)
-library(ggh4x)
-
-
 data(peerj32.obj)
-
-dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
-
-# Generate a report for microbial ecology analysis
 mStat_generate_report_single(
   data.obj = peerj32.obj,
   dist.obj = NULL,
@@ -189,7 +203,32 @@ mStat_generate_report_single(
   base.size = 20,
   feature.mt.method = "none",
   feature.sig.level = 0.2,
-  output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/报告/mStat_generate_report_single_example.pdf"
+  output.file = "path/report.pdf"
+)
+data(peerj32.obj)
+mStat_generate_report_single(
+  data.obj = peerj32.obj,
+  dist.obj = NULL,
+  alpha.obj = NULL,
+  group.var = "group",
+  vis.adj.vars = c("sex"),
+  test.adj.vars = c("sex"),
+  subject.var = "subject",
+  time.var = "time",
+  alpha.name = c("shannon", "observed_species"),
+  depth = NULL,
+  dist.name = c("BC",'Jaccard'),
+  t.level = "1",
+  feature.box.axis.transform = "sqrt",
+  strata.var = "sex",
+  vis.feature.level = c("Phylum", "Family", "Genus"),
+  test.feature.level = "Family",
+  feature.dat.type = "count",
+  theme.choice = "bw",
+  base.size = 20,
+  feature.mt.method = "none",
+  feature.sig.level = 0.2,
+  output.file = "path/report.pdf"
 )
 }
 }

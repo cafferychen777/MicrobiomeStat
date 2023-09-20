@@ -23,7 +23,6 @@ Depends:
 Imports: 
     ggplot2,
     matrixStats,
-    Matrix,
     parallel,
     ggrepel,
     lmerTest,

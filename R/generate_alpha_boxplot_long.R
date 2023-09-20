@@ -145,7 +145,7 @@ generate_alpha_boxplot_long <- function (data.obj,
   }
 
   meta_tab <-
-    load_data_obj_metadata(data.obj) %>% as.data.frame() %>% select(all_of(c(
+    load_data_obj_metadata(data.obj) %>% as.data.frame() %>% dplyr::select(all_of(c(
       subject.var, group.var, time.var, strata.var, adj.vars
     )))
 
@@ -225,7 +225,7 @@ generate_alpha_boxplot_long <- function (data.obj,
     if (!is.null(adj.vars)){
 
       data_subset <- alpha_df %>%
-        select(all_of(adj.vars)) %>%
+        dplyr::select(all_of(adj.vars)) %>%
         dplyr::mutate(dplyr::across(where(is.character) & !is.factor, factor))
 
       M <- model.matrix(~ 0 + ., data = data_subset, contrasts.arg = lapply(data_subset, stats::contrasts, contrasts = FALSE))

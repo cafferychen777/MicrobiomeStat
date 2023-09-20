@@ -143,7 +143,7 @@ generate_beta_change_spaghettiplot_long <-
       if (is.null(dist.obj)) {
         data.obj <-
           mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
-        meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var, time.var, group.var, strata.var)))
+        meta_tab <- load_data_obj_metadata(data.obj) %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
         dist.obj <-
           mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
         if (!is.null(adj.vars)){
@@ -153,9 +153,9 @@ generate_beta_change_spaghettiplot_long <-
         if (!is.null(data.obj) & !is.null(data.obj$meta.dat)){
           data.obj <-
             mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
-          meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var, time.var, group.var, strata.var)))
+          meta_tab <- load_data_obj_metadata(data.obj) %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
         } else {
-          meta_tab <- attr(dist.obj[[dist.name[1]]], "labels") %>% select(all_of(c(subject.var, time.var, group.var, strata.var)))
+          meta_tab <- attr(dist.obj[[dist.name[1]]], "labels") %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
           data.obj <- list(meta.dat = meta_tab)
           data.obj <- mStat_process_time_variable(meta_tab, time.var, t0.level, ts.levels)
           meta_tab <- load_data_obj_metadata(data.obj)
@@ -211,13 +211,13 @@ generate_beta_change_spaghettiplot_long <-
         filter(!!sym(paste0(time.var,".sample")) == change.base) %>%
         filter(!!sym(paste0(time.var,".subject")) != !!sym(paste0(time.var,".sample"))) %>%
         dplyr::ungroup() %>%
-        select(!!sym(paste0(subject.var, ".subject")), !!sym(paste0(time.var, ".subject")), distance) %>%
+        dplyr::select(!!sym(paste0(subject.var, ".subject")), !!sym(paste0(time.var, ".subject")), distance) %>%
         dplyr::rename(!!sym(subject.var) := !!sym(paste0(subject.var, ".subject")), !!sym(time.var) := !!sym(paste0(time.var, ".subject")))
 
       if (!is.null(strata.var)&!is.null(group.var)){
-        long.df <- long.df %>% dplyr::left_join(meta_tab %>% select(-all_of("sample")) %>% dplyr::distinct(),by = c(subject.var,time.var))
+        long.df <- long.df %>% dplyr::left_join(meta_tab %>% dplyr::select(-all_of("sample")) %>% dplyr::distinct(),by = c(subject.var,time.var))
       } else if (is.null(strata.var)&!is.null(group.var)){
-        long.df <- long.df %>% dplyr::left_join(meta_tab %>% select(-all_of("sample")) %>% dplyr::distinct(),by = c(subject.var,time.var))
+        long.df <- long.df %>% dplyr::left_join(meta_tab %>% dplyr::select(-all_of("sample")) %>% dplyr::distinct(),by = c(subject.var,time.var))
       } else {
         long.df <- long.df
       }

@@ -58,6 +58,8 @@
 <span>  abund.filter <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  <span class="va">feature.level</span>,</span>
 <span>  feature.dat.type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"count"</span>, <span class="st">"proportion"</span>, <span class="st">"other"</span><span class="op">)</span>,</span>
+<span>  feature.sig.level <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>  feature.mt.method <span class="op">=</span> <span class="st">"fdr"</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -121,6 +123,14 @@ The choice affects preprocessing steps as well as plot axis labels.
 Default is "count", which assumes raw OTU table input.</p></dd>
 
 
+<dt>feature.sig.level</dt>
+<dd><p>A numeric threshold, usually between 0 and 1, for assessing the significance of individual taxa. Default is 0.1.</p></dd>
+
+
+<dt>feature.mt.method</dt>
+<dd><p>A character string specifying the method employed for multiple testing correction (e.g., "fdr" for False Discovery Rate). Default is "fdr".</p></dd>
+
+
 <dt>...</dt>
 <dd><p>Additional arguments to be passed to the ZicoSeq function.</p></dd>
 
@@ -151,30 +161,18 @@ supported. Customizable taxonomic aggregation allows testing at different levels
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">peerj32.obj</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">generate_taxa_test_single</span><span class="op">(</span></span></span>
+<span class="r-in"><span><span class="va">test.list</span> <span class="op">&lt;-</span> <span class="fu">generate_taxa_test_single</span><span class="op">(</span></span></span>
 <span class="r-in"><span>    data.obj <span class="op">=</span> <span class="va">peerj32.obj</span>,</span></span>
 <span class="r-in"><span>    time.var <span class="op">=</span> <span class="st">"time"</span>,</span></span>
-<span class="r-in"><span>    t.level <span class="op">=</span> <span class="st">"1"</span>,</span></span>
+<span class="r-in"><span>    t.level <span class="op">=</span> <span class="st">"2"</span>,</span></span>
 <span class="r-in"><span>    group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
 <span class="r-in"><span>    adj.vars <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
 <span class="r-in"><span>    feature.dat.type <span class="op">=</span> <span class="st">"count"</span>,</span></span>
-<span class="r-in"><span>    feature.level <span class="op">=</span> <span class="st">"Genus"</span>,</span></span>
-<span class="r-in"><span>    prev.filter <span class="op">=</span> <span class="fl">0</span>,</span></span>
-<span class="r-in"><span>    abund.filter <span class="op">=</span> <span class="fl">0</span>,</span></span>
-<span class="r-in"><span>    is.winsor <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
-<span class="r-in"><span>    outlier.pct <span class="op">=</span> <span class="fl">0.001</span>,</span></span>
-<span class="r-in"><span>    winsor.end <span class="op">=</span> <span class="st">'top'</span>,</span></span>
-<span class="r-in"><span>    is.post.sample <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
-<span class="r-in"><span>    post.sample.no <span class="op">=</span> <span class="fl">25</span>,</span></span>
-<span class="r-in"><span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="kw">function</span> <span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">^</span><span class="fl">0.5</span>, <span class="kw">function</span> <span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">^</span><span class="fl">0.25</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    stats.combine.func <span class="op">=</span> <span class="va">max</span>,</span></span>
-<span class="r-in"><span>    perm.no <span class="op">=</span> <span class="fl">99</span>,</span></span>
-<span class="r-in"><span>    strata <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>    ref.pct <span class="op">=</span> <span class="fl">0.5</span>,</span></span>
-<span class="r-in"><span>    stage.no <span class="op">=</span> <span class="fl">6</span>,</span></span>
-<span class="r-in"><span>    excl.pct <span class="op">=</span> <span class="fl">0.2</span>,</span></span>
-<span class="r-in"><span>    is.fwer <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
-<span class="r-in"><span>    verbose <span class="op">=</span> <span class="cn">TRUE</span></span></span>
+<span class="r-in"><span>    feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Phylum"</span>,<span class="st">"Genus"</span>,<span class="st">"Family"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    prev.filter <span class="op">=</span> <span class="fl">0.1</span>,</span></span>
+<span class="r-in"><span>    abund.filter <span class="op">=</span> <span class="fl">0.0001</span>,</span></span>
+<span class="r-in"><span>    feature.sig.level <span class="op">=</span> <span class="fl">0.1</span>,</span></span>
+<span class="r-in"><span>    feature.mt.method <span class="op">=</span> <span class="st">"none"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>

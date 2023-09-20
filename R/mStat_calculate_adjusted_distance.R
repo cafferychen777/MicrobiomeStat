@@ -27,6 +27,7 @@
 #' @details The function uses cmdscale for multidimensional scaling and then adjusts the resultant distances based on a linear model using the variables provided in `adj.vars`.
 #'
 #' @examples
+#' \dontrun{
 #' data("subset_T2D.obj")
 #' subset_T2D.dist.obj <- mStat_calculate_beta_diversity(subset_T2D.obj, c("BC","Jaccard"))
 #' adj.dist.obj <- mStat_calculate_adjusted_distance(
@@ -34,7 +35,7 @@
 #' dist.obj = subset_T2D.dist.obj,
 #' adj.vars = c("subject_gender", "subject_race"),
 #' dist.name = c("BC"))
-#'
+#' }
 #' data("peerj32.obj")
 #' peerj32.dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, c("BC"))
 #' adj.dist.obj <- mStat_calculate_adjusted_distance(

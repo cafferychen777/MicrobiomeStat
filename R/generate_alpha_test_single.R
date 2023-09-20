@@ -89,7 +89,7 @@ generate_alpha_test_single <-
 
       # Rearrange the table
       coef.tab <-
-        coef.tab %>% select(
+        coef.tab %>% dplyr::select(
           Term = term,
           Estimate = estimate,
           Std.Error = std.error,
@@ -103,7 +103,7 @@ generate_alpha_test_single <-
 
         # Rearrange the table and add missing columns
         anova.tab <- anova.tab %>%
-          select(
+          dplyr::select(
             term = term,
             Statistic = statistic,
             df = df,

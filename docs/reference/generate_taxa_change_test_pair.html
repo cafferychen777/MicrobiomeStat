@@ -75,6 +75,8 @@ If only one time value exists, the function will exit with a message.</p>
 <span>  prev.filter <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  abund.filter <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  feature.dat.type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"count"</span>, <span class="st">"proportion"</span>, <span class="st">"other"</span><span class="op">)</span>,</span>
+<span>  feature.mt.method <span class="op">=</span> <span class="st">"fdr"</span>,</span>
+<span>  feature.sig.level <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -146,6 +148,14 @@ The choice affects preprocessing steps as well as plot axis labels.
 Default is "count", which assumes raw OTU table input.</p></dd>
 
 
+<dt>feature.mt.method</dt>
+<dd><p>Character, multiple testing method for features, "fdr" or "none", default is "fdr".</p></dd>
+
+
+<dt>feature.sig.level</dt>
+<dd><p>Numeric, significance level cutoff for highlighting features, default is 0.1.</p></dd>
+
+
 <dt>...</dt>
 <dd><p>Additional parameters to be passed to the ZicoSeq function.</p></dd>
 
@@ -170,10 +180,12 @@ Default is "count", which assumes raw OTU table input.</p></dd>
 <span class="r-in"><span>  adj.vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sex"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  change.base <span class="op">=</span> <span class="st">"1"</span>,</span></span>
 <span class="r-in"><span>  feature.change.func <span class="op">=</span> <span class="st">"lfc"</span>,</span></span>
-<span class="r-in"><span>  feature.level <span class="op">=</span> <span class="st">"original"</span>,</span></span>
-<span class="r-in"><span>  prev.filter <span class="op">=</span> <span class="fl">0.01</span>,</span></span>
-<span class="r-in"><span>  abund.filter <span class="op">=</span> <span class="fl">0.01</span>,</span></span>
-<span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"count"</span></span></span>
+<span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Phylum"</span>, <span class="st">"Family"</span>, <span class="st">"Genus"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  prev.filter <span class="op">=</span> <span class="fl">0.1</span>,</span></span>
+<span class="r-in"><span>  abund.filter <span class="op">=</span> <span class="fl">0.0001</span>,</span></span>
+<span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"count"</span>,</span></span>
+<span class="r-in"><span>  feature.mt.method <span class="op">=</span> <span class="st">"none"</span>,</span></span>
+<span class="r-in"><span>  feature.sig.level <span class="op">=</span> <span class="fl">0.1</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span></span></span>

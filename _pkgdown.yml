@@ -77,6 +77,7 @@ reference:
       - generate_taxa_spaghettiplot_long
       - generate_taxa_test_pair
       - generate_taxa_test_single
+      - generate_taxa_volcano_single
       - generate_taxa_association_test_long
       - generate_taxa_association_volcano_long
       - generate_taxa_trend_test_long
@@ -113,7 +114,6 @@ reference:
   - title: "Reports"
     contents:
       - mStat_generate_report_long
-      - mStat_generate_report_change_pair
       - mStat_generate_report_pair
       - mStat_generate_report_single
 
@@ -135,7 +135,4 @@ reference:
       - mStat_calculate_alpha_diversity
       - mStat_calculate_beta_diversity
       - mStat_combine_data
-
-# Add your package logo (if available)
-logo: man/figures/logo.png
 

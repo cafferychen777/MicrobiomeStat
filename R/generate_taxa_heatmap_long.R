@@ -68,9 +68,8 @@
 #' )
 #'
 #' data(subset_T2D.obj)
-#' subset_T2D.obj2 <- mStat_subset_data(subset_T2D.obj, condition = 'subject_id %in% sample(unique(subset_T2D.obj$meta.dat$subject_id),10)')
-#' a <- generate_taxa_heatmap_long(
-#'   data.obj = subset_T2D.obj2,
+#' generate_taxa_heatmap_long(
+#'   data.obj = subset_T2D.obj,
 #'   subject.var = "subject_id",
 #'   time.var = "visit_number_num",
 #'   t0.level = NULL,

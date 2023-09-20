@@ -51,7 +51,7 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">generate_alpha_change_boxplot_pair</span><span class="op">(</span></span>
 <span>  <span class="va">data.obj</span>,</span>
 <span>  alpha.obj <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  alpha.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shannon"</span>, <span class="st">"simpson"</span>, <span class="st">"observed_species"</span>, <span class="st">"chao1"</span>, <span class="st">"ace"</span>, <span class="st">"pielou"</span><span class="op">)</span>,</span>
+<span>  alpha.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shannon"</span>, <span class="st">"observed_species"</span><span class="op">)</span>,</span>
 <span>  depth <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">subject.var</span>,</span>
 <span>  <span class="va">time.var</span>,</span>
@@ -61,7 +61,7 @@
 <span>  change.base <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  change.func <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lfc"</span><span class="op">)</span>,</span>
 <span>  base.size <span class="op">=</span> <span class="fl">16</span>,</span>
-<span>  theme.choice <span class="op">=</span> <span class="st">"prism"</span>,</span>
+<span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span>
 <span>  custom.theme <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  palette <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pdf <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -121,9 +121,9 @@
     at timepoint t vs baseline t0. The function should take two arguments
     representing the alpha diversity values at t and t0.</p>
 <p>- If a string is provided, following options are supported:
-    - 'log': Calculate log-ratio of alpha diversity at t vs t0.
-    - 'absolute': Calculate absolute difference in alpha diversity at t vs t0.</p>
-<p>- Default is 'log', which calculates log2 fold change between t and t0.</p></dd>
+    - 'lfc': Calculate log2 fold change of alpha diversity at t vs t0.
+    - Otherwise, it will calculate the absolute difference in alpha diversity at t vs t0.</p>
+<p>- Default is the absolute difference between t and t0.</p></dd>
 
 
 <dt>base.size</dt>

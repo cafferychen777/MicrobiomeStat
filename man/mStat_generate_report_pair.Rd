@@ -32,7 +32,7 @@ mStat_generate_report_pair(
   feature.change.func = "lfc",
   feature.mt.method = c("fdr"),
   feature.sig.level = 0.1,
-  feature.box.axis.transform = c("sqrt"),
+  feature.box.axis.transform = c("identity"),
   base.size = 16,
   theme.choice = "bw",
   custom.theme = NULL,
@@ -41,8 +41,7 @@ mStat_generate_report_pair(
   file.ann = NULL,
   pdf.wid = 11,
   pdf.hei = 8.5,
-  output.file,
-  ...
+  output.file
 )
 }
 \arguments{
@@ -138,6 +137,9 @@ Should be one of:
 The choice affects preprocessing steps as well as plot axis labels.
 Default is "count", which assumes raw OTU table input.}
 
+\item{feature.analysis.rarafy}{Logical, indicating whether to rarefy the data at the feature-level for analysis.
+If TRUE, the feature data will be rarefied before analysis. Default is TRUE.}
+
 \item{feature.change.func}{A function or character string specifying how to calculate
 the change from baseline value. This allows flexible options:
 - If a function is provided, it will be applied to each row to calculate change.
@@ -150,6 +152,15 @@ the change from baseline value. This allows flexible options:
 
 If none of the above options are matched, an error will be thrown indicating
 the acceptable options or prompting the user to provide a custom function.}
+
+\item{feature.mt.method}{Character, multiple testing method for features, "fdr" or "none", default is "fdr".}
+
+\item{feature.sig.level}{Numeric, significance level cutoff for highlighting features, default is 0.1.}
+
+\item{feature.box.axis.transform}{A string indicating the transformation to apply to the y-axis of the feature's boxplot visualization before plotting. Options are:
+- "identity": No transformation (default).
+- "sqrt": Square root transformation.
+- "log": Logarithmic transformation. Zeros are replaced with half of the minimum non-zero value for each taxon before log transformation.}
 
 \item{base.size}{Base font size for the generated plots.}
 
@@ -193,12 +204,7 @@ The function is specifically designed for analysis of paired data.
 }
 \examples{
 \dontrun{
-
 data(peerj32.obj)
-
-dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
-
-# Generate a report for microbial ecology analysis
 mStat_generate_report_pair(
   data.obj = peerj32.obj,
   dist.obj = NULL,
@@ -214,11 +220,38 @@ mStat_generate_report_pair(
   feature.change.func = "relative change",
   strata.var = "sex",
   vis.feature.level = c("Phylum","Family","Genus"),
-  test.feature.level = c("Family"),
+  test.feature.level = c("Genus"),
   feature.dat.type = "count",
+  feature.mt.method = "none",
+  feature.sig.level = 0.1,
   theme.choice = "bw",
-  base.size = 20,
-  output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/报告/mStat_generate_report_pair_example.pdf"
+  base.size = 18,
+  output.file = "path/report.pdf"
+)
+
+data(peerj32.obj)
+mStat_generate_report_pair(
+  data.obj = peerj32.obj,
+  dist.obj = NULL,
+  alpha.obj = NULL,
+  group.var = "group",
+  test.adj.vars = c("sex"),
+  vis.adj.vars = c("sex"),
+  subject.var = "subject",
+  time.var = "time",
+  alpha.name = c("shannon", "observed_species"),
+  dist.name = c("BC",'Jaccard'),
+  change.base = "1",
+  feature.change.func = "relative change",
+  strata.var = "sex",
+  vis.feature.level = c("Phylum","Family","Genus"),
+  test.feature.level = c("Genus"),
+  feature.dat.type = "count",
+  feature.mt.method = "none",
+  feature.sig.level = 0.1,
+  theme.choice = "bw",
+  base.size = 18,
+  output.file = "path/report.pdf"
 )
 }
 }

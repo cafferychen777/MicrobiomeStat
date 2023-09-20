@@ -99,7 +99,7 @@ generate_alpha_change_test_pair <-
     }
 
     meta_tab <-
-      load_data_obj_metadata(data.obj) %>% as.data.frame() %>% select(all_of(c(
+      load_data_obj_metadata(data.obj) %>% as.data.frame() %>% dplyr::select(all_of(c(
         subject.var, group.var, time.var, adj.vars
       )))
 
@@ -110,12 +110,12 @@ generate_alpha_change_test_pair <-
                  by = c("sample"))
 
     if (is.null(change.base)){
-      change.base <- unique(alpha_df %>% select(all_of(c(time.var))))[1,]
+      change.base <- unique(alpha_df %>% dplyr::select(all_of(c(time.var))))[1,]
       message("The 'change.base' variable was NULL. It has been set to the first unique value in the 'time.var' column of the 'alpha_df' data frame: ", change.base)
     }
 
     change.after <-
-      unique(alpha_df %>% select(all_of(c(time.var))))[unique(alpha_df %>% select(all_of(c(time.var)))) != change.base]
+      unique(alpha_df %>% dplyr::select(all_of(c(time.var))))[unique(alpha_df %>% dplyr::select(all_of(c(time.var)))) != change.base]
 
     alpha_grouped <- alpha_df %>% dplyr::group_by(time)
     alpha_split <- split(alpha_df, f = alpha_grouped$time)
@@ -142,7 +142,7 @@ generate_alpha_change_test_pair <-
           )), !!sym(paste0(
             index, "_time_1"
           )))) %>%
-          select(all_of(diff_col_name))
+          dplyr::select(all_of(diff_col_name))
       } else {
 
         if (change.func == "lfc") {
@@ -152,11 +152,11 @@ generate_alpha_change_test_pair <-
             )) / !!sym(paste0(
               index, "_time_1"
             )))) %>%
-            select(all_of(diff_col_name))
+            dplyr::select(all_of(diff_col_name))
         } else {
           combined_alpha <- combined_alpha %>%
             dplyr::mutate(!!diff_col_name := !!sym(paste0(index, "_time_2")) -!!sym(paste0(index, "_time_1"))) %>%
-            select(all_of(diff_col_name))
+            dplyr::select(all_of(diff_col_name))
         }
       }
     })
@@ -165,7 +165,7 @@ generate_alpha_change_test_pair <-
 
     if (!is.null(adj.vars)) {
       combined_alpha <-
-        combined_alpha %>% dplyr::left_join(alpha_time_1 %>% select(all_of(c(
+        combined_alpha %>% dplyr::left_join(alpha_time_1 %>% dplyr::select(all_of(c(
           subject.var, adj.vars
         )))
         , by = c(subject.var))
@@ -186,7 +186,7 @@ generate_alpha_change_test_pair <-
 
       # Rearrange the table
       coef.tab <-
-        coef.tab %>% select(
+        coef.tab %>% dplyr::select(
           Term = term,
           Estimate = estimate,
           Std.Error = std.error,
@@ -200,7 +200,7 @@ generate_alpha_change_test_pair <-
 
         # Rearrange the table and add missing columns
         anova.tab <- anova.tab %>%
-          select(
+          dplyr::select(
             Term = term,
             Statistic = statistic,
             df = df,
@@ -210,7 +210,7 @@ generate_alpha_change_test_pair <-
 
         # Reorder the columns to match coef.tab
         anova.tab <- anova.tab %>%
-          select(
+          dplyr::select(
             Term = term,
             Estimate = Estimate,
             Std.Error = Std.Error,

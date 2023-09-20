@@ -107,16 +107,16 @@ generate_beta_ordination_pair <-
     if (is.null(dist.obj)) {
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
-      metadata <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var, time.var, group.var, strata.var)))
+      metadata <- load_data_obj_metadata(data.obj) %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
       if (!is.null(adj.vars)){
         dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
       }
       print(dist.obj)
     } else {
       if (is.null(data.obj)) {
-        metadata <- attr(dist.obj[[dist.name[1]]], "labels") %>% select(all_of(c(subject.var, time.var, group.var, strata.var)))
+        metadata <- attr(dist.obj[[dist.name[1]]], "labels") %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
       } else {
-        metadata <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var, time.var, group.var, strata.var)))
+        metadata <- load_data_obj_metadata(data.obj) %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
       }
     }
 
@@ -182,7 +182,7 @@ generate_beta_ordination_pair <-
         )
 
       Time_choices <-
-        df %>% select(all_of(time.var)) %>% dplyr::pull() %>% unique()
+        df %>% dplyr::select(all_of(time.var)) %>% dplyr::pull() %>% unique()
 
       df <- df %>%
         dplyr::arrange(!!sym(subject.var),!!sym(time.var)) %>% # 排序，确保时间的正确顺序

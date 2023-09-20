@@ -59,23 +59,26 @@ The report contains thorough statistical analysis along with data visualizations
 <span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">subject.var</span>,</span>
 <span>  <span class="va">time.var</span>,</span>
-<span>  <span class="va">t0.level</span>,</span>
-<span>  <span class="va">ts.levels</span>,</span>
+<span>  t0.level <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  ts.levels <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  alpha.obj <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  alpha.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shannon"</span>, <span class="st">"observed_species"</span><span class="op">)</span>,</span>
 <span>  depth <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  dist.obj <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BC"</span>, <span class="st">"Jaccard"</span><span class="op">)</span>,</span>
 <span>  pc.obj <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  prev.filter <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  abund.filter <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  feature.number <span class="op">=</span> <span class="fl">15</span>,</span>
-<span>  feature.level <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  prev.filter <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>  abund.filter <span class="op">=</span> <span class="fl">1e-04</span>,</span>
+<span>  bar.area.feature.no <span class="op">=</span> <span class="fl">30</span>,</span>
+<span>  heatmap.feature.no <span class="op">=</span> <span class="fl">30</span>,</span>
+<span>  vis.feature.level <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  test.feature.level <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  feature.dat.type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"count"</span>, <span class="st">"proportion"</span>, <span class="st">"other"</span><span class="op">)</span>,</span>
+<span>  feature.analysis.rarafy <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  feature.change.func <span class="op">=</span> <span class="st">"relative change"</span>,</span>
 <span>  feature.mt.method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"fdr"</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
 <span>  feature.sig.level <span class="op">=</span> <span class="fl">0.1</span>,</span>
-<span>  transform <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"identity"</span>, <span class="st">"sqrt"</span>, <span class="st">"log"</span><span class="op">)</span>,</span>
+<span>  feature.box.axis.transform <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"identity"</span>, <span class="st">"sqrt"</span>, <span class="st">"log"</span><span class="op">)</span>,</span>
 <span>  base.size <span class="op">=</span> <span class="fl">16</span>,</span>
 <span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span>
 <span>  custom.theme <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -163,27 +166,40 @@ The pc.obj list structure should contain:</p><ul><li><p>$points:A matrix with sa
 
 <dt>prev.filter</dt>
 <dd><p>Numeric value specifying the minimum prevalence threshold for filtering
-taxa before analysis. Taxa with prevalence below this value will be removed.
+taxa before analysis. Feature with prevalence below this value will be removed.
 Prevalence is calculated as the proportion of samples where the taxon is present.
 Default 0 removes no taxa by prevalence filtering.</p></dd>
 
 
 <dt>abund.filter</dt>
 <dd><p>Numeric value specifying the minimum abundance threshold for filtering
-taxa before analysis. Taxa with mean abundance below this value will be removed.
+taxa before analysis. Feature with mean abundance below this value will be removed.
 Abundance refers to counts or proportions depending on <code>feature.dat.type</code>.
 Default 0 removes no taxa by abundance filtering.</p></dd>
 
 
-<dt>feature.number</dt>
-<dd><p>A numeric value indicating the number of top abundant features to retain in the plot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.</p></dd>
+<dt>bar.area.feature.no</dt>
+<dd><p>A numeric value indicating the number of top abundant features to retain in both barplot and areaplot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.</p></dd>
 
 
-<dt>feature.level</dt>
+<dt>heatmap.feature.no</dt>
+<dd><p>A numeric value indicating the number of top abundant features to retain in the heatmap. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.</p></dd>
+
+
+<dt>vis.feature.level</dt>
 <dd><p>The column name in the feature annotation matrix (feature.ann) of data.obj
-to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
+to use for visualization and plotting. This can be the taxonomic level like "Phylum", or any other
 annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
 column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
+for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
+is also NULL.</p></dd>
+
+
+<dt>test.feature.level</dt>
+<dd><p>The column name in the feature annotation matrix (feature.ann) of data.obj
+to use for testing or analytical purposes. This can be the taxonomic level like "Phylum", or any other
+annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
+column names in feature.ann. Multiple columns can be provided, and data will be analyzed separately
 for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
 is also NULL.</p></dd>
 
@@ -196,6 +212,11 @@ Should be one of:
 - "other": Custom abundance data that has unknown scaling. No normalization applied.
 The choice affects preprocessing steps as well as plot axis labels.
 Default is "count", which assumes raw OTU table input.</p></dd>
+
+
+<dt>feature.analysis.rarafy</dt>
+<dd><p>Logical, indicating whether to rarefy the data at the feature-level for analysis.
+If TRUE, the feature data will be rarefied before analysis. Default is TRUE.</p></dd>
 
 
 <dt>feature.change.func</dt>
@@ -220,10 +241,10 @@ the acceptable options or prompting the user to provide a custom function.</p></
 <dd><p>Numeric, significance level cutoff for highlighting features, default is 0.1.</p></dd>
 
 
-<dt>transform</dt>
-<dd><p>A string indicating the transformation to apply to the data before plotting. Options are:
-- "identity": No transformation (default)
-- "sqrt": Square root transformation
+<dt>feature.box.axis.transform</dt>
+<dd><p>A string indicating the transformation to apply to the y-axis of the feature's boxplot visualization before plotting. Options are:
+- "identity": No transformation (default).
+- "sqrt": Square root transformation.
 - "log": Logarithmic transformation. Zeros are replaced with half of the minimum non-zero value for each taxon before log transformation.</p></dd>
 
 
@@ -316,19 +337,19 @@ my_theme &lt;- ggplot2::theme(
 <p>- Beta volatility: Tables with LM results on distances</p>
 
 
-<p>- Taxa area plots: Stacked area plots showing composition</p>
+<p>- Feature area plots: Stacked area plots showing composition</p>
 
 
-<p>- Taxa heatmaps: Heatmaps colored by relative abundance</p>
+<p>- Feature heatmaps: Heatmaps colored by relative abundance</p>
 
 
-<p>- Taxa volcano plots: With trend/volatility significance</p>
+<p>- Feature volcano plots: With trend/volatility significance</p>
 
 
-<p>- Taxa boxplots: Distribution by time and groups</p>
+<p>- Feature boxplots: Distribution by time and groups</p>
 
 
-<p>- Taxa spaghetti plots: Individual line plots</p>
+<p>- Feature spaghetti plots: Individual line plots</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -378,19 +399,21 @@ my_theme &lt;- ggplot2::theme(
 <span class="r-in"><span>  vis.test.vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sex"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"subject"</span>,</span></span>
 <span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"time"</span>,</span></span>
-<span class="r-in"><span>  alpha.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shannon"</span>,<span class="st">"simpson"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  alpha.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shannon"</span>,<span class="st">"observed_species"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BC"</span>,<span class="st">'Jaccard'</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  t0.level <span class="op">=</span> <span class="st">"1"</span>,</span></span>
 <span class="r-in"><span>  ts.levels <span class="op">=</span> <span class="st">"2"</span>,</span></span>
 <span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
-<span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Phylum"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  vis.feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Phylum"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  test.feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Phylum"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"count"</span>,</span></span>
-<span class="r-in"><span>  transform <span class="op">=</span> <span class="st">"log"</span>,</span></span>
+<span class="r-in"><span>  feature.box.axis.transform <span class="op">=</span> <span class="st">"log"</span>,</span></span>
 <span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
 <span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">12</span>,</span></span>
 <span class="r-in"><span>  output.file <span class="op">=</span> <span class="st">"path/report.pdf"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">subset_T2D.obj</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">#' data(subset_T2D.obj)</span></span></span>
 <span class="r-in"><span><span class="fu">mStat_generate_report_long</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">subset_T2D.obj</span>,</span></span>
 <span class="r-in"><span>  dist.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
@@ -402,21 +425,24 @@ my_theme &lt;- ggplot2::theme(
 <span class="r-in"><span>  vis.adj.vars <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"subject_id"</span>,</span></span>
 <span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"visit_number_num"</span>,</span></span>
-<span class="r-in"><span>  alpha.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shannon"</span>,<span class="st">"simpson"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  alpha.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shannon"</span>,<span class="st">"observed_species"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BC"</span>,<span class="st">'Jaccard'</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  t0.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="va">subset_T2D.obj</span><span class="op">$</span><span class="va">meta.dat</span><span class="op">$</span><span class="va">visit_number_num</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span></span>
-<span class="r-in"><span>  ts.levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="va">subset_T2D.obj</span><span class="op">$</span><span class="va">meta.dat</span><span class="op">$</span><span class="va">visit_number_num</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>,</span></span>
+<span class="r-in"><span>  t0.level <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  ts.levels <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  feature.mt.method <span class="op">=</span> <span class="st">"none"</span>,</span></span>
-<span class="r-in"><span>  feature.sig.level <span class="op">=</span> <span class="fl">0.1</span>,</span></span>
-<span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Family"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  feature.sig.level <span class="op">=</span> <span class="fl">0.3</span>,</span></span>
+<span class="r-in"><span>  vis.feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Family"</span>,<span class="st">"Genus"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  test.feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Family"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  feature.change.func <span class="op">=</span> <span class="st">"relative change"</span>,</span></span>
 <span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"count"</span>,</span></span>
 <span class="r-in"><span>  prev.filter <span class="op">=</span> <span class="fl">0.1</span>,</span></span>
 <span class="r-in"><span>  abund.filter <span class="op">=</span> <span class="fl">1e-4</span>,</span></span>
-<span class="r-in"><span>  transform <span class="op">=</span> <span class="st">"sqrt"</span>,</span></span>
+<span class="r-in"><span>  bar.area.feature.no <span class="op">=</span> <span class="fl">40</span>,</span></span>
+<span class="r-in"><span>  heatmap.feature.no <span class="op">=</span> <span class="fl">40</span>,</span></span>
+<span class="r-in"><span>  feature.box.axis.transform <span class="op">=</span> <span class="st">"sqrt"</span>,</span></span>
 <span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
-<span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">12</span>,</span></span>
-<span class="r-in"><span>  output.file <span class="op">=</span> <span class="st">"/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/报告/mStat_generate_report_long_example.pdf"</span></span></span>
+<span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">20</span>,</span></span>
+<span class="r-in"><span>  output.file <span class="op">=</span> <span class="st">"path/report.pdf"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>

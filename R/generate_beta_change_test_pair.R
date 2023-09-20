@@ -80,22 +80,22 @@ generate_beta_change_test_pair <-
     if (is.null(dist.obj)&!is.null(data.obj)) {
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
-      metadata <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var,group.var,time.var, adj.vars))) %>% rownames_to_column("sample")
+      metadata <- load_data_obj_metadata(data.obj) %>% dplyr::select(all_of(c(subject.var,group.var,time.var, adj.vars))) %>% rownames_to_column("sample")
     } else {
       if (!is.null(data.obj)){
-        metadata <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var,group.var,time.var, adj.vars))) %>% rownames_to_column("sample")
+        metadata <- load_data_obj_metadata(data.obj) %>% dplyr::select(all_of(c(subject.var,group.var,time.var, adj.vars))) %>% rownames_to_column("sample")
       } else {
-        metadata <- attr(dist.obj[[dist.name[1]]], "labels")  %>% select(all_of(c(subject.var,group.var,time.var,adj.vars))) %>% rownames_to_column("sample")
+        metadata <- attr(dist.obj[[dist.name[1]]], "labels")  %>% dplyr::select(all_of(c(subject.var,group.var,time.var,adj.vars))) %>% rownames_to_column("sample")
       }
     }
 
     if (is.null(change.base)){
-      change.base <- unique(metadata %>% select(all_of(c(time.var))))[1,]
+      change.base <- unique(metadata %>% dplyr::select(all_of(c(time.var))))[1,]
       message("The 'change.base' variable was NULL. It has been set to the first unique value in the 'time.var' column of the 'meta.dat' data frame: ", change.base)
     }
 
     change.after <-
-      unique(metadata %>% select(all_of(c(time.var))))[unique(metadata %>% select(all_of(c(time.var)))) != change.base]
+      unique(metadata %>% dplyr::select(all_of(c(time.var))))[unique(metadata %>% dplyr::select(all_of(c(time.var)))) != change.base]
 
     test.list <- lapply(dist.name, function(dist.name){
       dist.df <- as.matrix(dist.obj[[dist.name]]) %>%
@@ -111,10 +111,10 @@ generate_beta_change_test_pair <-
         filter(!!sym(paste0(time.var,".sample")) == change.base) %>%
         filter(!!sym(paste0(time.var,".subject")) != !!sym(paste0(time.var,".sample"))) %>%
         dplyr::ungroup() %>%
-        select(!!sym(paste0(subject.var, ".subject")), !!sym(paste0(time.var, ".subject")), distance) %>%
+        dplyr::select(!!sym(paste0(subject.var, ".subject")), !!sym(paste0(time.var, ".subject")), distance) %>%
         dplyr::rename(!!sym(subject.var) := !!sym(paste0(subject.var, ".subject")), !!sym(time.var) := !!sym(paste0(time.var, ".subject")))
 
-      long.df <- long.df %>% dplyr::left_join(metadata %>% select(-any_of(c(time.var))) %>% dplyr::distinct(), by = subject.var)
+      long.df <- long.df %>% dplyr::left_join(metadata %>% dplyr::select(-any_of(c(time.var))) %>% dplyr::distinct(), by = subject.var)
 
       # Create a formula for lm
       formula <-
@@ -128,7 +128,7 @@ generate_beta_change_test_pair <-
 
       # Rearrange the table
       coef.tab <-
-        coef.tab %>% select(
+        coef.tab %>% dplyr::select(
           Term = term,
           Estimate = estimate,
           Std.Error = std.error,
@@ -142,7 +142,7 @@ generate_beta_change_test_pair <-
 
         # Rearrange the table and add missing columns
         anova.tab <- anova.tab %>%
-          select(
+          dplyr::select(
             Term = term,
             Statistic = statistic,
             df = df,
@@ -152,7 +152,7 @@ generate_beta_change_test_pair <-
 
         # Reorder the columns to match coef.tab
         anova.tab <- anova.tab %>%
-          select(
+          dplyr::select(
             Term = term,
             Estimate = Estimate,
             Std.Error = Std.Error,

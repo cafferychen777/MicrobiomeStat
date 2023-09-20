@@ -87,7 +87,7 @@ generate_alpha_volatility_test_long <- function(data.obj,
     data.obj$meta.dat %>% dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
 
   meta_tab <-
-    load_data_obj_metadata(data.obj) %>% as.data.frame() %>% select(all_of(c(
+    load_data_obj_metadata(data.obj) %>% as.data.frame() %>% dplyr::select(all_of(c(
       subject.var, group.var, time.var, adj.vars
     )))
 
@@ -99,7 +99,7 @@ generate_alpha_volatility_test_long <- function(data.obj,
   test.list <- lapply(alpha.name, function(index) {
     if (!is.null(adj.vars)) {
       data_subset <- alpha_df %>%
-        select(all_of(adj.vars)) %>%
+        dplyr::select(all_of(adj.vars)) %>%
         dplyr::mutate(dplyr::across(where(is.character) &
                                       !is.factor, factor))
 
@@ -147,7 +147,7 @@ generate_alpha_volatility_test_long <- function(data.obj,
 
     test_df <- volatility_df %>%
       dplyr::left_join(meta_tab %>%
-                         select(all_of(c(
+                         dplyr::select(all_of(c(
                            subject.var, group.var
                          ))) %>%
                          dplyr::distinct(),
@@ -166,7 +166,7 @@ generate_alpha_volatility_test_long <- function(data.obj,
 
       # Rearrange the table and add missing columns
       anova.tab <- anova.tab %>%
-        select(
+        dplyr::select(
           term = term,
           Statistic = statistic,
           df = df,
@@ -176,7 +176,7 @@ generate_alpha_volatility_test_long <- function(data.obj,
 
       # Reorder the columns to match coef.tab
       anova.tab <- anova.tab %>%
-        select(
+        dplyr::select(
           Term = term,
           Estimate = Estimate,
           Std.Error = Std.Error,

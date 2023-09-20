@@ -26,7 +26,8 @@ utils::globalVariables(c(
   "x_alternative", "x_end", "x_start", "y_end", "y_start", "zero.handle", "DNAStringSet",
   "calcNormFactors", "scales::percent", "readDNAStringSet", "read_yaml", "scales::rescale", "residuals", "diff_residuals",
   "diff_time", "time_diff", "test_df", "taxa", "diff_value", "Output.Element", "Log2.Fold.Change", "AdjP", "logP","Var1","Freq",
-  "avg_abundance", "SequencingDepth", "Group"
+  "avg_abundance", "SequencingDepth", "Group", "mean_PC1", "mean_PC2", "Distance", "log2FoldChange", "lfcSE", "pvalue", "padj",
+  "Coefficient", "Prevalence", "Mean.Abundance"
 ))
 
 plot_fun <- function(.call, envir = parent.frame()) {

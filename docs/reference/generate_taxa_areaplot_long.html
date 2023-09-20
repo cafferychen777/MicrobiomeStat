@@ -200,14 +200,14 @@ does not represent groups, it is only used for feature colors.</p></dd>
 <span class="r-in"><span><span class="fu">generate_taxa_areaplot_long</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">ecam.obj</span>,</span></span>
 <span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"studyid"</span>,</span></span>
-<span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"month"</span>,</span></span>
+<span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"month_num"</span>,</span></span>
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"diet"</span>,</span></span>
 <span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"antiexposedall"</span>,</span></span>
 <span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Family"</span>,<span class="st">"Genus"</span>,<span class="st">"Order"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"proportion"</span>,</span></span>
 <span class="r-in"><span>  feature.number <span class="op">=</span> <span class="fl">20</span>,</span></span>
-<span class="r-in"><span>  t0.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">ecam.obj</span><span class="op">$</span><span class="va">meta.dat</span><span class="op">$</span><span class="va">month</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span></span>
-<span class="r-in"><span>  ts.levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">ecam.obj</span><span class="op">$</span><span class="va">meta.dat</span><span class="op">$</span><span class="va">month</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>,</span></span>
+<span class="r-in"><span>  t0.level <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  ts.levels <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">10</span>,</span></span>
 <span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
 <span class="r-in"><span>  palette <span class="op">=</span> <span class="cn">NULL</span>,</span></span>

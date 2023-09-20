@@ -116,19 +116,19 @@ generate_beta_ordination_single <-
         if (!is.null(t.level)){
           condition <- paste(time.var, "== '", t.level, "'", sep = "")
           data.obj <- mStat_subset_data(data.obj, condition = condition)
-          metadata <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var,group.var,strata.var,time.var)))
+          metadata <- load_data_obj_metadata(data.obj) %>% dplyr::select(all_of(c(subject.var,group.var,strata.var,time.var)))
           dist.obj <-
             mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
         } else {
           if (length(levels(as.factor(meta_tab[,time.var]))) != 1){
             message("Multiple time points detected in your dataset. It is recommended to either set t.level or utilize functions for longitudinal data analysis.")
           }
-          metadata <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var,group.var,strata.var,time.var)))
+          metadata <- load_data_obj_metadata(data.obj) %>% dplyr::select(all_of(c(subject.var,group.var,strata.var,time.var)))
           dist.obj <-
             mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
         }
       } else {
-        metadata <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var,group.var,strata.var,time.var)))
+        metadata <- load_data_obj_metadata(data.obj) %>% dplyr::select(all_of(c(subject.var,group.var,strata.var,time.var)))
         dist.obj <-
           mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
       }
@@ -141,19 +141,19 @@ generate_beta_ordination_single <-
           if (!is.null(t.level)){
             condition <- paste(time.var, "== '", t.level, "'", sep = "")
             data.obj <- mStat_subset_data(data.obj, condition = condition)
-            metadata <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var,group.var,strata.var,time.var)))
+            metadata <- load_data_obj_metadata(data.obj) %>% dplyr::select(all_of(c(subject.var,group.var,strata.var,time.var)))
           } else {
             if (length(levels(as.factor(meta_tab[,time.var]))) != 1){
               message("Multiple time points detected in your dataset. It is recommended to either set t.level or utilize functions for longitudinal data analysis.")
             }
-            metadata <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var,group.var,strata.var,time.var)))
+            metadata <- load_data_obj_metadata(data.obj) %>% dplyr::select(all_of(c(subject.var,group.var,strata.var,time.var)))
           }
         } else {
-          metadata <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var,group.var,strata.var,time.var)))
+          metadata <- load_data_obj_metadata(data.obj) %>% dplyr::select(all_of(c(subject.var,group.var,strata.var,time.var)))
         }
       }
       if (!is.null(attr(dist.obj[[dist.name[1]]], "labels"))){
-        metadata <- attr(dist.obj[[dist.name[1]]], "labels")  %>% select(all_of(c(subject.var,group.var,strata.var,time.var)))
+        metadata <- attr(dist.obj[[dist.name[1]]], "labels")  %>% dplyr::select(all_of(c(subject.var,group.var,strata.var,time.var)))
       }
     }
 
