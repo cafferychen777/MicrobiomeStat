@@ -232,8 +232,8 @@ generate_beta_change_boxplot_pair <-
         ylab(y_label) +
         theme_to_use +
         theme(
-          panel.spacing.x = unit(0.2, "cm"),
-          panel.spacing.y = unit(0.1, "cm"),
+          panel.spacing.x = unit(0, "cm"),
+          panel.spacing.y = unit(0, "cm"),
           strip.text.x = element_text(size = 12, color = "black"),
           axis.text.x = element_blank(),
           axis.text.y = element_text(color = "black", size = base.size),

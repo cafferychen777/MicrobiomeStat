@@ -335,7 +335,7 @@ mStat_summarize_data_obj <-
         if (is.character(time_var_data) || is.factor(time_var_data)) {
           time_stats <- data.frame(
             Category = "Time-Series Information",
-            Variable = "Number of unique time-points",
+            Variable = "Number of unique time points",
             Value = length(unique(time_var_data))
           )
         }
@@ -349,8 +349,8 @@ mStat_summarize_data_obj <-
 
         for (i in 1:nrow(time_df)) {
           distribution <- data.frame(
-            Category = "Distribution of sample counts",
-            Variable = paste("Sample Count at Time-point:", time_df$TimePoint[i]),
+            Category = "Time-Series Information",
+            Variable = paste("Sample count at time point:", time_df$TimePoint[i]),
             Value = time_df$SampleCount[i]
           )
           table1 <- rbind(table1, distribution)

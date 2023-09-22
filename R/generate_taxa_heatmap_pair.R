@@ -66,7 +66,7 @@
 #'   top.k.plot = NULL,
 #'   top.k.func = NULL,
 #'   prev.filter = 0.01,
-#'   abund.filter = 0.001,
+#'   abund.filter = 0.1,
 #'   base.size = 11,
 #'   palette = NULL,
 #'   pdf = TRUE,
@@ -288,7 +288,6 @@ generate_taxa_heatmap_pair <- function(data.obj,
       cluster_cols = cluster.cols,
       gaps_col = gaps,
       color = my_col(n_colors),
-      # 使用自定义颜色
       fontsize = base.size,
       silent = TRUE,
       ...

@@ -313,7 +313,7 @@ generate_alpha_change_boxplot_pair <-
         ylab(ylab_label) +
         theme_to_use +
         theme(
-          panel.spacing.x = unit(0.2, "cm"),
+          panel.spacing.x = unit(0, "cm"),
           panel.spacing.y = unit(0.1, "cm"),
           strip.text.x = element_text(size = 15, color = "black"),
           axis.text.x = element_blank(),

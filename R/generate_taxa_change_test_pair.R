@@ -80,12 +80,12 @@ is_categorical <- function(x) {
 #'   subject.var = "subject",
 #'   time.var = "time",
 #'   group.var = "group",
-#'   adj.vars = c("sex"),
+#'   adj.vars = NULL,
 #'   change.base = "1",
 #'   feature.change.func = "lfc",
-#'   feature.level = c("Phylum", "Family", "Genus"),
+#'   feature.level = c("Genus"),
 #'   prev.filter = 0.1,
-#'   abund.filter = 0.0001,
+#'   abund.filter = 1e-4,
 #'   feature.dat.type = "count",
 #'   feature.mt.method = "none",
 #'   feature.sig.level = 0.1
@@ -99,13 +99,13 @@ generate_taxa_change_test_pair <-
   function(data.obj,
            subject.var,
            time.var = NULL,
-           group.var,
-           adj.vars,
+           group.var = NULL,
+           adj.vars = NULL,
            change.base,
            feature.change.func = "lfc",
            feature.level,
-           prev.filter = 0,
-           abund.filter = 0,
+           prev.filter = 0.1,
+           abund.filter = 1e-4,
            feature.dat.type = c("count", "proportion", "other"),
            feature.mt.method = "fdr",
            feature.sig.level = 0.1,
@@ -171,12 +171,8 @@ generate_taxa_change_test_pair <-
                      abund.filter = abund.filter) %>%
         rownames_to_column(feature.level)
 
-      # 转换计数为数值类型
-      otu_tax_agg_numeric <-
-        dplyr::mutate_at(otu_tax_agg_filter, vars(-!!sym(feature.level)), as.numeric)
-
-      # 将otu_tax_agg_numeric从宽格式转换为长格式
-      otu_tax_long <- otu_tax_agg_numeric %>%
+      # 将otu_tax_agg_filter从宽格式转换为长格式
+      otu_tax_long <- otu_tax_agg_filter %>%
         tidyr::gather(key = "sample", value = "value", -feature.level)
 
       # 将otu_tax_long和meta_tab按sample列连接
@@ -277,7 +273,8 @@ generate_taxa_change_test_pair <-
         unique_meta_tab %>% column_to_rownames("subject")
 
       # 使用match()函数生成索引并对unique_meta_tab进行排序，再设回行名为 'subject'
-      sorted_unique_meta_tab <- unique_meta_tab[cols_order,]
+      sorted_unique_meta_tab <- unique_meta_tab %>%
+        dplyr::slice(match(cols_order, rownames(unique_meta_tab)))
 
       # 计算每个分组的平均丰度
       prop_prev_data <-
@@ -299,7 +296,9 @@ generate_taxa_change_test_pair <-
         lapply(value_diff_long %>% select(all_of(feature.level)) %>% pull() %>% unique(), function(taxon) {
           test_df <- value_diff_long %>%
             dplyr::filter(!!sym(feature.level) == taxon) %>%
-            dplyr::left_join(sorted_unique_meta_tab %>% rownames_to_column("subject"),
+            dplyr::left_join(sorted_unique_meta_tab %>%
+                               as.data.frame() %>%
+                               rownames_to_column("subject"),
                              by = "subject")
 
           # Run the linear model

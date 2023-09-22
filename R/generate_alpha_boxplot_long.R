@@ -45,14 +45,14 @@
 #' generate_alpha_boxplot_long(
 #'   data.obj = subset_T2D.obj,
 #'   alpha.obj = NULL,
-#'   alpha.name = c("shannon"),
+#'   alpha.name = c("shannon", "observed_species"),
 #'   subject.var = "subject_id",
 #'   time.var = "visit_number_num",
 #'   t0.level = NULL,
 #'   ts.levels = NULL,
 #'   group.var = "subject_race",
 #'   strata.var = "subject_gender",
-#'   adj.vars = c("sample_body_site","subject_gender"),
+#'   adj.vars = c("sample_body_site"),
 #'   base.size = 16,
 #'   theme.choice = "bw",
 #'   palette = NULL,
@@ -65,14 +65,14 @@
 #' generate_alpha_boxplot_long(
 #'   data.obj = peerj32.obj,
 #'   alpha.obj = NULL,
-#'   alpha.name = c("simpson"),
+#'   alpha.name = c("shannon", "observed_species"),
 #'   subject.var = "subject",
 #'   time.var = "time",
 #'   t0.level = "1",
 #'   ts.levels = "2",
 #'   group.var = "group",
 #'   strata.var = "sex",
-#'   adj.vars = "sex",
+#'   adj.vars = NULL,
 #'   base.size = 20,
 #'   theme.choice = "bw",
 #'   palette = NULL,
@@ -102,7 +102,6 @@ generate_alpha_boxplot_long <- function (data.obj,
                                          pdf.wid = 11,
                                          pdf.hei = 8.5,
                                          ...) {
-
   if (!is.null(alpha.obj) &&
       !is(alpha.obj, "list"))
     stop("`alpha.obj` should be a list or NULL.")
@@ -124,7 +123,8 @@ generate_alpha_boxplot_long <- function (data.obj,
       message(
         "Diversity analysis needs rarefaction! Call \"mStat_rarefy_data\" to rarefy the data!"
       )
-      data.obj <- mStat_rarefy_data(data.obj = data.obj, depth = depth)
+      data.obj <-
+        mStat_rarefy_data(data.obj = data.obj, depth = depth)
     }
     otu_tab <- load_data_obj_count(data.obj)
     alpha.obj <-
@@ -149,11 +149,19 @@ generate_alpha_boxplot_long <- function (data.obj,
       subject.var, group.var, time.var, strata.var, adj.vars
     )))
 
+  time.levels <-
+    meta_tab %>%
+    dplyr::select(all_of(c(time.var))) %>%
+    pull() %>%
+    as.factor() %>%
+    levels() %>%
+    length()
+
   # Convert the alpha.obj list to a data frame
   alpha_df <-
     dplyr::bind_cols(alpha.obj) %>% rownames_to_column("sample") %>%
     dplyr::inner_join(meta_tab %>% rownames_to_column(var = "sample"),
-               by = c("sample"))
+                      by = c("sample"))
 
   theme_function <- switch(
     theme.choice,
@@ -166,7 +174,8 @@ generate_alpha_boxplot_long <- function (data.obj,
 
   theme_to_use <-
     if (!is.null(custom.theme))
-      custom.theme else
+      custom.theme
+  else
     theme_function
 
   if (is.null(palette)) {
@@ -222,13 +231,18 @@ generate_alpha_boxplot_long <- function (data.obj,
       )
     }
 
-    if (!is.null(adj.vars)){
-
+    if (!is.null(adj.vars)) {
       data_subset <- alpha_df %>%
         dplyr::select(all_of(adj.vars)) %>%
-        dplyr::mutate(dplyr::across(where(is.character) & !is.factor, factor))
+        dplyr::mutate(dplyr::across(where(is.character) &
+                                      !is.factor, factor))
 
-      M <- model.matrix(~ 0 + ., data = data_subset, contrasts.arg = lapply(data_subset, stats::contrasts, contrasts = FALSE))
+      M <-
+        model.matrix(
+          ~ 0 + .,
+          data = data_subset,
+          contrasts.arg = lapply(data_subset, stats::contrasts, contrasts = FALSE)
+        )
 
       # 去掉截距
       # M <- M[, -1] 这一步在创建模型矩阵时通过 ~ 0 + . 已经实现了
@@ -245,21 +259,25 @@ generate_alpha_boxplot_long <- function (data.obj,
       # Update the alpha_df
       alpha_df[[index]] <- adjusted_value
 
-      message("Alpha diversity has been adjusted for the following covariates: ", paste(adj.vars, collapse = ", "), ".")
+      message(
+        "Alpha diversity has been adjusted for the following covariates: ",
+        paste(adj.vars, collapse = ", "),
+        "."
+      )
     }
 
     average_alpha_df <- NULL
     if (length(unique(alpha_df[[time.var]])) > 10 ||
         length(unique(alpha_df[[subject.var]])) > 25) {
-      if (!is.null(strata.var) & !is.null(group.var)){
+      if (!is.null(strata.var) & !is.null(group.var)) {
         average_alpha_df <- alpha_df %>%
-          dplyr::group_by(!!sym(strata.var), !!sym(group.var),!!sym(time.var)) %>%
+          dplyr::group_by(!!sym(strata.var),!!sym(group.var), !!sym(time.var)) %>%
           dplyr::summarise(dplyr::across(!!sym(index), mean, na.rm = TRUE), .groups = "drop") %>%
           dplyr::ungroup() %>%
           dplyr::mutate(!!sym(subject.var) := "ALL")
       } else if (!is.null(group.var)) {
         average_alpha_df <- alpha_df %>%
-          dplyr::group_by(!!sym(group.var),!!sym(time.var)) %>%
+          dplyr::group_by(!!sym(group.var), !!sym(time.var)) %>%
           dplyr::summarise(dplyr::across(!!sym(index), mean, na.rm = TRUE), .groups = "drop") %>%
           dplyr::ungroup() %>%
           dplyr::mutate(!!sym(subject.var) := "ALL")
@@ -274,12 +292,14 @@ generate_alpha_boxplot_long <- function (data.obj,
 
     if (!is.null(adj.vars)) {
       covariates <- paste(adj.vars, collapse = ", ")
-      y_label <- paste0(index, " index (adjusted by: ", covariates, ")")
+      y_label <-
+        paste0(index, " index (adjusted by: ", covariates, ")")
     } else {
       y_label <- paste0(index, " index")
     }
 
-    alpha_df <- alpha_df %>% dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var)))
+    alpha_df <-
+      alpha_df %>% dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var)))
 
     boxplot <- ggplot(alpha_df,
                       aes_function) +
@@ -298,24 +318,45 @@ generate_alpha_boxplot_long <- function (data.obj,
         linewidth = 0.6,
         color = "black",
         linetype = "dashed",
-        data = if (!is.null(average_alpha_df)) average_alpha_df else alpha_df
+        data = if (!is.null(average_alpha_df))
+          average_alpha_df
+        else
+          alpha_df
       ) +
       scale_fill_manual(values = col) +
       {
-        if (!is.null(strata.var) & !is.null(group.var)) {
-          ggh4x::facet_nested(
-            cols = vars(!!sym(group.var)),
-            rows = vars(!!sym(strata.var)),
-            scale = "free",
-            space = "free"
-          )
-        } else {
-          if (group.var != "ALL") {
+        if (time.levels > 2) {
+          if (!is.null(strata.var) & !is.null(group.var)) {
             ggh4x::facet_nested(
               cols = vars(!!sym(group.var)),
+              rows = vars(!!sym(strata.var)),
               scale = "free",
               space = "free"
             )
+          } else {
+            if (group.var != "ALL") {
+              ggh4x::facet_nested(
+                cols = vars(!!sym(group.var)),
+                scale = "free",
+                space = "free"
+              )
+            }
+          }
+        } else {
+          if (!is.null(strata.var) & !is.null(group.var)) {
+            ggh4x::facet_nested(
+              cols = vars(!!sym(strata.var), !!sym(group.var)),
+              scale = "free",
+              space = "free"
+            )
+          } else {
+            if (group.var != "ALL") {
+              ggh4x::facet_nested(
+                cols = vars(!!sym(group.var)),
+                scale = "free",
+                space = "free"
+              )
+            }
           }
         }
       } +

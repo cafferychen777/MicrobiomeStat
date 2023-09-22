@@ -154,8 +154,8 @@
 #'   dist.obj = NULL,
 #'   alpha.obj = NULL,
 #'   group.var = "group",
-#'   test.adj.vars = c("sex"),
-#'   vis.adj.vars = c("sex"),
+#'   test.adj.vars = NULL,
+#'   vis.adj.vars = NULL,
 #'   subject.var = "subject",
 #'   time.var = "time",
 #'   alpha.name = c("shannon", "observed_species"),
@@ -163,14 +163,14 @@
 #'   change.base = "1",
 #'   feature.change.func = "relative change",
 #'   strata.var = "sex",
-#'   vis.feature.level = c("Phylum","Family","Genus"),
+#'   vis.feature.level = c("Genus"),
 #'   test.feature.level = c("Genus"),
 #'   feature.dat.type = "count",
 #'   feature.mt.method = "none",
 #'   feature.sig.level = 0.1,
 #'   theme.choice = "bw",
 #'   base.size = 18,
-#'   output.file = "path/report.pdf"
+#'   output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/Report/mStat_generate_report_pair_example.pdf"
 #' )
 #' }
 #' @export
@@ -360,22 +360,22 @@ if (is.null(dist.obj)){
 
 if (is.null(pc.obj)){
   pc.obj <- mStat_calculate_PC(dist.obj = dist.obj, dist.name = dist.name)
-  cat('pc.obj is calculated based on the dist.obj.\n')
+  cat('pc.obj is calculated based on the dist.obj using multi-dimensional scaling.\n')
 }
 
 ```
 
-## 1.3 Data visualization(overall)
+## 1.3 Data visualization (overall)
 
 ```{r Check-and-Select-Rarefaction1, echo=FALSE, message=FALSE, results='asis'}
 
 if (feature.analysis.rarafy) {
-    cat('Rarefaction has been enabled for feature-level analysis.\n\n',
-        'Reason: The observed abundance of rare/low-abundance features can be strongly influenced by sequence depth. ',
-        'Rarefaction is an effective method to control the effect of sequence depth variation. ',
-        'By employing rarefaction, we can potentially increase the power of detecting those rare/low-abundance features, ',
+    cat('Rarefaction has been enabled for feature-level analysis and visualization.\n\n',
+        'Reason: The observed abundance of rare/low-abundance features can be strongly influenced by the sequencing depth. ',
+        'Rarefaction is an effective method to control the effect of sequencing depth variation. ',
+        'By employing rarefaction, presence/absence status of the features are more comparable and we can potentially increase the power of detecting those rare/low-abundance features, ',
         'even though it introduces some variation due to under-sampling.\n',
-        'In essence, this step helps to ensure more accurate and consistent results across samples with varying sequence depths.\n\n',
+        'In essence, this step improves comparability across samples across samples with varying sequencing depth.\n\n',
         'If you do not wish to perform rarefaction during feature-level analysis, please turn feature.analysis.rarafy to FALSE.\n')
 
     data.obj <- rarefy.data.obj
@@ -387,7 +387,7 @@ if (feature.analysis.rarafy) {
 
 ### 1.3.1 Feature heatmap
 
-```{r taxa-heatmap-generation, message=FALSE, fig.align='center', fig.width = 20, fig.height = 12, results='asis'}
+```{r taxa-heatmap-generation, message=FALSE, fig.align='center', fig.width = 16, fig.height = 12, results='asis'}
 taxa_heatmap_pair_results <- generate_taxa_heatmap_pair(
   data.obj = data.obj,
   subject.var = subject.var,
@@ -513,16 +513,17 @@ taxa_change_heatmap_results <- generate_taxa_change_heatmap_pair(
 
 ```{r taxa-change-heatmap-pair-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 25, fig.height = 20}
 if (is.function(feature.change.func)) {
-  cat('The changes from change.base were computed using a custom function provided by the user.')
+  cat('The changes were computed using a custom function provided by the user.')
 } else if (feature.change.func == 'relative change') {
-  cat('The changes from change.base were computed as the difference between the change.after value and change.base divided by the sum of the two.')
+  cat('The changes were relative changes, which were computed as (after.abund - before.abund) / (after.abund + before.abund) so the values lie between [-1, 1].')
 } else if (feature.change.func == 'difference') {
-  cat('The changes from change.base were computed as the difference between the change.after value and change.base.')
+  cat('The changes were computed as after.abund - before.abund.')
 } else if (feature.change.func == 'lfc') {
-  cat('The changes from change.base were computed as the log2 difference between the change.after value and change.base, with a small constant added to avoid taking log of zero.')
+  cat('The changes were computed as log2(after.abund / before.abund), with a small constant added to avoid taking log of zero.')
 }
 
-cat('The following plots display the change for each subject. \n\n')
+
+cat(' The following plots display the change for each subject. \n\n')
 taxa_change_heatmap_results
 ```
 
@@ -534,7 +535,7 @@ taxa_change_dotplot_results <- generate_taxa_change_dotplot_pair(
                                              subject.var = subject.var,
                                              time.var = time.var,
                                              change.base = change.base,
-                                             change.func = feature.change.func,
+                                             feature.change.func = feature.change.func,
                                              group.var = group.var,
                                              strata.var = strata.var,
                                              feature.level = vis.feature.level,
@@ -624,17 +625,17 @@ alpha_change_boxplot_results <- generate_alpha_change_boxplot_pair(
 
 ```{r alpha-diversity-change-boxplot-print, message=FALSE, fig.align='center', results='asis', echo = FALSE}
 if (is.function(alpha.change.func)) {
-  cat('The changes from change.base were computed using a custom function provided by the user.')
+  cat('The changes from change.base were computed using a custom function provided by the user.\n\n')
 } else if (alpha.change.func == 'lfc') {
-  cat('The changes from change.base were computed as the log2 fold change of alpha diversity at the current timepoint versus change.base.')
+  cat('The changes from change.base were computed as the log2 fold change of alpha diversity at the current timepoint versus change.base.\n\n')
 } else {
-  cat('The changes from change.base were computed as the absolute difference in alpha diversity at the current timepoint versus change.base.')
+  cat('The changes from change.base were computed as the absolute difference in alpha diversity at the current timepoint versus change.base.\n\n')
 }
 
 alpha_change_boxplot_results
 ```
 
-## 2.2 Alpha diversity test
+## 2.2 Alpha diversity association test based on LMM
 
 ```{r alpha-test-pair-generation, message=FALSE}
 alpha_test_results <- generate_alpha_test_pair(data.obj = data.obj,
@@ -649,7 +650,7 @@ alpha_test_results <- generate_alpha_test_pair(data.obj = data.obj,
 
 ```{r alpha-test-results-analysis, echo=FALSE, message=FALSE, results='asis'}
 
-group_levels <- data.obj$meta.dat %>% select(!!sym(group.var)) %>% pull() %>% as.factor() %>% levels
+group_levels <- data.obj$meta.dat %>% dplyr::select(!!sym(group.var)) %>% dplyr::pull() %>% as.factor() %>% levels
 
 reference_level <- group_levels[1]
 
@@ -699,7 +700,7 @@ counter <- 1
 # Report significance for each diversity index
 for(index_name in names(alpha_test_results)) {
   # Print with updated counter and index name
-  cat(sprintf('\n\n### 2.2.%d %s index \n\n', counter, firstToUpper(index_name)))
+  cat(sprintf('\n\n### 2.2.%d %s index \n\n', counter, firstToUpper(ifelse(index_name == 'observed_species', 'observed species', index_name))))
   cat('\n')
 
   # Report significance
@@ -714,7 +715,7 @@ for(index_name in names(alpha_test_results)) {
 
 ```
 
-## 2.3 Change test
+## 2.3 Alpha diversity association test based on changes
 
 ```{r alpha-diversity-change-test, message=FALSE}
 alpha_change_test_results <- generate_alpha_change_test_pair(
@@ -785,7 +786,7 @@ counter <- 1
 # Report significance for each diversity index
 for(index_name in names(alpha_change_test_results)) {
   # Print with updated counter and index name
-  cat(sprintf('\n### 2.3.%d %s index \n\n', counter, firstToUpper(index_name)))
+  cat(sprintf('\n### 2.3.%d %s index \n\n', counter, firstToUpper(ifelse(index_name == 'observed_species', 'observed species', index_name))))
   cat('\n')
 
   # Report significance
@@ -815,7 +816,7 @@ beta_ordination_results <- generate_beta_ordination_pair(
                                                     subject.var = subject.var,
                                                     time.var = time.var,
                                                     group.var = group.var,
-                                                    strata.var = strata.var,
+                                                    strata.var = NULL,
                                                     dist.name = dist.name,
                                                     base.size = base.size,
                                                     theme.choice = theme.choice,
@@ -826,6 +827,27 @@ beta_ordination_results <- generate_beta_ordination_pair(
                                                     pdf.wid = pdf.wid,
                                                     pdf.hei = pdf.hei)
 beta_ordination_results
+
+if (!is.null(strata.var)){
+beta_ordination_stratified_results <- generate_beta_ordination_pair(
+                                                    data.obj = data.obj,
+                                                    dist.obj = dist.obj,
+                                                    pc.obj = pc.obj,
+                                                    subject.var = subject.var,
+                                                    time.var = time.var,
+                                                    group.var = group.var,
+                                                    strata.var = strata.var,
+                                                    dist.name = dist.name,
+                                                    base.size = base.size,
+                                                    theme.choice = theme.choice,
+                                                    custom.theme = custom.theme,
+                                                    palette = palette,
+                                                    pdf = pdf,
+                                                    file.ann = file.ann,
+                                                    pdf.wid = pdf.wid,
+                                                    pdf.hei = pdf.hei)
+beta_ordination_stratified_results
+}
 ```
 
 ### 3.1.2 Beta diversity change boxplot
@@ -850,7 +872,7 @@ beta_change_boxplot_results <- generate_beta_change_boxplot_pair(
                                                       pdf.hei = pdf.hei)
 ```
 
-```{r beta-diversity-change-boxplot-print, message=FALSE, fig.align='center', results='hide', results='asis', width = 8, height = 6}
+```{r beta-diversity-change-boxplot-print, message=FALSE, fig.align='center', results='hide', results='asis', width = 8, height = 6, echo = FALSE}
 cat(sprintf('\n Beta change represents the distance of each subject from their change.base.\n\n'))
 beta_change_boxplot_results
 ```
@@ -911,96 +933,7 @@ pc_change_boxplot_pairs <- generate_beta_pc_change_boxplot_pair(
 pc_change_boxplot_pairs
 ```
 
-## 3.2 Permanova test
-
-```{r beta-test-pair-generation, message=FALSE, fig.align='center'}
-beta_test_pair_results <- generate_beta_test_pair(data.obj = data.obj,
-                                                  dist.obj = dist.obj,
-                                                  time.var = time.var,
-                                                  subject.var = subject.var,
-                                                  group.var = group.var,
-                                                  adj.vars = test.adj.vars,
-                                                  dist.name = dist.name)
-```
-
-```{r beta-test-pair-results-analysis, echo=FALSE, message=FALSE, results='asis'}
-
-if (!is.null(test.adj.vars)) {
-    adj.description <- sprintf(' while adjusting for covariates %s', paste(test.adj.vars, collapse=' and '))
-} else {
-    adj.description <- ''
-}
-
-if (length(dist.name) == 1) {
-    cat(sprintf('\n In this analysis, we employed the PermanovaG2 function from the GUniFrac package to assess the impact of %s on beta diversity using the %s distance metric%s.\n', group.var, dist.name[1], adj.description))
-} else {
-    cat(sprintf('\n In this analysis, we utilized the PermanovaG2 function from the GUniFrac package to evaluate the effect of %s on beta diversity leveraging multiple distance matrices, specifically %s %s. Additionally, an omnibus test was conducted to combine the power from these matrices.\n', group.var, paste(dist.name, collapse=' and '), adj.description))
-}
-
-# Define a function to report the significance of beta diversity based on group.var
-report_beta_significance <- function(data_frame, distance) {
-
-  # Extracting rows related to group.var
-  group_data <- data_frame[data_frame$Distance == distance & data_frame$Variable == group.var,]
-
-  for(row in 1:nrow(group_data)) {
-
-    # Fetch the p-value
-    p_val <- as.numeric(group_data[row, 'P.Value'])
-
-    # Describing significance
-    if(p_val < 0.05) {
-      cat(sprintf('\n Based on the %s distance metric, the variable %s has a statistically significant effect on beta diversity, with a p-value of %.3f. ', distance, group.var, p_val))
-    } else {
-      cat(sprintf('\n Based on the %s distance metric, the variable %s did not have a statistically significant effect on beta diversity, with a p-value of %.3f. ', distance, group.var, p_val))
-    }
-  }
-
-}
-
-# Initialize the sub-section counter for beta diversity
-counter <- 1
-
-# Report significance for each distance metric
-distance_metrics <- unique(beta_test_pair_results$aov.tab$Distance)
-for(distance in distance_metrics) {
-
-  # Skip distance named 'Total'
-  if(distance != 'Total') {
-    # Print with updated counter and distance name
-    cat(sprintf('\n### 3.2.%d %s distance \n\n', counter, ifelse(distance == 'BC', 'Bray-Curtis', distance)))
-
-    # Report significance
-    report_beta_significance(data_frame = beta_test_pair_results$aov.tab, distance = distance)
-    cat('\n')
-
-    output <- pander::pander(beta_test_pair_results$aov.tab %>% filter(Distance == distance) %>% select(-all_of(c('Distance'))))
-    cat(output)
-
-    # Increment the counter
-    counter <- counter + 1
-  }
-}
-
-# Reporting omnibus test significance ONLY if length of dist.name is more than 1
-if(length(dist.name) > 1) {
-  omni_p_val <- beta_test_pair_results$p.tab[beta_test_pair_results$p.tab$Term == group.var, 'omni.p.value']
-  if(omni_p_val < 0.05) {
-    cat(sprintf('\n### 3.2.%d Omnibus distance \n\n', counter))
-    cat(sprintf('\n The omnibus test indicates that the variable %s has a statistically significant effect on beta diversity across the combined distance matrices, with a p-value of %.3f.\n\n', group.var, omni_p_val))
-    output <- pander::pander(beta_test_pair_results$p.tab)
-    cat(output)
-  } else {
-    cat(sprintf('\n### 3.2.%d Omnibus distance \n\n', counter))
-    cat(sprintf('\n The omnibus test indicates that the variable %s did not have a statistically significant effect on beta diversity across the combined distance matrices, with a p-value of %.3f.\n\n', group.var, omni_p_val))
-    output <- pander::pander(beta_test_pair_results$p.tab)
-    cat(output)
-  }
-}
-
-```
-
-## 3.3 Change test
+## 3.2 Beta diversity association test based on changes
 
 ```{r beta-diversity-change-test, message=FALSE, results='asis'}
 beta_change_test_results <- generate_beta_change_test_pair(
@@ -1020,9 +953,9 @@ beta_change_test_results <- generate_beta_change_test_pair(
 num_levels <- length(unique(data.obj$meta.dat[[group.var]]))
 
 if(num_levels > 2) {
-    cat(sprintf('In this analysis, we employed a general linear model followed by ANOVA to test the effect of %s on beta diversity change.\n', group.var))
+    cat(sprintf('In this analysis, we employed a general linear model followed by ANOVA to test the effect of %s on beta diversity change.', group.var))
 } else {
-    cat(sprintf('In this analysis, we utilized a general linear model to examine the influence of the variable %s on beta diversity change.\n', group.var))
+    cat(sprintf('In this analysis, we utilized a general linear model to examine the influence of the variable %s on beta diversity change.', group.var))
 }
 
 cat(sprintf('\n Beta change represents the distance of each subject from their change.base.\n\n'))
@@ -1092,7 +1025,7 @@ if (feature.analysis.rarafy) {
 
 ```
 
-## 4.1 Differential abundance test
+## 4.1 Feature-level association test based on LinDA-LMM
 
 ```{r taxa-test-generation, message=FALSE, results='asis', fig.align='center'}
 taxa_test_results <- generate_taxa_test_pair(data.obj = data.obj,
@@ -1171,11 +1104,13 @@ for(taxon_rank in names(taxa_test_results)) {
     }
 }
 
-cat(sprintf('\n\nThe differential abundance test results for features have been saved in the current working directory. Each taxa rank and its corresponding comparison have their own file named with the prefix: %s followed by the taxon rank, the comparison, and the file extension %s. Please refer to these files for more detailed data.', filename_prefix, file_ext))
+cat(sprintf('\n\nThe results for features have been saved in the current working directory.
+Each taxa rank has its own file named in the format: %s followed by the taxon rank, the comparison, and the file extension %s.
+Please refer to these files for more detailed results.', filename_prefix, file_ext))
 
 ```
 
-## 4.2 Change Test
+## 4.2 Feature-level association test based on changes
 
 ```{r taxa-change-test-pair, message=FALSE, results='hide'}
 taxa_change_test_results <- generate_taxa_change_test_pair(data.obj = data.obj,
@@ -1312,7 +1247,7 @@ combined_significant_taxa <- unique(c(significant_vars, significant_vars_change)
 
 ```
 
-## 4.3 Data visualization(significant features)
+## 4.3 Data visualization (significant features)
 
 ### 4.3.1 Significant features boxplot
 
@@ -1415,7 +1350,7 @@ cat(paste0('\n\n The boxplot results for individual features can be found in the
 }
 ```
 
-### 4.3.2 Significant features boxplot(change)
+### 4.3.2 Significant features boxplot (change)
 
 ```{r taxa-change-boxplot-generation, message=FALSE, fig.align='center', fig.width = 16, fig.height = 20}
 

@@ -55,8 +55,6 @@
 #'
 #' @examples
 #' \dontrun{
-#' library(ggh4x)
-#' library(vegan)
 #' data(peerj32.obj)
 #'
 #' generate_taxa_barplot_pair(
@@ -65,9 +63,9 @@
 #'   time.var = "time",
 #'   group.var = "group",
 #'   strata.var = "sex",
-#'   feature.level = "Family",
+#'   feature.level = "Genus",
 #'   feature.dat.type = c("count"),
-#'   feature.number = 12,
+#'   feature.number = 40,
 #'   base.size = 10,
 #'   theme.choice = "bw",
 #'   custom.theme = NULL,
@@ -666,6 +664,7 @@ generate_taxa_barplot_pair <-
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank()
         )
+
 
       # Save the stacked barplots as a PDF file
       if (pdf) {

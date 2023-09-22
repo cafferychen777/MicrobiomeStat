@@ -330,7 +330,7 @@ generate_taxa_association_volcano_long <-
       dplyr::select(all_of(c(group.var))) %>% rownames_to_column("sample")
 
     # Define the custom color palette
-    color_palette <- c("#2A9D8F", "#F9F871", "#F4A261", "#FF6347")
+    color_palette <- c("#F9F871", "#F4A261", "#FF6347")
 
     feature.level <- names(test.list)
 

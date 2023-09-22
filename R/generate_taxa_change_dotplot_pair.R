@@ -79,7 +79,7 @@
 #'   group.var = "group",
 #'   strata.var = "sex",
 #'   change.base = "1",
-#'   feature.change.func = "lfc",
+#'   feature.change.func = "relative difference",
 #'   feature.level = "Family",
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,

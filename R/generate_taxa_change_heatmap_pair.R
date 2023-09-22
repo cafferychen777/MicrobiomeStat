@@ -63,17 +63,17 @@
 #'   data.obj = peerj32.obj,
 #'   subject.var = "subject",
 #'   time.var = "time",
-#'   group.var = "group",
-#'   strata.var = "sex",
+#'   group.var = NULL,
+#'   strata.var = NULL,
 #'   change.base = "1",
 #'   feature.change.func = "relative change",
-#'   feature.level = c("Family"),
+#'   feature.level = c("Genus"),
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
 #'   top.k.plot = 10,
 #'   top.k.func = "sd",
-#'   prev.filter = 0.01,
-#'   abund.filter = 0.01,
+#'   prev.filter = 0.1,
+#'   abund.filter = 0.001,
 #'   base.size = 10,
 #'   palette = NULL,
 #'   cluster.rows = NULL,
@@ -197,12 +197,8 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
         names(sort(compute_function(top.k.func), decreasing = TRUE)[1:top.k.plot])
     }
 
-    # Convert counts to numeric
-    otu_tax_agg_numeric <-
-      dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
-
     # 将otu_tax_agg_numeric从宽格式转换为长格式
-    otu_tax_long <- otu_tax_agg_numeric %>%
+    otu_tax_long <- otu_tax_agg %>%
       tidyr::gather(key = "sample", value = "value",-feature.level)
 
     # 将otu_tax_long和meta_tab按sample列连接
@@ -324,25 +320,21 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
     if (is.null(strata.var)) {
       annotation_cols <-
         sorted_meta_tab %>% select(all_of(c(subject.var, group.var))) %>% column_to_rownames(var = subject.var)
+      annotation_col_sorted <- annotation_cols
       if (is.null(group.var)) {
-        annotation_cols <- NULL
+        annotation_cols_sorted <- NULL
       }
     } else {
       annotation_cols <-
         sorted_meta_tab %>% select(all_of(c(group.var, strata.var, subject.var))) %>% column_to_rownames(var = subject.var)
-    }
-
-    annotation_col_sorted <-
-      annotation_cols[order(annotation_cols[[group.var]]), ]
-
-    if (!is.null(strata.var)) {
       annotation_col_sorted <-
         annotation_col_sorted[order(annotation_col_sorted[[strata.var]], annotation_col_sorted[[group.var]]),]
-
     }
 
-    value_diff_matrix <-
-      value_diff_matrix[, rownames(annotation_col_sorted)]
+   if (!is.null(group.var) | !is.null(strata.var)){
+     value_diff_matrix <-
+       value_diff_matrix[, rownames(annotation_col_sorted)]
+   }
 
     if (!is.null(strata.var)) {
       gaps <-
@@ -400,25 +392,32 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
       color_vector <- palette
     }
 
-    # 为演示目的，假设这些是您的唯一值
-    group_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
-    strata_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(strata.var))) %>% distinct() %>% pull()
+    if (!is.null(strata.var)){
+      group_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
+      group_colors <- setNames(color_vector[1:length(group_levels)], group_levels)
+      strata_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(strata.var))) %>% distinct() %>% pull()
+      strata_colors <- setNames(rev(color_vector)[1:length(strata_levels)], strata_levels)
 
-    # 为 group.var 分配颜色
-    group_colors <- setNames(color_vector[1:length(group_levels)], group_levels)
+      # 创建注释颜色列表
+      annotation_colors_list <- setNames(
+        list(group_colors, strata_colors),
+        c(group.var, strata.var)
+      )
+    } else if(!is.null(group.var)){
+      group_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
+      group_colors <- setNames(color_vector[1:length(group_levels)], group_levels)
 
-    # 为 strata.var 分配颜色
-    strata_colors <- setNames(rev(color_vector)[1:length(strata_levels)], strata_levels)
-
-    # 创建注释颜色列表
-    annotation_colors_list <- setNames(
-      list(group_colors, strata_colors),
-      c(group.var, strata.var)
-    )
+      annotation_colors_list <- setNames(
+        list(group_colors),
+        c(group.var)
+      )
+    } else {
+      annotation_colors_list <- NULL
+    }
 
     heatmap_plot <- pheatmap::pheatmap(
       value_diff_matrix,
-      annotation_col = annotation_col_sorted,
+      annotation_col = NULL,
       annotation_colors = annotation_colors_list,
       cluster_rows = cluster.rows,
       cluster_cols = cluster.cols,
@@ -436,6 +435,96 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
 
     gg_heatmap_plot <- as.ggplot(heatmap_plot)
 
+    if (!is.null(strata.var)){
+      average_value_diff_matrix <- combined_data %>%
+        select(feature.level, subject = subject, value_diff) %>%
+        dplyr::left_join(sorted_meta_tab, by = "subject") %>%
+        dplyr::group_by(!!sym(feature.level), !!sym(group.var), !!sym(strata.var)) %>%
+        dplyr::summarize(mean_value_diff = mean(value_diff), .groups = 'drop') %>%
+        tidyr::pivot_wider(names_from = all_of(c(group.var, strata.var)), values_from = mean_value_diff) %>%
+        column_to_rownames(feature.level) %>%
+        as.matrix()
+
+      create_annotation_df <- function(colnames_vec, delimiter = "_") {
+        # 提取组和层级变量
+        split_names <- strsplit(colnames_vec, delimiter)
+
+        # 确保所有的列名都有相同数量的分隔符
+        if (length(unique(sapply(split_names, length))) != 1) {
+          stop("All column names must have the same number of delimiters.")
+        }
+
+        # 创建数据框
+        annotation_df <- do.call(rbind.data.frame, split_names)
+        colnames(annotation_df) <- c(group.var, strata.var)
+
+        # 转换为因子
+        annotation_df[] <- lapply(annotation_df, function(x) factor(x, levels = unique(x)))
+
+        # 转换为矩阵
+        annotation_matrix <- as.data.frame(annotation_df)
+        rownames(annotation_matrix) <- colnames_vec
+
+        return(annotation_matrix)
+      }
+
+      annotation_df <- create_annotation_df(colnames(average_value_diff_matrix))
+
+      annotation_df <- annotation_df[order(annotation_df[,strata.var]),]
+    } else if (!is.null(group.var)){
+      average_value_diff_matrix <- combined_data %>%
+        select(feature.level, subject = subject, value_diff) %>%
+        dplyr::left_join(sorted_meta_tab, by = "subject") %>%
+        dplyr::group_by(!!sym(feature.level), !!sym(group.var)) %>%
+        dplyr::summarize(mean_value_diff = mean(value_diff), .groups = 'drop') %>%
+        tidyr::pivot_wider(names_from = all_of(c(group.var)), values_from = mean_value_diff) %>%
+        column_to_rownames(feature.level) %>%
+        as.matrix()
+
+      annotation_df <- data.frame(Var1 = colnames(average_value_diff_matrix)) %>%
+        dplyr::mutate(Var2 = Var1) %>%
+        column_to_rownames("Var2") %>%
+        dplyr::rename(!!sym(group.var) := Var1)
+    } else {
+      average_value_diff_matrix <- combined_data %>%
+        select(feature.level, subject = subject, value_diff) %>%
+        dplyr::left_join(sorted_meta_tab, by = "subject") %>%
+        dplyr::group_by(!!sym(feature.level)) %>%
+        dplyr::summarize(mean_value_diff = mean(value_diff), .groups = 'drop') %>%
+        column_to_rownames(feature.level) %>%
+        as.matrix()
+      annotation_df <- NULL
+    }
+
+    if (!is.null(features.plot)) {
+      average_value_diff_matrix <-
+        average_value_diff_matrix[rownames(average_value_diff_matrix) %in% features.plot,]
+    }
+
+    if (!is.null(group.var) | !is.null(strata.var)){
+      average_value_diff_matrix <- average_value_diff_matrix[, rownames(annotation_df)]
+    }
+
+    average_heatmap_plot <- pheatmap::pheatmap(
+      average_value_diff_matrix,
+      annotation_col = annotation_df,
+      annotation_colors = annotation_colors_list,
+      cluster_rows = cluster.rows,
+      cluster_cols = cluster.cols,
+      annotation_legend = TRUE,
+      show_colnames = FALSE,
+      show_rownames = TRUE,
+      border_color = NA,
+      silent = FALSE,
+      gaps_col = NULL,
+      fontsize = base.size,
+      color = my_col,
+      breaks = break_points
+    )
+
+    gg_average_heatmap_plot <- as.ggplot(average_heatmap_plot)
+
+
     if (is.function(feature.change.func)) {
       feature.change.func = "custom function"
     }
@@ -443,7 +532,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
     # Save the heatmap as a PDF file
     if (pdf) {
       pdf_name <- paste0(
-        "taxa_change_heatmap_pair",
+        "taxa_change_heatmap_pair_indiv",
         "_",
         "subject_",
         subject.var,
@@ -480,7 +569,52 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
         plot = gg_heatmap_plot
       )
     }
-    return(gg_heatmap_plot)
+
+    # Save the heatmap as a PDF file
+    if (pdf) {
+      pdf_name <- paste0(
+        "taxa_change_heatmap_pair_average",
+        "_",
+        "subject_",
+        subject.var,
+        "_",
+        "time_",
+        time.var,
+        "_",
+        "change_base_",
+        change.base,
+        "_",
+        "feature_level_",
+        feature.level,
+        "_",
+        "prev_filter_",
+        prev.filter,
+        "_",
+        "abund_filter_",
+        abund.filter
+      )
+      if (!is.null(group.var)) {
+        pdf_name <- paste0(pdf_name, "_", "group_", group.var)
+      }
+      if (!is.null(strata.var)) {
+        pdf_name <- paste0(pdf_name, "_", "strata_", strata.var)
+      }
+      if (!is.null(file.ann)) {
+        pdf_name <- paste0(pdf_name, "_", file.ann)
+      }
+      pdf_name <- paste0(pdf_name, ".pdf")
+      ggsave(
+        filename = pdf_name,
+        width = pdf.wid,
+        height = pdf.hei,
+        plot = gg_average_heatmap_plot
+      )
+    }
+    sub.plot_list <- list(gg_average_heatmap_plot, gg_heatmap_plot)
+
+    names(sub.plot_list) <- c("average", "indiv")
+
+    return(sub.plot_list)
   })
 
   names(plot_list) <- feature.level

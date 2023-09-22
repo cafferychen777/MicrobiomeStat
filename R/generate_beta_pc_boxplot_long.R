@@ -56,10 +56,6 @@
 #' @return A list of ggplot objects for each distance measure and Principal Coordinate.
 #' @examples
 #' \dontrun{
-#'
-#' # Load required libraries and data
-#' library(vegan)
-#'
 #' # Example with ecam.obj dataset
 #' data(ecam.obj)
 #' generate_beta_pc_boxplot_long(
@@ -169,6 +165,13 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
       dist.obj <- mStat_subset_dist(dist.obj, colnames(meta_tab))
     }
   }
+
+  time.levels <-
+    meta_tab %>% dplyr::select(all_of(c(time.var))) %>%
+    pull() %>%
+    as.factor() %>%
+    levels() %>%
+    length()
 
   if (is.null(palette)) {
     col <-
@@ -343,7 +346,7 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
           legend.text = ggplot2::element_text(size = base.size),
           legend.title = ggplot2::element_text(size = base.size)
         )
-
+    if (time.levels > 2){
       if (!is.null(group.var)) {
         if (is.null(strata.var)) {
           boxplot <-
@@ -360,6 +363,23 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
             )
         }
       }
+    } else {
+      if (!is.null(group.var)) {
+        if (is.null(strata.var)) {
+          boxplot <-
+            boxplot + ggh4x::facet_nested(cols = vars(!!sym(group.var)),
+                                          scales = "free",
+                                          space = "free")
+        } else {
+          boxplot <-
+            boxplot + ggh4x::facet_nested(
+              cols = vars(!!sym(strata.var), !!sym(group.var)),
+              scales = "free",
+              space = "free"
+            )
+        }
+      }
+    }
 
       # Add geom_jitter() if the number of unique time points or subjects is greater than 10
       if (n_subjects > 10 || n_times > 10) {
