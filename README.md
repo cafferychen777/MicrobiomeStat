@@ -34,7 +34,7 @@ please cite as follows, until a preprint version is published:
       url = {www.microbiomestat.wiki},
     }
 
-## Special Citation for `linda` and `linda.plot` Functions
+## Citation for Specialized `MicrobiomeStat` Functions
 
 If you are using the `linda`, `linda.plot`,
 `generate_taxa_association_test_long`, `generate_taxa_test_pair`,

@@ -34,7 +34,7 @@ If you are using features beyond the `linda` and `linda.plot` functions, please 
 }
 ```
 
-## Special Citation for `linda` and `linda.plot` Functions
+## Citation for Specialized `MicrobiomeStat` Functions
 
 If you are using the `linda`, `linda.plot`, `generate_taxa_association_test_long`, `generate_taxa_test_pair`, `generate_taxa_test_single`, or `generate_taxa_trend_test_long` functions, please cite the following paper:
 
