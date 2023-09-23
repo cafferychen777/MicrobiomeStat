@@ -78,11 +78,21 @@ devtools::install_github("cafferychen777/MicrobiomeStat")
 
 # Table of Contents
 
-1.  [Online Tutorials](#online-tutorials)
-2.  [Benefits of Using MicrobiomeStat](#why-choose-microbiomestat)
-3.  [Key Features](#features-at-a-glance)
+1.  [Citations](#citations)
+    - [General Citation for MicrobiomeStat](#general-citation)
+    - [Citation for Specialized `MicrobiomeStat`
+      Functions](#specialized-citation)
+    - [Important Note on CRAN Version](#cran-version-note)
+2.  [Online Tutorials](#online-tutorials)
+3.  [Benefits of Using MicrobiomeStat](#why-choose-microbiomestat)
+    - [Comparative Overview](#comparative-overview)
+    - [User Support](#user-support)
+    - [Ongoing Development](#ongoing-development)
+    - [Collaborative Development](#collaborative-development)
+    - [Conclusion and Features](#conclusion)
+    - [Demo Reports](#demo-reports)
 4.  [Assistance & Contact Information](#support-contact)
-5.  [Join Our Discord Community](#discord-community)
+5.  [Engage in Our Discord Community](#discord-community)
 6.  [Share and Connect](#share-and-connect)
 
 # Online Tutorials
@@ -163,23 +173,7 @@ improvement.
 | Data Export                    | Supports export of analysis results in diverse formats                                                                           |
 | Ongoing Development            | Continual **feature refinement** and **new functionality** addition                                                              |
 
-### Conclusion
-
-`MicrobiomeStat` aims to be a reliable and efficient tool for microbiome
-data analysis. For those who value **open-source collaboration**, we
-invite you to be part of our community and contribute to its continuous
-improvement.
-
-| Feature                        | Description                                                                                                                      |
-|--------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
-| Data Import and Conversion     | Supports numerous input formats from popular tools like QIIME2, Mothur, DADA2, Phyloseq and more                                 |
-| Cross-sectional Study Analysis | Performs comprehensive analysis of cross-sectional studies                                                                       |
-| Paired Sample Analysis         | Excellent tool for analyzing **paired samples**                                                                                  |
-| Longitudinal Study Analysis    | Allows for exploring the **temporal dynamics** of the microbiome                                                                 |
-| One-Click Report Generation    | For different study designs (cross-sectional, paired, longitudinal), generates professional analysis reports with a single click |
-| Visualization Capabilities     | Offers a wide variety of **visualization styles**                                                                                |
-| Data Export                    | Supports export of analysis results in diverse formats                                                                           |
-| Ongoing Development            | Continual **feature refinement** and **new functionality** addition                                                              |
+### Demo Reports
 
 For those interested in seeing `MicrobiomeStat` in action, we have
 prepared demo reports tailored to different study designs:
