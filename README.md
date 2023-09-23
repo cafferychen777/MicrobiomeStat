@@ -36,10 +36,21 @@ please cite as follows, until a preprint version is published:
 
 ## Special Citation for `linda` and `linda.plot` Functions
 
-If you are using `linda` or `linda.plot` functions, please cite the
-following paper:
+If you are using the `linda`, `linda.plot`,
+`generate_taxa_association_test_long`, `generate_taxa_test_pair`,
+`generate_taxa_test_single`, or `generate_taxa_trend_test_long`
+functions, please cite the following paper:
 
-    Zhou, H., He, K., Chen, J. et al. LinDA: linear models for differential abundance analysis of microbiome compositional data. Genome Biol 23, 95 (2022). https://doi.org/10.1186/s13059-022-02655-5
+    @article{zhou2022linda,
+      title={LinDA: linear models for differential abundance analysis of microbiome compositional data},
+      author={Zhou, Huijuan and He, Kejun and Chen, Jun and Zhang, Xianyang},
+      journal={Genome biology},
+      volume={23},
+      number={1},
+      pages={1--23},
+      year={2022},
+      publisher={BioMed Central}
+    }
 
 We will update the citation guidelines as soon as the preprint is
 published.
@@ -141,17 +152,47 @@ data analysis. For those who value **open-source collaboration**, we
 invite you to be part of our community and contribute to its continuous
 improvement.
 
-## Key Features
+| Feature                        | Description                                                                                                                      |
+|--------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| Data Import and Conversion     | Supports numerous input formats from popular tools like QIIME2, Mothur, DADA2, Phyloseq and more                                 |
+| Cross-sectional Study Analysis | Performs comprehensive analysis of cross-sectional studies                                                                       |
+| Paired Sample Analysis         | Excellent tool for analyzing **paired samples**                                                                                  |
+| Longitudinal Study Analysis    | Allows for exploring the **temporal dynamics** of the microbiome                                                                 |
+| One-Click Report Generation    | For different study designs (cross-sectional, paired, longitudinal), generates professional analysis reports with a single click |
+| Visualization Capabilities     | Offers a wide variety of **visualization styles**                                                                                |
+| Data Export                    | Supports export of analysis results in diverse formats                                                                           |
+| Ongoing Development            | Continual **feature refinement** and **new functionality** addition                                                              |
 
-| Feature                        | Description                                                                                      |
-|--------------------------------|--------------------------------------------------------------------------------------------------|
-| Data Import and Conversion     | Supports numerous input formats from popular tools like QIIME2, Mothur, DADA2, Phyloseq and more |
-| Cross-sectional Study Analysis | Performs comprehensive analysis of cross-sectional studies                                       |
-| Paired Sample Analysis         | Excellent tool for analyzing **paired samples**                                                  |
-| Longitudinal Study Analysis    | Allows for exploring the **temporal dynamics** of the microbiome                                 |
-| Visualization Capabilities     | Offers a wide variety of **visualization styles**                                                |
-| Data Export                    | Supports export of analysis results in diverse formats                                           |
-| Ongoing Development            | Continual **feature refinement** and **new functionality** addition                              |
+### Conclusion
+
+`MicrobiomeStat` aims to be a reliable and efficient tool for microbiome
+data analysis. For those who value **open-source collaboration**, we
+invite you to be part of our community and contribute to its continuous
+improvement.
+
+| Feature                        | Description                                                                                                                      |
+|--------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| Data Import and Conversion     | Supports numerous input formats from popular tools like QIIME2, Mothur, DADA2, Phyloseq and more                                 |
+| Cross-sectional Study Analysis | Performs comprehensive analysis of cross-sectional studies                                                                       |
+| Paired Sample Analysis         | Excellent tool for analyzing **paired samples**                                                                                  |
+| Longitudinal Study Analysis    | Allows for exploring the **temporal dynamics** of the microbiome                                                                 |
+| One-Click Report Generation    | For different study designs (cross-sectional, paired, longitudinal), generates professional analysis reports with a single click |
+| Visualization Capabilities     | Offers a wide variety of **visualization styles**                                                                                |
+| Data Export                    | Supports export of analysis results in diverse formats                                                                           |
+| Ongoing Development            | Continual **feature refinement** and **new functionality** addition                                                              |
+
+For those interested in seeing `MicrobiomeStat` in action, we have
+prepared demo reports tailored to different study designs:
+
+- [Cross-sectional Study Design: Reporting Microbial Analysis with
+  MicrobiomeStat](https://www.microbiomestat.wiki/cross-sectional-study-design/cross-sectional-reporting-microbial-analysis-reports-with-microbiomestat)
+- [Paired Samples Analysis: Reporting Microbial Analysis with
+  MicrobiomeStat](https://www.microbiomestat.wiki/paired-samples-analysis/automated-reporting-for-paired-studies-microbiomestats-integrated-analysis-reports)
+- [Longitudinal Study Design: Microbiome Analysis Automation with
+  MicrobiomeStat](https://www.microbiomestat.wiki/longitudinal-study-design/longitudinal-reporting-microbiome-analysis-automation-with-microbiomestat)
+
+We encourage you to explore these examples and discover the powerful
+capabilities of our tool.
 
 ## Assistance & Contact Information
 
