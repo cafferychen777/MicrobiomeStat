@@ -411,7 +411,21 @@ taxa_heatmap_pair_results <- generate_taxa_heatmap_pair(
   pdf.hei = pdf.hei
 )
 
-taxa_heatmap_pair_results
+```
+
+```{r taxa-heatmap-pair-avergae-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 20, fig.height = 12, warning = FALSE}
+cat('The following plots display the average proportions for each time point, group, and stratum. \n\n')
+
+indiv_list <- lapply(taxa_heatmap_pair_results, function(x) x$indiv)
+
+average_list <- lapply(taxa_heatmap_pair_results, function(x) x$average)
+
+average_list
+```
+
+```{r taxa-heatmap-pair-indiv-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 30, fig.height = 15, warning = FALSE}
+cat('The following plots display the individual proportions for each sample. \n\n')
+indiv_list
 ```
 
 ### 1.3.2 Feature barplot
@@ -437,7 +451,7 @@ taxa_barplot_pair_results <- generate_taxa_barplot_pair(
 )
 ```
 
-```{r taxa-barplot-pair-avergae-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 20, fig.height = 12, warning = FALSE}
+```{r taxa-barplot-pair-avergae-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 25, fig.height = 20, warning = FALSE}
 cat('The following plots display the average proportions for each time point, group, and stratum. \n\n')
 
 indiv_list <- lapply(taxa_barplot_pair_results, function(x) x$indiv)
@@ -447,7 +461,7 @@ average_list <- lapply(taxa_barplot_pair_results, function(x) x$average)
 average_list
 ```
 
-```{r taxa-barplot-pair-indiv-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 30, fig.height = 15, warning = FALSE}
+```{r taxa-barplot-pair-indiv-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 25, fig.height = 20, warning = FALSE}
 cat('The following plots display the individual proportions for each sample. \n\n')
 indiv_list
 ```
@@ -524,7 +538,18 @@ if (is.function(feature.change.func)) {
 
 
 cat(' The following plots display the change for each subject. \n\n')
-taxa_change_heatmap_results
+indiv_list <- lapply(taxa_change_heatmap_results, function(x) x$indiv)
+
+average_list <- lapply(taxa_change_heatmap_results, function(x) x$average)
+
+indiv_list
+```
+
+```{r taxa-change-heatmap-pair-print-indiv, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 25, fig.height = 20}
+
+cat(' The following plots display the average change for each time point, group, and stratum. \n\n')
+average_list
+
 ```
 
 ### 1.3.5 Feature change dotplot
@@ -566,7 +591,7 @@ if (is.function(feature.change.func)) {
   cat('The changes from change.base were computed as the log2 difference between the change.after value and change.base, with a small constant added to avoid taking log of zero.')
 }
 
-cat('The following plots display the average change for each group, and stratum. \n\n')
+cat(' The following plots display the average change for each group, and stratum. \n\n')
 taxa_change_dotplot_results
 ```
 
@@ -1352,7 +1377,7 @@ cat(paste0('\n\n The boxplot results for individual features can be found in the
 
 ### 4.3.2 Significant features boxplot (change)
 
-```{r taxa-change-boxplot-generation, message=FALSE, fig.align='center', fig.width = 16, fig.height = 20}
+```{r taxa-change-boxplot-generation, message=FALSE, fig.align='center', fig.width = 16, fig.height = 20, results='asis'}
 
 if (length(significant_vars_change) != 0){
 taxa_change_boxplot_results <- generate_taxa_change_boxplot_pair(

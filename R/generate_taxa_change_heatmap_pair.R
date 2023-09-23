@@ -63,8 +63,8 @@
 #'   data.obj = peerj32.obj,
 #'   subject.var = "subject",
 #'   time.var = "time",
-#'   group.var = NULL,
-#'   strata.var = NULL,
+#'   group.var = "group",
+#'   strata.var = "sex",
 #'   change.base = "1",
 #'   feature.change.func = "relative change",
 #'   feature.level = c("Genus"),
@@ -316,19 +316,21 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
     # 使用这些索引以正确的顺序重新排列 value_diff_matrix 的列
     value_diff_matrix <- value_diff_matrix[, as.matrix(subjects)]
 
-    # 如果 strata.var 为 NULL，仅使用 group.var 进行注释
-    if (is.null(strata.var)) {
+    if (!is.null(strata.var) & !is.null(group.var)){
       annotation_cols <-
-        sorted_meta_tab %>% select(all_of(c(subject.var, group.var))) %>% column_to_rownames(var = subject.var)
-      annotation_col_sorted <- annotation_cols
-      if (is.null(group.var)) {
-        annotation_cols_sorted <- NULL
-      }
-    } else {
-      annotation_cols <-
-        sorted_meta_tab %>% select(all_of(c(group.var, strata.var, subject.var))) %>% column_to_rownames(var = subject.var)
+        sorted_meta_tab %>%
+        select(all_of(c(group.var, strata.var, subject.var))) %>%
+        column_to_rownames(var = subject.var)
       annotation_col_sorted <-
-        annotation_col_sorted[order(annotation_col_sorted[[strata.var]], annotation_col_sorted[[group.var]]),]
+        annotation_cols[order(annotation_cols[[strata.var]], annotation_cols[[group.var]]),]
+    } else if (!is.null(group.var)){
+      annotation_cols <-
+        sorted_meta_tab %>%
+        select(all_of(c(subject.var, group.var))) %>%
+        column_to_rownames(var = subject.var)
+      annotation_col_sorted <- annotation_cols
+    } else {
+      annotation_col_sorted <- NULL
     }
 
    if (!is.null(group.var) | !is.null(strata.var)){
@@ -392,7 +394,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
       color_vector <- palette
     }
 
-    if (!is.null(strata.var)){
+    if (!is.null(strata.var) & !is.null(group.var)){
       group_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
       group_colors <- setNames(color_vector[1:length(group_levels)], group_levels)
       strata_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(strata.var))) %>% distinct() %>% pull()
@@ -417,7 +419,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
 
     heatmap_plot <- pheatmap::pheatmap(
       value_diff_matrix,
-      annotation_col = NULL,
+      annotation_col = annotation_col_sorted,
       annotation_colors = annotation_colors_list,
       cluster_rows = cluster.rows,
       cluster_cols = cluster.cols,
@@ -515,7 +517,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
       show_colnames = FALSE,
       show_rownames = TRUE,
       border_color = NA,
-      silent = FALSE,
+      silent = TRUE,
       gaps_col = NULL,
       fontsize = base.size,
       color = my_col,

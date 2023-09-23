@@ -73,13 +73,13 @@
 #'   time.var = "time",
 #'   group.var = "group",
 #'   strata.var = "sex",
-#'   feature.level = c("Family"),
+#'   feature.level = c("Genus"),
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
 #'   top.k.plot = NULL,
 #'   top.k.func = NULL,
 #'   prev.filter = 0.01,
-#'   abund.filter = 0.01,
+#'   abund.filter = 0.001,
 #'   base.size = 16,
 #'   theme.choice = "bw",
 #'   custom.theme = NULL,
@@ -217,10 +217,6 @@ generate_taxa_dotplot_pair <- function(data.obj,
     otu_tax_agg_numeric <-
       dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
 
-    otu_tab_norm <- otu_tax_agg_numeric %>%
-      column_to_rownames(var = feature.level) %>%
-      as.matrix()
-
     # 计算每个分组的平均丰度
     otu_tab_norm_agg <- otu_tax_agg_numeric %>%
       tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
@@ -252,6 +248,18 @@ generate_taxa_dotplot_pair <- function(data.obj,
       otu_tab_norm_agg <- otu_tab_norm_agg %>% filter(!!sym(feature.level) %in% features.plot)
     }
 
+    taxa.levels <- otu_tab_norm_agg %>% select(all_of(c(feature.level))) %>% pull() %>% unique() %>% length()
+
+    adjust_size_range <- function(taxa.levels) {
+      if (taxa.levels < 10) {
+        return(c(4, 8))
+      } else if (taxa.levels < 50) {
+        return(c(2, 5))
+      } else {
+        return(c(1, 3))
+      }
+    }
+
     # 将患病率添加为点的大小，并将平均丰度作为点的颜色
     dotplot <-
       ggplot(
@@ -264,21 +272,24 @@ generate_taxa_dotplot_pair <- function(data.obj,
           color = !!sym(time.var)
         )
       ) + # Change x to time.var
-      geom_point(aes(group = interaction(!!sym(time.var),!!sym(feature.level)), fill = mean_abundance), shape = 21, position = position_dodge(0.9)) + # Add dodge position
+      geom_point(aes(group = interaction(!!sym(time.var),!!sym(feature.level)), fill = mean_abundance),
+                 shape = 21,
+                 position = position_dodge(0.9)) + # Add dodge position
       xlab(feature.level) + # Change x-label to "Time"
       ylab(group.var) +
       scale_colour_manual(values = c("transparent","black")) +
+      scale_size_continuous(range = adjust_size_range(taxa.levels)) +
       {
-        if(feature.dat.type == "other") {
+        # if(feature.dat.type == "other") {
           quantiles <- quantile(otu_tab_norm_agg$mean_abundance, probs = c(0, 0.25, 0.5, 0.75, 1))
           scale_fill_gradientn(colors = colors,
                                values = scales::rescale(quantiles),
                                name = "Mean Abundance")
-        } else {
-          scale_fill_gradientn(colors = colors,
-                               values = scales::rescale(c(0, 0.25, 0.5, 0.75, 1)),
-                               name = "Mean Abundance (Sqrt)")
-        }
+        # } else {
+        #   scale_fill_gradientn(colors = colors,
+        #                        values = scales::rescale(c(0, 0.25, 0.5, 0.75, 1)),
+        #                        name = "Mean Abundance (Sqrt)")
+        # }
       } +
       {
         if (!is.null(strata.var)){
@@ -306,9 +317,7 @@ generate_taxa_dotplot_pair <- function(data.obj,
         legend.direction = "vertical",
         legend.box = "vertical",
         panel.grid.major = element_line(color = "grey", linetype = "dashed"),
-        # 添加主要网格线
         panel.grid.minor = element_line(color = "grey", linetype = "dotted"),
-        # 添加次要网格线
         axis.text = ggplot2::element_text(color = "black",
                                           size = base.size),
         legend.text = ggplot2::element_text(size = 16),
