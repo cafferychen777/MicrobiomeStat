@@ -21,5 +21,3 @@ citEntry(entry = "Manual",
          note = "GitHub repository for the 'MicrobiomeStat' R package.",
          textVersion = "Yang, Caffery (Chen) & Chen, Jun. (2023). MicrobiomeStat. GitHub repository. https://github.com/cafferychen777/MicrobiomeStat"
 )
-
-# 如果您有更多的引用，请在此处继续使用citEntry()函数添加。
