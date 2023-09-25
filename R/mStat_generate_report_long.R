@@ -225,7 +225,7 @@
 #'   feature.box.axis.transform = "sqrt",
 #'   theme.choice = "bw",
 #'   base.size = 20,
-#'   output.file = "path/report.pdf"
+#'   output.file = "report.pdf"
 #' )
 #' }
 #' @export
@@ -666,58 +666,75 @@ group_levels <- data.obj$meta.dat %>% select(!!sym(group.var)) %>% dplyr::pull()
 
 reference_level <- group_levels[1]
 
-if (!is.null(group.var)) {
-if (!is.null(test.adj.vars)) {
-    adj.vars_string <- paste(test.adj.vars, collapse = ', ')
-
-    cat(sprintf('In this analysis, we utilized a linear mixed effects model with both a random intercept and a random slope to investigate a potential difference in trend. Specifically, we included %s, %s and %s as covariates and tested the interaction between the variables %s and %s.', time.var, group.var, adj.vars_string, group.var, time.var))
+adj.vars_string <- if (!is.null(test.adj.vars)) {
+    paste(test.adj.vars, collapse = ', ')
 } else {
-    cat(sprintf('In this analysis, we utilized a linear mixed effects model with both a random intercept and a random slope to investigate a potential difference in trend. Specifically, we included %s, %s and tested the interaction between the variables %s and %s.', time.var, group.var, group.var, time.var))
+    NULL
 }
+
+message_text <- if (!is.null(group.var)) {
+    if (!is.null(test.adj.vars)) {
+        sprintf('In this analysis, we utilized a linear mixed effects model with both a random intercept and a random slope to investigate a potential difference in trend. Specifically, we included %s, %s and %s as covariates and tested the interaction between the variables %s and %s.', time.var, group.var, adj.vars_string, group.var, time.var)
+    } else {
+        sprintf('In this analysis, we utilized a linear mixed effects model with both a random intercept and a random slope to investigate a potential difference in trend. Specifically, we included %s and %s as covariates and tested the interaction between the variables %s and %s.', time.var, group.var, group.var, time.var)
+    }
 } else {
     if (!is.null(test.adj.vars)) {
-        cat(sprintf('In this analysis, we utilized a linear mixed effects model with both a random intercept and a random slope to investigate a potential difference in trend. Specifically, we included %s and %s as covariates and tested the slope, i.e., the linear trend, of %s.', time.var, adj.vars_string, time.var))
+        sprintf('In this analysis, we utilized a linear mixed effects model with both a random intercept and a random slope to investigate a potential difference in trend. Specifically, we included %s and %s as covariates and tested the slope, i.e., the linear trend, of %s.', time.var, adj.vars_string, time.var)
     } else {
-        cat(sprintf('In this analysis, we utilized a linear mixed effects model with both a random intercept and a random slope to investigate a potential difference in trend. Specifically, we included %s as a covariate and tested the slope, i.e., the linear trend, of %s.', time.var, time.var))
+        sprintf('In this analysis, we utilized a linear mixed effects model with both a random intercept and a random slope to investigate a potential difference in trend. Specifically, we included %s as a covariate and tested the slope, i.e., the linear trend, of %s.', time.var, time.var)
     }
 }
 
-# Define a function to report the significance of interaction terms
+cat(message_text)
+
 report_significance <- function(data_frame, group.var, time.var) {
-  if (!is.null(group.var)) {
-    # Extracting interaction terms
-    interaction_terms <- grep(paste0(group.var, '.+:', time.var), data_frame$Term, value = TRUE)
 
-    if (length(interaction_terms) > 1){
-      p_val <- data_frame[data_frame$Term == paste0(group.var, ':', time.var),]$P.Value
+  # Extract p-value for a given term
+  extract_p_val <- function(term) {
+    return(data_frame[data_frame$Term == term,]$P.Value)
+  }
 
-        cat(sprintf('\n An ANOVA test of the null hypothesis of no difference among the %s groups produces a p-value of %.3f.\n\n', length(interaction_terms)+1, p_val))
+  # Report significant trend for interaction term
+  report_interaction_significance <- function(term, group.var) {
+    p_val <- extract_p_val(term)
+    level <- gsub(group.var, '', strsplit(term, ':')[[1]][1])
+    level <- gsub('_', '', level) # Remove underscores
 
+    if(p_val < 0.05) {
+      cat(sprintf('\n Based on the linear mixed effects model, a significant trend difference was observed between %s and %s of the variable %s, with a p-value of %.3f.\n\n', reference_level, level, group.var, p_val))
     } else {
-      for(term in interaction_terms) {
-      p_val <- data_frame[data_frame$Term == term,]$P.Value
-
-      level <- gsub(group.var, '', strsplit(term, ':')[[1]][1])
-      level <- gsub('_', '', level) # Remove any underscores if they exist
-
-      # Describing interaction terms
-      if(p_val < 0.05) {
-        cat(sprintf('\n Based on the linear mixed effects model, a significant trend difference was observed between %s and %s of the variable %s, with a p-value of %.3f.\n\n', reference_level, level, group.var, p_val))
-      } else {
-        cat(sprintf('\n Based on the linear mixed effects model, no significant trend difference was detected between %s and %s of the variable %s, with a p-value of %.3f.\n\n', reference_level, level, group.var, p_val))
-      }
+      cat(sprintf('\n Based on the linear mixed effects model, no significant trend difference was detected between %s and %s of the variable %s, with a p-value of %.3f.\n\n', reference_level, level, group.var, p_val))
     }
-    }
+  }
 
-  } else {
-    p_val <- data_frame[data_frame$Term == time.var,]$P.Value
+  # Report significant trend for linear term
+  report_linear_significance <- function(term) {
+    p_val <- extract_p_val(term)
 
-    # Describing the linear trend
     if(p_val < 0.05) {
       cat(sprintf('\n Based on the linear mixed effects model, a significant linear trend with respect to %s was identified, with a p-value of %.3f.\n\n', time.var, p_val))
     } else {
       cat(sprintf('\n Based on the linear mixed effects model, no significant linear trend was observed with respect to %s, with a p-value of %.3f.\n\n', time.var, p_val))
     }
+  }
+
+  if (is.null(group.var)) {
+    report_linear_significance(time.var)
+    return()
+  }
+
+  # Extracting interaction terms
+  interaction_terms <- grep(paste0(group.var, '.+:', time.var), data_frame$Term, value = TRUE)
+
+  if (length(interaction_terms) > 1) {
+    p_val <- extract_p_val(paste0(group.var, ':', time.var))
+    cat(sprintf('\n An ANOVA test of the null hypothesis of no difference among the %s groups produces a p-value of %.3f.\n\n', length(interaction_terms)+1, p_val))
+    return()
+  }
+
+  for(term in interaction_terms) {
+    report_interaction_significance(term, group.var)
   }
 }
 

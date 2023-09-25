@@ -363,7 +363,7 @@ generate_taxa_heatmap_pair <- function(data.obj,
     # Plot stacked heatmap
     average_heatmap_plot <- pheatmap::pheatmap(
       wide_data %>% column_to_rownames(feature.level),
-      #annotation_col = annotation_col,
+      annotation_col = annotation_col,
       annotation_colors = annotation_colors_list,
       cluster_rows = cluster.rows,
       cluster_cols = cluster.cols,

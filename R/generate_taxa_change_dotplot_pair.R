@@ -10,7 +10,13 @@
 #' @param group.var A character string defining group variable in meta_tab used for sorting and facetting
 #' @param strata.var (Optional) A character string defining strata variable in meta_tab used for sorting and facetting
 #' @param change.base A numeric value setting base for the change (usually 1)
-#' @param feature.change.func A function or character string specifying the method for computing the change. Default is "difference".
+#' @param feature.change.func A function or character string specifying the method for computing the change in abundance between two time points.
+#' This can be one of the following:
+#'   - A user-defined function: The function should take two arguments corresponding to the abundances at the two time points and return the computed change.
+#'   - "lfc": Computes the log2 fold-change between `time2_mean_abundance` and `time1_mean_abundance`.
+#'   - "relative change": Computes the relative change as `(time2 - time1) / (time2 + time1)`. If both time points have an abundance of 0, the change is defined as 0.
+#'   - Any other value: Computes the difference as `time2_mean_abundance - time1_mean_abundance`.
+#' Default is "difference".
 #' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
 #' to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
 #' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
@@ -65,35 +71,34 @@
 #' @return If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the final ggplot object. If `pdf` is set to FALSE, the function will return the final ggplot object without creating a PDF file.
 #' @examples
 #' \dontrun{
-#' # Load required libraries
-#' library(ggh4x)
 #'
-#' # Prepare data for the function
+#' # Note: In the RStudio viewer, the plot might appear cluttered if there are many taxa.
+#' # It's recommended to view the generated PDF for better clarity. If it still feels
+#' # overcrowded in the PDF, consider increasing the 'pdf.wid' value to adjust the width of the plot.
+#'
 #' data(peerj32.obj)
-#'
-#' # Call the function
 #' generate_taxa_change_dotplot_pair(
 #'   data.obj = peerj32.obj,
 #'   subject.var = "subject",
 #'   time.var = "time",
 #'   group.var = "group",
-#'   strata.var = "sex",
+#'   strata.var = NULL,
 #'   change.base = "1",
-#'   feature.change.func = "relative difference",
-#'   feature.level = "Family",
+#'   feature.change.func = "lfc",
+#'   feature.level = "Genus",
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
-#'   top.k.plot = NULL,
-#'   top.k.func = NULL,
+#'   top.k.plot = 20,
+#'   top.k.func = "mean",
 #'   prev.filter = 0.01,
-#'   abund.filter = 0.0001,
+#'   abund.filter = 1e-4,
 #'   base.size = 16,
 #'   theme.choice = "bw",
 #'   custom.theme = NULL,
 #'   pdf = TRUE,
 #'   file.ann = NULL,
-#'   pdf.wid = 11,
-#'   pdf.hei = 8.5
+#'   pdf.wid = 30,
+#'   pdf.hei = 10
 #' )
 #' }
 #' # View the result
@@ -223,16 +228,8 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
       features.plot <- names(sort(compute_function(top.k.func), decreasing = TRUE)[1:top.k.plot])
     }
 
-    # 转换计数为数值类型
-    otu_tax_agg_numeric <-
-      dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
-
-    otu_tab_norm <- otu_tax_agg_numeric %>%
-      column_to_rownames(var = feature.level) %>%
-      as.matrix()
-
     # 计算每个分组的平均丰度
-    otu_tab_norm_agg <- otu_tax_agg_numeric %>%
+    otu_tab_norm_agg <- otu_tax_agg %>%
       tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
       dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
       dplyr::group_by(!!sym(group.var), !!sym(feature.level), !!sym(time.var)) %>% # Add time.var to dplyr::group_by
@@ -244,8 +241,10 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
     # 将数据从长格式转换为宽格式，将不同的时间点的mean_abundance放到不同的列中
     otu_tab_norm_agg_wide <- otu_tab_norm_agg %>%
       tidyr::spread(key = !!sym(time.var), value = mean_abundance) %>%
-      dplyr::rename(time1_mean_abundance = change.base,
-             time2_mean_abundance = change.after)
+      dplyr::rename(
+        time1_mean_abundance = all_of(change.base),
+        time2_mean_abundance = all_of(change.after)
+      )
 
     # 计算不同时间点的mean_abundance差值
     # 最后，计算新的count值
@@ -271,13 +270,12 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
     }
 
     # 计算每个taxon在每个时间点的prevalence
-    prevalence_time <- otu_tax_agg_numeric %>%
+    prevalence_time <- otu_tax_agg %>%
       tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
       dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
-      dplyr::group_by(!!sym(feature.level), !!sym(time.var)) %>%
+      dplyr::group_by(!!sym(group.var), !!sym(feature.level), !!sym(time.var)) %>%
       dplyr::summarise(prevalence = sum(count > 0) / dplyr::n())
 
-    # 将数据从长格式转换为宽格式，将不同的时间点的prevalence放到不同的列中
     prevalence_time_wide <- prevalence_time %>%
       tidyr::spread(key = time.var, value = prevalence) %>%
       dplyr::rename(time1_prevalence = change.base,
@@ -305,30 +303,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
 
     # 将两个结果合并
     otu_tab_norm_agg_wide <-
-      otu_tab_norm_agg_wide %>% dplyr::left_join(prevalence_time_wide, feature.level)
-
-    # 找到 abundance_change 的最小值和最大值
-    abund_change_min <- min(otu_tab_norm_agg_wide$abundance_change)
-    abund_change_max <- max(otu_tab_norm_agg_wide$abundance_change)
-
-    # 归一化的函数
-    normalize <- function(x, min, max) {
-      return((x - min) / (max - min))
-    }
-
-    # 归一化的值
-    abund_change_min_norm <-
-      normalize(abund_change_min, abund_change_min, abund_change_max)
-    abund_change_max_norm <-
-      normalize(abund_change_max, abund_change_min, abund_change_max)
-    abund_change_mid_norm <-
-      normalize(0, abund_change_min, abund_change_max)  # abundance_change 的中点为0
-
-    # 计算其他颜色的归一化值
-    first_color_norm <-
-      abund_change_min_norm + (abund_change_mid_norm - abund_change_min_norm) / 2
-    second_color_norm <-
-      abund_change_mid_norm + (abund_change_max_norm - abund_change_mid_norm) / 2
+      otu_tab_norm_agg_wide %>% dplyr::left_join(prevalence_time_wide, by = c(feature.level, group.var))
 
     if (!is.null(strata.var)) {
       otu_tab_norm_agg_wide <- otu_tab_norm_agg_wide %>%
@@ -343,6 +318,77 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
         otu_tab_norm_agg_wide %>% filter(!!sym(feature.level) %in% features.plot)
     }
 
+    prop_prev_data <-
+      otu_tax_agg %>%
+      column_to_rownames(feature.level) %>%
+      as.matrix() %>%
+      as.table() %>%
+      as.data.frame() %>%
+      dplyr::group_by(Var1) %>%  # Var1是taxa
+      dplyr::summarise(avg_abundance = mean(Freq),
+                       prevalence = sum(Freq > 0) / dplyr::n()) %>% column_to_rownames("Var1") %>%
+      rownames_to_column(feature.level)
+
+    otu_tab_norm_agg_wide <- otu_tab_norm_agg_wide %>%
+      tidyr::gather(key = "Type", value = "change", abundance_change, prevalence_change) %>%
+      select(-all_of(c("time1_mean_abundance", "time2_mean_abundance", "time1_prevalence", "time2_prevalence"))) %>%
+      dplyr::left_join(prop_prev_data, by = feature.level) %>%
+      dplyr::mutate(Base = dplyr::case_when(
+        Type == "abundance_change" ~ avg_abundance,
+        Type == "prevalence_change" ~ prevalence,
+        TRUE ~ NA_real_
+      )) %>%
+      select(-all_of(c("avg_abundance", "prevalence")))
+
+    adjust_size_range <- function(taxa.levels) {
+      if (taxa.levels <= 2) {
+        return(c(40, 57))
+      } else if (taxa.levels <= 4) {
+        return(c(35, 42))
+      } else if (taxa.levels <= 6) {
+        return(c(30, 37))
+      } else if (taxa.levels <= 8) {
+        return(c(25, 33))
+      } else if (taxa.levels < 10) {
+        return(c(20, 17))
+      } else if (taxa.levels < 20) {
+        return(c(10, 15))
+      } else if (taxa.levels < 30) {
+        return(c(8, 13))
+      } else if (taxa.levels < 40) {
+        return(c(6, 10))
+      } else if (taxa.levels < 50) {
+        return(c(4, 8))
+      } else {
+        return(c(1, 4))
+      }
+    }
+
+    # 找到 abundance_change 的最小值和最大值
+    change_min <- min(otu_tab_norm_agg_wide$change)
+    change_max <- max(otu_tab_norm_agg_wide$change)
+
+    # 归一化的函数
+    normalize <- function(x, min, max) {
+      return((x - min) / (max - min))
+    }
+
+    # 归一化的值
+    change_min_norm <-
+      normalize(change_min, change_min, change_max)
+    change_max_norm <-
+      normalize(change_max, change_min, change_max)
+    change_mid_norm <-
+      normalize(0, change_min, change_max)  # abundance_change 的中点为0
+
+    # 计算其他颜色的归一化值
+    first_color_norm <-
+      change_min_norm + (change_mid_norm - change_min_norm) / 2
+    second_color_norm <-
+      change_mid_norm + (change_max_norm - change_mid_norm) / 2
+
+    taxa.levels <- otu_tab_norm_agg_wide %>% dplyr::ungroup() %>% select(all_of(c(feature.level))) %>% pull() %>% unique() %>% length()
+
     # 将患病率添加为点的大小，并将平均丰度作为点的颜色
     dotplot <-
       ggplot(
@@ -350,25 +396,29 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
         aes(
           x = !!sym(feature.level),
           y = !!sym(group.var),
-          color = abundance_change,
-          size = prevalence_change
+          size = Base,
+          shape = Type,
+          color = Type
         )
       ) + # Change x to time.var
-      geom_point(aes(group = !!sym(feature.level), fill = abundance_change), shape = 21) +
-      xlab(feature.level) + # Change x-label to "Time"
+      geom_point(aes(group = interaction(Type,!!sym(feature.level)), fill = change),
+                 shape = 21,
+                 position = position_dodge(0.9)) +
+      xlab(feature.level) +
       ylab(group.var) +
+      scale_colour_manual(values = c("transparent","black")) +
+      scale_size_continuous(range = adjust_size_range(taxa.levels)) +
       scale_fill_gradientn(
         colors = colors,
         values = c(
-          abund_change_min_norm,
+          change_min_norm,
           first_color_norm,
-          abund_change_mid_norm,
+          change_mid_norm,
           second_color_norm,
-          abund_change_max_norm
+          change_max_norm
         ),
-        name = "Abundance Change"
+        name = "Change"
       ) +
-      scale_size(range = c(4, 10), name = "Prevalence Change") +
       {
         if (!is.null(strata.var)) {
           ggh4x::facet_nested(
@@ -407,12 +457,13 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
           element_text(size = base.size),
         panel.spacing = unit(0, "lines"),
         panel.grid.major = element_line(color = "grey", linetype = "dashed"),
-        # 添加主要网格线
         panel.grid.minor = element_line(color = "grey", linetype = "dotted"),
-        # 添加次要网格线
-        legend.text = ggplot2::element_text(size = 16),
-        legend.title = ggplot2::element_text(size = 16)
-      ) + guides(color = "none") # Add this line to remove the color legend
+        legend.text = ggplot2::element_text(size = base.size),
+        legend.title = ggplot2::element_text(size = base.size),
+      ) + guides(
+        color = guide_legend(override.aes = list(size = 5, fill = "#92c5de")),
+        shape = guide_legend(override.aes = list(size = 5))
+      )
 
     # Save the stacked dotplot as a PDF file
     if (pdf) {

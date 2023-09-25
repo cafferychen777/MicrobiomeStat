@@ -125,7 +125,7 @@ generate_taxa_trend_test_long <-
       )))
 
     # Function to generate the formula
-    generate_formula <- function(group.var=NULL, adj.vars=NULL, time.var=NULL, subject.var="Subject") {
+    generate_formula <- function(group.var = NULL, adj.vars = NULL, time.var = NULL, subject.var = NULL) {
 
       # Initialize the fixed_effects and random_effects variables
       fixed_effects <- NULL

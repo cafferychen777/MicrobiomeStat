@@ -73,7 +73,7 @@
 #'   time.var = "time",
 #'   group.var = "group",
 #'   strata.var = "sex",
-#'   feature.level = c("Genus"),
+#'   feature.level = c("Phylum"),
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
 #'   top.k.plot = NULL,
@@ -251,12 +251,26 @@ generate_taxa_dotplot_pair <- function(data.obj,
     taxa.levels <- otu_tab_norm_agg %>% select(all_of(c(feature.level))) %>% pull() %>% unique() %>% length()
 
     adjust_size_range <- function(taxa.levels) {
-      if (taxa.levels < 10) {
-        return(c(4, 8))
+      if (taxa.levels <= 2) {
+        return(c(40, 57))
+      } else if (taxa.levels <= 4) {
+        return(c(35, 42))
+      } else if (taxa.levels <= 6) {
+        return(c(30, 37))
+      } else if (taxa.levels <= 8) {
+        return(c(25, 33))
+      } else if (taxa.levels < 10) {
+        return(c(20, 17))
+      } else if (taxa.levels < 20) {
+        return(c(10, 15))
+      } else if (taxa.levels < 30) {
+        return(c(8, 13))
+      } else if (taxa.levels < 40) {
+        return(c(6, 10))
       } else if (taxa.levels < 50) {
-        return(c(2, 5))
+        return(c(4, 8))
       } else {
-        return(c(1, 3))
+        return(c(1, 4))
       }
     }
 
