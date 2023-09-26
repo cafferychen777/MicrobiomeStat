@@ -490,8 +490,10 @@ generate_taxa_indiv_boxplot_long <-
         # Close the PDF device
         dev.off()
       }
-
+      names(plot_list) <- taxa.levels
       return(plot_list)
     })
+
+    names(plot_list_all) <- feature.level
     return(plot_list_all)
   }
