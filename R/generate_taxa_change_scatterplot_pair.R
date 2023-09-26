@@ -408,5 +408,6 @@ generate_taxa_change_scatterplot_pair <-
       return(scatterplot)
     })
 
+    names(plot_list) <- feature.level
     return(plot_list)
   }
