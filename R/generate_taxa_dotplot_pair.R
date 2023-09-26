@@ -73,11 +73,11 @@
 #'   time.var = "time",
 #'   group.var = "group",
 #'   strata.var = "sex",
-#'   feature.level = c("Phylum"),
+#'   feature.level = c("Genus"),
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
-#'   top.k.plot = NULL,
-#'   top.k.func = NULL,
+#'   top.k.plot = 10,
+#'   top.k.func = "mean",
 #'   prev.filter = 0.01,
 #'   abund.filter = 0.001,
 #'   base.size = 16,
@@ -86,8 +86,8 @@
 #'   palette = NULL,
 #'   pdf = TRUE,
 #'   file.ann = NULL,
-#'   pdf.wid = 11,
-#'   pdf.hei = 8.5
+#'   pdf.wid = 20,
+#'   pdf.hei = 11
 #' )
 #' }
 #' @export
@@ -294,16 +294,24 @@ generate_taxa_dotplot_pair <- function(data.obj,
       scale_colour_manual(values = c("transparent","black")) +
       scale_size_continuous(range = adjust_size_range(taxa.levels)) +
       {
-        # if(feature.dat.type == "other") {
+        if(feature.dat.type == "other") {
           quantiles <- quantile(otu_tab_norm_agg$mean_abundance, probs = c(0, 0.25, 0.5, 0.75, 1))
           scale_fill_gradientn(colors = colors,
                                values = scales::rescale(quantiles),
                                name = "Mean Abundance")
-        # } else {
-        #   scale_fill_gradientn(colors = colors,
-        #                        values = scales::rescale(c(0, 0.25, 0.5, 0.75, 1)),
-        #                        name = "Mean Abundance (Sqrt)")
-        # }
+        } else {
+          quantiles <- quantile(otu_tab_norm_agg$mean_abundance, probs = c(0, 1/3, 2/3, 1))
+          # 创建上标标签
+          labels <- sapply(quantiles, function(x) {
+            as.expression(bquote(.(round(x, 2))^2))
+          })
+
+          scale_fill_gradientn(colors = colors,
+                               values = scales::rescale(c(0, 0.25, 0.5, 0.75, 1)),
+                               name = "Mean Abundance",
+                               breaks = quantiles,
+                               labels = labels)
+        }
       } +
       {
         if (!is.null(strata.var)){
