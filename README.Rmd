@@ -86,23 +86,26 @@ devtools::install_github("cafferychen777/MicrobiomeStat")
 
 # Online Tutorials {#online-tutorials}
 
-`MicrobiomeStat` represents a comprehensive toolset for microbiome data analysis, boasting extensive capabilities from data input to visualization.
+`MicrobiomeStat` represents a **comprehensive toolset** for microbiome data analysis, boasting extensive capabilities from data input to visualization.
 
-For an in-depth understanding of `MicrobiomeStat`, we have curated a comprehensive online tutorial using GitBook, encompassing:
+For an **in-depth understanding** of `MicrobiomeStat`, explore our detailed online tutorial using GitBook. This tutorial covers:
 
-- Comprehensive **installation and configuration** guidance
+- **Comprehensive Installation and Configuration Guidance**
+  - Ensure your setup is correct and optimized.
+- **Analysis Walkthroughs Driven by Real-World Cases**
+  - Gain practical insights and skills.
+- **Hands-On Code Examples**
+  - Get comfortable with `MicrobiomeStat` coding practices.
+- **Detailed Guides on Result Interpretation and Visualization**
+  - Understand and present your data effectively.
+- **Frequently Asked Questions**
+  - Quickly find answers to common queries.
 
-- **Analysis walkthroughs** driven by real-world cases 
+## Acquaint Yourself for a Seamless Experience
 
-- Hands-on code examples
+For a seamless experience with `MicrobiomeStat`, make the most of these enriching resources:
 
-- Detailed guides on result **interpretation and visualization**
-
-- Frequently Asked Questions
-
-For a seamless experience with `MicrobiomeStat`, we recommend acquainting yourself with these online tutorials:
-
-**MicrobiomeStat Tutorials:** [https://www.microbiomestat.wiki](https://www.microbiomestat.wiki)
+[**📘 Explore MicrobiomeStat Tutorials**](https://www.microbiomestat.wiki)
 
 ## Benefits of Using MicrobiomeStat {#why-choose-microbiomestat}
 
@@ -118,7 +121,7 @@ For a thorough understanding of how `MicrobiomeStat` measures against other tool
 
 ### User Support {#user-support}
 
-`MicrobiomeStat` is designed with users in mind. Comprehensive **documentation and tutorials** are available to assist both novice and experienced researchers.
+`MicrobiomeStat` is designed with users in mind. Comprehensive [**documentation and tutorials**](https://www.microbiomestat.wiki/) are available to assist both novice and experienced researchers. Before posting a question or issue, we encourage users to [check previous questions and issues](https://github.com/cafferychen777/MicrobiomeStat/issues?q=is%3Aissue+is%3Aclosed) to see if the topic has already been addressed. If not, feel free to [open a new issue on GitHub](https://github.com/cafferychen777/MicrobiomeStat/issues). We are here to help you navigate any challenges you may encounter.
 
 ### Ongoing Development {#ongoing-development}
 
@@ -126,22 +129,23 @@ Ensuring that `MicrobiomeStat` remains a leading tool in its category requires *
 
 ### Collaborative Development {#collaborative-development}
 
-`MicrobiomeStat` is an open-source tool, and we value contributions from the community. If you have suggestions or improvements, **pull requests are welcomed**.
+`MicrobiomeStat` is an open-source tool, and we highly value contributions from the community. If you have suggestions, improvements, or feedback for future development directions and feature additions, **[pull requests](https://github.com/cafferychen777/MicrobiomeStat/pulls) are welcomed**, and you can also share your ideas in the [**discussion area**](https://github.com/cafferychen777/MicrobiomeStat/discussions) of our GitHub repository. Engage with other community members and help us make `MicrobiomeStat` an even more useful tool for microbiome research.
 
 ### Conclusion {#conclusion}
 
-`MicrobiomeStat` aims to be a reliable and efficient tool for microbiome data analysis. For those who value **open-source collaboration**, we invite you to be part of our community and contribute to its continuous improvement.
+`MicrobiomeStat` aims to be a **reliable and efficient tool** for microbiome data analysis. For those who value **open-source collaboration**, we warmly invite you to be part of our community and contribute to its continuous improvement.
 
-| Feature                        | Description                                                                                                      |
+| **Feature**                        | **Description**                                                                                                      |
 |--------------------------------|------------------------------------------------------------------------------------------------------------------|
-| Data Import and Conversion     | Supports numerous input formats from popular tools like QIIME2, Mothur, DADA2, Phyloseq and more                 |
-| Cross-sectional Study Analysis | Performs comprehensive analysis of cross-sectional studies                                                       |   
-| Paired Sample Analysis         | Excellent tool for analyzing **paired samples**                                                                  |
-| Longitudinal Study Analysis    | Allows for exploring the **temporal dynamics** of the microbiome                                                 |
-| One-Click Report Generation    | For different study designs (cross-sectional, paired, longitudinal), generates professional analysis reports with a single click |
-| Visualization Capabilities     | Offers a wide variety of **visualization styles**                                                                |
-| Data Export                    | Supports export of analysis results in diverse formats                                                           |
-| Ongoing Development            | Continual **feature refinement** and **new functionality** addition                                              |
+| **Data Import and Conversion**     | Supports numerous input formats from popular tools like **QIIME2, Mothur, DADA2, Phyloseq** and more                 |
+| **Cross-sectional Study Analysis** | Performs comprehensive analysis of **cross-sectional studies**                                                       |   
+| **Paired Sample Analysis**         | Excellent tool for analyzing **paired samples**                                                                  |
+| **Longitudinal Study Analysis**    | Allows for exploring the **temporal dynamics** of the microbiome                                                 |
+| **One-Click Report Generation**    | For different study designs (**cross-sectional, paired, longitudinal**), generates **professional analysis reports** with a single click |
+| **Visualization Capabilities**     | Offers a wide variety of **visualization styles**                                                                |
+| **Data Export**                    | Supports export of analysis results in **diverse formats**                                                           |
+| **Ongoing Development**            | Continual **feature refinement** and **new functionality addition**
+                                     |
 ### Demo Reports {#demo-reports}
 
 For those interested in seeing `MicrobiomeStat` in action, we have prepared demo reports tailored to different study designs:
@@ -180,4 +184,9 @@ Spread the word about `MicrobiomeStat` and stay connected through various platfo
 [![LinkedIn](https://img.shields.io/badge/Share_on-LinkedIn-0077B5?logo=linkedin&style=social)](https://www.linkedin.com/shareArticle?mini=true&url=https%3A%2F%2Fgithub.com%2Fcafferychen777%2FMicrobiomeStat&title=Check%20out%20this%20awesome%20package%20for%20comprehensive%20and%20longitudinal%20microbiome%20analysis%20in%20R!)
 
 [![Reddit](https://img.shields.io/badge/Share_on-Reddit-FF4500?logo=reddit&style=social)](https://www.reddit.com/submit?url=https%3A%2F%2Fgithub.com%2Fcafferychen777%2FMicrobiomeStat&title=Check%20out%20this%20awesome%20package%20for%20comprehensive%20and%20longitudinal%20microbiome%20analysis%20in%20R!)
+
+[![WhatsApp](https://img.shields.io/badge/Share_on-WhatsApp-25D366?logo=whatsapp&style=social)](https://wa.me/?text=Check%20out%20this%20awesome%20package%20for%20comprehensive%20and%20longitudinal%20microbiome%20analysis%20in%20R!%20https%3A%2F%2Fgithub.com%2Fcafferychen777%2FMicrobiomeStat)
+
+[![Slack](https://img.shields.io/badge/Share_on-Slack-4A154B?logo=slack&style=social)](https://slack.com/intl/en-cn/)
+
 
