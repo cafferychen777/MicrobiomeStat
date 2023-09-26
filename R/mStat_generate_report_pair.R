@@ -145,7 +145,7 @@
 #'   feature.sig.level = 0.1,
 #'   theme.choice = "bw",
 #'   base.size = 18,
-#'   output.file = "path/report.pdf"
+#'   output.file = "path/to/report.pdf"
 #' )
 #'
 #' data(peerj32.obj)
@@ -173,7 +173,7 @@
 #'   feature.sig.level = 0.1,
 #'   theme.choice = "bw",
 #'   base.size = 18,
-#'   output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/Report/mStat_generate_report_pair_example_Only_Genus.pdf"
+#'   output.file = "path/to/report.pdf"
 #' )
 #' }
 #' @export

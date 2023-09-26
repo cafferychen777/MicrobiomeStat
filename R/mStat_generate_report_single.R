@@ -122,7 +122,7 @@
 #'   base.size = 20,
 #'   feature.mt.method = "none",
 #'   feature.sig.level = 0.2,
-#'   output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/Report/devtools_test_report_single2.pdf"
+#'   output.file = "path/to/report.pdf"
 #' )
 #' data(peerj32.obj)
 #' mStat_generate_report_single(
@@ -147,59 +147,9 @@
 #'   base.size = 20,
 #'   feature.mt.method = "none",
 #'   feature.sig.level = 0.2,
-#'   output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/Report/devtools_test_report_single1.pdf"
+#'   output.file = "path/to/report.pdf"
 #' )
 #' }
-#' data(peerj32.obj)
-#' mStat_generate_report_single(
-#'   data.obj = peerj32.obj,
-#'   dist.obj = NULL,
-#'   alpha.obj = NULL,
-#'   group.var = "group",
-#'   vis.adj.vars = c("sex"),
-#'   test.adj.vars = c("sex"),
-#'   subject.var = "subject",
-#'   time.var = "time",
-#'   alpha.name = c("shannon", "observed_species"),
-#'   depth = NULL,
-#'   dist.name = c("BC",'Jaccard'),
-#'   t.level = "1",
-#'   feature.box.axis.transform = "sqrt",
-#'   strata.var = "sex",
-#'   vis.feature.level = c("Phylum", "Family", "Genus"),
-#'   test.feature.level = "Family",
-#'   feature.dat.type = "count",
-#'   theme.choice = "bw",
-#'   base.size = 20,
-#'   feature.mt.method = "none",
-#'   feature.sig.level = 0.2,
-#'   output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/Report/devtools_test_report_single2.pdf"
-#' )
-#' data(peerj32.obj)
-#' mStat_generate_report_single(
-#'   data.obj = peerj32.obj,
-#'   dist.obj = NULL,
-#'   alpha.obj = NULL,
-#'   group.var = "group",
-#'   vis.adj.vars = c("sex"),
-#'   test.adj.vars = c("sex"),
-#'   subject.var = "subject",
-#'   time.var = "time",
-#'   alpha.name = c("shannon", "observed_species"),
-#'   depth = NULL,
-#'   dist.name = c("BC",'Jaccard'),
-#'   t.level = "1",
-#'   feature.box.axis.transform = "sqrt",
-#'   strata.var = "sex",
-#'   vis.feature.level = c("Phylum", "Family", "Genus"),
-#'   test.feature.level = "Family",
-#'   feature.dat.type = "count",
-#'   theme.choice = "bw",
-#'   base.size = 20,
-#'   feature.mt.method = "none",
-#'   feature.sig.level = 0.2,
-#'   output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/Report/devtools_test_report_single1.pdf"
-#' )
 #' @export
 mStat_generate_report_single <- function(data.obj,
                                          group.var,

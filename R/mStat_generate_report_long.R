@@ -171,47 +171,22 @@
 #'
 #' @examples
 #' \dontrun{
-#' # Assuming peerj32.obj, dist.obj, alpha.obj are pre-defined objects
-#' data(peerj32.obj)
-#' mStat_generate_report_long(
-#'   data.obj = peerj32.obj,
-#'   dist.obj = NULL,
-#'   alpha.obj = NULL,
-#'   group.var = "group",
-#'   test.adj.vars = c("sex"),
-#'   vis.test.vars = c("sex"),
-#'   subject.var = "subject",
-#'   time.var = "time",
-#'   alpha.name = c("shannon","observed_species"),
-#'   dist.name = c("BC",'Jaccard'),
-#'   t0.level = "1",
-#'   ts.levels = "2",
-#'   strata.var = "sex",
-#'   vis.feature.level = c("Phylum"),
-#'   test.feature.level = c("Phylum"),
-#'   feature.dat.type = "count",
-#'   feature.box.axis.transform = "log",
-#'   theme.choice = "bw",
-#'   base.size = 12,
-#'   output.file = "path/report.pdf"
-#' )
-#'
 #' #' data(subset_T2D.obj)
 #' mStat_generate_report_long(
 #'   data.obj = subset_T2D.obj,
-#'   dist.obj = NULL,
-#'   alpha.obj = NULL,
-#'   pc.obj = NULL,
 #'   group.var = "subject_race",
 #'   strata.var = "subject_gender",
 #'   test.adj.vars = NULL,
 #'   vis.adj.vars = NULL,
 #'   subject.var = "subject_id",
 #'   time.var = "visit_number_num",
-#'   alpha.name = c("shannon","observed_species"),
-#'   dist.name = c("BC",'Jaccard'),
 #'   t0.level = NULL,
 #'   ts.levels = NULL,
+#'   alpha.obj = NULL,
+#'   alpha.name = c("shannon","observed_species"),
+#'   dist.obj = NULL,
+#'   dist.name = c("BC",'Jaccard'),
+#'   pc.obj = NULL,
 #'   feature.mt.method = "none",
 #'   feature.sig.level = 0.3,
 #'   vis.feature.level = c("Family","Genus"),
@@ -225,7 +200,7 @@
 #'   feature.box.axis.transform = "sqrt",
 #'   theme.choice = "bw",
 #'   base.size = 20,
-#'   output.file = "report.pdf"
+#'   output.file = "path/to/report.pdf"
 #' )
 #' }
 #' @export
@@ -238,9 +213,9 @@ mStat_generate_report_long <- function(data.obj,
                                        time.var,
                                        t0.level = NULL,
                                        ts.levels = NULL,
+                                       depth = NULL,
                                        alpha.obj = NULL,
                                        alpha.name = c("shannon", "observed_species"),
-                                       depth = NULL,
                                        dist.obj = NULL,
                                        dist.name = c('BC', 'Jaccard'),
                                        pc.obj = NULL,
@@ -253,7 +228,7 @@ mStat_generate_report_long <- function(data.obj,
                                        feature.dat.type = c("count", "proportion", "other"),
                                        feature.analysis.rarafy = TRUE,
                                        feature.change.func = "relative change",
-                                       feature.mt.method = c("fdr", "none"),
+                                       feature.mt.method = "none",
                                        feature.sig.level = 0.1,
                                        feature.box.axis.transform = c("identity", "sqrt", "log"),
                                        base.size = 16,
