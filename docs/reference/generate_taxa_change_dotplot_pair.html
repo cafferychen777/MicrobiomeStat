@@ -108,7 +108,13 @@ interactively or saved as a PDF file.</p>
 
 
 <dt>feature.change.func</dt>
-<dd><p>A function or character string specifying the method for computing the change. Default is "difference".</p></dd>
+<dd><p>A function or character string specifying the method for computing the change in abundance between two time points.
+This can be one of the following:
+  - A user-defined function: The function should take two arguments corresponding to the abundances at the two time points and return the computed change.
+  - "lfc": Computes the log2 fold-change between `time2_mean_abundance` and `time1_mean_abundance`.
+  - "relative change": Computes the relative change as `(time2 - time1) / (time2 + time1)`. If both time points have an abundance of 0, the change is defined as 0.
+  - Any other value: Computes the difference as `time2_mean_abundance - time1_mean_abundance`.
+Default is "difference".</p></dd>
 
 
 <dt>feature.level</dt>
@@ -218,35 +224,34 @@ my_theme &lt;- ggplot2::theme(
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span><span class="co"># Load required libraries</span></span></span>
-<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/teunbrand/ggh4x" class="external-link">ggh4x</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Prepare data for the function</span></span></span>
+<span class="r-in"><span><span class="co"># Note: In the RStudio viewer, the plot might appear cluttered if there are many taxa.</span></span></span>
+<span class="r-in"><span><span class="co"># It's recommended to view the generated PDF for better clarity. If it still feels</span></span></span>
+<span class="r-in"><span><span class="co"># overcrowded in the PDF, consider increasing the 'pdf.wid' value to adjust the width of the plot.</span></span></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">peerj32.obj</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Call the function</span></span></span>
 <span class="r-in"><span><span class="fu">generate_taxa_change_dotplot_pair</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">peerj32.obj</span>,</span></span>
 <span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"subject"</span>,</span></span>
 <span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"time"</span>,</span></span>
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
-<span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
+<span class="r-in"><span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  change.base <span class="op">=</span> <span class="st">"1"</span>,</span></span>
 <span class="r-in"><span>  feature.change.func <span class="op">=</span> <span class="st">"lfc"</span>,</span></span>
-<span class="r-in"><span>  feature.level <span class="op">=</span> <span class="st">"Family"</span>,</span></span>
+<span class="r-in"><span>  feature.level <span class="op">=</span> <span class="st">"Genus"</span>,</span></span>
 <span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"count"</span>,</span></span>
 <span class="r-in"><span>  features.plot <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  top.k.plot <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  top.k.func <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  top.k.plot <span class="op">=</span> <span class="fl">20</span>,</span></span>
+<span class="r-in"><span>  top.k.func <span class="op">=</span> <span class="st">"mean"</span>,</span></span>
 <span class="r-in"><span>  prev.filter <span class="op">=</span> <span class="fl">0.01</span>,</span></span>
-<span class="r-in"><span>  abund.filter <span class="op">=</span> <span class="fl">0.0001</span>,</span></span>
+<span class="r-in"><span>  abund.filter <span class="op">=</span> <span class="fl">1e-4</span>,</span></span>
 <span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">16</span>,</span></span>
 <span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
 <span class="r-in"><span>  custom.theme <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  pdf <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>  file.ann <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  pdf.wid <span class="op">=</span> <span class="fl">11</span>,</span></span>
-<span class="r-in"><span>  pdf.hei <span class="op">=</span> <span class="fl">8.5</span></span></span>
+<span class="r-in"><span>  pdf.wid <span class="op">=</span> <span class="fl">30</span>,</span></span>
+<span class="r-in"><span>  pdf.hei <span class="op">=</span> <span class="fl">10</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span><span class="co"># View the result</span></span></span>

@@ -61,9 +61,9 @@ The report contains thorough statistical analysis along with data visualizations
 <span>  <span class="va">time.var</span>,</span>
 <span>  t0.level <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ts.levels <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  depth <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  alpha.obj <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  alpha.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shannon"</span>, <span class="st">"observed_species"</span><span class="op">)</span>,</span>
-<span>  depth <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  dist.obj <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BC"</span>, <span class="st">"Jaccard"</span><span class="op">)</span>,</span>
 <span>  pc.obj <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -76,7 +76,7 @@ The report contains thorough statistical analysis along with data visualizations
 <span>  feature.dat.type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"count"</span>, <span class="st">"proportion"</span>, <span class="st">"other"</span><span class="op">)</span>,</span>
 <span>  feature.analysis.rarafy <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  feature.change.func <span class="op">=</span> <span class="st">"relative change"</span>,</span>
-<span>  feature.mt.method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"fdr"</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
+<span>  feature.mt.method <span class="op">=</span> <span class="st">"none"</span>,</span>
 <span>  feature.sig.level <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  feature.box.axis.transform <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"identity"</span>, <span class="st">"sqrt"</span>, <span class="st">"log"</span><span class="op">)</span>,</span>
 <span>  base.size <span class="op">=</span> <span class="fl">16</span>,</span>
@@ -130,16 +130,16 @@ The report contains thorough statistical analysis along with data visualizations
 <dd><p>Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.</p></dd>
 
 
+<dt>depth</dt>
+<dd><p>An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.</p></dd>
+
+
 <dt>alpha.obj</dt>
 <dd><p>An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.</p></dd>
 
 
 <dt>alpha.name</dt>
 <dd><p>The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".</p></dd>
-
-
-<dt>depth</dt>
-<dd><p>An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.</p></dd>
 
 
 <dt>dist.obj</dt>
@@ -388,47 +388,22 @@ my_theme &lt;- ggplot2::theme(
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span><span class="co"># Assuming peerj32.obj, dist.obj, alpha.obj are pre-defined objects</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">peerj32.obj</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">mStat_generate_report_long</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">peerj32.obj</span>,</span></span>
-<span class="r-in"><span>  dist.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  alpha.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
-<span class="r-in"><span>  test.adj.vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sex"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  vis.test.vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sex"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"subject"</span>,</span></span>
-<span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"time"</span>,</span></span>
-<span class="r-in"><span>  alpha.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shannon"</span>,<span class="st">"observed_species"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BC"</span>,<span class="st">'Jaccard'</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  t0.level <span class="op">=</span> <span class="st">"1"</span>,</span></span>
-<span class="r-in"><span>  ts.levels <span class="op">=</span> <span class="st">"2"</span>,</span></span>
-<span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
-<span class="r-in"><span>  vis.feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Phylum"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  test.feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Phylum"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"count"</span>,</span></span>
-<span class="r-in"><span>  feature.box.axis.transform <span class="op">=</span> <span class="st">"log"</span>,</span></span>
-<span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
-<span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">12</span>,</span></span>
-<span class="r-in"><span>  output.file <span class="op">=</span> <span class="st">"path/report.pdf"</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">#' data(subset_T2D.obj)</span></span></span>
 <span class="r-in"><span><span class="fu">mStat_generate_report_long</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">subset_T2D.obj</span>,</span></span>
-<span class="r-in"><span>  dist.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  alpha.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  pc.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"subject_race"</span>,</span></span>
 <span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"subject_gender"</span>,</span></span>
 <span class="r-in"><span>  test.adj.vars <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  vis.adj.vars <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"subject_id"</span>,</span></span>
 <span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"visit_number_num"</span>,</span></span>
-<span class="r-in"><span>  alpha.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shannon"</span>,<span class="st">"observed_species"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BC"</span>,<span class="st">'Jaccard'</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  t0.level <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  ts.levels <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  alpha.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  alpha.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shannon"</span>,<span class="st">"observed_species"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  dist.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BC"</span>,<span class="st">'Jaccard'</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  pc.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  feature.mt.method <span class="op">=</span> <span class="st">"none"</span>,</span></span>
 <span class="r-in"><span>  feature.sig.level <span class="op">=</span> <span class="fl">0.3</span>,</span></span>
 <span class="r-in"><span>  vis.feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Family"</span>,<span class="st">"Genus"</span><span class="op">)</span>,</span></span>
@@ -442,7 +417,7 @@ my_theme &lt;- ggplot2::theme(
 <span class="r-in"><span>  feature.box.axis.transform <span class="op">=</span> <span class="st">"sqrt"</span>,</span></span>
 <span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
 <span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">20</span>,</span></span>
-<span class="r-in"><span>  output.file <span class="op">=</span> <span class="st">"path/report.pdf"</span></span></span>
+<span class="r-in"><span>  output.file <span class="op">=</span> <span class="st">"path/to/report.pdf"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>

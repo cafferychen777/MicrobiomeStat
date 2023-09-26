@@ -67,13 +67,13 @@ If only one time value exists, the function will exit with a message.</p>
 <span>  <span class="va">data.obj</span>,</span>
 <span>  <span class="va">subject.var</span>,</span>
 <span>  time.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">group.var</span>,</span>
-<span>  <span class="va">adj.vars</span>,</span>
+<span>  group.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  adj.vars <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">change.base</span>,</span>
 <span>  feature.change.func <span class="op">=</span> <span class="st">"lfc"</span>,</span>
 <span>  <span class="va">feature.level</span>,</span>
-<span>  prev.filter <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  abund.filter <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  prev.filter <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>  abund.filter <span class="op">=</span> <span class="fl">1e-04</span>,</span>
 <span>  feature.dat.type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"count"</span>, <span class="st">"proportion"</span>, <span class="st">"other"</span><span class="op">)</span>,</span>
 <span>  feature.mt.method <span class="op">=</span> <span class="st">"fdr"</span>,</span>
 <span>  feature.sig.level <span class="op">=</span> <span class="fl">0.1</span>,</span>
@@ -177,12 +177,12 @@ Default is "count", which assumes raw OTU table input.</p></dd>
 <span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"subject"</span>,</span></span>
 <span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"time"</span>,</span></span>
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
-<span class="r-in"><span>  adj.vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sex"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  adj.vars <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  change.base <span class="op">=</span> <span class="st">"1"</span>,</span></span>
 <span class="r-in"><span>  feature.change.func <span class="op">=</span> <span class="st">"lfc"</span>,</span></span>
-<span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Phylum"</span>, <span class="st">"Family"</span>, <span class="st">"Genus"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Genus"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  prev.filter <span class="op">=</span> <span class="fl">0.1</span>,</span></span>
-<span class="r-in"><span>  abund.filter <span class="op">=</span> <span class="fl">0.0001</span>,</span></span>
+<span class="r-in"><span>  abund.filter <span class="op">=</span> <span class="fl">1e-4</span>,</span></span>
 <span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"count"</span>,</span></span>
 <span class="r-in"><span>  feature.mt.method <span class="op">=</span> <span class="st">"none"</span>,</span></span>
 <span class="r-in"><span>  feature.sig.level <span class="op">=</span> <span class="fl">0.1</span></span></span>

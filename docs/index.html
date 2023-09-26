@@ -91,10 +91,19 @@
 <span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>}</span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="special-citation-for-linda-and-lindaplot-functions">Special Citation for <code>linda</code> and <code>linda.plot</code> Functions<a class="anchor" aria-label="anchor" href="#special-citation-for-linda-and-lindaplot-functions"></a>
+<h2 id="citation-for-specialized-microbiomestat-functions">Citation for Specialized <code>MicrobiomeStat</code> Functions<a class="anchor" aria-label="anchor" href="#citation-for-specialized-microbiomestat-functions"></a>
 </h2>
-<p>If you are using <code>linda</code> or <code>linda.plot</code> functions, please cite the following paper:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>Zhou, H., He, K., Chen, J. et al. LinDA<span class="sc">:</span> linear models <span class="cf">for</span> differential abundance analysis of microbiome compositional data. Genome Biol <span class="dv">23</span>, <span class="dv">95</span> (<span class="dv">2022</span>). https<span class="sc">:</span><span class="er">//</span>doi.org<span class="sc">/</span><span class="fl">10.1186</span><span class="sc">/</span>s13059<span class="dv">-022-02655-5</span></span></code></pre></div>
+<p>If you are using the <code>linda</code>, <code>linda.plot</code>, <code>generate_taxa_association_test_long</code>, <code>generate_taxa_test_pair</code>, <code>generate_taxa_test_single</code>, or <code>generate_taxa_trend_test_long</code> functions, please cite the following paper:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="sc">@</span>article{zhou2022linda,</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  title<span class="ot">=</span>{LinDA<span class="sc">:</span> linear models <span class="cf">for</span> differential abundance analysis of microbiome compositional data},</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  author<span class="ot">=</span>{Zhou, Huijuan and He, Kejun and Chen, Jun and Zhang, Xianyang},</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  journal<span class="ot">=</span>{Genome biology},</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  volume<span class="ot">=</span>{<span class="dv">23</span>},</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>  number<span class="ot">=</span>{<span class="dv">1</span>},</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>  pages<span class="ot">=</span>{<span class="dv">1</span><span class="sc">--</span><span class="dv">23</span>},</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>  year<span class="ot">=</span>{<span class="dv">2022</span>},</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>  publisher<span class="ot">=</span>{BioMed Central}</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>}</span></code></pre></div>
 <p>We will update the citation guidelines as soon as the preprint is published.</p>
 </div>
 <div class="section level2">
@@ -112,11 +121,28 @@
 <h1 id="table-of-contents">Table of Contents<a class="anchor" aria-label="anchor" href="#table-of-contents"></a>
 </h1>
 <ol style="list-style-type: decimal">
+<li>
+<a href="#citations">Citations</a>
+<ul>
+<li><a href="#general-citation">General Citation for MicrobiomeStat</a></li>
+<li><a href="#specialized-citation">Citation for Specialized <code>MicrobiomeStat</code> Functions</a></li>
+<li><a href="#cran-version-note">Important Note on CRAN Version</a></li>
+</ul>
+</li>
 <li><a href="#online-tutorials">Online Tutorials</a></li>
-<li><a href="#why-choose-microbiomestat">Benefits of Using MicrobiomeStat</a></li>
-<li><a href="#features-at-a-glance">Key Features</a></li>
+<li>
+<a href="#why-choose-microbiomestat">Benefits of Using MicrobiomeStat</a>
+<ul>
+<li><a href="#comparative-overview">Comparative Overview</a></li>
+<li><a href="#user-support">User Support</a></li>
+<li><a href="#ongoing-development">Ongoing Development</a></li>
+<li><a href="#collaborative-development">Collaborative Development</a></li>
+<li><a href="#conclusion">Conclusion and Features</a></li>
+<li><a href="#demo-reports">Demo Reports</a></li>
+</ul>
+</li>
 <li><a href="#support-contact">Assistance &amp; Contact Information</a></li>
-<li><a href="#discord-community">Join Our Discord Community</a></li>
+<li><a href="#discord-community">Engage in Our Discord Community</a></li>
 <li><a href="#share-and-connect">Share and Connect</a></li>
 </ol>
 </div>
@@ -166,15 +192,10 @@
 <h3 id="conclusion">Conclusion<a class="anchor" aria-label="anchor" href="#conclusion"></a>
 </h3>
 <p><code>MicrobiomeStat</code> aims to be a reliable and efficient tool for microbiome data analysis. For those who value <strong>open-source collaboration</strong>, we invite you to be part of our community and contribute to its continuous improvement.</p>
-</div>
-</div>
-<div class="section level2">
-<h2 id="key-features">Key Features<a class="anchor" aria-label="anchor" href="#key-features"></a>
-</h2>
 <table class="table">
 <colgroup>
-<col width="24%">
-<col width="75%">
+<col width="19%">
+<col width="80%">
 </colgroup>
 <thead><tr class="header">
 <th>Feature</th>
@@ -199,20 +220,36 @@
 <td>Allows for exploring the <strong>temporal dynamics</strong> of the microbiome</td>
 </tr>
 <tr class="odd">
+<td>One-Click Report Generation</td>
+<td>For different study designs (cross-sectional, paired, longitudinal), generates professional analysis reports with a single click</td>
+</tr>
+<tr class="even">
 <td>Visualization Capabilities</td>
 <td>Offers a wide variety of <strong>visualization styles</strong>
 </td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Data Export</td>
 <td>Supports export of analysis results in diverse formats</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Ongoing Development</td>
 <td>Continual <strong>feature refinement</strong> and <strong>new functionality</strong> addition</td>
 </tr>
 </tbody>
 </table>
+</div>
+<div class="section level3">
+<h3 id="demo-reports">Demo Reports<a class="anchor" aria-label="anchor" href="#demo-reports"></a>
+</h3>
+<p>For those interested in seeing <code>MicrobiomeStat</code> in action, we have prepared demo reports tailored to different study designs:</p>
+<ul>
+<li><a href="https://www.microbiomestat.wiki/cross-sectional-study-design/cross-sectional-reporting-microbial-analysis-reports-with-microbiomestat" class="external-link">Cross-sectional Study Design: Reporting Microbial Analysis with MicrobiomeStat</a></li>
+<li><a href="https://www.microbiomestat.wiki/paired-samples-analysis/automated-reporting-for-paired-studies-microbiomestats-integrated-analysis-reports" class="external-link">Paired Samples Analysis: Reporting Microbial Analysis with MicrobiomeStat</a></li>
+<li><a href="https://www.microbiomestat.wiki/longitudinal-study-design/longitudinal-reporting-microbiome-analysis-automation-with-microbiomestat" class="external-link">Longitudinal Study Design: Microbiome Analysis Automation with MicrobiomeStat</a></li>
+</ul>
+<p>We encourage you to explore these examples and discover the powerful capabilities of our tool.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="assistance--contact-information">Assistance &amp; Contact Information<a class="anchor" aria-label="anchor" href="#assistance--contact-information"></a>
