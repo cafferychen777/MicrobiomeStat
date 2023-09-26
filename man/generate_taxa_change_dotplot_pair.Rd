@@ -43,7 +43,13 @@ generate_taxa_change_dotplot_pair(
 
 \item{change.base}{A numeric value setting base for the change (usually 1)}
 
-\item{feature.change.func}{A function or character string specifying the method for computing the change. Default is "difference".}
+\item{feature.change.func}{A function or character string specifying the method for computing the change in abundance between two time points.
+This can be one of the following:
+  - A user-defined function: The function should take two arguments corresponding to the abundances at the two time points and return the computed change.
+  - "lfc": Computes the log2 fold-change between `time2_mean_abundance` and `time1_mean_abundance`.
+  - "relative change": Computes the relative change as `(time2 - time1) / (time2 + time1)`. If both time points have an abundance of 0, the change is defined as 0.
+  - Any other value: Computes the difference as `time2_mean_abundance - time1_mean_abundance`.
+Default is "difference".}
 
 \item{feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
 to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
@@ -122,35 +128,34 @@ interactively or saved as a PDF file.
 }
 \examples{
 \dontrun{
-# Load required libraries
-library(ggh4x)
 
-# Prepare data for the function
+# Note: In the RStudio viewer, the plot might appear cluttered if there are many taxa.
+# It's recommended to view the generated PDF for better clarity. If it still feels
+# overcrowded in the PDF, consider increasing the 'pdf.wid' value to adjust the width of the plot.
+
 data(peerj32.obj)
-
-# Call the function
 generate_taxa_change_dotplot_pair(
   data.obj = peerj32.obj,
   subject.var = "subject",
   time.var = "time",
   group.var = "group",
-  strata.var = "sex",
+  strata.var = NULL,
   change.base = "1",
   feature.change.func = "lfc",
-  feature.level = "Family",
+  feature.level = "Genus",
   feature.dat.type = "count",
   features.plot = NULL,
-  top.k.plot = NULL,
-  top.k.func = NULL,
+  top.k.plot = 20,
+  top.k.func = "mean",
   prev.filter = 0.01,
-  abund.filter = 0.0001,
+  abund.filter = 1e-4,
   base.size = 16,
   theme.choice = "bw",
   custom.theme = NULL,
   pdf = TRUE,
   file.ann = NULL,
-  pdf.wid = 11,
-  pdf.hei = 8.5
+  pdf.wid = 30,
+  pdf.hei = 10
 )
 }
 # View the result

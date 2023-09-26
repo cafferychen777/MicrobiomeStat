@@ -203,7 +203,7 @@ mStat_generate_report_single(
   base.size = 20,
   feature.mt.method = "none",
   feature.sig.level = 0.2,
-  output.file = "path/report.pdf"
+  output.file = "path/to/report.pdf"
 )
 data(peerj32.obj)
 mStat_generate_report_single(
@@ -228,7 +228,7 @@ mStat_generate_report_single(
   base.size = 20,
   feature.mt.method = "none",
   feature.sig.level = 0.2,
-  output.file = "path/report.pdf"
+  output.file = "path/to/report.pdf"
 )
 }
 }

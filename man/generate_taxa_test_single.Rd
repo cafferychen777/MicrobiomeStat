@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_taxa_test_single.R
 \name{generate_taxa_test_single}
 \alias{generate_taxa_test_single}
-\title{Conduct Differential Abundance Testing Using ZicoSeq Method in MicrobiomeStat Package}
+\title{Conduct Differential Abundance Testing Using LinDA Method in MicrobiomeStat Package}
 \usage{
 generate_taxa_test_single(
   data.obj,
@@ -69,7 +69,7 @@ Default is "count", which assumes raw OTU table input.}
 A list of tibble(s) containing information about significant taxa, including R.Squared, F.Statistic, Estimate, P.Value, Adjusted.P.Value, Mean.Proportion, Mean.Prevalence, SD.Abundance and SD.Prevalence.
 }
 \description{
-This function applies a differential abundance analysis using ZicoSeq on a data set. The function filters taxa based on prevalence and abundance, then it aggregates and applies the ZicoSeq method. Finally, it creates a report of significant taxa with relevant statistics.
+This function applies a differential abundance analysis using LinDA on a data set. The function filters taxa based on prevalence and abundance, then it aggregates and applies the LinDA method. Finally, it creates a report of significant taxa with relevant statistics.
 }
 \details{
 This function performs differential abundance analysis using ZicoSeq method:

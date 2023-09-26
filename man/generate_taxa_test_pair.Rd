@@ -88,10 +88,12 @@ generate_taxa_test_pair(
   time.var = "time",
   group.var = "group",
   adj.vars = c("sex"),
-  feature.level = c("Phylum","Genus","Family"),
+  feature.level = c("Genus"),
   prev.filter = 0.1,
   abund.filter = 0.0001,
-  feature.dat.type = "count"
+  feature.dat.type = "count",
+  feature.sig.level = 0.1,
+  feature.mt.method = "none"
 )
 }
 

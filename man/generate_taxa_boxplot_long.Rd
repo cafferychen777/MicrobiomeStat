@@ -153,7 +153,7 @@ generate_taxa_boxplot_long(
   palette = NULL,
   pdf = TRUE,
   file.ann = NULL,
-  pdf.wid = 11,
+  pdf.wid = 25,
   pdf.hei = 8.5
 )
 data(peerj32.obj)
@@ -168,9 +168,9 @@ generate_taxa_boxplot_long(
   feature.level = "Family",
   feature.dat.type = "count",
   features.plot = NULL,
-  top.k.plot = NULL,
-  top.k.func = NULL,
-  transform = "log",
+  top.k.plot = 10,
+  top.k.func = "mean",
+  transform = "sqrt",
   prev.filter = 0.001,
   abund.filter = 0.001,
   base.size = 12,

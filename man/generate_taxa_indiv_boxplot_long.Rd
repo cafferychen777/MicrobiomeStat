@@ -142,7 +142,7 @@ generate_taxa_indiv_boxplot_long(
   "#c7c7c7", "#dbdb8d", "#9edae5", "#f0f0f0", "#3182bd"),
   pdf = TRUE,
   file.ann = NULL,
-  pdf.wid = 11,
+  pdf.wid = 25,
   pdf.hei = 8.5
 )
 

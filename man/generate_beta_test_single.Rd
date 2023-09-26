@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_beta_test_single.R
 \name{generate_beta_test_single}
 \alias{generate_beta_test_single}
-\title{This function calculates various beta diversity indices for a microbiome dataset and performs PERMANOVA tests on them to assess the effect of a grouping variable and any additional covariates on the beta diversity. It returns the PERMANOVA results for each of the specified beta diversity indices.}
+\title{Calculate Beta Diversity Indices and Perform PERMANOVA Tests}
 \usage{
 generate_beta_test_single(
   data.obj,
@@ -37,7 +37,9 @@ if a time variable is provided. Default NULL does not subset data.}
 A list containing the PERMANOVA results for each beta diversity index and an omnibus p-value. The list includes two elements: "p.tab" - a table of p-values for the PERMANOVA tests dplyr::across all indices, and "aov.tab" - a table containing detailed PERMANOVA results for each index. The p.tab and aov.tab tables include columns for the terms in the PERMANOVA model, the degrees of freedom, sums of squares, mean squares, F statistics, R-squared values, and p-values.
 }
 \description{
-This function calculates various beta diversity indices for a microbiome dataset and performs PERMANOVA tests on them to assess the effect of a grouping variable and any additional covariates on the beta diversity. It returns the PERMANOVA results for each of the specified beta diversity indices.
+This function computes a range of beta diversity indices for a microbiome dataset and evaluates them using
+PERMANOVA tests. The goal is to assess the effect of a specific grouping variable along with potential covariates
+on beta diversity. The function outputs the PERMANOVA results for the selected beta diversity indices.
 }
 \examples{
 \dontrun{

@@ -108,10 +108,6 @@ Default method of dimension reduction is PCoA.
 }
 \examples{
 \dontrun{
-
-# Load required libraries and data
-library(vegan)
-
 # Example with ecam.obj dataset
 data(ecam.obj)
 generate_beta_pc_boxplot_long(

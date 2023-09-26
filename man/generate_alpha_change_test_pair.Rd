@@ -14,7 +14,7 @@ generate_alpha_change_test_pair(
   group.var,
   adj.vars,
   change.base,
-  change.func = "lfc"
+  alpha.change.func = "lfc"
 )
 }
 \arguments{
@@ -44,7 +44,7 @@ left NULL if no adjustment is needed.}
 
 \item{change.base}{The name of the baseline time point for calculating changes in alpha diversity. If NULL, the first unique time point in the data will be used.}
 
-\item{change.func}{A method for calculating the change in alpha diversity between two time points.
+\item{alpha.change.func}{A method for calculating the change in alpha diversity between two time points.
 This can either be the string "lfc" or a custom function.
 - If "lfc": The change in alpha diversity is computed as the log-fold change. Specifically, the function calculates the natural logarithm of the ratio of the alpha diversity at the second time point to the first.
 - If a function: This function should take two numeric arguments representing the alpha diversity values at two distinct time points. It should return a single numeric value indicating the change. For instance, if you want to compute the absolute difference between the two time points, you could provide a function like `function(a, b) {return a - b}`.

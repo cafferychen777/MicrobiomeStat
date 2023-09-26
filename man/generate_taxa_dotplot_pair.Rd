@@ -126,21 +126,21 @@ generate_taxa_dotplot_pair(
   time.var = "time",
   group.var = "group",
   strata.var = "sex",
-  feature.level = c("Family"),
+  feature.level = c("Genus"),
   feature.dat.type = "count",
   features.plot = NULL,
-  top.k.plot = NULL,
-  top.k.func = NULL,
+  top.k.plot = 10,
+  top.k.func = "mean",
   prev.filter = 0.01,
-  abund.filter = 0.01,
+  abund.filter = 0.001,
   base.size = 16,
   theme.choice = "bw",
   custom.theme = NULL,
   palette = NULL,
   pdf = TRUE,
   file.ann = NULL,
-  pdf.wid = 11,
-  pdf.hei = 8.5
+  pdf.wid = 20,
+  pdf.hei = 11
 )
 }
 }

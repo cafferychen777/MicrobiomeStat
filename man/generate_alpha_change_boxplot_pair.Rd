@@ -15,7 +15,7 @@ generate_alpha_change_boxplot_pair(
   strata.var = NULL,
   adj.vars = NULL,
   change.base = NULL,
-  change.func = c("lfc"),
+  alpha.change.func = c("lfc"),
   base.size = 16,
   theme.choice = "bw",
   custom.theme = NULL,
@@ -48,7 +48,7 @@ generate_alpha_change_boxplot_pair(
 
 \item{change.base}{The base time for calculating the change in alpha diversity.}
 
-\item{change.func}{Function or method for calculating change in alpha diversity
+\item{alpha.change.func}{Function or method for calculating change in alpha diversity
   between two timepoints. This allows flexible options to quantify change:
 
   - If a function is provided, it will be applied to compare alpha diversity
@@ -125,7 +125,7 @@ generate_alpha_change_boxplot_pair(
   strata.var = "sex",
   adj.vars = "sex",
   change.base = "1",
-  change.func = "lfc",
+  alpha.change.func = "lfc",
   base.size = 16,
   theme.choice = "bw",
   palette = NULL,

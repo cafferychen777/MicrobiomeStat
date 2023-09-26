@@ -226,32 +226,35 @@ mStat_generate_report_pair(
   feature.sig.level = 0.1,
   theme.choice = "bw",
   base.size = 18,
-  output.file = "path/report.pdf"
+  output.file = "path/to/report.pdf"
 )
 
 data(peerj32.obj)
 mStat_generate_report_pair(
   data.obj = peerj32.obj,
-  dist.obj = NULL,
-  alpha.obj = NULL,
   group.var = "group",
-  test.adj.vars = c("sex"),
-  vis.adj.vars = c("sex"),
+  test.adj.vars = NULL,
+  vis.adj.vars = NULL,
+  strata.var = "sex",
   subject.var = "subject",
   time.var = "time",
-  alpha.name = c("shannon", "observed_species"),
-  dist.name = c("BC",'Jaccard'),
   change.base = "1",
+  alpha.obj = NULL,
+  alpha.name = c("shannon", "observed_species"),
+  dist.obj = NULL,
+  dist.name = c("BC",'Jaccard'),
   feature.change.func = "relative change",
-  strata.var = "sex",
-  vis.feature.level = c("Phylum","Family","Genus"),
+  vis.feature.level = c("Genus"),
   test.feature.level = c("Genus"),
+  bar.area.feature.no = 30,
+  heatmap.feature.no = 30,
+  dotplot.feature.no = 20,
   feature.dat.type = "count",
   feature.mt.method = "none",
   feature.sig.level = 0.1,
   theme.choice = "bw",
   base.size = 18,
-  output.file = "path/report.pdf"
+  output.file = "path/to/report.pdf"
 )
 }
 }

@@ -99,8 +99,6 @@ The function also has options to customize the size, theme, and color palette of
 }
 \examples{
 \dontrun{
-library(ggh4x)
-library(vegan)
 data(peerj32.obj)
 
 generate_taxa_barplot_pair(
@@ -109,16 +107,16 @@ generate_taxa_barplot_pair(
   time.var = "time",
   group.var = "group",
   strata.var = "sex",
-  feature.level = "Family",
+  feature.level = "Genus",
   feature.dat.type = c("count"),
-  feature.number = 12,
+  feature.number = 40,
   base.size = 10,
   theme.choice = "bw",
   custom.theme = NULL,
   palette = NULL,
   pdf = TRUE,
   file.ann = NULL,
-  pdf.wid = 11,
+  pdf.wid = 25,
   pdf.hei = 8.5
 )
 }

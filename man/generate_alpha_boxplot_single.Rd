@@ -7,7 +7,7 @@
 generate_alpha_boxplot_single(
   data.obj,
   alpha.obj = NULL,
-  alpha.name = c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou"),
+  alpha.name = c("shannon", "observed_species"),
   depth = NULL,
   subject.var,
   time.var = NULL,
@@ -138,4 +138,52 @@ generate_alpha_boxplot_single(
 )
 
 }
+library(vegan)
+library(ggh4x)
+
+# Load data
+data(peerj32.obj)
+
+# First example with peerj32.obj
+generate_alpha_boxplot_single(
+  data.obj     = peerj32.obj,
+  alpha.obj    = NULL,
+  alpha.name   = c("simpson"),
+  subject.var  = "subject",
+  time.var     = "time",
+  t.level      = "2",
+  group.var    = "group",
+  strata.var   = "sex",
+  adj.vars     = "sex",
+  base.size    = 16,
+  theme.choice = "bw",
+  palette      = NULL,
+  pdf          = FALSE,
+  file.ann     = NULL,
+  pdf.wid      = 11,
+  pdf.hei      = 8.5
+)
+
+# Load another dataset
+data("subset_T2D.obj")
+
+# Second example with subset_T2D.obj
+generate_alpha_boxplot_single(
+  data.obj     = subset_T2D.obj,
+  alpha.obj    = NULL,
+  alpha.name   = c("shannon"),
+  subject.var  = "subject_id",
+  time.var     = "visit_number",
+  t.level      = "   3",
+  group.var    = "subject_race",
+  strata.var   = "subject_gender",
+  adj.vars     = "sample_body_site",
+  base.size    = 16,
+  theme.choice = "bw",
+  palette      = NULL,
+  pdf          = FALSE,
+  file.ann     = NULL,
+  pdf.wid      = 20,
+  pdf.hei      = 8.5
+)
 }
