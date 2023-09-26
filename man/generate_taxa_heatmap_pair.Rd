@@ -112,7 +112,7 @@ generate_taxa_heatmap_pair(
   group.var = "group",
   strata.var = "sex",
   feature.level = c("Phylum","Family","Genus"),
-  feature.dat.type = "other",
+  feature.dat.type = "count",
   features.plot = NULL,
   top.k.plot = NULL,
   top.k.func = NULL,
