@@ -61,7 +61,7 @@
 #' # Example 2
 #' data("subset_T2D.obj")
 #' generate_taxa_association_test_long(
-#'   data.obj = subset_T2D.obj2,
+#'   data.obj = subset_T2D.obj,
 #'   subject.var = "subject_id",
 #'   feature.level = "Genus",
 #'   group.var = "subject_race",
