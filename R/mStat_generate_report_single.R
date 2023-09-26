@@ -122,7 +122,7 @@
 #'   base.size = 20,
 #'   feature.mt.method = "none",
 #'   feature.sig.level = 0.2,
-#'   output.file = "path/report.pdf"
+#'   output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/Report/devtools_test_report_single2.pdf"
 #' )
 #' data(peerj32.obj)
 #' mStat_generate_report_single(
@@ -147,9 +147,59 @@
 #'   base.size = 20,
 #'   feature.mt.method = "none",
 #'   feature.sig.level = 0.2,
-#'   output.file = "path/report.pdf"
+#'   output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/Report/devtools_test_report_single1.pdf"
 #' )
 #' }
+#' data(peerj32.obj)
+#' mStat_generate_report_single(
+#'   data.obj = peerj32.obj,
+#'   dist.obj = NULL,
+#'   alpha.obj = NULL,
+#'   group.var = "group",
+#'   vis.adj.vars = c("sex"),
+#'   test.adj.vars = c("sex"),
+#'   subject.var = "subject",
+#'   time.var = "time",
+#'   alpha.name = c("shannon", "observed_species"),
+#'   depth = NULL,
+#'   dist.name = c("BC",'Jaccard'),
+#'   t.level = "1",
+#'   feature.box.axis.transform = "sqrt",
+#'   strata.var = "sex",
+#'   vis.feature.level = c("Phylum", "Family", "Genus"),
+#'   test.feature.level = "Family",
+#'   feature.dat.type = "count",
+#'   theme.choice = "bw",
+#'   base.size = 20,
+#'   feature.mt.method = "none",
+#'   feature.sig.level = 0.2,
+#'   output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/Report/devtools_test_report_single2.pdf"
+#' )
+#' data(peerj32.obj)
+#' mStat_generate_report_single(
+#'   data.obj = peerj32.obj,
+#'   dist.obj = NULL,
+#'   alpha.obj = NULL,
+#'   group.var = "group",
+#'   vis.adj.vars = c("sex"),
+#'   test.adj.vars = c("sex"),
+#'   subject.var = "subject",
+#'   time.var = "time",
+#'   alpha.name = c("shannon", "observed_species"),
+#'   depth = NULL,
+#'   dist.name = c("BC",'Jaccard'),
+#'   t.level = "1",
+#'   feature.box.axis.transform = "sqrt",
+#'   strata.var = "sex",
+#'   vis.feature.level = c("Phylum", "Family", "Genus"),
+#'   test.feature.level = "Family",
+#'   feature.dat.type = "count",
+#'   theme.choice = "bw",
+#'   base.size = 20,
+#'   feature.mt.method = "none",
+#'   feature.sig.level = 0.2,
+#'   output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/Report/devtools_test_report_single1.pdf"
+#' )
 #' @export
 mStat_generate_report_single <- function(data.obj,
                                          group.var,
@@ -505,8 +555,8 @@ group_levels <- data.obj$meta.dat %>% select(!!sym(group.var)) %>% pull() %>% as
 
 reference_level <- group_levels[1]
 
-if (!is.null(adj.vars)) {
-    adj.description <- sprintf(' while adjusting for covariates %s', paste(adj.vars, collapse=' and '))
+if (!is.null(test.adj.vars)) {
+    adj.description <- sprintf(' while adjusting for covariates %s', paste(test.adj.vars, collapse=' and '))
 } else {
     adj.description <- ''
 }
@@ -631,8 +681,8 @@ beta_test_results <- generate_beta_test_single(data.obj = data.obj,
 
 ```{r p-tab-results-and-permanova-analysis, echo=FALSE, message=FALSE, results='asis'}
 
-if (!is.null(adj.vars)) {
-    adj.description <- sprintf(' while adjusting for covariates %s', paste(adj.vars, collapse=' and '))
+if (!is.null(test.adj.vars)) {
+    adj.description <- sprintf(' while adjusting for covariates %s', paste(test.adj.vars, collapse=' and '))
 } else {
     adj.description <- ''
 }
