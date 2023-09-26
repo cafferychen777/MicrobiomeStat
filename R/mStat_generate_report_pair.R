@@ -151,26 +151,29 @@
 #' data(peerj32.obj)
 #' mStat_generate_report_pair(
 #'   data.obj = peerj32.obj,
-#'   dist.obj = NULL,
-#'   alpha.obj = NULL,
 #'   group.var = "group",
 #'   test.adj.vars = NULL,
 #'   vis.adj.vars = NULL,
+#'   strata.var = "sex",
 #'   subject.var = "subject",
 #'   time.var = "time",
-#'   alpha.name = c("shannon", "observed_species"),
-#'   dist.name = c("BC",'Jaccard'),
 #'   change.base = "1",
+#'   alpha.obj = NULL,
+#'   alpha.name = c("shannon", "observed_species"),
+#'   dist.obj = NULL,
+#'   dist.name = c("BC",'Jaccard'),
 #'   feature.change.func = "relative change",
-#'   strata.var = "sex",
 #'   vis.feature.level = c("Genus"),
 #'   test.feature.level = c("Genus"),
+#'   bar.area.feature.no = 30,
+#'   heatmap.feature.no = 30,
+#'   dotplot.feature.no = 20,
 #'   feature.dat.type = "count",
 #'   feature.mt.method = "none",
 #'   feature.sig.level = 0.1,
 #'   theme.choice = "bw",
 #'   base.size = 18,
-#'   output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/Report/mStat_generate_report_pair_example.pdf"
+#'   output.file = "/Users/apple/Microbiome/Longitudinal/MicrobiomeStat_Paper/Report/mStat_generate_report_pair_example_Only_Genus.pdf"
 #' )
 #' }
 #' @export
@@ -601,7 +604,7 @@ taxa_change_dotplot_results
 
 ### 2.1.1 Alpha diversity boxplot
 
-```{r alpha-boxplot-long-generation, message=FALSE, fig.align='center', results='asis'}
+```{r alpha-boxplot-long-generation, message=FALSE, fig.align='center', results='asis', fig.width=8, fig.height=3}
 alpha_boxplot_results <- generate_alpha_boxplot_long(
                                                 data.obj = data.obj,
                                                 alpha.obj = alpha.obj,
@@ -635,7 +638,7 @@ alpha_change_boxplot_results <- generate_alpha_change_boxplot_pair(
                                                subject.var = subject.var,
                                                time.var = time.var,
                                                change.base = change.base,
-                                               change.func = alpha.change.func,
+                                               alpha.change.func = alpha.change.func,
                                                group.var = group.var,
                                                strata.var = strata.var,
                                                base.size = base.size,
@@ -648,7 +651,7 @@ alpha_change_boxplot_results <- generate_alpha_change_boxplot_pair(
                                                pdf.hei = pdf.hei)
 ```
 
-```{r alpha-diversity-change-boxplot-print, message=FALSE, fig.align='center', results='asis', echo = FALSE}
+```{r alpha-diversity-change-boxplot-print, message=FALSE, fig.align='center', results='asis', echo = FALSE, fig.width=8, fig.height=3}
 if (is.function(alpha.change.func)) {
   cat('The changes from change.base were computed using a custom function provided by the user.\n\n')
 } else if (alpha.change.func == 'lfc') {
@@ -679,40 +682,87 @@ group_levels <- data.obj$meta.dat %>% dplyr::select(!!sym(group.var)) %>% dplyr:
 
 reference_level <- group_levels[1]
 
+  # Extract p-value for a given term
+  extract_p_val <- function(term) {
+    return(data_frame[data_frame$Term == term,]$P.Value)
+  }
+
 if (!is.null(test.adj.vars)) {
     adj.vars_string <- paste(test.adj.vars, collapse = ', ')
 
-    cat(sprintf('In this analysis, we utilized a linear mixed effects model with a random intercept to investigate a potential difference in alpha diversity across different levels of %s. Specifically, we included %s, %s and %s as covariates.', group.var, time.var, group.var, adj.vars_string))
+    cat(sprintf('In this analysis, we utilized a linear mixed effects model with a random intercept and possibly a random slope for time to investigate a potential difference in alpha diversity across different levels of %s. The model includes an interaction term between %s and %s. Additionally, we included %s, %s and %s as covariates.', group.var, time.var, group.var, time.var, group.var, adj.vars_string))
 } else {
-    cat(sprintf('In this analysis, we utilized a linear mixed effects model with a random intercept to investigate a potential difference in alpha diversity across different levels of %s. Specifically, we included %s and %s as covariates.', group.var, time.var, group.var))
+    cat(sprintf('In this analysis, we utilized a linear mixed effects model with a random intercept and possibly a random slope for time to investigate a potential difference in alpha diversity across different levels of %s. The model includes an interaction term between %s and %s. Specifically, we included %s and %s as covariates.', group.var, time.var, group.var, time.var, group.var))
 }
 
 # Define a function to report the significance of interaction terms
 report_significance <- function(data_frame, group.var) {
-    # Extracting interaction terms
-    interaction_terms <- grep(paste0(group.var, '.+'), data_frame$Term, value = TRUE)
 
-    if (length(interaction_terms) > 1){
-      p_val <- data_frame[data_frame$Term == paste0(group.var),]$P.Value
+    if (length(group_levels) > 2) {
+        p_val_group_var <- data_frame[data_frame$Term == paste0(group.var),]$P.Value
+        cat(sprintf(
+            '\n An ANOVA test of the null hypothesis of no group difference among the %s levels produces a p-value of %.3f.\n\n',
+            length(group_levels),
+            p_val_group_var
+        ))
 
-        cat(sprintf('\n An ANOVA test of the null hypothesis of no difference among the %s groups produces a p-value of %.3f.\n\n', length(interaction_terms)+1, p_val))
+        p_val_group_var_time_var <- data_frame[data_frame$Term == paste0(group.var, ':', time.var),]$P.Value
+        cat(sprintf(
+            '\n An ANOVA test of the null hypothesis of no trend difference among the %s groups produces a p-value of %.3f.\n\n',
+            length(group_levels),
+            p_val_group_var
+        ))
 
     } else {
-      for(term in interaction_terms) {
-      p_val <- data_frame[data_frame$Term == term,]$P.Value
+        # Extracting interaction terms
+    interaction_terms <- data_frame$Term[grepl(paste0('^', group.var, '[^:]*$'), data_frame$Term)]
+        for (term in interaction_terms) {
+            p_val <- data_frame[data_frame$Term == term,]$P.Value
+            level <- gsub(group.var, '', strsplit(term, ':')[[1]][1])
+            level <- gsub('_', '', level) # Remove any underscores if they exist
 
-      level <- gsub(group.var, '', strsplit(term, ':')[[1]][1])
-      level <- gsub('_', '', level) # Remove any underscores if they exist
+            # Describing interaction terms
+            if (p_val < 0.05) {
+                cat(sprintf(
+                    '\n Based on the linear mixed effects model, a significant group difference was observed between %s and %s of the variable %s, with a p-value of %.3f.',
+                    reference_level,
+                    level,
+                    group.var,
+                    p_val
+                ))
+            } else {
+                cat(sprintf(
+                    '\n Based on the linear mixed effects model, no significant group difference was detected between %s and %s of the variable %s, with a p-value of %.3f.',
+                    reference_level,
+                    level,
+                    group.var,
+                    p_val
+                ))
+            }
+        }
+          # Extracting interaction terms
+  interaction_terms <- grep(paste0(group.var, '.+:', time.var), data_frame$Term, value = TRUE)
 
-      # Describing interaction terms
-      if(p_val < 0.05) {
-        cat(sprintf('\n Based on the linear mixed effects model, a significant difference was observed between %s and %s of the variable %s, with a p-value of %.3f.\n\n', reference_level, level, group.var, p_val))
-      } else {
-        cat(sprintf('\n Based on the linear mixed effects model, no significant difference was detected between %s and %s of the variable %s, with a p-value of %.3f.\n\n', reference_level, level, group.var, p_val))
-      }
+    # Report significant trend for interaction term
+  report_interaction_significance <- function(term, group.var) {
+    p_val <- data_frame[data_frame$Term == term,]$P.Value
+    level <- gsub(group.var, '', strsplit(term, ':')[[1]][1])
+    level <- gsub('_', '', level) # Remove underscores
+
+    if(p_val < 0.05) {
+      cat(sprintf('\n Based on the linear mixed effects model, a significant trend difference was observed between %s and %s of the variable %s, with a p-value of %.3f.', reference_level, level, group.var, p_val))
+    } else {
+      cat(sprintf('\n Based on the linear mixed effects model, no significant trend difference was detected between %s and %s of the variable %s, with a p-value of %.3f.', reference_level, level, group.var, p_val))
     }
+  }
+
+    for(term in interaction_terms) {
+    report_interaction_significance(term, group.var)
+    }
+
     }
 }
+
 
 # Function to convert first letter to uppercase
 firstToUpper <- function(s) {
@@ -729,7 +779,8 @@ for(index_name in names(alpha_test_results)) {
   cat('\n')
 
   # Report significance
-  report_significance(alpha_test_results[[index_name]], group.var)
+  report_significance(data_frame = alpha_test_results[[index_name]], group.var = group.var)
+  cat('\n\n')
 
   output <- pander::pander(alpha_test_results[[index_name]])
   cat(output)
@@ -753,7 +804,7 @@ alpha_change_test_results <- generate_alpha_change_test_pair(
                                                  alpha.obj = alpha.obj,
                                                  alpha.name = alpha.name,
                                                  depth = depth,
-                                                 change.func = alpha.change.func)
+                                                 alpha.change.func = alpha.change.func)
 ```
 
 ```{r alpha-diversity-change-analysis, echo=FALSE, message=FALSE, results='asis'}
@@ -877,7 +928,7 @@ beta_ordination_stratified_results
 
 ### 3.1.2 Beta diversity change boxplot
 
-```{r beta-diversity-change-boxplot, message=FALSE, fig.align='center', results='hide', results='asis', width = 10, height = 8}
+```{r beta-diversity-change-boxplot, message=FALSE, fig.align='center', results='hide', results='asis', fig.width=8, fig.height=3}
 beta_change_boxplot_results <- generate_beta_change_boxplot_pair(
                                                       data.obj = data.obj,
                                                       dist.obj = dist.obj,
@@ -897,14 +948,14 @@ beta_change_boxplot_results <- generate_beta_change_boxplot_pair(
                                                       pdf.hei = pdf.hei)
 ```
 
-```{r beta-diversity-change-boxplot-print, message=FALSE, fig.align='center', results='hide', results='asis', width = 8, height = 6, echo = FALSE}
+```{r beta-diversity-change-boxplot-print, message=FALSE, fig.align='center', results='hide', results='asis', fig.width=8, fig.height=3, echo = FALSE}
 cat(sprintf('\n Beta change represents the distance of each subject from their change.base.\n\n'))
 beta_change_boxplot_results
 ```
 
 ### 3.1.3 Beta diversity PC boxplot
 
-```{r beta-pc-boxplot-pair-generation, message=FALSE, fig.align='center', results='asis', width = 10, height = 8}
+```{r beta-pc-boxplot-pair-generation, message=FALSE, fig.align='center', results='asis', fig.width=8, fig.height=3}
 pc_boxplot_longitudinal_results <- generate_beta_pc_boxplot_long(
   data.obj = data.obj,
   dist.obj = dist.obj,
@@ -932,7 +983,7 @@ pc_boxplot_longitudinal_results
 
 ### 3.1.4 Beta diversity PC change boxplot
 
-```{r pc-change-boxplot-pairs, message=FALSE, fig.align='center', results='hide', results='asis', width = 10, height = 8}
+```{r pc-change-boxplot-pairs, message=FALSE, fig.align='center', results='hide', results='asis', fig.width=8, fig.height=3}
 pc_change_boxplot_pairs <- generate_beta_pc_change_boxplot_pair(
   data.obj = data.obj,
   dist.obj = dist.obj,
@@ -1074,7 +1125,8 @@ volcano_plots <- generate_taxa_volcano_single(
 )
 volcano_plots
 
-cat(sprintf('In this analysis, we utilized the LinDA linear model to investigate potential differences in abundance. Specifically, we tested the effect of variables %s for different taxa, while adjusting for other covariates.\n\n', group.var))
+cat(sprintf('In this analysis, we utilized the LinDA linear model to investigate potential differences in trend. Specifically, we tested the effect of the variable %s and the interaction between %s and %s for different taxa, while adjusting for other covariates.\n\n',
+            group.var, group.var, time.var))
 
 # Iterate over each taxonomic rank in taxa_test_results
 for(taxon_rank in names(taxa_test_results)) {
@@ -1276,35 +1328,9 @@ combined_significant_taxa <- unique(c(significant_vars, significant_vars_change)
 
 ### 4.3.1 Significant features boxplot
 
-```{r taxa-test-boxplot-pair-generation, message = FALSE, warning = FALSE, fig.width = 15, fig.height = 15, fig.align='center', results='asis'}
+```{r taxa-test-boxplot-pair-generation, message = FALSE, warning = FALSE, fig.width = 8, fig.height = 3, fig.align='center', results='asis'}
 
 if (length(significant_vars) != 0){
-
-taxa_boxplot_results <-  generate_taxa_boxplot_long(
-                                   data.obj = data.obj,
-                                   subject.var = subject.var,
-                                   time.var = time.var,
-                                   t0.level = change.base,
-                                   ts.levels = NULL,
-                                   group.var = group.var,
-                                   strata.var = strata.var,
-                                   feature.level = test.feature.level,
-                                   features.plot = significant_vars,
-                                   transform = feature.box.axis.transform,
-                                   feature.dat.type = feature.dat.type,
-                                   top.k.plot = NULL,
-                                   top.k.func = NULL,
-                                   prev.filter = prev.filter,
-                                   abund.filter = abund.filter,
-                                   base.size = base.size,
-                                   theme.choice = theme.choice,
-                                   custom.theme = custom.theme,
-                                   palette = palette,
-                                   pdf = TRUE,
-                                   file.ann = file.ann,
-                                   pdf.wid = pdf.wid,
-                                   pdf.hei = pdf.hei)
-
 taxa_indiv_boxplot_results <- generate_taxa_indiv_boxplot_long(
                                    data.obj = data.obj,
                                    subject.var = subject.var,
@@ -1330,9 +1356,8 @@ taxa_indiv_boxplot_results <- generate_taxa_indiv_boxplot_long(
                                    pdf.wid = pdf.wid,
                                    pdf.hei = pdf.hei)
 
+taxa_indiv_boxplot_results
 }
-
-taxa_boxplot_results
 
 ```
 
@@ -1377,33 +1402,9 @@ cat(paste0('\n\n The boxplot results for individual features can be found in the
 
 ### 4.3.2 Significant features boxplot (change)
 
-```{r taxa-change-boxplot-generation, message=FALSE, fig.align='center', fig.width = 16, fig.height = 20, results='asis'}
+```{r taxa-change-boxplot-generation, message=FALSE, fig.align='center', fig.width = 8, fig.height = 3, results='asis'}
 
 if (length(significant_vars_change) != 0){
-taxa_change_boxplot_results <- generate_taxa_change_boxplot_pair(
-                                        data.obj = data.obj,
-                                        subject.var = subject.var,
-                                        time.var = time.var,
-                                        group.var = group.var,
-                                        strata.var = strata.var,
-                                        change.base = change.base,
-                                        feature.change.func = feature.change.func,
-                                        feature.level = test.feature.level,
-                                        feature.dat.type = feature.dat.type,
-                                        features.plot = significant_vars_change,
-                                        top.k.plot = NULL,
-                                        top.k.func = NULL,
-                                        prev.filter = prev.filter,
-                                        abund.filter = abund.filter,
-                                        base.size = base.size,
-                                        theme.choice = theme.choice,
-                                        custom.theme = custom.theme,
-                                        palette = palette,
-                                        pdf = pdf,
-                                        file.ann = file.ann,
-                                        pdf.wid = pdf.wid,
-                                        pdf.hei = pdf.hei)
-
 taxa_indiv_change_boxplot_results <- generate_taxa_indiv_change_boxplot_pair(
                                    data.obj = data.obj,
                                    subject.var = subject.var,
@@ -1427,8 +1428,8 @@ taxa_indiv_change_boxplot_results <- generate_taxa_indiv_change_boxplot_pair(
                                    file.ann = file.ann,
                                    pdf.wid = pdf.wid,
                                    pdf.hei = pdf.hei)
+taxa_indiv_change_boxplot_results
 }
-taxa_change_boxplot_results
 
 ```
 
