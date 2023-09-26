@@ -144,10 +144,6 @@ winsor.fun <- function(Y, quan, feature.dat.type) {
 #'   formula = "~Smoke+Sex+(1|SubjectID)", alpha = 0.1,
 #'   prev.filter = 0.1
 #' )
-#' linda.plot(linda.obj, c("Smokey", "Sexmale"),
-#'   titles = c("Smoke: n v.s. y", "Sex: female v.s. male"), alpha = 0.1, lfc.cut = 1,
-#'   legend = TRUE, directory = NULL, width = 11, height = 8
-#' )
 #' }
 #' @export
 
@@ -447,10 +443,6 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
 #'
 #' linda.obj <- linda(otu.tab, meta,
 #'   formula = "~Smoke+Sex+(1|SubjectID)"
-#' )
-#' linda.plot(linda.obj, c("Smokey", "Sexmale"),
-#'   titles = c("Smoke: n v.s. y", "Sex: female v.s. male"), alpha = 0.1, lfc.cut = 1,
-#'   legend = TRUE, directory = NULL, width = 11, height = 8
 #' )
 #' }
 #' @export
