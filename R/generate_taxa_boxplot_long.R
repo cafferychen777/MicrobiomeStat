@@ -110,9 +110,9 @@
 #'   feature.level = "Family",
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
-#'   top.k.plot = NULL,
-#'   top.k.func = NULL,
-#'   transform = "log",
+#'   top.k.plot = 10,
+#'   top.k.func = "mean",
+#'   transform = "sqrt",
 #'   prev.filter = 0.001,
 #'   abund.filter = 0.001,
 #'   base.size = 12,
@@ -453,11 +453,11 @@ generate_taxa_boxplot_long <-
           boxplot <-
             boxplot + ggh4x::facet_nested_wrap(as.formula(paste(
               "~", feature.level, "+", group.var
-            )), scales = "free", ncol = group.levels*4)
+            )), scales = "free_x", ncol = group.levels*4)
         } else {
           boxplot <- boxplot + ggh4x::facet_nested_wrap(
             as.formula(paste('~', feature.level, '+', strata.var, '+', group.var)),
-            scales = "free", ncol = group.levels*4
+            scales = "free_x", ncol = group.levels*4
           )
         }
       }
