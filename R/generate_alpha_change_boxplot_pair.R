@@ -11,7 +11,7 @@
 #' @param strata.var (Optional) The variable in the metadata table that represents the stratification factor.
 #' @param adj.vars A character vector of variable names to be used for adjustment.
 #' @param change.base The base time for calculating the change in alpha diversity.
-#' @param change.func Function or method for calculating change in alpha diversity
+#' @param alpha.change.func Function or method for calculating change in alpha diversity
 #'   between two timepoints. This allows flexible options to quantify change:
 #'
 #'   - If a function is provided, it will be applied to compare alpha diversity
@@ -72,7 +72,7 @@
 #'   strata.var = "sex",
 #'   adj.vars = "sex",
 #'   change.base = "1",
-#'   change.func = "lfc",
+#'   alpha.change.func = "lfc",
 #'   base.size = 16,
 #'   theme.choice = "bw",
 #'   palette = NULL,
@@ -95,7 +95,7 @@ generate_alpha_change_boxplot_pair <-
            strata.var = NULL,
            adj.vars = NULL,
            change.base = NULL,
-           change.func = c("lfc"),
+           alpha.change.func = c("lfc"),
            base.size = 16,
            theme.choice = "bw",
            custom.theme = NULL,
@@ -153,16 +153,16 @@ generate_alpha_change_boxplot_pair <-
 
       diff_col_name <- paste0(index, "_diff")
 
-      if (is.function(change.func)) {
+      if (is.function(alpha.change.func)) {
         combined_alpha <- combined_alpha %>%
-          dplyr::mutate(!!diff_col_name := change.func(!!sym(paste0(
+          dplyr::mutate(!!diff_col_name := alpha.change.func(!!sym(paste0(
             index, "_time_2"
           )), !!sym(paste0(
             index, "_time_1"
           )))) %>%
           dplyr::select(all_of(diff_col_name))
       } else {
-        if (change.func == "lfc") {
+        if (alpha.change.func == "lfc") {
           combined_alpha <- combined_alpha %>%
             dplyr::mutate(!!sym(diff_col_name) := log(!!sym(paste0(
               index, "_time_2"
@@ -245,10 +245,10 @@ generate_alpha_change_boxplot_pair <-
         custom.theme else
       theme_function
 
-    ylab_label <- if (is.function(change.func)) {
+    ylab_label <- if (is.function(alpha.change.func)) {
       base_label <- paste0("Change from ", change.base, " (custom function)")
     } else {
-      base_label <- paste0("Change from ", change.base, " (", change.func, ")")
+      base_label <- paste0("Change from ", change.base, " (", alpha.change.func, ")")
     }
 
     if (!is.null(adj.vars)) {
@@ -344,10 +344,10 @@ generate_alpha_change_boxplot_pair <-
       return(plot)
     })
 
-    change_func_label <- if (is.function(change.func)) {
+    change_func_label <- if (is.function(alpha.change.func)) {
       "custom_function"
     } else {
-      change.func
+      alpha.change.func
     }
 
     # Save the plots as a PDF file
