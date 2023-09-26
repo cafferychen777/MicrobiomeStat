@@ -169,9 +169,9 @@ generate_beta_change_boxplot_pair <-
     plot_list <- lapply(dist.name,function(dist.name){
 
       if (is.null(adj.vars)) {
-        y_label <- paste0(dist.name, " Distance from ", change.base, " to ", change.after)
+        y_label <- paste0("Distance from ", change.base, " to ", change.after)
       } else {
-        y_label <- paste0(dist.name, " Distance from ", change.base, " to ", change.after, " (adjusted by: ", paste(adj.vars, collapse = ", "), ")")
+        y_label <- paste0("Distance from ", change.base, " to ", change.after, " (adjusted by: ", paste(adj.vars, collapse = ", "), ")")
       }
 
       dist.df <- as.matrix(dist.obj[[dist.name]]) %>%
