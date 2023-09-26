@@ -15,7 +15,8 @@
 #'
 #' @export
 is_rarefied <- function(data.obj) {
-  unique_colsums <- unique(round(colSums(load_data_obj_count(data.obj)), 5))
+  unique_colsums <-
+    unique(round(colSums(load_data_obj_count(data.obj)), 5))
   return(length(unique_colsums) == 1)
 }
 
@@ -83,7 +84,7 @@ extract_coef <- function(model) {
 #' data.obj = peerj32.obj,
 #' alpha.obj = NULL,
 #' time.var = "time",
-#' alpha.name = c("shannon", "simpson"),
+#' alpha.name = c("shannon"),
 #' subject.var = "subject",
 #' group.var = "group",
 #' adj.vars = "sex"
@@ -106,8 +107,9 @@ generate_alpha_test_pair <-
         )
         data.obj <- mStat_rarefy_data(data.obj, depth = depth)
       }
-      otu_tab <- load_data_obj_count(data.obj)
-      alpha.obj <- mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name)
+      otu_tab <- data.obj$feature.tab
+      alpha.obj <-
+        mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name)
     }
 
     meta_tab <-
@@ -119,24 +121,72 @@ generate_alpha_test_pair <-
     alpha_df <-
       dplyr::bind_cols(alpha.obj) %>% rownames_to_column("sample") %>%
       dplyr::inner_join(meta_tab %>% rownames_to_column("sample"),
-                 by = c("sample"))
+                        by = c("sample"))
+
+    if (!is.null(group.var)){
+      group.levels <- alpha_df %>% select(all_of(c(group.var))) %>% pull() %>% as.factor() %>% levels() %>% length()
+    }
 
     test.list <- lapply(alpha.name, function(index) {
-      formula_str <- paste0(index, "~", time.var)
-      if (!is.null(adj.vars)) {
-        formula_str <-
-          paste0(formula_str, "+", paste(adj.vars, collapse = "+"))
-      }
-      formula_str <-
-        paste0(formula_str, "+", paste(group.var, collapse = "+"))
-      formula_str <- paste0(formula_str, " + (1|", subject.var, ")")
-      formula <- as.formula(formula_str)
+      try_complex_model <- function(alpha_df, formula_str) {
+        tryCatch({
+          # 尝试估计复杂模型
+          lme.model <- lmerTest::lmer(formula_str, data = alpha_df)
+          return(lme.model)
+        },
+        error = function(e) {
+          # 如果发生错误，尝试简化的模型
+          message("Complex model failed. Trying a simpler model...")
 
-      lme.model <- lmerTest::lmer(formula, data = alpha_df)
+          correct_formula <-
+            function(index,
+                     group.var,
+                     time.var,
+                     subject.var,
+                     adj.vars) {
+              if (!is.null(group.var)) {
+                formula_part <-
+                  paste(index,
+                        "~",
+                        group.var,
+                        "*",
+                        time.var,
+                        " + (1 ",
+                        "|",
+                        subject.var,
+                        ")")
+              } else {
+                formula_part <-
+                  paste(index, "~", time.var, " + (1|", subject.var, ")")
+              }
+
+              if (!is.null(adj.vars)) {
+                formula_str <- paste(formula_part, "+", adj.vars)
+              } else {
+                formula_str <- formula_part
+              }
+              return(as.formula(formula_str))
+            }
+
+          new_formula_str <-
+            correct_formula(index, group.var, time.var, subject.var, adj.vars)
+
+          lme.model_simple <-
+            lmerTest::lmer(new_formula_str, data = alpha_df)
+          return(lme.model_simple)
+        })
+      }
+
+      formula_str <-
+        construct_formula(index, group.var, time.var, subject.var, adj.vars)
+
+      lme.model <- try_complex_model(alpha_df, formula_str)
+
       coef.tab <- extract_coef(lme.model)
 
+    if(!is.null(group.var)){
       # Run ANOVA on the model if group.var is multi-categorical
-      if (length(na.omit(unique(alpha_df[[group.var]]))) > 2) {
+      if (group.levels > 2) {
         anova.tab <- broom::tidy(anova(lme.model))
 
         # Rearrange the table and add missing columns
@@ -152,13 +202,12 @@ generate_alpha_test_pair <-
             Statistic = statistic,
             P.Value = p.value
           ) %>%
-          dplyr::filter(
-            Term == group.var
-          )
+          dplyr::filter(Term %in% c(group.var, paste0(time.var, ":", group.var)))
 
         coef.tab <-
           rbind(coef.tab, anova.tab) # Append the anova.tab to the coef.tab
       }
+    }
 
       return(as_tibble(coef.tab))
     })
