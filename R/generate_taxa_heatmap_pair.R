@@ -60,7 +60,7 @@
 #'   time.var = "time",
 #'   group.var = "group",
 #'   strata.var = "sex",
-#'   feature.level = c("Genus"),
+#'   feature.level = c("Phylum","Family","Genus"),
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
 #'   top.k.plot = NULL,
@@ -104,7 +104,7 @@ generate_taxa_heatmap_pair <- function(data.obj,
 
   feature.dat.type <- match.arg(feature.dat.type)
 
-  meta_tab <-  load_data_obj_metadata(data.obj) %>% select(all_of(c(
+  meta_tab <-  data.obj$meta.dat %>% select(all_of(c(
     time.var, group.var, strata.var, subject.var
   )))
 
@@ -117,15 +117,6 @@ generate_taxa_heatmap_pair <- function(data.obj,
   if (is.null(cluster.rows)) {
     cluster.rows = TRUE
   }
-
-  col <- c("white", "#92c5de", "#0571b0", "#f4a582", "#ca0020")
-
-  # 创建颜色映射函数
-  my_col <- colorRampPalette(col)
-
-  # 计算颜色的数量
-  # 这通常取决于你的数据，你可能需要根据你的实际情况进行调整
-  n_colors <- 100
 
   if (feature.dat.type == "other" || !is.null(features.plot) ||
       (!is.null(top.k.func) && !is.null(top.k.plot))) {
@@ -149,7 +140,7 @@ generate_taxa_heatmap_pair <- function(data.obj,
     if (feature.level != "original"){
       otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
     } else {
-      otu_tax_agg <- load_data_obj_count(data.obj)
+      otu_tax_agg <- data.obj$feature.tab
     }
 
     otu_tax_agg <-  otu_tax_agg %>%
@@ -277,14 +268,39 @@ generate_taxa_heatmap_pair <- function(data.obj,
       annotation_colors_list <- NULL
     }
 
+    col <- c("white", "#92c5de", "#0571b0", "#f4a582", "#ca0020")
+
+    # 创建颜色映射函数
+    my_col <- colorRampPalette(col)
+
+    # 计算颜色的数量
+    # 这通常取决于你的数据，你可能需要根据你的实际情况进行调整
+    n_colors <- 100
+
+    if (feature.dat.type != "other"){
+      quantiles <- c(0,0.1,0.5,1)
+      labels <- as.character(round(quantiles^2,4))
+    } else {
+      quantiles <- NA
+      labels <- NA
+    }
+
+    if (feature.dat.type != "other") {
+      processed_otu_tab <- sqrt(otu_tab_norm_sorted)
+    } else {
+      processed_otu_tab <- otu_tab_norm_sorted
+    }
+
     # Plot stacked heatmap
     heatmap_plot <- pheatmap::pheatmap(
-      otu_tab_norm_sorted,
+      processed_otu_tab,
       annotation_col = annotation_col,
       annotation_colors = annotation_colors_list,
       cluster_rows = cluster.rows,
       cluster_cols = cluster.cols,
       gaps_col = gaps,
+      legend_breaks = quantiles,
+      legend_labels = labels,
       color = my_col(n_colors),
       fontsize = base.size,
       silent = TRUE,
@@ -360,15 +376,24 @@ generate_taxa_heatmap_pair <- function(data.obj,
         column_to_rownames("column_name")
     }
 
+    # Check the feature.dat.type and apply sqrt if not equal to "other"
+    if (feature.dat.type != "other") {
+      processed_wide_data <- wide_data %>% column_to_rownames(feature.level) %>% sqrt()
+    } else {
+      processed_wide_data <- wide_data %>% column_to_rownames(feature.level)
+    }
+
     # Plot stacked heatmap
     average_heatmap_plot <- pheatmap::pheatmap(
-      wide_data %>% column_to_rownames(feature.level),
+      processed_wide_data,
       annotation_col = annotation_col,
       annotation_colors = annotation_colors_list,
       cluster_rows = cluster.rows,
       cluster_cols = cluster.cols,
       show_colnames = FALSE,
       gaps_col = NULL,
+      legend_breaks = quantiles,
+      legend_labels = labels,
       color = my_col(n_colors),
       fontsize = base.size,
       silent = TRUE,
