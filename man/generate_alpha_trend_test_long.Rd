@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_alpha_trend_test_long.R
 \name{generate_alpha_trend_test_long}
 \alias{generate_alpha_trend_test_long}
-\title{Longitudinal Alpha Diversity Volatility Test in MicrobiomeStat}
+\title{Longitudinal Alpha Diversity Trend Test in MicrobiomeStat}
 \usage{
 generate_alpha_trend_test_long(
   data.obj,
@@ -26,36 +26,29 @@ Options could include: "shannon", "simpson", "observed_species", "chao1", "ace",
 \item{depth}{An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.}
 
 \item{time.var}{Character string specifying the column name in metadata containing the
-numeric time variable. Should contain ordered time points for each subject.
-Required to calculate volatility over time.}
+numeric time variable.}
 
 \item{subject.var}{Character string specifying the column name in metadata containing
-unique subject IDs. Required to calculate volatility within subjects.}
+unique subject IDs.}
 
 \item{group.var}{Character string specifying the column name in metadata containing grouping
-categories. Volatility will be compared between groups using linear models.}
+categories.}
 
 \item{adj.vars}{Character vector specifying column names in metadata containing covariates
-to adjust for when calculating residuals.}
+to adjust for.}
 }
 \value{
-A summary object containing the results of the linear model testing
-the association between alpha diversity volatility and the group variable.
+A list object containing the results of the trend test for each alpha
+diversity index specified in `alpha.name`. Each element of the list contains a
+summary table of the trend test results for a specific alpha diversity index.
 }
 \description{
-This function, part of the MicrobiomeStat package, calculates the volatility
-of alpha diversity measures in longitudinal data and tests the association
-between the volatility and a group variable. Volatility is calculated as the mean
-of absolute differences between consecutive alpha diversity measures, normalized
-by the time difference (mean(abs(alpha_j - alpha_{j-1}) / (t_j - t_{j-1}))).
-}
-\details{
-The function first obtains the residuals by fitting a linear model with alpha
-diversity as the response and adjustment variables as predictors. It then calculates
-volatility for each subject and tests its association with a group variable using a
-linear model. If the group variable specified in `group.var` has more than two levels,
-an ANOVA is performed to test the association between alpha diversity volatility
-and the group variable.
+This function `generate_alpha_trend_test_long`, part of the MicrobiomeStat
+package, performs a trend test on longitudinal alpha diversity data using
+a linear mixed-effects model. The model is used to test the association
+between alpha diversity and a numeric time variable, while adjusting for
+potential confounding variables. It accepts alpha diversity data and other
+related parameters to conduct the test.
 }
 \examples{
 \dontrun{

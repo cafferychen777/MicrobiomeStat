@@ -28,20 +28,14 @@ construct_formula <- function(index, group.var, time.var, subject.var, adj.vars)
   return(as.formula(formula_str))
 }
 
-#' Longitudinal Alpha Diversity Volatility Test in MicrobiomeStat
+#' Longitudinal Alpha Diversity Trend Test in MicrobiomeStat
 #'
-#' This function, part of the MicrobiomeStat package, calculates the volatility
-#' of alpha diversity measures in longitudinal data and tests the association
-#' between the volatility and a group variable. Volatility is calculated as the mean
-#' of absolute differences between consecutive alpha diversity measures, normalized
-#' by the time difference (mean(abs(alpha_j - alpha_{j-1}) / (t_j - t_{j-1}))).
-#'
-#' The function first obtains the residuals by fitting a linear model with alpha
-#' diversity as the response and adjustment variables as predictors. It then calculates
-#' volatility for each subject and tests its association with a group variable using a
-#' linear model. If the group variable specified in `group.var` has more than two levels,
-#' an ANOVA is performed to test the association between alpha diversity volatility
-#' and the group variable.
+#' This function `generate_alpha_trend_test_long`, part of the MicrobiomeStat
+#' package, performs a trend test on longitudinal alpha diversity data using
+#' a linear mixed-effects model. The model is used to test the association
+#' between alpha diversity and a numeric time variable, while adjusting for
+#' potential confounding variables. It accepts alpha diversity data and other
+#' related parameters to conduct the test.
 #'
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
 #' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
@@ -49,16 +43,19 @@ construct_formula <- function(index, group.var, time.var, subject.var, adj.vars)
 #' Options could include: "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".
 #' @param depth An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.
 #' @param time.var Character string specifying the column name in metadata containing the
-#'                numeric time variable. Should contain ordered time points for each subject.
-#'                Required to calculate volatility over time.
+#'                numeric time variable.
 #' @param subject.var Character string specifying the column name in metadata containing
-#'                    unique subject IDs. Required to calculate volatility within subjects.
+#'                    unique subject IDs.
 #' @param group.var Character string specifying the column name in metadata containing grouping
-#'                 categories. Volatility will be compared between groups using linear models.
+#'                 categories.
 #' @param adj.vars Character vector specifying column names in metadata containing covariates
-#'                to adjust for when calculating residuals.
-#' @return A summary object containing the results of the linear model testing
-#' the association between alpha diversity volatility and the group variable.
+#'                to adjust for.
+#' @return A list object containing the results of the trend test for each alpha
+#' diversity index specified in `alpha.name`. Each element of the list contains a
+#' summary table of the trend test results for a specific alpha diversity index.
+#'
+#' @examples
+#' \dontrun{
 #'
 #' @examples
 #' \dontrun{
