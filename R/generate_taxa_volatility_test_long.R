@@ -100,7 +100,7 @@ generate_taxa_volatility_test_long <- function(data.obj,
   data.obj$meta.dat <-
     data.obj$meta.dat %>% dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
 
-  meta_tab <- load_data_obj_metadata(data.obj) %>%
+  meta_tab <- data.obj$meta.dat %>%
     dplyr::select(all_of(c(
       time.var, subject.var, group.var, adj.vars
     ))) %>% rownames_to_column("sample")
@@ -136,7 +136,7 @@ generate_taxa_volatility_test_long <- function(data.obj,
     if (feature.level != "original"){
       otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
     } else {
-      otu_tax_agg <- load_data_obj_count(data.obj)
+      otu_tax_agg <- data.obj$feature.tab
     }
 
     # 计算每个分组的平均丰度
@@ -321,7 +321,7 @@ generate_taxa_volatility_volcano_long <- function(data.obj,
                                                   feature.sig.level = 0.1,
                                                   feature.mt.method = c("fdr","none")){
 
-  meta_tab <- load_data_obj_metadata(data.obj) %>%
+  meta_tab <- data.obj$meta.dat %>%
     dplyr::select(all_of(c(
       group.var
     ))) %>% rownames_to_column("sample")

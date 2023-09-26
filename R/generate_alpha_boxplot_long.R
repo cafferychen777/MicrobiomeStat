@@ -126,7 +126,7 @@ generate_alpha_boxplot_long <- function (data.obj,
       data.obj <-
         mStat_rarefy_data(data.obj = data.obj, depth = depth)
     }
-    otu_tab <- load_data_obj_count(data.obj)
+    otu_tab <- data.obj$feature.tab
     alpha.obj <-
       mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name)
   } else {
@@ -145,7 +145,7 @@ generate_alpha_boxplot_long <- function (data.obj,
   }
 
   meta_tab <-
-    load_data_obj_metadata(data.obj) %>% as.data.frame() %>% dplyr::select(all_of(c(
+    data.obj$meta.dat %>% as.data.frame() %>% dplyr::select(all_of(c(
       subject.var, group.var, time.var, strata.var, adj.vars
     )))
 

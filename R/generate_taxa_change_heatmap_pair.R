@@ -113,9 +113,11 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
 
   feature.dat.type <- match.arg(feature.dat.type)
 
-  meta_tab <-  load_data_obj_metadata(data.obj) %>% select(all_of(c(
+  meta_tab <-  data.obj$meta.dat %>%
+    select(all_of(c(
     time.var, group.var, strata.var, subject.var
-  ))) %>% rownames_to_column("sample")
+  ))) %>%
+    rownames_to_column("sample")
 
   if (is.null(cluster.cols)) {
     if (!is.null(group.var)) {
@@ -158,7 +160,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
     if (feature.level != "original"){
       otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
     } else {
-      otu_tax_agg <- load_data_obj_count(data.obj)
+      otu_tax_agg <- data.obj$feature.tab
     }
 
     otu_tax_agg <-  otu_tax_agg %>%

@@ -56,7 +56,7 @@ mStat_calculate_adjusted_distance <- function (data.obj,
 
   # Load metadata and select the required adjustment variables
   meta_tab <-
-    load_data_obj_metadata(data.obj) %>% select(all_of(c(adj.vars)))
+    data.obj$meta.dat %>% select(all_of(c(adj.vars)))
 
   # Create a formula string from the adjustment variables and convert it into a formula object
   formula_str <- paste("xx ~", paste(adj.vars, collapse = "+"))

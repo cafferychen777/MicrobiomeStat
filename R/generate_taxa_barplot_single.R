@@ -111,17 +111,17 @@ generate_taxa_barplot_single <-
       if (!is.null(t.level)){
         condition <- paste(time.var, "== '", t.level, "'", sep = "")
         data.obj <- mStat_subset_data(data.obj, condition = condition)
-        meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(
+        meta_tab <- data.obj$meta.dat %>% select(all_of(
           c(subject.var, time.var, group.var, strata.var)))
       } else {
-        meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(
+        meta_tab <- data.obj$meta.dat %>% select(all_of(
           c(subject.var, time.var, group.var, strata.var)))
         if (length(levels(as.factor(meta_tab[,time.var]))) != 1){
           message("Multiple time points detected in your dataset. It is recommended to either set t.level or utilize functions for longitudinal data analysis.")
         }
       }
     } else {
-      meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(
+      meta_tab <- data.obj$meta.dat %>% select(all_of(
         c(subject.var, group.var, strata.var)))
       meta_tab$ALL2 <- "ALL"
       time.var = "ALL2"
@@ -186,7 +186,7 @@ generate_taxa_barplot_single <-
       if (feature.level != "original"){
         otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
       } else {
-        otu_tax_agg <- load_data_obj_count(data.obj)
+        otu_tax_agg <- data.obj$feature.tab
       }
 
       otu_tax_agg <-  otu_tax_agg %>%

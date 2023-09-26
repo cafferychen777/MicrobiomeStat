@@ -16,7 +16,7 @@
 #' @export
 is_rarefied <- function(data.obj) {
   unique_colsums <-
-    unique(round(colSums(load_data_obj_count(data.obj)), 5))
+    unique(round(colSums(data.obj$feature.tab), 5))
   return(length(unique_colsums) == 1)
 }
 
@@ -113,7 +113,7 @@ generate_alpha_test_pair <-
     }
 
     meta_tab <-
-      load_data_obj_metadata(data.obj) %>% as.data.frame() %>% dplyr::select(all_of(c(
+      data.obj$meta.dat %>% as.data.frame() %>% dplyr::select(all_of(c(
         subject.var, group.var, time.var, adj.vars
       )))
 

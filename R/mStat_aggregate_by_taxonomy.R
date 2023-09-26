@@ -37,8 +37,10 @@ mStat_aggregate_by_taxonomy <-
       stop("feature.level can not be NULL.")
     }
 
-    otu_tab <- load_data_obj_count(data.obj) %>% as.data.frame()
-    tax_tab <- load_data_obj_taxonomy(data.obj) %>% as.data.frame()
+    otu_tab <- data.obj$feature.tab %>%
+      as.data.frame()
+    tax_tab <- data.obj$feature.ann %>%
+      as.data.frame()
 
     # 检查 otu_tab 的行名和 tax_tab 的行名是否完全一致
     otu_not_in_tax <- setdiff(rownames(otu_tab), rownames(tax_tab))

@@ -114,7 +114,7 @@ generate_taxa_change_test_pair <-
     mStat_validate_data(data.obj)
 
     meta_tab <-
-      load_data_obj_metadata(data.obj) %>% select(all_of(c(
+      data.obj$meta.dat %>% select(all_of(c(
         time.var, group.var, adj.vars, subject.var
       )))
 
@@ -162,7 +162,7 @@ generate_taxa_change_test_pair <-
       if (feature.level != "original") {
         otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
       } else {
-        otu_tax_agg <- load_data_obj_count(data.obj)
+        otu_tax_agg <- data.obj$feature.tab
       }
 
       otu_tax_agg_filter <- otu_tax_agg %>%

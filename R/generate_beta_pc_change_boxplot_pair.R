@@ -149,7 +149,7 @@ generate_beta_pc_change_boxplot_pair <-
     if (is.null(dist.obj)) {
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
-      metadata <- load_data_obj_metadata(data.obj)
+      metadata <- data.obj$meta.dat
       if (is.null(metadata)) {
         stop("No metadata could be loaded from data.obj. Please ensure it contains the necessary metadata.")
       }
@@ -167,7 +167,7 @@ generate_beta_pc_change_boxplot_pair <-
         if (is.null(data.obj)) {
           stop("No data.obj provided to load metadata from. Please ensure either dist.obj or data.obj contain the necessary metadata.")
         }
-        metadata <- load_data_obj_metadata(data.obj)
+        metadata <- data.obj$meta.dat
         if (is.null(metadata)) {
           stop("No metadata could be loaded from data.obj. Please ensure it contains the necessary metadata.")
         }

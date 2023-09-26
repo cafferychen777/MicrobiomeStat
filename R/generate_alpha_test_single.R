@@ -62,7 +62,7 @@ generate_alpha_test_single <-
         )
         data.obj <- mStat_rarefy_data(data.obj, depth = depth)
       }
-      otu_tab <- load_data_obj_count(data.obj)
+      otu_tab <- data.obj$feature.tab
       alpha.obj <- mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name)
     }
 

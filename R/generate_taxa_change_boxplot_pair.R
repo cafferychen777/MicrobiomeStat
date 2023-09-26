@@ -147,7 +147,7 @@ generate_taxa_change_boxplot_pair <-
       stop("`strata.var` should be a character string or NULL.")
 
     meta_tab <-
-      load_data_obj_metadata(data.obj) %>% as.data.frame() %>% select(all_of(c(
+      data.obj$meta.dat %>% as.data.frame() %>% select(all_of(c(
         subject.var, time.var, group.var, strata.var
       ))) %>% rownames_to_column("sample")
 
@@ -223,7 +223,7 @@ generate_taxa_change_boxplot_pair <-
       if (feature.level != "original"){
         otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
       } else {
-        otu_tax_agg <- load_data_obj_count(data.obj)
+        otu_tax_agg <- data.obj$feature.tab
       }
 
       otu_tax_agg <-  otu_tax_agg %>%

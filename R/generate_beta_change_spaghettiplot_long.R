@@ -143,7 +143,7 @@ generate_beta_change_spaghettiplot_long <-
       if (is.null(dist.obj)) {
         data.obj <-
           mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
-        meta_tab <- load_data_obj_metadata(data.obj) %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
+        meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
         dist.obj <-
           mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
         if (!is.null(adj.vars)){
@@ -153,12 +153,12 @@ generate_beta_change_spaghettiplot_long <-
         if (!is.null(data.obj) & !is.null(data.obj$meta.dat)){
           data.obj <-
             mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
-          meta_tab <- load_data_obj_metadata(data.obj) %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
+          meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
         } else {
           meta_tab <- attr(dist.obj[[dist.name[1]]], "labels") %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
           data.obj <- list(meta.dat = meta_tab)
           data.obj <- mStat_process_time_variable(meta_tab, time.var, t0.level, ts.levels)
-          meta_tab <- load_data_obj_metadata(data.obj)
+          meta_tab <- data.obj$meta.dat
         }
       }
 

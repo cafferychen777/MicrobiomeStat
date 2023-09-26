@@ -54,7 +54,7 @@ mStat_normalize_data <-
     }
 
     # Get the OTU table
-    otu_tab <- as.data.frame(load_data_obj_count(data.obj))
+    otu_tab <- as.data.frame(data.obj$feature.tab)
 
     # Check method
     method <- match.arg(method)

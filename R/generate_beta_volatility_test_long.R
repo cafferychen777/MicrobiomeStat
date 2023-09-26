@@ -70,7 +70,7 @@ generate_beta_volatility_test_long <-
     )
 
     if (is.null(dist.obj)) {
-      meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var, time.var, group.var, adj.vars)))
+      meta_tab <- data.obj$meta.dat %>% select(all_of(c(subject.var, time.var, group.var, adj.vars)))
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
       if (!is.null(adj.vars)){
@@ -78,7 +78,7 @@ generate_beta_volatility_test_long <-
       }
     } else {
       if (!is.null(data.obj) & !is.null(data.obj$meta.dat)){
-        meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(c(subject.var, time.var, group.var, adj.vars)))
+        meta_tab <- data.obj$meta.dat %>% select(all_of(c(subject.var, time.var, group.var, adj.vars)))
       } else {
         meta_tab <- attr(dist.obj[[dist.name[1]]], "labels") %>% select(all_of(c(subject.var, time.var, group.var, adj.vars)))
       }

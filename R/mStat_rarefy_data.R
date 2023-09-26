@@ -27,7 +27,7 @@ mStat_rarefy_data <- function(data.obj, depth = NULL) {
     stop("data.obj should be a list.")
   }
 
-  otu_tab <- as.data.frame(load_data_obj_count(data.obj))
+  otu_tab <- as.data.frame(data.obj$feature.tab)
 
   # If no depth is specified, use the smallest column sum as the depth
   if (is.null(depth)) {

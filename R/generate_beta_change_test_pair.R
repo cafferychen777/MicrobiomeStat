@@ -80,10 +80,10 @@ generate_beta_change_test_pair <-
     if (is.null(dist.obj)&!is.null(data.obj)) {
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
-      metadata <- load_data_obj_metadata(data.obj) %>% dplyr::select(all_of(c(subject.var,group.var,time.var, adj.vars))) %>% rownames_to_column("sample")
+      metadata <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var,group.var,time.var, adj.vars))) %>% rownames_to_column("sample")
     } else {
       if (!is.null(data.obj)){
-        metadata <- load_data_obj_metadata(data.obj) %>% dplyr::select(all_of(c(subject.var,group.var,time.var, adj.vars))) %>% rownames_to_column("sample")
+        metadata <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var,group.var,time.var, adj.vars))) %>% rownames_to_column("sample")
       } else {
         metadata <- attr(dist.obj[[dist.name[1]]], "labels")  %>% dplyr::select(all_of(c(subject.var,group.var,time.var,adj.vars))) %>% rownames_to_column("sample")
       }

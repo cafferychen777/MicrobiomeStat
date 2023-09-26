@@ -108,7 +108,7 @@ generate_beta_pc_trend_test_long <- function(data.obj = NULL,
                                              ...) {
   if (is.null(dist.obj)) {
     meta_tab <-
-      load_data_obj_metadata(data.obj) %>% select(all_of(c(
+      data.obj$meta.dat %>% select(all_of(c(
         subject.var, time.var, group.var, adj.vars
       )))
     dist.obj <-
@@ -119,7 +119,7 @@ generate_beta_pc_trend_test_long <- function(data.obj = NULL,
   } else {
     if (!is.null(data.obj) & !is.null(data.obj$meta.dat)) {
       meta_tab <-
-        load_data_obj_metadata(data.obj) %>% select(all_of(c(
+        data.obj$meta.dat %>% select(all_of(c(
           subject.var, time.var, group.var, adj.vars
         )))
     } else {

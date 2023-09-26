@@ -36,9 +36,9 @@
 mStat_calculate_beta_diversity <- function(data.obj,
                                            dist.name = c('BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS')) {
 
-  otu_tab <- load_data_obj_count(data.obj)
-  tax_tab <- load_data_obj_taxonomy(data.obj)
-  meta_tab <- load_data_obj_metadata(data.obj)
+  otu_tab <- data.obj$feature.tab
+  tax_tab <- data.obj$feature.ann
+  meta_tab <- data.obj$meta.dat
 
   message("Initializing distance objects...")
   dist.obj <- list()
@@ -55,7 +55,7 @@ mStat_calculate_beta_diversity <- function(data.obj,
 
   if ('UniFrac' %in% dist.name || 'GUniFrac' %in% dist.name || 'WUniFrac' %in% dist.name) {
     message("Calculating UniFrac dissimilarities...")
-    phy_tree <- load_data_obj_tree(data.obj)
+    phy_tree <- data.obj$tree
     if (is.null(phy_tree)) {
       stop("Phylogenetic tree is required for UniFrac, GUniFrac and WUniFrac calculations.")
     }

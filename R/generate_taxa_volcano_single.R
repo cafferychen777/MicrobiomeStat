@@ -37,7 +37,7 @@ generate_taxa_volcano_single <-
            test.list,
            feature.sig.level = 0.1,
            feature.mt.method = "fdr") {
-    meta_tab <- load_data_obj_metadata(data.obj) %>%
+    meta_tab <- data.obj$meta.dat %>%
       dplyr::select(all_of(c(group.var))) %>% rownames_to_column("sample")
 
     # Define the custom color palette

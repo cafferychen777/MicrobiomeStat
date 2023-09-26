@@ -131,7 +131,7 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
     data.obj <-
       mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
     meta_tab <-
-      load_data_obj_metadata(data.obj) %>% select(all_of(c(
+      data.obj$meta.dat %>% select(all_of(c(
         subject.var, time.var, group.var, strata.var
       )))
     dist.obj <-
@@ -150,7 +150,7 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
       data.obj <-
         mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
       meta_tab <-
-        load_data_obj_metadata(data.obj) %>% select(all_of(c(
+        data.obj$meta.dat %>% select(all_of(c(
           subject.var, time.var, group.var, strata.var
         )))
     } else {
@@ -161,7 +161,7 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
       data.obj <- list(meta.dat = meta_tab)
       data.obj <-
         mStat_process_time_variable(meta_tab, time.var, t0.level, ts.levels)
-      meta_tab <- load_data_obj_metadata(data.obj)
+      meta_tab <- data.obj$meta.dat
       dist.obj <- mStat_subset_dist(dist.obj, colnames(meta_tab))
     }
   }

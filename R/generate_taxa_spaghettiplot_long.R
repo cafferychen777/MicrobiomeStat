@@ -149,7 +149,7 @@ generate_taxa_spaghettiplot_long <-
     # 提取数据
     data.obj <- mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
 
-    meta_tab <- load_data_obj_metadata(data.obj) %>% as.data.frame() %>% select(all_of(c(subject.var,group.var,time.var,strata.var)))
+    meta_tab <- data.obj$meta.dat %>% as.data.frame() %>% select(all_of(c(subject.var,group.var,time.var,strata.var)))
 
     if (is.null(palette)) {
       col <-
@@ -213,7 +213,7 @@ generate_taxa_spaghettiplot_long <-
       if (feature.level != "original"){
         otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
       } else {
-        otu_tax_agg <- load_data_obj_count(data.obj)
+        otu_tax_agg <- data.obj$feature.tab
       }
 
       otu_tax_agg <-  otu_tax_agg %>%

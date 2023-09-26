@@ -120,7 +120,7 @@ generate_taxa_trend_test_long <-
     }
 
     meta_tab <-
-      load_data_obj_metadata(data.obj) %>% select(all_of(c(
+      data.obj$meta.dat %>% select(all_of(c(
         time.var, group.var, adj.vars, subject.var
       )))
 
@@ -197,7 +197,7 @@ generate_taxa_trend_test_long <-
       if (feature.level != "original"){
         otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
       } else {
-        otu_tax_agg <- load_data_obj_count(data.obj)
+        otu_tax_agg <- data.obj$feature.tab
       }
 
       otu_tax_agg_filter <-  otu_tax_agg %>%
@@ -339,7 +339,7 @@ generate_taxa_trend_volcano_long <-
            test.list,
            feature.sig.level = 0.1,
            feature.mt.method = "fdr") {
-    meta_tab <- load_data_obj_metadata(data.obj) %>%
+    meta_tab <- data.obj$meta.dat %>%
       dplyr::select(all_of(c(group.var))) %>% rownames_to_column("sample")
 
     # Define the custom color palette

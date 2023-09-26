@@ -72,7 +72,7 @@
 #'   palette = NULL,
 #'   pdf = TRUE,
 #'   file.ann = NULL,
-#'   pdf.wid = 11,
+#'   pdf.wid = 25,
 #'   pdf.hei = 8.5
 #' )
 #' }
@@ -101,7 +101,7 @@ generate_taxa_barplot_pair <-
     mStat_validate_data(data.obj)
 
     meta_tab <-
-      load_data_obj_metadata(data.obj) %>% select(all_of(c(
+      data.obj$meta.dat %>% select(all_of(c(
         subject.var, group.var, time.var, strata.var
       )))
 
@@ -326,7 +326,7 @@ generate_taxa_barplot_pair <-
       if (feature.level != "original") {
         otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
       } else {
-        otu_tax_agg <- load_data_obj_count(data.obj)
+        otu_tax_agg <- data.obj$feature.tab
       }
 
       otu_tax_agg <-  otu_tax_agg %>%

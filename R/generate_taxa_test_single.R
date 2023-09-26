@@ -101,7 +101,7 @@ generate_taxa_test_single <- function(data.obj,
   }
 
   meta_tab <-
-    load_data_obj_metadata(data.obj) %>% select(all_of(c(time.var, group.var, adj.vars)))
+    data.obj$meta.dat %>% select(all_of(c(time.var, group.var, adj.vars)))
 
   # 初始化formula为group.var
   formula <- group.var
@@ -135,7 +135,7 @@ generate_taxa_test_single <- function(data.obj,
     if (feature.level != "original") {
       otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
     } else {
-      otu_tax_agg <- load_data_obj_count(data.obj)
+      otu_tax_agg <- data.obj$feature.tab
     }
 
     otu_tax_agg_filter <-  otu_tax_agg %>%

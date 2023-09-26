@@ -117,7 +117,7 @@ generate_taxa_heatmap_single <- function(data.obj,
     }
   }
 
-  meta_tab <- load_data_obj_metadata(data.obj) %>% select(all_of(
+  meta_tab <- data.obj$meta.dat %>% select(all_of(
     c(subject.var, time.var, group.var, strata.var)))
 
     col <- c("white", "#92c5de", "#0571b0", "#f4a582", "#ca0020")
@@ -161,7 +161,7 @@ generate_taxa_heatmap_single <- function(data.obj,
     if (feature.level != "original"){
       otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
     } else {
-      otu_tax_agg <- load_data_obj_count(data.obj)
+      otu_tax_agg <- data.obj$feature.tab
     }
 
     otu_tax_agg <-  otu_tax_agg %>%
