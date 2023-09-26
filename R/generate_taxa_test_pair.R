@@ -48,10 +48,12 @@
 #'   time.var = "time",
 #'   group.var = "group",
 #'   adj.vars = c("sex"),
-#'   feature.level = c("Phylum","Genus","Family"),
+#'   feature.level = c("Genus"),
 #'   prev.filter = 0.1,
 #'   abund.filter = 0.0001,
-#'   feature.dat.type = "count"
+#'   feature.dat.type = "count",
+#'   feature.sig.level = 0.1,
+#'   feature.mt.method = "none"
 #' )
 #' }
 #'
@@ -83,9 +85,118 @@ generate_taxa_test_pair <-
       )))
 
     # Create the formula
-    fixed_effects <- paste(paste(adj.vars, collapse = " + "), group.var, time.var, sep = " + ")
-    random_effects <- paste("(1|", subject.var, ")", sep = "")
-    formula <- paste(fixed_effects, random_effects, sep = " + ")
+    # Function to generate the formula
+    generate_formula <- function(group.var = NULL, adj.vars = NULL, time.var = NULL, subject.var = NULL) {
+
+      # Initialize the fixed_effects and random_effects variables
+      fixed_effects <- NULL
+      random_effects <- NULL
+
+      # Combine multiple adj.vars into a single string if they exist
+      if (!is.null(adj.vars)) {
+        adj.vars_str <- paste(adj.vars, collapse = " + ")
+      } else {
+        adj.vars_str <- NULL
+      }
+
+      # Case where time.var is NULL
+      if (is.null(time.var)) {
+        if (is.null(group.var)) {
+          fixed_effects <- adj.vars_str
+          if (is.null(fixed_effects)) {
+            fixed_effects <- "1"  # Intercept-only model
+          }
+        } else {
+          if (!is.null(adj.vars_str)) {
+            fixed_effects <- paste(adj.vars_str, "+", group.var)
+          } else {
+            fixed_effects <- group.var
+          }
+        }
+        random_effects <- paste("(1 |", subject.var, ")")
+
+        # Case where time.var is NOT NULL
+      } else {
+        if (is.null(group.var)) {
+          fixed_effects <- paste(adj.vars_str, "+", time.var)
+          if (is.null(adj.vars_str)) {
+            fixed_effects <- time.var
+          }
+        } else {
+          if (!is.null(adj.vars_str)) {
+            fixed_effects <- paste(adj.vars_str, "+", group.var, "*", time.var)
+          } else {
+            fixed_effects <- paste(group.var, "*", time.var)
+          }
+        }
+        random_effects <- paste("(1 +", time.var, "|", subject.var, ")")
+      }
+
+      # Generate the full formula
+      formula <- paste(fixed_effects, random_effects, sep = " + ")
+      return(formula)
+    }
+
+    formula <- generate_formula(group.var = group.var,
+                                adj.vars = adj.vars,
+                                time.var = time.var,
+                                subject.var = subject.var)
+
+    correct_formula <- function(group.var = NULL, adj.vars = NULL, time.var = NULL, subject.var = NULL) {
+
+      # Initialize the fixed_effects and random_effects variables
+      fixed_effects <- NULL
+      random_effects <- NULL
+
+      # Combine multiple adj.vars into a single string if they exist
+      if (!is.null(adj.vars)) {
+        adj.vars_str <- paste(adj.vars, collapse = " + ")
+      } else {
+        adj.vars_str <- NULL
+      }
+
+      # Case where time.var is NULL
+      if (is.null(time.var)) {
+        if (is.null(group.var)) {
+          fixed_effects <- adj.vars_str
+          if (is.null(fixed_effects)) {
+            fixed_effects <- "1"  # Intercept-only model
+          }
+        } else {
+          if (!is.null(adj.vars_str)) {
+            fixed_effects <- paste(adj.vars_str, "+", group.var)
+          } else {
+            fixed_effects <- group.var
+          }
+        }
+        random_effects <- paste("(1 |", subject.var, ")")
+
+        # Case where time.var is NOT NULL
+      } else {
+        if (is.null(group.var)) {
+          fixed_effects <- paste(adj.vars_str, "+", time.var)
+          if (is.null(adj.vars_str)) {
+            fixed_effects <- time.var
+          }
+        } else {
+          if (!is.null(adj.vars_str)) {
+            fixed_effects <- paste(adj.vars_str, "+", group.var, "*", time.var)
+          } else {
+            fixed_effects <- paste(group.var, "*", time.var)
+          }
+        }
+        random_effects <- paste("(1 |", subject.var, ")")
+      }
+
+      # Generate the full formula
+      formula <- paste(fixed_effects, random_effects, sep = " + ")
+      return(formula)
+    }
+
+    formula_corrected <- correct_formula(group.var = group.var,
+                                adj.vars = adj.vars,
+                                time.var = time.var,
+                                subject.var = subject.var)
 
     test.list <- lapply(feature.level, function(feature.level) {
 
@@ -111,11 +222,23 @@ generate_taxa_test_pair <-
         mStat_filter(prev.filter = prev.filter,
                      abund.filter = abund.filter)
 
-      linda.obj <- linda(feature.dat = otu_tax_agg_filter,
-                         meta.dat = meta_tab,
-                         formula = paste("~",formula),
-                         feature.dat.type = "proportion",
-                         ...)
+      linda.obj <- tryCatch({
+        # 尝试运行 linda 函数
+        linda(feature.dat = otu_tax_agg_filter,
+              meta.dat = meta_tab,
+              formula = paste("~", formula),
+              feature.dat.type = "proportion",
+              ...)
+      }, error = function(e) {
+        # 如果出错，打印错误消息
+        message("Error in linda: ", e)
+
+        # 使用修正后的公式重新运行 linda 函数
+        linda(feature.dat = otu_tax_agg_filter,
+              meta.dat = meta_tab,
+              formula = paste("~", formula_corrected),
+              feature.dat.type = "proportion")
+      })
 
       if (!is.null(group.var)){
         reference_level <- levels(as.factor(meta_tab[,group.var]))[1]
@@ -151,8 +274,12 @@ generate_taxa_test_pair <-
           group_value <- unlist(strsplit(df_name, split = ":"))[1]
           group_value <- gsub(pattern = group_prefix, replacement = "", x = group_value)
 
-          # 将数据框添加到结果列表中
-          result_list[[paste0(group_value," vs ", reference_level, " (Reference)")]] <- linda_object$output[[df_name]]
+          if (grepl(pattern = time.var, x = df_name)){
+            result_list[[paste0(group_value," vs ", reference_level, " (Reference) [", "Interaction", "]")]] <- linda_object$output[[df_name]]
+          } else {
+            # 将数据框添加到结果列表中
+            result_list[[paste0(group_value," vs ", reference_level, " (Reference) [", "Main Effect", "]")]] <- linda_object$output[[df_name]]
+          }
         }
 
         return(result_list)
