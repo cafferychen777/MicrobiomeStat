@@ -459,9 +459,11 @@ generate_taxa_indiv_change_boxplot_pair <-
         dev.off()
       }
 
+      names(plot_list) <- taxa.levels
+
       return(plot_list)
     })
-
+    names(plot_list_all) <- feature.level
     # Return the boxplot for display
     return(plot_list_all)
   }
