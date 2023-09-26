@@ -91,15 +91,59 @@
 #' )
 #'
 #' }
+#' library(vegan)
+#' library(ggh4x)
+#'
+#' # Load data
+#' data(peerj32.obj)
+#'
+#' # First example with peerj32.obj
+#' generate_alpha_boxplot_single(
+#'   data.obj     = peerj32.obj,
+#'   alpha.obj    = NULL,
+#'   alpha.name   = c("simpson"),
+#'   subject.var  = "subject",
+#'   time.var     = "time",
+#'   t.level      = "2",
+#'   group.var    = "group",
+#'   strata.var   = "sex",
+#'   adj.vars     = "sex",
+#'   base.size    = 16,
+#'   theme.choice = "bw",
+#'   palette      = NULL,
+#'   pdf          = TRUE,
+#'   file.ann     = NULL,
+#'   pdf.wid      = 11,
+#'   pdf.hei      = 8.5
+#' )
+#'
+#' # Load another dataset
+#' data("subset_T2D.obj")
+#'
+#' # Second example with subset_T2D.obj
+#' generate_alpha_boxplot_single(
+#'   data.obj     = subset_T2D.obj,
+#'   alpha.obj    = NULL,
+#'   alpha.name   = c("shannon"),
+#'   subject.var  = "subject_id",
+#'   time.var     = "visit_number",
+#'   t.level      = "   3",
+#'   group.var    = "subject_race",
+#'   strata.var   = "subject_gender",
+#'   adj.vars     = "sample_body_site",
+#'   base.size    = 16,
+#'   theme.choice = "bw",
+#'   palette      = NULL,
+#'   pdf          = TRUE,
+#'   file.ann     = NULL,
+#'   pdf.wid      = 20,
+#'   pdf.hei      = 8.5
+#' )
 #' @export
 generate_alpha_boxplot_single <- function (data.obj,
                                            alpha.obj = NULL,
                                            alpha.name = c("shannon",
-                                                          "simpson",
-                                                          "observed_species",
-                                                          "chao1",
-                                                          "ace",
-                                                          "pielou"),
+                                                          "observed_species"),
                                            depth = NULL,
                                            subject.var,
                                            time.var = NULL,
@@ -123,33 +167,18 @@ generate_alpha_boxplot_single <- function (data.obj,
       )
       data.obj <- mStat_rarefy_data(data.obj, depth = depth)
     }
-    otu_tab <- as.data.frame(load_data_obj_count(data.obj))
 
-    if (!is.null(time.var)) {
-      if (!is.null(t.level)) {
-        meta_tab <- load_data_obj_metadata(data.obj) %>% dplyr::select(all_of(
-          c(subject.var, time.var, group.var, strata.var, adj.vars)
-        )) %>% filter(!!sym(time.var) == t.level)
-      } else {
-        meta_tab <- load_data_obj_metadata(data.obj) %>% dplyr::select(all_of(
-          c(subject.var, time.var, group.var, strata.var, adj.vars)
-        ))
-        if (length(levels(as.factor(meta_tab[, time.var]))) != 1) {
-          message(
-            "Multiple time points detected in your dataset. It is recommended to either set t.level or utilize functions for longitudinal data analysis."
-          )
-        }
-      }
-    } else {
-      meta_tab <- load_data_obj_metadata(data.obj) %>% dplyr::select(all_of(c(
-        subject.var, group.var, strata.var, adj.vars
-      )))
+    if (!is.null(time.var) & !is.null(t.level)){
+      condition <- paste(time.var, "== '", t.level, "'", sep = "")
+      data.obj <- mStat_subset_data(data.obj, condition = condition)
     }
 
-    otu_tab <- otu_tab %>% dplyr::select(all_of(c(rownames(meta_tab))))
+    otu_tab <- data.obj$feature.tab
     alpha.obj <-
       mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name)
   }
+
+  meta_tab <- data.obj$meta.dat
 
   # Convert the alpha.obj list to a data frame
   alpha_df <-
