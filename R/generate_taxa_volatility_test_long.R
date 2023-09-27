@@ -32,11 +32,9 @@
 #' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
 #' taxa before analysis. Taxa with prevalence below this value will be removed.
 #' Prevalence is calculated as the proportion of samples where the taxon is present.
-#' Default 0 removes no taxa by prevalence filtering.
 #' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering
 #' taxa before analysis. Taxa with mean abundance below this value will be removed.
 #' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
-#' Default 0 removes no taxa by abundance filtering.
 #' @param feature.level Character vector specifying taxonomic level(s) to aggregate abundance data to
 #'                     before volatility calculation, e.g. c("Phylum", "Genus"). The special value
 #'                     "original" can also be provided, which will use the original taxon identifiers.
