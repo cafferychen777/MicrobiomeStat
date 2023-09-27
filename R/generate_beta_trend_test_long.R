@@ -70,7 +70,7 @@ create_mixed_effects_formula <- function(response.var, time.var, group.var = NUL
 #'   dist.name = c("BC", "Jaccard")
 #'   )
 #'
-#' data(esubset_T2D.obj)
+#' data(subset_T2D.obj)
 #' generate_beta_trend_test_long(
 #'   data.obj = subset_T2D.obj,
 #'   dist.obj = NULL,
