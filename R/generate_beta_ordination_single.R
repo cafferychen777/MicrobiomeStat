@@ -62,12 +62,9 @@
 #'
 #' @examples
 #' \dontrun{
-#' # Load required libraries and example data
-#' library(vegan)
 #' data(peerj32.obj)
 #' dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
 #' pc.obj <- mStat_calculate_PC(dist.obj, method = c('mds'), k = 2, dist.name = c('BC','Jaccard'))
-#' # Generate the boxplot pair
 #' generate_beta_ordination_single(
 #'   data.obj = peerj32.obj,
 #'   dist.obj = NULL,
@@ -88,19 +85,43 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
+#'
+#' data("subset_T2D.obj")
+#' dist.obj <- mStat_calculate_beta_diversity(subset_T2D.obj, dist.name = c('BC', 'Jaccard'))
+#' pc.obj <- mStat_calculate_PC(dist.obj, method = c('mds'), k = 2, dist.name = c('BC','Jaccard'))
+#' generate_beta_ordination_single(
+#'   data.obj = subset_T2D.obj,
+#'   dist.obj = dist.obj,
+#'   pc.obj = pc.obj,
+#'   subject.var = "subject_id",
+#'   time.var = "visit_number_num",
+#'   t.level = "1",
+#'   group.var = "subject_race",
+#'   strata.var = "subject_gender",
+#'   adj.vars = "sample_body_site",
+#'   dist.name = c("BC", 'Jaccard'),
+#'   base.size = 20,
+#'   theme.choice = "bw",
+#'   custom.theme = NULL,
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
 #' }
 #' @export
 generate_beta_ordination_single <-
   function(data.obj,
-           dist.obj = NULL,
-           pc.obj = NULL,
            subject.var,
            time.var = NULL,
            t.level = NULL,
            group.var = NULL,
-           strata.var = NULL,
            adj.vars = NULL,
+           strata.var = NULL,
+           dist.obj = NULL,
            dist.name = c('BC', 'Jaccard'),
+           pc.obj = NULL,
            base.size = 16,
            theme.choice = "prism",
            custom.theme = NULL,
@@ -209,7 +230,12 @@ generate_beta_ordination_single <-
     plot_list <- lapply(dist.name, function(dist.name) {
       pc.mat <- pc.obj[[dist.name]]$points[, 1:2]
       df <-
-        cbind(pc.mat, metadata[, c(subject.var, time.var, group.var, strata.var)])
+        pc.mat %>%
+        as.data.frame() %>%
+        rownames_to_column("sample") %>%
+        dplyr::left_join(metadata %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var))) %>% rownames_to_column("sample"), by = "sample") %>%
+        dplyr::filter(!is.na(!!sym(time.var))) %>% column_to_rownames("sample")
+
       colnames(df)[1:2] <- c("PC1", "PC2")
 
       p <- ggplot2::ggplot(df, ggplot2::aes(PC1, PC2)) +
