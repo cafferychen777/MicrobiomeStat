@@ -173,7 +173,7 @@
 #'   feature.sig.level = 0.1,
 #'   theme.choice = "bw",
 #'   base.size = 18,
-#'   output.file = "path/to/report.pdf"
+#'   output.file = "/Users/apple/MicrobiomeStat/report.pdf"
 #' )
 #' }
 #' @export
@@ -345,6 +345,16 @@ rarefy.data.obj <- mStat_normalize_data(data.obj = data.obj, method = 'Rarefy', 
 if (is.null(depth)){
   depth <- min(colSums(data.obj$feature.tab))
   cat(sprintf('No rarefaction depth is specified. The minimum depth, %d, is used as the rarefaction depth. ', depth))
+}
+
+# 获取 unique values
+unique_levels <- unique(c(vis.feature.level, test.feature.level))
+
+# 检查 data.obj$feature.agg.list 的名字是否包含所有 unique values
+if (!all(unique_levels %in% names(data.obj$feature.agg.list))) {
+  # 如果不包含，则运行以下代码
+  original.data.obj <- mStat_aggregate_by_taxonomy(original.data.obj, feature.level = unique_levels)
+  rarefy.data.obj <- mStat_aggregate_by_taxonomy(rarefy.data.obj, feature.level = unique_levels)
 }
 
 # Now, let's tell the user how many samples remain after rarefaction.

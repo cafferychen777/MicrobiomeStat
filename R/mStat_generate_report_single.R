@@ -122,24 +122,24 @@
 #'   base.size = 20,
 #'   feature.mt.method = "none",
 #'   feature.sig.level = 0.2,
-#'   output.file = "path/to/report.pdf"
+#'   output.file = "/Users/apple/MicrobiomeStat/report.pdf"
 #' )
-#' data(peerj32.obj)
+#'
 #' mStat_generate_report_single(
-#'   data.obj = peerj32.obj,
+#'   data.obj = subset_T2D.obj,
 #'   dist.obj = NULL,
 #'   alpha.obj = NULL,
-#'   group.var = "group",
-#'   vis.adj.vars = c("sex"),
-#'   test.adj.vars = c("sex"),
-#'   subject.var = "subject",
-#'   time.var = "time",
+#'   group.var = "subject_race",
+#'   vis.adj.vars = "sample_body_site",
+#'   test.adj.vars = "sample_body_site",
+#'   subject.var = "subject_id",
+#'   time.var = "visit_number_num",
 #'   alpha.name = c("shannon", "observed_species"),
 #'   depth = NULL,
 #'   dist.name = c("BC",'Jaccard'),
-#'   t.level = "1",
+#'   t.level = 1,
 #'   feature.box.axis.transform = "sqrt",
-#'   strata.var = "sex",
+#'   strata.var = "subject_gender",
 #'   vis.feature.level = c("Phylum", "Family", "Genus"),
 #'   test.feature.level = "Family",
 #'   feature.dat.type = "count",
@@ -147,7 +147,7 @@
 #'   base.size = 20,
 #'   feature.mt.method = "none",
 #'   feature.sig.level = 0.2,
-#'   output.file = "path/to/report.pdf"
+#'   output.file = "/Users/apple/MicrobiomeStat/report.pdf"
 #' )
 #' }
 #' @export
@@ -307,9 +307,24 @@ pander::pander(mStat_results)
 
 ```{r object-pre-calculation, echo=FALSE, message=FALSE, results='asis'}
 
+if (!is.null(time.var) & !is.null(t.level)){
+  condition <- paste(time.var, '==', t.level, sep = ' ')
+  data.obj <- mStat_subset_data(data.obj, condition = condition)
+}
+
 original.data.obj <- data.obj
 
 rarefy.data.obj <- mStat_normalize_data(data.obj = data.obj, method = 'Rarefy', depth = depth)$data.obj.norm
+
+# 获取 unique values
+unique_levels <- unique(c(vis.feature.level, test.feature.level))
+
+# 检查 data.obj$feature.agg.list 的名字是否包含所有 unique values
+if (!all(unique_levels %in% names(data.obj$feature.agg.list))) {
+  # 如果不包含，则运行以下代码
+  original.data.obj <- mStat_aggregate_by_taxonomy(original.data.obj, feature.level = unique_levels)
+  rarefy.data.obj <- mStat_aggregate_by_taxonomy(rarefy.data.obj, feature.level = unique_levels)
+}
 
 if (is.null(depth)){
   depth <- min(colSums(data.obj$feature.tab))
@@ -359,7 +374,7 @@ if (feature.analysis.rarafy) {
 
 ### 1.3.1 Feature barplot
 
-```{r taxa-barplot-generation, message=FALSE, fig.align='center', fig.width = 20, fig.height = 8}
+```{r taxa-barplot-generation, message=FALSE, fig.align='center', fig.width = 20, fig.height = 8, warning = FALSE}
 taxa_barplot_results <- generate_taxa_barplot_single(data.obj = data.obj,
                                                      subject.var = subject.var,
                                                      time.var = time.var,
@@ -379,7 +394,7 @@ taxa_barplot_results <- generate_taxa_barplot_single(data.obj = data.obj,
                                                      pdf.hei = pdf.hei)
 ```
 
-```{r taxa-barplot-avergae-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 25, fig.height = 15}
+```{r taxa-barplot-avergae-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 25, fig.height = 15, warning = FALSE}
 cat('The following plots display the average proportions for each group, and stratum. \n\n')
 indiv_list <- lapply(taxa_barplot_results, function(x) x$indiv)
 
@@ -388,14 +403,14 @@ average_list <- lapply(taxa_barplot_results, function(x) x$average)
 average_list
 ```
 
-```{r taxa-barplot-indiv-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 25, fig.height = 15}
+```{r taxa-barplot-indiv-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 25, fig.height = 15, warning = FALSE}
 cat('The following plots display the individual proportions for each group, and stratum. \n\n')
 indiv_list
 ```
 
 ### 1.3.2 Feature dotplot
 
-```{r taxa-dotplot-generation, message=FALSE, results='asis', fig.align='center', fig.width = 20, fig.height = 8}
+```{r taxa-dotplot-generation, message=FALSE, results='asis', fig.align='center', fig.width = 20, fig.height = 8, warning = FALSE}
 taxa_dotplot_results <- generate_taxa_dotplot_single(data.obj = data.obj,
                                                      subject.var = subject.var,
                                                      time.var = time.var,
@@ -422,7 +437,7 @@ taxa_dotplot_results
 
 ### 1.3.3 Feature heatmap
 
-```{r taxa-heatmap-generation, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8}
+```{r taxa-heatmap-generation, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8, warning = FALSE}
 taxa_heatmap_results <- generate_taxa_heatmap_single(data.obj = data.obj,
                                                      subject.var = subject.var,
                                                      time.var = time.var,
@@ -446,7 +461,7 @@ taxa_heatmap_results <- generate_taxa_heatmap_single(data.obj = data.obj,
                                                      pdf.hei = pdf.hei)
 ```
 
-```{r taxa-heatmap-indiv-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 20, fig.height = 12}
+```{r taxa-heatmap-indiv-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 20, fig.height = 12, warning = FALSE}
 cat('The following plots display the individual proportions for each sample. \n\n')
 taxa_heatmap_results
 ```
