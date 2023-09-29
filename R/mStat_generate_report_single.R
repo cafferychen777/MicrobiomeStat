@@ -575,14 +575,15 @@ for(index_name in names(alpha_test_results)) {
 
 ```{r beta-ordination-generation, message=FALSE, fig.align='center', warning = FALSE, fig.width = 10, fig.height = 8, results='asis'}
 beta_ordination_results <- generate_beta_ordination_single(data.obj = data.obj,
-                                                           dist.obj = dist.obj,
-                                                           pc.obj = pc.obj,
                                                            subject.var = subject.var,
                                                            time.var = time.var,
                                                            t.level = t.level,
                                                            group.var = group.var,
+                                                           adj.vars = vis.adj.vars,
                                                            strata.var = NULL,
+                                                           dist.obj = dist.obj,
                                                            dist.name = dist.name,
+                                                           pc.obj = pc.obj,
                                                            base.size = base.size,
                                                            theme.choice = theme.choice,
                                                            custom.theme = custom.theme,
@@ -594,15 +595,17 @@ beta_ordination_results <- generate_beta_ordination_single(data.obj = data.obj,
 beta_ordination_results
 
 if (!is.null(strata.var)){
-  beta_ordination_stratified_results <- generate_beta_ordination_single(data.obj = data.obj,
-                                                           dist.obj = dist.obj,
-                                                           pc.obj = pc.obj,
+  beta_ordination_stratified_results <- generate_beta_ordination_single(
+                                                           data.obj = data.obj,
                                                            subject.var = subject.var,
                                                            time.var = time.var,
                                                            t.level = t.level,
                                                            group.var = group.var,
+                                                           adj.vars = vis.adj.vars,
                                                            strata.var = strata.var,
+                                                           dist.obj = dist.obj,
                                                            dist.name = dist.name,
+                                                           pc.obj = pc.obj,
                                                            base.size = base.size,
                                                            theme.choice = theme.choice,
                                                            custom.theme = custom.theme,
