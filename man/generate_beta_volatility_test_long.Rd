@@ -59,15 +59,27 @@ Non-numeric coding may lead to issues in the volatility test computation.
 }
 \examples{
 data(ecam.obj)
-ecam.obj$meta.dat$month <- as.numeric(ecam.obj$meta.dat$month)
 generate_beta_volatility_test_long(
   data.obj = ecam.obj,
   dist.obj = NULL,
   subject.var = "studyid",
-  time.var = "month",
+  time.var = "month_num",
   t0.level = NULL,
   ts.levels = NULL,
   group.var = "diet",
+  adj.vars = NULL,
+  dist.name = c("BC", "Jaccard")
+)
+
+data(subset_T2D.obj)
+generate_beta_volatility_test_long(
+  data.obj = subset_T2D.obj,
+  dist.obj = NULL,
+  subject.var = "subject_id",
+  time.var = "visit_number_num",
+  t0.level = NULL,
+  ts.levels = NULL,
+  group.var = "subject_race",
   adj.vars = NULL,
   dist.name = c("BC", "Jaccard")
 )
