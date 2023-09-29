@@ -304,7 +304,7 @@ mStat_summarize_data_obj <-
     table1 <- rbind(table1, tree_info)
 
     # 聚合分类信息
-    if (!is.na(agg_taxonomies)) {
+    if (any(!is.na(agg_taxonomies))) {
       aggregated_taxonomies <- data.frame(
         Category = "Aggregated Taxonomies",
         Variable = "The taxonomies that have been aggregated",
