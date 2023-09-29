@@ -40,13 +40,11 @@ to adjust for in linear models. Optional, can be NULL.}
 
 \item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
 taxa before analysis. Taxa with prevalence below this value will be removed.
-Prevalence is calculated as the proportion of samples where the taxon is present.
-Default 0 removes no taxa by prevalence filtering.}
+Prevalence is calculated as the proportion of samples where the taxon is present.}
 
 \item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering
 taxa before analysis. Taxa with mean abundance below this value will be removed.
-Abundance refers to counts or proportions depending on \code{feature.dat.type}.
-Default 0 removes no taxa by abundance filtering.}
+Abundance refers to counts or proportions depending on \code{feature.dat.type}.}
 
 \item{feature.level}{Character vector specifying taxonomic level(s) to aggregate abundance data to
 before volatility calculation, e.g. c("Phylum", "Genus"). The special value
