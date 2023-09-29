@@ -57,10 +57,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' library(ggh4x)
-#' library(vegan)
 #' data(peerj32.obj)
-#'
 #' generate_taxa_barplot_single(
 #'   data.obj = peerj32.obj,
 #'   subject.var = "subject",
@@ -69,6 +66,27 @@
 #'   group.var = "group",
 #'   strata.var = "sex",
 #'   feature.level = "Family",
+#'   feature.dat.type = "count",
+#'   feature.number = 30,
+#'   base.size = 10,
+#'   theme.choice = "bw",
+#'   custom.theme = NULL,
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#'
+#' data("subset_T2D.obj")
+#' generate_taxa_barplot_single(
+#'   data.obj = subset_T2D.obj,
+#'   subject.var = "subject_id",
+#'   time.var = "visit_number_num",
+#'   t.level = 1,
+#'   group.var = "subject_race",
+#'   strata.var = "subject_gender",
+#'   feature.level = c("Phylum", "Family", "Genus"),
 #'   feature.dat.type = "count",
 #'   feature.number = 30,
 #'   base.size = 10,
@@ -111,17 +129,17 @@ generate_taxa_barplot_single <-
       if (!is.null(t.level)){
         condition <- paste(time.var, "== '", t.level, "'", sep = "")
         data.obj <- mStat_subset_data(data.obj, condition = condition)
-        meta_tab <- data.obj$meta.dat %>% select(all_of(
+        meta_tab <- data.obj$meta.dat %>% select(one_of(
           c(subject.var, time.var, group.var, strata.var)))
       } else {
-        meta_tab <- data.obj$meta.dat %>% select(all_of(
+        meta_tab <- data.obj$meta.dat %>% select(one_of(
           c(subject.var, time.var, group.var, strata.var)))
         if (length(levels(as.factor(meta_tab[,time.var]))) != 1){
           message("Multiple time points detected in your dataset. It is recommended to either set t.level or utilize functions for longitudinal data analysis.")
         }
       }
     } else {
-      meta_tab <- data.obj$meta.dat %>% select(all_of(
+      meta_tab <- data.obj$meta.dat %>% select(one_of(
         c(subject.var, group.var, strata.var)))
       meta_tab$ALL2 <- "ALL"
       time.var = "ALL2"
@@ -194,7 +212,7 @@ generate_taxa_barplot_single <-
         rownames_to_column(feature.level)
 
       # 标准化数据
-      otu_tab_norm <- apply(t(otu_tax_agg %>% select(-all_of(feature.level))), 1, function(x) x)
+      otu_tab_norm <- apply(t(otu_tax_agg %>% select(-one_of(feature.level))), 1, function(x) x)
       rownames(otu_tab_norm) <- as.matrix(otu_tax_agg[, feature.level])
 
       meta_tab_sorted <- meta_tab[colnames(otu_tab_norm), ]
