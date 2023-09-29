@@ -7,11 +7,11 @@
 generate_alpha_trend_test_long(
   data.obj,
   alpha.obj = NULL,
-  alpha.name = NULL,
+  alpha.name = c("shannon", "observed_species"),
   depth = NULL,
   time.var,
   subject.var,
-  group.var,
+  group.var = NULL,
   adj.vars = NULL
 )
 }
@@ -53,12 +53,10 @@ related parameters to conduct the test.
 \examples{
 \dontrun{
 data("subset_T2D.obj")
-subset_T2D.obj2 <- subset_T2D.obj
-subset_T2D.obj2$meta.dat$visit_number <- as.numeric(subset_T2D.obj2$meta.dat$visit_number)
 generate_alpha_trend_test_long(
-data.obj = subset_T2D.obj2,
-alpha.name = c("shannon","simpson"),
-time.var = "visit_number",
+data.obj = subset_T2D.obj,
+alpha.name = c("shannon","observed_species"),
+time.var = "visit_number_num",
 subject.var = "subject_id",
 group.var = "subject_race",
 adj.vars = NULL
