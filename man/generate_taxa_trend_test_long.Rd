@@ -34,13 +34,11 @@ generate_taxa_trend_test_long(
 
 \item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
 taxa before analysis. Taxa with prevalence below this value will be removed.
-Prevalence is calculated as the proportion of samples where the taxon is present.
-Default 0 removes no taxa by prevalence filtering.}
+Prevalence is calculated as the proportion of samples where the taxon is present.}
 
 \item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering
 taxa before analysis. Taxa with mean abundance below this value will be removed.
-Abundance refers to counts or proportions depending on \code{feature.dat.type}.
-Default 0 removes no taxa by abundance filtering.}
+Abundance refers to counts or proportions depending on \code{feature.dat.type}.}
 
 \item{feature.dat.type}{A character string, either "count" or "proportion", indicating the nature of the data in the `data.obj`. This helps the function to determine if normalization is required. Default is "count".}
 
