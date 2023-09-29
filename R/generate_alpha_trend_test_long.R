@@ -56,9 +56,6 @@ construct_formula <- function(index, group.var, time.var, subject.var, adj.vars)
 #'
 #' @examples
 #' \dontrun{
-#'
-#' @examples
-#' \dontrun{
 #' data("subset_T2D.obj")
 #' generate_alpha_trend_test_long(
 #' data.obj = subset_T2D.obj,
