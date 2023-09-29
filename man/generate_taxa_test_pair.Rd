@@ -67,10 +67,8 @@ A named list containing data frames summarizing taxon test results for each taxo
 \description{
 This function takes a MicrobiomeStat data object as input, filters taxa based on
 prevalence and abundance thresholds, aggregates taxon abundances by sample,
-fits linear models using the linda method to identify significant taxon changes
-across groups over time, accounting for specified covariates. It returns data frames
-summarizing the results for each taxonomic level, including statistics from the
-linear models.
+fits linear mixed effects models using the linda method to identify significant
+taxon changes across groups over time, accounting for specified covariates.
 }
 \details{
 Each list element corresponds to a taxonomic level specified in `feature.level`.
