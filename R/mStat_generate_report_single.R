@@ -124,7 +124,7 @@
 #'   feature.sig.level = 0.2,
 #'   output.file = "/Users/apple/MicrobiomeStat/report.pdf"
 #' )
-#'
+#' data(subset_T2D.obj)
 #' mStat_generate_report_single(
 #'   data.obj = subset_T2D.obj,
 #'   dist.obj = NULL,
@@ -135,7 +135,7 @@
 #'   subject.var = "subject_id",
 #'   time.var = "visit_number_num",
 #'   alpha.name = c("shannon", "observed_species"),
-#'   depth = NULL,
+#'   depth = 2000,
 #'   dist.name = c("BC",'Jaccard'),
 #'   t.level = 1,
 #'   feature.box.axis.transform = "sqrt",
@@ -316,12 +316,9 @@ original.data.obj <- data.obj
 
 rarefy.data.obj <- mStat_normalize_data(data.obj = data.obj, method = 'Rarefy', depth = depth)$data.obj.norm
 
-# 获取 unique values
 unique_levels <- unique(c(vis.feature.level, test.feature.level))
 
-# 检查 data.obj$feature.agg.list 的名字是否包含所有 unique values
 if (!all(unique_levels %in% names(data.obj$feature.agg.list))) {
-  # 如果不包含，则运行以下代码
   original.data.obj <- mStat_aggregate_by_taxonomy(original.data.obj, feature.level = unique_levels)
   rarefy.data.obj <- mStat_aggregate_by_taxonomy(rarefy.data.obj, feature.level = unique_levels)
 }
