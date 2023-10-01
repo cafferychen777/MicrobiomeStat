@@ -1,4 +1,4 @@
-MicrobiomeStat: Comprehensive & Longitudinal Microbiome Analysis in R
+MicrobiomeStat: Supporting Longitudinal Microbiome Analysis in R
 ================
 
 <p align="center" style="margin:0; padding:0;">
@@ -12,12 +12,12 @@ MicrobiomeStat: Comprehensive & Longitudinal Microbiome Analysis in R
 v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 <!-- badges: end -->
 
-The `MicrobiomeStat` package is a state-of-the-art R tool with a
-**special focus on the analysis of longitudinal microbiome data**. While
-capable of handling multi-omics data and cross-sectional studies, its
-**core strength lies in its proficiency in longitudinal analysis**. This
-makes it an invaluable resource for researchers conducting extensive
-biological studies over time.
+The `MicrobiomeStat` package is a dedicated R tool crafted with an
+emphasis on exploring **longitudinal microbiome data**. While it also
+offers the flexibility to engage with multi-omics data and
+cross-sectional studies, its essence is enriched by the facilitation of
+longitudinal analysis. This attribute aims to support researchers
+navigating through extensive biological inquiries over time.
 
 # Citations
 
@@ -84,8 +84,11 @@ devtools::install_github("cafferychen777/MicrobiomeStat")
       Functions](#specialized-citation)
     - [Important Note on CRAN Version](#cran-version-note)
 2.  [Online Tutorials](#online-tutorials)
+    - [Acquaint Yourself for a Seamless Experience](#acquaint-yourself)
+    - [Discovering MicrobiomeStat](#explore-microbiomestat)
+      - [Feature Exploration](#feature-exploration)
+      - [Acknowledgements](#acknowledgements)
 3.  [Benefits of Using MicrobiomeStat](#why-choose-microbiomestat)
-    - [Comparative Overview](#comparative-overview)
     - [User Support](#user-support)
     - [Ongoing Development](#ongoing-development)
     - [Collaborative Development](#collaborative-development)
@@ -97,21 +100,22 @@ devtools::install_github("cafferychen777/MicrobiomeStat")
 
 # Online Tutorials
 
-`MicrobiomeStat` represents a **comprehensive toolset** for microbiome
-data analysis, boasting extensive capabilities from data input to
+`MicrobiomeStat` offers a **supportive toolkit** for microbiome data
+analysis, providing a range of capabilities from data input to
 visualization.
 
-For an **in-depth understanding** of `MicrobiomeStat`, explore our
-detailed online tutorial using GitBook. This tutorial covers:
+To **familiarize** yourself with `MicrobiomeStat`, we invite you to
+explore our detailed online tutorial using GitBook. This tutorial
+includes:
 
-- **Comprehensive Installation and Configuration Guidance**
-  - Ensure your setup is correct and optimized.
-- **Analysis Walkthroughs Driven by Real-World Cases**
+- **Step-by-Step Installation and Configuration Guidance**
+  - Help ensure your setup is correct and optimized.
+- **Analysis Walkthroughs Inspired by Real-World Cases**
   - Gain practical insights and skills.
 - **Hands-On Code Examples**
-  - Get comfortable with `MicrobiomeStat` coding practices.
-- **Detailed Guides on Result Interpretation and Visualization**
-  - Understand and present your data effectively.
+  - Get acquainted with `MicrobiomeStat` coding practices.
+- **Guides on Result Interpretation and Visualization**
+  - Learn to understand and present your data effectively.
 - **Frequently Asked Questions**
   - Quickly find answers to common queries.
 
@@ -123,23 +127,59 @@ enriching resources:
 [**📘 Explore MicrobiomeStat
 Tutorials**](https://www.microbiomestat.wiki)
 
-## Benefits of Using MicrobiomeStat
+## Discovering MicrobiomeStat
 
-The field of microbiome research is complex and rapidly evolving. The
-analytical tools chosen can have significant implications for research
-outcomes. In this context, `MicrobiomeStat` presents itself as a robust
-option.
+The realm of microbiome research is intricate and continually advancing.
+The analytical tools selected can play a crucial role in navigating
+through the research journey. In this scenario, `MicrobiomeStat` aims to
+be a supportive companion.
 
-### Comparative Overview
+### Feature Exploration
 
-For a thorough understanding of how `MicrobiomeStat` measures against
-other tools, we’ve provided detailed comparisons on our website:
+To better understand the capabilities of `MicrobiomeStat`, we have
+outlined its features and functionalities on our website, along with
+some contextual references to other tools for a more informed
+perspective:
 
-- [Comparison with Other Longitudinal
-  Packages](https://www.microbiomestat.wiki/introduction/microbiomestat-versus-the-competition-a-comparative-overview/microbiomestat-vs.-other-longitudinal-packages-an-in-depth-comparison)
+- [Exploring Longitudinal Analysis
+  Features](https://www.microbiomestat.wiki/introduction/unveiling-microbiomestat-a-glimpse-into-diverse-microbiome-analysis-solutions/exploring-longitudinal-analysis-features-microbiomestat-among-other-packages)
 
-- [Comparison with Integrated Analysis
-  Packages](https://www.microbiomestat.wiki/introduction/microbiomestat-versus-the-competition-a-comparative-overview/microbiomestat-vs-integrated-analysis-packages-a-feature-comparison)
+- [Exploring Integrated Analysis
+  Features](https://www.microbiomestat.wiki/introduction/unveiling-microbiomestat-a-glimpse-into-diverse-microbiome-analysis-solutions/exploring-feature-offerings-microbiomestat-among-integrated-analysis-packages)
+
+### Acknowledgements
+
+We stand on the shoulders of giants with `MicrobiomeStat`, and our
+heartfelt gratitude goes out to the diligent and brilliant developers of
+the dependencies that our package relies on. Their remarkable efforts
+have not only made our work possible but have also significantly
+elevated the standards of computational tools available to the
+scientific community:
+
+- **Core Dependencies:**
+  - R (\>= 3.5.0), rlang, tibble
+- **Imported Packages:**
+  - ggplot2, matrixStats, parallel, ggrepel, lmerTest, foreach, modeest,
+    vegan, dplyr, pheatmap, tidyr, ggh4x, ape, GUniFrac, scales,
+    stringr, broom
+- **Suggested Packages:**
+  - rmarkdown, knitr, ggprism, aplot, philentropy, forcats, pander,
+    tinytex
+
+Furthermore, we extend our deepest appreciation and respect to the
+trailblazers in the microbiome research community who have created and
+maintained the following remarkable tools. Their pioneering work has
+laid down paths through the complex landscape of microbiome data
+analysis, and we are truly honored to walk alongside:
+
+- **microbiomeutilities**, **phyloseq**, **microbiomemarker**,
+  **MicrobiomeAnalyst**, **microbiomeeco**, **EasyAmplicon**, **STAMP**,
+  **qiime2**, and **MicrobiotaProcess**
+
+Their contributions inspire us to continue improving and expanding the
+capabilities of `MicrobiomeStat`, and we sincerely hope our humble
+addition proves to be a useful complement to the incredible array of
+tools already available to researchers.
 
 ### User Support
 
