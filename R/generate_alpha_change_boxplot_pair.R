@@ -14,15 +14,24 @@
 #' @param alpha.change.func Function or method for calculating change in alpha diversity
 #'   between two timepoints. This allows flexible options to quantify change:
 #'
-#'   - If a function is provided, it will be applied to compare alpha diversity
+#'   - If a function is provided: The function will be applied to compare alpha diversity
 #'     at timepoint t vs baseline t0. The function should take two arguments
-#'     representing the alpha diversity values at t and t0.
+#'     representing the alpha diversity values at t and t0. For instance, a custom function to
+#'     calculate the percentage change might look like:
+#'     \preformatted{
+#'       percentage_change <- function(t, t0) {
+#'         return ((t - t0) / t0) * 100
+#'       }
+#'     }
+#'     You can then pass this function as the value for `alpha.change.func`.
 #'
-#'   - If a string is provided, following options are supported:
-#'     - 'lfc': Calculate log2 fold change of alpha diversity at t vs t0.
-#'     - Otherwise, it will calculate the absolute difference in alpha diversity at t vs t0.
+#'   - If a string is provided, the following options are supported:
+#'     - 'log fold change': Calculates the log2 fold change of alpha diversity at t compared to t0.
+#'     - 'absolute change': Calculates the absolute difference in alpha diversity at t compared to t0.
+#'     - Any other value: A warning will be given that the provided method is not recognized,
+#'       and the default method ('absolute change') will be used.
 #'
-#'   - Default is the absolute difference between t and t0.
+#'   - Default behavior (if no recognized string or function is provided) is to compute the absolute difference between t and t0.
 #' @details This parameter allows flexible quantification of how alpha diversity
 #'   changes from baseline. Log-ratio is commonly used to compare relative
 #'   difference. Absolute difference indicates the magnitude of change.
@@ -60,8 +69,6 @@
 #' \dontrun{
 #' library(vegan)
 #' data(peerj32.obj)
-#'
-#' # Generate a boxplot comparing the change in Shannon diversity index
 #' generate_alpha_change_boxplot_pair(
 #'   data.obj = peerj32.obj,
 #'   alpha.obj = NULL,
@@ -72,7 +79,7 @@
 #'   strata.var = "sex",
 #'   adj.vars = "sex",
 #'   change.base = "1",
-#'   alpha.change.func = "lfc",
+#'   alpha.change.func = "absolute change",
 #'   base.size = 16,
 #'   theme.choice = "bw",
 #'   palette = NULL,
@@ -95,7 +102,7 @@ generate_alpha_change_boxplot_pair <-
            strata.var = NULL,
            adj.vars = NULL,
            change.base = NULL,
-           alpha.change.func = c("lfc"),
+           alpha.change.func = c("log fold change"),
            base.size = 16,
            theme.choice = "bw",
            custom.theme = NULL,
@@ -105,7 +112,6 @@ generate_alpha_change_boxplot_pair <-
            pdf.wid = 11,
            pdf.hei = 8.5,
            ...) {
-
     if (is.null(alpha.obj)) {
       if (!is_rarefied(data.obj)) {
         message(
@@ -114,7 +120,8 @@ generate_alpha_change_boxplot_pair <-
         data.obj <- mStat_rarefy_data(data.obj, depth = depth)
       }
       otu_tab <- data.obj$feature.tab
-      alpha.obj <- mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name)
+      alpha.obj <-
+        mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name)
     }
 
     meta_tab <-
@@ -126,11 +133,15 @@ generate_alpha_change_boxplot_pair <-
     alpha_df <-
       dplyr::bind_cols(alpha.obj) %>% rownames_to_column("sample") %>%
       dplyr::inner_join(meta_tab %>% rownames_to_column("sample"),
-                 by = c("sample"))
+                        by = c("sample"))
 
-    if (is.null(change.base)){
-      change.base <- unique(alpha_df %>% dplyr::select(all_of(c(time.var))))[1,]
-      message("The 'change.base' variable was NULL. It has been set to the first unique value in the 'time.var' column of the 'alpha_df' data frame: ", change.base)
+    if (is.null(change.base)) {
+      change.base <-
+        unique(alpha_df %>% dplyr::select(all_of(c(time.var))))[1, ]
+      message(
+        "The 'change.base' variable was NULL. It has been set to the first unique value in the 'time.var' column of the 'alpha_df' data frame: ",
+        change.base
+      )
     }
 
     change.after <-
@@ -150,31 +161,36 @@ generate_alpha_change_boxplot_pair <-
       )
 
     diff_columns <- lapply(alpha.name, function(index) {
-
       diff_col_name <- paste0(index, "_diff")
 
       if (is.function(alpha.change.func)) {
         combined_alpha <- combined_alpha %>%
           dplyr::mutate(!!diff_col_name := alpha.change.func(!!sym(paste0(
             index, "_time_2"
-          )), !!sym(paste0(
+          )),!!sym(paste0(
             index, "_time_1"
           )))) %>%
           dplyr::select(all_of(diff_col_name))
       } else {
-        if (alpha.change.func == "lfc") {
+        if (alpha.change.func == "log fold change") {
           combined_alpha <- combined_alpha %>%
-            dplyr::mutate(!!sym(diff_col_name) := log(!!sym(paste0(
+            dplyr::mutate(!!sym(diff_col_name) := log2(!!sym(paste0(
               index, "_time_2"
             )) / !!sym(paste0(
               index, "_time_1"
             )))) %>%
             dplyr::select(all_of(c(diff_col_name)))
-        } else {
-          combined_alpha <- combined_alpha %>%
-            dplyr::mutate(!!diff_col_name := !!sym(paste0(index, "_time_2")) -!!sym(paste0(index, "_time_1"))) %>%
-            dplyr::select(all_of(diff_col_name))
-        }
+        } else
+          if (alpha.change.func == "absolute change") {
+            combined_alpha <- combined_alpha %>%
+              dplyr::mutate(!!diff_col_name := !!sym(paste0(index, "_time_2")) -!!sym(paste0(index, "_time_1"))) %>%
+              dplyr::select(all_of(diff_col_name))
+          } else {
+            message(paste("No valid alpha.change.func provided for", index, ". Defaulting to 'absolute change'."))
+            combined_alpha <- combined_alpha %>%
+              dplyr::mutate(!!diff_col_name := !!sym(paste0(index, "_time_2")) -!!sym(paste0(index, "_time_1"))) %>%
+              dplyr::select(all_of(diff_col_name))
+          }
       }
     })
 
@@ -212,7 +228,8 @@ generate_alpha_change_boxplot_pair <-
         combined_alpha %>% dplyr::left_join(alpha_df %>% dplyr::select(all_of(c(
           subject.var, group.var
         )))
-        , by = c(subject.var, group.var)) %>% dplyr::rename(group = group.var)
+        ,
+        by = c(subject.var, group.var)) %>% dplyr::rename(group = group.var)
     }
 
     if (!is.null(strata.var)) {
@@ -223,7 +240,8 @@ generate_alpha_change_boxplot_pair <-
         , by = c(subject.var))
     }
 
-    if (!is.null(adj.vars) && (is.null(strata.var) || strata.var != adj.vars)){
+    if (!is.null(adj.vars) &&
+        (is.null(strata.var) || strata.var != adj.vars)) {
       combined_alpha <-
         combined_alpha %>% dplyr::left_join(alpha_time_1 %>% dplyr::select(all_of(c(
           subject.var, adj.vars
@@ -242,30 +260,32 @@ generate_alpha_change_boxplot_pair <-
 
     theme_to_use <-
       if (!is.null(custom.theme))
-        custom.theme else
+        custom.theme
+    else
       theme_function
 
     ylab_label <- if (is.function(alpha.change.func)) {
-      base_label <- paste0("Change from ", change.base, " (custom function)")
+      base_label <-
+        paste0("Change from ", change.base, " (custom function)")
     } else {
-      base_label <- paste0("Change from ", change.base, " (", alpha.change.func, ")")
+      base_label <-
+        paste0("Change from ", change.base, " (", alpha.change.func, ")")
     }
 
     if (!is.null(adj.vars)) {
       covariates <- paste(adj.vars, collapse = ", ")
-      ylab_label <- paste0(base_label, " (adjusted by: ", covariates, ")")
+      ylab_label <-
+        paste0(base_label, " (adjusted by: ", covariates, ")")
     } else {
       ylab_label <- base_label
     }
 
     plot_list <- lapply(alpha.name, function(index) {
-
       if (!is.null(adj.vars)) {
-
         # 对非数值型协变量进行因子转换
         data_subset <- combined_alpha %>%
           dplyr::select(all_of(adj.vars)) %>%
-          dplyr::mutate(dplyr::across(where(is.character) & !is.factor, factor))
+          dplyr::mutate(dplyr::across(where(~ is.character(.) & !is.factor(.)), factor))
 
         # 创建模型矩阵，并为非数值型协变量设定对比度
         M <- model.matrix(
@@ -278,7 +298,8 @@ generate_alpha_change_boxplot_pair <-
         M_centered <- scale(M, scale = FALSE)
 
         # Fit the regression model
-        fit <- lm(combined_alpha[[paste0(index, "_diff")]] ~ M_centered)
+        fit <-
+          lm(combined_alpha[[paste0(index, "_diff")]] ~ M_centered)
 
         # 计算调整后的alpha多样性值
         adjusted_value <- fit$coefficients[1] + residuals(fit)
@@ -287,8 +308,11 @@ generate_alpha_change_boxplot_pair <-
         combined_alpha[[paste0(index, "_diff")]] <- adjusted_value
 
         # 显示消息，表示已经为特定的协变量调整了alpha多样性
-        message("Alpha diversity Change has been adjusted for the following covariates: ",
-                paste(adj.vars, collapse = ", "), ".")
+        message(
+          "Alpha diversity Change has been adjusted for the following covariates: ",
+          paste(adj.vars, collapse = ", "),
+          "."
+        )
       }
 
       plot <-

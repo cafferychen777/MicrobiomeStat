@@ -35,12 +35,27 @@
 #'                covariates to adjust for in the linear models. Optional, can be
 #'                left NULL if no adjustment is needed.
 #' @param change.base The name of the baseline time point for calculating changes in alpha diversity. If NULL, the first unique time point in the data will be used.
-#' @param alpha.change.func A method for calculating the change in alpha diversity between two time points.
-#' This can either be the string "lfc" or a custom function.
-#' - If "lfc": The change in alpha diversity is computed as the log-fold change. Specifically, the function calculates the natural logarithm of the ratio of the alpha diversity at the second time point to the first.
-#' - If a function: This function should take two numeric arguments representing the alpha diversity values at two distinct time points. It should return a single numeric value indicating the change. For instance, if you want to compute the absolute difference between the two time points, you could provide a function like `function(a, b) {return a - b}`.
-#' It is crucial that the function is set up to handle the order of the time points correctly, as the first argument will always be the later time point, and the second argument will be the earlier one.
+#' @param alpha.change.func Function or method for calculating change in alpha diversity
+#'   between two timepoints. This allows flexible options to quantify change:
 #'
+#'   - If a function is provided: The function will be applied to compare alpha diversity
+#'     at timepoint t vs baseline t0. The function should take two arguments
+#'     representing the alpha diversity values at t and t0. For instance, a custom function to
+#'     calculate the percentage change might look like:
+#'     \preformatted{
+#'       percentage_change <- function(t, t0) {
+#'         return ((t - t0) / t0) * 100
+#'       }
+#'     }
+#'     You can then pass this function as the value for `alpha.change.func`.
+#'
+#'   - If a string is provided, the following options are supported:
+#'     - 'log fold change': Calculates the log2 fold change of alpha diversity at t compared to t0.
+#'     - 'absolute change': Calculates the absolute difference in alpha diversity at t compared to t0.
+#'     - Any other value: A warning will be given that the provided method is not recognized,
+#'       and the default method ('absolute change') will be used.
+#'
+#'   - Default behavior (if no recognized string or function is provided) is to compute the absolute difference between t and t0.
 #' @return A list of tables, one for each alpha diversity metric, summarizing the results of the statistical tests.
 #' Each table contains the following columns: Term (the name of the variable in the model), Estimate (the estimated coefficient),
 #' Std.Error (the standard error of the coefficient), Statistic (the t or F statistic), P.Value (the p-value of the test).
@@ -71,7 +86,8 @@
 #' subject.var = "subject",
 #' group.var = "group",
 #' adj.vars = "sex",
-#' change.base = "1"
+#' change.base = "1",
+#' alpha.change.func = "absolute change"
 #' )
 #' }
 #' @export
@@ -83,9 +99,9 @@ generate_alpha_change_test_pair <-
            time.var,
            subject.var,
            group.var,
-           adj.vars,
+           adj.vars = NULL,
            change.base,
-           alpha.change.func = "lfc") {
+           alpha.change.func = "log fold change") {
 
     if (is.null(alpha.obj)) {
       if (!is_rarefied(data.obj)) {
@@ -131,33 +147,36 @@ generate_alpha_change_test_pair <-
       )
 
     diff_columns <- lapply(alpha.name, function(index) {
-
       diff_col_name <- paste0(index, "_diff")
 
       if (is.function(alpha.change.func)) {
-
         combined_alpha <- combined_alpha %>%
           dplyr::mutate(!!diff_col_name := alpha.change.func(!!sym(paste0(
             index, "_time_2"
-          )), !!sym(paste0(
+          )),!!sym(paste0(
             index, "_time_1"
           )))) %>%
           dplyr::select(all_of(diff_col_name))
       } else {
-
-        if (alpha.change.func == "lfc") {
+        if (alpha.change.func == "log fold change") {
           combined_alpha <- combined_alpha %>%
-            dplyr::mutate(!!diff_col_name := log(!!sym(paste0(
+            dplyr::mutate(!!sym(diff_col_name) := log2(!!sym(paste0(
               index, "_time_2"
             )) / !!sym(paste0(
               index, "_time_1"
             )))) %>%
-            dplyr::select(all_of(diff_col_name))
-        } else {
-          combined_alpha <- combined_alpha %>%
-            dplyr::mutate(!!diff_col_name := !!sym(paste0(index, "_time_2")) -!!sym(paste0(index, "_time_1"))) %>%
-            dplyr::select(all_of(diff_col_name))
-        }
+            dplyr::select(all_of(c(diff_col_name)))
+        } else
+          if (alpha.change.func == "absolute change") {
+            combined_alpha <- combined_alpha %>%
+              dplyr::mutate(!!diff_col_name := !!sym(paste0(index, "_time_2")) -!!sym(paste0(index, "_time_1"))) %>%
+              dplyr::select(all_of(diff_col_name))
+          } else {
+            message(paste("No valid alpha.change.func provided for", index, ". Defaulting to 'absolute change'."))
+            combined_alpha <- combined_alpha %>%
+              dplyr::mutate(!!diff_col_name := !!sym(paste0(index, "_time_2")) -!!sym(paste0(index, "_time_1"))) %>%
+              dplyr::select(all_of(diff_col_name))
+          }
       }
     })
 
