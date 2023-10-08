@@ -26,8 +26,8 @@
 #'    volcano_plots <- generate_taxa_volcano_single(data.obj = peerj32.obj,
 #'                                                  group.var = "group",
 #'                                                  test.list = test.list,
-#'                                                  feature.sig.level = 0.05,
-#'                                                  feature.mt.method = "fdr")
+#'                                                  feature.sig.level = 0.1,
+#'                                                  feature.mt.method = "none")
 #'
 #' @importFrom dplyr distinct pull
 #' @export
