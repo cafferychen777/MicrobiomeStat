@@ -550,9 +550,9 @@ if (is.function(feature.change.func)) {
 } else if (feature.change.func == 'relative change') {
   cat('The changes were relative changes, which were computed as (after.abund - before.abund) / (after.abund + before.abund) so the values lie between [-1, 1].')
 } else if (feature.change.func == 'absolute change') {
-  cat('The changes were computed as after.abund - before.abund.')
+  cat('The changes were absolute changes, computed as the difference between after.abund and before.abund.')
 } else if (feature.change.func == 'log fold change') {
-  cat('The changes were computed as log2(after.abund / before.abund), with a small constant added to avoid taking log of zero.')
+  cat('The changes were log2 fold changes, computed as the logarithm of the ratio of after.abund to before.abund, with a small constant added to avoid taking the log of zero.')
 }
 
 
@@ -601,13 +601,13 @@ taxa_change_dotplot_results <- generate_taxa_change_dotplot_pair(
 
 ```{r taxa-change-dotplot-pair-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 25, fig.height = 20}
 if (is.function(feature.change.func)) {
-  cat('The changes from change.base were computed using a custom function provided by the user.')
+  cat('The changes were computed using a custom function provided by the user.')
 } else if (feature.change.func == 'relative change') {
-  cat('The changes from change.base were computed as the difference between the change.after value and change.base divided by the sum of the two.')
+  cat('The changes were relative changes, which were computed as (after.abund - before.abund) / (after.abund + before.abund) so the values lie between [-1, 1].')
 } else if (feature.change.func == 'absolute change') {
-  cat('The changes from change.base were computed as the difference between the change.after value and change.base.')
+  cat('The changes were absolute changes, computed as the difference between after.abund and before.abund.')
 } else if (feature.change.func == 'log fold change') {
-  cat('The changes from change.base were computed as the log2 difference between the change.after value and change.base, with a small constant added to avoid taking log of zero.')
+  cat('The changes were log2 fold changes, computed as the logarithm of the ratio of after.abund to before.abund, with a small constant added to avoid taking the log of zero.')
 }
 
 cat(' The following plots display the average change for each group, and stratum. \n\n')
@@ -1102,12 +1102,12 @@ for(index_name in names(beta_change_test_results)) {
 ```{r Check-and-Select-Rarefaction2, echo=FALSE, message=FALSE, results='asis'}
 
 if (feature.analysis.rarafy) {
-    cat('Rarefaction has been enabled for feature-level analysis.\n\n',
-        'Reason: The observed abundance of rare/low-abundance features can be strongly influenced by sequence depth. ',
-        'Rarefaction is an effective method to control the effect of sequence depth variation. ',
-        'By employing rarefaction, we can potentially increase the power of detecting those rare/low-abundance features, ',
+    cat('Rarefaction has been enabled for feature-level analysis and visualization.\n\n',
+        'Reason: The observed abundance of rare/low-abundance features can be strongly influenced by the sequencing depth. ',
+        'Rarefaction is an effective method to control the effect of sequencing depth variation. ',
+        'By employing rarefaction, presence/absence status of the features are more comparable and we can potentially increase the power of detecting those rare/low-abundance features, ',
         'even though it introduces some variation due to under-sampling.\n',
-        'In essence, this step helps to ensure more accurate and consistent results across samples with varying sequence depths.\n\n',
+        'In essence, this step improves comparability across samples across samples with varying sequencing depth.\n\n',
         'If you do not wish to perform rarefaction during feature-level analysis, please turn feature.analysis.rarafy to FALSE.\n')
 
     data.obj <- rarefy.data.obj
@@ -1239,13 +1239,13 @@ if(num_levels > 2) {
 }
 
 if (is.function(feature.change.func)) {
-  cat('The changes from change.base were computed using a custom function provided by the user.\n\n')
+  cat('The changes were computed using a custom function provided by the user.')
 } else if (feature.change.func == 'relative change') {
-  cat('The changes from change.base were computed as the difference between the current value and t0.level divided by the sum of the two.\n\n')
+  cat('The changes were relative changes, which were computed as (after.abund - before.abund) / (after.abund + before.abund) so the values lie between [-1, 1].')
 } else if (feature.change.func == 'absolute change') {
-  cat('The changes from change.base were computed as the difference between the current value and t0.level.\n\n')
+  cat('The changes were absolute changes, computed as the difference between after.abund and before.abund.')
 } else if (feature.change.func == 'log fold change') {
-  cat('The changes from change.base were computed as the log2 difference between the current value and t0.level, with a small constant added to avoid taking log of zero.\n\n')
+  cat('The changes were log2 fold changes, computed as the logarithm of the ratio of after.abund to before.abund, with a small constant added to avoid taking the log of zero.')
 }
 
 # Iterate over each taxonomic rank in taxa_change_test_results

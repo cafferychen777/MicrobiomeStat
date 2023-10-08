@@ -37,8 +37,8 @@
 #'   The function should take 2 arguments: value at timepoint t and value at baseline t0.
 #' - If a character string is provided, following options are supported:
 #'   - 'relative change': (value_t - value_t0) / (value_t + value_t0)
-#'   - 'difference': value_t - value_t0
-#'   - 'lfc': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
+#'   - 'absolute change': value_t - value_t0
+#'   - 'log fold change': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
 #' - Default is 'relative change'.
 #'
 #' If none of the above options are matched, an error will be thrown indicating
@@ -397,22 +397,22 @@ if (is.null(dist.obj)){
 
 if (is.null(pc.obj)){
   pc.obj <- mStat_calculate_PC(dist.obj = dist.obj, dist.name = dist.name)
-  cat('pc.obj is calculated based on the dist.obj.\n')
+  cat('pc.obj is calculated based on the dist.obj using multi-dimensional scaling.\n')
 }
 
 ```
 
-## 1.3 Data visualization(overall)
+## 1.3 Data visualization (overall)
 
 ```{r Check-and-Select-Rarefaction1, echo=FALSE, message=FALSE, results='asis'}
 
 if (feature.analysis.rarafy) {
-    cat('Rarefaction has been enabled for feature-level analysis.\n\n',
-        'Reason: The observed abundance of rare/low-abundance features can be strongly influenced by sequence depth. ',
-        'Rarefaction is an effective method to control the effect of sequence depth variation. ',
-        'By employing rarefaction, we can potentially increase the power of detecting those rare/low-abundance features, ',
+    cat('Rarefaction has been enabled for feature-level analysis and visualization.\n\n',
+        'Reason: The observed abundance of rare/low-abundance features can be strongly influenced by the sequencing depth. ',
+        'Rarefaction is an effective method to control the effect of sequencing depth variation. ',
+        'By employing rarefaction, presence/absence status of the features are more comparable and we can potentially increase the power of detecting those rare/low-abundance features, ',
         'even though it introduces some variation due to under-sampling.\n',
-        'In essence, this step helps to ensure more accurate and consistent results across samples with varying sequence depths.\n\n',
+        'In essence, this step improves comparability across samples across samples with varying sequencing depth.\n\n',
         'If you do not wish to perform rarefaction during feature-level analysis, please turn feature.analysis.rarafy to FALSE.\n')
 
     data.obj <- rarefy.data.obj
@@ -531,11 +531,11 @@ taxa_change_heatmap_long_results <- generate_taxa_change_heatmap_long(
 if (is.function(feature.change.func)) {
   cat('The changes from t0.level were computed using a custom function provided by the user.')
 } else if (feature.change.func == 'relative change') {
-  cat('The changes from t0.level were computed as the difference between the current value and t0.level divided by the sum of the two.')
-} else if (feature.change.func == 'difference') {
-  cat('The changes from t0.level were computed as the difference between the current value and t0.level.')
-} else if (feature.change.func == 'lfc') {
-  cat('The changes from t0.level were computed as the log2 difference between the current value and t0.level, with a small constant added to avoid taking log of zero.')
+  cat('The changes from t0.level were relative changes, computed as the difference between the current value and t0.level divided by the sum of the two.')
+} else if (feature.change.func == 'absolute change') {
+  cat('The changes from t0.level were absolute changes, computed as the difference between the current value and t0.level.')
+} else if (feature.change.func == 'log fold change') {
+  cat('The changes from t0.level were log2 fold changes, computed as the logarithm of the ratio of the current value to t0.level, with a small constant added to avoid taking the log of zero.')
 }
 
 cat('The following plots display the average changes for each time point, group, and stratum. \n\n')
@@ -1096,12 +1096,12 @@ for(index_name in names(beta_volatility_test_longitudinal_results)) {
 ```{r Check-and-Select-Rarefaction2, echo=FALSE, message=FALSE, results='asis'}
 
 if (feature.analysis.rarafy) {
-    cat('Rarefaction has been enabled for feature-level analysis.\n\n',
-        'Reason: The observed abundance of rare/low-abundance features can be strongly influenced by sequence depth. ',
-        'Rarefaction is an effective method to control the effect of sequence depth variation. ',
-        'By employing rarefaction, we can potentially increase the power of detecting those rare/low-abundance features, ',
+    cat('Rarefaction has been enabled for feature-level analysis and visualization.\n\n',
+        'Reason: The observed abundance of rare/low-abundance features can be strongly influenced by the sequencing depth. ',
+        'Rarefaction is an effective method to control the effect of sequencing depth variation. ',
+        'By employing rarefaction, presence/absence status of the features are more comparable and we can potentially increase the power of detecting those rare/low-abundance features, ',
         'even though it introduces some variation due to under-sampling.\n',
-        'In essence, this step helps to ensure more accurate and consistent results across samples with varying sequence depths.\n\n',
+        'In essence, this step improves comparability across samples across samples with varying sequencing depth.\n\n',
         'If you do not wish to perform rarefaction during feature-level analysis, please turn feature.analysis.rarafy to FALSE.\n')
 
     data.obj <- rarefy.data.obj
@@ -1330,7 +1330,7 @@ combined_significant_taxa <- unique(c(significant_vars_trend, significant_vars_v
 
 ```
 
-## 4.3 Data visualization(significant features)
+## 4.3 Data visualization (significant features)
 
 ### 4.3.1 Significant features boxplot
 
