@@ -10,12 +10,18 @@
 #' @param group.var A character string specifying the grouping variable in the metadata. Default is NULL.
 #' @param strata.var A character string specifying the stratification variable in the metadata. Default is NULL.
 #' @param change.base A numeric value specifying the baseline time point for computing change. This should match one of the time points in the time variable. Default is 1, which assumes the first time point is the baseline.
-#' @param feature.change.func A function or character string specifying the method for computing change between time points. Options are:
-#' - "difference": Compute simple difference of abundances between time points.
-#' - "lfc": Compute log2 fold change between time points.
-#' - "relative change": Compute relative change of abundances between time points.
-#' - "custom function": Apply a custom function to compute change. The custom function should take two arguments value_time_2 and value_time_1.
-#' Default is "difference".
+#' @param feature.change.func Specifies the method or function to compute the change between two time points.
+#' The following options are available:
+#'
+#' - A custom function: If you provide a user-defined function, it should take two numeric arguments corresponding to the values at the two time points (`value_time_1` and `value_time_2`) and return the computed change. This custom function will be applied directly.
+#'
+#' - "log fold change": Computes the log2 fold change between the two time points. For zero values, imputation is performed using half of the minimum nonzero value for each feature level at the respective time point before taking the logarithm.
+#'
+#' - "relative change": Computes the relative change as `(value_time_2 - value_time_1) / (value_time_2 + value_time_1)`. If both time points have a value of 0, the change is defined as 0.
+#'
+#' - "absolute change": Computes the difference between the values at the two time points.
+#'
+#' - Any other value (or if the parameter is omitted): By default, the function computes the absolute change as described above.
 #' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
 #' to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
 #' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
@@ -230,11 +236,10 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
         suffix = c("_time_1", "_time_2")
       )
 
-    # 计算value的差值
     if (is.function(feature.change.func)) {
       combined_data <-
         combined_data %>% dplyr::mutate(value_diff = feature.change.func(value_time_2, value_time_1))
-    } else if (feature.change.func == "lfc") {
+    } else if (feature.change.func == "log fold change") {
       half_nonzero_min_time_2 <- combined_data %>%
         filter(value_time_2 > 0) %>%
         dplyr::group_by(!!sym(feature.level)) %>%
@@ -278,6 +283,9 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
           value_time_2 == 0 & value_time_1 == 0 ~ 0,
           TRUE ~ (value_time_2 - value_time_1) / (value_time_2 + value_time_1)
         ))
+    } else if (feature.change.func == "absolute change"){
+      combined_data <-
+        combined_data %>% dplyr::mutate(value_diff = value_time_2 - value_time_1)
     } else {
       combined_data <-
         combined_data %>% dplyr::mutate(value_diff = value_time_2 - value_time_1)

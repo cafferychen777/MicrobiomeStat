@@ -10,11 +10,16 @@
 #' @param group.var Character string specifying the grouping variable in metadata. Default NULL.
 #' @param strata.var Character string specifying the stratification variable in metadata. Default NULL.
 #' @param change.base Character string specifying the baseline time point. This should match one of the time points present in the metadata for the 'time.var' variable. The change will be calculated by comparing the other time points to this baseline time point.
-#' @param feature.change.func Function or character string specifying method to compute change between time points. Options are:
-#' - 'difference' (default): Computes absolute difference in counts between time points.
-#' - 'relative change': Computes relative change in counts between time points, calculated as (count_time2 - count_time1) / (count_time2 + count_time1).
-#' - 'lfc': Computes log2 fold change between time points. Zero counts are imputed with half the minimum nonzero value before log transform.
-#' - Custom function: A user-defined function can also be provided, which should take two vectors of counts (at time 1 and time 2) as input and return the computed change.
+#' @param feature.change.func Specifies the method or function used to compute the change between two time points.
+#' The following options are supported:
+#'
+#' - "absolute change": Computes the difference between the counts at the two time points (`count_ts` and `count_t0`). This is the default behavior if no value or an unrecognized value is provided.
+#'
+#' - "log fold change": Computes the log2 fold change between the two time points. For zero counts, imputation is performed using half of the minimum nonzero count for each taxa level at the respective time point before taking the logarithm.
+#'
+#' - "relative change": Computes the relative change as `(count_ts - count_t0) / (count_ts + count_t0)`. If both time points have a count of 0, the change is defined as 0.
+#'
+#' - A custom function: If a user-defined function is provided, it should take two numeric vectors as input corresponding to the counts at the two time points (`count_t0` and `count_ts`) and return a numeric vector of the computed change. This custom function will be applied directly to calculate the new counts.
 #' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
 #' to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
 #' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
@@ -86,7 +91,7 @@
 #'   group.var = "cons",
 #'   strata.var = "sex",
 #'   change.base = "1",
-#'   feature.change.func = "lfc",
+#'   feature.change.func = "log fold change",
 #'   feature.level = "Genus",
 #'   feature.dat.type = "other",
 #'   features.plot = NULL,
@@ -112,7 +117,7 @@ generate_taxa_change_scatterplot_pair <-
            group.var = NULL,
            strata.var = NULL,
            change.base = NULL,
-           feature.change.func = "difference",
+           feature.change.func = "absolute change",
            feature.level = NULL,
            feature.dat.type = c("count", "proportion", "other"),
            features.plot = NULL,
@@ -261,9 +266,7 @@ generate_taxa_change_scatterplot_pair <-
       # 最后，计算新的count值
       if (is.function(feature.change.func)) {
         df <- df %>% dplyr::mutate(new_count = feature.change.func(count_ts, count_t0))
-      } else if (feature.change.func == "lfc") {
-        # 对于对数折叠变化("lfc")，我们需要插补数据
-        # 首先，为每个分类计算非零最小值的一半
+      } else if (feature.change.func == "log fold change") {
         half_nonzero_min_time_2 <- df %>%
           filter(count_ts > 0) %>%
           dplyr::group_by(!!sym(feature.level)) %>%
@@ -275,7 +278,6 @@ generate_taxa_change_scatterplot_pair <-
           dplyr::summarize(half_nonzero_min = min(count_t0) / 2,
                     .groups = "drop")
 
-        # 然后，用这些值来插补数据
         df <- dplyr::left_join(df, half_nonzero_min_time_2, by = feature.level, suffix = c("_t0", "_ts"))
         df <- dplyr::left_join(df, half_nonzero_min_time_1, by = feature.level, suffix = c("_t0", "_ts"))
         df$count_ts[df$count_ts == 0] <- df$half_nonzero_min_ts[df$count_ts == 0]
@@ -291,6 +293,8 @@ generate_taxa_change_scatterplot_pair <-
             count_ts == 0 & count_t0 == 0 ~ 0,
             TRUE ~ (count_ts - count_t0) / (count_ts + count_t0)
           ))
+      } else if (feature.change.func == "absolute change"){
+        df <- df %>% dplyr::mutate(new_count = count_ts - count_t0)
       } else {
         df <- df %>% dplyr::mutate(new_count = count_ts - count_t0)
       }

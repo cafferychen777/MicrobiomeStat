@@ -18,8 +18,8 @@
 #'   The function should take 2 arguments: value at timepoint t and value at baseline t0.
 #' - If a character string is provided, following options are supported:
 #'   - 'relative change': (value_t - value_t0) / (value_t + value_t0)
-#'   - 'difference': value_t - value_t0
-#'   - 'lfc': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
+#'   - 'absolute change': value_t - value_t0
+#'   - 'log fold change': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
 #' - Default is 'relative change'.
 #'
 #' If none of the above options are matched, an error will be thrown indicating
@@ -80,7 +80,7 @@
 #'   group.var = "antiexposedall",
 #'   strata.var = "diet",
 #'   feature.level = c("Family","Class"),
-#'   feature.change.func = "lfc",
+#'   feature.change.func = "log fold change",
 #'   feature.dat.type = "proportion",
 #'   features.plot = NULL,
 #'   top.k.plot = 10,
@@ -101,7 +101,7 @@
 #'   group.var = "subject_gender",
 #'   strata.var = "subject_race",
 #'   feature.level = c("Phylum"),
-#'   feature.change.func = "lfc",
+#'   feature.change.func = "log fold change",
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
 #'   top.k.plot = 50,
@@ -295,17 +295,17 @@ generate_taxa_change_heatmap_long <- function(data.obj,
             (.data[[as.character(ts)]] + .data[[as.character(t0.level)]]) != 0 ~ (.data[[as.character(ts)]] - .data[[as.character(t0.level)]]) / (.data[[as.character(ts)]] + .data[[as.character(t0.level)]]),
             TRUE ~ 0
           ))
-      } else if (feature.change.func == "difference") {
+      } else if (feature.change.func == "absolute change") {
         df_wide <- df_wide %>%
           dplyr::rowwise() %>%
           dplyr::mutate(!!sym(change_col_name) := (.data[[as.character(ts)]] - .data[[as.character(t0.level)]]))
-      } else if (feature.change.func == "lfc") {
+      } else if (feature.change.func == "log fold change") {
         df_wide <- df_wide %>%
           dplyr::rowwise() %>%
           dplyr::mutate(!!sym(change_col_name) := log2(.data[[as.character(ts)]] + 0.00001) - log2(.data[[as.character(t0.level)]] + 0.00001))
       } else {
         stop(
-          "`feature.change.func` must be either 'relative change', 'difference', 'lfc' or a function."
+          "`feature.change.func` must be either 'relative change', 'absolute change', 'log fold change' or a function."
         )
       }
     }

@@ -9,11 +9,16 @@
 #' @param group.var Optional string specifying the variable for groups.
 #' @param strata.var Optional string specifying the variable for strata.
 #' @param change.base A string indicating the base time point for change computation. This should match one of the time points present in the metadata for the 'time.var' variable.
-#' @param feature.change.func A string or function to compute the change in abundance between two time points. If a string, options are:
-#' - 'difference': Computes absolute difference in abundance
-#' - 'relative change': Computes relative change in abundance, calculated as (abundance_time2 - abundance_time1) / (abundance_time2 + abundance_time1)
-#' - 'lfc': Computes log2 fold change. Zero abundances are imputed before log transform.
-#' If a function, it should take two numeric vectors of abundances at time 1 and time 2 and return a numeric vector of computed changes.
+#' @param feature.change.func Specifies the method or function used to compute the change between two time points.
+#' The following options are available:
+#'
+#' - "absolute change": Computes the difference between the abundance values at the two time points (`value_time_2` and `value_time_1`).
+#'
+#' - "log fold change": Computes the log2 fold change between the two time points. For zero abundances, imputation is performed using half of the minimum nonzero value for each feature level at the respective time point before taking the logarithm.
+#'
+#' - "relative change": Computes the relative change as `(value_time_2 - value_time_1) / (value_time_2 + value_time_1)`. If both time points have an abundance of 0, the change is defined as 0.
+#'
+#' - A custom function: If a user-defined function is provided, it should take two numeric vectors as input corresponding to the abundances at the two time points (`value_time_1` and `value_time_2`) and return a numeric vector of the computed change. This custom function will be applied directly.
 #' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
 #' to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
 #' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
@@ -88,7 +93,7 @@
 #'   group.var = "group",
 #'   strata.var = "sex",
 #'   change.base = "1",
-#'   feature.change.func = "lfc",
+#'   feature.change.func = "log fold change",
 #'   feature.level = c("Family"),
 #'   features.plot = NULL,
 #'   feature.dat.type = "count",
@@ -304,7 +309,7 @@ generate_taxa_indiv_change_boxplot_pair <-
       # 计算value的差值
       if (is.function(feature.change.func)) {
         combined_data <- combined_data %>% dplyr::mutate(value_diff = feature.change.func(value_time_2, value_time_1))
-      } else if (feature.change.func == "lfc") {
+      } else if (feature.change.func == "log fold change") {
         half_nonzero_min_time_2 <- combined_data %>%
           filter(value_time_2 > 0) %>%
           dplyr::group_by(!!sym(feature.level)) %>%
@@ -331,6 +336,8 @@ generate_taxa_indiv_change_boxplot_pair <-
             value_time_2 == 0 & value_time_1 == 0 ~ 0,
             TRUE ~ (value_time_2 - value_time_1) / (value_time_2 + value_time_1)
           ))
+      } else if (feature.change.func == "absolute change"){
+        combined_data <- combined_data %>% dplyr::mutate(value_diff = value_time_2 - value_time_1)
       } else {
         combined_data <- combined_data %>% dplyr::mutate(value_diff = value_time_2 - value_time_1)
       }

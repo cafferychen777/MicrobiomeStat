@@ -10,13 +10,15 @@
 #' @param group.var A character string specifying the group variable. Default is NULL.
 #' @param strata.var A character string specifying the strata variable. Default is NULL.
 #' @param change.base The time point value to be used as the baseline for calculating change in abundance between time points. Should be one of the values from `time.var`. The change will be calculated as the difference between this baseline time point and the subsequent time point.
-#' @param feature.change.func The function used to calculate change in abundance between time points.
-#' This can be one of "relative change", "lfc" (log2 fold change),
-#' or a custom function. For custom functions, the function should take two numeric vectors
-#' as input (abundances at time 1 and time 2) and return a numeric vector of differences.
-#' The function should handle zero values appropriately. For "lfc", zero values
-#' are imputed as half the minimum nonzero value before taking the logarithm.
-#' Default is "relative change".
+#' @param feature.change.func The method or function used to calculate the change in feature abundance between time points.
+#' The following options are supported:
+#'
+#' - "relative change": Computes the relative change as (time_2 - time_1) / (time_2 + time_1). If both values are zero, the result is zero.
+#' - "log fold change": Computes the log2 fold change between time points. Zero values are imputed as half the minimum nonzero value of the respective feature at the given time point before taking the logarithm.
+#' - "absolute change": Computes the absolute difference between time points.
+#' - A custom function: The provided function should take two numeric vectors as input (values at time 1 and time 2) and return a numeric vector of differences. Users should ensure that their function handles zero values appropriately.
+#'
+#' If an unrecognized value or no value is provided for `feature.change.func`, the default behavior will be to compute the absolute difference between time points.
 #' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
 #' to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
 #' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
@@ -87,7 +89,7 @@
 #'   group.var = "group",
 #'   strata.var = NULL,
 #'   change.base = "1",
-#'   feature.change.func = "lfc",
+#'   feature.change.func = "relative change",
 #'   feature.level = "original",
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
@@ -185,7 +187,6 @@ generate_taxa_change_boxplot_pair <-
       col <- palette
     }
 
-    # 提前判断feature.change.func的类型，如果是自定义函数则给出特定的标签，否则保持原样
     ylab_label <- if (feature.dat.type != "other") {
       if (is.function(feature.change.func)) {
         paste0("Change in Relative Abundance", " (custom function)")
@@ -306,7 +307,7 @@ generate_taxa_change_boxplot_pair <-
       if (is.function(feature.change.func)) {
         combined_data <-
           combined_data %>% dplyr::mutate(value_diff = feature.change.func(value_time_2, value_time_1))
-      } else if (feature.change.func == "lfc") {
+      } else if (feature.change.func == "log fold change") {
         half_nonzero_min_time_2 <- combined_data %>%
           filter(value_time_2 > 0) %>%
           dplyr::group_by(!!sym(feature.level)) %>%
@@ -353,6 +354,9 @@ generate_taxa_change_boxplot_pair <-
             value_time_2 == 0 & value_time_1 == 0 ~ 0,
             TRUE ~ (value_time_2 - value_time_1) / (value_time_2 + value_time_1)
           ))
+      } else if (feature.change.func == "absolute change"){
+        combined_data <-
+          combined_data %>% dplyr::mutate(value_diff = value_time_2 - value_time_1)
       } else {
         combined_data <-
           combined_data %>% dplyr::mutate(value_diff = value_time_2 - value_time_1)

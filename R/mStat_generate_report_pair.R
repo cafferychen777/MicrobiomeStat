@@ -17,15 +17,24 @@
 #' @param alpha.change.func Function or method for calculating change in alpha diversity
 #'   between two timepoints. This allows flexible options to quantify change:
 #'
-#'   - If a function is provided, it will be applied to compare alpha diversity
+#'   - If a function is provided: The function will be applied to compare alpha diversity
 #'     at timepoint t vs baseline t0. The function should take two arguments
-#'     representing the alpha diversity values at t and t0.
+#'     representing the alpha diversity values at t and t0. For instance, a custom function to
+#'     calculate the percentage change might look like:
+#'     \preformatted{
+#'       percentage_change <- function(t, t0) {
+#'         return ((t - t0) / t0) * 100
+#'       }
+#'     }
+#'     You can then pass this function as the value for `alpha.change.func`.
 #'
-#'   - If a string is provided, following options are supported:
-#'     - 'lfc': Calculate log2 fold change of alpha diversity at t vs t0.
-#'     - Otherwise, it will calculate the absolute difference in alpha diversity at t vs t0.
+#'   - If a string is provided, the following options are supported:
+#'     - 'log fold change': Calculates the log2 fold change of alpha diversity at t compared to t0.
+#'     - 'absolute change': Calculates the absolute difference in alpha diversity at t compared to t0.
+#'     - Any other value: A warning will be given that the provided method is not recognized,
+#'       and the default method ('absolute change') will be used.
 #'
-#'   - Default is the absolute difference between t and t0.
+#'   - Default behavior (if no recognized string or function is provided) is to compute the absolute difference between t and t0.
 #' @param depth An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.
 #' @param dist.obj Distance matrix between samples, usually calculated using
 #' \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
@@ -49,8 +58,8 @@
 #'   The function should take 2 arguments: value at timepoint t and value at baseline t0.
 #' - If a character string is provided, following options are supported:
 #'   - 'relative change': (value_t - value_t0) / (value_t + value_t0)
-#'   - 'difference': value_t - value_t0
-#'   - 'lfc': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
+#'   - 'absolute change': value_t - value_t0
+#'   - 'log fold change': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
 #' - Default is 'relative change'.
 #'
 #' If none of the above options are matched, an error will be thrown indicating
@@ -187,7 +196,7 @@ mStat_generate_report_pair <- function(data.obj,
                                        change.base,
                                        alpha.obj = NULL,
                                        alpha.name = c("shannon", "observed_species"),
-                                       alpha.change.func = "lfc",
+                                       alpha.change.func = "log fold change",
                                        depth = NULL,
                                        dist.obj = NULL,
                                        dist.name = c('BC', 'Jaccard'),
@@ -201,7 +210,7 @@ mStat_generate_report_pair <- function(data.obj,
                                        test.feature.level,
                                        feature.dat.type = c("count", "proportion", "other"),
                                        feature.analysis.rarafy = TRUE,
-                                       feature.change.func = "lfc",
+                                       feature.change.func = "log fold change",
                                        feature.mt.method = c("fdr"),
                                        feature.sig.level = 0.1,
                                        feature.box.axis.transform = c("identity"),
@@ -540,9 +549,9 @@ if (is.function(feature.change.func)) {
   cat('The changes were computed using a custom function provided by the user.')
 } else if (feature.change.func == 'relative change') {
   cat('The changes were relative changes, which were computed as (after.abund - before.abund) / (after.abund + before.abund) so the values lie between [-1, 1].')
-} else if (feature.change.func == 'difference') {
+} else if (feature.change.func == 'absolute change') {
   cat('The changes were computed as after.abund - before.abund.')
-} else if (feature.change.func == 'lfc') {
+} else if (feature.change.func == 'log fold change') {
   cat('The changes were computed as log2(after.abund / before.abund), with a small constant added to avoid taking log of zero.')
 }
 
@@ -595,9 +604,9 @@ if (is.function(feature.change.func)) {
   cat('The changes from change.base were computed using a custom function provided by the user.')
 } else if (feature.change.func == 'relative change') {
   cat('The changes from change.base were computed as the difference between the change.after value and change.base divided by the sum of the two.')
-} else if (feature.change.func == 'difference') {
+} else if (feature.change.func == 'absolute change') {
   cat('The changes from change.base were computed as the difference between the change.after value and change.base.')
-} else if (feature.change.func == 'lfc') {
+} else if (feature.change.func == 'log fold change') {
   cat('The changes from change.base were computed as the log2 difference between the change.after value and change.base, with a small constant added to avoid taking log of zero.')
 }
 
@@ -661,7 +670,7 @@ alpha_change_boxplot_results <- generate_alpha_change_boxplot_pair(
 ```{r alpha-diversity-change-boxplot-print, message=FALSE, fig.align='center', results='asis', echo = FALSE, fig.width=8, fig.height=3}
 if (is.function(alpha.change.func)) {
   cat('The changes from change.base were computed using a custom function provided by the user.\n\n')
-} else if (alpha.change.func == 'lfc') {
+} else if (alpha.change.func == 'log fold change') {
   cat('The changes from change.base were computed as the log2 fold change of alpha diversity at the current timepoint versus change.base.\n\n')
 } else {
   cat('The changes from change.base were computed as the absolute difference in alpha diversity at the current timepoint versus change.base.\n\n')
@@ -828,7 +837,7 @@ if(num_levels > 2) {
 if (is.function(alpha.change.func)) {
     cat('The alpha diversity change is calculated using a custom function supplied by the user to compute the rate of change between consecutive time points.\n\n')
 } else {
-    if (alpha.change.func == 'lfc') {
+    if (alpha.change.func == 'log fold change') {
         cat('The alpha diversity change is calculated by taking the logarithm of the fold change between consecutive time points.\n\n')
     } else {
         cat('The alpha diversity change is calculated by computing the direct difference in alpha diversity between consecutive time points.\n\n')
@@ -1001,7 +1010,7 @@ pc_change_boxplot_pairs <- generate_beta_pc_change_boxplot_pair(
   group.var = group.var,
   strata.var = strata.var,
   change.base = change.base,
-  change.func = 'difference',
+  change.func = 'absolute change',
   dist.name = dist.name,
   base.size = base.size,
   theme.choice = theme.choice,
@@ -1233,9 +1242,9 @@ if (is.function(feature.change.func)) {
   cat('The changes from change.base were computed using a custom function provided by the user.\n\n')
 } else if (feature.change.func == 'relative change') {
   cat('The changes from change.base were computed as the difference between the current value and t0.level divided by the sum of the two.\n\n')
-} else if (feature.change.func == 'difference') {
+} else if (feature.change.func == 'absolute change') {
   cat('The changes from change.base were computed as the difference between the current value and t0.level.\n\n')
-} else if (feature.change.func == 'lfc') {
+} else if (feature.change.func == 'log fold change') {
   cat('The changes from change.base were computed as the log2 difference between the current value and t0.level, with a small constant added to avoid taking log of zero.\n\n')
 }
 

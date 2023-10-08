@@ -10,13 +10,18 @@
 #' @param group.var A character string defining group variable in meta_tab used for sorting and facetting
 #' @param strata.var (Optional) A character string defining strata variable in meta_tab used for sorting and facetting
 #' @param change.base A numeric value setting base for the change (usually 1)
-#' @param feature.change.func A function or character string specifying the method for computing the change in abundance between two time points.
-#' This can be one of the following:
-#'   - A user-defined function: The function should take two arguments corresponding to the abundances at the two time points and return the computed change.
-#'   - "lfc": Computes the log2 fold-change between `time2_mean_abundance` and `time1_mean_abundance`.
-#'   - "relative change": Computes the relative change as `(time2 - time1) / (time2 + time1)`. If both time points have an abundance of 0, the change is defined as 0.
-#'   - Any other value: Computes the difference as `time2_mean_abundance - time1_mean_abundance`.
-#' Default is "difference".
+#' @param feature.change.func A method or function specifying how to compute the change in feature abundance or prevalence between two time points.
+#' The following options are available:
+#'
+#' - A custom function: If you provide a user-defined function, it should take two numeric arguments corresponding to the values at the two time points and return the computed change. This function can be applied to compute changes both in abundance (`time1_mean_abundance` and `time2_mean_abundance`) and prevalence (`time1_prevalence` and `time2_prevalence`).
+#'
+#' - "log fold change": Computes the log2 fold change between the two time points. To handle zeros, a small offset (0.00001) is added before taking the logarithm. This method can be applied for both abundance and prevalence changes.
+#'
+#' - "relative change": Computes the relative change as `(time2_value - time1_value) / (time2_value + time1_value)`. If both time points have a value of 0, the change is defined as 0. This method can be applied for both abundance and prevalence changes.
+#'
+#' - "absolute change": Computes the difference between the values at the two time points. This method can be applied for both abundance and prevalence changes.
+#'
+#' - Any other value (or if the parameter is omitted): By default, the function will compute the absolute change as described above, regardless of whether it is abundance or prevalence data.
 #' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
 #' to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
 #' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
@@ -82,10 +87,10 @@
 #'   subject.var = "subject",
 #'   time.var = "time",
 #'   group.var = "group",
-#'   strata.var = NULL,
+#'   strata.var = "sex",
 #'   change.base = "1",
-#'   feature.change.func = "lfc",
-#'   feature.level = "Genus",
+#'   feature.change.func = "log fold change",
+#'   feature.level = "Family",
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
 #'   top.k.plot = 20,
@@ -109,7 +114,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
                                               group.var = NULL,
                                               strata.var = NULL,
                                               change.base = "1",
-                                              feature.change.func = "lfc",
+                                              feature.change.func = "log fold change",
                                               feature.level = NULL,
                                               feature.dat.type = c("count", "proportion", "other"),
                                               features.plot = NULL,
@@ -126,7 +131,6 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
                                               pdf.wid = 11,
                                               pdf.hei = 8.5,
                                               ...) {
-
   feature.dat.type <- match.arg(feature.dat.type)
 
   # Extract data
@@ -144,7 +148,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
 
   if (!is.null(strata.var)) {
     meta_tab <-
-      meta_tab %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(group.var),!!sym(strata.var)))
+      meta_tab %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(group.var), !!sym(strata.var)))
   }
 
   # Define the colors
@@ -166,7 +170,8 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
   # 使用用户自定义主题（如果提供），否则使用默认主题
   theme_to_use <-
     if (!is.null(custom.theme))
-      custom.theme else
+      custom.theme
+  else
     theme_function
 
   if (feature.dat.type == "other" || !is.null(features.plot) ||
@@ -176,19 +181,21 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
   }
 
   plot_list <- lapply(feature.level, function(feature.level) {
-
-    if (feature.dat.type == "count"){
+    if (feature.dat.type == "count") {
       message(
         "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
       )
-      data.obj <- mStat_normalize_data(data.obj, method = "Rarefy-TSS")$data.obj.norm
+      data.obj <-
+        mStat_normalize_data(data.obj, method = "Rarefy-TSS")$data.obj.norm
     }
 
-    if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
-      data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
+    if (is.null(data.obj$feature.agg.list[[feature.level]]) &
+        feature.level != "original") {
+      data.obj <-
+        mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
     }
 
-    if (feature.level != "original"){
+    if (feature.level != "original") {
       otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
     } else {
       otu_tax_agg <- data.obj$feature.tab
@@ -214,8 +221,9 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
                "sd" = {
                  results <-
                    matrixStats::rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
-                          na.rm = TRUE)
-                 names(results) <- rownames(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
+                                       na.rm = TRUE)
+                 names(results) <-
+                   rownames(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
                },
                stop("Invalid function specified"))
       }
@@ -225,14 +233,15 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
 
     if (is.null(features.plot) &&
         !is.null(top.k.plot) && !is.null(top.k.func)) {
-      features.plot <- names(sort(compute_function(top.k.func), decreasing = TRUE)[1:top.k.plot])
+      features.plot <-
+        names(sort(compute_function(top.k.func), decreasing = TRUE)[1:top.k.plot])
     }
 
     # 计算每个分组的平均丰度
     otu_tab_norm_agg <- otu_tax_agg %>%
       tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
       dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
-      dplyr::group_by(!!sym(group.var), !!sym(feature.level), !!sym(time.var)) %>% # Add time.var to dplyr::group_by
+      dplyr::group_by(!!sym(group.var),!!sym(feature.level),!!sym(time.var)) %>% # Add time.var to dplyr::group_by
       dplyr::summarise(mean_abundance = mean(count))
 
     change.after <-
@@ -246,12 +255,10 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
         time2_mean_abundance = all_of(change.after)
       )
 
-    # 计算不同时间点的mean_abundance差值
-    # 最后，计算新的count值
     if (is.function(feature.change.func)) {
       otu_tab_norm_agg_wide <-
         otu_tab_norm_agg_wide %>% dplyr::mutate(abundance_change = feature.change.func(time2_mean_abundance, time2_mean_abundance))
-    } else if (feature.change.func == "lfc") {
+    } else if (feature.change.func == "log fold change") {
       otu_tab_norm_agg_wide <-
         otu_tab_norm_agg_wide %>% dplyr::mutate(
           abundance_change = log2(time2_mean_abundance + 0.00001) - log2(time1_mean_abundance + 0.00001)
@@ -264,6 +271,9 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
             TRUE ~ (time2_mean_abundance - time1_mean_abundance) / (time2_mean_abundance + time1_mean_abundance)
           )
         )
+    } else if (feature.change.func == "absolute change") {
+      otu_tab_norm_agg_wide <-
+        otu_tab_norm_agg_wide %>% dplyr::mutate(abundance_change = time2_mean_abundance - time1_mean_abundance)
     } else {
       otu_tab_norm_agg_wide <-
         otu_tab_norm_agg_wide %>% dplyr::mutate(abundance_change = time2_mean_abundance - time1_mean_abundance)
@@ -273,29 +283,34 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
     prevalence_time <- otu_tax_agg %>%
       tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
       dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
-      dplyr::group_by(!!sym(group.var), !!sym(feature.level), !!sym(time.var)) %>%
+      dplyr::group_by(!!sym(group.var),!!sym(feature.level),!!sym(time.var)) %>%
       dplyr::summarise(prevalence = sum(count > 0) / dplyr::n())
 
     prevalence_time_wide <- prevalence_time %>%
       tidyr::spread(key = time.var, value = prevalence) %>%
       dplyr::rename(time1_prevalence = change.base,
-             time2_prevalence = change.after)
+                    time2_prevalence = change.after)
 
     # 计算不同时间点的prevalence差值
     if (is.function(feature.change.func)) {
       prevalence_time_wide <-
         prevalence_time_wide %>% dplyr::mutate(prevalence_change = feature.change.func(time2_prevalence, time1_prevalence))
-    } else if (feature.change.func == "lfc") {
+    } else if (feature.change.func == "log fold change") {
       prevalence_time_wide <-
         prevalence_time_wide %>% dplyr::mutate(
           prevalence_change = log2(time2_prevalence + 0.00001) - log2(time1_prevalence + 0.00001)
         )
     } else if (feature.change.func == "relative change") {
       prevalence_time_wide <- prevalence_time_wide %>%
-        dplyr::mutate(prevalence_change = dplyr::case_when(
-          time2_prevalence == 0 & time1_prevalence == 0 ~ 0,
-          TRUE ~ (time2_prevalence - time1_prevalence) / (time2_prevalence + time1_prevalence)
-        ))
+        dplyr::mutate(
+          prevalence_change = dplyr::case_when(
+            time2_prevalence == 0 & time1_prevalence == 0 ~ 0,
+            TRUE ~ (time2_prevalence - time1_prevalence) / (time2_prevalence + time1_prevalence)
+          )
+        )
+    } else if (feature.change.func == "absolute change") {
+      prevalence_time_wide <-
+        prevalence_time_wide %>% dplyr::mutate(prevalence_change = time2_prevalence - time1_prevalence)
     } else {
       prevalence_time_wide <-
         prevalence_time_wide %>% dplyr::mutate(prevalence_change = time2_prevalence - time1_prevalence)
@@ -309,11 +324,11 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
       otu_tab_norm_agg_wide <- otu_tab_norm_agg_wide %>%
         dplyr::mutate(temp = !!sym(group.var)) %>%
         tidyr::separate(temp,
-                 into = c(paste0(group.var, "2"), strata.var),
-                 sep = "\\.")
+                        into = c(paste0(group.var, "2"), strata.var),
+                        sep = "\\.")
     }
 
-    if (!is.null(features.plot)){
+    if (!is.null(features.plot)) {
       otu_tab_norm_agg_wide <-
         otu_tab_norm_agg_wide %>% filter(!!sym(feature.level) %in% features.plot)
     }
@@ -330,14 +345,26 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
       rownames_to_column(feature.level)
 
     otu_tab_norm_agg_wide <- otu_tab_norm_agg_wide %>%
-      tidyr::gather(key = "Type", value = "change", abundance_change, prevalence_change) %>%
-      select(-all_of(c("time1_mean_abundance", "time2_mean_abundance", "time1_prevalence", "time2_prevalence"))) %>%
-      dplyr::left_join(prop_prev_data, by = feature.level) %>%
-      dplyr::mutate(Base = dplyr::case_when(
-        Type == "abundance_change" ~ avg_abundance,
-        Type == "prevalence_change" ~ prevalence,
-        TRUE ~ NA_real_
+      tidyr::gather(key = "Type",
+                    value = "change",
+                    abundance_change,
+                    prevalence_change) %>%
+      select(-all_of(
+        c(
+          "time1_mean_abundance",
+          "time2_mean_abundance",
+          "time1_prevalence",
+          "time2_prevalence"
+        )
       )) %>%
+      dplyr::left_join(prop_prev_data, by = feature.level) %>%
+      dplyr::mutate(
+        Base = dplyr::case_when(
+          Type == "abundance_change" ~ avg_abundance,
+          Type == "prevalence_change" ~ prevalence,
+          TRUE ~ NA_real_
+        )
+      ) %>%
       select(-all_of(c("avg_abundance", "prevalence")))
 
     adjust_size_range <- function(taxa.levels) {
@@ -387,7 +414,8 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
     second_color_norm <-
       change_mid_norm + (change_max_norm - change_mid_norm) / 2
 
-    taxa.levels <- otu_tab_norm_agg_wide %>% dplyr::ungroup() %>% select(all_of(c(feature.level))) %>% pull() %>% unique() %>% length()
+    taxa.levels <-
+      otu_tab_norm_agg_wide %>% dplyr::ungroup() %>% select(all_of(c(feature.level))) %>% pull() %>% unique() %>% length()
 
     # 将患病率添加为点的大小，并将平均丰度作为点的颜色
     dotplot <-
@@ -401,12 +429,14 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
           color = Type
         )
       ) + # Change x to time.var
-      geom_point(aes(group = interaction(Type,!!sym(feature.level)), fill = change),
-                 shape = 21,
-                 position = position_dodge(0.9)) +
+      geom_point(
+        aes(group = interaction(Type, !!sym(feature.level)), fill = change),
+        shape = 21,
+        position = position_dodge(0.9)
+      ) +
       xlab(feature.level) +
       ylab(group.var) +
-      scale_colour_manual(values = c("transparent","black")) +
+      scale_colour_manual(values = c("transparent", "black")) +
       scale_size_continuous(range = adjust_size_range(taxa.levels)) +
       scale_fill_gradientn(
         colors = colors,
@@ -422,7 +452,9 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
       {
         if (!is.null(strata.var)) {
           ggh4x::facet_nested(
-            rows = vars(!!sym(strata.var), !!sym(paste0(group.var, "2"))),
+            rows = vars(!!sym(strata.var),!!sym(paste0(
+              group.var, "2"
+            ))),
             cols = vars(!!sym(feature.level)),
             scales = "free",
             switch = "y"
@@ -453,17 +485,18 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
         legend.box = "vertical",
         strip.text.x = element_blank(),
         strip.text.y = if (group.var == "ALL")
-          element_blank() else
+          element_blank()
+        else
           element_text(size = base.size),
         panel.spacing = unit(0, "lines"),
         panel.grid.major = element_line(color = "grey", linetype = "dashed"),
         panel.grid.minor = element_line(color = "grey", linetype = "dotted"),
         legend.text = ggplot2::element_text(size = base.size),
         legend.title = ggplot2::element_text(size = base.size),
-      ) + guides(
-        color = guide_legend(override.aes = list(size = 5, fill = "#92c5de")),
-        shape = guide_legend(override.aes = list(size = 5))
-      )
+      ) + guides(color = guide_legend(override.aes = list(
+        size = 5, fill = "#92c5de"
+      )),
+      shape = guide_legend(override.aes = list(size = 5)))
 
     # Save the stacked dotplot as a PDF file
     if (pdf) {
