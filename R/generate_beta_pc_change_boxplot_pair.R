@@ -42,8 +42,8 @@
 #'                    NULL, the first time point will be used as change.base automatically.
 #' @param change.func A function or string specifying how to calculate changes between time points.
 #' If a function is provided, it should take two arguments "value_time_2" and "value_time_1" representing the PC values at the two time points. The function should return the change value.
-#' If a string, currently only "difference" is supported, which calculates simple differences between time points.
-#' More options could be added in the future as needed. Default is "difference".
+#' If a string, currently only "absolute change" is supported, which calculates simple differences between time points.
+#' More options could be added in the future as needed. Default is "absolute change".
 #' @param dist.name A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').
 #' @param base.size A numeric value for the base size of the plot. Default is 16.
 #' @param theme.choice Plot theme choice. Can be one of:
@@ -106,7 +106,7 @@
 #'   group.var = "group",
 #'   strata.var = "sex",
 #'   change.base = "1",
-#'   change.func = "difference",
+#'   change.func = "absolute change",
 #'   dist.name = c('BC'),
 #'   base.size = 20,
 #'   theme.choice = "bw",
@@ -130,7 +130,7 @@ generate_beta_pc_change_boxplot_pair <-
            strata.var = NULL,
            adj.vars = NULL,
            change.base = NULL,
-           change.func = "difference",
+           change.func = "absolute change",
            dist.name = c('BC', 'Jaccard'),
            base.size = 16,
            theme.choice = "bw",
@@ -255,7 +255,7 @@ generate_beta_pc_change_boxplot_pair <-
         combined_data <- combined_data %>%
           dplyr::mutate(value_diff = if (is.function(change.func)) {
             change.func(value_time_2, value_time_1)
-          } else if (change.func == "difference"){
+          } else if (change.func == "absolute change"){
             value_time_2 - value_time_1
           } else {
             value_time_2 - value_time_1
