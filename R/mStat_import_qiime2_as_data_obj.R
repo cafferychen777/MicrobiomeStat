@@ -74,7 +74,7 @@ mStat_import_qiime2_as_data_obj <- function(otu_qza,
 
   # Create data.obj list
   message("Creating MicrobiomeStat data object...")
-  data.obj <- list(feature.tab = feature_tab,
+  data.obj <- list(feature.tab = feature.tab,
                    meta.dat = sam_tab,
                    feature.ann = feature.ann,
                    tree = tree)
@@ -117,7 +117,7 @@ read_qza <- function(file, temp = tempdir()) {
 
   # Read the metadata
   message("Reading the metadata...")
-  metadata <- read_yaml(metadata_file_path[1])
+  metadata <- yaml::read_yaml(metadata_file_path[1])
   file_format <- metadata$format
   file_uuid <- metadata$uuid
 
