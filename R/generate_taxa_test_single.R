@@ -14,11 +14,9 @@
 #' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
 #' taxa before analysis. Taxa with prevalence below this value will be removed.
 #' Prevalence is calculated as the proportion of samples where the taxon is present.
-#' Default 0 removes no taxa by prevalence filtering.
 #' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering
 #' taxa before analysis. Taxa with mean abundance below this value will be removed.
 #' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
-#' Default 0 removes no taxa by abundance filtering.
 #' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
 #' to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
 #' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
@@ -39,26 +37,23 @@
 #' @return A list of tibble(s) containing information about significant taxa, including R.Squared, F.Statistic, Estimate, P.Value, Adjusted.P.Value, Mean.Proportion, Mean.Prevalence, SD.Abundance and SD.Prevalence.
 #'
 #' @details
-#' This function performs differential abundance analysis using ZicoSeq method:
+#' This function facilitates differential abundance analysis utilizing the LinDA method:
 #'
-#' 1. Subset data to specific time point if time variable and level provided.
+#' 1. If a specific time variable and level are provided, the data is subsetted accordingly.
 #'
-#' 2. Extract OTU table, taxonomy table, and sample metadata.
+#' 2. Extracts OTU table and sample metadata.
 #'
-#' 3. Filter OTUs by prevalence and abundance thresholds if counting data.
+#' 3. If the feature data type is of "count", it normalizes the data using the "TSS" transformation.
 #'
-#' 4. Aggregate OTU table to taxonomic levels specified by \code{feature.level}.
+#' 4. If the feature level is not "original", it aggregates the OTU table to the taxonomic levels specified by \code{feature.level}.
 #'
-#' 5. Run ZicoSeq on aggregated table, with grouping and adjustment variables.
+#' 5. Executes the LinDA method on the aggregated or original table considering the grouping and adjustment variables.
 #'
-#' 6. Extract and compile statistics for significant taxa into results tables,
-#' including R-squared, F statistic, coefficients, p-values, mean proportions, etc.
+#' 6. Extracts significant taxa's statistics into results tables, which include coefficients, standard errors, p-values, adjusted p-values, average abundances, and prevalence.
 #'
-#' 7. Return list of tables, with each element corresponding to one taxonomic level.
+#' 7. Returns a list of result tables where each element corresponds to a particular taxonomic level.
 #'
-#' In summary, it applies preprocessing steps, runs ZicoSeq differential abundance testing,
-#' and compiles informative results tables for significant taxa. Adjustment for covariates is
-#' supported. Customizable taxonomic aggregation allows testing at different levels.
+#' In essence, the function streamlines preprocessing, executes LinDA-based differential abundance testing, and assembles tables with pertinent results for significant taxa. It also supports adjusting for covariates and allows taxonomic aggregation at diverse levels for customized analyses.
 #'
 #' @examples
 #' \dontrun{
