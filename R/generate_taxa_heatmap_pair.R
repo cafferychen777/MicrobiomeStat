@@ -223,8 +223,8 @@ generate_taxa_heatmap_pair <- function(data.obj,
 
     if (is.null(palette)){
       color_vector <- c(
-        "#E31A1C",
         "#1F78B4",
+        "#E31A1C",
         "#FB9A99",
         "#33A02C",
         "#FDBF6F",
