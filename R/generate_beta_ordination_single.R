@@ -233,8 +233,15 @@ generate_beta_ordination_single <-
         pc.mat %>%
         as.data.frame() %>%
         rownames_to_column("sample") %>%
-        dplyr::left_join(metadata %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var))) %>% rownames_to_column("sample"), by = "sample") %>%
-        dplyr::filter(!is.na(!!sym(time.var))) %>% column_to_rownames("sample")
+        dplyr::left_join(metadata %>%
+                           dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var))) %>%
+                           rownames_to_column("sample"), by = "sample")
+
+      if (!is.null(time.var)){
+        df <- df %>% dplyr::filter(!is.na(!!sym(time.var)))
+      }
+
+      df <- df %>% column_to_rownames("sample")
 
       colnames(df)[1:2] <- c("PC1", "PC2")
 
