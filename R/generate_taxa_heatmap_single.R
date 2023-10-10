@@ -64,7 +64,7 @@
 #'   time.var = "time",
 #'   t.level = "1",
 #'   group.var = "group",
-#'   strata.var = "sex",
+#'   strata.var = NULL,
 #'   feature.level = c("Family"),
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
@@ -224,9 +224,11 @@ generate_taxa_heatmap_single <- function(data.obj,
       otu_tab_norm_sorted <- otu_tab_norm
     }
 
-    if (!is.null(strata.var) & !is.numeric(meta_tab[[strata.var]])){
-      gaps <-
-        cumsum(table(meta_tab_sorted[[strata.var]]))[-length(table(meta_tab_sorted[[strata.var]]))]
+    if (!is.null(strata.var)){
+      if (!is.numeric(meta_tab[[strata.var]])){
+        gaps <-
+          cumsum(table(meta_tab_sorted[[strata.var]]))[-length(table(meta_tab_sorted[[strata.var]]))]
+      }
     } else if (!is.null(group.var) & !is.numeric(meta_tab[[group.var]])){
       gaps <-
         cumsum(table(meta_tab_sorted[[group.var]]))[-length(table(meta_tab_sorted[[group.var]]))]
@@ -259,8 +261,8 @@ generate_taxa_heatmap_single <- function(data.obj,
 
     if (is.null(palette)){
       color_vector <- c(
-        "#E31A1C",
         "#1F78B4",
+        "#E31A1C",
         "#FB9A99",
         "#33A02C",
         "#FDBF6F",
