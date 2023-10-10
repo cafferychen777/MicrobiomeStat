@@ -22,15 +22,13 @@
 #' \dontrun{
 #'   #rich_dense_biom <- system.file("extdata", "rich_dense_otu_table.biom",  package="phyloseq")
 #'   #treefilename <- system.file("extdata", "biom-tree.phy",  package="phyloseq")
-#'   #refseqfilename <- system.file("extdata", "biom-refseq.fasta",  package="phyloseq")
 #'   #data.obj <- mStat_import_biom_as_data_obj(rich_dense_biom,
-#'   #treefilename, refseqfilename, parseFunction=parse_taxonomy_greengenes)
+#'   #treefilename)
 #' }
 #'
 #' @details
 #' This function reads a BIOM file, which typically contains a biological observation matrix and its related metadata. It also optionally accepts a phylogenetic tree file. It creates a list object that follows the mStat data object structure for subsequent analysis. If any of the required elements are missing in the BIOM file, warnings will be issued, but the function will continue to run. Please ensure the BIOM file and optional phylogenetic tree file are properly formatted for successful conversion.
 #'
-#' @author Jun Chen
 #' @references The Biological Observation Matrix (BIOM) format or: how I learned to stop worrying and love the ome-ome. Daniel McDonald et al. GigaScience 2012.
 mStat_import_biom_as_data_obj <-
   function (BIOMfilename,
@@ -41,11 +39,9 @@ mStat_import_biom_as_data_obj <-
     data.obj <- list()
     if (inherits(BIOMfilename, "character")) {
       x = read_biom(biom_file = BIOMfilename)
-    }
-    else if (inherits(BIOMfilename, "biom")) {
+    } else if (inherits(BIOMfilename, "biom")) {
       x = BIOMfilename
-    }
-    else {
+    } else {
       stop("import_biom requires a 'character' string to a biom file or a 'biom-class' object")
     }
 
@@ -55,8 +51,7 @@ mStat_import_biom_as_data_obj <-
       i$metadata
     }), is.null))) {
       taxtab <- NULL
-    }
-    else {
+    } else {
       taxlist = lapply(x$rows, function(i) {
         parseFunction(i$metadata$taxonomy)
       })
@@ -65,12 +60,12 @@ mStat_import_biom_as_data_obj <-
       })
       taxtab = build_mStat_tax_table(taxlist)
     }
+
     data.obj$feature.ann <- taxtab
 
     if (is.null(sample_metadata(x))) {
       samdata <- NULL
-    }
-    else {
+    } else {
       samdata = sample_metadata(x)
     }
 
@@ -79,14 +74,13 @@ mStat_import_biom_as_data_obj <-
     if (!is.null(treefilename)) {
       if (inherits(treefilename, "phylo")) {
         tree <- treefilename
-      }
-      else {
+      } else {
         tree <- read_tree(treefilename, ...)
       }
+
       if (is.null(tree)) {
         warning("treefilename failed import. It not included.")
-      }
-      else {
+      } else {
         data.obj$tree <- tree
       }
     }
