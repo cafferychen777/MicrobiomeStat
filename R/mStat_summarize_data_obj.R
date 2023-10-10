@@ -231,7 +231,6 @@ mStat_summarize_data_obj <-
       }
     }
 
-    # 创建一个 data.frame 来存储统计数据
     table1 <- data.frame(
       Category = character(),
       Variable = character(),
@@ -239,7 +238,6 @@ mStat_summarize_data_obj <-
       stringsAsFactors = FALSE
     )
 
-    # 基本统计数据
     basic_stats <- data.frame(
       Category = "Basic Statistics",
       Variable = c(
@@ -264,7 +262,6 @@ mStat_summarize_data_obj <-
 
     table1 <- rbind(table1, basic_stats)
 
-    # 元数据统计
     if (!is.na(num_meta_vars)) {
       # metadata_stats <- data.frame(
       #   Category = "Metadata",
@@ -281,7 +278,6 @@ mStat_summarize_data_obj <-
       table1 <- rbind(table1, metadata_stats)
     }
 
-    # feature.ann 缺失注释的统计
     if (length(NA_props) > 0) {
       for (i in 1:length(NA_props)) {
         missing_annotation <- data.frame(
@@ -296,14 +292,12 @@ mStat_summarize_data_obj <-
       }
     }
 
-    # 树信息
     tree_info <- data.frame(Category = "Phylogenetic Tree",
                             Variable = "Exists in the dataset",
                             Value = tree_exists)
 
     table1 <- rbind(table1, tree_info)
 
-    # 聚合分类信息
     if (any(!is.na(agg_taxonomies))) {
       aggregated_taxonomies <- data.frame(
         Category = "Aggregated Taxonomies",
@@ -314,12 +308,10 @@ mStat_summarize_data_obj <-
       table1 <- rbind(table1, aggregated_taxonomies)
     }
 
-    # 时间序列信息统计
     if (!is.null(time.var) && "meta.dat" %in% names(data.obj)) {
       if (time.var %in% colnames(data.obj$meta.dat)) {
         time_var_data <- data.obj$meta.dat[[time.var]]
 
-        # 数值型时间数据
         if (is.numeric(time_var_data)) {
           time_stats <- data.frame(
             Category = "Time-Series Information",
@@ -331,7 +323,6 @@ mStat_summarize_data_obj <-
           )
         }
 
-        # 类别型（字符或因子）时间数据
         if (is.character(time_var_data) || is.factor(time_var_data)) {
           time_stats <- data.frame(
             Category = "Time-Series Information",
@@ -342,7 +333,6 @@ mStat_summarize_data_obj <-
 
         table1 <- rbind(table1, time_stats)
 
-        # 分布情况
         time_table <- table(data.obj$meta.dat[[time.var]])
         time_df <- as.data.frame(time_table)
         colnames(time_df) <- c("TimePoint", "SampleCount")
@@ -360,7 +350,6 @@ mStat_summarize_data_obj <-
       }
     }
 
-    # 添加样本数量和特征数量
     num_samples <- ncol(feature_tab)
     num_features <- nrow(feature_tab)
     sample_feature_stats <- data.frame(
@@ -370,18 +359,14 @@ mStat_summarize_data_obj <-
     )
     table1 <- rbind(sample_feature_stats, table1)
 
-    # 检测Value列中的哪些值是数值型
     is_numeric <- sapply(table1$Value, function(x) grepl("^-?[0-9.]+$", x))
 
-    # 对于数值型数据，检查是否有超过三位小数
     has_more_than_three_decimals <- sapply(table1$Value[is_numeric], function(x) {
       decimal_part <- sub(".*\\.", "", x)
       nchar(decimal_part) > 3
     })
 
-    # 对于满足条件的数值，进行四舍五入至三位小数
     table1$Value[is_numeric][has_more_than_three_decimals] <- round(as.numeric(table1$Value[is_numeric][has_more_than_three_decimals]), 3)
 
-    # 返回表格形式的数据
     return(as_tibble(table1))
   }
