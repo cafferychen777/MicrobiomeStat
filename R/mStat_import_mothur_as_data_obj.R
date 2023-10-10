@@ -39,8 +39,8 @@ mStat_import_mothur_as_data_obj <- function(mothur_list_file = NULL, mothur_grou
 {
   data.obj <- list()
   if (!is.null(mothur_group_file) & !is.null(mothur_list_file)) {
-    groupOTU = import_mothur_otu_table(mothur_list_file,
-                                       mothur_group_file, cutoff)
+    groupOTU = import_mothur_otu_table(mothur_list_file = mothur_list_file,
+                                       mothur_group_file = mothur_group_file, cutoff = cutoff)
     data.obj$feature.tab <- groupOTU
   } else if (!is.null(mothur_shared_file)) {
     OTUshared <- import_mothur_shared(mothur_shared_file)
@@ -293,10 +293,10 @@ import_mothur_otu_table <- function(mothur_list_file, mothur_group_file, cutoff=
   rownames(mothur_otu_table) <- names(otulist)
 
   # Write a sparse versino of the abundance table
-  df = ldply(otulist, function(x){data.frame(read=x, stringsAsFactors=FALSE)})
+  df = plyr::ldply(otulist, function(x){data.frame(read=x, stringsAsFactors=FALSE)})
   colnames(df)[1] <- "OTU"
   df = data.frame(df, sample=mothur_groups[df[, "read"], 1], stringsAsFactors=FALSE)
-  adf = ddply(df, c("OTU", "sample"), function(x){
+  adf = plyr::ddply(df, c("OTU", "sample"), function(x){
     # x = subset(df, OTU=="59_3_17" & sample=="C")
     data.frame(x[1, c("OTU", "sample"), drop=FALSE], abundance=nrow(x))
   })
@@ -337,7 +337,7 @@ read_tree <- function (treefile, errorIfNULL = FALSE, ...)
     tree <- NULL
     try(tree <- ape::read.nexus(treefile, ...), TRUE)
     if (is.null(tree))
-      try(tree <- read.tree(treefile, ...), TRUE)
+      try(tree <- ape::read.tree(treefile, ...), TRUE)
   }
   if (errorIfNULL & is.null(tree)) {
     stop("tree file could not be read.\nPlease retry with valid tree.")
