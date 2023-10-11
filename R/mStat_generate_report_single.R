@@ -40,18 +40,18 @@
 #' taxa before analysis. Taxa with mean abundance below this value will be removed.
 #' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
 #' Default 0 removes no taxa by abundance filtering.
-#' @param vis.feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
-#' to use for visualization and plotting. This can be the taxonomic level like "Phylum", or any other
-#' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
-#' column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
-#' for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
-#' is also NULL.
-#' @param test.feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
-#' to use for testing or analytical purposes. This can be the taxonomic level like "Phylum", or any other
-#' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
-#' column names in feature.ann. Multiple columns can be provided, and data will be analyzed separately
-#' for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
-#' is also NULL.
+#' @param vis.feature.level A character vector specifying one or more column names in the feature annotation
+#' matrix (feature.ann) of data.obj to use for visualization and plotting. This can be a taxonomic level
+#' like "Phylum" or "Genus" for microbiome data, a cell type identifier such as "CellType" for single-cell
+#' data, or a pathway level such as "Pathway_L1", "Pathway_L2", or "Pathway_L3" for KEGG data. Multiple columns
+#' can be provided, and data will be plotted separately for each column. If you want to avoid aggregation,
+#' you can set it to "original", and no aggregation will be performed.
+#' @param test.feature.level A character vector specifying one or more column names in the feature annotation
+#' matrix (feature.ann) of data.obj to use for testing or analytical purposes. This can be a taxonomic level
+#' like "Phylum" or "Genus" for microbiome data, a cell type identifier such as "CellType" for single-cell
+#' data, or a pathway level such as "Pathway_L1", "Pathway_L2", or "Pathway_L3" for KEGG data. Multiple columns
+#' can be provided, and data will be analyzed separately for each column. If you want to avoid aggregation,
+#' you can set it to "original", and no aggregation will be performed.
 #' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
 #' Should be one of:
 #' - "count": Raw count data, will be normalized by the function.
@@ -64,12 +64,16 @@
 #' @param bar.area.feature.no A numeric value indicating the number of top abundant features to retain in both barplot and areaplot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.
 #' @param heatmap.feature.no A numeric value indicating the number of top abundant features to retain in the heatmap. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.
 #' @param dotplot.feature.no A numeric value indicating the number of top abundant features to retain in the dotplot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 40.
-#' @param feature.mt.method Character, multiple testing method for features, "fdr" or "none", default is "fdr".
-#' @param feature.sig.level Numeric, significance level cutoff for highlighting features, default is 0.1.
-#' @param feature.box.axis.transform A string indicating the transformation to apply to the data before plotting. Options are:
-#' - "identity": No transformation (default)
-#' - "sqrt": Square root transformation
-#' - "log": Logarithmic transformation. Zeros are replaced with half of the minimum non-zero value for each taxon before log transformation.
+#' @param feature.mt.method A character specifying the multiple testing method for features. This is
+#' specifically used for volcano plot visualization. The options are "fdr" for false discovery rate or
+#' "none" for no multiple testing correction. The default is "fdr".
+#' @param feature.sig.level A numeric value specifying the significance level cutoff for highlighting
+#' features in the volcano plot. The default is 0.1.
+#' @param feature.box.axis.transform A string indicating the transformation to apply to the data before plotting.
+#' Options are: "identity" for no transformation (default), "sqrt" for square root transformation, and "log" for
+#' logarithmic transformation. In the function `mStat_generate_report_single`, this parameter is only used in
+#' `generate_taxa_boxplot_single` and `generate_taxa_indiv_boxplot_single`. In other functions, it is also used
+#' solely to adjust boxplots related to feature functions.
 #' @param base.size Base font size for the generated plots.
 #' @param theme.choice Plot theme choice. Can be one of:
 #'   - "prism": ggprism::theme_prism()
@@ -92,7 +96,9 @@
 #' @param file.ann Annotation text for the PDF file names.
 #' @param pdf.wid Width of the PDF plots.
 #' @param pdf.hei Height of the PDF plots.
-#' @param output.file Output file name for the report.
+#' @param output.file A character string specifying the output file name for the report. This will also
+#' determine the title of the generated report. For example, if you set it to "path_to_your_location/report.pdf",
+#' the title of the report will be "report".
 #' @param ... Additional arguments passed to internal functions.
 #'
 #' @return A report file containing the microbial ecology analysis results.
