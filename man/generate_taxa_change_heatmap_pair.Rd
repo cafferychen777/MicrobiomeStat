@@ -43,12 +43,18 @@ generate_taxa_change_heatmap_pair(
 
 \item{change.base}{A numeric value specifying the baseline time point for computing change. This should match one of the time points in the time variable. Default is 1, which assumes the first time point is the baseline.}
 
-\item{feature.change.func}{A function or character string specifying the method for computing change between time points. Options are:
-- "difference": Compute simple difference of abundances between time points.
-- "lfc": Compute log2 fold change between time points.
-- "relative change": Compute relative change of abundances between time points.
-- "custom function": Apply a custom function to compute change. The custom function should take two arguments value_time_2 and value_time_1.
-Default is "difference".}
+\item{feature.change.func}{Specifies the method or function to compute the change between two time points.
+The following options are available:
+
+- A custom function: If you provide a user-defined function, it should take two numeric arguments corresponding to the values at the two time points (`value_time_1` and `value_time_2`) and return the computed change. This custom function will be applied directly.
+
+- "log fold change": Computes the log2 fold change between the two time points. For zero values, imputation is performed using half of the minimum nonzero value for each feature level at the respective time point before taking the logarithm.
+
+- "relative change": Computes the relative change as `(value_time_2 - value_time_1) / (value_time_2 + value_time_1)`. If both time points have a value of 0, the change is defined as 0.
+
+- "absolute change": Computes the difference between the values at the two time points.
+
+- Any other value (or if the parameter is omitted): By default, the function computes the absolute change as described above.}
 
 \item{feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
 to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other

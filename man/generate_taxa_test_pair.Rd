@@ -77,8 +77,6 @@ mean abundance, mean prevalence, and the output element from `linda` where the t
 }
 \examples{
 \dontrun{
-library(vegan)
-
 data(peerj32.obj)
 generate_taxa_test_pair(
   data.obj = peerj32.obj,

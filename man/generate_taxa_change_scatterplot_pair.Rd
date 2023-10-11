@@ -11,7 +11,7 @@ generate_taxa_change_scatterplot_pair(
   group.var = NULL,
   strata.var = NULL,
   change.base = NULL,
-  feature.change.func = "difference",
+  feature.change.func = "absolute change",
   feature.level = NULL,
   feature.dat.type = c("count", "proportion", "other"),
   features.plot = NULL,
@@ -43,11 +43,16 @@ generate_taxa_change_scatterplot_pair(
 
 \item{change.base}{Character string specifying the baseline time point. This should match one of the time points present in the metadata for the 'time.var' variable. The change will be calculated by comparing the other time points to this baseline time point.}
 
-\item{feature.change.func}{Function or character string specifying method to compute change between time points. Options are:
-- 'difference' (default): Computes absolute difference in counts between time points.
-- 'relative change': Computes relative change in counts between time points, calculated as (count_time2 - count_time1) / (count_time2 + count_time1).
-- 'lfc': Computes log2 fold change between time points. Zero counts are imputed with half the minimum nonzero value before log transform.
-- Custom function: A user-defined function can also be provided, which should take two vectors of counts (at time 1 and time 2) as input and return the computed change.}
+\item{feature.change.func}{Specifies the method or function used to compute the change between two time points.
+The following options are supported:
+
+- "absolute change": Computes the difference between the counts at the two time points (`count_ts` and `count_t0`). This is the default behavior if no value or an unrecognized value is provided.
+
+- "log fold change": Computes the log2 fold change between the two time points. For zero counts, imputation is performed using half of the minimum nonzero count for each taxa level at the respective time point before taking the logarithm.
+
+- "relative change": Computes the relative change as `(count_ts - count_t0) / (count_ts + count_t0)`. If both time points have a count of 0, the change is defined as 0.
+
+- A custom function: If a user-defined function is provided, it should take two numeric vectors as input corresponding to the counts at the two time points (`count_t0` and `count_ts`) and return a numeric vector of the computed change. This custom function will be applied directly to calculate the new counts.}
 
 \item{feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
 to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
@@ -139,7 +144,7 @@ generate_taxa_change_scatterplot_pair(
   group.var = "cons",
   strata.var = "sex",
   change.base = "1",
-  feature.change.func = "lfc",
+  feature.change.func = "log fold change",
   feature.level = "Genus",
   feature.dat.type = "other",
   features.plot = NULL,

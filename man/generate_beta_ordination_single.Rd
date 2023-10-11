@@ -6,15 +6,15 @@
 \usage{
 generate_beta_ordination_single(
   data.obj,
-  dist.obj = NULL,
-  pc.obj = NULL,
   subject.var,
   time.var = NULL,
   t.level = NULL,
   group.var = NULL,
-  strata.var = NULL,
   adj.vars = NULL,
+  strata.var = NULL,
+  dist.obj = NULL,
   dist.name = c("BC", "Jaccard"),
+  pc.obj = NULL,
   base.size = 16,
   theme.choice = "prism",
   custom.theme = NULL,
@@ -29,10 +29,25 @@ generate_beta_ordination_single(
 \arguments{
 \item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
 
+\item{subject.var}{String. Variable to be used as subject.}
+
+\item{time.var}{String. Variable to be used for time. Default is NULL.}
+
+\item{t.level}{Character string specifying the time level/value to subset data to,
+if a time variable is provided. Default NULL does not subset data.}
+
+\item{group.var}{String. Variable to be used for grouping. Default is NULL.}
+
+\item{adj.vars}{A character vector of variable names to be used for adjustment.}
+
+\item{strata.var}{String. Variable to be used for stratification. Default is NULL.}
+
 \item{dist.obj}{Distance matrix between samples, usually calculated using
 \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
 If NULL, beta diversity will be automatically computed from \code{data.obj}
 using \code{mStat_calculate_beta_diversity}.}
+
+\item{dist.name}{A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').}
 
 \item{pc.obj}{A list containing the results of dimension reduction/Principal Component Analysis.
 This should be the output from functions like \code{\link[MicrobiomeStat]{mStat_calculate_PC}}, containing the PC coordinates and other metadata.
@@ -45,21 +60,6 @@ The pc.obj list structure should contain:
  \item{Other metadata like $method, $dist.name, etc.}
 }
 See \code{\link[MicrobiomeStat]{mStat_calculate_PC}} function for details on output format.}
-
-\item{subject.var}{String. Variable to be used as subject.}
-
-\item{time.var}{String. Variable to be used for time. Default is NULL.}
-
-\item{t.level}{Character string specifying the time level/value to subset data to,
-if a time variable is provided. Default NULL does not subset data.}
-
-\item{group.var}{String. Variable to be used for grouping. Default is NULL.}
-
-\item{strata.var}{String. Variable to be used for stratification. Default is NULL.}
-
-\item{adj.vars}{A character vector of variable names to be used for adjustment.}
-
-\item{dist.name}{A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').}
 
 \item{base.size}{Numeric. Base size for plot elements. Default is 16.}
 
@@ -106,12 +106,9 @@ The function is flexible and allows for various modifications, including the cho
 }
 \examples{
 \dontrun{
-# Load required libraries and example data
-library(vegan)
 data(peerj32.obj)
 dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
 pc.obj <- mStat_calculate_PC(dist.obj, method = c('mds'), k = 2, dist.name = c('BC','Jaccard'))
-# Generate the boxplot pair
 generate_beta_ordination_single(
   data.obj = peerj32.obj,
   dist.obj = NULL,
@@ -123,6 +120,30 @@ generate_beta_ordination_single(
   strata.var = "sex",
   adj.vars = "sex",
   dist.name = c("BC"),
+  base.size = 20,
+  theme.choice = "bw",
+  custom.theme = NULL,
+  palette = NULL,
+  pdf = TRUE,
+  file.ann = NULL,
+  pdf.wid = 11,
+  pdf.hei = 8.5
+)
+
+data("subset_T2D.obj")
+dist.obj <- mStat_calculate_beta_diversity(subset_T2D.obj, dist.name = c('BC', 'Jaccard'))
+pc.obj <- mStat_calculate_PC(dist.obj, method = c('mds'), k = 2, dist.name = c('BC','Jaccard'))
+generate_beta_ordination_single(
+  data.obj = subset_T2D.obj,
+  dist.obj = dist.obj,
+  pc.obj = pc.obj,
+  subject.var = "subject_id",
+  time.var = "visit_number_num",
+  t.level = "1",
+  group.var = "subject_race",
+  strata.var = "subject_gender",
+  adj.vars = "sample_body_site",
+  dist.name = c("BC", 'Jaccard'),
   base.size = 20,
   theme.choice = "bw",
   custom.theme = NULL,

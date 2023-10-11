@@ -11,7 +11,7 @@ generate_taxa_change_dotplot_pair(
   group.var = NULL,
   strata.var = NULL,
   change.base = "1",
-  feature.change.func = "lfc",
+  feature.change.func = "log fold change",
   feature.level = NULL,
   feature.dat.type = c("count", "proportion", "other"),
   features.plot = NULL,
@@ -43,13 +43,18 @@ generate_taxa_change_dotplot_pair(
 
 \item{change.base}{A numeric value setting base for the change (usually 1)}
 
-\item{feature.change.func}{A function or character string specifying the method for computing the change in abundance between two time points.
-This can be one of the following:
-  - A user-defined function: The function should take two arguments corresponding to the abundances at the two time points and return the computed change.
-  - "lfc": Computes the log2 fold-change between `time2_mean_abundance` and `time1_mean_abundance`.
-  - "relative change": Computes the relative change as `(time2 - time1) / (time2 + time1)`. If both time points have an abundance of 0, the change is defined as 0.
-  - Any other value: Computes the difference as `time2_mean_abundance - time1_mean_abundance`.
-Default is "difference".}
+\item{feature.change.func}{A method or function specifying how to compute the change in feature abundance or prevalence between two time points.
+The following options are available:
+
+- A custom function: If you provide a user-defined function, it should take two numeric arguments corresponding to the values at the two time points and return the computed change. This function can be applied to compute changes both in abundance (`time1_mean_abundance` and `time2_mean_abundance`) and prevalence (`time1_prevalence` and `time2_prevalence`).
+
+- "log fold change": Computes the log2 fold change between the two time points. To handle zeros, a small offset (0.00001) is added before taking the logarithm. This method can be applied for both abundance and prevalence changes.
+
+- "relative change": Computes the relative change as `(time2_value - time1_value) / (time2_value + time1_value)`. If both time points have a value of 0, the change is defined as 0. This method can be applied for both abundance and prevalence changes.
+
+- "absolute change": Computes the difference between the values at the two time points. This method can be applied for both abundance and prevalence changes.
+
+- Any other value (or if the parameter is omitted): By default, the function will compute the absolute change as described above, regardless of whether it is abundance or prevalence data.}
 
 \item{feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
 to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
@@ -139,10 +144,10 @@ generate_taxa_change_dotplot_pair(
   subject.var = "subject",
   time.var = "time",
   group.var = "group",
-  strata.var = NULL,
+  strata.var = "sex",
   change.base = "1",
-  feature.change.func = "lfc",
-  feature.level = "Genus",
+  feature.change.func = "log fold change",
+  feature.level = "Family",
   feature.dat.type = "count",
   features.plot = NULL,
   top.k.plot = 20,

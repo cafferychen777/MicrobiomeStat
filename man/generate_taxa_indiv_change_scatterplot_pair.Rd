@@ -11,7 +11,7 @@ generate_taxa_indiv_change_scatterplot_pair(
   group.var = NULL,
   strata.var = NULL,
   change.base = NULL,
-  feature.change.func = "difference",
+  feature.change.func = "log fold change",
   feature.level = NULL,
   features.plot = NULL,
   feature.dat.type = c("count", "proportion", "other"),
@@ -43,11 +43,16 @@ generate_taxa_indiv_change_scatterplot_pair(
 
 \item{change.base}{A string indicating the base time point for change computation. This should match one of the time points present in the metadata for the 'time.var' variable.}
 
-\item{feature.change.func}{A string or function to compute the change in abundance between two time points. If a string, options are:
-- 'difference': Computes absolute difference in abundance
-- 'relative change': Computes relative change in abundance, calculated as (abundance_time2 - abundance_time1) / (abundance_time2 + abundance_time1)
-- 'lfc': Computes log2 fold change. Zero abundances are imputed before log transform.
-If a function, it should take two numeric vectors of abundances at time 1 and time 2 and return a numeric vector of computed changes.}
+\item{feature.change.func}{Specifies the method or function used to compute the change between two time points.
+The following options are available:
+
+- "absolute change": Computes the difference between the count values at the two time points (`count_ts` and `count_t0`).
+
+- "log fold change": Computes the log2 fold change between the two time points. For zero counts, imputation is performed using half of the minimum nonzero value for each feature level at the respective time point before taking the logarithm.
+
+- "relative change": Computes the relative change as `(count_ts - count_t0) / (count_ts + count_t0)`. If both time points have a count of 0, the change is defined as 0.
+
+- A custom function: If a user-defined function is provided, it should take two numeric vectors as input corresponding to the counts at the two time points (`count_t0` and `count_ts`) and return a numeric vector of the computed change. This custom function will be applied directly.}
 
 \item{feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
 to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
@@ -147,7 +152,7 @@ tibble::column_to_rownames("sample")
    group.var = "cons",
    strata.var = "sex",
    change.base = "1",
-   feature.change.func = "lfc",
+   feature.change.func = "log fold change",
    feature.level = "Genus",
    top.k.plot = NULL,
    top.k.func = NULL,

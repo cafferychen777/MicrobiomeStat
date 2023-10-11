@@ -43,11 +43,16 @@ generate_taxa_indiv_change_boxplot_pair(
 
 \item{change.base}{A string indicating the base time point for change computation. This should match one of the time points present in the metadata for the 'time.var' variable.}
 
-\item{feature.change.func}{A string or function to compute the change in abundance between two time points. If a string, options are:
-- 'difference': Computes absolute difference in abundance
-- 'relative change': Computes relative change in abundance, calculated as (abundance_time2 - abundance_time1) / (abundance_time2 + abundance_time1)
-- 'lfc': Computes log2 fold change. Zero abundances are imputed before log transform.
-If a function, it should take two numeric vectors of abundances at time 1 and time 2 and return a numeric vector of computed changes.}
+\item{feature.change.func}{Specifies the method or function used to compute the change between two time points.
+The following options are available:
+
+- "absolute change": Computes the difference between the abundance values at the two time points (`value_time_2` and `value_time_1`).
+
+- "log fold change": Computes the log2 fold change between the two time points. For zero abundances, imputation is performed using half of the minimum nonzero value for each feature level at the respective time point before taking the logarithm.
+
+- "relative change": Computes the relative change as `(value_time_2 - value_time_1) / (value_time_2 + value_time_1)`. If both time points have an abundance of 0, the change is defined as 0.
+
+- A custom function: If a user-defined function is provided, it should take two numeric vectors as input corresponding to the abundances at the two time points (`value_time_1` and `value_time_2`) and return a numeric vector of the computed change. This custom function will be applied directly.}
 
 \item{feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
 to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
@@ -144,7 +149,7 @@ generate_taxa_indiv_change_boxplot_pair(
   group.var = "group",
   strata.var = "sex",
   change.base = "1",
-  feature.change.func = "lfc",
+  feature.change.func = "log fold change",
   feature.level = c("Family"),
   features.plot = NULL,
   feature.dat.type = "count",

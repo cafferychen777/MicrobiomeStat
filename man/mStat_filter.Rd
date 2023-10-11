@@ -2,13 +2,12 @@
 % Please edit documentation in R/mStat_filter.R
 \name{mStat_filter}
 \alias{mStat_filter}
-\title{Filter a Microbiome Data Frame by Prevalence and Abundance}
+\title{Filter a Microbiome Data Matrix by Prevalence and Average Abundance}
 \usage{
 mStat_filter(x, prev.filter, abund.filter)
 }
 \arguments{
-\item{x}{A matrix or data frame containing taxa (in rows) by sample (in columns)
-microbial abundance data.}
+\item{x}{A matrix containing taxa (in rows) and sample (in columns) microbial abundance data.}
 
 \item{prev.filter}{Numeric, the minimum prevalence threshold for a taxon to be
 retained. Prevalence is calculated as the proportion of samples where the
@@ -18,25 +17,36 @@ taxon is present.}
 to be retained.}
 }
 \value{
-A matrix or data frame with filtered taxa based on the specified thresholds.
+A matrix with taxa filtered based on the specified thresholds.
 }
 \description{
-This function filters taxa in a microbiome data frame based on a minimum
-prevalence and average abundance threshold.
+This function filters taxa in a microbiome matrix based on specified
+prevalence and average abundance thresholds.
 }
 \details{
-The function first reshapes the input data to long format and then groups by taxa
-to compute the average abundance and prevalence. After this, it filters out taxa
-based on the provided prevalence and abundance thresholds.
+The function first converts the input data into a long format and then groups by taxa.
+It computes both the average abundance and prevalence for each taxon. Subsequently, it
+filters out taxa that do not meet the provided prevalence and average abundance thresholds.
 }
 \examples{
+
+# Example with simulated data
 \dontrun{
 data_matrix <- matrix(c(0, 3, 4, 0, 2, 7, 8, 9, 10), ncol=3)
 colnames(data_matrix) <- c("sample1", "sample2", "sample3")
 rownames(data_matrix) <- c("taxa1", "taxa2", "taxa3")
 
-filtered_data <- mStat_filter(data_matrix, 0.5, 5)
-print(filtered_data)
+filtered_data_simulated <- mStat_filter(data_matrix, 0.5, 5)
+print(filtered_data_simulated)
 }
 
+# Example with real dataset: peerj32.obj
+\dontrun{
+data(peerj32.obj)
+data_matrix_real <- peerj32.obj$feature.tab
+
+# Assuming the matrix contains counts with taxa in rows and samples in columns
+filtered_data_real <- mStat_filter(data_matrix_real, 0.5, 5)
+print(filtered_data_real)
+}
 }

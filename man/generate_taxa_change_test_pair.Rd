@@ -11,7 +11,7 @@ generate_taxa_change_test_pair(
   group.var = NULL,
   adj.vars = NULL,
   change.base,
-  feature.change.func = "lfc",
+  feature.change.func = "log fold change",
   feature.level,
   prev.filter = 0.1,
   abund.filter = 1e-04,
@@ -34,11 +34,15 @@ generate_taxa_change_test_pair(
 
 \item{change.base}{The baseline time point for detecting changes in taxa. If NULL, the first unique value from the time.var column will be used (optional).}
 
-\item{feature.change.func}{Function or character string specifying method to compute change between time points. Options are:
-- 'difference' (default): Computes absolute difference in counts between time points.
-- 'relative change': Computes relative change in counts between time points, calculated as (count_time2 - count_time1) / (count_time2 + count_time1).
-- 'lfc': Computes log2 fold change between time points. Zero counts are imputed with half the minimum nonzero value before log transform.
-- Custom function: A user-defined function can also be provided, which should take two vectors of counts (at time 1 and time 2) as input and return the computed change.}
+\item{feature.change.func}{Specifies the method or function used to compute the change between two time points. Options include:
+
+- "absolute change" (default): Computes the absolute difference between the values at the two time points (`value_time_2` and `value_time_1`).
+
+- "log fold change": Computes the log2 fold change between the two time points. For zero values, imputation is performed using half of the minimum nonzero value for each feature level at the respective time point before taking the logarithm.
+
+- "relative change": Computes the relative change as `(value_time_2 - value_time_1) / (value_time_2 + value_time_1)`. If both time points have a value of 0, the change is defined as 0.
+
+- A custom function: If a user-defined function is provided, it should take two numeric vectors as input corresponding to the values at the two time points (`value_time_1` and `value_time_2`) and return a numeric vector of the computed change. This custom function will be applied directly to calculate the difference.}
 
 \item{feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
 to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
@@ -93,7 +97,7 @@ generate_taxa_change_test_pair(
   group.var = "group",
   adj.vars = NULL,
   change.base = "1",
-  feature.change.func = "lfc",
+  feature.change.func = "log fold change",
   feature.level = c("Genus"),
   prev.filter = 0.1,
   abund.filter = 1e-4,

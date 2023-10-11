@@ -15,7 +15,7 @@ mStat_generate_report_pair(
   change.base,
   alpha.obj = NULL,
   alpha.name = c("shannon", "observed_species"),
-  alpha.change.func = "lfc",
+  alpha.change.func = "log fold change",
   depth = NULL,
   dist.obj = NULL,
   dist.name = c("BC", "Jaccard"),
@@ -29,7 +29,7 @@ mStat_generate_report_pair(
   test.feature.level,
   feature.dat.type = c("count", "proportion", "other"),
   feature.analysis.rarafy = TRUE,
-  feature.change.func = "lfc",
+  feature.change.func = "log fold change",
   feature.mt.method = c("fdr"),
   feature.sig.level = 0.1,
   feature.box.axis.transform = c("identity"),
@@ -68,15 +68,24 @@ mStat_generate_report_pair(
 \item{alpha.change.func}{Function or method for calculating change in alpha diversity
   between two timepoints. This allows flexible options to quantify change:
 
-  - If a function is provided, it will be applied to compare alpha diversity
+  - If a function is provided: The function will be applied to compare alpha diversity
     at timepoint t vs baseline t0. The function should take two arguments
-    representing the alpha diversity values at t and t0.
+    representing the alpha diversity values at t and t0. For instance, a custom function to
+    calculate the percentage change might look like:
+    \preformatted{
+      percentage_change <- function(t, t0) {
+        return ((t - t0) / t0) * 100
+      }
+    }
+    You can then pass this function as the value for `alpha.change.func`.
 
-  - If a string is provided, following options are supported:
-    - 'lfc': Calculate log2 fold change of alpha diversity at t vs t0.
-    - Otherwise, it will calculate the absolute difference in alpha diversity at t vs t0.
+  - If a string is provided, the following options are supported:
+    - 'log fold change': Calculates the log2 fold change of alpha diversity at t compared to t0.
+    - 'absolute change': Calculates the absolute difference in alpha diversity at t compared to t0.
+    - Any other value: A warning will be given that the provided method is not recognized,
+      and the default method ('absolute change') will be used.
 
-  - Default is the absolute difference between t and t0.}
+  - Default behavior (if no recognized string or function is provided) is to compute the absolute difference between t and t0.}
 
 \item{depth}{An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.}
 
@@ -146,8 +155,8 @@ the change from baseline value. This allows flexible options:
   The function should take 2 arguments: value at timepoint t and value at baseline t0.
 - If a character string is provided, following options are supported:
   - 'relative change': (value_t - value_t0) / (value_t + value_t0)
-  - 'difference': value_t - value_t0
-  - 'lfc': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
+  - 'absolute change': value_t - value_t0
+  - 'log fold change': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
 - Default is 'relative change'.
 
 If none of the above options are matched, an error will be thrown indicating
@@ -254,7 +263,7 @@ mStat_generate_report_pair(
   feature.sig.level = 0.1,
   theme.choice = "bw",
   base.size = 18,
-  output.file = "path/to/report.pdf"
+  output.file = "/Users/apple/MicrobiomeStat/report.pdf"
 )
 }
 }

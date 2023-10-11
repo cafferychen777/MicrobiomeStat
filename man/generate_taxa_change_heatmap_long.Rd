@@ -54,8 +54,8 @@ the change from baseline value. This allows flexible options:
   The function should take 2 arguments: value at timepoint t and value at baseline t0.
 - If a character string is provided, following options are supported:
   - 'relative change': (value_t - value_t0) / (value_t + value_t0)
-  - 'difference': value_t - value_t0
-  - 'lfc': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
+  - 'absolute change': value_t - value_t0
+  - 'log fold change': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
 - Default is 'relative change'.
 
 If none of the above options are matched, an error will be thrown indicating
@@ -140,7 +140,7 @@ generate_taxa_change_heatmap_long(
   group.var = "antiexposedall",
   strata.var = "diet",
   feature.level = c("Family","Class"),
-  feature.change.func = "lfc",
+  feature.change.func = "log fold change",
   feature.dat.type = "proportion",
   features.plot = NULL,
   top.k.plot = 10,
@@ -161,7 +161,7 @@ generate_taxa_change_heatmap_long(
   group.var = "subject_gender",
   strata.var = "subject_race",
   feature.level = c("Phylum"),
-  feature.change.func = "lfc",
+  feature.change.func = "log fold change",
   feature.dat.type = "count",
   features.plot = NULL,
   top.k.plot = 50,

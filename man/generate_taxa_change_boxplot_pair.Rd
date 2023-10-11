@@ -43,13 +43,15 @@ generate_taxa_change_boxplot_pair(
 
 \item{change.base}{The time point value to be used as the baseline for calculating change in abundance between time points. Should be one of the values from `time.var`. The change will be calculated as the difference between this baseline time point and the subsequent time point.}
 
-\item{feature.change.func}{The function used to calculate change in abundance between time points.
-This can be one of "relative change", "lfc" (log2 fold change),
-or a custom function. For custom functions, the function should take two numeric vectors
-as input (abundances at time 1 and time 2) and return a numeric vector of differences.
-The function should handle zero values appropriately. For "lfc", zero values
-are imputed as half the minimum nonzero value before taking the logarithm.
-Default is "relative change".}
+\item{feature.change.func}{The method or function used to calculate the change in feature abundance between time points.
+The following options are supported:
+
+- "relative change": Computes the relative change as (time_2 - time_1) / (time_2 + time_1). If both values are zero, the result is zero.
+- "log fold change": Computes the log2 fold change between time points. Zero values are imputed as half the minimum nonzero value of the respective feature at the given time point before taking the logarithm.
+- "absolute change": Computes the absolute difference between time points.
+- A custom function: The provided function should take two numeric vectors as input (values at time 1 and time 2) and return a numeric vector of differences. Users should ensure that their function handles zero values appropriately.
+
+If an unrecognized value or no value is provided for `feature.change.func`, the default behavior will be to compute the absolute difference between time points.}
 
 \item{feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
 to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
@@ -141,7 +143,7 @@ generate_taxa_change_boxplot_pair(
   group.var = "group",
   strata.var = NULL,
   change.base = "1",
-  feature.change.func = "lfc",
+  feature.change.func = "relative change",
   feature.level = "original",
   feature.dat.type = "count",
   features.plot = NULL,

@@ -103,10 +103,7 @@ The function also has options to customize the size, theme, and color palette of
 }
 \examples{
 \dontrun{
-library(ggh4x)
-library(vegan)
 data(peerj32.obj)
-
 generate_taxa_barplot_single(
   data.obj = peerj32.obj,
   subject.var = "subject",
@@ -115,6 +112,27 @@ generate_taxa_barplot_single(
   group.var = "group",
   strata.var = "sex",
   feature.level = "Family",
+  feature.dat.type = "count",
+  feature.number = 30,
+  base.size = 10,
+  theme.choice = "bw",
+  custom.theme = NULL,
+  palette = NULL,
+  pdf = TRUE,
+  file.ann = NULL,
+  pdf.wid = 11,
+  pdf.hei = 8.5
+)
+
+data("subset_T2D.obj")
+generate_taxa_barplot_single(
+  data.obj = subset_T2D.obj,
+  subject.var = "subject_id",
+  time.var = "visit_number_num",
+  t.level = 1,
+  group.var = "subject_race",
+  strata.var = "subject_gender",
+  feature.level = c("Phylum", "Family", "Genus"),
   feature.dat.type = "count",
   feature.number = 30,
   base.size = 10,

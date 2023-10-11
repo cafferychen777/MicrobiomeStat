@@ -15,7 +15,7 @@ generate_alpha_change_boxplot_pair(
   strata.var = NULL,
   adj.vars = NULL,
   change.base = NULL,
-  alpha.change.func = c("lfc"),
+  alpha.change.func = c("log fold change"),
   base.size = 16,
   theme.choice = "bw",
   custom.theme = NULL,
@@ -51,15 +51,24 @@ generate_alpha_change_boxplot_pair(
 \item{alpha.change.func}{Function or method for calculating change in alpha diversity
   between two timepoints. This allows flexible options to quantify change:
 
-  - If a function is provided, it will be applied to compare alpha diversity
+  - If a function is provided: The function will be applied to compare alpha diversity
     at timepoint t vs baseline t0. The function should take two arguments
-    representing the alpha diversity values at t and t0.
+    representing the alpha diversity values at t and t0. For instance, a custom function to
+    calculate the percentage change might look like:
+    \preformatted{
+      percentage_change <- function(t, t0) {
+        return ((t - t0) / t0) * 100
+      }
+    }
+    You can then pass this function as the value for `alpha.change.func`.
 
-  - If a string is provided, following options are supported:
-    - 'lfc': Calculate log2 fold change of alpha diversity at t vs t0.
-    - Otherwise, it will calculate the absolute difference in alpha diversity at t vs t0.
+  - If a string is provided, the following options are supported:
+    - 'log fold change': Calculates the log2 fold change of alpha diversity at t compared to t0.
+    - 'absolute change': Calculates the absolute difference in alpha diversity at t compared to t0.
+    - Any other value: A warning will be given that the provided method is not recognized,
+      and the default method ('absolute change') will be used.
 
-  - Default is the absolute difference between t and t0.}
+  - Default behavior (if no recognized string or function is provided) is to compute the absolute difference between t and t0.}
 
 \item{base.size}{The base font size for the plot.}
 
@@ -113,8 +122,6 @@ This function extracts metadata, calculates alpha diversity for specified
 \dontrun{
 library(vegan)
 data(peerj32.obj)
-
-# Generate a boxplot comparing the change in Shannon diversity index
 generate_alpha_change_boxplot_pair(
   data.obj = peerj32.obj,
   alpha.obj = NULL,
@@ -125,7 +132,7 @@ generate_alpha_change_boxplot_pair(
   strata.var = "sex",
   adj.vars = "sex",
   change.base = "1",
-  alpha.change.func = "lfc",
+  alpha.change.func = "absolute change",
   base.size = 16,
   theme.choice = "bw",
   palette = NULL,

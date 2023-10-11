@@ -133,8 +133,8 @@ the change from baseline value. This allows flexible options:
   The function should take 2 arguments: value at timepoint t and value at baseline t0.
 - If a character string is provided, following options are supported:
   - 'relative change': (value_t - value_t0) / (value_t + value_t0)
-  - 'difference': value_t - value_t0
-  - 'lfc': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
+  - 'absolute change': value_t - value_t0
+  - 'log fold change': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
 - Default is 'relative change'.
 
 If none of the above options are matched, an error will be thrown indicating
@@ -277,7 +277,7 @@ mStat_generate_report_long(
   feature.box.axis.transform = "sqrt",
   theme.choice = "bw",
   base.size = 20,
-  output.file = "path/to/report.pdf"
+  output.file = "/Users/apple/MicrobiomeStat/report.pdf"
 )
 }
 }

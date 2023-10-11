@@ -102,19 +102,19 @@ Default 0 removes no taxa by abundance filtering.}
 
 \item{dotplot.feature.no}{A numeric value indicating the number of top abundant features to retain in the dotplot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 40.}
 
-\item{vis.feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
-to use for visualization and plotting. This can be the taxonomic level like "Phylum", or any other
-annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
-column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
-for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
-is also NULL.}
+\item{vis.feature.level}{A character vector specifying one or more column names in the feature annotation
+matrix (feature.ann) of data.obj to use for visualization and plotting. This can be a taxonomic level
+like "Phylum" or "Genus" for microbiome data, a cell type identifier such as "CellType" for single-cell
+data, or a pathway level such as "Pathway_L1", "Pathway_L2", or "Pathway_L3" for KEGG data. Multiple columns
+can be provided, and data will be plotted separately for each column. If you want to avoid aggregation,
+you can set it to "original", and no aggregation will be performed.}
 
-\item{test.feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
-to use for testing or analytical purposes. This can be the taxonomic level like "Phylum", or any other
-annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
-column names in feature.ann. Multiple columns can be provided, and data will be analyzed separately
-for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
-is also NULL.}
+\item{test.feature.level}{A character vector specifying one or more column names in the feature annotation
+matrix (feature.ann) of data.obj to use for testing or analytical purposes. This can be a taxonomic level
+like "Phylum" or "Genus" for microbiome data, a cell type identifier such as "CellType" for single-cell
+data, or a pathway level such as "Pathway_L1", "Pathway_L2", or "Pathway_L3" for KEGG data. Multiple columns
+can be provided, and data will be analyzed separately for each column. If you want to avoid aggregation,
+you can set it to "original", and no aggregation will be performed.}
 
 \item{feature.dat.type}{The type of the feature data, which determines how the data is handled in downstream analyses.
 Should be one of:
@@ -127,14 +127,18 @@ Default is "count", which assumes raw OTU table input.}
 \item{feature.analysis.rarafy}{Logical, indicating whether to rarefy the data at the feature-level for analysis.
 If TRUE, the feature data will be rarefied before analysis. Default is TRUE.}
 
-\item{feature.mt.method}{Character, multiple testing method for features, "fdr" or "none", default is "fdr".}
+\item{feature.mt.method}{A character specifying the multiple testing method for features. This is
+specifically used for volcano plot visualization. The options are "fdr" for false discovery rate or
+"none" for no multiple testing correction. The default is "fdr".}
 
-\item{feature.sig.level}{Numeric, significance level cutoff for highlighting features, default is 0.1.}
+\item{feature.sig.level}{A numeric value specifying the significance level cutoff for highlighting
+features in the volcano plot. The default is 0.1.}
 
-\item{feature.box.axis.transform}{A string indicating the transformation to apply to the data before plotting. Options are:
-- "identity": No transformation (default)
-- "sqrt": Square root transformation
-- "log": Logarithmic transformation. Zeros are replaced with half of the minimum non-zero value for each taxon before log transformation.}
+\item{feature.box.axis.transform}{A string indicating the transformation to apply to the data before plotting.
+Options are: "identity" for no transformation (default), "sqrt" for square root transformation, and "log" for
+logarithmic transformation. In the function `mStat_generate_report_single`, this parameter is only used in
+`generate_taxa_boxplot_single` and `generate_taxa_indiv_boxplot_single`. In other functions, it is also used
+solely to adjust boxplots related to feature functions.}
 
 \item{base.size}{Base font size for the generated plots.}
 
@@ -166,7 +170,9 @@ Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the defa
 
 \item{pdf.hei}{Height of the PDF plots.}
 
-\item{output.file}{Output file name for the report.}
+\item{output.file}{A character string specifying the output file name for the report. This will also
+determine the title of the generated report. For example, if you set it to "path_to_your_location/report.pdf",
+the title of the report will be "report".}
 
 \item{...}{Additional arguments passed to internal functions.}
 }
@@ -203,24 +209,24 @@ mStat_generate_report_single(
   base.size = 20,
   feature.mt.method = "none",
   feature.sig.level = 0.2,
-  output.file = "path/to/report.pdf"
+  output.file = "/Users/apple/MicrobiomeStat/report.pdf"
 )
-data(peerj32.obj)
+data(subset_T2D.obj)
 mStat_generate_report_single(
-  data.obj = peerj32.obj,
+  data.obj = subset_T2D.obj,
   dist.obj = NULL,
   alpha.obj = NULL,
-  group.var = "group",
-  vis.adj.vars = c("sex"),
-  test.adj.vars = c("sex"),
-  subject.var = "subject",
-  time.var = "time",
+  group.var = "subject_race",
+  vis.adj.vars = "sample_body_site",
+  test.adj.vars = "sample_body_site",
+  subject.var = "subject_id",
+  time.var = "visit_number_num",
   alpha.name = c("shannon", "observed_species"),
-  depth = NULL,
+  depth = 2000,
   dist.name = c("BC",'Jaccard'),
-  t.level = "1",
+  t.level = 1,
   feature.box.axis.transform = "sqrt",
-  strata.var = "sex",
+  strata.var = "subject_gender",
   vis.feature.level = c("Phylum", "Family", "Genus"),
   test.feature.level = "Family",
   feature.dat.type = "count",
@@ -228,7 +234,7 @@ mStat_generate_report_single(
   base.size = 20,
   feature.mt.method = "none",
   feature.sig.level = 0.2,
-  output.file = "path/to/report.pdf"
+  output.file = "/Users/apple/MicrobiomeStat/report.pdf"
 )
 }
 }

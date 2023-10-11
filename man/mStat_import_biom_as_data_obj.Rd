@@ -39,15 +39,11 @@ This function reads a BIOM file, which typically contains a biological observati
 \dontrun{
   #rich_dense_biom <- system.file("extdata", "rich_dense_otu_table.biom",  package="phyloseq")
   #treefilename <- system.file("extdata", "biom-tree.phy",  package="phyloseq")
-  #refseqfilename <- system.file("extdata", "biom-refseq.fasta",  package="phyloseq")
   #data.obj <- mStat_import_biom_as_data_obj(rich_dense_biom,
-  #treefilename, refseqfilename, parseFunction=parse_taxonomy_greengenes)
+  #treefilename)
 }
 
 }
 \references{
 The Biological Observation Matrix (BIOM) format or: how I learned to stop worrying and love the ome-ome. Daniel McDonald et al. GigaScience 2012.
-}
-\author{
-Jun Chen
 }
