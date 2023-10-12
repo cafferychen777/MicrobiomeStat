@@ -230,7 +230,7 @@ mStat_generate_report_long <- function(data.obj,
                                        feature.change.func = "relative change",
                                        feature.mt.method = "none",
                                        feature.sig.level = 0.1,
-                                       feature.box.axis.transform = c("identity", "sqrt", "log"),
+                                       feature.box.axis.transform = c("sqrt"),
                                        base.size = 16,
                                        theme.choice = "bw",
                                        custom.theme = NULL,
@@ -1411,31 +1411,8 @@ cat(paste0('\n\n The boxplot results for individual taxa or features can be foun
 
 ### 4.3.2 Significant features spaghettiplot
 
-```{r taxa-spaghettiplot-longitudinal-generation, message=FALSE, fig.height=15, fig.width=10, fig.align='center', results='asis'}
+```{r taxa-spaghettiplot-longitudinal-generation, message=FALSE, fig.height=3, fig.width=8, fig.align='center', results='asis'}
 if (length(combined_significant_taxa) != 0){
-  taxa_spaghettiplot_results <- generate_taxa_spaghettiplot_long(
-                                          data.obj = data.obj,
-                                          subject.var = subject.var,
-                                          time.var = time.var,
-                                          group.var = group.var,
-                                          strata.var = strata.var,
-                                          t0.level = t0.level,
-                                          ts.levels = ts.levels,
-                                          feature.level = test.feature.level,
-                                          feature.dat.type = feature.dat.type,
-                                          features.plot = combined_significant_taxa,
-                                          top.k.plot = NULL,
-                                          top.k.func = NULL,
-                                          prev.filter = prev.filter,
-                                          abund.filter = abund.filter,
-                                          base.size = 10,
-                                          theme.choice = theme.choice,
-                                          custom.theme = custom.theme,
-                                          palette = palette,
-                                          pdf = pdf,
-                                          file.ann = file.ann,
-                                          pdf.wid = pdf.wid,
-                                          pdf.hei = pdf.hei)
 
 taxa_indiv_spaghettiplot_results <- generate_taxa_indiv_spaghettiplot_long(
                                    data.obj = data.obj,
@@ -1468,7 +1445,7 @@ taxa_indiv_spaghettiplot_results <- generate_taxa_indiv_spaghettiplot_long(
 
 ```{r taxa-spaghettiplot-longitudinal-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 10, fig.height = 8}
 if (length(combined_significant_taxa) != 0){
-taxa_spaghettiplot_results
+taxa_indiv_spaghettiplot_results
 }
 ```
 
