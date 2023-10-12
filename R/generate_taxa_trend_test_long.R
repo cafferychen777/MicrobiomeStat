@@ -76,7 +76,7 @@
 #'
 #' # Example 2
 #' data("subset_T2D.obj")
-#' generate_taxa_trend_test_long(
+#' test.list <- generate_taxa_trend_test_long(
 #'   data.obj = subset_T2D.obj,
 #'   subject.var = "subject_id",
 #'   time.var = "visit_number_num",
@@ -87,6 +87,14 @@
 #'   feature.level = c("Genus","Family"),
 #'   feature.dat.type = c("count")
 #' )
+#'
+#' plot.list <- generate_taxa_trend_volcano_long(
+#'   data.obj = subset_T2D.obj,
+#'   group.var = "subject_race",
+#'   time.var = "visit_number_num",
+#'   test.list = test.list,
+#'   feature.sig.level = 0.1,
+#'   feature.mt.method = "none")
 #' }
 #' @export
 generate_taxa_trend_test_long <-
