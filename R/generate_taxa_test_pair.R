@@ -38,7 +38,7 @@
 #' @examples
 #' \dontrun{
 #' data(peerj32.obj)
-#' generate_taxa_test_pair(
+#' test.list <- generate_taxa_test_pair(
 #'   data.obj = peerj32.obj,
 #'   subject.var = "subject",
 #'   time.var = "time",
@@ -47,10 +47,16 @@
 #'   feature.level = c("Genus"),
 #'   prev.filter = 0.1,
 #'   abund.filter = 0.0001,
-#'   feature.dat.type = "count",
-#'   feature.sig.level = 0.1,
-#'   feature.mt.method = "none"
+#'   feature.dat.type = "count"
 #' )
+#' plot.list <-
+#' generate_taxa_volcano_single(
+#'  data.obj = data.obj,
+#'  group.var = "group",
+#'  test.list = test.list,
+#'  feature.sig.level = 0.1,
+#'  feature.mt.method = "none"
+#')
 #' }
 #'
 #' @return A named list containing data frames summarizing taxon test results for each taxonomic level.
