@@ -56,7 +56,7 @@
 #' @examples
 #' \dontrun{
 #' data("subset_T2D.obj")
-#' generate_taxa_volatility_test_long(
+#' test.list <- generate_taxa_volatility_test_long(
 #' data.obj = subset_T2D.obj,
 #' time.var = "visit_number",
 #' subject.var = "subject_id",
@@ -70,6 +70,12 @@
 #' feature.dat.type = "count",
 #' transform = "CLR"
 #' )
+#' plot.list <- generate_taxa_volatility_volcano_long(data.obj = subset_T2D.obj,
+#'                                                    group.var = "subject_race",
+#'                                                    test.list = test.list,
+#'                                                    feature.sig.level = 0.1,
+#'                                                    feature.mt.method = "none")
+#'
 #' }
 #' @export
 generate_taxa_volatility_test_long <- function(data.obj,
