@@ -1443,7 +1443,7 @@ taxa_indiv_spaghettiplot_results <- generate_taxa_indiv_spaghettiplot_long(
 
 ```
 
-```{r taxa-spaghettiplot-longitudinal-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 10, fig.height = 8}
+```{r taxa-spaghettiplot-longitudinal-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 8, fig.height = 4}
 if (length(combined_significant_taxa) != 0){
 taxa_indiv_spaghettiplot_results
 }

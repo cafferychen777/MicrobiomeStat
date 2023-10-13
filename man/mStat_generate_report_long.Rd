@@ -31,7 +31,7 @@ mStat_generate_report_long(
   feature.change.func = "relative change",
   feature.mt.method = "none",
   feature.sig.level = 0.1,
-  feature.box.axis.transform = c("identity", "sqrt", "log"),
+  feature.box.axis.transform = c("sqrt"),
   base.size = 16,
   theme.choice = "bw",
   custom.theme = NULL,
