@@ -52,7 +52,7 @@
 #'   time.var = "month_num",
 #'   t0.level = NULL,
 #'   ts.levels = NULL,
-#'   group.var = "delivery",
+#'   group.var = NULL,
 #'   strata.var = NULL,
 #'   feature.level = c("Family","Phylum","Genus"),
 #'   feature.dat.type = "proportion",
@@ -74,8 +74,8 @@
 #'   time.var = "visit_number_num",
 #'   t0.level = NULL,
 #'   ts.levels = NULL,
-#'   group.var = "subject_gender",
-#'   strata.var = "subject_race",
+#'   group.var = "sample_body_site",
+#'   strata.var = "subject_gender",
 #'   feature.level = c("Genus"),
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
@@ -232,7 +232,6 @@ generate_taxa_heatmap_long <- function(data.obj,
       column_to_rownames(var = feature.level) %>%
       as.matrix()
 
-    if (!is.null(group.var)) {
       wide_data <- otu_tab_norm %>%
         as.data.frame() %>%
         rownames_to_column(var = feature.level) %>%
@@ -247,19 +246,6 @@ generate_taxa_heatmap_long <- function(data.obj,
         dplyr::summarise(mean_value = mean(value)) %>%
         tidyr::unite("group_time", c(group.var, time.var), sep = "_") %>%
         tidyr::spread(key = "group_time", value = "mean_value") %>% column_to_rownames(feature.level)
-    } else {
-      wide_data <- otu_tab_norm %>%
-        as.data.frame() %>%
-        rownames_to_column(var = feature.level) %>%
-        tidyr::gather(key = "sample",
-                      value = "value",
-                      -one_of(feature.level)) %>%
-        dplyr::left_join(meta_tab %>%
-                           rownames_to_column("sample"), "sample") %>%
-        dplyr::group_by(!!sym(feature.level),!!sym(time.var)) %>%
-        dplyr::summarise(mean_value = mean(value)) %>%
-        tidyr::spread(key = time.var, value = "mean_value") %>% column_to_rownames(feature.level)
-    }
 
     annotation_col <- meta_tab %>%
       select(!!sym(time.var), !!sym(group.var)) %>%
@@ -355,6 +341,11 @@ generate_taxa_heatmap_long <- function(data.obj,
                                          c(group.var))
     }
 
+    if (group.var == "ALL"){
+      annotation_col_sorted <- annotation_col_sorted %>% select(-all_of("ALL"))
+      annotation_colors_list <- NULL
+    }
+
     # Plot stacked heatmap
     heatmap_plot_average <- pheatmap::pheatmap(
       wide_data_sorted,
@@ -372,14 +363,19 @@ generate_taxa_heatmap_long <- function(data.obj,
 
     gg_heatmap_plot_average <- as.ggplot(heatmap_plot_average)
 
-    meta_tab <-
-      data.obj$meta.dat %>% as.data.frame() %>% select(all_of(c(
-        subject.var, time.var, group.var, strata.var
-      )))
-
     if (!is.null(features.plot)) {
       otu_tab_norm <-
         otu_tab_norm[rownames(otu_tab_norm) %in% features.plot,]
+    }
+
+    if (group.var == "ALL"){
+      meta_tab <- meta_tab %>% select(-all_of("ALL"))
+      annotation_colors_list <- NULL
+    } else {
+      meta_tab <-
+        data.obj$meta.dat %>% as.data.frame() %>% select(all_of(c(
+          subject.var, group.var, time.var, strata.var
+        )))
     }
 
     heatmap_plot_indiv <- pheatmap::pheatmap(
