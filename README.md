@@ -160,12 +160,12 @@ scientific community:
 - **Core Dependencies:**
   - R (\>= 3.5.0), rlang, tibble
 - **Imported Packages:**
-  - ggplot2, matrixStats, parallel, ggrepel, lmerTest, foreach, modeest,
-    vegan, dplyr, pheatmap, tidyr, ggh4x, ape, GUniFrac, scales,
-    stringr, broom
+  - ggplot2, matrixStats, lmerTest, foreach, modeest, vegan, dplyr,
+    pheatmap, tidyr, ggh4x, ape, GUniFrac, scales, stringr, rmarkdown,
+    knitr, pander, tinytex
 - **Suggested Packages:**
-  - rmarkdown, knitr, ggprism, aplot, philentropy, forcats, pander,
-    tinytex
+  - ggrepel, parallel, ggprism, aplot, philentropy, forcats, yaml,
+    biomformat, Biostrings
 
 Furthermore, we extend our deepest appreciation and respect to the
 trailblazers in the microbiome research community who have created and
