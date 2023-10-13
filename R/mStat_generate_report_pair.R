@@ -255,6 +255,8 @@ custom_test.adj.vars_status <- ifelse(is.null(test.adj.vars), 'NULL', toString(t
 
 custom_vis.adj.vars_status <- ifelse(is.null(vis.adj.vars), 'NULL', toString(vis.adj.vars))
 
+custom_strata_status <- ifelse(is.null(strata.var), 'NULL', toString(strata.var))
+
 params_data <- data.frame(Parameter = c('data.obj',
                                         'feature.dat.type',
                                         'group.var',
@@ -296,7 +298,7 @@ params_data <- data.frame(Parameter = c('data.obj',
                                         group.var,
                                         custom_test.adj.vars_status,
                                         custom_vis.adj.vars_status,
-                                        strata.var,
+                                        custom_strata_status,
                                         subject.var,
                                         time.var,
                                         custom_change.base_status,
