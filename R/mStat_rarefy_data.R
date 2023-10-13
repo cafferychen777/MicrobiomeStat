@@ -43,7 +43,11 @@ mStat_rarefy_data <- function(data.obj, depth = NULL) {
   }
 
   # Rarefy the data
-  rarefied_otu_tab <- t(vegan::rrarefy(t(otu_tab), sample = depth))
+  if (all(round(colSums(otu_tab),5) ==1)){
+    rarefied_otu_tab <- as.matrix(otu_tab)
+  } else {
+    rarefied_otu_tab <- t(vegan::rrarefy(t(otu_tab), sample = depth))
+  }
 
   # Identify all-zero rows
   zero_row_indices <- which(rowSums(rarefied_otu_tab) == 0)

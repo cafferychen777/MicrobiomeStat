@@ -62,6 +62,7 @@
 #'
 #' @examples
 #' \dontrun{
+#' library(aplot)
 #' data(peerj32.obj)
 #' dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = c('BC', 'Jaccard'))
 #' pc.obj <- mStat_calculate_PC(dist.obj, method = c('mds'), k = 2, dist.name = c('BC','Jaccard'))
@@ -131,6 +132,10 @@ generate_beta_ordination_single <-
            pdf.wid = 11,
            pdf.hei = 8.5,
            ...) {
+
+    if (is.null(dist.name)){
+      return()
+    }
 
     if (is.null(dist.obj)) {
       if (!is.null(time.var)){

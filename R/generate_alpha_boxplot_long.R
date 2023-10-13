@@ -102,6 +102,11 @@ generate_alpha_boxplot_long <- function (data.obj,
                                          pdf.wid = 11,
                                          pdf.hei = 8.5,
                                          ...) {
+
+  if (is.null(alpha.name)){
+    return()
+  }
+
   if (!is.null(alpha.obj) &&
       !is(alpha.obj, "list"))
     stop("`alpha.obj` should be a list or NULL.")

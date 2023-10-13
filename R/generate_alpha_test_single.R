@@ -50,6 +50,11 @@ generate_alpha_test_single <-
            t.level = NULL,
            group.var,
            adj.vars) {
+
+    if (is.null(alpha.name)){
+      return()
+    }
+
     if (!is.null(time.var) & !is.null(t.level)) {
       condition <- paste(time.var, "== '", t.level, "'", sep = "")
       data.obj <- mStat_subset_data(data.obj, condition = condition)
@@ -85,7 +90,17 @@ generate_alpha_test_single <-
 
       # Run lm and create a coefficient table
       lm.model <- lm(formula, data = merged_df)
-      coef.tab <- broom::tidy(summary(lm.model))
+      summary <- summary(lm.model)
+      coef.tab <- summary$coefficients %>%
+        as.data.frame() %>%
+        rownames_to_column("term") %>%
+        rename(
+          Estimate = "estimate",
+          `Std. Error` = "std.error",
+          `t value` = "statistic",
+          `Pr(>|t|)` = "p.value"
+        ) %>%
+        as_tibble()
 
       # Rearrange the table
       coef.tab <-
@@ -99,14 +114,18 @@ generate_alpha_test_single <-
 
       # Run ANOVA on the model if group.var is multi-categorical
       if (length(na.omit(unique(merged_df[[group.var]]))) > 2) {
-        anova.tab <- broom::tidy(anova(lm.model))
+        anova <- anova(lm.model)
+        anova.tab <- anova %>%
+          as.data.frame() %>%
+          rownames_to_column("term") %>%
+          rename(`F value` = "statistic",
+                 `Pr(>F)` = "p.value")
 
         # Rearrange the table and add missing columns
         anova.tab <- anova.tab %>%
           dplyr::select(
-            term = term,
+            term,
             Statistic = statistic,
-            df = df,
             P.Value = p.value
           ) %>%
           dplyr::mutate(Estimate = NA, Std.Error = NA)
@@ -125,7 +144,7 @@ generate_alpha_test_single <-
           )
 
         coef.tab <-
-          rbind(coef.tab, anova.tab) # Append the anova.tab to the coef.tab
+          rbind(coef.tab, anova.tab)
       }
 
       return(coef.tab)

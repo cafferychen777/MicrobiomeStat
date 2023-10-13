@@ -95,15 +95,13 @@ generate_taxa_change_test_pair(
   subject.var = "subject",
   time.var = "time",
   group.var = "group",
-  adj.vars = NULL,
+  adj.vars = "sex",
   change.base = "1",
   feature.change.func = "log fold change",
   feature.level = c("Genus"),
   prev.filter = 0.1,
   abund.filter = 1e-4,
-  feature.dat.type = "count",
-  feature.mt.method = "none",
-  feature.sig.level = 0.1
+  feature.dat.type = "count"
 )
 }
 

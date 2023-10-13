@@ -118,6 +118,7 @@ winsor.fun <- function(Y, quan, feature.dat.type) {
 #' @import parallel
 #' @examples
 #' \dontrun{
+#' library(ggrepel)
 #' data(smokers)
 #' ind <- smokers$meta$AIRWAYSITE == "Throat"
 #' otu.tab <- as.data.frame(smokers$otu[, ind])
@@ -418,9 +419,9 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
 #' @references Huijuan Zhou, Kejun He, Jun Chen, and Xianyang Zhang. LinDA: Linear Models for Differential Abundance
 #' Analysis of Microbiome Compositional Data.
 #' @import ggplot2
-#' @import ggrepel
 #' @examples
 #' \dontrun{
+#' library(ggrepel)
 #' data(smokers)
 #' ind <- smokers$meta$AIRWAYSITE == "Throat"
 #' otu.tab <- as.data.frame(smokers$otu[, ind])
@@ -575,7 +576,7 @@ linda.plot <- function(linda.obj, variables.plot, titles = NULL, alpha = 0.05, l
     )
     plot.volcano.i <- ggplot(data.volcano, aes(x = Log2FoldChange, y = Log10Padj)) +
       geom_point(aes(color = leg), size = 2) +
-      geom_text_repel(aes(label = taxa), max.overlaps = Inf) +
+      ggrepel::geom_text_repel(aes(label = taxa), max.overlaps = Inf) +
       scale_colour_manual(values = c("darkgray", color[c(2, 3, 1)])) +
       geom_hline(aes(yintercept = -log10(alpha)), color = "gray", linetype = "dashed") +
       geom_vline(aes(xintercept = -lfc.cut), color = "gray", linetype = "dashed") +

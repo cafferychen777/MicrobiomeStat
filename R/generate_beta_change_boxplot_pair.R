@@ -107,6 +107,10 @@ generate_beta_change_boxplot_pair <-
            pdf.hei = 8.5,
            ...) {
 
+    if (is.null(dist.name)){
+      return()
+    }
+
     if (is.null(dist.obj)) {
       meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var, adj.vars)))
       dist.obj <-

@@ -104,6 +104,11 @@ generate_beta_ordination_pair <-
            pdf.wid = 11,
            pdf.hei = 8.5,
            ...) {
+
+    if (is.null(dist.name)){
+      return()
+    }
+
     if (is.null(dist.obj)) {
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)

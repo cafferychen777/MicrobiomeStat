@@ -94,6 +94,11 @@ generate_beta_change_spaghettiplot_long <-
            ...) {
     # Data validation
     mStat_validate_data(data.obj)
+
+    if (is.null(dist.name)){
+      return()
+    }
+
     if (!is.character(subject.var))
       stop("`subject.var` should be a character string.")
     if (!is.character(time.var))

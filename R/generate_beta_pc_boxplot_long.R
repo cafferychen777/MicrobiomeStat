@@ -127,6 +127,11 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
                                           pdf.wid = 11,
                                           pdf.hei = 8.5,
                                           ...) {
+
+  if (is.null(dist.name)){
+    return()
+  }
+
   if (is.null(dist.obj)) {
     data.obj <-
       mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)

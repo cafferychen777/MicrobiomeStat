@@ -49,6 +49,11 @@ mStat_calculate_adjusted_distance <- function (data.obj,
                                                dist.obj,
                                                adj.vars,
                                                dist.name) {
+
+  if (is.null(dist.name)){
+    return()
+  }
+
   # Message to inform the user
   message(
     "Calculating adjusted distances using the provided adjustment variables and distance matrices..."

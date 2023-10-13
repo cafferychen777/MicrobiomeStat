@@ -49,7 +49,7 @@
 #'   subject.var = "studyid",
 #'   time.var = "month",
 #'   group.var = "diet",
-#'   adj.vars = "delivery",
+#'   adj.vars = NULL,
 #'   dist.name = c('BC')
 #' )
 #' }
@@ -64,6 +64,11 @@ generate_beta_pc_volatility_test_long <- function(data.obj,
                                              adj.vars = NULL,
                                              dist.name = c("BC"),
                                              ...) {
+
+  if (is.null(dist.name)){
+    return()
+  }
+
   if (is.null(dist.obj)) {
     meta_tab <-
       data.obj$meta.dat %>% select(all_of(c(
@@ -167,14 +172,18 @@ generate_beta_pc_volatility_test_long <- function(data.obj,
 
       # Run ANOVA on the model if group.var is multi-categorical
       if (length(unique(test_df[[group.var]])) > 2) {
-        anova.tab <- broom::tidy(anova(test_result))
+        anova <- anova(test_result)
+        anova.tab <- anova %>% as.data.frame() %>%
+          rownames_to_column("term") %>%
+          rename(`F value` = "statistic",
+                 `Pr(>F)` = "p.value") %>%
+          as_tibble()
 
         # Rearrange the table and add missing columns
         anova.tab <- anova.tab %>%
           select(
             term = term,
             Statistic = statistic,
-            df = df,
             P.Value = p.value
           ) %>%
           dplyr::mutate(Estimate = NA, Std.Error = NA)

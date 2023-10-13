@@ -115,10 +115,10 @@ alpha.obj = NULL,
 time.var = "time",
 alpha.name = c("shannon"),
 subject.var = "subject",
-group.var = "group",
-adj.vars = "sex",
-change.base = "1",
-alpha.change.func = "absolute change"
+group.var = "sex",
+adj.vars = "group",
+change.base = "2",
+alpha.change.func = "log fold change"
 )
 }
 }

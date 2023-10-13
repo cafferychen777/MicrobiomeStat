@@ -160,6 +160,11 @@ generate_alpha_boxplot_single <- function (data.obj,
                                            pdf.wid = 11,
                                            pdf.hei = 8.5,
                                            ...) {
+
+  if (is.null(alpha.name)){
+    return()
+  }
+
   if (is.null(alpha.obj)) {
     if (!is_rarefied(data.obj)) {
       message(

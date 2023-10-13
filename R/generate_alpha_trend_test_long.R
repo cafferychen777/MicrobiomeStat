@@ -76,6 +76,10 @@ generate_alpha_trend_test_long <- function(data.obj,
                                            group.var = NULL,
                                            adj.vars = NULL) {
 
+  if (is.null(alpha.name)){
+    return()
+  }
+
   if (is.null(alpha.obj)) {
     if (!is_rarefied(data.obj)) {
       message(

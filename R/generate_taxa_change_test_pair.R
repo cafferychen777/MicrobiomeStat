@@ -84,15 +84,13 @@ is_categorical <- function(x) {
 #'   subject.var = "subject",
 #'   time.var = "time",
 #'   group.var = "group",
-#'   adj.vars = NULL,
+#'   adj.vars = "sex",
 #'   change.base = "1",
 #'   feature.change.func = "log fold change",
 #'   feature.level = c("Genus"),
 #'   prev.filter = 0.1,
 #'   abund.filter = 1e-4,
-#'   feature.dat.type = "count",
-#'   feature.mt.method = "none",
-#'   feature.sig.level = 0.1
+#'   feature.dat.type = "count"
 #' )
 #' }
 #'
@@ -314,14 +312,19 @@ generate_taxa_change_test_pair <-
 
           # Run ANOVA on the model if group.var is multi-categorical
           if (length(unique(test_df[[group.var]])) > 2) {
-            anova.tab <- broom::tidy(anova(test_result))
+            anova <- anova(test_result)
+            anova.tab <- anova %>%
+              as.data.frame() %>%
+              rownames_to_column("term") %>%
+              rename(`F value` = "statistic",
+                     `Pr(>F)` = "p.value") %>%
+              as_tibble()
 
             # Rearrange the table and add missing columns
             anova.tab <- anova.tab %>%
               select(
                 term = term,
                 Statistic = statistic,
-                df = df,
                 P.Value = p.value
               ) %>%
               dplyr::mutate(Estimate = NA, Std.Error = NA)

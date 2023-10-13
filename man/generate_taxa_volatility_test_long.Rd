@@ -101,9 +101,7 @@ group.var = "subject_race",
 adj.vars = "sample_body_site",
 prev.filter = 0.1,
 abund.filter = 0.0001,
-feature.mt.method = "fdr",
-feature.sig.level = 0.1,
-feature.level = c("Genus", "Family", "Species"),
+feature.level = c("Genus"),
 feature.dat.type = "count",
 transform = "CLR"
 )

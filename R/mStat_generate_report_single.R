@@ -105,6 +105,7 @@
 #'
 #' @examples
 #' \dontrun{
+#' library(aplot)
 #' data(peerj32.obj)
 #' mStat_generate_report_single(
 #'   data.obj = peerj32.obj,
@@ -154,6 +155,31 @@
 #'   feature.mt.method = "none",
 #'   feature.sig.level = 0.2,
 #'   output.file = "/Users/apple/MicrobiomeStat/report.pdf"
+#' )
+#' data(ecam.obj)
+#' mStat_generate_report_single(
+#'   data.obj = ecam.obj,
+#'   dist.obj = NULL,
+#'   alpha.obj = NULL,
+#'   group.var = "delivery",
+#'   vis.adj.vars = "diet",
+#'   test.adj.vars = "diet",
+#'   subject.var = "subject.id",
+#'   time.var = "month_num",
+#'   alpha.name = c("shannon", "observed_species"),
+#'   depth = NULL,
+#'   dist.name = c("BC",'Jaccard'),
+#'   t.level = 1,
+#'   feature.box.axis.transform = "sqrt",
+#'   strata.var = "antiexposedall",
+#'   vis.feature.level = c("Phylum", "Family", "Genus"),
+#'   test.feature.level = "Family",
+#'   feature.dat.type = "proportion",
+#'   theme.choice = "bw",
+#'   base.size = 20,
+#'   feature.mt.method = "none",
+#'   feature.sig.level = 0.2,
+#'   output.file = "/Users/apple/MicrobiomeStat/ecam.obj_report.pdf"
 #' )
 #' }
 #' @export
@@ -330,7 +356,7 @@ if (!all(unique_levels %in% names(data.obj$feature.agg.list))) {
 }
 
 if (is.null(depth)){
-  depth <- min(colSums(data.obj$feature.tab))
+  depth <- round(min(colSums(data.obj$feature.tab)))
   cat(sprintf('No rarefaction depth is specified. The minimum depth, %d, is used as the rarefaction depth. ', depth))
 }
 
@@ -761,8 +787,7 @@ taxa_test_results <- generate_taxa_test_single(data.obj = data.obj,
                                                feature.level = test.feature.level,
                                                feature.dat.type = feature.dat.type,
                                                feature.sig.level = feature.sig.level,
-                                               feature.mt.method = feature.mt.method,
-                                               ...)
+                                               feature.mt.method = feature.mt.method)
 ```
 
 ```{r taxa-test-results-display, echo=FALSE, message=FALSE, results='asis', warning = FALSE, fig.align='center', fig.width = 10, fig.height = 8}
@@ -834,7 +859,7 @@ cat(sprintf('\n\nThe differential abundance test results for features have been 
 
 ```
 
-```{r extract_significant_taxa, echo=FALSE, results='hide'}
+```{r extract_significant_taxa, echo=FALSE, results='hide', warning = FALSE}
 # Extract Variables based on the provided condition
 extract_significant_variables <- function(data_frame, p_value_column) {
     filtered_df <- data_frame %>%
@@ -871,7 +896,7 @@ significant_vars <- as.vector(significant_vars)
 
 ### 4.2.1 Significant features boxplot
 
-```{r taxa-significant-boxplot-generation, message=FALSE, fig.align='center', fig.width = 15, fig.height = 15, results='asis'}
+```{r taxa-significant-boxplot-generation, message=FALSE, fig.align='center', fig.width = 15, fig.height = 15, results='asis', warning = FALSE}
 
 taxa_boxplot_results <- generate_taxa_boxplot_single(
                                               data.obj = data.obj,
@@ -924,7 +949,7 @@ taxa_indiv_boxplot_results <- generate_taxa_indiv_boxplot_single(
 
 ```
 
-```{r taxa-indiv-boxplot-pdf-name, echo=FALSE, message=FALSE, results='asis'}
+```{r taxa-indiv-boxplot-pdf-name, echo=FALSE, message=FALSE, results='asis', warning = FALSE}
 pdf_name <- paste0(
   'taxa_indiv_boxplot_single',
   '_',

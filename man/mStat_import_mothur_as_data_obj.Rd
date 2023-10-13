@@ -40,6 +40,7 @@ MicrobiomeStat is a comprehensive and user-friendly tool designed for robust mic
 }
 \examples{
 \dontrun{
+# Make sure to load the plyr package
 # library(plyr)
 # path_to_list_file <- "/Users/apple/Downloads/esophagus/Esophagus/esophagus.fn.list"
 # path_to_group_file <- "/Users/apple/Downloads/esophagus/Esophagus/esophagus.good.groups"

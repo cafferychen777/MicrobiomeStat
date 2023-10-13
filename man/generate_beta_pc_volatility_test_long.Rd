@@ -79,7 +79,7 @@ generate_beta_pc_volatility_test_long(
   subject.var = "studyid",
   time.var = "month",
   group.var = "diet",
-  adj.vars = "delivery",
+  adj.vars = NULL,
   dist.name = c('BC')
 )
 }

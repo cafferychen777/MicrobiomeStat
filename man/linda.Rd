@@ -107,6 +107,7 @@ Note that linda is developed separately from other MicrobiomeStat functions, so 
 }
 \examples{
 \dontrun{
+library(ggrepel)
 data(smokers)
 ind <- smokers$meta$AIRWAYSITE == "Throat"
 otu.tab <- as.data.frame(smokers$otu[, ind])

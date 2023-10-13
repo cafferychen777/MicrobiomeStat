@@ -58,6 +58,7 @@ A warning message will be displayed to ensure that the time variable is coded as
 Non-numeric coding may lead to issues in the volatility test computation.
 }
 \examples{
+\dontrun{
 data(ecam.obj)
 generate_beta_volatility_test_long(
   data.obj = ecam.obj,
@@ -83,6 +84,7 @@ generate_beta_volatility_test_long(
   adj.vars = NULL,
   dist.name = c("BC", "Jaccard")
 )
+}
 }
 \seealso{
 mStat_calculate_beta_diversity, mStat_calculate_adjusted_distance

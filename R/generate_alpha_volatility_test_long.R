@@ -41,7 +41,7 @@
 #' time.var = "visit_number_num",
 #' subject.var = "subject_id",
 #' group.var = "subject_race",
-#' adj.vars = "sample_body_site"
+#' adj.vars = NULL
 #' )
 #' }
 #' @export
@@ -53,6 +53,11 @@ generate_alpha_volatility_test_long <- function(data.obj,
                                                 subject.var,
                                                 group.var,
                                                 adj.vars = NULL) {
+
+  if (is.null(alpha.name)){
+    return()
+  }
+
   if (is.null(alpha.obj)) {
     if (!is_rarefied(data.obj)) {
       message(
@@ -162,14 +167,19 @@ generate_alpha_volatility_test_long <- function(data.obj,
 
     # Run ANOVA on the model if group.var is multi-categorical
     if (length(unique(alpha_df[[group.var]])) > 2) {
-      anova.tab <- broom::tidy(anova(test_result))
+      anova <- anova(test_result)
+      anova.tab <- anova %>%
+        as.data.frame() %>%
+        rownames_to_column("term") %>%
+        rename(`F value` = "statistic",
+               `Pr(>F)` = "p.value") %>%
+        as_tibble()
 
       # Rearrange the table and add missing columns
       anova.tab <- anova.tab %>%
         dplyr::select(
           term = term,
           Statistic = statistic,
-          df = df,
           P.Value = p.value
         ) %>%
         dplyr::mutate(Estimate = NA, Std.Error = NA)

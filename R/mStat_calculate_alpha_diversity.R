@@ -19,6 +19,10 @@
 #' @export
 mStat_calculate_alpha_diversity <- function(x, alpha.name) {
 
+  if (is.null(alpha.name)){
+    return()
+  }
+
   x_transpose <- t(x)
 
     alpha.obj <- lapply(alpha.name, function(index) {

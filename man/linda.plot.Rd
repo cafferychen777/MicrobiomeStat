@@ -47,6 +47,7 @@ The function plots the effect size plot and volcano plot based on the output fro
 }
 \examples{
 \dontrun{
+library(ggrepel)
 data(smokers)
 ind <- smokers$meta$AIRWAYSITE == "Throat"
 otu.tab <- as.data.frame(smokers$otu[, ind])

@@ -68,7 +68,7 @@ alpha.name = c("shannon","observed_species"),
 time.var = "visit_number_num",
 subject.var = "subject_id",
 group.var = "subject_race",
-adj.vars = "sample_body_site"
+adj.vars = NULL
 )
 }
 }

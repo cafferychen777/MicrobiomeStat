@@ -64,9 +64,7 @@
 #' adj.vars = "sample_body_site",
 #' prev.filter = 0.1,
 #' abund.filter = 0.0001,
-#' feature.mt.method = "fdr",
-#' feature.sig.level = 0.1,
-#' feature.level = c("Genus", "Family", "Species"),
+#' feature.level = c("Genus"),
 #' feature.dat.type = "count",
 #' transform = "CLR"
 #' )
@@ -186,8 +184,10 @@ generate_taxa_volatility_test_long <- function(data.obj,
       rownames_to_column(feature.level) %>%
       tidyr::gather(key = "sample", value = "value",-feature.level)
 
+    taxa.levels <- otu_tax_agg_clr_long %>% select(all_of(feature.level)) %>% pull() %>% unique()
+
     sub_test.list <-
-      lapply(otu_tax_agg_clr_long %>% select(all_of(feature.level)) %>% pull() %>% unique(), function(taxon) {
+      lapply(taxa.levels, function(taxon) {
 
         taxa_df <- otu_tax_agg_clr_long %>%
           dplyr::filter(!!sym(feature.level) == taxon) %>%
@@ -219,14 +219,18 @@ generate_taxa_volatility_test_long <- function(data.obj,
 
         # Run ANOVA on the model if group.var is multi-categorical
         if (length(unique(taxa_df[[group.var]])) > 2) {
-          anova.tab <- broom::tidy(anova(test_result))
+          anova <- anova(test_result)
+          anova.tab <- anova %>% as.data.frame() %>%
+            rownames_to_column("term") %>%
+            rename(`F value` = "statistic",
+                   `Pr(>F)` = "p.value") %>%
+            as_tibble()
 
           # Rearrange the table and add missing columns
           anova.tab <- anova.tab %>%
             select(
               term = term,
               Statistic = statistic,
-              df = df,
               P.Value = p.value
             ) %>%
             dplyr::mutate(Estimate = NA, Std.Error = NA)

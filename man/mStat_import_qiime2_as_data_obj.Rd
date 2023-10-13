@@ -34,6 +34,9 @@ MicrobiomeStat is a comprehensive and user-friendly tool designed for robust mic
 }
 \examples{
 \dontrun{
+# This function requires the `Biostrings` and `yaml` packages.
+# If you encounter issues when running the example code,
+# please ensure that you have installed and loaded these packages.
 # library(Biostrings)
 # library(yaml)
 data_obj <- mStat_import_qiime2_as_data_obj(otu_qza = "path_to_otu.qza",

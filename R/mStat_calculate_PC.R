@@ -30,6 +30,10 @@
 #' @export
 mStat_calculate_PC <- function(dist.obj, method = c('mds'), k = 2, dist.name = NULL) {
 
+  if (is.null(dist.name)){
+    return()
+  }
+
   calculate_single_method <- function(m, dist_matrix, k, perplexity = NULL) {
     if (m == 'mds') {
       message("Calculating MDS...")

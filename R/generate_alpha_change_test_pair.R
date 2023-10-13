@@ -84,10 +84,10 @@
 #' time.var = "time",
 #' alpha.name = c("shannon"),
 #' subject.var = "subject",
-#' group.var = "group",
-#' adj.vars = "sex",
-#' change.base = "1",
-#' alpha.change.func = "absolute change"
+#' group.var = "sex",
+#' adj.vars = "group",
+#' change.base = "2",
+#' alpha.change.func = "log fold change"
 #' )
 #' }
 #' @export
@@ -102,6 +102,10 @@ generate_alpha_change_test_pair <-
            adj.vars = NULL,
            change.base,
            alpha.change.func = "log fold change") {
+
+    if (is.null(alpha.name)){
+      return()
+    }
 
     if (is.null(alpha.obj)) {
       if (!is_rarefied(data.obj)) {
@@ -201,40 +205,37 @@ generate_alpha_change_test_pair <-
 
       # Run lm and create a coefficient table
       lm.model <- lm(formula, data = combined_alpha)
-      coef.tab <- broom::tidy(summary(lm.model))
-
-      # Rearrange the table
-      coef.tab <-
-        coef.tab %>% dplyr::select(
-          Term = term,
-          Estimate = estimate,
-          Std.Error = std.error,
-          Statistic = statistic,
-          P.Value = p.value
-        )
+      summary <- summary(lm.model)
+      coef.tab <- summary$coefficients %>%
+        as.data.frame() %>%
+        tibble::rownames_to_column(var = "term") %>%
+        rename(
+          term = "Term",
+          `Std. Error` = "Std.Error",
+          `t value` = "Statistic",
+          `Pr(>|t|)` = "P.Value"
+        ) %>% as_tibble()
 
       # Run ANOVA on the model if group.var is multi-categorical
       if (length(unique(combined_alpha[[group.var]])) > 2) {
-        anova.tab <- broom::tidy(anova(lm.model))
-
-        # Rearrange the table and add missing columns
-        anova.tab <- anova.tab %>%
-          dplyr::select(
-            Term = term,
-            Statistic = statistic,
-            df = df,
-            P.Value = p.value
-          ) %>%
-          dplyr::mutate(Estimate = NA, Std.Error = NA)
+        anova <- anova(lm.model)
+        anova.tab <- as.data.frame(anova) %>%
+          rownames_to_column("Term") %>%
+          rename(`Sum Sq` = "sumsq",
+                 `Df` = "df",
+                 `F value` = "Statistic",
+                 `Pr(>F)` = "P.Value") %>%
+          dplyr::mutate(Estimate = NA, Std.Error = NA) %>%
+          as_tibble()
 
         # Reorder the columns to match coef.tab
         anova.tab <- anova.tab %>%
           dplyr::select(
-            Term = term,
-            Estimate = Estimate,
-            Std.Error = Std.Error,
-            Statistic = Statistic,
-            P.Value = P.Value
+            Term,
+            Estimate,
+            Std.Error,
+            Statistic,
+            P.Value
           )
 
         coef.tab <-

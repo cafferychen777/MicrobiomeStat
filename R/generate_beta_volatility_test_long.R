@@ -36,6 +36,7 @@
 #' mStat_calculate_beta_diversity, mStat_calculate_adjusted_distance
 #'
 #' @examples
+#' \dontrun{
 #' data(ecam.obj)
 #' generate_beta_volatility_test_long(
 #'   data.obj = ecam.obj,
@@ -61,6 +62,7 @@
 #'   adj.vars = NULL,
 #'   dist.name = c("BC", "Jaccard")
 #' )
+#' }
 #' @export
 generate_beta_volatility_test_long <-
   function(data.obj,
@@ -71,6 +73,10 @@ generate_beta_volatility_test_long <-
            adj.vars = NULL,
            dist.name = c("BC"),
            ...) {
+
+    if (is.null(dist.name)){
+      return()
+    }
 
     mStat_validate_data(data.obj)
 
@@ -159,15 +165,18 @@ generate_beta_volatility_test_long <-
       coef.tab <- extract_coef(test_result)
 
       # Run ANOVA on the model if group.var is multi-categorical
-      if (length(unique(test_df[[group.var]])) > 2) {
-        anova.tab <- broom::tidy(anova(test_result))
+      if (length(unique(test_df[[group.var]])) > 1) {
+        anova <- anova(test_result)
+        anova.tab <- anova %>% as.data.frame() %>%
+          rownames_to_column("term") %>%
+          rename(`F value` = "statistic",
+                 `Pr(>F)` = "p.value")
 
         # Rearrange the table and add missing columns
         anova.tab <- anova.tab %>%
           select(
             term = term,
             Statistic = statistic,
-            df = df,
             P.Value = p.value
           ) %>%
           dplyr::mutate(Estimate = NA, Std.Error = NA)

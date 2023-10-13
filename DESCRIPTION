@@ -23,8 +23,6 @@ Depends:
 Imports: 
     ggplot2,
     matrixStats,
-    parallel,
-    ggrepel,
     lmerTest,
     foreach,
     modeest,
@@ -37,16 +35,17 @@ Imports:
     GUniFrac,
     scales,
     stringr,
-    broom
-Suggests:
     rmarkdown,
     knitr,
+    pander,
+    tinytex
+Suggests:
+    ggrepel,
+    parallel,
     ggprism,
     aplot,
     philentropy,
     forcats,
-    pander,
-    tinytex,
     yaml,
     biomformat,
     Biostrings

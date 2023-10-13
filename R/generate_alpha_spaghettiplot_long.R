@@ -91,6 +91,10 @@ generate_alpha_spaghettiplot_long <-
            pdf.wid = 11,
            pdf.hei = 8.5,
            ...) {
+    if (is.null(alpha.name)){
+      return()
+    }
+
     # Data validation
     if (!is(data.obj, "list"))
       stop("`data.obj` should be a list.")

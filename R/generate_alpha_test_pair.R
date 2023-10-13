@@ -87,7 +87,7 @@ extract_coef <- function(model) {
 #' alpha.name = c("shannon"),
 #' subject.var = "subject",
 #' group.var = "group",
-#' adj.vars = "sex"
+#' adj.vars = NULL
 #' )
 #'
 #' @export
@@ -100,6 +100,11 @@ generate_alpha_test_pair <-
            subject.var,
            group.var,
            adj.vars) {
+
+    if (is.null(alpha.name)){
+      return()
+    }
+
     if (is.null(alpha.obj)) {
       if (!is_rarefied(data.obj)) {
         message(
@@ -187,7 +192,12 @@ generate_alpha_test_pair <-
     if(!is.null(group.var)){
       # Run ANOVA on the model if group.var is multi-categorical
       if (group.levels > 2) {
-        anova.tab <- broom::tidy(anova(lme.model))
+        anova.tab <- anova(lme.model) %>%
+          as.data.frame() %>%
+          rownames_to_column("Term") %>%
+          rename(`F value` = "statistic",
+                 `Pr(>F)` = "p.value") %>%
+          as_tibble()
 
         # Rearrange the table and add missing columns
         anova.tab <- anova.tab %>%
@@ -196,13 +206,13 @@ generate_alpha_test_pair <-
         # Reorder the columns to match coef.tab
         anova.tab <- anova.tab %>%
           dplyr::select(
-            Term = term,
-            Estimate = Estimate,
-            Std.Error = Std.Error,
+            Term,
+            Estimate,
+            Std.Error,
             Statistic = statistic,
             P.Value = p.value
           ) %>%
-          dplyr::filter(Term %in% c(group.var, paste0(time.var, ":", group.var)))
+          dplyr::filter(Term %in% c(group.var, paste0(group.var, ":", time.var)))
 
         coef.tab <-
           rbind(coef.tab, anova.tab) # Append the anova.tab to the coef.tab

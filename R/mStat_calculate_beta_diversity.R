@@ -36,6 +36,10 @@
 mStat_calculate_beta_diversity <- function(data.obj,
                                            dist.name = c('BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS')) {
 
+  if (is.null(dist.name)){
+    return()
+  }
+
   otu_tab <- data.obj$feature.tab
   tax_tab <- data.obj$feature.ann
   meta_tab <- data.obj$meta.dat
@@ -89,6 +93,10 @@ mStat_calculate_beta_diversity <- function(data.obj,
   }
 
   if ('JS' %in% dist.name) {
+    if (!"philentropy" %in% utils::installed.packages()) {
+      message("The 'philentropy' package is required for Jensen-Shannon divergence calculation. Please install it using install.packages('philentropy').")
+      return()
+    }
     message("Calculating Jensen-Shannon divergence...")
     jsd <- philentropy::JSD(as.matrix(t(otu_tab)))
     rownames(jsd) <- colnames(otu_tab)

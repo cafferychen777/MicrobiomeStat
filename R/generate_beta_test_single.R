@@ -54,6 +54,10 @@ generate_beta_test_single <- function(data.obj,
                                       adj.vars = NULL,
                                       dist.name = c('BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS')) {
 
+  if (is.null(dist.name)){
+    return()
+  }
+
   # Calculate beta diversity indices if not provided
   if (is.null(dist.obj)) {
     if (!is.null(time.var) & !is.null(t.level)) {

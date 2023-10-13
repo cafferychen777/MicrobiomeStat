@@ -35,9 +35,9 @@ is_count_data <- function(data_mat) {
 #' @examples
 #' \dontrun{
 #' data(peerj32.obj)
-#' peerj32.obj <- mStat_aggregate_by_taxonomy(peerj32.obj, method = "TSS")
+#' peerj32.obj <- mStat_normalize_data(peerj32.obj, method = "TSS")
 #' # library(edgeR)
-#' # peerj32.obj <- mStat_aggregate_by_taxonomy(peerj32.obj, method = "TMM")
+#' # peerj32.obj <- mStat_normalize_data(peerj32.obj, method = "TMM")
 #' }
 #'
 #' @details
@@ -68,8 +68,12 @@ mStat_normalize_data <-
       }
       rarefy_depth <-
         ifelse(is.null(depth), min(colSums(otu_tab)), depth)
-      rarefied_otu_tab <-
-        t(vegan::rrarefy(t(otu_tab), sample = rarefy_depth))
+      if (all(round(colSums(otu_tab),5) ==1)){
+        rarefied_otu_tab <- as.matrix(otu_tab)
+      } else {
+        rarefied_otu_tab <-
+          t(vegan::rrarefy(t(otu_tab), sample = rarefy_depth))
+      }
       rarefied_otu_tab <- rarefied_otu_tab / rarefy_depth
       scale_factor <- rarefy_depth
     } else if (method == "Rarefy") {
@@ -80,8 +84,12 @@ mStat_normalize_data <-
       }
       rarefy_depth <-
         ifelse(is.null(depth), min(colSums(otu_tab)), depth)
-      rarefied_otu_tab <-
-        t(vegan::rrarefy(t(otu_tab), sample = rarefy_depth))
+      if (all(round(colSums(otu_tab),5) ==1)){
+        rarefied_otu_tab <- as.matrix(otu_tab)
+      } else {
+        rarefied_otu_tab <-
+          t(vegan::rrarefy(t(otu_tab), sample = rarefy_depth))
+      }
       scale_factor <- rarefy_depth
     } else if (method == "TSS") {
       scale_factor <- colSums(otu_tab)

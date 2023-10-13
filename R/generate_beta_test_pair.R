@@ -48,6 +48,10 @@ generate_beta_test_pair <- function(data.obj,
                                     adj.vars = NULL,
                                     dist.name = c('BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS')) {
 
+  if (is.null(dist.name)){
+    return()
+  }
+
   # Calculate beta diversity indices if not provided
   if (is.null(dist.obj)) {
     dist.obj <- mStat_calculate_beta_diversity(data.obj, dist.name)

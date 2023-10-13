@@ -48,7 +48,7 @@
 #'   time.var = "time",
 #'   subject.var = "subject",
 #'   group.var = "group",
-#'   adj.vars = c("sex"),
+#'   adj.vars = "sex",
 #'   change.base = "1",
 #'   dist.name = c('BC', 'Jaccard')
 #' )
@@ -76,6 +76,10 @@ generate_beta_change_test_pair <-
            adj.vars,
            change.base = NULL,
            dist.name = c('BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS')) {
+
+    if (is.null(dist.name)){
+      return()
+    }
 
     if (is.null(dist.obj)&!is.null(data.obj)) {
       dist.obj <-
@@ -124,7 +128,14 @@ generate_beta_change_test_pair <-
 
       # Run lm and create a coefficient table
       lm.model <- lm(formula, data = long.df)
-      coef.tab <- broom::tidy(summary(lm.model))
+      summary <- summary(lm.model)
+      coef.tab <- summary$coefficients %>% as.data.frame() %>%
+        rownames_to_column("term") %>%
+        rename(Estimate = "estimate",
+               `Std. Error` = "std.error",
+               `t value` = "statistic",
+               `Pr(>|t|)` = "p.value") %>%
+        as_tibble()
 
       # Rearrange the table
       coef.tab <-
@@ -137,15 +148,19 @@ generate_beta_change_test_pair <-
         )
 
       # Run ANOVA on the model if group.var is multi-categorical
-      if (length(unique(metadata[[group.var]])) > 2) {
-        anova.tab <- broom::tidy(anova(lm.model))
+      if (length(unique(metadata[[group.var]])) > 1) {
+        anova <- anova(lm.model)
+        anova.tab <- anova %>% as.data.frame() %>%
+          rownames_to_column("term") %>%
+          rename(`F value` = "statistic",
+                 `Pr(>F)` = "p.value") %>%
+          as_tibble()
 
         # Rearrange the table and add missing columns
         anova.tab <- anova.tab %>%
           dplyr::select(
             Term = term,
             Statistic = statistic,
-            df = df,
             P.Value = p.value
           ) %>%
           dplyr::mutate(Estimate = NA, Std.Error = NA)
@@ -153,7 +168,7 @@ generate_beta_change_test_pair <-
         # Reorder the columns to match coef.tab
         anova.tab <- anova.tab %>%
           dplyr::select(
-            Term = term,
+            Term,
             Estimate = Estimate,
             Std.Error = Std.Error,
             Statistic = Statistic,

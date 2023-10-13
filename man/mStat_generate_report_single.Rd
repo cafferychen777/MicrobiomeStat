@@ -186,6 +186,7 @@ to perform analysis on cross-sectional data, a single time point from longitudin
 }
 \examples{
 \dontrun{
+library(aplot)
 data(peerj32.obj)
 mStat_generate_report_single(
   data.obj = peerj32.obj,

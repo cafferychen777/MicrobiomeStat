@@ -92,6 +92,10 @@ generate_beta_trend_test_long <-
            dist.name = c("BC"),
            ...) {
 
+    if (is.null(dist.name)){
+      return()
+    }
+
     mStat_validate_data(data.obj)
 
     message(

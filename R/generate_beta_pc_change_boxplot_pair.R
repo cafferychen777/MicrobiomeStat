@@ -142,6 +142,10 @@ generate_beta_pc_change_boxplot_pair <-
            pdf.hei = 8.5,
            ...) {
 
+    if (is.null(dist.name)){
+      return()
+    }
+
     if (is.null(data.obj) & is.null(dist.obj)) {
       stop("Both data.obj and dist.obj cannot be NULL. Please provide at least one.")
     }

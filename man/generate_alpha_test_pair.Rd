@@ -66,7 +66,7 @@ time.var = "time",
 alpha.name = c("shannon"),
 subject.var = "subject",
 group.var = "group",
-adj.vars = "sex"
+adj.vars = NULL
 )
 
 }

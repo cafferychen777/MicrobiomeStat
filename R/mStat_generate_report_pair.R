@@ -352,7 +352,7 @@ original.data.obj <- data.obj
 rarefy.data.obj <- mStat_normalize_data(data.obj = data.obj, method = 'Rarefy', depth = depth)$data.obj.norm
 
 if (is.null(depth)){
-  depth <- min(colSums(data.obj$feature.tab))
+  depth <- round(min(colSums(data.obj$feature.tab)))
   cat(sprintf('No rarefaction depth is specified. The minimum depth, %d, is used as the rarefaction depth. ', depth))
 }
 

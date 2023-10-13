@@ -106,6 +106,11 @@ generate_beta_pc_trend_test_long <- function(data.obj = NULL,
                                              adj.vars = NULL,
                                              dist.name = c("BC"),
                                              ...) {
+
+  if (is.null(dist.name)){
+    return()
+  }
+
   if (is.null(dist.obj)) {
     meta_tab <-
       data.obj$meta.dat %>% select(all_of(c(
