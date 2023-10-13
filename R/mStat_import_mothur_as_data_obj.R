@@ -16,6 +16,7 @@
 #'
 #' @examples
 #' \dontrun{
+#' # Make sure to load the plyr package
 #' # library(plyr)
 #' # path_to_list_file <- "/Users/apple/Downloads/esophagus/Esophagus/esophagus.fn.list"
 #' # path_to_group_file <- "/Users/apple/Downloads/esophagus/Esophagus/esophagus.good.groups"
@@ -273,6 +274,7 @@ select_mothur_cutoff = function(cutoff, cutoffs){
 #'
 #' @examples
 #' \dontrun{
+#'   # library(plyr)
 #'   # Assume 'list_file' and 'group_file' point to your Mothur output files
 #'   otu_table <- import_mothur_otu_table(list_file, group_file)
 #'   print(otu_table)
@@ -293,10 +295,10 @@ import_mothur_otu_table <- function(mothur_list_file, mothur_group_file, cutoff=
   rownames(mothur_otu_table) <- names(otulist)
 
   # Write a sparse versino of the abundance table
-  df = plyr::ldply(otulist, function(x){data.frame(read=x, stringsAsFactors=FALSE)})
+  df = ldply(otulist, function(x){data.frame(read=x, stringsAsFactors=FALSE)})
   colnames(df)[1] <- "OTU"
   df = data.frame(df, sample=mothur_groups[df[, "read"], 1], stringsAsFactors=FALSE)
-  adf = plyr::ddply(df, c("OTU", "sample"), function(x){
+  adf = ddply(df, c("OTU", "sample"), function(x){
     # x = subset(df, OTU=="59_3_17" & sample=="C")
     data.frame(x[1, c("OTU", "sample"), drop=FALSE], abundance=nrow(x))
   })
