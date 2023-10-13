@@ -53,7 +53,7 @@
 #'   t0.level = NULL,
 #'   ts.levels = NULL,
 #'   group.var = "delivery",
-#'   strata.var = "diet",
+#'   strata.var = NULL,
 #'   feature.level = c("Family","Phylum","Genus"),
 #'   feature.dat.type = "proportion",
 #'   features.plot = NULL,
@@ -333,20 +333,27 @@ generate_taxa_heatmap_long <- function(data.obj,
     # 为演示目的，假设这些是您的唯一值
     group_levels <-
       annotation_col_sorted %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
-    strata_levels <-
-      annotation_col_sorted %>% dplyr::select(all_of(c(strata.var))) %>% distinct() %>% pull()
 
     # 为 group.var 分配颜色
     group_colors <-
       setNames(color_vector[1:length(group_levels)], group_levels)
 
-    # 为 strata.var 分配颜色
-    strata_colors <-
-      setNames(rev(color_vector)[1:length(strata_levels)], strata_levels)
+    if (!is.null(strata.var)){
+      strata_levels <-
+        annotation_col_sorted %>% dplyr::select(all_of(c(strata.var))) %>% distinct() %>% pull()
+      # 为 strata.var 分配颜色
+      strata_colors <-
+        setNames(rev(color_vector)[1:length(strata_levels)], strata_levels)
+    }
 
     # 创建注释颜色列表
-    annotation_colors_list <- setNames(list(group_colors, strata_colors),
-                                       c(group.var, strata.var))
+    if (!is.null(strata.var)){
+      annotation_colors_list <- setNames(list(group_colors, strata_colors),
+                                         c(group.var, strata.var))
+    } else {
+      annotation_colors_list <- setNames(list(group_colors),
+                                         c(group.var))
+    }
 
     # Plot stacked heatmap
     heatmap_plot_average <- pheatmap::pheatmap(
