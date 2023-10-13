@@ -175,7 +175,7 @@
 #' mStat_generate_report_long(
 #'   data.obj = subset_T2D.obj,
 #'   group.var = "subject_race",
-#'   strata.var = "subject_gender",
+#'   strata.var = NULL,
 #'   test.adj.vars = NULL,
 #'   vis.adj.vars = NULL,
 #'   subject.var = "subject_id",
@@ -302,11 +302,11 @@ custom_t0.level_status <- ifelse(is.null(t0.level), 'NULL', t0.level)
 
 custom_ts.levels_status <- ifelse(is.null(ts.levels), 'NULL', toString(ts.levels))
 
-custom_strata_status <- ifelse(is.null(strata.var), 'NULL', toString(strata.var))
-
 custom_test.adj.vars_status <- ifelse(is.null(test.adj.vars), 'NULL', toString(test.adj.vars))
 
 custom_vis.adj.vars_status <- ifelse(is.null(vis.adj.vars), 'NULL', toString(vis.adj.vars))
+
+custom_strata_status <- ifelse(is.null(strata.var), 'NULL', toString(strata.var))
 
 params_data <- data.frame(Parameter = c('data.obj',
                                         'feature.dat.type',
