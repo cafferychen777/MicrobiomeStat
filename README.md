@@ -58,13 +58,14 @@ published.
 
 ## Important Note on CRAN Version
 
-Due to the **ongoing development cycle**, the **most up-to-date
-features** of `MicrobiomeStat` have **not yet been uploaded to the CRAN
-repository**. The current CRAN version **only supports the `linda` and
-`linda.plot` functions**. If you **require additional functionalities**,
-particularly for **analyzing longitudinal data**, we recommend
-**installing the development version from GitHub**. To do this, you’ll
-first need to **install the `devtools` package** if you haven’t already:
+The `MicrobiomeStat` package is under continuous development. As a
+result, the most recent features have not yet been incorporated into the
+version available on the CRAN repository. The current CRAN version
+supports only the `linda` and `linda.plot` functions. For users who
+require a broader range of functionalities, especially those related to
+the analysis of longitudinal data, it is advisable to install the
+development version directly from GitHub. This process necessitates the
+prior installation of the `devtools` package.
 
 ``` r
 install.packages("devtools")
@@ -101,24 +102,26 @@ devtools::install_github("cafferychen777/MicrobiomeStat")
 
 # Online Tutorials
 
-`MicrobiomeStat` offers a **supportive toolkit** for microbiome data
-analysis, providing a range of capabilities from data input to
+`MicrobiomeStat` provides a comprehensive suite of tools for microbiome
+data analysis, encompassing a variety of functions from data input to
 visualization.
 
-To **familiarize** yourself with `MicrobiomeStat`, we invite you to
-explore our detailed online tutorial using GitBook. This tutorial
-includes:
+To acquaint users with `MicrobiomeStat`, we offer an extensive online
+tutorial on GitBook. The tutorial covers the following areas:
 
-- **Step-by-Step Installation and Configuration Guidance**
-  - Help ensure your setup is correct and optimized.
-- **Analysis Walkthroughs Inspired by Real-World Cases**
-  - Gain practical insights and skills.
-- **Hands-On Code Examples**
-  - Get acquainted with `MicrobiomeStat` coding practices.
-- **Guides on Result Interpretation and Visualization**
-  - Learn to understand and present your data effectively.
-- **Frequently Asked Questions**
-  - Quickly find answers to common queries.
+- Installation and Configuration Instructions
+  - These guidelines help ensure that your setup is correctly configured
+    and optimized.
+- Analysis Demonstrations Based on Real-World Scenarios
+  - These demonstrations provide practical insights and skills.
+- Code Examples for Practice
+  - These examples allow users to familiarize themselves with
+    `MicrobiomeStat` coding practices.
+- Guides for Interpreting Results and Creating Visualizations
+  - These guides help users understand and effectively present their
+    data.
+- Answers to Frequently Asked Questions
+  - This section provides quick solutions to common questions.
 
 ## Acquaint Yourself for a Seamless Experience
 
@@ -157,13 +160,13 @@ have not only made our work possible but have also significantly
 elevated the standards of computational tools available to the
 scientific community:
 
-- **Core Dependencies:**
+- Core Dependencies:
   - R (\>= 3.5.0), rlang, tibble
-- **Imported Packages:**
+- Imported Packages:
   - ggplot2, matrixStats, lmerTest, foreach, modeest, vegan, dplyr,
     pheatmap, tidyr, ggh4x, ape, GUniFrac, scales, stringr, rmarkdown,
     knitr, pander, tinytex
-- **Suggested Packages:**
+- Suggested Packages:
   - ggrepel, parallel, ggprism, aplot, philentropy, forcats, yaml,
     biomformat, Biostrings
 
@@ -173,9 +176,9 @@ maintained the following remarkable tools. Their pioneering work has
 laid down paths through the complex landscape of microbiome data
 analysis, and we are truly honored to walk alongside:
 
-- **microbiomeutilities**, **phyloseq**, **microbiomemarker**,
-  **MicrobiomeAnalyst**, **microbiomeeco**, **EasyAmplicon**, **STAMP**,
-  **qiime2**, and **MicrobiotaProcess**
+- `microbiomeutilities`, `phyloseq`, `microbiomemarker`,
+  `MicrobiomeAnalyst`, `microbiomeeco`, `EasyAmplicon`, `STAMP`,
+  `qiime2`, and `MicrobiotaProcess`
 
 Their contributions inspire us to continue improving and expanding the
 capabilities of `MicrobiomeStat`, and we sincerely hope our humble
@@ -185,7 +188,7 @@ tools already available to researchers.
 ### User Support
 
 `MicrobiomeStat` is designed with users in mind. Comprehensive
-[**documentation and tutorials**](https://www.microbiomestat.wiki/) are
+[documentation and tutorials](https://www.microbiomestat.wiki/) are
 available to assist both novice and experienced researchers. Before
 posting a question or issue, we encourage users to [check previous
 questions and
@@ -198,7 +201,7 @@ here to help you navigate any challenges you may encounter.
 ### Ongoing Development
 
 Ensuring that `MicrobiomeStat` remains a leading tool in its category
-requires **ongoing development**. We’re dedicated to regular updates and
+requires ongoing development. We’re dedicated to regular updates and
 addressing user feedback.
 
 ### Collaborative Development
@@ -206,29 +209,28 @@ addressing user feedback.
 `MicrobiomeStat` is an open-source tool, and we highly value
 contributions from the community. If you have suggestions, improvements,
 or feedback for future development directions and feature additions,
-**[pull
-requests](https://github.com/cafferychen777/MicrobiomeStat/pulls) are
-welcomed**, and you can also share your ideas in the [**discussion
-area**](https://github.com/cafferychen777/MicrobiomeStat/discussions) of
+[pull requests](https://github.com/cafferychen777/MicrobiomeStat/pulls)
+are welcomed, and you can also share your ideas in the [discussion
+area](https://github.com/cafferychen777/MicrobiomeStat/discussions) of
 our GitHub repository. Engage with other community members and help us
 make `MicrobiomeStat` an even more useful tool for microbiome research.
 
 ### Conclusion
 
-`MicrobiomeStat` aspires to be a **reliable and efficient tool** for
-microbiome data analysis. For those who cherish **open-source
-collaboration**, we warmly invite you to join our community and
-contribute to its continuous enhancement.
+`MicrobiomeStat` aims to serve as a dependable and efficient resource
+for microbiome data analysis. We extend an invitation to those who value
+open-source collaboration to join our community and contribute to its
+ongoing development.
 
-| **Feature**                                                                                                                                                                                 | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **[Data Import and Conversion](https://www.microbiomestat.wiki/setting-up-microbiomestat-installation-and-data-preparation/laying-the-foundation-creating-the-microbiomestat-data-object)** | Supports numerous input formats from tools like **[QIIME2](https://www.microbiomestat.wiki/setting-up-microbiomestat-installation-and-data-preparation/laying-the-foundation-creating-the-microbiomestat-data-object/importing-data-from-qiime2-into-microbiomestat), [Mothur](https://www.microbiomestat.wiki/setting-up-microbiomestat-installation-and-data-preparation/laying-the-foundation-creating-the-microbiomestat-data-object/fetching-data-from-mothur-into-microbiomestat), [DADA2](https://www.microbiomestat.wiki/setting-up-microbiomestat-installation-and-data-preparation/laying-the-foundation-creating-the-microbiomestat-data-object/integrating-data-from-dada2-into-microbiomestat), [Phyloseq](https://www.microbiomestat.wiki/setting-up-microbiomestat-installation-and-data-preparation/laying-the-foundation-creating-the-microbiomestat-data-object/navigating-data-from-phyloseq-into-microbiomestat)** and more |
-| **[Cross-sectional Study Analysis](https://www.microbiomestat.wiki/cross-sectional-study-design/unraveling-cross-sectional-studies-with-microbiomestat)**                                   | Comprehensive analysis of **cross-sectional studies**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| **[Paired Sample Analysis](https://www.microbiomestat.wiki/paired-samples-analysis/unveiling-paired-samples-analysis-a-comprehensive-guide)**                                               | Tool for analyzing **paired samples**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| **[Longitudinal Study Analysis](https://www.microbiomestat.wiki/longitudinal-study-design/grasping-longitudinal-studies-introduction-and-dataset-overview)**                                | Exploration of **temporal dynamics** of the microbiome                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| **Report Generation Functions**                                                                                                                                                             | Individual report functions for [**cross-sectional**](https://www.microbiomestat.wiki/cross-sectional-study-design/cross-sectional-reporting-microbial-analysis-reports-with-microbiomestat), [**paired**](https://www.microbiomestat.wiki/paired-samples-analysis/automated-reporting-for-paired-studies-microbiomestats-integrated-analysis-reports), [**longitudinal**](https://www.microbiomestat.wiki/longitudinal-study-design/longitudinal-reporting-microbiome-analysis-automation-with-microbiomestat) study designs. Shiny interface for one-click reporting is in development.                                                                                                                                                                                                                                                                                                                                                       |
-| **Visualization Capabilities**                                                                                                                                                              | Wide variety of **visualization styles**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| **Ongoing Development**                                                                                                                                                                     | Continual **feature refinement** and **new functionality addition**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Feature                                                                                                                                                                                 | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [Data Import and Conversion](https://www.microbiomestat.wiki/setting-up-microbiomestat-installation-and-data-preparation/laying-the-foundation-creating-the-microbiomestat-data-object) | Accommodates multiple input formats from platforms such as [QIIME2](https://www.microbiomestat.wiki/setting-up-microbiomestat-installation-and-data-preparation/laying-the-foundation-creating-the-microbiomestat-data-object/importing-data-from-qiime2-into-microbiomestat), [Mothur](https://www.microbiomestat.wiki/setting-up-microbiomestat-installation-and-data-preparation/laying-the-foundation-creating-the-microbiomestat-data-object/fetching-data-from-mothur-into-microbiomestat), [DADA2](https://www.microbiomestat.wiki/setting-up-microbiomestat-installation-and-data-preparation/laying-the-foundation-creating-the-microbiomestat-data-object/integrating-data-from-dada2-into-microbiomestat), [Phyloseq](https://www.microbiomestat.wiki/setting-up-microbiomestat-installation-and-data-preparation/laying-the-foundation-creating-the-microbiomestat-data-object/navigating-data-from-phyloseq-into-microbiomestat) and others. |
+| [Cross-sectional Study Analysis](https://www.microbiomestat.wiki/cross-sectional-study-design/unraveling-cross-sectional-studies-with-microbiomestat)                                   | Offers thorough analysis for cross-sectional studies.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| [Paired Sample Analysis](https://www.microbiomestat.wiki/paired-samples-analysis/unveiling-paired-samples-analysis-a-comprehensive-guide)                                               | Provides tools for paired samples analysis.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| [Longitudinal Study Analysis](https://www.microbiomestat.wiki/longitudinal-study-design/grasping-longitudinal-studies-introduction-and-dataset-overview)                                | Facilitates exploration of the temporal dynamics of the microbiome.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| Report Generation Functions                                                                                                                                                             | Includes individual report functions for [cross-sectional](https://www.microbiomestat.wiki/cross-sectional-study-design/cross-sectional-reporting-microbial-analysis-reports-with-microbiomestat), [paired](https://www.microbiomestat.wiki/paired-samples-analysis/automated-reporting-for-paired-studies-microbiomestats-integrated-analysis-reports), [longitudinal](https://www.microbiomestat.wiki/longitudinal-study-design/longitudinal-reporting-microbiome-analysis-automation-with-microbiomestat) study designs. Development of a Shiny interface for one-click reporting is underway.                                                                                                                                                                                                                                                                                                                                                         |
+| Visualization Capabilities                                                                                                                                                              | Supports a broad range of visualization styles.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| Ongoing Development                                                                                                                                                                     | Committed to continuous refinement of existing features and addition of new functionalities.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 
 This approach ensures that users can effortlessly navigate to the
 specific sections of the `MicrobiomeStat` documentation, garnering
@@ -272,8 +274,8 @@ and experts alike:
 In our Discord server, an automated bot keeps you informed about every
 package and tutorial update, ensuring you never miss out on new
 features, improvements, and learning materials. Our active community
-thrives on **collaboration, feedback, and continuous learning**, making
-it an invaluable space for both novice and experienced researchers
+thrives on collaboration, feedback, and continuous learning, making it
+an invaluable space for both novice and experienced researchers
 navigating the world of microbiome data analysis. Stay connected, stay
 informed, and let’s advance the field of microbiome data analysis
 together!
