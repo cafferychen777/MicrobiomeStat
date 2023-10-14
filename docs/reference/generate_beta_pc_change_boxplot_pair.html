@@ -68,7 +68,7 @@ These changes can be stratified by groups. Violin plots are overlaid to show den
 <span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  adj.vars <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  change.base <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  change.func <span class="op">=</span> <span class="st">"difference"</span>,</span>
+<span>  change.func <span class="op">=</span> <span class="st">"absolute change"</span>,</span>
 <span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BC"</span>, <span class="st">"Jaccard"</span><span class="op">)</span>,</span>
 <span>  base.size <span class="op">=</span> <span class="fl">16</span>,</span>
 <span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span>
@@ -149,8 +149,8 @@ NULL, the first time point will be used as change.base automatically.</p></dd>
 <dt>change.func</dt>
 <dd><p>A function or string specifying how to calculate changes between time points.
 If a function is provided, it should take two arguments "value_time_2" and "value_time_1" representing the PC values at the two time points. The function should return the change value.
-If a string, currently only "difference" is supported, which calculates simple differences between time points.
-More options could be added in the future as needed. Default is "difference".</p></dd>
+If a string, currently only "absolute change" is supported, which calculates simple differences between time points.
+More options could be added in the future as needed. Default is "absolute change".</p></dd>
 
 
 <dt>dist.name</dt>
@@ -251,7 +251,7 @@ Plots can be accessed via e.g. plotlist$BC_PC1 for BC dissimilarity PC1 coordina
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
 <span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
 <span class="r-in"><span>  change.base <span class="op">=</span> <span class="st">"1"</span>,</span></span>
-<span class="r-in"><span>  change.func <span class="op">=</span> <span class="st">"difference"</span>,</span></span>
+<span class="r-in"><span>  change.func <span class="op">=</span> <span class="st">"absolute change"</span>,</span></span>
 <span class="r-in"><span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'BC'</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">20</span>,</span></span>
 <span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>

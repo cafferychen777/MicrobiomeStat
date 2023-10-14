@@ -58,7 +58,7 @@ It also provides options for grouping and stratifying data, and selecting the to
 <span>  group.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  change.base <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  feature.change.func <span class="op">=</span> <span class="st">"difference"</span>,</span>
+<span>  feature.change.func <span class="op">=</span> <span class="st">"log fold change"</span>,</span>
 <span>  feature.level <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  features.plot <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  feature.dat.type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"count"</span>, <span class="st">"proportion"</span>, <span class="st">"other"</span><span class="op">)</span>,</span>
@@ -105,11 +105,12 @@ It also provides options for grouping and stratifying data, and selecting the to
 
 
 <dt>feature.change.func</dt>
-<dd><p>A string or function to compute the change in abundance between two time points. If a string, options are:
-- 'difference': Computes absolute difference in abundance
-- 'relative change': Computes relative change in abundance, calculated as (abundance_time2 - abundance_time1) / (abundance_time2 + abundance_time1)
-- 'lfc': Computes log2 fold change. Zero abundances are imputed before log transform.
-If a function, it should take two numeric vectors of abundances at time 1 and time 2 and return a numeric vector of computed changes.</p></dd>
+<dd><p>Specifies the method or function used to compute the change between two time points.
+The following options are available:</p>
+<p>- "absolute change": Computes the difference between the count values at the two time points (`count_ts` and `count_t0`).</p>
+<p>- "log fold change": Computes the log2 fold change between the two time points. For zero counts, imputation is performed using half of the minimum nonzero value for each feature level at the respective time point before taking the logarithm.</p>
+<p>- "relative change": Computes the relative change as `(count_ts - count_t0) / (count_ts + count_t0)`. If both time points have a count of 0, the change is defined as 0.</p>
+<p>- A custom function: If a user-defined function is provided, it should take two numeric vectors as input corresponding to the counts at the two time points (`count_t0` and `count_ts`) and return a numeric vector of the computed change. This custom function will be applied directly.</p></dd>
 
 
 <dt>feature.level</dt>
@@ -228,10 +229,10 @@ The function also has options to customize the size, theme, and color palette of
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span> <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/vegandevs/vegan" class="external-link">vegan</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">peerj32.obj</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">peerj32.obj</span><span class="op">$</span><span class="va">meta.dat</span> <span class="op">&lt;-</span> <span class="va">peerj32.obj</span><span class="op">$</span><span class="va">meta.dat</span> <span class="op">%&gt;%</span></span></span>
-<span class="r-in"><span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="fu">all_of</span><span class="op">(</span><span class="st">"subject"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/distinct.html" class="external-link">distinct</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span></span></span>
-<span class="r-in"><span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>cons <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span>,<span class="fl">0</span>,<span class="fl">5</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span></span></span>
-<span class="r-in"><span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="va">peerj32.obj</span><span class="op">$</span><span class="va">meta.dat</span> <span class="op">%&gt;%</span> <span class="fu">rownames_to_column</span><span class="op">(</span><span class="st">"sample"</span><span class="op">)</span>,by <span class="op">=</span> <span class="st">"subject"</span><span class="op">)</span> <span class="op">%&gt;%</span></span></span>
+<span class="r-in"><span><span class="va">peerj32.obj</span><span class="op">$</span><span class="va">meta.dat</span> <span class="op">&lt;-</span> <span class="va">peerj32.obj</span><span class="op">$</span><span class="va">meta.dat</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span></span>
+<span class="r-in"><span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="fu">all_of</span><span class="op">(</span><span class="st">"subject"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/distinct.html" class="external-link">distinct</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span></span>
+<span class="r-in"><span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>cons <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span>,<span class="fl">0</span>,<span class="fl">5</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span></span>
+<span class="r-in"><span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="va">peerj32.obj</span><span class="op">$</span><span class="va">meta.dat</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">rownames_to_column</span><span class="op">(</span><span class="st">"sample"</span><span class="op">)</span>,by <span class="op">=</span> <span class="st">"subject"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span></span>
 <span class="r-in"><span><span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/rownames.html" class="external-link">column_to_rownames</a></span><span class="op">(</span><span class="st">"sample"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span> <span class="co"># Generate the scatterplot pairs</span></span></span>
@@ -242,7 +243,7 @@ The function also has options to customize the size, theme, and color palette of
 <span class="r-in"><span>   group.var <span class="op">=</span> <span class="st">"cons"</span>,</span></span>
 <span class="r-in"><span>   strata.var <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
 <span class="r-in"><span>   change.base <span class="op">=</span> <span class="st">"1"</span>,</span></span>
-<span class="r-in"><span>   feature.change.func <span class="op">=</span> <span class="st">"lfc"</span>,</span></span>
+<span class="r-in"><span>   feature.change.func <span class="op">=</span> <span class="st">"log fold change"</span>,</span></span>
 <span class="r-in"><span>   feature.level <span class="op">=</span> <span class="st">"Genus"</span>,</span></span>
 <span class="r-in"><span>   top.k.plot <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>   top.k.func <span class="op">=</span> <span class="cn">NULL</span>,</span></span>

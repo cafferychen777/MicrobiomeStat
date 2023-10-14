@@ -59,9 +59,9 @@ between two time points in a microbiome dataset.</p>
 <span>  <span class="va">time.var</span>,</span>
 <span>  <span class="va">subject.var</span>,</span>
 <span>  <span class="va">group.var</span>,</span>
-<span>  <span class="va">adj.vars</span>,</span>
+<span>  adj.vars <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">change.base</span>,</span>
-<span>  alpha.change.func <span class="op">=</span> <span class="st">"lfc"</span></span>
+<span>  alpha.change.func <span class="op">=</span> <span class="st">"log fold change"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -112,11 +112,22 @@ left NULL if no adjustment is needed.</p></dd>
 
 
 <dt>alpha.change.func</dt>
-<dd><p>A method for calculating the change in alpha diversity between two time points.
-This can either be the string "lfc" or a custom function.
-- If "lfc": The change in alpha diversity is computed as the log-fold change. Specifically, the function calculates the natural logarithm of the ratio of the alpha diversity at the second time point to the first.
-- If a function: This function should take two numeric arguments representing the alpha diversity values at two distinct time points. It should return a single numeric value indicating the change. For instance, if you want to compute the absolute difference between the two time points, you could provide a function like `function(a, b) return a - b`.
-It is crucial that the function is set up to handle the order of the time points correctly, as the first argument will always be the later time point, and the second argument will be the earlier one.</p></dd>
+<dd><p>Function or method for calculating change in alpha diversity
+  between two timepoints. This allows flexible options to quantify change:</p>
+<p>- If a function is provided: The function will be applied to compare alpha diversity
+    at timepoint t vs baseline t0. The function should take two arguments
+    representing the alpha diversity values at t and t0. For instance, a custom function to
+    calculate the percentage change might look like:</p><div class="sourceCode"><pre><code><span></span>
+<span>      <span class="va">percentage_change</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">t</span>, <span class="va">t0</span><span class="op">)</span> <span class="op">{</span></span>
+<span>        <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span> <span class="op">(</span><span class="op">(</span><span class="va">t</span> <span class="op">-</span> <span class="va">t0</span><span class="op">)</span> <span class="op">/</span> <span class="va">t0</span><span class="op">)</span> <span class="op">*</span> <span class="fl">100</span></span>
+<span>      <span class="op">}</span></span>
+<span>    </span></code></pre></div><p>You can then pass this function as the value for `alpha.change.func`.</p>
+<p>- If a string is provided, the following options are supported:
+    - 'log fold change': Calculates the log2 fold change of alpha diversity at t compared to t0.
+    - 'absolute change': Calculates the absolute difference in alpha diversity at t compared to t0.
+    - Any other value: A warning will be given that the provided method is not recognized,
+      and the default method ('absolute change') will be used.</p>
+<p>- Default behavior (if no recognized string or function is provided) is to compute the absolute difference between t and t0.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -163,9 +174,10 @@ summarizing the results of the linear models and ANOVA tests.</p>
 <span class="r-in"><span>time.var <span class="op">=</span> <span class="st">"time"</span>,</span></span>
 <span class="r-in"><span>alpha.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shannon"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>subject.var <span class="op">=</span> <span class="st">"subject"</span>,</span></span>
-<span class="r-in"><span>group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
-<span class="r-in"><span>adj.vars <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
-<span class="r-in"><span>change.base <span class="op">=</span> <span class="st">"1"</span></span></span>
+<span class="r-in"><span>group.var <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
+<span class="r-in"><span>adj.vars <span class="op">=</span> <span class="st">"group"</span>,</span></span>
+<span class="r-in"><span>change.base <span class="op">=</span> <span class="st">"2"</span>,</span></span>
+<span class="r-in"><span>alpha.change.func <span class="op">=</span> <span class="st">"log fold change"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>

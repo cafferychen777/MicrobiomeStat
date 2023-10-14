@@ -190,21 +190,21 @@ Default 0 removes no taxa by abundance filtering.</p></dd>
 
 
 <dt>vis.feature.level</dt>
-<dd><p>The column name in the feature annotation matrix (feature.ann) of data.obj
-to use for visualization and plotting. This can be the taxonomic level like "Phylum", or any other
-annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
-column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
-for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
-is also NULL.</p></dd>
+<dd><p>A character vector specifying one or more column names in the feature annotation
+matrix (feature.ann) of data.obj to use for visualization and plotting. This can be a taxonomic level
+like "Phylum" or "Genus" for microbiome data, a cell type identifier such as "CellType" for single-cell
+data, or a pathway level such as "Pathway_L1", "Pathway_L2", or "Pathway_L3" for KEGG data. Multiple columns
+can be provided, and data will be plotted separately for each column. If you want to avoid aggregation,
+you can set it to "original", and no aggregation will be performed.</p></dd>
 
 
 <dt>test.feature.level</dt>
-<dd><p>The column name in the feature annotation matrix (feature.ann) of data.obj
-to use for testing or analytical purposes. This can be the taxonomic level like "Phylum", or any other
-annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
-column names in feature.ann. Multiple columns can be provided, and data will be analyzed separately
-for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
-is also NULL.</p></dd>
+<dd><p>A character vector specifying one or more column names in the feature annotation
+matrix (feature.ann) of data.obj to use for testing or analytical purposes. This can be a taxonomic level
+like "Phylum" or "Genus" for microbiome data, a cell type identifier such as "CellType" for single-cell
+data, or a pathway level such as "Pathway_L1", "Pathway_L2", or "Pathway_L3" for KEGG data. Multiple columns
+can be provided, and data will be analyzed separately for each column. If you want to avoid aggregation,
+you can set it to "original", and no aggregation will be performed.</p></dd>
 
 
 <dt>feature.dat.type</dt>
@@ -223,18 +223,22 @@ If TRUE, the feature data will be rarefied before analysis. Default is TRUE.</p>
 
 
 <dt>feature.mt.method</dt>
-<dd><p>Character, multiple testing method for features, "fdr" or "none", default is "fdr".</p></dd>
+<dd><p>A character specifying the multiple testing method for features. This is
+specifically used for volcano plot visualization. The options are "fdr" for false discovery rate or
+"none" for no multiple testing correction. The default is "fdr".</p></dd>
 
 
 <dt>feature.sig.level</dt>
-<dd><p>Numeric, significance level cutoff for highlighting features, default is 0.1.</p></dd>
+<dd><p>A numeric value specifying the significance level cutoff for highlighting
+features in the volcano plot. The default is 0.1.</p></dd>
 
 
 <dt>feature.box.axis.transform</dt>
-<dd><p>A string indicating the transformation to apply to the data before plotting. Options are:
-- "identity": No transformation (default)
-- "sqrt": Square root transformation
-- "log": Logarithmic transformation. Zeros are replaced with half of the minimum non-zero value for each taxon before log transformation.</p></dd>
+<dd><p>A string indicating the transformation to apply to the data before plotting.
+Options are: "identity" for no transformation (default), "sqrt" for square root transformation, and "log" for
+logarithmic transformation. In the function `mStat_generate_report_single`, this parameter is only used in
+`generate_taxa_boxplot_single` and `generate_taxa_indiv_boxplot_single`. In other functions, it is also used
+solely to adjust boxplots related to feature functions.</p></dd>
 
 
 <dt>base.size</dt>
@@ -282,7 +286,9 @@ my_theme &lt;- ggplot2::theme(
 
 
 <dt>output.file</dt>
-<dd><p>Output file name for the report.</p></dd>
+<dd><p>A character string specifying the output file name for the report. This will also
+determine the title of the generated report. For example, if you set it to "path_to_your_location/report.pdf",
+the title of the report will be "report".</p></dd>
 
 
 <dt>...</dt>
@@ -299,6 +305,7 @@ my_theme &lt;- ggplot2::theme(
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/YuLab-SMU/aplot" class="external-link">aplot</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">peerj32.obj</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">mStat_generate_report_single</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">peerj32.obj</span>,</span></span>
@@ -322,24 +329,24 @@ my_theme &lt;- ggplot2::theme(
 <span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">20</span>,</span></span>
 <span class="r-in"><span>  feature.mt.method <span class="op">=</span> <span class="st">"none"</span>,</span></span>
 <span class="r-in"><span>  feature.sig.level <span class="op">=</span> <span class="fl">0.2</span>,</span></span>
-<span class="r-in"><span>  output.file <span class="op">=</span> <span class="st">"path/to/report.pdf"</span></span></span>
+<span class="r-in"><span>  output.file <span class="op">=</span> <span class="st">"/Users/apple/MicrobiomeStat/report.pdf"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">peerj32.obj</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">subset_T2D.obj</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">mStat_generate_report_single</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">peerj32.obj</span>,</span></span>
+<span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">subset_T2D.obj</span>,</span></span>
 <span class="r-in"><span>  dist.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  alpha.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
-<span class="r-in"><span>  vis.adj.vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sex"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  test.adj.vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sex"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"subject"</span>,</span></span>
-<span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"time"</span>,</span></span>
+<span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"subject_race"</span>,</span></span>
+<span class="r-in"><span>  vis.adj.vars <span class="op">=</span> <span class="st">"sample_body_site"</span>,</span></span>
+<span class="r-in"><span>  test.adj.vars <span class="op">=</span> <span class="st">"sample_body_site"</span>,</span></span>
+<span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"subject_id"</span>,</span></span>
+<span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"visit_number_num"</span>,</span></span>
 <span class="r-in"><span>  alpha.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shannon"</span>, <span class="st">"observed_species"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  depth <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  depth <span class="op">=</span> <span class="fl">2000</span>,</span></span>
 <span class="r-in"><span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BC"</span>,<span class="st">'Jaccard'</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  t.level <span class="op">=</span> <span class="st">"1"</span>,</span></span>
+<span class="r-in"><span>  t.level <span class="op">=</span> <span class="fl">1</span>,</span></span>
 <span class="r-in"><span>  feature.box.axis.transform <span class="op">=</span> <span class="st">"sqrt"</span>,</span></span>
-<span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
+<span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"subject_gender"</span>,</span></span>
 <span class="r-in"><span>  vis.feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Phylum"</span>, <span class="st">"Family"</span>, <span class="st">"Genus"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  test.feature.level <span class="op">=</span> <span class="st">"Family"</span>,</span></span>
 <span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"count"</span>,</span></span>
@@ -347,7 +354,7 @@ my_theme &lt;- ggplot2::theme(
 <span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">20</span>,</span></span>
 <span class="r-in"><span>  feature.mt.method <span class="op">=</span> <span class="st">"none"</span>,</span></span>
 <span class="r-in"><span>  feature.sig.level <span class="op">=</span> <span class="fl">0.2</span>,</span></span>
-<span class="r-in"><span>  output.file <span class="op">=</span> <span class="st">"path/to/report.pdf"</span></span></span>
+<span class="r-in"><span>  output.file <span class="op">=</span> <span class="st">"/Users/apple/MicrobiomeStat/report.pdf"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>

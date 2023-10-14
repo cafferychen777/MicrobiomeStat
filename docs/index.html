@@ -73,7 +73,7 @@
 <img src="reference/figures/logo.png" alt="MicrobiomeStat Logo" width="400" style="margin:0; padding:0;"></p>
 <!-- badges: start -->
 
-<p>The <code>MicrobiomeStat</code> package is a dedicated R tool crafted with an emphasis on exploring <strong>longitudinal microbiome data</strong>. While it also offers the flexibility to engage with multi-omics data and cross-sectional studies, its essence is enriched by the facilitation of longitudinal analysis. This attribute aims to support researchers navigating through extensive biological inquiries over time.</p>
+<p>The <code>MicrobiomeStat</code> package is a dedicated R tool for exploring <strong>longitudinal microbiome data</strong>. It also accommodates multi-omics data and cross-sectional studies, valuing the collective efforts within the community. This tool aims to support researchers through their extensive biological inquiries over time, with a spirit of gratitude towards the community’s existing resources and a collaborative ethos for furthering microbiome research.</p>
 </div>
 <div class="section level1">
 <h1 id="citations">Citations<a class="anchor" aria-label="anchor" href="#citations"></a>
@@ -109,7 +109,7 @@
 <div class="section level2">
 <h2 id="important-note-on-cran-version">Important Note on CRAN Version<a class="anchor" aria-label="anchor" href="#important-note-on-cran-version"></a>
 </h2>
-<p>Due to the <strong>ongoing development cycle</strong>, the <strong>most up-to-date features</strong> of <code>MicrobiomeStat</code> have <strong>not yet been uploaded to the CRAN repository</strong>. The current CRAN version <strong>only supports the <code>linda</code> and <code>linda.plot</code> functions</strong>. If you <strong>require additional functionalities</strong>, particularly for <strong>analyzing longitudinal data</strong>, we recommend <strong>installing the development version from GitHub</strong>. To do this, you’ll first need to <strong>install the <code>devtools</code> package</strong> if you haven’t already:</p>
+<p>The <code>MicrobiomeStat</code> package is under continuous development. As a result, the most recent features have not yet been incorporated into the version available on the CRAN repository. The current CRAN version supports only the <code>linda</code> and <code>linda.plot</code> functions. For users who require a broader range of functionalities, especially those related to the analysis of longitudinal data, it is advisable to install the development version directly from GitHub. This process necessitates the prior installation of the <code>devtools</code> package.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span></span></code></pre></div>
 <p>Once <code>devtools</code> is installed, you can install <code>MicrobiomeStat</code> from GitHub using the following command:</p>
@@ -160,37 +160,32 @@
 <div class="section level1">
 <h1 id="online-tutorials">Online Tutorials<a class="anchor" aria-label="anchor" href="#online-tutorials"></a>
 </h1>
-<p><code>MicrobiomeStat</code> offers a <strong>supportive toolkit</strong> for microbiome data analysis, providing a range of capabilities from data input to visualization.</p>
-<p>To <strong>familiarize</strong> yourself with <code>MicrobiomeStat</code>, we invite you to explore our detailed online tutorial using GitBook. This tutorial includes:</p>
+<p><code>MicrobiomeStat</code> provides a comprehensive suite of tools for microbiome data analysis, encompassing a variety of functions from data input to visualization.</p>
+<p>To acquaint users with <code>MicrobiomeStat</code>, we offer an extensive online tutorial on GitBook. The tutorial covers the following areas:</p>
 <ul>
-<li>
-<strong>Step-by-Step Installation and Configuration Guidance</strong>
+<li>Installation and Configuration Instructions
 <ul>
-<li>Help ensure your setup is correct and optimized.</li>
+<li>These guidelines help ensure that your setup is correctly configured and optimized.</li>
 </ul>
 </li>
-<li>
-<strong>Analysis Walkthroughs Inspired by Real-World Cases</strong>
+<li>Analysis Demonstrations Based on Real-World Scenarios
 <ul>
-<li>Gain practical insights and skills.</li>
+<li>These demonstrations provide practical insights and skills.</li>
 </ul>
 </li>
-<li>
-<strong>Hands-On Code Examples</strong>
+<li>Code Examples for Practice
 <ul>
-<li>Get acquainted with <code>MicrobiomeStat</code> coding practices.</li>
+<li>These examples allow users to familiarize themselves with <code>MicrobiomeStat</code> coding practices.</li>
 </ul>
 </li>
-<li>
-<strong>Guides on Result Interpretation and Visualization</strong>
+<li>Guides for Interpreting Results and Creating Visualizations
 <ul>
-<li>Learn to understand and present your data effectively.</li>
+<li>These guides help users understand and effectively present their data.</li>
 </ul>
 </li>
-<li>
-<strong>Frequently Asked Questions</strong>
+<li>Answers to Frequently Asked Questions
 <ul>
-<li>Quickly find answers to common queries.</li>
+<li>This section provides quick solutions to common questions.</li>
 </ul>
 </li>
 </ul>
@@ -218,29 +213,26 @@
 </h3>
 <p>We stand on the shoulders of giants with <code>MicrobiomeStat</code>, and our heartfelt gratitude goes out to the diligent and brilliant developers of the dependencies that our package relies on. Their remarkable efforts have not only made our work possible but have also significantly elevated the standards of computational tools available to the scientific community:</p>
 <ul>
-<li>
-<strong>Core Dependencies:</strong>
+<li>Core Dependencies:
 <ul>
 <li>R (&gt;= 3.5.0), rlang, tibble</li>
 </ul>
 </li>
-<li>
-<strong>Imported Packages:</strong>
+<li>Imported Packages:
 <ul>
-<li>ggplot2, matrixStats, parallel, ggrepel, lmerTest, foreach, modeest, vegan, dplyr, pheatmap, tidyr, ggh4x, ape, GUniFrac, scales, stringr, broom</li>
+<li>ggplot2, matrixStats, lmerTest, foreach, modeest, vegan, dplyr, pheatmap, tidyr, ggh4x, ape, GUniFrac, scales, stringr, rmarkdown, knitr, pander, tinytex</li>
 </ul>
 </li>
-<li>
-<strong>Suggested Packages:</strong>
+<li>Suggested Packages:
 <ul>
-<li>rmarkdown, knitr, ggprism, aplot, philentropy, forcats, pander, tinytex</li>
+<li>ggrepel, parallel, ggprism, aplot, philentropy, forcats, yaml, biomformat, Biostrings</li>
 </ul>
 </li>
 </ul>
 <p>Furthermore, we extend our deepest appreciation and respect to the trailblazers in the microbiome research community who have created and maintained the following remarkable tools. Their pioneering work has laid down paths through the complex landscape of microbiome data analysis, and we are truly honored to walk alongside:</p>
 <ul>
 <li>
-<strong>microbiomeutilities</strong>, <strong>phyloseq</strong>, <strong>microbiomemarker</strong>, <strong>MicrobiomeAnalyst</strong>, <strong>microbiomeeco</strong>, <strong>EasyAmplicon</strong>, <strong>STAMP</strong>, <strong>qiime2</strong>, and <strong>MicrobiotaProcess</strong>
+<code>microbiomeutilities</code>, <code>phyloseq</code>, <code>microbiomemarker</code>, <code>MicrobiomeAnalyst</code>, <code>microbiomeeco</code>, <code>EasyAmplicon</code>, <code>STAMP</code>, <code>qiime2</code>, and <code>MicrobiotaProcess</code>
 </li>
 </ul>
 <p>Their contributions inspire us to continue improving and expanding the capabilities of <code>MicrobiomeStat</code>, and we sincerely hope our humble addition proves to be a useful complement to the incredible array of tools already available to researchers.</p>
@@ -248,63 +240,59 @@
 <div class="section level3">
 <h3 id="user-support">User Support<a class="anchor" aria-label="anchor" href="#user-support"></a>
 </h3>
-<p><code>MicrobiomeStat</code> is designed with users in mind. Comprehensive <a href="https://www.microbiomestat.wiki/" class="external-link"><strong>documentation and tutorials</strong></a> are available to assist both novice and experienced researchers. Before posting a question or issue, we encourage users to <a href="https://github.com/cafferychen777/MicrobiomeStat/issues?q=is%3Aissue+is%3Aclosed" class="external-link">check previous questions and issues</a> to see if the topic has already been addressed. If not, feel free to <a href="https://github.com/cafferychen777/MicrobiomeStat/issues" class="external-link">open a new issue on GitHub</a>. We are here to help you navigate any challenges you may encounter.</p>
+<p><code>MicrobiomeStat</code> is designed with users in mind. Comprehensive <a href="https://www.microbiomestat.wiki/" class="external-link">documentation and tutorials</a> are available to assist both novice and experienced researchers. Before posting a question or issue, we encourage users to <a href="https://github.com/cafferychen777/MicrobiomeStat/issues?q=is%3Aissue+is%3Aclosed" class="external-link">check previous questions and issues</a> to see if the topic has already been addressed. If not, feel free to <a href="https://github.com/cafferychen777/MicrobiomeStat/issues" class="external-link">open a new issue on GitHub</a>. We are here to help you navigate any challenges you may encounter.</p>
 </div>
 <div class="section level3">
 <h3 id="ongoing-development">Ongoing Development<a class="anchor" aria-label="anchor" href="#ongoing-development"></a>
 </h3>
-<p>Ensuring that <code>MicrobiomeStat</code> remains a leading tool in its category requires <strong>ongoing development</strong>. We’re dedicated to regular updates and addressing user feedback.</p>
+<p>Ensuring that <code>MicrobiomeStat</code> remains a leading tool in its category requires ongoing development. We’re dedicated to regular updates and addressing user feedback.</p>
 </div>
 <div class="section level3">
 <h3 id="collaborative-development">Collaborative Development<a class="anchor" aria-label="anchor" href="#collaborative-development"></a>
 </h3>
-<p><code>MicrobiomeStat</code> is an open-source tool, and we highly value contributions from the community. If you have suggestions, improvements, or feedback for future development directions and feature additions, <strong><a href="https://github.com/cafferychen777/MicrobiomeStat/pulls" class="external-link">pull requests</a> are welcomed</strong>, and you can also share your ideas in the <a href="https://github.com/cafferychen777/MicrobiomeStat/discussions" class="external-link"><strong>discussion area</strong></a> of our GitHub repository. Engage with other community members and help us make <code>MicrobiomeStat</code> an even more useful tool for microbiome research.</p>
+<p><code>MicrobiomeStat</code> is an open-source tool, and we highly value contributions from the community. If you have suggestions, improvements, or feedback for future development directions and feature additions, <a href="https://github.com/cafferychen777/MicrobiomeStat/pulls" class="external-link">pull requests</a> are welcomed, and you can also share your ideas in the <a href="https://github.com/cafferychen777/MicrobiomeStat/discussions" class="external-link">discussion area</a> of our GitHub repository. Engage with other community members and help us make <code>MicrobiomeStat</code> an even more useful tool for microbiome research.</p>
 </div>
 <div class="section level3">
 <h3 id="conclusion">Conclusion<a class="anchor" aria-label="anchor" href="#conclusion"></a>
 </h3>
-<p><code>MicrobiomeStat</code> aspires to be a <strong>reliable and efficient tool</strong> for microbiome data analysis. For those who cherish <strong>open-source collaboration</strong>, we warmly invite you to join our community and contribute to its continuous enhancement.</p>
+<p><code>MicrobiomeStat</code> aims to serve as a dependable and efficient resource for microbiome data analysis. We extend an invitation to those who value open-source collaboration to join our community and contribute to its ongoing development.</p>
 <table class="table">
 <colgroup>
-<col width="17%">
-<col width="82%">
+<col width="16%">
+<col width="83%">
 </colgroup>
 <thead><tr class="header">
-<th><strong>Feature</strong></th>
-<th><strong>Description</strong></th>
+<th>Feature</th>
+<th>Description</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><strong><a href="https://www.microbiomestat.wiki/setting-up-microbiomestat-installation-and-data-preparation/laying-the-foundation-creating-the-microbiomestat-data-object" class="external-link">Data Import and Conversion</a></strong></td>
-<td>Supports numerous input formats from popular tools like <strong><a href="https://www.microbiomestat.wiki/setting-up-microbiomestat-installation-and-data-preparation/laying-the-foundation-creating-the-microbiomestat-data-object/importing-data-from-qiime2-into-microbiomestat" class="external-link">QIIME2</a>, <a href="https://www.microbiomestat.wiki/setting-up-microbiomestat-installation-and-data-preparation/laying-the-foundation-creating-the-microbiomestat-data-object/fetching-data-from-mothur-into-microbiomestat" class="external-link">Mothur</a>, <a href="https://www.microbiomestat.wiki/setting-up-microbiomestat-installation-and-data-preparation/laying-the-foundation-creating-the-microbiomestat-data-object/integrating-data-from-dada2-into-microbiomestat" class="external-link">DADA2</a>, <a href="https://www.microbiomestat.wiki/setting-up-microbiomestat-installation-and-data-preparation/laying-the-foundation-creating-the-microbiomestat-data-object/navigating-data-from-phyloseq-into-microbiomestat" class="external-link">Phyloseq</a></strong> and more</td>
+<td><a href="https://www.microbiomestat.wiki/setting-up-microbiomestat-installation-and-data-preparation/laying-the-foundation-creating-the-microbiomestat-data-object" class="external-link">Data Import and Conversion</a></td>
+<td>Accommodates multiple input formats from platforms such as <a href="https://www.microbiomestat.wiki/setting-up-microbiomestat-installation-and-data-preparation/laying-the-foundation-creating-the-microbiomestat-data-object/importing-data-from-qiime2-into-microbiomestat" class="external-link">QIIME2</a>, <a href="https://www.microbiomestat.wiki/setting-up-microbiomestat-installation-and-data-preparation/laying-the-foundation-creating-the-microbiomestat-data-object/fetching-data-from-mothur-into-microbiomestat" class="external-link">Mothur</a>, <a href="https://www.microbiomestat.wiki/setting-up-microbiomestat-installation-and-data-preparation/laying-the-foundation-creating-the-microbiomestat-data-object/integrating-data-from-dada2-into-microbiomestat" class="external-link">DADA2</a>, <a href="https://www.microbiomestat.wiki/setting-up-microbiomestat-installation-and-data-preparation/laying-the-foundation-creating-the-microbiomestat-data-object/navigating-data-from-phyloseq-into-microbiomestat" class="external-link">Phyloseq</a> and others.</td>
 </tr>
 <tr class="even">
-<td><strong><a href="https://www.microbiomestat.wiki/cross-sectional-study-design/unraveling-cross-sectional-studies-with-microbiomestat" class="external-link">Cross-sectional Study Analysis</a></strong></td>
-<td>Performs comprehensive analysis of <strong>cross-sectional studies</strong>
-</td>
+<td><a href="https://www.microbiomestat.wiki/cross-sectional-study-design/unraveling-cross-sectional-studies-with-microbiomestat" class="external-link">Cross-sectional Study Analysis</a></td>
+<td>Offers thorough analysis for cross-sectional studies.</td>
 </tr>
 <tr class="odd">
-<td><strong><a href="https://www.microbiomestat.wiki/paired-samples-analysis/unveiling-paired-samples-analysis-a-comprehensive-guide" class="external-link">Paired Sample Analysis</a></strong></td>
-<td>Excellent tool for analyzing <strong>paired samples</strong>
-</td>
+<td><a href="https://www.microbiomestat.wiki/paired-samples-analysis/unveiling-paired-samples-analysis-a-comprehensive-guide" class="external-link">Paired Sample Analysis</a></td>
+<td>Provides tools for paired samples analysis.</td>
 </tr>
 <tr class="even">
-<td><strong><a href="https://www.microbiomestat.wiki/longitudinal-study-design/grasping-longitudinal-studies-introduction-and-dataset-overview" class="external-link">Longitudinal Study Analysis</a></strong></td>
-<td>Allows for exploring the <strong>temporal dynamics</strong> of the microbiome</td>
+<td><a href="https://www.microbiomestat.wiki/longitudinal-study-design/grasping-longitudinal-studies-introduction-and-dataset-overview" class="external-link">Longitudinal Study Analysis</a></td>
+<td>Facilitates exploration of the temporal dynamics of the microbiome.</td>
 </tr>
 <tr class="odd">
-<td><strong>One-Click Report Generation</strong></td>
-<td>Generates <strong>professional analysis reports</strong> with a single click for <a href="https://www.microbiomestat.wiki/cross-sectional-study-design/cross-sectional-reporting-microbial-analysis-reports-with-microbiomestat" class="external-link"><strong>cross-sectional</strong></a>, <a href="https://www.microbiomestat.wiki/paired-samples-analysis/automated-reporting-for-paired-studies-microbiomestats-integrated-analysis-reports" class="external-link"><strong>paired</strong></a>, <a href="https://www.microbiomestat.wiki/longitudinal-study-design/longitudinal-reporting-microbiome-analysis-automation-with-microbiomestat" class="external-link"><strong>longitudinal</strong></a> study designs</td>
+<td>Report Generation Functions</td>
+<td>Includes individual report functions for <a href="https://www.microbiomestat.wiki/cross-sectional-study-design/cross-sectional-reporting-microbial-analysis-reports-with-microbiomestat" class="external-link">cross-sectional</a>, <a href="https://www.microbiomestat.wiki/paired-samples-analysis/automated-reporting-for-paired-studies-microbiomestats-integrated-analysis-reports" class="external-link">paired</a>, <a href="https://www.microbiomestat.wiki/longitudinal-study-design/longitudinal-reporting-microbiome-analysis-automation-with-microbiomestat" class="external-link">longitudinal</a> study designs. Development of a Shiny interface for one-click reporting is underway.</td>
 </tr>
 <tr class="even">
-<td><strong>Visualization Capabilities</strong></td>
-<td>Offers a wide variety of <strong>visualization styles</strong>
-</td>
+<td>Visualization Capabilities</td>
+<td>Supports a broad range of visualization styles.</td>
 </tr>
 <tr class="odd">
-<td><strong>Ongoing Development</strong></td>
-<td>Continual <strong>feature refinement</strong> and <strong>new functionality addition</strong>
-</td>
+<td>Ongoing Development</td>
+<td>Committed to continuous refinement of existing features and addition of new functionalities.</td>
 </tr>
 </tbody>
 </table>
@@ -352,7 +340,7 @@
 </h2>
 <p>Join our Discord community to stay on top of the latest updates, developments, and enhancements in <code>MicrobiomeStat</code>. Be part of vibrant discussions, ask questions, share insights, and avail support from peers and experts alike:</p>
 <p><a href="https://discord.gg/BfNvTJAt" class="external-link">Join the MicrobiomeStat Discord Server!</a></p>
-<p>In our Discord server, an automated bot keeps you informed about every package and tutorial update, ensuring you never miss out on new features, improvements, and learning materials. Our active community thrives on <strong>collaboration, feedback, and continuous learning</strong>, making it an invaluable space for both novice and experienced researchers navigating the world of microbiome data analysis. Stay connected, stay informed, and let’s advance the field of microbiome data analysis together!</p>
+<p>In our Discord server, an automated bot keeps you informed about every package and tutorial update, ensuring you never miss out on new features, improvements, and learning materials. Our active community thrives on collaboration, feedback, and continuous learning, making it an invaluable space for both novice and experienced researchers navigating the world of microbiome data analysis. Stay connected, stay informed, and let’s advance the field of microbiome data analysis together!</p>
 </div>
 <div class="section level2">
 <h2 id="share-and-connect">Share and Connect<a class="anchor" aria-label="anchor" href="#share-and-connect"></a>

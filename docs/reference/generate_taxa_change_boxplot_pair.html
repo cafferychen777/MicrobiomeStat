@@ -108,13 +108,13 @@ It also allows for a prevalence and abundance filter to be applied to the data, 
 
 
 <dt>feature.change.func</dt>
-<dd><p>The function used to calculate change in abundance between time points.
-This can be one of "relative change", "lfc" (log2 fold change),
-or a custom function. For custom functions, the function should take two numeric vectors
-as input (abundances at time 1 and time 2) and return a numeric vector of differences.
-The function should handle zero values appropriately. For "lfc", zero values
-are imputed as half the minimum nonzero value before taking the logarithm.
-Default is "relative change".</p></dd>
+<dd><p>The method or function used to calculate the change in feature abundance between time points.
+The following options are supported:</p>
+<p>- "relative change": Computes the relative change as (time_2 - time_1) / (time_2 + time_1). If both values are zero, the result is zero.
+- "log fold change": Computes the log2 fold change between time points. Zero values are imputed as half the minimum nonzero value of the respective feature at the given time point before taking the logarithm.
+- "absolute change": Computes the absolute difference between time points.
+- A custom function: The provided function should take two numeric vectors as input (values at time 1 and time 2) and return a numeric vector of differences. Users should ensure that their function handles zero values appropriately.</p>
+<p>If an unrecognized value or no value is provided for `feature.change.func`, the default behavior will be to compute the absolute difference between time points.</p></dd>
 
 
 <dt>feature.level</dt>
@@ -237,7 +237,7 @@ my_theme &lt;- ggplot2::theme(
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
 <span class="r-in"><span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  change.base <span class="op">=</span> <span class="st">"1"</span>,</span></span>
-<span class="r-in"><span>  feature.change.func <span class="op">=</span> <span class="st">"lfc"</span>,</span></span>
+<span class="r-in"><span>  feature.change.func <span class="op">=</span> <span class="st">"relative change"</span>,</span></span>
 <span class="r-in"><span>  feature.level <span class="op">=</span> <span class="st">"original"</span>,</span></span>
 <span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"count"</span>,</span></span>
 <span class="r-in"><span>  features.plot <span class="op">=</span> <span class="cn">NULL</span>,</span></span>

@@ -78,7 +78,7 @@ The report contains thorough statistical analysis along with data visualizations
 <span>  feature.change.func <span class="op">=</span> <span class="st">"relative change"</span>,</span>
 <span>  feature.mt.method <span class="op">=</span> <span class="st">"none"</span>,</span>
 <span>  feature.sig.level <span class="op">=</span> <span class="fl">0.1</span>,</span>
-<span>  feature.box.axis.transform <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"identity"</span>, <span class="st">"sqrt"</span>, <span class="st">"log"</span><span class="op">)</span>,</span>
+<span>  feature.box.axis.transform <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sqrt"</span><span class="op">)</span>,</span>
 <span>  base.size <span class="op">=</span> <span class="fl">16</span>,</span>
 <span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span>
 <span>  custom.theme <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -226,8 +226,8 @@ the change from baseline value. This allows flexible options:
   The function should take 2 arguments: value at timepoint t and value at baseline t0.
 - If a character string is provided, following options are supported:
   - 'relative change': (value_t - value_t0) / (value_t + value_t0)
-  - 'difference': value_t - value_t0
-  - 'lfc': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
+  - 'absolute change': value_t - value_t0
+  - 'log fold change': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
 - Default is 'relative change'.</p>
 <p>If none of the above options are matched, an error will be thrown indicating
 the acceptable options or prompting the user to provide a custom function.</p></dd>
@@ -417,7 +417,7 @@ my_theme &lt;- ggplot2::theme(
 <span class="r-in"><span>  feature.box.axis.transform <span class="op">=</span> <span class="st">"sqrt"</span>,</span></span>
 <span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
 <span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">20</span>,</span></span>
-<span class="r-in"><span>  output.file <span class="op">=</span> <span class="st">"path/to/report.pdf"</span></span></span>
+<span class="r-in"><span>  output.file <span class="op">=</span> <span class="st">"/Users/apple/MicrobiomeStat/report.pdf"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>

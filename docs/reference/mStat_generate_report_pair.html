@@ -65,7 +65,7 @@ The function is specifically designed for analysis of paired data.</p>
 <span>  <span class="va">change.base</span>,</span>
 <span>  alpha.obj <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  alpha.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shannon"</span>, <span class="st">"observed_species"</span><span class="op">)</span>,</span>
-<span>  alpha.change.func <span class="op">=</span> <span class="st">"lfc"</span>,</span>
+<span>  alpha.change.func <span class="op">=</span> <span class="st">"log fold change"</span>,</span>
 <span>  depth <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  dist.obj <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BC"</span>, <span class="st">"Jaccard"</span><span class="op">)</span>,</span>
@@ -79,7 +79,7 @@ The function is specifically designed for analysis of paired data.</p>
 <span>  <span class="va">test.feature.level</span>,</span>
 <span>  feature.dat.type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"count"</span>, <span class="st">"proportion"</span>, <span class="st">"other"</span><span class="op">)</span>,</span>
 <span>  feature.analysis.rarafy <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  feature.change.func <span class="op">=</span> <span class="st">"lfc"</span>,</span>
+<span>  feature.change.func <span class="op">=</span> <span class="st">"log fold change"</span>,</span>
 <span>  feature.mt.method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"fdr"</span><span class="op">)</span>,</span>
 <span>  feature.sig.level <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  feature.box.axis.transform <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>,</span>
@@ -140,13 +140,20 @@ The function is specifically designed for analysis of paired data.</p>
 <dt>alpha.change.func</dt>
 <dd><p>Function or method for calculating change in alpha diversity
   between two timepoints. This allows flexible options to quantify change:</p>
-<p>- If a function is provided, it will be applied to compare alpha diversity
+<p>- If a function is provided: The function will be applied to compare alpha diversity
     at timepoint t vs baseline t0. The function should take two arguments
-    representing the alpha diversity values at t and t0.</p>
-<p>- If a string is provided, following options are supported:
-    - 'lfc': Calculate log2 fold change of alpha diversity at t vs t0.
-    - Otherwise, it will calculate the absolute difference in alpha diversity at t vs t0.</p>
-<p>- Default is the absolute difference between t and t0.</p></dd>
+    representing the alpha diversity values at t and t0. For instance, a custom function to
+    calculate the percentage change might look like:</p><div class="sourceCode"><pre><code><span></span>
+<span>      <span class="va">percentage_change</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">t</span>, <span class="va">t0</span><span class="op">)</span> <span class="op">{</span></span>
+<span>        <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span> <span class="op">(</span><span class="op">(</span><span class="va">t</span> <span class="op">-</span> <span class="va">t0</span><span class="op">)</span> <span class="op">/</span> <span class="va">t0</span><span class="op">)</span> <span class="op">*</span> <span class="fl">100</span></span>
+<span>      <span class="op">}</span></span>
+<span>    </span></code></pre></div><p>You can then pass this function as the value for `alpha.change.func`.</p>
+<p>- If a string is provided, the following options are supported:
+    - 'log fold change': Calculates the log2 fold change of alpha diversity at t compared to t0.
+    - 'absolute change': Calculates the absolute difference in alpha diversity at t compared to t0.
+    - Any other value: A warning will be given that the provided method is not recognized,
+      and the default method ('absolute change') will be used.</p>
+<p>- Default behavior (if no recognized string or function is provided) is to compute the absolute difference between t and t0.</p></dd>
 
 
 <dt>depth</dt>
@@ -241,8 +248,8 @@ the change from baseline value. This allows flexible options:
   The function should take 2 arguments: value at timepoint t and value at baseline t0.
 - If a character string is provided, following options are supported:
   - 'relative change': (value_t - value_t0) / (value_t + value_t0)
-  - 'difference': value_t - value_t0
-  - 'lfc': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
+  - 'absolute change': value_t - value_t0
+  - 'log fold change': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
 - Default is 'relative change'.</p>
 <p>If none of the above options are matched, an error will be thrown indicating
 the acceptable options or prompting the user to provide a custom function.</p></dd>
@@ -371,7 +378,7 @@ my_theme &lt;- ggplot2::theme(
 <span class="r-in"><span>  feature.sig.level <span class="op">=</span> <span class="fl">0.1</span>,</span></span>
 <span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
 <span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">18</span>,</span></span>
-<span class="r-in"><span>  output.file <span class="op">=</span> <span class="st">"path/to/report.pdf"</span></span></span>
+<span class="r-in"><span>  output.file <span class="op">=</span> <span class="st">"/Users/apple/MicrobiomeStat/report.pdf"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>

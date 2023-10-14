@@ -61,7 +61,7 @@ interactively or saved as a PDF file.</p>
 <span>  group.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  change.base <span class="op">=</span> <span class="st">"1"</span>,</span>
-<span>  feature.change.func <span class="op">=</span> <span class="st">"lfc"</span>,</span>
+<span>  feature.change.func <span class="op">=</span> <span class="st">"log fold change"</span>,</span>
 <span>  feature.level <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  feature.dat.type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"count"</span>, <span class="st">"proportion"</span>, <span class="st">"other"</span><span class="op">)</span>,</span>
 <span>  features.plot <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -108,13 +108,13 @@ interactively or saved as a PDF file.</p>
 
 
 <dt>feature.change.func</dt>
-<dd><p>A function or character string specifying the method for computing the change in abundance between two time points.
-This can be one of the following:
-  - A user-defined function: The function should take two arguments corresponding to the abundances at the two time points and return the computed change.
-  - "lfc": Computes the log2 fold-change between `time2_mean_abundance` and `time1_mean_abundance`.
-  - "relative change": Computes the relative change as `(time2 - time1) / (time2 + time1)`. If both time points have an abundance of 0, the change is defined as 0.
-  - Any other value: Computes the difference as `time2_mean_abundance - time1_mean_abundance`.
-Default is "difference".</p></dd>
+<dd><p>A method or function specifying how to compute the change in feature abundance or prevalence between two time points.
+The following options are available:</p>
+<p>- A custom function: If you provide a user-defined function, it should take two numeric arguments corresponding to the values at the two time points and return the computed change. This function can be applied to compute changes both in abundance (`time1_mean_abundance` and `time2_mean_abundance`) and prevalence (`time1_prevalence` and `time2_prevalence`).</p>
+<p>- "log fold change": Computes the log2 fold change between the two time points. To handle zeros, a small offset (0.00001) is added before taking the logarithm. This method can be applied for both abundance and prevalence changes.</p>
+<p>- "relative change": Computes the relative change as `(time2_value - time1_value) / (time2_value + time1_value)`. If both time points have a value of 0, the change is defined as 0. This method can be applied for both abundance and prevalence changes.</p>
+<p>- "absolute change": Computes the difference between the values at the two time points. This method can be applied for both abundance and prevalence changes.</p>
+<p>- Any other value (or if the parameter is omitted): By default, the function will compute the absolute change as described above, regardless of whether it is abundance or prevalence data.</p></dd>
 
 
 <dt>feature.level</dt>
@@ -235,10 +235,10 @@ my_theme &lt;- ggplot2::theme(
 <span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"subject"</span>,</span></span>
 <span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"time"</span>,</span></span>
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
-<span class="r-in"><span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
 <span class="r-in"><span>  change.base <span class="op">=</span> <span class="st">"1"</span>,</span></span>
-<span class="r-in"><span>  feature.change.func <span class="op">=</span> <span class="st">"lfc"</span>,</span></span>
-<span class="r-in"><span>  feature.level <span class="op">=</span> <span class="st">"Genus"</span>,</span></span>
+<span class="r-in"><span>  feature.change.func <span class="op">=</span> <span class="st">"log fold change"</span>,</span></span>
+<span class="r-in"><span>  feature.level <span class="op">=</span> <span class="st">"Family"</span>,</span></span>
 <span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"count"</span>,</span></span>
 <span class="r-in"><span>  features.plot <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  top.k.plot <span class="op">=</span> <span class="fl">20</span>,</span></span>
