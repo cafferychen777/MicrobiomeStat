@@ -111,29 +111,24 @@ generate_alpha_test_single <-
         anova <- anova(lm.model)
         anova.tab <- anova %>%
           as.data.frame() %>%
-          rownames_to_column("term")
-
-        # Rearrange the table and add missing columns
-        anova.tab <- anova.tab %>%
+          rownames_to_column("Term") %>%
           dplyr::select(
-            term,
+            Term,
             Statistic = `F value`,
             P.Value = `Pr(>F)`
           ) %>%
-          dplyr::mutate(Estimate = NA, Std.Error = NA)
-
-        # Reorder the columns to match coef.tab
-        anova.tab <- anova.tab %>%
+          dplyr::mutate(Estimate = NA, Std.Error = NA)  %>%
           dplyr::select(
-            Term = term,
-            Estimate = Estimate,
-            Std.Error = Std.Error,
-            Statistic = Statistic,
-            P.Value = P.Value
+            Term,
+            Estimate,
+            Std.Error,
+            Statistic,
+            P.Value
           ) %>%
           dplyr::filter(
             Term == group.var
-          )
+          ) %>%
+          as_tibble()
 
         coef.tab <-
           rbind(coef.tab, anova.tab)
