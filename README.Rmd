@@ -18,6 +18,10 @@ editor_options:
 
 The `MicrobiomeStat` package is a dedicated R tool for exploring **longitudinal microbiome data**. It also accommodates multi-omics data and cross-sectional studies, valuing the collective efforts within the community. This tool aims to support researchers through their extensive biological inquiries over time, with a spirit of gratitude towards the community's existing resources and a collaborative ethos for furthering microbiome research.
 
+# News
+
+🚨 **Important Notice** (October 13th Update): Due to an environment contamination, a flawed update was inadvertently released on October 13th. I sincerely apologize for any inconvenience this may have caused. Users are strongly advised to update to the latest version to rectify any issues. Thank you for your understanding and continued support.
+
 # Citations {#citations}
 
 ## General Citation for MicrobiomeStat {#general-citation}
