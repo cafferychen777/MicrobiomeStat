@@ -20,6 +20,14 @@ biological inquiries over time, with a spirit of gratitude towards the
 community’s existing resources and a collaborative ethos for furthering
 microbiome research.
 
+# News
+
+🚨 **Important Notice** (October 13th Update): Due to an environment
+contamination, a flawed update was inadvertently released on October
+13th. I sincerely apologize for any inconvenience this may have caused.
+Users are strongly advised to update to the latest version to rectify
+any issues. Thank you for your understanding and continued support.
+
 # Citations
 
 ## General Citation for MicrobiomeStat
