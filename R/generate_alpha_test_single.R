@@ -93,23 +93,17 @@ generate_alpha_test_single <-
       summary <- summary(lm.model)
       coef.tab <- summary$coefficients %>%
         as.data.frame() %>%
-        rownames_to_column("term") %>%
-        rename(
-          Estimate = "estimate",
-          `Std. Error` = "std.error",
-          `t value` = "statistic",
-          `Pr(>|t|)` = "p.value"
-        ) %>%
+        rownames_to_column("Term") %>%
         as_tibble()
 
       # Rearrange the table
       coef.tab <-
         coef.tab %>% dplyr::select(
-          Term = term,
-          Estimate = estimate,
-          Std.Error = std.error,
-          Statistic = statistic,
-          P.Value = p.value
+          Term,
+          Estimate,
+          Std.Error = `Std. Error`,
+          Statistic = `t value`,
+          P.Value = `Pr(>|t|)`
         )
 
       # Run ANOVA on the model if group.var is multi-categorical
@@ -117,16 +111,14 @@ generate_alpha_test_single <-
         anova <- anova(lm.model)
         anova.tab <- anova %>%
           as.data.frame() %>%
-          rownames_to_column("term") %>%
-          rename(`F value` = "statistic",
-                 `Pr(>F)` = "p.value")
+          rownames_to_column("term")
 
         # Rearrange the table and add missing columns
         anova.tab <- anova.tab %>%
           dplyr::select(
             term,
-            Statistic = statistic,
-            P.Value = p.value
+            Statistic = `F value`,
+            P.Value = `Pr(>F)`
           ) %>%
           dplyr::mutate(Estimate = NA, Std.Error = NA)
 

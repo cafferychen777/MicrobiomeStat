@@ -208,12 +208,13 @@ generate_alpha_change_test_pair <-
       summary <- summary(lm.model)
       coef.tab <- summary$coefficients %>%
         as.data.frame() %>%
-        tibble::rownames_to_column(var = "term") %>%
-        rename(
-          term = "Term",
-          `Std. Error` = "Std.Error",
-          `t value` = "Statistic",
-          `Pr(>|t|)` = "P.Value"
+        tibble::rownames_to_column(var = "Term") %>%
+        dplyr::select(
+          Term,
+          Std.Error = `Std. Error`,
+          Statistic = `t value`,
+          P.Value = `Pr(>|t|)`,
+          Estimate
         ) %>% as_tibble()
 
       # Run ANOVA on the model if group.var is multi-categorical
@@ -221,22 +222,11 @@ generate_alpha_change_test_pair <-
         anova <- anova(lm.model)
         anova.tab <- as.data.frame(anova) %>%
           rownames_to_column("Term") %>%
-          rename(`Sum Sq` = "sumsq",
-                 `Df` = "df",
-                 `F value` = "Statistic",
-                 `Pr(>F)` = "P.Value") %>%
+          dplyr::select(Term,
+                        Statistic = `F value`,
+                        P.Value = `Pr(>F)`) %>%
           dplyr::mutate(Estimate = NA, Std.Error = NA) %>%
           as_tibble()
-
-        # Reorder the columns to match coef.tab
-        anova.tab <- anova.tab %>%
-          dplyr::select(
-            Term,
-            Estimate,
-            Std.Error,
-            Statistic,
-            P.Value
-          )
 
         coef.tab <-
           rbind(coef.tab, anova.tab) # Append the anova.tab to the coef.tab

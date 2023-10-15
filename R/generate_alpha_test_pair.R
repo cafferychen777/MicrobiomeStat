@@ -87,7 +87,7 @@ extract_coef <- function(model) {
 #' alpha.name = c("shannon"),
 #' subject.var = "subject",
 #' group.var = "group",
-#' adj.vars = NULL
+#' adj.vars = "sex"
 #' )
 #'
 #' @export
@@ -195,22 +195,17 @@ generate_alpha_test_pair <-
         anova.tab <- anova(lme.model) %>%
           as.data.frame() %>%
           rownames_to_column("Term") %>%
-          rename(`F value` = "statistic",
-                 `Pr(>F)` = "p.value") %>%
-          as_tibble()
-
-        # Rearrange the table and add missing columns
-        anova.tab <- anova.tab %>%
-          dplyr::mutate(Estimate = NA, Std.Error = NA)
-
-        # Reorder the columns to match coef.tab
-        anova.tab <- anova.tab %>%
+          dplyr::select(Term,
+                        Statistic = `F value`,
+                        P.Value = `Pr(>F)`) %>%
+          as_tibble() %>%
+          dplyr::mutate(Estimate = NA, Std.Error = NA) %>%
           dplyr::select(
             Term,
             Estimate,
             Std.Error,
-            Statistic = statistic,
-            P.Value = p.value
+            Statistic,
+            P.Value
           ) %>%
           dplyr::filter(Term %in% c(group.var, paste0(group.var, ":", time.var)))
 

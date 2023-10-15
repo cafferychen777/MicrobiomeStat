@@ -221,28 +221,19 @@ generate_taxa_volatility_test_long <- function(data.obj,
         if (length(unique(taxa_df[[group.var]])) > 2) {
           anova <- anova(test_result)
           anova.tab <- anova %>% as.data.frame() %>%
-            rownames_to_column("term") %>%
-            rename(`F value` = "statistic",
-                   `Pr(>F)` = "p.value") %>%
-            as_tibble()
-
-          # Rearrange the table and add missing columns
-          anova.tab <- anova.tab %>%
+            rownames_to_column("Term") %>%
+            dplyr::select(
+                   Term,
+                   Statistic = `F value`,
+                   P.Value = `Pr(>F)`) %>%
+            as_tibble() %>%
+            dplyr::mutate(Estimate = NA, Std.Error = NA) %>%
             select(
-              term = term,
-              Statistic = statistic,
-              P.Value = p.value
-            ) %>%
-            dplyr::mutate(Estimate = NA, Std.Error = NA)
-
-          # Reorder the columns to match coef.tab
-          anova.tab <- anova.tab %>%
-            select(
-              Term = term,
-              Estimate = Estimate,
-              Std.Error = Std.Error,
-              Statistic = Statistic,
-              P.Value = P.Value
+              Term,
+              Estimate,
+              Std.Error,
+              Statistic,
+              P.Value
             )
 
           coef.tab <- rbind(coef.tab, anova.tab) # Append the anova.tab to the coef.tab

@@ -138,15 +138,15 @@
 #'   dist.obj = NULL,
 #'   alpha.obj = NULL,
 #'   group.var = "group",
-#'   test.adj.vars = c("sex"),
-#'   vis.adj.vars = c("sex"),
+#'   test.adj.vars = NULL,
+#'   vis.adj.vars = NULL,
 #'   subject.var = "subject",
 #'   time.var = "time",
 #'   alpha.name = c("shannon", "observed_species"),
 #'   dist.name = c("BC",'Jaccard'),
 #'   change.base = "1",
 #'   feature.change.func = "relative change",
-#'   strata.var = "sex",
+#'   strata.var = NULL,
 #'   vis.feature.level = c("Phylum","Family","Genus"),
 #'   test.feature.level = c("Genus"),
 #'   feature.dat.type = "count",
@@ -154,7 +154,7 @@
 #'   feature.sig.level = 0.1,
 #'   theme.choice = "bw",
 #'   base.size = 18,
-#'   output.file = "path/to/report.pdf"
+#'   output.file = "/Users/apple/MicrobiomeStat/report.pdf"
 #' )
 #'
 #' data(peerj32.obj)

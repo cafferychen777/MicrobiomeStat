@@ -48,7 +48,7 @@
 #'   time.var = "time",
 #'   subject.var = "subject",
 #'   group.var = "group",
-#'   adj.vars = "sex",
+#'   adj.vars = NULL,
 #'   change.base = "1",
 #'   dist.name = c('BC', 'Jaccard')
 #' )
@@ -129,50 +129,34 @@ generate_beta_change_test_pair <-
       # Run lm and create a coefficient table
       lm.model <- lm(formula, data = long.df)
       summary <- summary(lm.model)
-      coef.tab <- summary$coefficients %>% as.data.frame() %>%
-        rownames_to_column("term") %>%
-        rename(Estimate = "estimate",
-               `Std. Error` = "std.error",
-               `t value` = "statistic",
-               `Pr(>|t|)` = "p.value") %>%
+      coef.tab <- summary$coefficients %>%
+        as.data.frame() %>%
+        rownames_to_column("Term") %>%
+        dplyr::select(
+                Term,
+                Estimate,
+                Std.Error = `Std. Error`,
+                Statistic = `t value`,
+                P.Value = `Pr(>|t|)`) %>%
         as_tibble()
-
-      # Rearrange the table
-      coef.tab <-
-        coef.tab %>% dplyr::select(
-          Term = term,
-          Estimate = estimate,
-          Std.Error = std.error,
-          Statistic = statistic,
-          P.Value = p.value
-        )
 
       # Run ANOVA on the model if group.var is multi-categorical
       if (length(unique(metadata[[group.var]])) > 1) {
         anova <- anova(lm.model)
-        anova.tab <- anova %>% as.data.frame() %>%
-          rownames_to_column("term") %>%
-          rename(`F value` = "statistic",
-                 `Pr(>F)` = "p.value") %>%
-          as_tibble()
-
-        # Rearrange the table and add missing columns
-        anova.tab <- anova.tab %>%
-          dplyr::select(
-            Term = term,
-            Statistic = statistic,
-            P.Value = p.value
-          ) %>%
-          dplyr::mutate(Estimate = NA, Std.Error = NA)
-
-        # Reorder the columns to match coef.tab
-        anova.tab <- anova.tab %>%
+        anova.tab <- anova %>%
+          as.data.frame() %>%
+          rownames_to_column("Term") %>%
+          dplyr::select(Term,
+                        Statistic = `F value`,
+                        P.Value = `Pr(>F)`) %>%
+          dplyr::mutate(Estimate = NA, Std.Error = NA) %>%
+          as_tibble() %>%
           dplyr::select(
             Term,
-            Estimate = Estimate,
-            Std.Error = Std.Error,
-            Statistic = Statistic,
-            P.Value = P.Value
+            Estimate,
+            Std.Error,
+            Statistic,
+            P.Value
           )
 
         coef.tab <-

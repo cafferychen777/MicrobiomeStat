@@ -168,27 +168,20 @@ generate_beta_volatility_test_long <-
       if (length(unique(test_df[[group.var]])) > 1) {
         anova <- anova(test_result)
         anova.tab <- anova %>% as.data.frame() %>%
-          rownames_to_column("term") %>%
-          rename(`F value` = "statistic",
-                 `Pr(>F)` = "p.value")
-
-        # Rearrange the table and add missing columns
-        anova.tab <- anova.tab %>%
+          rownames_to_column("Term") %>%
           select(
-            term = term,
-            Statistic = statistic,
-            P.Value = p.value
+            Term,
+            Statistic = `F value`,
+            P.Value = `Pr(>F)`
           ) %>%
-          dplyr::mutate(Estimate = NA, Std.Error = NA)
-
-        # Reorder the columns to match coef.tab
-        anova.tab <- anova.tab %>%
+          dplyr::mutate(Estimate = NA, Std.Error = NA) %>%
+          as_tibble() %>%
           select(
-            Term = term,
-            Estimate = Estimate,
-            Std.Error = Std.Error,
-            Statistic = Statistic,
-            P.Value = P.Value
+            Term,
+            Estimate,
+            Std.Error,
+            Statistic,
+            P.Value
           )
 
         coef.tab <-
