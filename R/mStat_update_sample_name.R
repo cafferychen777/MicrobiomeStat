@@ -22,7 +22,7 @@
 #' data(peerj32.obj)
 #' # Update sample names
 #' new.names <- paste0("new-", colnames(peerj32.obj$feature.tab))
-#' updated_peerj32.obj <- MicrobiomeStat::update_sample_name(data.obj = peerj32.obj,
+#' updated_peerj32.obj <- mStat_update_sample_name(data.obj = peerj32.obj,
 #' new.name = new.names)
 #' }
 #'

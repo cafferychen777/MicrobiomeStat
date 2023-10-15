@@ -91,7 +91,7 @@ test.list <- generate_taxa_test_pair(
 )
 plot.list <-
 generate_taxa_volcano_single(
- data.obj = data.obj,
+ data.obj = peerj32.obj,
  group.var = "group",
  test.list = test.list,
  feature.sig.level = 0.1,

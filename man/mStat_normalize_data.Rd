@@ -36,9 +36,9 @@ The function first checks if 'data.obj' is a list. It then retrieves the OTU tab
 \examples{
 \dontrun{
 data(peerj32.obj)
-peerj32.obj <- mStat_aggregate_by_taxonomy(peerj32.obj, method = "TSS")
+peerj32.obj <- mStat_normalize_data(peerj32.obj, method = "TSS")
 # library(edgeR)
-# peerj32.obj <- mStat_aggregate_by_taxonomy(peerj32.obj, method = "TMM")
+# peerj32.obj <- mStat_normalize_data(peerj32.obj, method = "TMM")
 }
 
 }

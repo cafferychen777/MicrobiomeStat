@@ -20,7 +20,7 @@
 #'   data(peerj32.obj)
 #'
 #'   # Update metadata using a CSV file
-#'   peerj32.obj <- mStat_update_meta_data(peerj32.obj, "metadata.csv")
+#'   # peerj32.obj <- mStat_update_meta_data(peerj32.obj, "metadata.csv")
 #'
 #'   # Update metadata using a dataframe
 #'   metadata <- data.frame(Treatment = sample(c("Control", "Treatment"),
@@ -58,7 +58,7 @@ mStat_update_meta_data <- function (data.obj, map.file, meta.sep='\t', quote="\"
   if (length(samIDs) == 0)  stop('Sample names in the meta file and biom file differ?\n')
 
   # 根据找到的样本名对数据对象进行子集化
-  data.obj <- subset_data(data.obj, samIDs)
+  data.obj <- mStat_subset_data(data.obj, samIDs)
 
   # 返回更新后的数据对象
   return(data.obj)

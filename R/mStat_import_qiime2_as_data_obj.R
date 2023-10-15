@@ -19,27 +19,26 @@
 #' # please ensure that you have installed and loaded these packages.
 #' # library(Biostrings)
 #' # library(yaml)
-#' data_obj <- mStat_import_qiime2_as_data_obj(otu_qza = "path_to_otu.qza",
-#'                                              taxa_qza = "path_to_taxa.qza",
-#'                                              sam_tab = "path_to_sample_metadata",
-#'                                              refseq_qza = "path_to_refseq.qza",
-#'                                              tree_qza = "path_to_tree.qza",
-#'                                              norm.status = "Raw")
+#' #data_obj <- mStat_import_qiime2_as_data_obj(otu_qza = "path_to_otu.qza",
+#' #                                             taxa_qza = "path_to_taxa.qza",
+#' #                                              sam_tab = "path_to_sample_metadata",
+#' #                                             refseq_qza = "path_to_refseq.qza",
+#' #                                              tree_qza = "path_to_tree.qza",
+#' #                                            norm.status = "Raw")
 #'
-#' otuqza_file <- system.file("extdata", "table.qza", package = "microbiomeMarker")
-#' taxaqza_file <- system.file("extdata", "taxonomy.qza", package = "microbiomeMarker")
-#' sample_file <- system.file("extdata", "sample-metadata.tsv", package = "microbiomeMarker")
-#' treeqza_file <- system.file("extdata", "tree.qza", package = "microbiomeMarker")
-#' data.obj <- mStat_import_qiime2_as_data_obj(
-#'     otu_qza = otuqza_file, taxa_qza = taxaqza_file,
-#'     sam_tab = sample_file, tree_qza = treeqza_file,
-#' )
+#' #otuqza_file <- system.file("extdata", "table.qza", package = "microbiomeMarker")
+#' #taxaqza_file <- system.file("extdata", "taxonomy.qza", package = "microbiomeMarker")
+#' #sample_file <- system.file("extdata", "sample-metadata.tsv", package = "microbiomeMarker")
+#' #treeqza_file <- system.file("extdata", "tree.qza", package = "microbiomeMarker")
+#' #data.obj <- mStat_import_qiime2_as_data_obj(
+#' #     otu_qza = otuqza_file, taxa_qza = taxaqza_file,
+#' #     sam_tab = sample_file, tree_qza = treeqza_file,
+#' #)
 #' }
 #' @seealso MicrobiomeStat documentation for further details on how to use the returned data object.
 #'
 #' @export
 #'
-#' @author Caffery Yang
 mStat_import_qiime2_as_data_obj <- function(otu_qza,
                                             taxa_qza = NULL,
                                             sam_tab = NULL,

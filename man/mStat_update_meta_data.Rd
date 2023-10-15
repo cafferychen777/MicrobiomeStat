@@ -41,7 +41,7 @@ input dataframe.
   data(peerj32.obj)
 
   # Update metadata using a CSV file
-  peerj32.obj <- mStat_update_meta_data(peerj32.obj, "metadata.csv")
+  # peerj32.obj <- mStat_update_meta_data(peerj32.obj, "metadata.csv")
 
   # Update metadata using a dataframe
   metadata <- data.frame(Treatment = sample(c("Control", "Treatment"),

@@ -21,7 +21,8 @@ The function checks if 'meta.dat' is a data frame and converts it to one if it i
 \examples{
 \dontrun{
 # Assume 'data.obj' is your data object
-validated_data <- validate_data(data.obj)
+data(peerj32.obj)
+validated_data <- mStat_validate_data(peerj32.obj)
 }
 
 }

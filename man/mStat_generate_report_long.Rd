@@ -248,11 +248,11 @@ This function generates a comprehensive longitudinal microbiome report with:
 }
 \examples{
 \dontrun{
-#' data(subset_T2D.obj)
+data(subset_T2D.obj)
 mStat_generate_report_long(
   data.obj = subset_T2D.obj,
   group.var = "subject_race",
-  strata.var = "subject_gender",
+  strata.var = NULL,
   test.adj.vars = NULL,
   vis.adj.vars = NULL,
   subject.var = "subject_id",
@@ -278,6 +278,37 @@ mStat_generate_report_long(
   theme.choice = "bw",
   base.size = 20,
   output.file = "/Users/apple/MicrobiomeStat/report.pdf"
+)
+data(ecam.obj)
+mStat_generate_report_long(
+  data.obj = ecam.obj,
+  group.var = "antiexposedall",
+  strata.var = NULL,
+  test.adj.vars = "delivery",
+  vis.adj.vars = "delivery",
+  subject.var = "subject.id",
+  time.var = "month_num",
+  t0.level = NULL,
+  ts.levels = NULL,
+  alpha.obj = NULL,
+  alpha.name = c("shannon","observed_species"),
+  dist.obj = NULL,
+  dist.name = c("BC",'Jaccard'),
+  pc.obj = NULL,
+  feature.mt.method = "none",
+  feature.sig.level = 0.3,
+  vis.feature.level = c("Family","Genus"),
+  test.feature.level = c("Family"),
+  feature.change.func = "relative change",
+  feature.dat.type = "proportion",
+  prev.filter = 0.1,
+  abund.filter = 1e-4,
+  bar.area.feature.no = 40,
+  heatmap.feature.no = 40,
+  feature.box.axis.transform = "sqrt",
+  theme.choice = "bw",
+  base.size = 20,
+  output.file = "/Users/apple/MicrobiomeStat/ecam_obj_report_long.pdf"
 )
 }
 }

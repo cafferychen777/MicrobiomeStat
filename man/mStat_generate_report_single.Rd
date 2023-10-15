@@ -193,8 +193,8 @@ mStat_generate_report_single(
   dist.obj = NULL,
   alpha.obj = NULL,
   group.var = "group",
-  vis.adj.vars = c("sex"),
-  test.adj.vars = c("sex"),
+  vis.adj.vars = NULL,
+  test.adj.vars = NULL,
   subject.var = "subject",
   time.var = "time",
   alpha.name = c("shannon", "observed_species"),
@@ -202,7 +202,7 @@ mStat_generate_report_single(
   dist.name = c("BC",'Jaccard'),
   t.level = "1",
   feature.box.axis.transform = "sqrt",
-  strata.var = "sex",
+  strata.var = NULL,
   vis.feature.level = c("Phylum", "Family", "Genus"),
   test.feature.level = "Family",
   feature.dat.type = "count",
@@ -236,6 +236,31 @@ mStat_generate_report_single(
   feature.mt.method = "none",
   feature.sig.level = 0.2,
   output.file = "/Users/apple/MicrobiomeStat/report.pdf"
+)
+data(ecam.obj)
+mStat_generate_report_single(
+  data.obj = ecam.obj,
+  dist.obj = NULL,
+  alpha.obj = NULL,
+  group.var = "delivery",
+  vis.adj.vars = "diet",
+  test.adj.vars = "diet",
+  subject.var = "subject.id",
+  time.var = "month_num",
+  alpha.name = c("shannon", "observed_species"),
+  depth = NULL,
+  dist.name = c("BC",'Jaccard'),
+  t.level = 1,
+  feature.box.axis.transform = "sqrt",
+  strata.var = "antiexposedall",
+  vis.feature.level = c("Phylum", "Family", "Genus"),
+  test.feature.level = "Family",
+  feature.dat.type = "proportion",
+  theme.choice = "bw",
+  base.size = 20,
+  feature.mt.method = "none",
+  feature.sig.level = 0.2,
+  output.file = "/Users/apple/MicrobiomeStat/ecam.obj_report.pdf"
 )
 }
 }

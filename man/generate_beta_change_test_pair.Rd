@@ -82,7 +82,7 @@ generate_beta_change_test_pair(
   time.var = "time",
   subject.var = "subject",
   group.var = "group",
-  adj.vars = "sex",
+  adj.vars = NULL,
   change.base = "1",
   dist.name = c('BC', 'Jaccard')
 )
