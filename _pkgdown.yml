@@ -43,7 +43,6 @@ reference:
       - generate_beta_pc_spaghettiplot_long
       - generate_beta_pc_trend_test_long
       - generate_beta_pc_volatility_test_long
-      - generate_beta_test_pair
       - generate_beta_test_single
       - generate_beta_trend_test_long
       - generate_beta_volatility_test_long

@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">MicrobiomeStat</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -93,10 +93,6 @@
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>MicrobiomeStat documentation for further details on how to use the returned data object.</p></div>
     </div>
-    <div class="section level2">
-    <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>
-    <p>Caffery Yang</p>
-    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
@@ -106,21 +102,21 @@
 <span class="r-in"><span><span class="co"># please ensure that you have installed and loaded these packages.</span></span></span>
 <span class="r-in"><span><span class="co"># library(Biostrings)</span></span></span>
 <span class="r-in"><span><span class="co"># library(yaml)</span></span></span>
-<span class="r-in"><span><span class="va">data_obj</span> <span class="op">&lt;-</span> <span class="fu">mStat_import_qiime2_as_data_obj</span><span class="op">(</span>otu_qza <span class="op">=</span> <span class="st">"path_to_otu.qza"</span>,</span></span>
-<span class="r-in"><span>                                             taxa_qza <span class="op">=</span> <span class="st">"path_to_taxa.qza"</span>,</span></span>
-<span class="r-in"><span>                                             sam_tab <span class="op">=</span> <span class="st">"path_to_sample_metadata"</span>,</span></span>
-<span class="r-in"><span>                                             refseq_qza <span class="op">=</span> <span class="st">"path_to_refseq.qza"</span>,</span></span>
-<span class="r-in"><span>                                             tree_qza <span class="op">=</span> <span class="st">"path_to_tree.qza"</span>,</span></span>
-<span class="r-in"><span>                                             norm.status <span class="op">=</span> <span class="st">"Raw"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co">#data_obj &lt;- mStat_import_qiime2_as_data_obj(otu_qza = "path_to_otu.qza",</span></span></span>
+<span class="r-in"><span><span class="co">#                                             taxa_qza = "path_to_taxa.qza",</span></span></span>
+<span class="r-in"><span><span class="co">#                                              sam_tab = "path_to_sample_metadata",</span></span></span>
+<span class="r-in"><span><span class="co">#                                             refseq_qza = "path_to_refseq.qza",</span></span></span>
+<span class="r-in"><span><span class="co">#                                              tree_qza = "path_to_tree.qza",</span></span></span>
+<span class="r-in"><span><span class="co">#                                            norm.status = "Raw")</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">otuqza_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"table.qza"</span>, package <span class="op">=</span> <span class="st">"microbiomeMarker"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">taxaqza_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"taxonomy.qza"</span>, package <span class="op">=</span> <span class="st">"microbiomeMarker"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">sample_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"sample-metadata.tsv"</span>, package <span class="op">=</span> <span class="st">"microbiomeMarker"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">treeqza_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"tree.qza"</span>, package <span class="op">=</span> <span class="st">"microbiomeMarker"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">data.obj</span> <span class="op">&lt;-</span> <span class="fu">mStat_import_qiime2_as_data_obj</span><span class="op">(</span></span></span>
-<span class="r-in"><span>    otu_qza <span class="op">=</span> <span class="va">otuqza_file</span>, taxa_qza <span class="op">=</span> <span class="va">taxaqza_file</span>,</span></span>
-<span class="r-in"><span>    sam_tab <span class="op">=</span> <span class="va">sample_file</span>, tree_qza <span class="op">=</span> <span class="va">treeqza_file</span>,</span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co">#otuqza_file &lt;- system.file("extdata", "table.qza", package = "microbiomeMarker")</span></span></span>
+<span class="r-in"><span><span class="co">#taxaqza_file &lt;- system.file("extdata", "taxonomy.qza", package = "microbiomeMarker")</span></span></span>
+<span class="r-in"><span><span class="co">#sample_file &lt;- system.file("extdata", "sample-metadata.tsv", package = "microbiomeMarker")</span></span></span>
+<span class="r-in"><span><span class="co">#treeqza_file &lt;- system.file("extdata", "tree.qza", package = "microbiomeMarker")</span></span></span>
+<span class="r-in"><span><span class="co">#data.obj &lt;- mStat_import_qiime2_as_data_obj(</span></span></span>
+<span class="r-in"><span><span class="co">#     otu_qza = otuqza_file, taxa_qza = taxaqza_file,</span></span></span>
+<span class="r-in"><span><span class="co">#     sam_tab = sample_file, tree_qza = treeqza_file,</span></span></span>
+<span class="r-in"><span><span class="co">#)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>
