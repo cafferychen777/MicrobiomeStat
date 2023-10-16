@@ -12,6 +12,8 @@ MicrobiomeStat: 支持R中的纵向微生物组分析
 v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 <!-- badges: end -->
 
+[EN](README.md) \| [CN](README-CN.md) \| [ES](README-ES.md)
+
 `MicrobiomeStat`包是一个专门用于探索**纵向微生物组数据**的R工具。它也适用于多组学数据和横断面研究，重视社区内的集体努力。此工具旨在支持研究人员在时间上进行广泛的生物学查询，对社区现有资源表示感谢，并以合作精神推动微生物组研究的进一步发展。
 
 # 新闻
@@ -148,7 +150,7 @@ devtools::install_github("cafferychen777/MicrobiomeStat")
 
 如果您对特定函数的文档有特定的评论或问题，而您发现RStudio的搜索框导致404错误，您可以直接在<https://cafferychen777.github.io/MicrobiomeStat/reference/index.html>访问函数的文档。
 
-如果您的问题或问题尚未得到解答，随时在GitHub上[开启新问题](https://github.com/cafferychen777/MicrobiomeStat/issues)。我们在这里帮助您解决可能遇到的任何挑战。
+如果您的问题或疑问尚未得到解答，随时在GitHub上[开启新问题](https://github.com/cafferychen777/MicrobiomeStat/issues)。我们非常鼓励全球的研究者、开发者和用户之间的交流与合作。为了促进全球间的沟通和互助，我们希望您能使用英文提问。这样不仅可以帮助更多的人理解和参与到讨论中，还能确保我们更迅速、准确地为您提供帮助。谢谢您的理解和支持！我们在这里，随时为您解决可能遇到的任何挑战。
 
 ### 持续开发
 
@@ -188,10 +190,10 @@ devtools::install_github("cafferychen777/MicrobiomeStat")
 
 如需帮助或查询，欢迎联系：
 
-| 姓名                                                                     | 邮箱                        |
-|--------------------------------------------------------------------------|-----------------------------|
-| [陈军博士](https://scholar.google.com/citations?user=gonDvdwAAAAJ&hl=en) | <Chen.Jun2@mayo.edu>        |
-| [杨晨](https://cafferyyang.owlstown.net/)                                | <cafferychen7850@gmail.com> |
+| 姓名                                                                         | 邮箱                        |
+|------------------------------------------------------------------------------|-----------------------------|
+| [Dr. Jun Chen](https://scholar.google.com/citations?user=gonDvdwAAAAJ&hl=en) | <Chen.Jun2@mayo.edu>        |
+| [Chen YANG](https://cafferyyang.owlstown.net/)                               | <cafferychen7850@gmail.com> |
 
 ## 加入我们的Discord社区
 
