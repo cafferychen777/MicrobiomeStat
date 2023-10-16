@@ -220,7 +220,13 @@ here to help you navigate any challenges you may encounter.
 
 Ensuring that `MicrobiomeStat` remains a leading tool in its category
 requires ongoing development. We’re dedicated to regular updates and
-addressing user feedback.
+addressing user feedback. As part of our continuous enhancement efforts,
+we have developed a Shiny interface for `MicrobiomeStat`, which provides
+a user-friendly, interactive way to perform microbiome data analysis.
+The Shiny interface is actively maintained and improved alongside the
+main package. You can access the Shiny application files and
+instructions for local setup on its dedicated [GitHub
+repository](https://github.com/cafferychen777/MicrobiomeStat-Shiny).
 
 ### Collaborative Development
 

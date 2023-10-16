@@ -154,7 +154,7 @@ devtools::install_github("cafferychen777/MicrobiomeStat")
 
 ### 持续开发
 
-确保`MicrobiomeStat`保持其类别中的领先地位需要持续的开发。我们致力于定期更新和解决用户反馈。
+确保`MicrobiomeStat`保持其类别中的领先地位需要持续的开发。我们致力于定期更新和解决用户反馈。作为我们持续改进努力的一部分，我们为`MicrobiomeStat`开发了一个Shiny界面，它提供了一种用户友好、交互式的方式来进行微生物组数据分析。Shiny界面与主包一起得到了积极的维护和改进。你可以在其专用的[GitHub仓库](https://github.com/cafferychen777/MicrobiomeStat-Shiny)中访问Shiny应用程序文件和本地设置指南。
 
 ### 合作开发
 

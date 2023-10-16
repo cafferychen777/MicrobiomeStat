@@ -155,7 +155,7 @@ Si su pregunta o problema no ha sido abordado previamente, no dude en [abrir un 
 
 ### Desarrollo en curso {#ongoing-development}
 
-Asegurar que `MicrobiomeStat` siga siendo una herramienta líder en su categoría requiere un desarrollo continuo. Estamos dedicados a las actualizaciones regulares y a abordar los comentarios de los usuarios. 
+Asegurar que `MicrobiomeStat` siga siendo una herramienta líder en su categoría requiere un desarrollo continuo. Estamos dedicados a las actualizaciones regulares y a abordar los comentarios de los usuarios. Como parte de nuestros esfuerzos de mejora continua, hemos desarrollado una interfaz Shiny para `MicrobiomeStat`, que ofrece una forma interactiva y fácil de usar para realizar análisis de datos de microbiomas. La interfaz Shiny se mantiene y mejora activamente junto con el paquete principal. Puedes acceder a los archivos de la aplicación Shiny y las instrucciones para la configuración local en su [repositorio de GitHub](https://github.com/cafferychen777/MicrobiomeStat-Shiny) dedicado.
 
 ### Desarrollo colaborativo {#collaborative-development}
 
