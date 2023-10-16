@@ -12,6 +12,8 @@ MicrobiomeStat: Supporting Longitudinal Microbiome Analysis in R
 v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 <!-- badges: end -->
 
+[EN](README.md) \| [CN](README-CN.md)
+
 The `MicrobiomeStat` package is a dedicated R tool for exploring
 **longitudinal microbiome data**. It also accommodates multi-omics data
 and cross-sectional studies, valuing the collective efforts within the
@@ -201,8 +203,16 @@ available to assist both novice and experienced researchers. Before
 posting a question or issue, we encourage users to [check previous
 questions and
 issues](https://github.com/cafferychen777/MicrobiomeStat/issues?q=is%3Aissue+is%3Aclosed)
-to see if the topic has already been addressed. If not, feel free to
-[open a new issue on
+to see if the topic has already been addressed.
+
+In case you have specific comments or questions about a particular
+function’s documentation and you find that the RStudio’s search box
+leads to a 404 error, you can directly access the function’s
+documentation at
+<https://cafferychen777.github.io/MicrobiomeStat/reference/index.html>.
+
+If your question or issue has not been previously addressed, feel free
+to [open a new issue on
 GitHub](https://github.com/cafferychen777/MicrobiomeStat/issues). We are
 here to help you navigate any challenges you may encounter.
 
