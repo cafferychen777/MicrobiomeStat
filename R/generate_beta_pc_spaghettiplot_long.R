@@ -62,6 +62,8 @@
 #'
 #' # Example with ecam.obj dataset
 #' data(ecam.obj)
+#' dist.obj <- mStat_calculate_beta_diversity(ecam.obj, "BC")
+#' pc.obj <- mStat_calculate_PC(dist.obj)
 #' generate_beta_pc_spaghettiplot_long(
 #'   data.obj = ecam.obj,
 #'   dist.obj = NULL,
@@ -69,11 +71,11 @@
 #'   subject.var = "studyid",
 #'   time.var = "month",
 #'   t0.level = "0",
-#'   ts.levels = as.character(sort(as.numeric(unique(ecam.obj$meta.dat$month))))[2:16],
+#'   ts.levels = as.character(sort(as.numeric(unique(ecam.obj$meta.dat$month))))[2:10],
 #'   group.var = "diet",
 #'   strata.var = "delivery",
 #'   adj.vars = NULL,
-#'   dist.name = c('BC', 'Jaccard'),
+#'   dist.name = c('BC'),
 #'   base.size = 20,
 #'   theme.choice = "bw",
 #'   custom.theme = NULL,
@@ -233,6 +235,8 @@ generate_beta_pc_spaghettiplot_long <- function(data.obj = NULL,
     pc.mat <- pc.obj[[dist.name]]$points
 
     colnames(pc.mat) <- paste0("PC", 1:ncol(pc.mat))
+
+    pc.mat <- pc.mat[rownames(meta_tab[, c(subject.var, time.var, group.var, strata.var)]),]
 
     pc.mat <- pc.mat %>% as_tibble()
 
