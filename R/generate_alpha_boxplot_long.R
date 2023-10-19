@@ -61,6 +61,26 @@
 #'   pdf.wid = 20,
 #'   pdf.hei = 8.5)
 #'
+#' data("ecam.obj")
+#' generate_alpha_boxplot_long(
+#'   data.obj = ecam.obj,
+#'   alpha.obj = NULL,
+#'   alpha.name = c("shannon", "observed_species"),
+#'   subject.var = "subject.id",
+#'   time.var = "month",
+#'   t0.level = NULL,
+#'   ts.levels = NULL,
+#'   group.var = "antiexposedall",
+#'   strata.var = "diet",
+#'   adj.vars = NULL,
+#'   base.size = 16,
+#'   theme.choice = "bw",
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 20,
+#'   pdf.hei = 8.5)
+#'
 #' data(peerj32.obj)
 #' generate_alpha_boxplot_long(
 #'   data.obj = peerj32.obj,
@@ -179,8 +199,7 @@ generate_alpha_boxplot_long <- function (data.obj,
 
   theme_to_use <-
     if (!is.null(custom.theme))
-      custom.theme
-  else
+      custom.theme else
     theme_function
 
   if (is.null(palette)) {
@@ -279,19 +298,19 @@ generate_alpha_boxplot_long <- function (data.obj,
           dplyr::group_by(!!sym(strata.var),!!sym(group.var), !!sym(time.var)) %>%
           dplyr::summarise(dplyr::across(!!sym(index), mean, na.rm = TRUE), .groups = "drop") %>%
           dplyr::ungroup() %>%
-          dplyr::mutate(!!sym(subject.var) := "ALL")
+          dplyr::mutate(!!sym(subject.var) := "ALL") %>% dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var)))
       } else if (!is.null(group.var)) {
         average_alpha_df <- alpha_df %>%
           dplyr::group_by(!!sym(group.var), !!sym(time.var)) %>%
           dplyr::summarise(dplyr::across(!!sym(index), mean, na.rm = TRUE), .groups = "drop") %>%
           dplyr::ungroup() %>%
-          dplyr::mutate(!!sym(subject.var) := "ALL")
+          dplyr::mutate(!!sym(subject.var) := "ALL") %>% dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var)))
       } else {
         average_alpha_df <- alpha_df %>%
           dplyr::group_by(!!sym(time.var)) %>%
           dplyr::summarise(dplyr::across(!!sym(index), mean, na.rm = TRUE), .groups = "drop") %>%
           dplyr::ungroup() %>%
-          dplyr::mutate(!!sym(subject.var) := "ALL")
+          dplyr::mutate(!!sym(subject.var) := "ALL") %>% dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var)))
       }
     }
 
