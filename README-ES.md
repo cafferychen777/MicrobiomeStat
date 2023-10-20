@@ -25,13 +25,20 @@ avanzar en la investigación del microbioma.
 
 # Noticias
 
-🚨 **Aviso importante** (Actualización del 13 de octubre): Debido a una
-contaminación del entorno, se lanzó inadvertidamente una actualización
-defectuosa el 13 de octubre. Pido disculpas sinceramente por cualquier
-inconveniente que esto pueda haber causado. Se recomienda
-encarecidamente a los usuarios que actualicen a la última versión para
-rectificar cualquier problema. Gracias por su comprensión y continuo
-apoyo.
+📢 **Actualización** (20 de octubre): La interfaz de Shiny ya está
+oficialmente disponible para su uso. Actualmente está configurada para
+manejar análisis de conjuntos de datos pequeños a medianos. Puede
+acceder a la interfaz a través de [este
+enlace](https://a95dps-caffery-chen.shinyapps.io/MicrobiomeStat_Shiny/).
+
+En caso de que las limitaciones del servidor afecten su análisis, o para
+aquellos que prefieren trabajar con módulos más pequeños, recomendamos
+usar nuestro paquete directamente. Para una implementación más flexible,
+considere clonar nuestro repositorio Shiny desde
+[aquí](https://github.com/cafferychen777/MicrobiomeStat-Shiny) y
+desplegarlo en su servidor local o computadora.
+
+Agradecemos su comprensión y participación continua.
 
 # Citas
 

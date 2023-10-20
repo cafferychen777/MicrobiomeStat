@@ -24,11 +24,19 @@ microbiome research.
 
 # News
 
-🚨 **Important Notice** (October 13th Update): Due to an environment
-contamination, a flawed update was inadvertently released on October
-13th. I sincerely apologize for any inconvenience this may have caused.
-Users are strongly advised to update to the latest version to rectify
-any issues. Thank you for your understanding and continued support.
+📢 **Update** (October 20th): The Shiny interface is now officially
+available for use. It is currently configured to handle analysis for
+small to medium-sized datasets. The interface can be accessed via [this
+link](https://a95dps-caffery-chen.shinyapps.io/MicrobiomeStat_Shiny/).
+
+In the event of server limitations affecting your analysis, or for those
+preferring to work with smaller modules, we recommend using our package
+directly. For a more flexible deployment, consider cloning our Shiny
+repository from
+[here](https://github.com/cafferychen777/MicrobiomeStat-Shiny) and
+deploying it on your local server or computer.
+
+We appreciate your understanding and continued engagement.
 
 # Citations
 

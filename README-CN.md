@@ -18,8 +18,12 @@ v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/li
 
 # 新闻
 
-🚨 **重要通知**
-(10月13日更新)：由于环境污染，一个有缺陷的更新在10月13日无意中发布了。我对可能造成的任何不便深感歉意。强烈建议用户更新到最新版本以纠正任何问题。感谢您的理解和持续的支持。
+📢 **更新** (10月20日):
+Shiny界面现已正式上线，目前支持小型至中型数据集的分析。您可以通过[此链接](https://a95dps-caffery-chen.shinyapps.io/MicrobiomeStat_Shiny/)访问界面。
+
+如果服务器限制影响了您的分析，或者您更倾向于使用较小的模块，我们建议您直接使用我们的包。对于需要更灵活部署的情况，可以考虑从[此处](https://github.com/cafferychen777/MicrobiomeStat-Shiny)克隆我们的Shiny仓库，并将其部署在您的本地服务器或计算机上。
+
+我们感谢您的理解和持续的参与。
 
 # 引文
 
