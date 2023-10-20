@@ -22,7 +22,7 @@ The `MicrobiomeStat` package is a dedicated R tool for exploring **longitudinal 
 
 # News
 
-📢 **Update** (October 20th): The Shiny interface is now officially available for use. It is currently configured to handle analysis for small to medium-sized datasets. The interface can be accessed via [this link](https://a95dps-caffery-chen.shinyapps.io/MicrobiomeStat_Shiny/).
+📢 **Update** (October 20th): The Shiny interface is now officially available for use. It is currently configured to handle analysis for small to medium-sized datasets. The interface can be accessed via [this link](https://cafferyyang.shinyapps.io/MicrobiomeStat_Shiny/).
 
 In the event of server limitations affecting your analysis, or for those preferring to work with smaller modules, we recommend using our package directly. For a more flexible deployment, consider cloning our Shiny repository from [here](https://github.com/cafferychen777/MicrobiomeStat-Shiny) and deploying it on your local server or computer.
 
@@ -161,7 +161,7 @@ If your question or issue has not been previously addressed, feel free to [open 
 
 The `MicrobiomeStat` tool is under continuous development to incorporate user feedback and to keep up with advancements in the field. We are pleased to announce that the Shiny interface for `MicrobiomeStat` is now officially available. This interface provides an interactive platform for microbiome data analysis.
 
-The Shiny interface will be maintained and updated along with the main package. The Shiny application can be accessed directly at [this link](https://a95dps-caffery-chen.shinyapps.io/MicrobiomeStat_Shiny/). For users who prefer a local setup or require more customization, the Shiny application files and instructions are available on its dedicated [GitHub repository](https://github.com/cafferychen777/MicrobiomeStat-Shiny).
+The Shiny interface will be maintained and updated along with the main package. The Shiny application can be accessed directly at [this link](https://cafferyyang.shinyapps.io/MicrobiomeStat_Shiny/). For users who prefer a local setup or require more customization, the Shiny application files and instructions are available on its dedicated [GitHub repository](https://github.com/cafferychen777/MicrobiomeStat-Shiny).
 
 ### Collaborative Development {#collaborative-development}
 
