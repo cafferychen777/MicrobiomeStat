@@ -29,7 +29,7 @@ avanzar en la investigación del microbioma.
 oficialmente disponible para su uso. Actualmente está configurada para
 manejar análisis de conjuntos de datos pequeños a medianos. Puede
 acceder a la interfaz a través de [este
-enlace](https://a95dps-caffery-chen.shinyapps.io/MicrobiomeStat_Shiny/).
+enlace](https://cafferyyang.shinyapps.io/MicrobiomeStat_Shiny/).
 
 En caso de que las limitaciones del servidor afecten su análisis, o para
 aquellos que prefieren trabajar con módulos más pequeños, recomendamos
