@@ -27,7 +27,7 @@ microbiome research.
 📢 **Update** (October 20th): The Shiny interface is now officially
 available for use. It is currently configured to handle analysis for
 small to medium-sized datasets. The interface can be accessed via [this
-link](https://a95dps-caffery-chen.shinyapps.io/MicrobiomeStat_Shiny/).
+link](https://cafferyyang.shinyapps.io/MicrobiomeStat_Shiny/).
 
 In the event of server limitations affecting your analysis, or for those
 preferring to work with smaller modules, we recommend using our package
