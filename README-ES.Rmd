@@ -36,10 +36,10 @@ Si está utilizando funciones más allá de `linda` y `linda.plot`, cite de la s
 
 ```
 @Manual{,
-  title = {MicrobiomeStat: Métodos Estadísticos y de Visualización Completos para Datos de Microbioma y Multi-Ómicos},
-  author = {Xianyang Zhang y Jun Chen y Caffery (Chen) Yang},
+  title = {MicrobiomeStat: Comprehensive Statistical and Visualization Methods for Microbiome and Multi-Omics Data},
+  author = {Xianyang Zhang and Jun Chen and Caffery(Chen) Yang},
   year = {2023},
-  note = {Versión del paquete R 1.1.1},
+  note = {R package version 1.1.1},
   url = {https://www.microbiomestat.wiki},
 }
 ```
@@ -50,8 +50,8 @@ Si está utilizando las funciones `linda`, `linda.plot`, `generate_taxa_associat
 
 ```
 @article{zhou2022linda,
-  title={LinDA: modelos lineales para el análisis de abundancia diferencial de datos composicionales del microbioma},
-  author={Zhou, Huijuan y He, Kejun y Chen, Jun y Zhang, Xianyang},
+  title={LinDA: linear models for differential abundance analysis of microbiome compositional data},
+  author={Zhou, Huijuan and He, Kejun and Chen, Jun and Zhang, Xianyang},
   journal={Genome biology},
   volume={23},
   number={1},
