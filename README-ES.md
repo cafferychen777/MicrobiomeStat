@@ -109,7 +109,6 @@ devtools::install_github("cafferychen777/MicrobiomeStat")
     - [Familiarízate para una experiencia sin
       problemas](#acquaint-yourself)
     - [Descubriendo MicrobiomeStat](#explore-microbiomestat)
-      - [Exploración de características](#feature-exploration)
       - [Agradecimientos](#acknowledgements)
 3.  [Beneficios de usar MicrobiomeStat](#why-choose-microbiomestat)
     - [Soporte al usuario](#user-support)
@@ -161,19 +160,6 @@ continuamente. Las herramientas analíticas seleccionadas pueden
 desempeñar un papel crucial en la navegación a través del viaje de
 investigación. En este escenario, `MicrobiomeStat` tiene como objetivo
 ser un compañero de apoyo.
-
-### Exploración de características
-
-Para entender mejor las capacidades de `MicrobiomeStat`, hemos esbozado
-sus características y funcionalidades en nuestro sitio web, junto con
-algunas referencias contextuales a otras herramientas para una
-perspectiva más informada:
-
-- [Explorando características de análisis
-  longitudinal](https://www.microbiomestat.wiki/introduction/unveiling-microbiomestat-a-glimpse-into-diverse-microbiome-analysis-solutions/exploring-longitudinal-analysis-features-microbiomestat-among-other-packages)
-
-- [Explorando características de análisis
-  integrado](https://www.microbiomestat.wiki/introduction/unveiling-microbiomestat-a-glimpse-into-diverse-microbiome-analysis-solutions/exploring-feature-offerings-microbiomestat-among-integrated-analysis-packages)
 
 ### Agradecimientos
 
