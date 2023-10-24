@@ -86,7 +86,6 @@ devtools::install_github("cafferychen777/MicrobiomeStat")
 2. [在线教程](#online-tutorials)
     * [熟悉流程，享受无缝体验](#acquaint-yourself)
     * [探索MicrobiomeStat](#explore-microbiomestat)
-        * [功能探索](#feature-exploration)
         * [致谢](#acknowledgements)
 3. [使用MicrobiomeStat的好处](#why-choose-microbiomestat)
     * [用户支持](#user-support)
@@ -124,14 +123,6 @@ devtools::install_github("cafferychen777/MicrobiomeStat")
 ## 探索MicrobiomeStat {#explore-microbiomestat}
 
 微生物组研究领域复杂且不断发展。选择的分析工具在研究过程中可以起到关键作用。在这种情况下，`MicrobiomeStat`旨在成为一种支持伙伴。
-
-### 功能探索 {#feature-exploration}
-
-为了更好地理解`MicrobiomeStat`的能力，我们在我们的网站上概述了其特性和功能，并提供了一些其他工具的上下文引用，以便有更多的信息：
-
-- [探索纵向分析特性](https://www.microbiomestat.wiki/introduction/unveiling-microbiomestat-a-glimpse-into-diverse-microbiome-analysis-solutions/exploring-longitudinal-analysis-features-microbiomestat-among-other-packages)
-
-- [探索集成分析特性](https://www.microbiomestat.wiki/introduction/unveiling-microbiomestat-a-glimpse-into-diverse-microbiome-analysis-solutions/exploring-feature-offerings-microbiomestat-among-integrated-analysis-packages)
 
 ### 致谢 {#acknowledgements}
 
