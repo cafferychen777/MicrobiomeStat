@@ -103,8 +103,25 @@ generate_taxa_trend_test_long(
   subject.var = "studyid",
   time.var = "month_num",
   group.var = "delivery",
+  adj.vars = "diet",
   feature.level = c("Phylum","Class"),
-  feature.dat.type = c("count")
+  feature.dat.type = c("proportion")
+)
+generate_taxa_trend_test_long(
+  data.obj = ecam.obj,
+  subject.var = "studyid",
+  time.var = "month_num",
+  group.var = "delivery",
+  feature.level = c("Phylum","Class"),
+  feature.dat.type = c("proportion")
+)
+generate_taxa_trend_test_long(
+  data.obj = ecam.obj,
+  subject.var = "studyid",
+  time.var = "month_num",
+  group.var = NULL,
+  feature.level = c("Phylum","Class"),
+  feature.dat.type = c("proportion")
 )
 
 # Example 2
@@ -128,5 +145,6 @@ plot.list <- generate_taxa_trend_volcano_long(
   test.list = test.list,
   feature.sig.level = 0.1,
   feature.mt.method = "none")
+
 }
 }
