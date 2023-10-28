@@ -115,7 +115,7 @@ generate_taxa_areaplot_long(
   time.var = "month_num",
   group.var = "diet",
   strata.var = "antiexposedall",
-  feature.level = c("Family","Genus","Order"),
+  feature.level = c("Class"),
   feature.dat.type = "proportion",
   feature.number = 20,
   t0.level = NULL,
