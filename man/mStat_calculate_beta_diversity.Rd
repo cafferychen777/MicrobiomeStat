@@ -28,7 +28,6 @@ weighted UniFrac (WUniFrac), and Jensen-Shannon divergence (JS).
 \dontrun{
 library(vegan)
 library(GUniFrac)
-library(ape)
 library(philentropy)
 library(phyloseq)
 
