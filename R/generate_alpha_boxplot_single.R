@@ -67,6 +67,26 @@
 #'   pdf.hei      = 8.5
 #' )
 #'
+#' alpha.obj <- mStat_calculate_alpha_diversity(peerj32.obj$feature.tab, "simpson")
+#' generate_alpha_boxplot_single(
+#'   data.obj     = peerj32.obj,
+#'   alpha.obj    = alpha.obj,
+#'   alpha.name   = c("simpson"),
+#'   subject.var  = "subject",
+#'   time.var     = "time",
+#'   t.level      = "2",
+#'   group.var    = "group",
+#'   strata.var   = "sex",
+#'   adj.vars     = "sex",
+#'   base.size    = 16,
+#'   theme.choice = "bw",
+#'   palette      = NULL,
+#'   pdf          = TRUE,
+#'   file.ann     = NULL,
+#'   pdf.wid      = 11,
+#'   pdf.hei      = 8.5
+#' )
+#'
 #' # Load another dataset
 #' data("subset_T2D.obj")
 #'
@@ -117,28 +137,6 @@
 #'   pdf.hei      = 8.5
 #' )
 #'
-#' # Load another dataset
-#' data("subset_T2D.obj")
-#'
-#' # Second example with subset_T2D.obj
-#' generate_alpha_boxplot_single(
-#'   data.obj     = subset_T2D.obj,
-#'   alpha.obj    = NULL,
-#'   alpha.name   = c("shannon"),
-#'   subject.var  = "subject_id",
-#'   time.var     = "visit_number",
-#'   t.level      = "   3",
-#'   group.var    = "subject_race",
-#'   strata.var   = "subject_gender",
-#'   adj.vars     = "sample_body_site",
-#'   base.size    = 16,
-#'   theme.choice = "bw",
-#'   palette      = NULL,
-#'   pdf          = FALSE,
-#'   file.ann     = NULL,
-#'   pdf.wid      = 20,
-#'   pdf.hei      = 8.5
-#' )
 #' @export
 generate_alpha_boxplot_single <- function (data.obj,
                                            alpha.obj = NULL,
