@@ -61,5 +61,21 @@ subject.var = "subject_id",
 group.var = "subject_race",
 adj.vars = NULL
 )
+generate_alpha_trend_test_long(
+data.obj = subset_T2D.obj,
+alpha.name = c("shannon","observed_species"),
+time.var = "visit_number_num",
+subject.var = "subject_id",
+group.var = "subject_race",
+adj.vars = "subject_gender"
+)
+generate_alpha_trend_test_long(
+data.obj = subset_T2D.obj,
+alpha.name = c("shannon","observed_species"),
+time.var = "visit_number_num",
+subject.var = "subject_id",
+group.var = NULL,
+adj.vars = NULL
+)
 }
 }
