@@ -65,6 +65,22 @@ construct_formula <- function(index, group.var, time.var, subject.var, adj.vars)
 #' group.var = "subject_race",
 #' adj.vars = NULL
 #' )
+#' generate_alpha_trend_test_long(
+#' data.obj = subset_T2D.obj,
+#' alpha.name = c("shannon","observed_species"),
+#' time.var = "visit_number_num",
+#' subject.var = "subject_id",
+#' group.var = "subject_race",
+#' adj.vars = "subject_gender"
+#' )
+#' generate_alpha_trend_test_long(
+#' data.obj = subset_T2D.obj,
+#' alpha.name = c("shannon","observed_species"),
+#' time.var = "visit_number_num",
+#' subject.var = "subject_id",
+#' group.var = NULL,
+#' adj.vars = NULL
+#' )
 #' }
 #' @export
 generate_alpha_trend_test_long <- function(data.obj,
@@ -128,30 +144,33 @@ generate_alpha_trend_test_long <- function(data.obj,
 
     model <- lmer(formula, data = alpha_df)
 
-    # Check if group.var is multi-category
-    if (length(unique(alpha_df[[group.var]])) > 2) {
-      anova_result <- anova(model, type = "III")
+    if (!is.null(group.var)){
+      # Check if group.var is multi-category
+      if (length(unique(alpha_df[[group.var]])) > 2) {
+        anova_result <- anova(model, type = "III")
 
-      # Here, I assume you want to append this p-value to the result.
-      # Adjust the way of appending the p-value based on your desired output.
-      coef.tab <- extract_coef(model)
-      # Append the last row of the anova_result to the coef.tab
-      last_row <- utils::tail(anova_result, 1)
-      # 获取last_row的列名
-      var_name <- rownames(last_row)[1]
+        # Here, I assume you want to append this p-value to the result.
+        # Adjust the way of appending the p-value based on your desired output.
+        coef.tab <- extract_coef(model)
+        # Append the last row of the anova_result to the coef.tab
+        last_row <- utils::tail(anova_result, 1)
+        # 获取last_row的列名
+        var_name <- rownames(last_row)[1]
 
-      # 调整last_row以匹配coef.tab的格式
-      adjusted_last_row <- data.frame(
-        Term = var_name,
-        Estimate = NA,  # 你可以根据需求进行更改
-        Std.Error = NA,  # 你可以根据需求进行更改
-        Statistic = last_row$`F value`,
-        P.Value = last_row$`Pr(>F)`
-      )
+        # 调整last_row以匹配coef.tab的格式
+        adjusted_last_row <- data.frame(
+          Term = var_name,
+          Estimate = NA,  # 你可以根据需求进行更改
+          Std.Error = NA,  # 你可以根据需求进行更改
+          Statistic = last_row$`F value`,
+          P.Value = last_row$`Pr(>F)`
+        )
 
-      # 合并coef.tab和adjusted_last_row
-      coef.tab <- rbind(coef.tab, adjusted_last_row)
-
+        # 合并coef.tab和adjusted_last_row
+        coef.tab <- rbind(coef.tab, adjusted_last_row)
+      } else {
+        coef.tab <- extract_coef(model)
+      }
     } else {
       coef.tab <- extract_coef(model)
     }
