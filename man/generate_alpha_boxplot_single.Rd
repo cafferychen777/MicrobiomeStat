@@ -164,26 +164,4 @@ generate_alpha_boxplot_single(
   pdf.hei      = 8.5
 )
 
-# Load another dataset
-data("subset_T2D.obj")
-
-# Second example with subset_T2D.obj
-generate_alpha_boxplot_single(
-  data.obj     = subset_T2D.obj,
-  alpha.obj    = NULL,
-  alpha.name   = c("shannon"),
-  subject.var  = "subject_id",
-  time.var     = "visit_number",
-  t.level      = "   3",
-  group.var    = "subject_race",
-  strata.var   = "subject_gender",
-  adj.vars     = "sample_body_site",
-  base.size    = 16,
-  theme.choice = "bw",
-  palette      = NULL,
-  pdf          = FALSE,
-  file.ann     = NULL,
-  pdf.wid      = 20,
-  pdf.hei      = 8.5
-)
 }
