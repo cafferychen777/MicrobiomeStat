@@ -123,7 +123,25 @@ generate_taxa_barplot_single(
   pdf.wid = 11,
   pdf.hei = 8.5
 )
-
+generate_taxa_barplot_single(
+  data.obj = peerj32.obj,
+  subject.var = "subject",
+  time.var = NULL,
+  t.level = NULL,
+  group.var = "group",
+  strata.var = NULL,
+  feature.level = "Family",
+  feature.dat.type = "count",
+  feature.number = 30,
+  base.size = 10,
+  theme.choice = "bw",
+  custom.theme = NULL,
+  palette = NULL,
+  pdf = TRUE,
+  file.ann = NULL,
+  pdf.wid = 11,
+  pdf.hei = 8.5
+)
 data("subset_T2D.obj")
 generate_taxa_barplot_single(
   data.obj = subset_T2D.obj,
@@ -132,6 +150,25 @@ generate_taxa_barplot_single(
   t.level = 1,
   group.var = "subject_race",
   strata.var = "subject_gender",
+  feature.level = c("Phylum", "Family", "Genus"),
+  feature.dat.type = "count",
+  feature.number = 30,
+  base.size = 10,
+  theme.choice = "bw",
+  custom.theme = NULL,
+  palette = NULL,
+  pdf = TRUE,
+  file.ann = NULL,
+  pdf.wid = 11,
+  pdf.hei = 8.5
+)
+generate_taxa_barplot_single(
+  data.obj = subset_T2D.obj,
+  subject.var = "subject_id",
+  time.var = "visit_number_num",
+  t.level = 1,
+  group.var = "subject_race",
+  strata.var = NULL,
   feature.level = c("Phylum", "Family", "Genus"),
   feature.dat.type = "count",
   feature.number = 30,
