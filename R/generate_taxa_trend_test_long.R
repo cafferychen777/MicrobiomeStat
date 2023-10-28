@@ -70,8 +70,25 @@
 #'   subject.var = "studyid",
 #'   time.var = "month_num",
 #'   group.var = "delivery",
+#'   adj.vars = "diet",
 #'   feature.level = c("Phylum","Class"),
-#'   feature.dat.type = c("count")
+#'   feature.dat.type = c("proportion")
+#' )
+#' generate_taxa_trend_test_long(
+#'   data.obj = ecam.obj,
+#'   subject.var = "studyid",
+#'   time.var = "month_num",
+#'   group.var = "delivery",
+#'   feature.level = c("Phylum","Class"),
+#'   feature.dat.type = c("proportion")
+#' )
+#' generate_taxa_trend_test_long(
+#'   data.obj = ecam.obj,
+#'   subject.var = "studyid",
+#'   time.var = "month_num",
+#'   group.var = NULL,
+#'   feature.level = c("Phylum","Class"),
+#'   feature.dat.type = c("proportion")
 #' )
 #'
 #' # Example 2
@@ -95,6 +112,7 @@
 #'   test.list = test.list,
 #'   feature.sig.level = 0.1,
 #'   feature.mt.method = "none")
+#'
 #' }
 #' @export
 generate_taxa_trend_test_long <-
@@ -211,11 +229,15 @@ generate_taxa_trend_test_long <-
         mStat_filter(prev.filter = prev.filter,
                      abund.filter = abund.filter)
 
+      if (feature.dat.type == "count"){
+        feature.dat.type = "proportion"
+      }
+
       linda.obj <- linda(
         feature.dat = otu_tax_agg_filter,
         meta.dat = meta_tab,
         formula = paste("~", formula),
-        feature.dat.type = "proportion",
+        feature.dat.type = feature.dat.type,
         prev.filter = prev.filter,
         mean.abund.filter = abund.filter,
         ...
