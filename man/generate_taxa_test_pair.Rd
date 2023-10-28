@@ -13,7 +13,7 @@ generate_taxa_test_pair(
   feature.level,
   prev.filter = 0,
   abund.filter = 0,
-  feature.dat.type = c("count", "proportion"),
+  feature.dat.type = c("count", "proportion", "other"),
   feature.sig.level = 0.1,
   feature.mt.method = "fdr",
   ...
@@ -96,6 +96,17 @@ generate_taxa_volcano_single(
  test.list = test.list,
  feature.sig.level = 0.1,
  feature.mt.method = "none"
+)
+test.list <- generate_taxa_test_pair(
+  data.obj = peerj32.obj,
+  subject.var = "subject",
+  time.var = "time",
+  group.var = "group",
+  adj.vars = NULL,
+  feature.level = c("Genus"),
+  prev.filter = 0.1,
+  abund.filter = 0.0001,
+  feature.dat.type = "other"
 )
 }
 
