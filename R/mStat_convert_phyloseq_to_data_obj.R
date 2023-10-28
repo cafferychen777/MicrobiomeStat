@@ -69,7 +69,7 @@ mStat_convert_phyloseq_to_data_obj <- function (phylo.obj) {
       absent <- data.obj$tree$tip.label[!(data.obj$tree$tip.label %in% rownames(data.obj$feature.tab))]
       if (length(absent) != 0) {
         message('Drop features not in the feature table ...')
-        data.obj$tree <- drop.tip(data.obj$tree, absent)
+        data.obj$tree <- ape::drop.tip(data.obj$tree, absent)
       }
     }
   }
