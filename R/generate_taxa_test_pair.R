@@ -57,6 +57,17 @@
 #'  feature.sig.level = 0.1,
 #'  feature.mt.method = "none"
 #')
+#' test.list <- generate_taxa_test_pair(
+#'   data.obj = peerj32.obj,
+#'   subject.var = "subject",
+#'   time.var = "time",
+#'   group.var = "group",
+#'   adj.vars = NULL,
+#'   feature.level = c("Genus"),
+#'   prev.filter = 0.1,
+#'   abund.filter = 0.0001,
+#'   feature.dat.type = "other"
+#' )
 #' }
 #'
 #' @return A named list containing data frames summarizing taxon test results for each taxonomic level.
@@ -74,7 +85,7 @@ generate_taxa_test_pair <-
            feature.level,
            prev.filter = 0,
            abund.filter = 0,
-           feature.dat.type = c("count", "proportion"),
+           feature.dat.type = c("count", "proportion", "other"),
            feature.sig.level = 0.1,
            feature.mt.method = "fdr",
            ...) {
@@ -224,12 +235,16 @@ generate_taxa_test_pair <-
         mStat_filter(prev.filter = prev.filter,
                      abund.filter = abund.filter)
 
+      if (feature.dat.type == "count"){
+        feature.dat.type <- "proportion"
+      }
+
       linda.obj <- tryCatch({
         # 尝试运行 linda 函数
         linda(feature.dat = otu_tax_agg_filter,
               meta.dat = meta_tab,
               formula = paste("~", formula),
-              feature.dat.type = "proportion",
+              feature.dat.type = feature.dat.type,
               ...)
       }, error = function(e) {
         # 如果出错，打印错误消息
@@ -239,7 +254,7 @@ generate_taxa_test_pair <-
         linda(feature.dat = otu_tax_agg_filter,
               meta.dat = meta_tab,
               formula = paste("~", formula_corrected),
-              feature.dat.type = "proportion")
+              feature.dat.type = feature.dat.type)
       })
 
       if (!is.null(group.var)){
