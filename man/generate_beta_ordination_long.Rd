@@ -145,16 +145,17 @@ generate_beta_ordination_long(
 )
 
 data(ecam.obj)
-
+dist.obj <- mStat_calculate_beta_diversity(ecam.obj, "BC")
+pc.obj <- mStat_calculate_PC(dist.obj)
 generate_beta_ordination_long(
   data.obj = ecam.obj,
-  dist.obj = NULL,
-  pc.obj = NULL,
+  dist.obj = dist.obj,
+  pc.obj = pc.obj,
   subject.var = "subject.id",
-  time.var = "month_num",
-  t0.level = NULL,
-  ts.levels = NULL,
-  group.var = NULL,
+  time.var = "month",
+  t0.level = "0",
+  ts.levels = as.character(sort(as.numeric(unique(ecam.obj$meta.dat$month))))[2:4],
+  group.var = "diet",
   strata.var = NULL,
   adj.vars = NULL,
   dist.name = 'BC',
