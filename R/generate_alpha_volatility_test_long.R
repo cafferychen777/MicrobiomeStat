@@ -43,6 +43,15 @@
 #' group.var = "subject_race",
 #' adj.vars = NULL
 #' )
+#' generate_alpha_volatility_test_long(
+#' data.obj = subset_T2D.obj,
+#' alpha.obj = NULL,
+#' alpha.name = c("shannon","observed_species"),
+#' time.var = "visit_number_num",
+#' subject.var = "subject_id",
+#' group.var = "subject_race",
+#' adj.vars = "subject_gender"
+#' )
 #' }
 #' @export
 generate_alpha_volatility_test_long <- function(data.obj,
