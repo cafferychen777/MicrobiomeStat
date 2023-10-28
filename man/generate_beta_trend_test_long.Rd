@@ -60,6 +60,16 @@ generate_beta_trend_test_long(
   dist.name = c("BC", "Jaccard")
   )
 
+generate_beta_trend_test_long(
+  data.obj = ecam.obj,
+  dist.obj = NULL,
+  subject.var = "studyid",
+  time.var = "month",
+  group.var = NULL,
+  adj.vars = NULL,
+  dist.name = c("BC", "Jaccard")
+  )
+
 data(subset_T2D.obj)
 generate_beta_trend_test_long(
   data.obj = subset_T2D.obj,
@@ -68,6 +78,16 @@ generate_beta_trend_test_long(
   time.var = "visit_number",
   group.var = "subject_race",
   adj.vars = c("subject_gender","sample_body_site"),
+  dist.name = c("BC", "Jaccard")
+)
+
+generate_beta_trend_test_long(
+  data.obj = subset_T2D.obj,
+  dist.obj = NULL,
+  subject.var = "subject_id",
+  time.var = "visit_number",
+  group.var = NULL,
+  adj.vars = NULL,
   dist.name = c("BC", "Jaccard")
 )
 }
