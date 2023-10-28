@@ -85,7 +85,27 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
-#'
+#' generate_beta_pc_spaghettiplot_long(
+#'   data.obj = ecam.obj,
+#'   dist.obj = NULL,
+#'   pc.obj = NULL,
+#'   subject.var = "studyid",
+#'   time.var = "month",
+#'   t0.level = "0",
+#'   ts.levels = as.character(sort(as.numeric(unique(ecam.obj$meta.dat$month))))[2:10],
+#'   group.var = "diet",
+#'   strata.var = NULL,
+#'   adj.vars = NULL,
+#'   dist.name = c('BC'),
+#'   base.size = 20,
+#'   theme.choice = "bw",
+#'   custom.theme = NULL,
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
 #' # Example with peerj32.obj dataset
 #' data(peerj32.obj)
 #' generate_beta_pc_spaghettiplot_long(
@@ -109,7 +129,27 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
-#'
+#' generate_beta_pc_spaghettiplot_long(
+#'   data.obj = peerj32.obj,
+#'   dist.obj = NULL,
+#'   pc.obj = NULL,
+#'   subject.var = "subject",
+#'   time.var = "time",
+#'   t0.level = "1",
+#'   ts.levels = "2",
+#'   group.var = "group",
+#'   strata.var = NULL,
+#'   adj.vars = NULL,
+#'   dist.name = c('BC'),
+#'   base.size = 20,
+#'   theme.choice = "bw",
+#'   custom.theme = NULL,
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
 #' }
 #' @export
 generate_beta_pc_spaghettiplot_long <- function(data.obj = NULL,
