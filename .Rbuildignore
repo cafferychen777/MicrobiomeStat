@@ -1,0 +1,14 @@
+^renv$
+^renv\.lock$
+^.*\.Rproj$
+^\.Rproj\.user$
+^\.github$
+^README-CN\.Rmd$
+^README-CN\.md$
+^README-ES\.Rmd$
+^README-ES\.md$
+^README\.Rmd$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+
