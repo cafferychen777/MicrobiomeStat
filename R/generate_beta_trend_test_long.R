@@ -70,6 +70,16 @@ create_mixed_effects_formula <- function(response.var, time.var, group.var = NUL
 #'   dist.name = c("BC", "Jaccard")
 #'   )
 #'
+#' generate_beta_trend_test_long(
+#'   data.obj = ecam.obj,
+#'   dist.obj = NULL,
+#'   subject.var = "studyid",
+#'   time.var = "month",
+#'   group.var = NULL,
+#'   adj.vars = NULL,
+#'   dist.name = c("BC", "Jaccard")
+#'   )
+#'
 #' data(subset_T2D.obj)
 #' generate_beta_trend_test_long(
 #'   data.obj = subset_T2D.obj,
@@ -78,6 +88,16 @@ create_mixed_effects_formula <- function(response.var, time.var, group.var = NUL
 #'   time.var = "visit_number",
 #'   group.var = "subject_race",
 #'   adj.vars = c("subject_gender","sample_body_site"),
+#'   dist.name = c("BC", "Jaccard")
+#' )
+#'
+#' generate_beta_trend_test_long(
+#'   data.obj = subset_T2D.obj,
+#'   dist.obj = NULL,
+#'   subject.var = "subject_id",
+#'   time.var = "visit_number",
+#'   group.var = NULL,
+#'   adj.vars = NULL,
 #'   dist.name = c("BC", "Jaccard")
 #' )
 #' }
@@ -157,31 +177,34 @@ generate_beta_trend_test_long <-
       long.df <- long.df %>% dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
 
       model <- lmer(formula, data = long.df)
+      if (!is.null(group.var)){
+        # Check if group.var is multi-category
+        if (length(unique(long.df[[group.var]])) > 2) {
+          anova_result <- anova(model, type = "III")
 
-      # Check if group.var is multi-category
-      if (length(unique(long.df[[group.var]])) > 2) {
-        anova_result <- anova(model, type = "III")
+          # Here, I assume you want to append this p-value to the result.
+          # Adjust the way of appending the p-value based on your desired output.
+          coef.tab <- extract_coef(model)
+          # Append the last row of the anova_result to the coef.tab
+          last_row <- utils::tail(anova_result, 1)
+          # 获取last_row的列名
+          var_name <- rownames(last_row)[1]
 
-        # Here, I assume you want to append this p-value to the result.
-        # Adjust the way of appending the p-value based on your desired output.
-        coef.tab <- extract_coef(model)
-        # Append the last row of the anova_result to the coef.tab
-        last_row <- utils::tail(anova_result, 1)
-        # 获取last_row的列名
-        var_name <- rownames(last_row)[1]
+          # 调整last_row以匹配coef.tab的格式
+          adjusted_last_row <- data.frame(
+            Term = var_name,
+            Estimate = NA,
+            Std.Error = NA,
+            Statistic = last_row$`F value`,
+            P.Value = last_row$`Pr(>F)`
+          )
 
-        # 调整last_row以匹配coef.tab的格式
-        adjusted_last_row <- data.frame(
-          Term = var_name,
-          Estimate = NA,
-          Std.Error = NA,
-          Statistic = last_row$`F value`,
-          P.Value = last_row$`Pr(>F)`
-        )
+          # 合并coef.tab和adjusted_last_row
+          coef.tab <- rbind(coef.tab, adjusted_last_row)
 
-        # 合并coef.tab和adjusted_last_row
-        coef.tab <- rbind(coef.tab, adjusted_last_row)
-
+        } else {
+          coef.tab <- extract_coef(model)
+        }
       } else {
         coef.tab <- extract_coef(model)
       }
