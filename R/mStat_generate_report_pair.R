@@ -226,7 +226,7 @@ mStat_generate_report_pair <- function(data.obj,
   template <- "
 ---
 title: '`r sub(\".pdf$\", \"\", basename(output.file))`'
-author: '[Powered by MicrobiomeStat (Ver 1.1.1)](http://www.microbiomestat.wiki)'
+author: '[Powered by MicrobiomeStat (Ver 1.1.2)](http://www.microbiomestat.wiki)'
 date: '`r Sys.Date()`'
 output:
   pdf_document:
