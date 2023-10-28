@@ -110,6 +110,26 @@ generate_alpha_boxplot_long(
   pdf.wid = 20,
   pdf.hei = 8.5)
 
+data("ecam.obj")
+generate_alpha_boxplot_long(
+  data.obj = ecam.obj,
+  alpha.obj = NULL,
+  alpha.name = c("shannon", "observed_species"),
+  subject.var = "subject.id",
+  time.var = "month",
+  t0.level = NULL,
+  ts.levels = NULL,
+  group.var = "antiexposedall",
+  strata.var = "diet",
+  adj.vars = NULL,
+  base.size = 16,
+  theme.choice = "bw",
+  palette = NULL,
+  pdf = TRUE,
+  file.ann = NULL,
+  pdf.wid = 20,
+  pdf.hei = 8.5)
+
 data(peerj32.obj)
 generate_alpha_boxplot_long(
   data.obj = peerj32.obj,
