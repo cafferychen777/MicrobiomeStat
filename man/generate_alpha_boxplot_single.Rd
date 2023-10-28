@@ -114,6 +114,26 @@ generate_alpha_boxplot_single(
   pdf.hei      = 8.5
 )
 
+alpha.obj <- mStat_calculate_alpha_diversity(peerj32.obj$feature.tab, "simpson")
+generate_alpha_boxplot_single(
+  data.obj     = peerj32.obj,
+  alpha.obj    = alpha.obj,
+  alpha.name   = c("simpson"),
+  subject.var  = "subject",
+  time.var     = "time",
+  t.level      = "2",
+  group.var    = "group",
+  strata.var   = "sex",
+  adj.vars     = "sex",
+  base.size    = 16,
+  theme.choice = "bw",
+  palette      = NULL,
+  pdf          = TRUE,
+  file.ann     = NULL,
+  pdf.wid      = 11,
+  pdf.hei      = 8.5
+)
+
 # Load another dataset
 data("subset_T2D.obj")
 
