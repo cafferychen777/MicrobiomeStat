@@ -135,7 +135,7 @@ generate_taxa_indiv_boxplot_single(
   t.level = NULL,
   group.var = "antiexposedall",
   strata.var = NULL,
-  feature.level = c("Phylum"),
+  feature.level = c("Phylum","Family"),
   feature.dat.type = "proportion",
   transform = "log",
   prev.filter = 0.01,
