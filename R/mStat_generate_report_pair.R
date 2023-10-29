@@ -1184,6 +1184,12 @@ for(taxon_rank in names(taxa_test_results)) {
 filename_prefix <- 'taxa_test_results_'
 file_ext <- '.csv'
 
+# Extract the directory path from output.file
+output_dir <- dirname(output.file)
+if (!dir.exists(output_dir)) {
+    dir.create(output_dir)
+}
+
 for(taxon_rank in names(taxa_test_results)) {
 
     comparisons <- names(taxa_test_results[[taxon_rank]])
@@ -1192,16 +1198,16 @@ for(taxon_rank in names(taxa_test_results)) {
 
         file_name <- paste0(filename_prefix, taxon_rank, '_', gsub(' ', '_', gsub('/', '_or_', comparison)), file_ext)
 
+        # Include the output directory in the file path
+        file_path <- file.path(output_dir, file_name)
 
         write.csv(taxa_test_results[[taxon_rank]][[comparison]],
-                  file = file_name,
+                  file = file_path,
                   row.names = FALSE)
     }
 }
 
-cat(sprintf('\n\nThe results for features have been saved in the current working directory.
-Each taxa rank has its own file named in the format: %s followed by the taxon rank, the comparison, and the file extension %s.
-Please refer to these files for more detailed results.', filename_prefix, file_ext))
+cat(sprintf('\n\nThe differential abundance test results for features have been saved in the directory: %s. Each taxa rank and its corresponding comparison have their own file named with the prefix: %s followed by the taxon rank, the comparison, and the file extension %s. Please refer to these files for more detailed data.', output_dir, filename_prefix, file_ext))
 
 ```
 
@@ -1288,6 +1294,12 @@ for(taxon_rank in names(taxa_change_test_results)) {
 filename_prefix <- 'taxa_change_test_results_'
 file_ext <- '.csv'
 
+# Extract the directory path from output.file
+output_dir <- dirname(output.file)
+if (!dir.exists(output_dir)) {
+    dir.create(output_dir)
+}
+
 for(taxon_rank in names(taxa_change_test_results)) {
 
     comparisons <- names(taxa_change_test_results[[taxon_rank]])
@@ -1296,13 +1308,16 @@ for(taxon_rank in names(taxa_change_test_results)) {
 
         file_name <- paste0(filename_prefix, taxon_rank, '_', gsub(' ', '_', gsub('/', '_or_', comparison)), file_ext)
 
+        # Include the output directory in the file path
+        file_path <- file.path(output_dir, file_name)
+
         write.csv(taxa_change_test_results[[taxon_rank]][[comparison]],
-                  file = file_name,
+                  file = file_path,
                   row.names = FALSE)
     }
 }
 
-cat(sprintf('\n\n The change test results for individual feature have been saved in the current working directory. Each taxa rank and its corresponding comparison have their own file named with the prefix: %s followed by the taxon rank, the comparison, and the file extension %s. Please refer to these files for more detailed data.', filename_prefix, file_ext))
+cat(sprintf('\n\nThe change test results for individual feature have been saved in the directory: %s. Each taxa rank and its corresponding comparison have their own file named with the prefix: %s followed by the taxon rank, the comparison, and the file extension %s. Please refer to these files for more detailed data.', output_dir, filename_prefix, file_ext))
 
 ```
 
@@ -1349,7 +1364,7 @@ combined_significant_taxa <- unique(c(significant_vars, significant_vars_change)
 ```{r taxa-test-boxplot-pair-generation, message = FALSE, warning = FALSE, fig.width = 8, fig.height = 3, fig.align='center', results='asis'}
 
 if (length(significant_vars) != 0){
-taxa_indiv_boxplot_results <- generate_taxa_indiv_boxplot_long(
+taxa_indiv_boxplot_results_sig_features <- generate_taxa_indiv_boxplot_long(
                                    data.obj = data.obj,
                                    subject.var = subject.var,
                                    time.var = time.var,
@@ -1373,48 +1388,95 @@ taxa_indiv_boxplot_results <- generate_taxa_indiv_boxplot_long(
                                    file.ann = file.ann,
                                    pdf.wid = pdf.wid,
                                    pdf.hei = pdf.hei)
-
-taxa_indiv_boxplot_results
 }
 
 ```
 
-```{r boxplot-pdf-name-creation, echo=FALSE, message=FALSE, results='asis'}
-
+```{r taxa-boxplot-pair-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 8, fig.height = 4}
 if (length(significant_vars) != 0){
-  pdf_name <- paste0(
-          'taxa_indiv_boxplot_long',
-          '_',
-          'subject_',
-          subject.var,
-          '_',
-          'time_',
-          time.var,
-          '_',
-          'feature_level_',
-          test.feature.level,
-          '_',
-          'transform_',
-          feature.box.axis.transform,
-          '_',
-          'prev_filter_',
-          prev.filter,
-          '_',
-          'abund_filter_',
-          abund.filter
-        )
-        if (!is.null(group.var)) {
-          pdf_name <- paste0(pdf_name, '_', 'group_', group.var)
-        }
-        if (!is.null(strata.var)) {
-          pdf_name <- paste0(pdf_name, '_', 'strata_', strata.var)
-        }
-        if (!is.null(file.ann)) {
-          pdf_name <- paste0(pdf_name, '_', file.ann)
-        }
+taxa_indiv_boxplot_results_sig_features
+}
+```
 
-cat('\n')
-cat(paste0('\n\n The boxplot results for individual features can be found in the current working directory. The relevant file is named: ', pdf_name, '. Please refer to this file for more detailed visualizations.'))
+```{r boxplot-pdf-name-creation, echo=FALSE, message=FALSE, results='asis'}
+output_dir <- dirname(output.file) # Extract the directory path from output.file
+
+# Ensure the output directory exists
+if (!dir.exists(output_dir)) {
+  dir.create(output_dir)
+}
+
+taxa_indiv_boxplot_results <- generate_taxa_indiv_boxplot_long(
+                                   data.obj = data.obj,
+                                   subject.var = subject.var,
+                                   time.var = time.var,
+                                   t0.level = change.base,
+                                   ts.levels = NULL,
+                                   group.var = group.var,
+                                   strata.var = strata.var,
+                                   feature.level = test.feature.level,
+                                   transform = feature.box.axis.transform,
+                                   feature.dat.type = feature.dat.type,
+                                   features.plot = NULL,
+                                   top.k.plot = NULL,
+                                   top.k.func = NULL,
+                                   prev.filter = prev.filter,
+                                   abund.filter = abund.filter,
+                                   base.size = base.size,
+                                   theme.choice = theme.choice,
+                                   custom.theme = custom.theme,
+                                   palette = palette,
+                                   pdf = TRUE,
+                                   file.ann = file.ann,
+                                   pdf.wid = pdf.wid,
+                                   pdf.hei = pdf.hei)
+
+# Loop over each feature level in taxa_indiv_boxplot_results
+for (feature_level in names(taxa_indiv_boxplot_results)) {
+  pdf_name <- paste0(
+    'taxa_indiv_boxplot_long',
+    '_',
+    'subject_',
+    subject.var,
+    '_',
+    'time_',
+    time.var,
+    '_',
+    'feature_level_',
+    feature_level, # Use the current feature level as part of the file name
+    '_',
+    'transform_',
+    feature.box.axis.transform,
+    '_',
+    'prev_filter_',
+    prev.filter,
+    '_',
+    'abund_filter_',
+    abund.filter
+  )
+  if (!is.null(group.var)) {
+    pdf_name <- paste0(pdf_name, '_', 'group_', group.var)
+  }
+  if (!is.null(strata.var)) {
+    pdf_name <- paste0(pdf_name, '_', 'strata_', strata.var)
+  }
+  if (!is.null(file.ann)) {
+    pdf_name <- paste0(pdf_name, '_', file.ann)
+  }
+
+  pdf_name <- paste0(pdf_name, '.pdf')
+
+  # Create the full file path by combining the output directory and the file name
+  full_file_path <- file.path(output_dir, pdf_name)
+
+  # Create a multi-page PDF file
+  pdf(full_file_path, width = pdf.wid, height = pdf.hei)
+  # Use lapply to print each ggplot object in the list to a new PDF page
+  lapply(taxa_indiv_boxplot_results[[feature_level]], print)
+  # Close the PDF device
+  dev.off()
+
+  cat(paste0('The boxplot results for individual features at the ', feature_level, ' level can be found at: ', full_file_path, '. Please refer to this file for more detailed visualizations.\n'))
 }
 ```
 
@@ -1423,7 +1485,7 @@ cat(paste0('\n\n The boxplot results for individual features can be found in the
 ```{r taxa-change-boxplot-generation, message=FALSE, fig.align='center', fig.width = 8, fig.height = 3, results='asis'}
 
 if (length(significant_vars_change) != 0){
-taxa_indiv_change_boxplot_results <- generate_taxa_indiv_change_boxplot_pair(
+taxa_indiv_change_boxplot_results_sig_features <- generate_taxa_indiv_change_boxplot_pair(
                                    data.obj = data.obj,
                                    subject.var = subject.var,
                                    time.var = time.var,
@@ -1446,48 +1508,96 @@ taxa_indiv_change_boxplot_results <- generate_taxa_indiv_change_boxplot_pair(
                                    file.ann = file.ann,
                                    pdf.wid = pdf.wid,
                                    pdf.hei = pdf.hei)
-taxa_indiv_change_boxplot_results
+
 }
 
 ```
 
+```{r taxa-change-boxplot-pair-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 8, fig.height = 4}
+if (length(significant_vars_change) != 0){
+taxa_indiv_change_boxplot_results_sig_features
+}
+```
+
 ```{r change-boxplot-pdf-name-creation, echo=FALSE, message=FALSE, results='asis'}
 
-if (length(significant_vars_change) != 0){
-  pdf_name <- paste0(
-          'taxa_indiv_change_boxplot_pair',
-          '_',
-          'subject_',
-          subject.var,
-          '_',
-          'time_',
-          time.var,
-          '_',
-          'change_base_',
-          change.base,
-          '_',
-          'feature_level_',
-          test.feature.level,
-          '_',
-          'prev_filter_',
-          prev.filter,
-          '_',
-          'abund_filter_',
-          abund.filter
-        )
-        if (!is.null(group.var)) {
-          pdf_name <- paste0(pdf_name, '_', 'group_', group.var)
-        }
-        if (!is.null(strata.var)) {
-          pdf_name <- paste0(pdf_name, '_', 'strata_', strata.var)
-        }
-        if (!is.null(file.ann)) {
-          pdf_name <- paste0(pdf_name, '_', file.ann)
-        }
-        pdf_name <- paste0(pdf_name, '.pdf')
+output_dir <- dirname(output.file) # Extract the directory path from output.file
 
-cat('\n')
-cat(paste0('\n\n The change boxplot results for individual features can be found in the current working directory. The relevant file is named: ', pdf_name, '. Please refer to this file for more detailed visualizations.'))
+# Ensure the output directory exists
+if (!dir.exists(output_dir)) {
+  dir.create(output_dir)
+}
+
+taxa_indiv_change_boxplot_results <- generate_taxa_indiv_change_boxplot_pair(
+                                   data.obj = data.obj,
+                                   subject.var = subject.var,
+                                   time.var = time.var,
+                                   group.var = group.var,
+                                   strata.var = strata.var,
+                                   change.base = change.base,
+                                   feature.change.func = feature.change.func,
+                                   feature.level = test.feature.level,
+                                   feature.dat.type = feature.dat.type,
+                                   features.plot = NULL,
+                                   top.k.plot = NULL,
+                                   top.k.func = NULL,
+                                   prev.filter = prev.filter,
+                                   abund.filter = abund.filter,
+                                   base.size = base.size,
+                                   theme.choice = theme.choice,
+                                   custom.theme = custom.theme,
+                                   palette = palette,
+                                   pdf = pdf,
+                                   file.ann = file.ann,
+                                   pdf.wid = pdf.wid,
+                                   pdf.hei = pdf.hei)
+
+# Loop over each feature level in taxa_indiv_change_boxplot_results
+for (feature_level in names(taxa_indiv_change_boxplot_results)) {
+  pdf_name <- paste0(
+    'taxa_indiv_change_boxplot_pair',
+    '_',
+    'subject_',
+    subject.var,
+    '_',
+    'time_',
+    time.var,
+    '_',
+    'change_base_',
+    change.base,
+    '_',
+    'feature_level_',
+    feature_level, # Use the current feature level as part of the file name
+    '_',
+    'prev_filter_',
+    prev.filter,
+    '_',
+    'abund_filter_',
+    abund.filter
+  )
+  if (!is.null(group.var)) {
+    pdf_name <- paste0(pdf_name, '_', 'group_', group.var)
+  }
+  if (!is.null(strata.var)) {
+    pdf_name <- paste0(pdf_name, '_', 'strata_', strata.var)
+  }
+  if (!is.null(file.ann)) {
+    pdf_name <- paste0(pdf_name, '_', file.ann)
+  }
+
+  pdf_name <- paste0(pdf_name, '.pdf')
+
+  # Create the full file path by combining the output directory and the file name
+  full_file_path <- file.path(output_dir, pdf_name)
+
+  # Create a multi-page PDF file
+  pdf(full_file_path, width = pdf.wid, height = pdf.hei)
+  # Use lapply to print each ggplot object in the list to a new PDF page
+  lapply(taxa_indiv_change_boxplot_results[[feature_level]], print)
+  # Close the PDF device
+  dev.off()
+
+  cat(paste0('The change boxplot results for individual features at the ', feature_level, ' level can be found at: ', full_file_path, '. Please refer to this file for more detailed visualizations.\n'))
 }
 
 ```
