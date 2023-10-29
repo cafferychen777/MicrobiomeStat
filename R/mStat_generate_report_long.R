@@ -677,7 +677,7 @@ alpha_trend_test_results <- generate_alpha_trend_test_long(
 
 ```{r alpha-trend-test-results-print, echo=FALSE, message=FALSE, results='asis'}
 
-group_levels <- data.obj$meta.dat %>% select(!!sym(group.var)) %>% dplyr::pull() %>% as.factor() %>% levels
+group_levels <- data.obj$meta.dat %>% dplyr::select(!!sym(group.var)) %>% dplyr::pull() %>% as.factor() %>% levels
 
 reference_level <- group_levels[1]
 
@@ -971,7 +971,7 @@ spaghettiplot_longitudinal_results
 
 ## 3.2 Distance-based trend test
 
-```{r beta-trend-test-longitudinal-generation, message=FALSE, fig.align='center'}
+```{r beta-trend-test-longitudinal-generation, message=FALSE, fig.align='center', warning = FALSE}
 beta_trend_test_longitudinal_results <- generate_beta_trend_test_long(
                                                   data.obj = data.obj,
                                                   dist.obj = dist.obj,
@@ -1218,6 +1218,11 @@ for(taxon_rank in names(taxa_trend_test_results)) {
 filename_prefix <- 'taxa_trend_test_results_'
 file_ext <- '.csv'
 
+# Extract the directory path from output.file
+output_dir <- dirname(output.file)
+if (!dir.exists(output_dir)) {
+    dir.create(output_dir)
+}
 
 for(taxon_rank in names(taxa_trend_test_results)) {
     comparisons <- names(taxa_trend_test_results[[taxon_rank]])
@@ -1226,14 +1231,16 @@ for(taxon_rank in names(taxa_trend_test_results)) {
 
         file_name <- paste0(filename_prefix, taxon_rank, '_', gsub(' ', '_', gsub('/', '_or_', comparison)), file_ext)
 
+        # Include the output directory in the file path
+        file_path <- file.path(output_dir, file_name)
 
         write.csv(taxa_trend_test_results[[taxon_rank]][[comparison]],
-                  file = file_name,
+                  file = file_path,
                   row.names = FALSE)
     }
 }
 
-cat(sprintf('\n\nThe trend test results for features have been saved in the current working directory. Each taxa rank and its corresponding comparison have their own file named with the prefix: %s followed by the taxon rank, the comparison, and the file extension %s. Please refer to these files for more detailed data.', filename_prefix, file_ext))
+cat(sprintf('\n\nThe trend test results for features have been saved in the directory: %s. Each taxa rank and its corresponding comparison have their own file named with the prefix: %s followed by the taxon rank, the comparison, and the file extension %s. Please refer to these files for more detailed data.', output_dir, filename_prefix, file_ext))
 
 ```
 
@@ -1311,19 +1318,28 @@ for(taxon_rank in names(taxa_volatility_test_results)) {
 filename_prefix <- 'taxa_volatility_test_results_'
 file_ext <- '.csv'
 
+# Extract the directory path from output.file
+output_dir <- dirname(output.file)
+if (!dir.exists(output_dir)) {
+    dir.create(output_dir)
+}
+
 for(taxon_rank in names(taxa_volatility_test_results)) {
     comparisons <- names(taxa_volatility_test_results[[taxon_rank]])
 
     for(comparison in comparisons) {
         file_name <- paste0(filename_prefix, taxon_rank, '_', gsub(' ', '_', gsub('/', '_or_', comparison)), file_ext)
 
+        # Include the output directory in the file path
+        file_path <- file.path(output_dir, file_name)
+
         write.csv(taxa_volatility_test_results[[taxon_rank]][[comparison]],
-                  file = file_name,
+                  file = file_path,
                   row.names = FALSE)
     }
 }
 
-cat(sprintf('\n\n The volatility test results for individual feature have been saved in the current working directory. Each taxa rank and its corresponding comparison have their own file named with the prefix: %s followed by the taxon rank, the comparison, and the file extension %s. Please refer to these files for more detailed data.', filename_prefix, file_ext))
+cat(sprintf('\n\n The volatility test results for individual feature have been saved in the directory: %s. Each taxa rank and its corresponding comparison have their own file named with the prefix: %s followed by the taxon rank, the comparison, and the file extension %s. Please refer to these files for more detailed data.', output_dir, filename_prefix, file_ext))
 
 ```
 
@@ -1371,7 +1387,7 @@ combined_significant_taxa <- unique(c(significant_vars_trend, significant_vars_v
 
 if (length(combined_significant_taxa) != 0){
 
-taxa_indiv_boxplot_results <- generate_taxa_indiv_boxplot_long(
+taxa_indiv_boxplot_results_sig_features <- generate_taxa_indiv_boxplot_long(
                                    data.obj = data.obj,
                                    subject.var = subject.var,
                                    time.var = time.var,
@@ -1383,8 +1399,8 @@ taxa_indiv_boxplot_results <- generate_taxa_indiv_boxplot_long(
                                    features.plot = combined_significant_taxa,
                                    transform = feature.box.axis.transform,
                                    feature.dat.type = feature.dat.type,
-                                   top.k.plot = top.k.plot,
-                                   top.k.func = top.k.func,
+                                   top.k.plot = NULL,
+                                   top.k.func = NULL,
                                    prev.filter = prev.filter,
                                    abund.filter = abund.filter,
                                    base.size = 10,
@@ -1405,49 +1421,13 @@ taxa_indiv_boxplot_results <- generate_taxa_indiv_boxplot_long(
 
 ```{r boxplot-pdf-name-creation, echo=FALSE, message=FALSE, results='asis'}
 
-if (length(combined_significant_taxa) != 0){
-  pdf_name <- paste0(
-          'taxa_indiv_boxplot_long',
-          '_',
-          'subject_',
-          subject.var,
-          '_',
-          'time_',
-          time.var,
-          '_',
-          'feature_level_',
-          test.feature.level,
-          '_',
-          'transform_',
-          feature.box.axis.transform,
-          '_',
-          'prev_filter_',
-          prev.filter,
-          '_',
-          'abund_filter_',
-          abund.filter
-        )
-        if (!is.null(group.var)) {
-          pdf_name <- paste0(pdf_name, '_', 'group_', group.var)
-        }
-        if (!is.null(strata.var)) {
-          pdf_name <- paste0(pdf_name, '_', 'strata_', strata.var)
-        }
-        if (!is.null(file.ann)) {
-          pdf_name <- paste0(pdf_name, '_', file.ann)
-        }
+output_dir <- dirname(output.file) # Extract the directory path from output.file
 
-cat('\n')
-cat(paste0('\n\n The boxplot results for individual taxa or features can be found in the current working directory. The relevant file is named: ', pdf_name, '. Please refer to this file for more detailed visualizations.'))
+if (!dir.exists(output_dir)) {
+  dir.create(output_dir)
 }
-```
 
-### 4.3.2 Significant features spaghettiplot
-
-```{r taxa-spaghettiplot-longitudinal-generation, message=FALSE, fig.height=3, fig.width=8, fig.align='center', results='asis'}
-if (length(combined_significant_taxa) != 0){
-
-taxa_indiv_spaghettiplot_results <- generate_taxa_indiv_spaghettiplot_long(
+taxa_indiv_boxplot_results <- generate_taxa_indiv_boxplot_long(
                                    data.obj = data.obj,
                                    subject.var = subject.var,
                                    time.var = time.var,
@@ -1455,7 +1435,86 @@ taxa_indiv_spaghettiplot_results <- generate_taxa_indiv_spaghettiplot_long(
                                    ts.levels = ts.levels,
                                    group.var = group.var,
                                    strata.var = strata.var,
-                                   change.base = change.base,
+                                   feature.level = test.feature.level,
+                                   features.plot = NULL,
+                                   transform = feature.box.axis.transform,
+                                   feature.dat.type = feature.dat.type,
+                                   top.k.plot = NULL,
+                                   top.k.func = NULL,
+                                   prev.filter = prev.filter,
+                                   abund.filter = abund.filter,
+                                   base.size = 10,
+                                   theme.choice = theme.choice,
+                                   custom.theme = custom.theme,
+                                   palette = palette,
+                                   pdf = TRUE,
+                                   file.ann = file.ann,
+                                   pdf.wid = pdf.wid,
+                                   pdf.hei = pdf.hei)
+
+# Loop over each feature level in taxa_indiv_boxplot_results
+for (feature_level in names(taxa_indiv_boxplot_results)) {
+  pdf_name <- paste0(
+    'taxa_indiv_boxplot_long',
+    '_',
+    'subject_',
+    subject.var,
+    '_',
+    'time_',
+    time.var,
+    '_',
+    'feature_level_',
+    feature_level, # Use the current feature level as part of the file name
+    '_',
+    'transform_',
+    feature.box.axis.transform,
+    '_',
+    'prev_filter_',
+    prev.filter,
+    '_',
+    'abund_filter_',
+    abund.filter
+  )
+  if (!is.null(group.var)) {
+    pdf_name <- paste0(pdf_name, '_', 'group_', group.var)
+  }
+  if (!is.null(strata.var)) {
+    pdf_name <- paste0(pdf_name, '_', 'strata_', strata.var)
+  }
+  if (!is.null(file.ann)) {
+    pdf_name <- paste0(pdf_name, '_', file.ann)
+  }
+
+  pdf_name <- paste0(pdf_name, '.pdf')
+
+  # Create the full file path by combining the output directory and the file name
+  full_file_path <- file.path(output_dir, pdf_name)
+
+  # Create a multi-page PDF file
+  pdf(full_file_path, width = pdf.wid, height = pdf.hei)
+  # Use lapply to print each ggplot object in the list to a new PDF page
+  lapply(taxa_indiv_boxplot_results[[feature_level]], print)
+  # Close the PDF device
+  dev.off()
+
+  cat(paste0('The boxplot results for individual features at the ', feature_level, ' level can be found at: ', full_file_path, '. Please refer to this file for more detailed visualizations.\n'))
+}
+
+```
+
+### 4.3.2 Significant features spaghettiplot
+
+```{r taxa-spaghettiplot-longitudinal-generation, message=FALSE, fig.height=3, fig.width=8, fig.align='center', results='asis'}
+if (length(combined_significant_taxa) != 0){
+
+taxa_indiv_spaghettiplot_results_sig_features <- generate_taxa_indiv_spaghettiplot_long(
+                                   data.obj = data.obj,
+                                   subject.var = subject.var,
+                                   time.var = time.var,
+                                   t0.level = t0.level,
+                                   ts.levels = ts.levels,
+                                   group.var = group.var,
+                                   strata.var = strata.var,
                                    feature.change.func = feature.change.func,
                                    feature.level = test.feature.level,
                                    features.plot = combined_significant_taxa,
@@ -1478,57 +1537,85 @@ taxa_indiv_spaghettiplot_results <- generate_taxa_indiv_spaghettiplot_long(
 
 ```{r taxa-spaghettiplot-longitudinal-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 8, fig.height = 4}
 if (length(combined_significant_taxa) != 0){
-taxa_indiv_spaghettiplot_results
+taxa_indiv_spaghettiplot_results_sig_features
 }
 ```
 
 ```{r spaghettiplot-pdf-name-creation, echo=FALSE, message=FALSE, results='asis'}
+output_dir <- dirname(output.file) # Extract the directory path from output.file
 
-if (length(combined_significant_taxa) != 0){
+if (!dir.exists(output_dir)) {
+  dir.create(output_dir)
+}
+
+taxa_indiv_spaghettiplot_results <- generate_taxa_indiv_spaghettiplot_long(
+                                   data.obj = data.obj,
+                                   subject.var = subject.var,
+                                   time.var = time.var,
+                                   t0.level = t0.level,
+                                   ts.levels = ts.levels,
+                                   group.var = group.var,
+                                   strata.var = strata.var,
+                                   feature.change.func = feature.change.func,
+                                   feature.level = test.feature.level,
+                                   features.plot = NULL,
+                                   feature.dat.type = feature.dat.type,
+                                   top.k.plot = NULL,
+                                   top.k.func = NULL,
+                                   prev.filter = prev.filter,
+                                   abund.filter = abund.filter,
+                                   base.size = 10,
+                                   theme.choice = theme.choice,
+                                   custom.theme = custom.theme,
+                                   palette = palette,
+                                   pdf = TRUE,
+                                   file.ann = file.ann,
+                                   pdf.wid = pdf.wid,
+                                   pdf.hei = pdf.hei)
+
+# Loop over each feature level in taxa_indiv_spaghettiplot_results
+for (feature_level in names(taxa_indiv_spaghettiplot_results)) {
   pdf_name <- paste0(
-          'taxa_indiv_spaghettiplot_long',
-          '_',
-          'subject_',
-          subject.var,
-          '_',
-          'time_',
-          time.var,
-          '_',
-          'group_',
-          group.var,
-          '_',
-          'strata_',
-          strata.var,
-          '_',
-          'feature_level_',
-          test.feature.level,
-          '_',
-          'prev_filter_',
-          prev.filter,
-          '_',
-          'abund_filter_',
-          abund.filter,
-          '_',
-          'base_size_',
-          base.size,
-          '_',
-          'theme_choice_',
-          theme.choice,
-          '_',
-          'pdf_wid_',
-          pdf.wid,
-          '_',
-          'pdf_hei_',
-          pdf.hei
-        )
+    'taxa_indiv_spaghettiplot_long',
+    '_',
+    'subject_',
+    subject.var,
+    '_',
+    'time_',
+    time.var,
+    '_',
+    'feature_level_',
+    feature_level, # Use the current feature level as part of the file name
+    '_',
+    'prev_filter_',
+    prev.filter,
+    '_',
+    'abund_filter_',
+    abund.filter
+  )
+  if (!is.null(group.var)) {
+    pdf_name <- paste0(pdf_name, '_', 'group_', group.var)
+  }
+  if (!is.null(strata.var)) {
+    pdf_name <- paste0(pdf_name, '_', 'strata_', strata.var)
+  }
+  if (!is.null(file.ann)) {
+    pdf_name <- paste0(pdf_name, '_', file.ann)
+  }
 
-        if (!is.null(file.ann)) {
-          pdf_name <- paste0(pdf_name, '_', file.ann)
-        }
+  pdf_name <- paste0(pdf_name, '.pdf')
 
-        pdf_name <- paste0(pdf_name, '.pdf')
+  # Create the full file path by combining the output directory and the file name
+  full_file_path <- file.path(output_dir, pdf_name)
 
-cat(paste0('The spaghettiplot results for individual taxa or features can be found in the current working directory. The relevant file is named: ', pdf_name, '. Please refer to this file for more detailed visualizations. \n\n'))
+  # Create a multi-page PDF file
+  pdf(full_file_path, width = pdf.wid, height = pdf.hei)
+  # Use lapply to print each ggplot object in the list to a new PDF page
+  lapply(taxa_indiv_spaghettiplot_results[[feature_level]], print)
+  # Close the PDF device
+  dev.off()
+
+  cat(paste0('The spaghettiplot results for individual features at the ', feature_level, ' level can be found at: ', full_file_path, '. Please refer to this file for more detailed visualizations.\n'))
 }
 
 ```
