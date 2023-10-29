@@ -547,7 +547,7 @@ firstToUpper <- function(s) {
 # Initial description for volatility
 num_levels <- length(unique(data.obj$meta.dat[[group.var]]))
 
-group_levels <- data.obj$meta.dat %>% select(!!sym(group.var)) %>% pull() %>% as.factor() %>% levels
+group_levels <- data.obj$meta.dat %>% dplyr::select(!!sym(group.var)) %>% dplyr::pull() %>% as.factor() %>% levels
 
 reference_level <- group_levels[1]
 
@@ -729,7 +729,7 @@ for(distance in distance_metrics) {
     report_beta_significance(data_frame = beta_test_results$aov.tab, distance = distance)
     cat('\n')
 
-    output <- pander::pander(beta_test_results$aov.tab %>% filter(Distance == distance) %>% select(-all_of(c('Distance'))))
+    output <- pander::pander(beta_test_results$aov.tab %>% filter(Distance == distance) %>% dplyr::select(-all_of(c('Distance'))))
     cat(output)
 
 
@@ -843,6 +843,12 @@ for(taxon_rank in names(taxa_test_results)) {
 filename_prefix <- 'taxa_test_results_'
 file_ext <- '.csv'
 
+# extract the directory from the full file path
+output_dir <- dirname(output.file)
+if (!dir.exists(output_dir)) {
+    dir.create(output_dir)
+}
+
 for(taxon_rank in names(taxa_test_results)) {
 
     comparisons <- names(taxa_test_results[[taxon_rank]])
@@ -851,13 +857,16 @@ for(taxon_rank in names(taxa_test_results)) {
 
         file_name <- paste0(filename_prefix, taxon_rank, '_', gsub(' ', '_', gsub('/', '_or_', comparison)), file_ext)
 
+        # include the output directory in the file path
+        file_path <- file.path(output_dir, file_name)
+
         write.csv(taxa_test_results[[taxon_rank]][[comparison]],
-                  file = file_name,
+                  file = file_path,
                   row.names = FALSE)
     }
 }
 
-cat(sprintf('\n\nThe differential abundance test results for features have been saved in the current working directory. Each taxa rank and its corresponding comparison have their own file named with the prefix: %s followed by the taxon rank, the comparison, and the file extension %s. Please refer to these files for more detailed data.', filename_prefix, file_ext))
+cat(sprintf('\n\nThe differential abundance test results for features have been saved in the directory: %s. Each taxa rank and its corresponding comparison have their own file named with the prefix: %s followed by the taxon rank, the comparison, and the file extension %s. Please refer to these files for more detailed data.', output_dir, filename_prefix, file_ext))
 
 ```
 
@@ -898,32 +907,73 @@ significant_vars <- as.vector(significant_vars)
 
 ### 4.2.1 Significant features boxplot
 
-```{r taxa-significant-boxplot-generation, message=FALSE, fig.align='center', fig.width = 15, fig.height = 15, results='asis', warning = FALSE}
+```{r taxa-significant-boxplot-generation, message=FALSE, fig.align='center', fig.width = 8, fig.height = 4, results='asis', warning = FALSE}
+if (length(significant_vars) != 0) {
+  taxa_boxplot_results_sig_features <- generate_taxa_boxplot_single(
+    data.obj = data.obj,
+    subject.var = subject.var,
+    time.var = time.var,
+    t.level = t.level,
+    group.var = group.var,
+    strata.var = strata.var,
+    feature.level = test.feature.level,
+    feature.dat.type = feature.dat.type,
+    features.plot = significant_vars,
+    top.k.plot = NULL,
+    top.k.func = NULL,
+    transform = feature.box.axis.transform,
+    prev.filter = prev.filter,
+    abund.filter = abund.filter,
+    base.size = base.size,
+    theme.choice = theme.choice,
+    custom.theme = custom.theme,
+    palette = palette,
+    pdf = pdf,
+    file.ann = file.ann,
+    pdf.wid = pdf.wid,
+    pdf.hei = pdf.hei
+  )
 
-taxa_boxplot_results <- generate_taxa_boxplot_single(
-                                              data.obj = data.obj,
-                                              subject.var = subject.var,
-                                              time.var = time.var,
-                                              t.level = t.level,
-                                              group.var = group.var,
-                                              strata.var = strata.var,
-                                              feature.level = test.feature.level,
-                                              feature.dat.type = feature.dat.type,
-                                              features.plot = significant_vars,
-                                              top.k.plot = NULL,
-                                              top.k.func = NULL,
-                                              transform = feature.box.axis.transform,
-                                              prev.filter = prev.filter,
-                                              abund.filter = abund.filter,
-                                              base.size = base.size,
-                                              theme.choice = theme.choice,
-                                              custom.theme = custom.theme,
-                                              palette = palette,
-                                              pdf = pdf,
-                                              file.ann = file.ann,
-                                              pdf.wid = pdf.wid,
-                                              pdf.hei = pdf.hei)
-taxa_boxplot_results
+  taxa_indiv_boxplot_results_sig_features <- generate_taxa_indiv_boxplot_single(
+    data.obj = data.obj,
+    subject.var = subject.var,
+    time.var = time.var,
+    t.level = t.level,
+    group.var = group.var,
+    strata.var = strata.var,
+    feature.level = test.feature.level,
+    features.plot = significant_vars,
+    feature.dat.type = feature.dat.type,
+    top.k.plot = NULL,
+    top.k.func = NULL,
+    transform = feature.box.axis.transform,
+    prev.filter = prev.filter,
+    abund.filter = abund.filter,
+    base.size = base.size,
+    theme.choice = theme.choice,
+    custom.theme = custom.theme,
+    palette = palette,
+    pdf = pdf,
+    file.ann = file.ann,
+    pdf.wid = pdf.wid,
+    pdf.hei = pdf.hei
+  )
+}
+```
+
+```{r taxa-boxplot-single-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 8, fig.height = 4}
+if (length(significant_vars) != 0){
+taxa_indiv_boxplot_results_sig_features
+}
+```
+
+```{r taxa-indiv-boxplot-pdf-name, echo=FALSE, message=FALSE, results='asis', warning = FALSE}
+output_dir <- dirname(output.file) # Extract the directory path from output.file
+
+# Ensure the output directory exists
+if (!dir.exists(output_dir)) {
+  dir.create(output_dir)
+}
 
 taxa_indiv_boxplot_results <- generate_taxa_indiv_boxplot_single(
                                    data.obj = data.obj,
@@ -933,7 +983,7 @@ taxa_indiv_boxplot_results <- generate_taxa_indiv_boxplot_single(
                                    group.var = group.var,
                                    strata.var = strata.var,
                                    feature.level = test.feature.level,
-                                   features.plot = significant_vars,
+                                   features.plot = NULL,
                                    feature.dat.type = feature.dat.type,
                                    top.k.plot = NULL,
                                    top.k.func = NULL,
@@ -949,43 +999,54 @@ taxa_indiv_boxplot_results <- generate_taxa_indiv_boxplot_single(
                                    pdf.wid = pdf.wid,
                                    pdf.hei = pdf.hei)
 
-```
+# Loop over each feature level in taxa_indiv_boxplot_results
+for (feature_level in names(taxa_indiv_boxplot_results)) {
+  pdf_name <- paste0(
+    'taxa_indiv_boxplot_single',
+    '_',
+    'subject_',
+    subject.var,
+    '_',
+    'time_',
+    time.var,
+    '_',
+    'feature_level_',
+    feature_level, # Use the current feature level as part of the file name
+    '_',
+    'transform_',
+    feature.box.axis.transform,
+    '_',
+    'prev_filter_',
+    prev.filter,
+    '_',
+    'abund_filter_',
+    abund.filter
+  )
+  if (!is.null(group.var)) {
+    pdf_name <- paste0(pdf_name, '_', 'group_', group.var)
+  }
+  if (!is.null(strata.var)) {
+    pdf_name <- paste0(pdf_name, '_', 'strata_', strata.var)
+  }
+  if (!is.null(file.ann)) {
+    pdf_name <- paste0(pdf_name, '_', file.ann)
+  }
 
-```{r taxa-indiv-boxplot-pdf-name, echo=FALSE, message=FALSE, results='asis', warning = FALSE}
-pdf_name <- paste0(
-  'taxa_indiv_boxplot_single',
-  '_',
-  'subject_',
-  subject.var,
-  '_',
-  'time_',
-  time.var,
-  '_',
-  'feature_level_',
-  test.feature.level,
-  '_',
-  'transform_',
-  feature.box.axis.transform,
-  '_',
-  'prev_filter_',
-  prev.filter,
-  '_',
-  'abund_filter_',
-  abund.filter
-)
-if (!is.null(group.var)) {
-  pdf_name <- paste0(pdf_name, '_', 'group_', group.var)
-}
-if (!is.null(strata.var)) {
-  pdf_name <- paste0(pdf_name, '_', 'strata_', strata.var)
-}
-if (!is.null(file.ann)) {
-  pdf_name <- paste0(pdf_name, '_', file.ann)
+  pdf_name <- paste0(pdf_name, '.pdf')
+
+  # Create the full file path by combining the output directory and the file name
+  full_file_path <- file.path(output_dir, pdf_name)
+
+  # Create a multi-page PDF file
+  pdf(full_file_path, width = pdf.wid, height = pdf.hei)
+  # Use lapply to print each ggplot object in the list to a new PDF page
+  lapply(taxa_indiv_boxplot_results[[feature_level]], print)
+  # Close the PDF device
+  dev.off()
+
+  cat(paste0('The boxplot results for all individual taxa or features at the ', feature_level, ' level can be found at: ', full_file_path, '. Please refer to this file for more detailed visualizations.\n'))
 }
 
-pdf_name <- paste0(pdf_name, '_', test.feature.level, '.pdf')
-
-cat(paste0('The boxplot results for individual taxa or features can be found in the current working directory. The relevant file is named: ', pdf_name, '. Please refer to this file for more detailed visualizations.'))
 ```
 
 "
