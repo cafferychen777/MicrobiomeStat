@@ -51,6 +51,28 @@ generate_beta_test_single(
   data.obj = peerj32.obj,
   dist.obj = NULL,
   time.var = "time",
+  t.level = NULL,
+  group.var = "group",
+  adj.vars = NULL,
+  dist.name = c('BC', 'Jaccard')
+)
+
+# Perform beta diversity tests using PERMANOVA
+generate_beta_test_single(
+  data.obj = peerj32.obj,
+  dist.obj = NULL,
+  time.var = "time",
+  t.level = NULL,
+  group.var = "group",
+  adj.vars = c("sex"),
+  dist.name = c('BC', 'Jaccard')
+)
+
+# Perform beta diversity tests using PERMANOVA
+generate_beta_test_single(
+  data.obj = peerj32.obj,
+  dist.obj = NULL,
+  time.var = "time",
   t.level = "1",
   group.var = "group",
   adj.vars = c("sex"),
