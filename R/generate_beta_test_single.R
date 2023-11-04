@@ -26,6 +26,28 @@
 #'   data.obj = peerj32.obj,
 #'   dist.obj = NULL,
 #'   time.var = "time",
+#'   t.level = NULL,
+#'   group.var = "group",
+#'   adj.vars = NULL,
+#'   dist.name = c('BC', 'Jaccard')
+#' )
+#'
+#' # Perform beta diversity tests using PERMANOVA
+#' generate_beta_test_single(
+#'   data.obj = peerj32.obj,
+#'   dist.obj = NULL,
+#'   time.var = "time",
+#'   t.level = NULL,
+#'   group.var = "group",
+#'   adj.vars = c("sex"),
+#'   dist.name = c('BC', 'Jaccard')
+#' )
+#'
+#' # Perform beta diversity tests using PERMANOVA
+#' generate_beta_test_single(
+#'   data.obj = peerj32.obj,
+#'   dist.obj = NULL,
+#'   time.var = "time",
 #'   t.level = "1",
 #'   group.var = "group",
 #'   adj.vars = c("sex"),
@@ -40,6 +62,41 @@
 #'   t.level = "2",
 #'   group.var = "group",
 #'   adj.vars = c("sex"),
+#'   dist.name = c('BC', 'Jaccard')
+#' )
+#'
+#' data(ecam.obj)
+#'
+#' # Perform beta diversity tests using PERMANOVA
+#' generate_beta_test_single(
+#'   data.obj = ecam.obj,
+#'   dist.obj = NULL,
+#'   time.var = "month",
+#'   t.level = "0",
+#'   group.var = "delivery",
+#'   adj.vars = NULL,
+#'   dist.name = c('BC', 'Jaccard')
+#' )
+#'
+#' # Perform beta diversity tests using PERMANOVA
+#' generate_beta_test_single(
+#'   data.obj = ecam.obj,
+#'   dist.obj = NULL,
+#'   time.var = "month",
+#'   t.level = "0",
+#'   group.var = "delivery",
+#'   adj.vars = "diet",
+#'   dist.name = c('BC', 'Jaccard')
+#' )
+#'
+#' dist.obj <- mStat_calculate_beta_diversity(ecam.obj, dist.name = c('BC', 'Jaccard'))
+#' generate_beta_test_single(
+#'   data.obj = ecam.obj,
+#'   dist.obj = dist.obj,
+#'   time.var = "month",
+#'   t.level = "1",
+#'   group.var = "delivery",
+#'   adj.vars = "diet",
 #'   dist.name = c('BC', 'Jaccard')
 #' )
 #' }
@@ -67,6 +124,11 @@ generate_beta_test_single <- function(data.obj,
     dist.obj <- mStat_calculate_beta_diversity(data.obj, dist.name)
   } else {
     message("Using provided dist.obj...")
+    if (!is.null(time.var) & !is.null(t.level)) {
+      condition <- paste(time.var, "== '", t.level, "'", sep = "")
+      data.obj <- mStat_subset_data(data.obj, condition = condition)
+    }
+    dist.obj <- mStat_subset_dist(dist.obj, rownames(data.obj$meta.dat))
   }
 
   # Run PermanovaG2 for the entire dist.obj
