@@ -31,6 +31,15 @@
 #'                            alpha.name = c("shannon", "observed_species"),
 #'                            group.var = "subject_race",
 #'                            adj.vars = "subject_gender")
+#' alpha.obj <- mStat_calculate_alpha_diversity(subset_T2D.obj$feature.tab,
+#' c("shannon", "observed_species"))
+#' generate_alpha_test_single(data.obj = subset_T2D.obj,
+#'                            alpha.obj = alpha.obj,
+#'                            alpha.name = c("shannon", "observed_species"),
+#'                            time.var = "visit_number",
+#'                            t.level = "   4",
+#'                            group.var = "subject_race",
+#'                            adj.vars = "subject_gender")
 #'
 #' data("peerj32.obj")
 #' generate_alpha_test_single(data.obj = peerj32.obj,
@@ -76,7 +85,7 @@ generate_alpha_test_single <-
       df <- alpha.obj[[i]]
       # Join the alpha diversity index with metadata
       merged_df <-
-        dplyr::left_join(
+        dplyr::inner_join(
           df %>% rownames_to_column("sample"),
           data.obj$meta.dat %>% rownames_to_column("sample"),
           by = "sample"
