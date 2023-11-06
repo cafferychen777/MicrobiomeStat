@@ -89,6 +89,21 @@
 #' change.base = "2",
 #' alpha.change.func = "log fold change"
 #' )
+#'
+#' peerj32.obj$meta.dat <- peerj32.obj$meta.dat %>%
+#' dplyr::rename(Day = time)
+#'
+#' generate_alpha_change_test_pair(
+#' data.obj = peerj32.obj,
+#' alpha.obj = NULL,
+#' time.var = "Day",
+#' alpha.name = c("shannon"),
+#' subject.var = "subject",
+#' group.var = "sex",
+#' adj.vars = "group",
+#' change.base = "2",
+#' alpha.change.func = "log fold change"
+#' )
 #' }
 #' @export
 generate_alpha_change_test_pair <-
@@ -137,8 +152,8 @@ generate_alpha_change_test_pair <-
     change.after <-
       unique(alpha_df %>% dplyr::select(all_of(c(time.var))))[unique(alpha_df %>% dplyr::select(all_of(c(time.var)))) != change.base]
 
-    alpha_grouped <- alpha_df %>% dplyr::group_by(time)
-    alpha_split <- split(alpha_df, f = alpha_grouped$time)
+    alpha_grouped <- alpha_df %>% dplyr::group_by(!!sym(time.var))
+    alpha_split <- split(alpha_df, f = alpha_grouped[[time.var]])
 
     alpha_time_1 <- alpha_split[[change.base]]
     alpha_time_2 <- alpha_split[[change.after]]
