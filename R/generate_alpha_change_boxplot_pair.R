@@ -152,8 +152,8 @@ generate_alpha_change_boxplot_pair <-
     change.after <-
       unique(alpha_df %>% dplyr::select(all_of(c(time.var))))[unique(alpha_df %>% dplyr::select(all_of(c(time.var)))) != change.base]
 
-    alpha_grouped <- alpha_df %>% dplyr::group_by(time)
-    alpha_split <- split(alpha_df, f = alpha_grouped$time)
+    alpha_grouped <- alpha_df %>% dplyr::group_by(!!sym(time.var))
+    alpha_split <- split(alpha_df, f = alpha_grouped[[time.var]])
 
     alpha_time_1 <- alpha_split[[change.base]]
     alpha_time_2 <- alpha_split[[change.after]]
