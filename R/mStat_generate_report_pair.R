@@ -182,7 +182,7 @@
 #'   feature.sig.level = 0.1,
 #'   theme.choice = "bw",
 #'   base.size = 18,
-#'   output.file = "/Users/apple/MicrobiomeStat/report.pdf"
+#'   output.file = "/Users/apple/MicrobiomeStat/report.pdf")
 #'
 #' data(subset_pairs.obj)
 #' mStat_generate_report_pair(
