@@ -89,6 +89,32 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
+#'
+#' data(subset_pairs.obj)
+#' generate_taxa_change_heatmap_pair(
+#'   data.obj = subset_pairs.obj,
+#'   subject.var = "MouseID",
+#'   time.var = "Antibiotic",
+#'   group.var = "Sex",
+#'   strata.var = NULL,
+#'   change.base = "Baseline",
+#'   feature.change.func = "relative change",
+#'   feature.level = c("Genus"),
+#'   feature.dat.type = "count",
+#'   features.plot = NULL,
+#'   top.k.plot = 10,
+#'   top.k.func = "sd",
+#'   prev.filter = 0.1,
+#'   abund.filter = 0.001,
+#'   base.size = 10,
+#'   palette = NULL,
+#'   cluster.rows = NULL,
+#'   cluster.cols = FALSE,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
 #' }
 #' @export
 generate_taxa_change_heatmap_pair <- function(data.obj,
@@ -292,15 +318,15 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
     }
 
     value_diff_matrix <- combined_data %>%
-      select(feature.level, subject = subject, value_diff) %>%
-      tidyr::spread(key = subject, value = value_diff) %>%
+      select(feature.level, !!sym(subject.var), value_diff) %>%
+      tidyr::spread(key = !!sym(subject.var), value = value_diff) %>%
       column_to_rownames(var = feature.level) %>%
       as.matrix()
 
     unique_meta_tab <- meta_tab %>%
-      filter(subject %in% colnames(value_diff_matrix)) %>%
+      filter(!!sym(subject.var) %in% colnames(value_diff_matrix)) %>%
       select(all_of(c(subject.var, group.var, strata.var))) %>%
-      dplyr::distinct(subject, .keep_all = TRUE) %>% as_tibble()
+      dplyr::distinct(!!sym(subject.var), .keep_all = TRUE) %>% as_tibble()
 
     # 获取元素的顺序
     order_index <-
@@ -449,12 +475,12 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
 
     if (!is.null(strata.var)){
       average_value_diff_matrix <- combined_data %>%
-        select(feature.level, subject = subject, value_diff) %>%
-        dplyr::left_join(sorted_meta_tab, by = "subject") %>%
+        select(feature.level, !!sym(subject.var), value_diff) %>%
+        dplyr::left_join(sorted_meta_tab, by = subject.var) %>%
         dplyr::group_by(!!sym(feature.level), !!sym(group.var), !!sym(strata.var)) %>%
         dplyr::summarize(mean_value_diff = mean(value_diff), .groups = 'drop') %>%
         tidyr::pivot_wider(names_from = all_of(c(group.var, strata.var)), values_from = mean_value_diff) %>%
-        column_to_rownames(feature.level) %>%
+        column_to_rownames(var = feature.level) %>%
         as.matrix()
 
       create_annotation_df <- function(colnames_vec, delimiter = "_") {
@@ -485,12 +511,12 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
       annotation_df <- annotation_df[order(annotation_df[,strata.var]),]
     } else if (!is.null(group.var)){
       average_value_diff_matrix <- combined_data %>%
-        select(feature.level, subject = subject, value_diff) %>%
-        dplyr::left_join(sorted_meta_tab, by = "subject") %>%
+        select(feature.level, !!sym(subject.var), value_diff) %>%
+        dplyr::left_join(sorted_meta_tab, by = subject.var) %>%
         dplyr::group_by(!!sym(feature.level), !!sym(group.var)) %>%
         dplyr::summarize(mean_value_diff = mean(value_diff), .groups = 'drop') %>%
         tidyr::pivot_wider(names_from = all_of(c(group.var)), values_from = mean_value_diff) %>%
-        column_to_rownames(feature.level) %>%
+        column_to_rownames(var = feature.level) %>%
         as.matrix()
 
       annotation_df <- data.frame(Var1 = colnames(average_value_diff_matrix)) %>%
@@ -499,12 +525,13 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
         dplyr::rename(!!sym(group.var) := Var1)
     } else {
       average_value_diff_matrix <- combined_data %>%
-        select(feature.level, subject = subject, value_diff) %>%
-        dplyr::left_join(sorted_meta_tab, by = "subject") %>%
+        select(feature.level, !!sym(subject.var), value_diff) %>%
+        dplyr::left_join(sorted_meta_tab, by = subject.var) %>%
         dplyr::group_by(!!sym(feature.level)) %>%
         dplyr::summarize(mean_value_diff = mean(value_diff), .groups = 'drop') %>%
-        column_to_rownames(feature.level) %>%
+        column_to_rownames(var = feature.level) %>%
         as.matrix()
+
       annotation_df <- NULL
     }
 

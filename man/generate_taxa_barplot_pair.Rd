@@ -119,5 +119,25 @@ generate_taxa_barplot_pair(
   pdf.wid = 25,
   pdf.hei = 8.5
 )
+
+data(subset_pairs.obj)
+generate_taxa_barplot_pair(
+  data.obj = subset_pairs.obj,
+  subject.var = "MouseID",
+  time.var = "Antibiotic",
+  group.var = "Sex",
+  strata.var = NULL,
+  feature.level = "Genus",
+  feature.dat.type = c("count"),
+  feature.number = 10,
+  base.size = 10,
+  theme.choice = "bw",
+  custom.theme = NULL,
+  palette = NULL,
+  pdf = TRUE,
+  file.ann = NULL,
+  pdf.wid = 25,
+  pdf.hei = 8.5
+)
 }
 }

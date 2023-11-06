@@ -75,6 +75,26 @@
 #'   pdf.wid = 25,
 #'   pdf.hei = 8.5
 #' )
+#'
+#' data(subset_pairs.obj)
+#' generate_taxa_barplot_pair(
+#'   data.obj = subset_pairs.obj,
+#'   subject.var = "MouseID",
+#'   time.var = "Antibiotic",
+#'   group.var = "Sex",
+#'   strata.var = NULL,
+#'   feature.level = "Genus",
+#'   feature.dat.type = c("count"),
+#'   feature.number = 10,
+#'   base.size = 10,
+#'   theme.choice = "bw",
+#'   custom.theme = NULL,
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 25,
+#'   pdf.hei = 8.5
+#' )
 #' }
 #' @export
 generate_taxa_barplot_pair <-
@@ -117,8 +137,7 @@ generate_taxa_barplot_pair <-
     # 使用用户自定义主题（如果提供），否则使用默认主题
     theme_to_use <-
       if (!is.null(custom.theme))
-        custom.theme
-    else
+        custom.theme else
       theme_function
 
     if (is.null(palette)) {
@@ -365,7 +384,8 @@ generate_taxa_barplot_pair <-
 
       # 将 otu_tab_long 和 meta_tab_sorted 合并
       merged_long_df <- otu_tab_long %>%
-        dplyr::inner_join(meta_tab_sorted  %>% rownames_to_column("sample"), by = "sample")
+        dplyr::inner_join(meta_tab_sorted  %>%
+                            rownames_to_column("sample"), by = "sample")
 
       sorted_merged_long_df <- merged_long_df %>%
         dplyr::arrange(!!sym(subject.var),!!sym(time.var))
@@ -376,8 +396,10 @@ generate_taxa_barplot_pair <-
 
       sorted_merged_long_df <-
         sorted_merged_long_df %>% dplyr::mutate(!!sym(feature.level) := as.factor(!!sym(feature.level)))
+
       original_levels <-
         levels(sorted_merged_long_df[[feature.level]])
+
       if (!is.na(other.abund.cutoff)) {
         new_levels <- c("Other", setdiff(original_levels, "Other"))
       } else {
@@ -497,13 +519,13 @@ generate_taxa_barplot_pair <-
         } +
         labs(x = NULL, y = NULL) +
         scale_y_continuous(expand = c(0, 0), labels = scales::percent) +
-        scale_x_continuous(
-          expand = c(0.001, 0.001),
-          breaks = result,
-          labels = levels(df %>% select(all_of(c(
-            subject.var
-          ))) %>% dplyr::pull())
-        ) +
+         scale_x_continuous(
+           expand = c(0.001, 0.001),
+           breaks = result,
+           labels = levels(df %>% select(all_of(c(
+             subject.var
+           ))) %>% dplyr::pull())
+         ) +
         labs(fill = feature.level) +
         scale_fill_manual(values = color_pal) +
         scale_color_manual(values = color_pal) +

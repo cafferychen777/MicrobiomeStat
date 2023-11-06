@@ -146,5 +146,31 @@ generate_taxa_change_heatmap_pair(
   pdf.wid = 11,
   pdf.hei = 8.5
 )
+
+data(subset_pairs.obj)
+generate_taxa_change_heatmap_pair(
+  data.obj = subset_pairs.obj,
+  subject.var = "MouseID",
+  time.var = "Antibiotic",
+  group.var = "Sex",
+  strata.var = NULL,
+  change.base = "Baseline",
+  feature.change.func = "relative change",
+  feature.level = c("Genus"),
+  feature.dat.type = "count",
+  features.plot = NULL,
+  top.k.plot = 10,
+  top.k.func = "sd",
+  prev.filter = 0.1,
+  abund.filter = 0.001,
+  base.size = 10,
+  palette = NULL,
+  cluster.rows = NULL,
+  cluster.cols = FALSE,
+  pdf = TRUE,
+  file.ann = NULL,
+  pdf.wid = 11,
+  pdf.hei = 8.5
+)
 }
 }

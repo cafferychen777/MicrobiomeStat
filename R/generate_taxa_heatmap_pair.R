@@ -59,7 +59,33 @@
 #'   subject.var = "subject",
 #'   time.var = "time",
 #'   group.var = "group",
-#'   strata.var = "sex",
+#'   strata.var = NULL,
+#'   feature.level = c("Phylum","Family","Genus"),
+#'   feature.dat.type = "count",
+#'   features.plot = NULL,
+#'   top.k.plot = NULL,
+#'   top.k.func = NULL,
+#'   prev.filter = 0.01,
+#'   abund.filter = 0.001,
+#'   cluster.rows = NULL,
+#'   cluster.cols = NULL,
+#'   base.size = 12,
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#'
+#' data(subset_T2D.obj)
+#' subset_T2D.obj2 <- mStat_subset_data(subset_T2D.obj,
+#' condition = "visit_number %in% c('   1', '   2')")
+#' generate_taxa_heatmap_pair(
+#'   data.obj = subset_T2D.obj2,
+#'   subject.var = "subject_id",
+#'   time.var = "visit_number",
+#'   group.var = "subject_race",
+#'   strata.var = "subject_gender",
 #'   feature.level = c("Phylum","Family","Genus"),
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
@@ -324,11 +350,12 @@ generate_taxa_heatmap_pair <- function(data.obj,
       annotation_col <- wide_data %>%
         dplyr::select(-all_of(c(feature.level))) %>%
         names() %>%
-        stringr::str_split("_", simplify = TRUE) %>%
-        as.data.frame() %>%
-        setNames(c(time.var, group.var, strata.var)) %>%
-        distinct() %>%
-        tidyr::unite("column_name", !!sym(time.var), !!sym(group.var), !!sym(strata.var), sep = "_", remove = FALSE) %>%
+        tibble(column_name = .) %>%
+        dplyr::mutate(
+          !!time.var := stringr::str_extract(column_name, "^[^_]+"),
+          !!group.var := stringr::str_extract(column_name, "(?<=_).*(?=_)"),
+          !!strata.var := stringr::str_extract(column_name, "[^_]+$")
+        ) %>%
         column_to_rownames("column_name")
 
     } else if (!is.null(group.var) & !is.null(time.var)){
@@ -346,10 +373,11 @@ generate_taxa_heatmap_pair <- function(data.obj,
       annotation_col <- wide_data %>%
         dplyr::select(-all_of(c(feature.level))) %>%
         names() %>%
-        stringr::str_split("_", simplify = TRUE) %>%
-        as.data.frame() %>%
-        setNames(c(time.var, group.var)) %>%
-        distinct() %>%
+        tibble(column_name = .) %>%
+        dplyr::mutate(
+          !!time.var := stringr::str_extract(column_name, "^[^_]+"),
+          !!group.var := stringr::str_extract(column_name, "(?<=_).*")
+        ) %>%
         tidyr::unite("column_name", !!sym(time.var), !!sym(group.var), sep = "_", remove = FALSE) %>%
         column_to_rownames("column_name")
 

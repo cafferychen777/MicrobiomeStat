@@ -26,9 +26,9 @@
 #'   data.obj = peerj32.obj,
 #'   dist.obj = NULL,
 #'   time.var = "time",
-#'   t.level = NULL,
+#'   t.level = "2",
 #'   group.var = "group",
-#'   adj.vars = NULL,
+#'   adj.vars = "sex",
 #'   dist.name = c('BC', 'Jaccard')
 #' )
 #'

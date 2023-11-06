@@ -149,5 +149,27 @@ generate_alpha_boxplot_long(
   file.ann = NULL,
   pdf.wid = 11,
   pdf.hei = 8.5)
+
+data(subset_pairs.obj)
+alpha.obj <- mStat_calculate_alpha_diversity(subset_pairs.obj$feature.tab,
+c("shannon", "observed_species"))
+generate_alpha_boxplot_long(
+  data.obj = subset_pairs.obj,
+  alpha.obj = alpha.obj,
+  alpha.name = c("shannon", "observed_species"),
+  subject.var = "MouseID",
+  time.var = "Antibiotic",
+  t0.level = "Baseline",
+  ts.levels = NULL,
+  group.var = "Sex",
+  strata.var = NULL,
+  adj.vars = NULL,
+  base.size = 16,
+  theme.choice = "bw",
+  palette = NULL,
+  pdf = TRUE,
+  file.ann = NULL,
+  pdf.wid = 20,
+  pdf.hei = 8.5)
 }
 }

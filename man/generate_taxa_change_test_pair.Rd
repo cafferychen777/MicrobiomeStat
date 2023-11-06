@@ -103,6 +103,21 @@ generate_taxa_change_test_pair(
   abund.filter = 1e-4,
   feature.dat.type = "count"
 )
+
+data(subset_pairs.obj)
+generate_taxa_change_test_pair(
+  data.obj = subset_pairs.obj,
+  subject.var = "MouseID",
+  time.var = "Antibiotic",
+  group.var = "Sex",
+  adj.vars = NULL,
+  change.base = "Baseline",
+  feature.change.func = "log fold change",
+  feature.level = c("Genus"),
+  prev.filter = 0.1,
+  abund.filter = 1e-4,
+  feature.dat.type = "count"
+)
 }
 
 }

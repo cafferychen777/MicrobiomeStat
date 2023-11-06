@@ -92,6 +92,21 @@ is_categorical <- function(x) {
 #'   abund.filter = 1e-4,
 #'   feature.dat.type = "count"
 #' )
+#'
+#' data(subset_pairs.obj)
+#' generate_taxa_change_test_pair(
+#'   data.obj = subset_pairs.obj,
+#'   subject.var = "MouseID",
+#'   time.var = "Antibiotic",
+#'   group.var = "Sex",
+#'   adj.vars = NULL,
+#'   change.base = "Baseline",
+#'   feature.change.func = "log fold change",
+#'   feature.level = c("Genus"),
+#'   prev.filter = 0.1,
+#'   abund.filter = 1e-4,
+#'   feature.dat.type = "count"
+#' )
 #' }
 #'
 #' @return A named list where each element corresponds to a feature level and contains a dataframe with the calculated taxa changes, their corresponding p-values, and other statistics from the linear model.
@@ -260,23 +275,22 @@ generate_taxa_change_test_pair <-
       }
 
       value_diff_matrix <- combined_data %>%
-        select(feature.level, subject = subject, value_diff) %>%
-        tidyr::spread(key = subject, value = value_diff) %>%
+        select(feature.level, !!sym(subject.var), value_diff) %>%
+        tidyr::spread(key = !!sym(subject.var), value = value_diff) %>%
         column_to_rownames(var = feature.level) %>%
         as.matrix()
 
       unique_meta_tab <- meta_tab %>%
-        filter(subject %in% colnames(value_diff_matrix)) %>%
+        filter(!!sym(subject.var) %in% colnames(value_diff_matrix)) %>%
         select(all_of(c(subject.var, group.var, adj.vars))) %>%
-        dplyr::distinct(subject, .keep_all = TRUE) %>% as_tibble()
+        dplyr::distinct(!!sym(subject.var), .keep_all = TRUE) %>% as_tibble()
 
       # 获取没有NA的value_diff_matrix的列名
       cols_order <- colnames(na.omit(value_diff_matrix))
 
       unique_meta_tab <-
-        unique_meta_tab %>% column_to_rownames("subject")
+        unique_meta_tab %>% column_to_rownames(subject.var)
 
-      # 使用match()函数生成索引并对unique_meta_tab进行排序，再设回行名为 'subject'
       sorted_unique_meta_tab <- unique_meta_tab %>%
         dplyr::slice(match(cols_order, rownames(unique_meta_tab)))
 
@@ -294,7 +308,7 @@ generate_taxa_change_test_pair <-
       value_diff_long <- value_diff_matrix %>%
         as.data.frame() %>%
         rownames_to_column(feature.level) %>%
-        tidyr::gather(key = "subject", value = "value", -feature.level)
+        tidyr::gather(key = !!sym(subject.var), value = "value", -feature.level)
 
       sub_test.list <-
         lapply(value_diff_long %>% select(all_of(feature.level)) %>% pull() %>% unique(), function(taxon) {
@@ -302,8 +316,8 @@ generate_taxa_change_test_pair <-
             dplyr::filter(!!sym(feature.level) == taxon) %>%
             dplyr::left_join(sorted_unique_meta_tab %>%
                                as.data.frame() %>%
-                               rownames_to_column("subject"),
-                             by = "subject")
+                               rownames_to_column(subject.var),
+                             by = subject.var)
 
           # Run the linear model
           test_result <- lm(formula, data = test_df)

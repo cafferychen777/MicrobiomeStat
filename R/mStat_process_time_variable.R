@@ -37,6 +37,7 @@ mStat_process_time_variable <-
       c(t0.level, ts.levels)
     } else if (!is.null(t0.level) && is.null(ts.levels)) {
       # 如果 t0.level 不为 NULL，而 ts.levels 为 NULL
+      unique_vals <- as.character(unique_vals)
       c(t0.level, unique_vals[!unique_vals %in% t0.level])
     } else {
       unique_vals

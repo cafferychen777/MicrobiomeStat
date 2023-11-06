@@ -120,5 +120,20 @@ adj.vars = "group",
 change.base = "2",
 alpha.change.func = "log fold change"
 )
+
+peerj32.obj$meta.dat <- peerj32.obj$meta.dat \%>\%
+dplyr::rename(Day = time)
+
+generate_alpha_change_test_pair(
+data.obj = peerj32.obj,
+alpha.obj = NULL,
+time.var = "Day",
+alpha.name = c("shannon"),
+subject.var = "subject",
+group.var = "sex",
+adj.vars = "group",
+change.base = "2",
+alpha.change.func = "log fold change"
+)
 }
 }

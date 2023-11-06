@@ -183,7 +183,35 @@
 #'   theme.choice = "bw",
 #'   base.size = 18,
 #'   output.file = "/Users/apple/MicrobiomeStat/report.pdf"
+#'
+#' data(subset_pairs.obj)
+#' mStat_generate_report_pair(
+#'   data.obj = subset_pairs.obj,
+#'   group.var = "Sex",
+#'   test.adj.vars = NULL,
+#'   vis.adj.vars = NULL,
+#'   strata.var = NULL,
+#'   subject.var = "MouseID",
+#'   time.var = "Antibiotic",
+#'   change.base = "Baseline",
+#'   alpha.obj = NULL,
+#'   alpha.name = c("shannon", "observed_species"),
+#'   dist.obj = NULL,
+#'   dist.name = c("BC",'Jaccard'),
+#'   feature.change.func = "relative change",
+#'   vis.feature.level = c("Genus", "Family"),
+#'   test.feature.level = c("Genus", "Family"),
+#'   bar.area.feature.no = 30,
+#'   heatmap.feature.no = 30,
+#'   dotplot.feature.no = 20,
+#'   feature.dat.type = "count",
+#'   feature.mt.method = "none",
+#'   feature.sig.level = 0.1,
+#'   theme.choice = "bw",
+#'   base.size = 18,
+#'   output.file = "/Users/apple/MicrobiomeStat/report.pdf"
 #' )
+#'
 #' }
 #' @export
 mStat_generate_report_pair <- function(data.obj,

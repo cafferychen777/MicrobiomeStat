@@ -110,7 +110,33 @@ generate_taxa_heatmap_pair(
   subject.var = "subject",
   time.var = "time",
   group.var = "group",
-  strata.var = "sex",
+  strata.var = NULL,
+  feature.level = c("Phylum","Family","Genus"),
+  feature.dat.type = "count",
+  features.plot = NULL,
+  top.k.plot = NULL,
+  top.k.func = NULL,
+  prev.filter = 0.01,
+  abund.filter = 0.001,
+  cluster.rows = NULL,
+  cluster.cols = NULL,
+  base.size = 12,
+  palette = NULL,
+  pdf = TRUE,
+  file.ann = NULL,
+  pdf.wid = 11,
+  pdf.hei = 8.5
+)
+
+data(subset_T2D.obj)
+subset_T2D.obj2 <- mStat_subset_data(subset_T2D.obj,
+condition = "visit_number \%in\% c('   1', '   2')")
+generate_taxa_heatmap_pair(
+  data.obj = subset_T2D.obj2,
+  subject.var = "subject_id",
+  time.var = "visit_number",
+  group.var = "subject_race",
+  strata.var = "subject_gender",
   feature.level = c("Phylum","Family","Genus"),
   feature.dat.type = "count",
   features.plot = NULL,
