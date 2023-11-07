@@ -961,7 +961,7 @@ if (length(significant_vars) != 0) {
 }
 ```
 
-```{r taxa-boxplot-single-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 8, fig.height = 4}
+```{r taxa-boxplot-single-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 8, fig.height = 4, warning = FALSE}
 if (length(significant_vars) != 0){
 taxa_indiv_boxplot_results_sig_features
 }
