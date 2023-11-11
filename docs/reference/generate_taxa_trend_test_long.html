@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">MicrobiomeStat</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -172,8 +172,25 @@ the slope of time.var is tested without adjusting for any additional covariates.
 <span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"studyid"</span>,</span></span>
 <span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"month_num"</span>,</span></span>
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"delivery"</span>,</span></span>
+<span class="r-in"><span>  adj.vars <span class="op">=</span> <span class="st">"diet"</span>,</span></span>
 <span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Phylum"</span>,<span class="st">"Class"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"count"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"proportion"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">generate_taxa_trend_test_long</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">ecam.obj</span>,</span></span>
+<span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"studyid"</span>,</span></span>
+<span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"month_num"</span>,</span></span>
+<span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"delivery"</span>,</span></span>
+<span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Phylum"</span>,<span class="st">"Class"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"proportion"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">generate_taxa_trend_test_long</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">ecam.obj</span>,</span></span>
+<span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"studyid"</span>,</span></span>
+<span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"month_num"</span>,</span></span>
+<span class="r-in"><span>  group.var <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Phylum"</span>,<span class="st">"Class"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"proportion"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Example 2</span></span></span>
@@ -197,6 +214,7 @@ the slope of time.var is tested without adjusting for any additional covariates.
 <span class="r-in"><span>  test.list <span class="op">=</span> <span class="va">test.list</span>,</span></span>
 <span class="r-in"><span>  feature.sig.level <span class="op">=</span> <span class="fl">0.1</span>,</span></span>
 <span class="r-in"><span>  feature.mt.method <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>

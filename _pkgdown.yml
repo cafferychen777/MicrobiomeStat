@@ -122,6 +122,7 @@ reference:
       - peerj32.obj
       - smokers
       - subset_T2D.obj
+      - subset_pairs.obj
 
   - title: "Miscellaneous"
     contents:

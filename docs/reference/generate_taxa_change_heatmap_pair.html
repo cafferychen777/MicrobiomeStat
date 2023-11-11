@@ -14,7 +14,7 @@ The plot can either be displayed interactively or saved as a PDF file."><meta pr
     
     <a class="navbar-brand me-2" href="../index.html">MicrobiomeStat</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -222,6 +222,32 @@ Default 0 removes no taxa by abundance filtering.</p></dd>
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
 <span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
 <span class="r-in"><span>  change.base <span class="op">=</span> <span class="st">"1"</span>,</span></span>
+<span class="r-in"><span>  feature.change.func <span class="op">=</span> <span class="st">"relative change"</span>,</span></span>
+<span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Genus"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"count"</span>,</span></span>
+<span class="r-in"><span>  features.plot <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  top.k.plot <span class="op">=</span> <span class="fl">10</span>,</span></span>
+<span class="r-in"><span>  top.k.func <span class="op">=</span> <span class="st">"sd"</span>,</span></span>
+<span class="r-in"><span>  prev.filter <span class="op">=</span> <span class="fl">0.1</span>,</span></span>
+<span class="r-in"><span>  abund.filter <span class="op">=</span> <span class="fl">0.001</span>,</span></span>
+<span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">10</span>,</span></span>
+<span class="r-in"><span>  palette <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  cluster.rows <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  cluster.cols <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>  pdf <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>  file.ann <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  pdf.wid <span class="op">=</span> <span class="fl">11</span>,</span></span>
+<span class="r-in"><span>  pdf.hei <span class="op">=</span> <span class="fl">8.5</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">subset_pairs.obj</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">generate_taxa_change_heatmap_pair</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">subset_pairs.obj</span>,</span></span>
+<span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"MouseID"</span>,</span></span>
+<span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"Antibiotic"</span>,</span></span>
+<span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"Sex"</span>,</span></span>
+<span class="r-in"><span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  change.base <span class="op">=</span> <span class="st">"Baseline"</span>,</span></span>
 <span class="r-in"><span>  feature.change.func <span class="op">=</span> <span class="st">"relative change"</span>,</span></span>
 <span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Genus"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="st">"count"</span>,</span></span>

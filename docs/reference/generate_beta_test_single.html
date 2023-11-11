@@ -14,7 +14,7 @@ on beta diversity. The function outputs the PERMANOVA results for the selected b
     
     <a class="navbar-brand me-2" href="../index.html">MicrobiomeStat</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -117,6 +117,28 @@ if a time variable is provided. Default NULL does not subset data.</p></dd>
 <span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">peerj32.obj</span>,</span></span>
 <span class="r-in"><span>  dist.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"time"</span>,</span></span>
+<span class="r-in"><span>  t.level <span class="op">=</span> <span class="st">"2"</span>,</span></span>
+<span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
+<span class="r-in"><span>  adj.vars <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
+<span class="r-in"><span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'BC'</span>, <span class="st">'Jaccard'</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Perform beta diversity tests using PERMANOVA</span></span></span>
+<span class="r-in"><span><span class="fu">generate_beta_test_single</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">peerj32.obj</span>,</span></span>
+<span class="r-in"><span>  dist.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"time"</span>,</span></span>
+<span class="r-in"><span>  t.level <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
+<span class="r-in"><span>  adj.vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sex"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'BC'</span>, <span class="st">'Jaccard'</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Perform beta diversity tests using PERMANOVA</span></span></span>
+<span class="r-in"><span><span class="fu">generate_beta_test_single</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">peerj32.obj</span>,</span></span>
+<span class="r-in"><span>  dist.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"time"</span>,</span></span>
 <span class="r-in"><span>  t.level <span class="op">=</span> <span class="st">"1"</span>,</span></span>
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
 <span class="r-in"><span>  adj.vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sex"</span><span class="op">)</span>,</span></span>
@@ -131,6 +153,41 @@ if a time variable is provided. Default NULL does not subset data.</p></dd>
 <span class="r-in"><span>  t.level <span class="op">=</span> <span class="st">"2"</span>,</span></span>
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
 <span class="r-in"><span>  adj.vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sex"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'BC'</span>, <span class="st">'Jaccard'</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">ecam.obj</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Perform beta diversity tests using PERMANOVA</span></span></span>
+<span class="r-in"><span><span class="fu">generate_beta_test_single</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">ecam.obj</span>,</span></span>
+<span class="r-in"><span>  dist.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"month"</span>,</span></span>
+<span class="r-in"><span>  t.level <span class="op">=</span> <span class="st">"0"</span>,</span></span>
+<span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"delivery"</span>,</span></span>
+<span class="r-in"><span>  adj.vars <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'BC'</span>, <span class="st">'Jaccard'</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Perform beta diversity tests using PERMANOVA</span></span></span>
+<span class="r-in"><span><span class="fu">generate_beta_test_single</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">ecam.obj</span>,</span></span>
+<span class="r-in"><span>  dist.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"month"</span>,</span></span>
+<span class="r-in"><span>  t.level <span class="op">=</span> <span class="st">"0"</span>,</span></span>
+<span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"delivery"</span>,</span></span>
+<span class="r-in"><span>  adj.vars <span class="op">=</span> <span class="st">"diet"</span>,</span></span>
+<span class="r-in"><span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'BC'</span>, <span class="st">'Jaccard'</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">dist.obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="mStat_calculate_beta_diversity.html">mStat_calculate_beta_diversity</a></span><span class="op">(</span><span class="va">ecam.obj</span>, dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'BC'</span>, <span class="st">'Jaccard'</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">generate_beta_test_single</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">ecam.obj</span>,</span></span>
+<span class="r-in"><span>  dist.obj <span class="op">=</span> <span class="va">dist.obj</span>,</span></span>
+<span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"month"</span>,</span></span>
+<span class="r-in"><span>  t.level <span class="op">=</span> <span class="st">"1"</span>,</span></span>
+<span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"delivery"</span>,</span></span>
+<span class="r-in"><span>  adj.vars <span class="op">=</span> <span class="st">"diet"</span>,</span></span>
 <span class="r-in"><span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'BC'</span>, <span class="st">'Jaccard'</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>

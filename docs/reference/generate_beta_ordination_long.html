@@ -16,7 +16,7 @@ saving the plots as PDF files."><meta property="og:image" content="https://caffe
     
     <a class="navbar-brand me-2" href="../index.html">MicrobiomeStat</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -238,16 +238,17 @@ Colors will be mapped to groups based on order of group levels.</p></dd>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">ecam.obj</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">dist.obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="mStat_calculate_beta_diversity.html">mStat_calculate_beta_diversity</a></span><span class="op">(</span><span class="va">ecam.obj</span>, <span class="st">"BC"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">pc.obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="mStat_calculate_PC.html">mStat_calculate_PC</a></span><span class="op">(</span><span class="va">dist.obj</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">generate_beta_ordination_long</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">ecam.obj</span>,</span></span>
-<span class="r-in"><span>  dist.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  pc.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  dist.obj <span class="op">=</span> <span class="va">dist.obj</span>,</span></span>
+<span class="r-in"><span>  pc.obj <span class="op">=</span> <span class="va">pc.obj</span>,</span></span>
 <span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"subject.id"</span>,</span></span>
-<span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"month_num"</span>,</span></span>
-<span class="r-in"><span>  t0.level <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  ts.levels <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  group.var <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"month"</span>,</span></span>
+<span class="r-in"><span>  t0.level <span class="op">=</span> <span class="st">"0"</span>,</span></span>
+<span class="r-in"><span>  ts.levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">ecam.obj</span><span class="op">$</span><span class="va">meta.dat</span><span class="op">$</span><span class="va">month</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span>,</span></span>
+<span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"diet"</span>,</span></span>
 <span class="r-in"><span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  adj.vars <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  dist.name <span class="op">=</span> <span class="st">'BC'</span>,</span></span>
