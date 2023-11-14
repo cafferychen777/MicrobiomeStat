@@ -96,7 +96,7 @@
 #'   pc.obj = pc.obj,
 #'   subject.var = "subject_id",
 #'   time.var = "visit_number_num",
-#'   t.level = "1",
+#'   t.level = NULL,
 #'   group.var = "subject_race",
 #'   strata.var = "subject_gender",
 #'   adj.vars = "sample_body_site",
@@ -146,10 +146,10 @@ generate_beta_ordination_single <-
           dist.obj <-
             mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
         } else {
-          if (length(levels(as.factor(meta_tab[,time.var]))) != 1){
+          metadata <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var,group.var,strata.var,time.var)))
+          if (length(levels(as.factor(metadata[,time.var]))) != 1){
             message("Multiple time points detected in your dataset. It is recommended to either set t.level or utilize functions for longitudinal data analysis.")
           }
-          metadata <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var,group.var,strata.var,time.var)))
           dist.obj <-
             mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
         }
@@ -169,10 +169,10 @@ generate_beta_ordination_single <-
             data.obj <- mStat_subset_data(data.obj, condition = condition)
             metadata <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var,group.var,strata.var,time.var)))
           } else {
-            if (length(levels(as.factor(meta_tab[,time.var]))) != 1){
+            metadata <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var,group.var,strata.var,time.var)))
+            if (length(levels(as.factor(metadata[,time.var]))) != 1){
               message("Multiple time points detected in your dataset. It is recommended to either set t.level or utilize functions for longitudinal data analysis.")
             }
-            metadata <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var,group.var,strata.var,time.var)))
           }
         } else {
           metadata <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var,group.var,strata.var,time.var)))
