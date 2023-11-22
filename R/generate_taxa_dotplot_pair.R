@@ -185,32 +185,9 @@ generate_taxa_dotplot_pair <- function(data.obj,
                    abund.filter = abund.filter) %>%
       rownames_to_column(feature.level)
 
-    compute_function <- function(top.k.func) {
-      if (is.function(top.k.func)) {
-        results <-
-          top.k.func(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
-      } else {
-        switch(top.k.func,
-               "mean" = {
-                 results <-
-                   rowMeans(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
-                            na.rm = TRUE)
-               },
-               "sd" = {
-                 results <-
-                   matrixStats::rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
-                          na.rm = TRUE)
-                 names(results) <- rownames(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
-               },
-               stop("Invalid function specified"))
-      }
-
-      return(results)
-    }
-
-    if (is.null(features.plot) &&
-        !is.null(top.k.plot) && !is.null(top.k.func)) {
-      features.plot <- names(sort(compute_function(top.k.func), decreasing = TRUE)[1:top.k.plot])
+    if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
+      computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
+      features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
     }
 
     # 转换计数为数值类型
