@@ -140,7 +140,7 @@ generate_beta_ordination_single(
   pc.obj = pc.obj,
   subject.var = "subject_id",
   time.var = "visit_number_num",
-  t.level = "1",
+  t.level = NULL,
   group.var = "subject_race",
   strata.var = "subject_gender",
   adj.vars = "sample_body_site",
