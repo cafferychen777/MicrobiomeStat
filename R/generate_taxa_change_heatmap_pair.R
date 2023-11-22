@@ -201,60 +201,29 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
                    abund.filter = abund.filter) %>%
       rownames_to_column(feature.level)
 
-    compute_function <- function(top.k.func) {
-      if (is.function(top.k.func)) {
-        results <-
-          top.k.func(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
-      } else {
-        switch(top.k.func,
-               "mean" = {
-                 results <-
-                   rowMeans(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
-                            na.rm = TRUE)
-               },
-               "sd" = {
-                 results <-
-                   matrixStats::rowSds(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix(),
-                                       na.rm = TRUE)
-                 names(results) <-
-                   rownames(otu_tax_agg %>% column_to_rownames(feature.level) %>% as.matrix())
-               },
-               stop("Invalid function specified"))
-      }
-
-      return(results)
+    if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
+      computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
+      features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
     }
 
-    if (is.null(features.plot) &&
-        !is.null(top.k.plot) && !is.null(top.k.func)) {
-      features.plot <-
-        names(sort(compute_function(top.k.func), decreasing = TRUE)[1:top.k.plot])
-    }
-
-    # 将otu_tax_agg_numeric从宽格式转换为长格式
     otu_tax_long <- otu_tax_agg %>%
       tidyr::gather(key = "sample", value = "value",-feature.level)
 
-    # 将otu_tax_long和meta_tab按sample列连接
     merged_data <- otu_tax_long %>%
       dplyr::inner_join(meta_tab, by = "sample")
 
-    # 根据time列分组
     grouped_data <- merged_data %>%
       dplyr::group_by(!!sym(time.var))
 
     change.after <-
       unique(grouped_data %>% select(all_of(c(time.var))))[unique(grouped_data %>% select(all_of(c(time.var)))) != change.base]
 
-    # 拆分成一个列表，每个time值都有一个独立的tibble
     split_data <-
       split(merged_data, f = grouped_data %>% select(all_of(c(time.var))))
 
-    # 提取split_data中的第一个和第二个表
     data_time_1 <- split_data[[change.base]]
     data_time_2 <- split_data[[change.after]]
 
-    # 将这两个表连接在一起，以便计算差值
     combined_data <- data_time_1 %>%
       dplyr::inner_join(
         data_time_2,
