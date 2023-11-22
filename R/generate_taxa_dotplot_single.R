@@ -74,15 +74,15 @@
 #' generate_taxa_dotplot_single(
 #'   data.obj = peerj32.obj,
 #'   subject.var = "subject",
-#'   time.var = NULL,
-#'   t.level = NULL,
+#'   time.var = "time",
+#'   t.level = "1",
 #'   group.var = "group",
 #'   strata.var = "sex",
 #'   feature.level = c("Family"),
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
-#'   top.k.plot = NULL,
-#'   top.k.func = NULL,
+#'   top.k.plot = 6,
+#'   top.k.func = "sd",
 #'   prev.filter = 0.01,
 #'   abund.filter = 0.01,
 #'   base.size = 16,
@@ -189,49 +189,26 @@ generate_taxa_dotplot_single <- function(data.obj,
       otu_tax_agg <- data.obj$feature.tab
     }
 
-    compute_function <- function(top.k.func) {
-      if (is.function(top.k.func)) {
-        results <-
-          top.k.func(otu_tax_agg %>% as.matrix())
-      } else {
-        switch(top.k.func,
-               "mean" = {
-                 results <-
-                   rowMeans(otu_tax_agg %>% as.matrix(),
-                            na.rm = TRUE)
-               },
-               "sd" = {
-                 results <-
-                   matrixStats::rowSds(otu_tax_agg %>% as.matrix(),
-                          na.rm = TRUE)
-                 names(results) <- rownames(otu_tax_agg %>% as.matrix())
-               },
-               stop("Invalid function specified"))
-      }
-
-      return(results)
-    }
-
-    if (is.null(features.plot) &&
-        !is.null(top.k.plot) && !is.null(top.k.func)) {
-      features.plot <- names(sort(compute_function(top.k.func), decreasing = TRUE)[1:top.k.plot])
-    }
-
-    otu_tax_agg_filter <-  otu_tax_agg %>%
+    otu_tax_agg <-  otu_tax_agg %>%
       as.data.frame() %>%
       mStat_filter(prev.filter = prev.filter,
                    abund.filter = abund.filter) %>%
-      rownames_to_column(feature.level)
+      tibble::rownames_to_column(feature.level)
+
+    if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
+      computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
+      features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
+    }
 
     # 计算每个分组的平均丰度
-    otu_tab_norm_agg <- otu_tax_agg_filter %>%
+    otu_tab_norm_agg <- otu_tax_agg %>%
       tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
       dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
       dplyr::group_by(!!sym(group.var),!!sym(feature.level)) %>% # Add time.var to dplyr::group_by
       dplyr::summarise(mean_abundance = sqrt(mean(count)))
 
     # 计算所有样本中的prevalence
-    prevalence_all <- otu_tax_agg_filter %>%
+    prevalence_all <- otu_tax_agg %>%
       column_to_rownames(feature.level) %>%
       as.matrix() %>%
       as.table() %>%
@@ -242,7 +219,6 @@ generate_taxa_dotplot_single <- function(data.obj,
       ) %>%
       column_to_rownames("Var1") %>%
       rownames_to_column(feature.level)
-
 
     # 将两个结果合并
     otu_tab_norm_agg <-
@@ -258,9 +234,7 @@ generate_taxa_dotplot_single <- function(data.obj,
     }
 
     if (!is.null(features.plot)){
-
       otu_tab_norm_agg <- otu_tab_norm_agg %>% filter(!!sym(feature.level) %in% features.plot)
-
     }
 
     # 将患病率添加为点的大小，并将平均丰度作为点的颜色
