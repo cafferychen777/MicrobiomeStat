@@ -97,17 +97,6 @@ generate_taxa_volcano_single(
  feature.sig.level = 0.1,
  feature.mt.method = "none"
 )
-test.list <- generate_taxa_test_pair(
-  data.obj = peerj32.obj,
-  subject.var = "subject",
-  time.var = "time",
-  group.var = "group",
-  adj.vars = NULL,
-  feature.level = c("Genus"),
-  prev.filter = 0.1,
-  abund.filter = 0.0001,
-  feature.dat.type = "other"
-)
 }
 
 }
