@@ -94,7 +94,7 @@ mStat_normalize_data <-
     } else if (method == "TSS") {
       scale_factor <- colSums(otu_tab)
     } else if (method == "GMPR") {
-      scale_factor <- GMPR(otu_tab)
+      scale_factor <- GUniFrac::GMPR(otu_tab)
     } else if (method == "CSS") {
       scale_factor <- apply(otu_tab, 2, function(x) {
         sum(x) / median(x[x > 0])
