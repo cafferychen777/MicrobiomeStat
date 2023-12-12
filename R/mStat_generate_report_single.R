@@ -189,7 +189,7 @@ mStat_generate_report_single <- function(data.obj,
                                          test.adj.vars = NULL,
                                          strata.var = NULL,
                                          subject.var,
-                                         time.var,
+                                         time.var = NULL,
                                          t.level = NULL,
                                          alpha.obj = NULL,
                                          alpha.name = c("shannon", "observed_species"),
@@ -246,6 +246,8 @@ custom_palette_status <- ifelse(is.null(palette), 'NULL', 'Not NULL')
 
 custom_file.ann_status <- ifelse(is.null(file.ann), 'NULL', 'Not NULL')
 
+custom_time.var_status <- ifelse(is.null(time.var), 'NULL', time.var)
+
 custom_t.level_status <- ifelse(is.null(t.level), 'NULL', t.level)
 
 custom_test.adj.vars_status <- ifelse(is.null(test.adj.vars), 'NULL', toString(test.adj.vars))
@@ -295,7 +297,7 @@ params_data <- data.frame(Parameter = c('data.obj',
                                         custom_vis.adj.vars_status,
                                         custom_strata_status,
                                         subject.var,
-                                        time.var,
+                                        custom_time.var_status,
                                         custom_t.level_status,
                                         deparse(substitute(alpha.obj)),
                                         toString(alpha.name),
