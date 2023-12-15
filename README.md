@@ -4,6 +4,11 @@ MicrobiomeStat: Supporting Longitudinal Microbiome Analysis in R
 <p align="center" style="margin:0; padding:0;">
 <img src="man/figures/logo.png" alt="MicrobiomeStat Logo" width="400" style="margin:0; padding:0;"/>
 </p>
+
+🌟 **If you find `MicrobiomeStat` helpful, please consider giving us a
+star on GitHub!** Your support greatly motivates us to improve and
+maintain this project. 🌟
+
 <!-- badges: start -->
 
 [![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/MicrobiomeStat)](https://cran.r-project.org/package=MicrobiomeStat)
