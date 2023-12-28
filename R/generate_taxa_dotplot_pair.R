@@ -278,7 +278,6 @@ generate_taxa_dotplot_pair <- function(data.obj,
                                name = "Mean Abundance")
         } else {
           quantiles <- quantile(otu_tab_norm_agg$mean_abundance, probs = c(0, 1/3, 2/3, 1))
-          # 创建上标标签
           labels <- sapply(quantiles, function(x) {
             as.expression(bquote(.(round(x, 2))^2))
           })
