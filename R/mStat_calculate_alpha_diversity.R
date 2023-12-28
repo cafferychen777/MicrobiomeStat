@@ -40,6 +40,8 @@ mStat_calculate_alpha_diversity <- function(x, alpha.name) {
       tibble(!!index := result, sample = rownames(x_transpose)) %>% column_to_rownames("sample")
     })
 
+    names(alpha.obj) <- alpha.name
+
   message("Diversity calculations complete.")
   return(alpha.obj)
 }
