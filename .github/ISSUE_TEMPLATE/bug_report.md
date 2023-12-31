@@ -27,9 +27,23 @@ Describe what actually happened when you ran the code.
 If applicable, add screenshots to help explain your problem.
 
 **Environment Information:**
+
  - Operating System:
  - R Version:
  - Package Version:
+ - Session Information (if applicable):
+
+**Impact**
+Describe if this bug affects other aspects of your work and its urgency.
+
+**Attempted Solutions**
+Describe any attempts you've made to solve the issue.
+
+**Related Dependency Versions**
+List the versions of any related dependencies, if applicable.
+
+**Links to Related Issues or Discussions**
+Provide links to related issues or discussions, if any.
 
 **Additional Context**
 Add any other context about the problem here, e.g., is this issue sporadic or consistent? Did it work in previous versions?
