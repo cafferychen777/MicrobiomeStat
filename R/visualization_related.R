@@ -301,4 +301,33 @@ grid2grob <- function(plot_call) {
   grid::grid.grabExpr(plot_call, warn=0)
 }
 
+#' Determine if a variable is categorical
+#'
+#' This function checks if a given variable is categorical. A variable is considered categorical if it is a factor, a character, or a logical type. Additionally, numeric variables with a small number of unique values (less than a specified threshold) are also considered categorical.
+#'
+#' @param x The variable to be tested for being categorical.
+#'
+#' @return A logical value indicating whether the input variable is categorical (TRUE) or not (FALSE).
+#'
+#' @examples
+#' is_categorical(factor(c("A", "B", "C")))
+#' is_categorical(c("A", "B", "C"))
+#' is_categorical(c(TRUE, FALSE))
+#' is_categorical(c(1, 2, 3, 4))
+#' is_categorical(c(1.2, 3.5, 4.6, 7.8))
+#'
+#' @export
+is_categorical <- function(x) {
+  if (is.factor(x) || is.character(x) || is.logical(x)) {
+    return(TRUE)
+  } else if (is.numeric(x) &&
+             length(unique(x)) < 10) {
+    # 这里的10你可以根据需要调整
+    return(TRUE)
+  } else {
+    return(FALSE)
+  }
+}
+
+
 
