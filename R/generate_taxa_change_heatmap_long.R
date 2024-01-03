@@ -74,9 +74,9 @@
 #' generate_taxa_change_heatmap_long(
 #'   data.obj = ecam.obj,
 #'   subject.var = "studyid",
-#'   time.var = "month_num",
-#'   t0.level = NULL,
-#'   ts.levels = NULL,
+#'   time.var = "month",
+#'   t0.level = unique(ecam.obj$meta.dat$month)[1],
+#'   ts.levels = unique(ecam.obj$meta.dat$month)[-1],
 #'   group.var = "antiexposedall",
 #'   strata.var = "diet",
 #'   feature.level = c("Family","Class"),
@@ -222,15 +222,8 @@ generate_taxa_change_heatmap_long <- function(data.obj,
       features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
     }
 
-    otu_tab_norm <-
-      otu_tax_agg %>%
-      column_to_rownames(var = feature.level) %>%
-      as.matrix()
-
     # Calculate the mean_value for each combination of feature.level, group.var, and time.var
-    df_mean_value <- otu_tab_norm %>%
-      as.data.frame() %>%
-      rownames_to_column(var = feature.level) %>%
+    df_mean_value <- otu_tax_agg %>%
       tidyr::gather(key = "sample", value = "value",-one_of(feature.level)) %>%
       dplyr::left_join(meta_tab %>%
                   rownames_to_column("sample"), "sample") %>%
