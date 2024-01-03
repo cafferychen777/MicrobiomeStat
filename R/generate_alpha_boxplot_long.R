@@ -317,22 +317,25 @@ generate_alpha_boxplot_long <- function (data.obj,
         length(unique(alpha_df[[subject.var]])) > 25) {
       if (!is.null(strata.var) & !is.null(group.var)) {
         average_alpha_df <- alpha_df %>%
-          dplyr::group_by(!!sym(strata.var),!!sym(group.var), !!sym(time.var)) %>%
-          dplyr::summarise(dplyr::across(!!sym(index), mean, na.rm = TRUE), .groups = "drop") %>%
+          dplyr::group_by(!!sym(strata.var), !!sym(group.var), !!sym(time.var)) %>%
+          dplyr::summarise(dplyr::across(!!sym(index), \(x) mean(x, na.rm = TRUE)), .groups = "drop") %>%
           dplyr::ungroup() %>%
-          dplyr::mutate(!!sym(subject.var) := "ALL") %>% dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var)))
+          dplyr::mutate(!!sym(subject.var) := "ALL") %>%
+          dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var)))
       } else if (!is.null(group.var)) {
         average_alpha_df <- alpha_df %>%
           dplyr::group_by(!!sym(group.var), !!sym(time.var)) %>%
-          dplyr::summarise(dplyr::across(!!sym(index), mean, na.rm = TRUE), .groups = "drop") %>%
+          dplyr::summarise(dplyr::across(!!sym(index), \(x) mean(x, na.rm = TRUE)), .groups = "drop") %>%
           dplyr::ungroup() %>%
-          dplyr::mutate(!!sym(subject.var) := "ALL") %>% dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var)))
+          dplyr::mutate(!!sym(subject.var) := "ALL") %>%
+          dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var)))
       } else {
         average_alpha_df <- alpha_df %>%
           dplyr::group_by(!!sym(time.var)) %>%
-          dplyr::summarise(dplyr::across(!!sym(index), mean, na.rm = TRUE), .groups = "drop") %>%
+          dplyr::summarise(dplyr::across(!!sym(index), \(x) mean(x, na.rm = TRUE)), .groups = "drop") %>%
           dplyr::ungroup() %>%
-          dplyr::mutate(!!sym(subject.var) := "ALL") %>% dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var)))
+          dplyr::mutate(!!sym(subject.var) := "ALL") %>%
+          dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var)))
       }
     }
 
