@@ -1,31 +1,3 @@
-#' Determine if a variable is categorical
-#'
-#' This function checks if a given variable is categorical. A variable is considered categorical if it is a factor, a character, or a logical type. Additionally, numeric variables with a small number of unique values (less than a specified threshold) are also considered categorical.
-#'
-#' @param x The variable to be tested for being categorical.
-#'
-#' @return A logical value indicating whether the input variable is categorical (TRUE) or not (FALSE).
-#'
-#' @examples
-#' is_categorical(factor(c("A", "B", "C")))
-#' is_categorical(c("A", "B", "C"))
-#' is_categorical(c(TRUE, FALSE))
-#' is_categorical(c(1, 2, 3, 4))
-#' is_categorical(c(1.2, 3.5, 4.6, 7.8))
-#'
-#' @export
-is_categorical <- function(x) {
-  if (is.factor(x) || is.character(x) || is.logical(x)) {
-    return(TRUE)
-  } else if (is.numeric(x) &&
-             length(unique(x)) < 10) {
-    # 这里的10你可以根据需要调整
-    return(TRUE)
-  } else {
-    return(FALSE)
-  }
-}
-
 #' Compute taxa changes between time points and analyze differential abundance between groups
 #'
 #' This function calculates taxa abundance changes between two time points in the metadata, using the time values specified in `time.var` and baseline `change.base`.
@@ -274,8 +246,12 @@ generate_taxa_change_test_pair <-
           combined_data %>% dplyr::mutate(value_diff = value_time_2 - value_time_1)
       }
 
+      message("Note: For repeated measurements of the same subject at the same time point, the average will be taken.")
+
       value_diff_matrix <- combined_data %>%
         select(feature.level, !!sym(subject.var), value_diff) %>%
+        dplyr::group_by(!!sym(feature.level), !!sym(subject.var)) %>%
+        dplyr::summarise(value_diff = mean(value_diff, na.rm = TRUE)) %>%
         tidyr::spread(key = !!sym(subject.var), value = value_diff) %>%
         column_to_rownames(var = feature.level) %>%
         as.matrix()
@@ -285,7 +261,6 @@ generate_taxa_change_test_pair <-
         select(all_of(c(subject.var, group.var, adj.vars))) %>%
         dplyr::distinct(!!sym(subject.var), .keep_all = TRUE) %>% as_tibble()
 
-      # 获取没有NA的value_diff_matrix的列名
       cols_order <- colnames(na.omit(value_diff_matrix))
 
       unique_meta_tab <-
@@ -294,13 +269,12 @@ generate_taxa_change_test_pair <-
       sorted_unique_meta_tab <- unique_meta_tab %>%
         dplyr::slice(match(cols_order, rownames(unique_meta_tab)))
 
-      # 计算每个分组的平均丰度
       prop_prev_data <-
         otu_tax_agg %>%
         as.matrix() %>%
         as.table() %>%
         as.data.frame() %>%
-        dplyr::group_by(Var1) %>%  # Var1是taxa
+        dplyr::group_by(Var1) %>%
         dplyr::summarise(avg_abundance = mean(Freq),
                          prevalence = sum(Freq > 0) / dplyr::n()) %>% column_to_rownames("Var1") %>%
         rownames_to_column(feature.level)
@@ -360,7 +334,6 @@ generate_taxa_change_test_pair <-
         pull() %>%
         unique()
 
-      # 找到所有唯一的Term
       unique_terms <-
         grep(paste0("^", group.var, "$|^", group.var, ".*"),
              unique(unlist(
@@ -369,7 +342,6 @@ generate_taxa_change_test_pair <-
              )),
              value = TRUE)
 
-      # 为每一个Term提取数据并存入新list
       result_list <- lapply(unique_terms, function(term) {
         do.call(rbind, lapply(sub_test.list, function(df) {
           df %>% dplyr::filter(Term == term)
@@ -397,11 +369,10 @@ generate_taxa_change_test_pair <-
           )
       })
 
-      # 给新list命名
       names(result_list) <- unique_terms
 
       new_names <- sapply(names(result_list), function(name) {
-        # 检查名称是否匹配指定模式，并且不是ANOVA的结果
+
         if (grepl(paste0("^", group.var), name) &&
             !grepl(paste0("^", group.var, "$"), name)) {
           sub_name <- sub(paste0(group.var), "", name)
@@ -418,17 +389,6 @@ generate_taxa_change_test_pair <-
 
     # Assign names to the elements of test.list
     names(test.list) <- feature.level
-
-    # plot.list <-
-    #   generate_taxa_volcano_single(
-    #     data.obj = data.obj,
-    #     group.var = group.var,
-    #     test.list = test.list,
-    #     feature.sig.level = feature.sig.level,
-    #     feature.mt.method = feature.mt.method
-    #   )
-    #
-    # print(plot.list)
 
     return(test.list)
 
