@@ -28,6 +28,7 @@
 #' # Subset data object by condition
 #' condition <- "time == '1'" # for example
 #' subset_peerj32.obj2 <- mStat_subset_data(data.obj = peerj32.obj, condition = condition)
+#'
 #' }
 #'
 #' @details
