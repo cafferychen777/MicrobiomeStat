@@ -84,10 +84,9 @@ extract_coef <- function(model) {
 #' data.obj = peerj32.obj,
 #' alpha.obj = NULL,
 #' time.var = "time",
-#' alpha.name = c("shannon"),
+#' alpha.name = c("shannon", "simpson", "ace"),
 #' subject.var = "subject",
-#' group.var = "group",
-#' adj.vars = "sex"
+#' group.var = "group"
 #' )
 #'
 #' @export
@@ -99,7 +98,7 @@ generate_alpha_test_pair <-
            time.var,
            subject.var,
            group.var,
-           adj.vars) {
+           adj.vars = NULL) {
 
     if (is.null(alpha.name)){
       return()
