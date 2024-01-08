@@ -168,7 +168,7 @@ generate_alpha_dotplot_long <- function(data.obj,
       )
 
     if (pdf) {
-      pdf_filename <- paste0("dotplot_", feature.level, "_", group.names, "_", time.var)
+      pdf_filename <- paste0("dotplot_", "alpha", "_", group.names, "_", time.var)
       if (!is.null(group.var)) {
         pdf_filename <- paste0(pdf_filename, "_group_", group.var)
       }
