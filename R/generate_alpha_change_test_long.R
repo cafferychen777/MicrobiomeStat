@@ -150,9 +150,9 @@ generate_alpha_change_test_long <-
         alpha_dfs <- lapply(names(subset.test.list), \(alpha_name) {
           df <- subset.test.list[[alpha_name]]
           filtered_df <- filter(df, Term == term) %>%
-            select(-Term) %>%
-            mutate(Term = alpha_name) %>%
-            select(Term, everything())
+            dplyr::select(-Term) %>%
+            dplyr::mutate(Term = alpha_name) %>%
+            dplyr::select(Term, everything())
 
           if(nrow(filtered_df) == 0) {
             return(NULL)
@@ -165,8 +165,8 @@ generate_alpha_change_test_long <-
 
       all_terms <- lapply(all_terms, function(term) {
         if (term != group.var) {
-          modified_term <- str_replace(term, paste0("^", group.var), "")
-          modified_term <- str_trim(modified_term)
+          modified_term <- stringr::str_replace(term, paste0("^", group.var), "")
+          modified_term <- stringr::str_trim(modified_term)
           paste(sprintf("%s vs %s", modified_term, reference_level), "(Reference)")
         } else {
           term
