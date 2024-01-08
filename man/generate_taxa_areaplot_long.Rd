@@ -113,17 +113,36 @@ generate_taxa_areaplot_long(
   data.obj = ecam.obj,
   subject.var = "studyid",
   time.var = "month_num",
-  group.var = "diet",
-  strata.var = "antiexposedall",
-  feature.level = c("Class"),
+  group.var = "delivery",
+  strata.var = "diet",
+  feature.level = c("Genus"),
   feature.dat.type = "proportion",
-  feature.number = 20,
+  feature.number = 40,
   t0.level = NULL,
   ts.levels = NULL,
   base.size = 10,
   theme.choice = "bw",
   palette = NULL,
   pdf = TRUE,
+  file.ann = NULL
+)
+data(subset_T2D.obj)
+generate_taxa_areaplot_long(
+  data.obj = subset_T2D.obj,
+  subject.var = "subject_id",
+  time.var = "visit_number_num",
+  group.var = "subject_id",
+  strata.var = "subject_gender",
+  feature.level = c("Genus"),
+  feature.dat.type = "proportion",
+  feature.number = 40,
+  t0.level = NULL,
+  ts.levels = NULL,
+  base.size = 10,
+  theme.choice = "bw",
+  palette = NULL,
+  pdf = TRUE,
+  pdf.wid = 49,
   file.ann = NULL
 )
 }
