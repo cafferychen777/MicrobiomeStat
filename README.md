@@ -29,6 +29,27 @@ microbiome research.
 
 # News
 
+📢 **Update** (January 8th): Enhancement in Color Palette Functionality
+
+We are excited to announce a significant update to our color palette
+management in the majority of our functions. Users can now directly use
+predefined palette names such as “lancet”, “nejm”, among others, as
+values for the `palette` parameter. This update is part of our ongoing
+effort to enhance user experience and provide more intuitive and
+flexible options for data visualization.
+
+Key highlights of this update: - Integration of the `mStat_get_palette`
+function across various functions in our package. - Allows users to
+easily specify color palettes by name, such as “lancet”, “nejm”, “npg”,
+“aaas”, “jama”, “jco”, and “ucscgb”. - Ensures backward compatibility
+and introduces a more user-friendly approach to selecting color schemes
+for visualizations. - Aims to enhance the visual appeal and
+interpretability of plots and heatmaps generated using our package.
+
+This update is immediately available and we encourage users to explore
+these new options in their analyses. For detailed usage, please refer to
+the updated function documentation.
+
 📢 **Update** (October 20th): The Shiny interface is now officially
 available for use. It is currently configured to handle analysis for
 small to medium-sized datasets. The interface can be accessed via [this
