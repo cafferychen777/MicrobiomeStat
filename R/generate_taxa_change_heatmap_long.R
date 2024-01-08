@@ -95,9 +95,9 @@
 #' generate_taxa_change_heatmap_long(
 #'   data.obj = subset_T2D.obj,
 #'   subject.var = "subject_id",
-#'   time.var = "visit_number_num",
-#'   t0.level = NULL,
-#'   ts.levels = NULL,
+#'   time.var = "visit_number",
+#'   t0.level = unique(subset_T2D.obj$meta.dat$visit_number)[1],
+#'   ts.levels = unique(subset_T2D.obj$meta.dat$visit_number)[-1],
 #'   group.var = "subject_gender",
 #'   strata.var = "subject_race",
 #'   feature.level = c("Phylum"),
