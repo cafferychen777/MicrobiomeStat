@@ -172,7 +172,22 @@ Default 0 removes no taxa by abundance filtering.</p></dd>
 
 
 <dt>palette</dt>
-<dd><p>Color palette used for the plots.</p></dd>
+<dd><p>Specifies the color palette to be used for annotating groups and strata in the heatmap.
+The parameter can be provided in several ways:
+- As a character string denoting a predefined palette name.
+  Available predefined palettes include 'npg', 'aaas', 'nejm',
+  'lancet', 'jama', 'jco', and 'ucscgb', sourced from the `mStat_get_palette` function.
+- As a vector of color codes in a format accepted by ggplot2
+  (e.g., hexadecimal color codes).
+If `palette` is NULL or an unrecognized string, a default color palette will be used.
+The function assigns colors from this palette to the unique levels of
+`group.var` and, if provided, `strata.var`. When both `group.var` and
+`strata.var` are present, `group.var` levels are colored using the
+beginning of the palette, while `strata.var` levels are colored using
+the reversed palette, ensuring a distinct color representation for each.
+If only `group.var` is provided, its levels are assigned colors from the
+palette sequentially. If neither `group.var` nor `strata.var` is provided,
+no annotation colors are applied.</p></dd>
 
 
 <dt>cluster.rows</dt>
@@ -239,9 +254,9 @@ Default 0 removes no taxa by abundance filtering.</p></dd>
 <span class="r-in"><span><span class="fu">generate_taxa_change_heatmap_long</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">ecam.obj</span>,</span></span>
 <span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"studyid"</span>,</span></span>
-<span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"month_num"</span>,</span></span>
-<span class="r-in"><span>  t0.level <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  ts.levels <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"month"</span>,</span></span>
+<span class="r-in"><span>  t0.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">ecam.obj</span><span class="op">$</span><span class="va">meta.dat</span><span class="op">$</span><span class="va">month</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span></span>
+<span class="r-in"><span>  ts.levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">ecam.obj</span><span class="op">$</span><span class="va">meta.dat</span><span class="op">$</span><span class="va">month</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>,</span></span>
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"antiexposedall"</span>,</span></span>
 <span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"diet"</span>,</span></span>
 <span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Family"</span>,<span class="st">"Class"</span><span class="op">)</span>,</span></span>
@@ -260,9 +275,9 @@ Default 0 removes no taxa by abundance filtering.</p></dd>
 <span class="r-in"><span><span class="fu">generate_taxa_change_heatmap_long</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">subset_T2D.obj</span>,</span></span>
 <span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"subject_id"</span>,</span></span>
-<span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"visit_number_num"</span>,</span></span>
-<span class="r-in"><span>  t0.level <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  ts.levels <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  time.var <span class="op">=</span> <span class="st">"visit_number"</span>,</span></span>
+<span class="r-in"><span>  t0.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">subset_T2D.obj</span><span class="op">$</span><span class="va">meta.dat</span><span class="op">$</span><span class="va">visit_number</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span></span>
+<span class="r-in"><span>  ts.levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">subset_T2D.obj</span><span class="op">$</span><span class="va">meta.dat</span><span class="op">$</span><span class="va">visit_number</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>,</span></span>
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"subject_gender"</span>,</span></span>
 <span class="r-in"><span>  strata.var <span class="op">=</span> <span class="st">"subject_race"</span>,</span></span>
 <span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Phylum"</span><span class="op">)</span>,</span></span>

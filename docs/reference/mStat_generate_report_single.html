@@ -61,7 +61,7 @@ to perform analysis on cross-sectional data, a single time point from longitudin
 <span>  test.adj.vars <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  strata.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">subject.var</span>,</span>
-<span>  <span class="va">time.var</span>,</span>
+<span>  time.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  t.level <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  alpha.obj <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  alpha.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shannon"</span>, <span class="st">"observed_species"</span><span class="op">)</span>,</span>
@@ -266,7 +266,15 @@ my_theme &lt;- ggplot2::theme(
 
 
 <dt>palette</dt>
-<dd><p>Color palette used for the plots.</p></dd>
+<dd><p>An optional parameter specifying the color palette to be used for the plot.
+It can be either a character string specifying the name of a predefined
+palette or a vector of color codes in a format accepted by ggplot2
+(e.g., hexadecimal color codes). Available predefined palettes include
+'npg', 'aaas', 'nejm', 'lancet', 'jama', 'jco', and 'ucscgb', inspired
+by various scientific publications and the `ggsci` package. If `palette`
+is not provided or an unrecognized palette name is given, a default color
+palette will be used. Ensure the number of colors in the palette is at
+least as large as the number of groups being plotted.</p></dd>
 
 
 <dt>pdf</dt>

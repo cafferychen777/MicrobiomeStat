@@ -21,10 +21,13 @@ reference:
     contents:
       - generate_alpha_boxplot_single
       - generate_alpha_boxplot_long
+      - generate_alpha_dotplot_long
       - generate_alpha_spaghettiplot_long
       - generate_alpha_change_boxplot_pair
       - generate_alpha_change_test_pair
+      - generate_alpha_change_test_long
       - generate_alpha_test_pair
+      - generate_alpha_test_long
       - generate_alpha_test_single
       - generate_alpha_trend_test_long
       - generate_alpha_volatility_test_long
@@ -39,6 +42,8 @@ reference:
       - generate_beta_ordination_single
       - generate_beta_pc_change_boxplot_pair
       - generate_beta_change_test_pair
+      - generate_beta_change_test_long
+      - generate_beta_dotplot_long
       - generate_beta_pc_boxplot_long
       - generate_beta_pc_spaghettiplot_long
       - generate_beta_pc_trend_test_long
@@ -66,8 +71,10 @@ reference:
       - generate_taxa_heatmap_single
       - generate_taxa_areaplot_long
       - generate_taxa_barplot_long
+      - generate_taxa_dotplot_long
       - generate_taxa_change_boxplot_pair
       - generate_taxa_change_test_pair
+      - generate_taxa_change_test_long
       - generate_taxa_indiv_boxplot_long
       - generate_taxa_indiv_boxplot_single
       - generate_taxa_indiv_change_boxplot_pair
@@ -75,6 +82,7 @@ reference:
       - generate_taxa_indiv_spaghettiplot_long
       - generate_taxa_spaghettiplot_long
       - generate_taxa_test_pair
+      - generate_taxa_test_long
       - generate_taxa_test_single
       - generate_taxa_volcano_single
       - generate_taxa_association_test_long
@@ -88,7 +96,9 @@ reference:
 
   - title: "Data Management"
     contents:
+      - mStat_subset_alpha
       - mStat_subset_dist
+      - mStat_subset_PC
       - mStat_summarize_data_obj
       - mStat_process_time_variable
       - mStat_convert_DESeqDataSet_to_data_obj
@@ -126,6 +136,7 @@ reference:
 
   - title: "Miscellaneous"
     contents:
+      - mStat_get_palette
       - is_categorical
       - is_continuous_numeric
       - linda.plot

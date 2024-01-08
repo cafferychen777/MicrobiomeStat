@@ -171,7 +171,22 @@ Default 0 removes no taxa by abundance filtering.</p></dd>
 
 
 <dt>palette</dt>
-<dd><p>Color palette used for the plots.</p></dd>
+<dd><p>Specifies the color palette to be used for annotating groups and strata in the heatmap.
+The parameter can be provided in several ways:
+- As a character string denoting a predefined palette name.
+  Available predefined palettes include 'npg', 'aaas', 'nejm',
+  'lancet', 'jama', 'jco', and 'ucscgb', sourced from the `mStat_get_palette` function.
+- As a vector of color codes in a format accepted by ggplot2
+  (e.g., hexadecimal color codes).
+If `palette` is NULL or an unrecognized string, a default color palette will be used.
+The function assigns colors from this palette to the unique levels of
+`group.var` and, if provided, `strata.var`. When both `group.var` and
+`strata.var` are present, `group.var` levels are colored using the
+beginning of the palette, while `strata.var` levels are colored using
+the reversed palette, ensuring a distinct color representation for each.
+If only `group.var` is provided, its levels are assigned colors from the
+palette sequentially. If neither `group.var` nor `strata.var` is provided,
+no annotation colors are applied.</p></dd>
 
 
 <dt>cluster.rows</dt>

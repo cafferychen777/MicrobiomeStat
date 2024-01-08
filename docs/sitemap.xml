@@ -34,7 +34,13 @@
     <loc>https://cafferychen777.github.io/MicrobiomeStat/reference/generate_alpha_change_boxplot_pair.html</loc>
   </url>
   <url>
+    <loc>https://cafferychen777.github.io/MicrobiomeStat/reference/generate_alpha_change_test_long.html</loc>
+  </url>
+  <url>
     <loc>https://cafferychen777.github.io/MicrobiomeStat/reference/generate_alpha_change_test_pair.html</loc>
+  </url>
+  <url>
+    <loc>https://cafferychen777.github.io/MicrobiomeStat/reference/generate_alpha_dotplot_long.html</loc>
   </url>
   <url>
     <loc>https://cafferychen777.github.io/MicrobiomeStat/reference/generate_alpha_spaghettiplot_long.html</loc>
@@ -61,7 +67,13 @@
     <loc>https://cafferychen777.github.io/MicrobiomeStat/reference/generate_beta_change_spaghettiplot_long.html</loc>
   </url>
   <url>
+    <loc>https://cafferychen777.github.io/MicrobiomeStat/reference/generate_beta_change_test_long.html</loc>
+  </url>
+  <url>
     <loc>https://cafferychen777.github.io/MicrobiomeStat/reference/generate_beta_change_test_pair.html</loc>
+  </url>
+  <url>
+    <loc>https://cafferychen777.github.io/MicrobiomeStat/reference/generate_beta_dotplot_long.html</loc>
   </url>
   <url>
     <loc>https://cafferychen777.github.io/MicrobiomeStat/reference/generate_beta_ordination_long.html</loc>
@@ -142,7 +154,13 @@
     <loc>https://cafferychen777.github.io/MicrobiomeStat/reference/generate_taxa_change_scatterplot_pair.html</loc>
   </url>
   <url>
+    <loc>https://cafferychen777.github.io/MicrobiomeStat/reference/generate_taxa_change_test_long.html</loc>
+  </url>
+  <url>
     <loc>https://cafferychen777.github.io/MicrobiomeStat/reference/generate_taxa_change_test_pair.html</loc>
+  </url>
+  <url>
+    <loc>https://cafferychen777.github.io/MicrobiomeStat/reference/generate_taxa_dotplot_long.html</loc>
   </url>
   <url>
     <loc>https://cafferychen777.github.io/MicrobiomeStat/reference/generate_taxa_dotplot_pair.html</loc>
@@ -277,6 +295,9 @@
     <loc>https://cafferychen777.github.io/MicrobiomeStat/reference/mStat_generate_report_single.html</loc>
   </url>
   <url>
+    <loc>https://cafferychen777.github.io/MicrobiomeStat/reference/mStat_get_palette.html</loc>
+  </url>
+  <url>
     <loc>https://cafferychen777.github.io/MicrobiomeStat/reference/mStat_import_biom_as_data_obj.html</loc>
   </url>
   <url>
@@ -299,6 +320,12 @@
   </url>
   <url>
     <loc>https://cafferychen777.github.io/MicrobiomeStat/reference/mStat_remove_feature.html</loc>
+  </url>
+  <url>
+    <loc>https://cafferychen777.github.io/MicrobiomeStat/reference/mStat_subset_PC.html</loc>
+  </url>
+  <url>
+    <loc>https://cafferychen777.github.io/MicrobiomeStat/reference/mStat_subset_alpha.html</loc>
   </url>
   <url>
     <loc>https://cafferychen777.github.io/MicrobiomeStat/reference/mStat_subset_data.html</loc>

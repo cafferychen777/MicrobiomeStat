@@ -65,7 +65,7 @@ input and returns a list of tests, one for each alpha diversity index.</p>
 <span>  <span class="va">time.var</span>,</span>
 <span>  <span class="va">subject.var</span>,</span>
 <span>  <span class="va">group.var</span>,</span>
-<span>  <span class="va">adj.vars</span></span>
+<span>  adj.vars <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -133,10 +133,9 @@ p-value for each fixed effect in the model.</p>
 <span class="r-in"><span>data.obj <span class="op">=</span> <span class="va">peerj32.obj</span>,</span></span>
 <span class="r-in"><span>alpha.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>time.var <span class="op">=</span> <span class="st">"time"</span>,</span></span>
-<span class="r-in"><span>alpha.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shannon"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>alpha.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shannon"</span>, <span class="st">"simpson"</span>, <span class="st">"ace"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>subject.var <span class="op">=</span> <span class="st">"subject"</span>,</span></span>
-<span class="r-in"><span>group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
-<span class="r-in"><span>adj.vars <span class="op">=</span> <span class="st">"sex"</span></span></span>
+<span class="r-in"><span>group.var <span class="op">=</span> <span class="st">"group"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Diversity analysis needs rarefaction! Call 'mStat_rarefy_data' to rarefy the data!</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> No depth specified, using the smallest column sum:  21230</span>
@@ -147,7 +146,11 @@ p-value for each fixed effect in the model.</p>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Updated feature annotation to match the subsetted data.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Data subsetting complete. Returning updated data object.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Calculating shannon diversity...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Calculating simpson diversity...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Calculating ace diversity...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Diversity calculations complete.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Complex model failed. Trying a simpler model...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Complex model failed. Trying a simpler model...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Complex model failed. Trying a simpler model...</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
