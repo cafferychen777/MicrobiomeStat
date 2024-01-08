@@ -129,7 +129,7 @@ data("subset_T2D.obj")
 test.list <- generate_taxa_trend_test_long(
   data.obj = subset_T2D.obj,
   subject.var = "subject_id",
-  time.var = "visit_number_num",
+  time.var = "visit_number",
   group.var = "subject_race",
   adj.vars = "sample_body_site",
   prev.filter = 0.1,
