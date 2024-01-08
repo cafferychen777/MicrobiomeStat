@@ -68,10 +68,15 @@
 #' ```
 #'
 #' Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.
-#' @param palette Color palette to use for mapping groups to colors in the plot. Must be a
-#'               character vector of colors. Default palette will be used if NULL.
-#'               If specified, should be same length as number of groups/levels in
-#'               group.var. Colors will be mapped to groups in order of levels.
+#' @param palette An optional parameter specifying the color palette to be used for the plot.
+#'                It can be either a character string specifying the name of a predefined
+#'                palette or a vector of color codes in a format accepted by ggplot2
+#'                (e.g., hexadecimal color codes). Available predefined palettes include
+#'                'npg', 'aaas', 'nejm', 'lancet', 'jama', 'jco', and 'ucscgb', inspired
+#'                by various scientific publications and the `ggsci` package. If `palette`
+#'                is not provided or an unrecognized palette name is given, a default color
+#'                palette will be used. Ensure the number of colors in the palette is at
+#'                least as large as the number of groups being plotted.
 #' @param pdf A logical value. If TRUE (default), saves the plot as a PDF file. If FALSE, the plot will be displayed interactively without creating a PDF.
 #' @param file.ann (Optional) A character string specifying a file annotation to include in the generated PDF file's name.
 #' @param pdf.wid Width of the PDF plots.
@@ -151,23 +156,7 @@ generate_taxa_spaghettiplot_long <-
 
     meta_tab <- data.obj$meta.dat %>% as.data.frame() %>% select(all_of(c(subject.var,group.var,time.var,strata.var)))
 
-    if (is.null(palette)) {
-      col <-
-        c(
-          "#E31A1C",
-          "#1F78B4",
-          "#FB9A99",
-          "#33A02C",
-          "#FDBF6F",
-          "#B2DF8A",
-          "#A6CEE3",
-          "#BA7A70",
-          "#9D4E3F",
-          "#829BAB"
-        )
-    } else{
-      col <- palette
-    }
+    col <- mStat_get_palette(palette)
 
     theme_function <- switch(
       theme.choice,

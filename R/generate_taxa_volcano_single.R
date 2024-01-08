@@ -41,7 +41,7 @@ generate_taxa_volcano_single <-
            test.list,
            feature.sig.level = 0.1,
            feature.mt.method = "fdr",
-           palette = NULL,
+           palette = c("#F9F871", "#F4A261", "#FF6347"),
            pdf = FALSE,
            pdf.wid = 7,
            pdf.hei = 5) {
@@ -49,12 +49,7 @@ generate_taxa_volcano_single <-
     meta_tab <- data.obj$meta.dat %>%
       dplyr::select(all_of(c(group.var))) %>% rownames_to_column("sample")
 
-    if (is.null(palette)){
-      # Define the custom color palette
-      color_palette <- c("#F9F871", "#F4A261", "#FF6347")
-    } else {
-      color_palette <- palette
-    }
+    color_palette <- mStat_get_palette(palette)
 
     feature.level <- names(test.list)
 
@@ -129,12 +124,9 @@ generate_taxa_volcano_single <-
               panel.grid.minor = element_line(color = "grey", linetype = "dotted"),
               legend.position = "bottom",
               legend.text = element_text(size = 12),
-              # 调整图例文本大小
               legend.title = element_text(size = 14),
-              # 调整图例标题大小
               axis.text = element_text(size = 12),
-              # 调整轴文本大小
-              axis.title = element_text(size = 14)          # 调整轴标题大小
+              axis.title = element_text(size = 14)
             ) +
             scale_color_gradientn(colors = color_palette) +
             scale_size_continuous(range = c(3, 7)) +

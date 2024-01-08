@@ -114,10 +114,15 @@ my_theme <- ggplot2::theme(
 
 Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.}
 
-\item{palette}{Color palette to use for mapping groups to colors in the plot. Must be a
-character vector of colors. Default palette will be used if NULL.
-If specified, should be same length as number of groups/levels in
-group.var. Colors will be mapped to groups in order of levels.}
+\item{palette}{An optional parameter specifying the color palette to be used for the plot.
+It can be either a character string specifying the name of a predefined
+palette or a vector of color codes in a format accepted by ggplot2
+(e.g., hexadecimal color codes). Available predefined palettes include
+'npg', 'aaas', 'nejm', 'lancet', 'jama', 'jco', and 'ucscgb', inspired
+by various scientific publications and the `ggsci` package. If `palette`
+is not provided or an unrecognized palette name is given, a default color
+palette will be used. Ensure the number of colors in the palette is at
+least as large as the number of groups being plotted.}
 
 \item{pdf}{A logical value. If TRUE (default), saves the plot as a PDF file. If FALSE, the plot will be displayed interactively without creating a PDF.}
 

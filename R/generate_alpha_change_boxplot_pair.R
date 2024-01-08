@@ -53,7 +53,15 @@
 #' ```
 #'
 #' Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.
-#' @param palette An optional color palette for the plot. If not provided, a default color palette will be used. The palette should be a vector of color codes in a format accepted by ggplot2 (e.g., hexadecimal color codes). The number of colors in the palette should be at least as large as the number of groups being plotted.
+#' @param palette An optional parameter specifying the color palette to be used for the plot.
+#'                It can be either a character string specifying the name of a predefined
+#'                palette or a vector of color codes in a format accepted by ggplot2
+#'                (e.g., hexadecimal color codes). Available predefined palettes include
+#'                'npg', 'aaas', 'nejm', 'lancet', 'jama', 'jco', and 'ucscgb', inspired
+#'                by various scientific publications and the `ggsci` package. If `palette`
+#'                is not provided or an unrecognized palette name is given, a default color
+#'                palette will be used. Ensure the number of colors in the palette is at
+#'                least as large as the number of groups being plotted.
 #' @param pdf.wid The width of the output PDF file. Default is 11.
 #' @param pdf.hei The height of the output PDF file. Default is 8.5.
 #' @param subject.var The variable in the metadata table that represents the subject.
@@ -82,7 +90,7 @@
 #'   alpha.change.func = "absolute change",
 #'   base.size = 16,
 #'   theme.choice = "bw",
-#'   palette = NULL,
+#'   palette = "lancet",
 #'   pdf = TRUE,
 #'   file.ann = NULL,
 #'   pdf.wid = 11,
@@ -201,23 +209,7 @@ generate_alpha_change_boxplot_pair <-
 
     combined_alpha <- dplyr::bind_cols(combined_alpha, diff_columns)
 
-    if (is.null(palette)) {
-      col <-
-        c(
-          "#E31A1C",
-          "#1F78B4",
-          "#FB9A99",
-          "#33A02C",
-          "#FDBF6F",
-          "#B2DF8A",
-          "#A6CEE3",
-          "#BA7A70",
-          "#9D4E3F",
-          "#829BAB"
-        )
-    } else{
-      col <- palette
-    }
+    col <- mStat_get_palette(palette)
 
     facet_formula <-
       if (!is.null(strata.var)) {

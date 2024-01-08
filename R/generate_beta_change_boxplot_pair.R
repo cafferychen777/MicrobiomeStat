@@ -45,7 +45,15 @@
 #' ```
 #'
 #' Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.
-#' @param palette (Optional) A palette function or character vector with the colors for the plot.
+#' @param palette An optional parameter specifying the color palette to be used for the plot.
+#'                It can be either a character string specifying the name of a predefined
+#'                palette or a vector of color codes in a format accepted by ggplot2
+#'                (e.g., hexadecimal color codes). Available predefined palettes include
+#'                'npg', 'aaas', 'nejm', 'lancet', 'jama', 'jco', and 'ucscgb', inspired
+#'                by various scientific publications and the `ggsci` package. If `palette`
+#'                is not provided or an unrecognized palette name is given, a default color
+#'                palette will be used. Ensure the number of colors in the palette is at
+#'                least as large as the number of groups being plotted.
 #' @param pdf A logical value indicating whether to save the plot as a PDF file. Default is TRUE
 #' @param file.ann A character string specifying a custom annotation for the PDF file name or NULL (default)
 #' @param pdf.wid (Optional) The width of the PDF file if `pdf` is set to `TRUE` (default is 11).
@@ -79,7 +87,7 @@
 #'   base.size = 20,
 #'   theme.choice = "bw",
 #'   custom.theme = NULL,
-#'   palette = NULL,
+#'   palette = "lancet",
 #'   pdf = TRUE,
 #'   file.ann = NULL,
 #'   pdf.wid = 11,
@@ -138,23 +146,7 @@ generate_beta_change_boxplot_pair <-
     change.after <-
       unique(meta_tab %>% dplyr::select(all_of(c(time.var))))[unique(meta_tab %>% dplyr::select(all_of(c(time.var)))) != change.base]
 
-    if (is.null(palette)){
-      col <-
-        c(
-          "#E31A1C",
-          "#1F78B4",
-          "#FB9A99",
-          "#33A02C",
-          "#FDBF6F",
-          "#B2DF8A",
-          "#A6CEE3",
-          "#BA7A70",
-          "#9D4E3F",
-          "#829BAB"
-        )
-    } else {
-      col <- palette
-    }
+    col <- mStat_get_palette(palette)
 
     theme_function <- switch(
       theme.choice,

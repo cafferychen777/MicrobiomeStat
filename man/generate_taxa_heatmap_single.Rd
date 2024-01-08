@@ -80,7 +80,22 @@ Default 0 removes no taxa by abundance filtering.}
 
 \item{base.size}{Base font size for the generated plots.}
 
-\item{palette}{Color palette used for the plots.}
+\item{palette}{The color palette to be used for annotating the plots.
+This parameter can be specified in several ways:
+- As a character string representing a predefined palette name.
+  Available predefined palettes include 'npg', 'aaas', 'nejm',
+  'lancet', 'jama', 'jco', and 'ucscgb'.
+- As a vector of color codes in a format accepted by ggplot2
+  (e.g., hexadecimal color codes).
+The function uses `mStat_get_palette` to retrieve or generate
+the color palette. If `palette` is NULL or an unrecognized string,
+a default color palette will be used. The colors are applied to
+the specified grouping variables (`group.var`, `strata.var`) in the
+heatmap, ensuring each level of these variables is associated with a
+unique color. If both `group.var` and `strata.var` are specified,
+the function assigns colors to `group.var` from the start of the
+palette and to `strata.var` from the end, ensuring distinct color
+representations for each annotation layer.}
 
 \item{cluster.cols}{A logical variable indicating if columns should be clustered. Default is NULL.}
 

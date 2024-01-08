@@ -60,13 +60,13 @@
 #'   adj.vars = "sample_body_site"
 #' )
 #' # Visualizing the results for the Type 2 Diabetes dataset
-#' dotplot_T2D <- generate_taxa_dotplot_long(
+#' dotplot_T2D <- generate_alpha_dotplot_long(
 #'   data.obj = subset_T2D.obj,
 #'   test.list = result2,
 #'   group.var = "subject_race",
 #'   time.var = "visit_number",
 #'   t0.level = unique(subset_T2D.obj$meta.dat$visit_number)[1],
-#'   ts.levels = unique(subset_T2D.obj$meta.dat$visit_number)[-1],
+#'   ts.levels = unique(subset_T2D.obj$meta.dat$visit_number)[-1]
 #' )
 #' }
 #' @export
@@ -79,7 +79,7 @@ generate_alpha_dotplot_long <- function(data.obj,
                                         base.size = 16,
                                         theme.choice = "bw",
                                         custom.theme = NULL,
-                                        palette = NULL,
+                                        palette = rev(c("white", "#92c5de", "#0571b0", "#f4a582", "#ca0020")),
                                         pdf = FALSE,
                                         pdf.wid = 7,
                                         pdf.hei = 5
@@ -129,6 +129,8 @@ generate_alpha_dotplot_long <- function(data.obj,
 
   p_val_var <- "P.Value"
 
+  col <- mStat_get_palette(palette)
+
   plot.list <- lapply(group.names, function(group.names){
 
     data_for_plot <- test.list[[group.names]]
@@ -140,7 +142,7 @@ generate_alpha_dotplot_long <- function(data.obj,
     dotplot <- ggplot(data_for_plot, aes(x = !!sym(time.var), y = Term, size = Estimate)) +
       geom_point(aes(color = !!sym(p_val_var)), alpha = 0.6, shape = 19) +
       geom_text(aes(label = Significance_Label), vjust = 0.8, show.legend = FALSE, color = "white") +
-      scale_color_gradientn(colors = rev(c("white", "#92c5de", "#0571b0", "#f4a582", "#ca0020"))) +
+      scale_color_gradientn(colors = col) +
       labs(title = group.names,
            x = time.var,
            y = "Term",

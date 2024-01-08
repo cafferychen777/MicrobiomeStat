@@ -51,7 +51,22 @@
 #' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
 #' Default 0 removes no taxa by abundance filtering.
 #' @param base.size Base font size for the generated plots.
-#' @param palette Color palette used for the plots.
+#' @param palette Specifies the color palette to be used for annotating groups and strata in the heatmap.
+#'                The parameter can be provided in several ways:
+#'                - As a character string denoting a predefined palette name.
+#'                  Available predefined palettes include 'npg', 'aaas', 'nejm',
+#'                  'lancet', 'jama', 'jco', and 'ucscgb', sourced from the `mStat_get_palette` function.
+#'                - As a vector of color codes in a format accepted by ggplot2
+#'                  (e.g., hexadecimal color codes).
+#'                If `palette` is NULL or an unrecognized string, a default color palette will be used.
+#'                The function assigns colors from this palette to the unique levels of
+#'                `group.var` and, if provided, `strata.var`. When both `group.var` and
+#'                `strata.var` are present, `group.var` levels are colored using the
+#'                beginning of the palette, while `strata.var` levels are colored using
+#'                the reversed palette, ensuring a distinct color representation for each.
+#'                If only `group.var` is provided, its levels are assigned colors from the
+#'                palette sequentially. If neither `group.var` nor `strata.var` is provided,
+#'                no annotation colors are applied.
 #' @param cluster.rows A logical variable indicating if rows should be clustered. Default is TRUE.
 #' @param cluster.cols A logical variable indicating if columns should be clustered. Default is NULL.
 #' @param pdf If TRUE, save the plot as a PDF file (default: TRUE)
@@ -382,22 +397,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
     break_points <-
       seq(-max_abs_val, max_abs_val, length.out = length(my_col) + 1)
 
-    if (is.null(palette)){
-      color_vector <- c(
-        "#E31A1C",
-        "#1F78B4",
-        "#FB9A99",
-        "#33A02C",
-        "#FDBF6F",
-        "#B2DF8A",
-        "#A6CEE3",
-        "#BA7A70",
-        "#9D4E3F",
-        "#829BAB"
-      )
-    } else {
-      color_vector <- palette
-    }
+    color_vector <- mStat_get_palette(palette)
 
     if (!is.null(strata.var) & !is.null(group.var)){
       group_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()

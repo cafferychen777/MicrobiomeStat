@@ -87,7 +87,15 @@ is_continuous_numeric <- function(x) {
 #' ```
 #'
 #' Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.
-#' @param palette A character vector specifying the color palette. Default is NULL.
+#' @param palette An optional parameter specifying the color palette to be used for the plot.
+#'                It can be either a character string specifying the name of a predefined
+#'                palette or a vector of color codes in a format accepted by ggplot2
+#'                (e.g., hexadecimal color codes). Available predefined palettes include
+#'                'npg', 'aaas', 'nejm', 'lancet', 'jama', 'jco', and 'ucscgb', inspired
+#'                by various scientific publications and the `ggsci` package. If `palette`
+#'                is not provided or an unrecognized palette name is given, a default color
+#'                palette will be used. Ensure the number of colors in the palette is at
+#'                least as large as the number of groups being plotted.
 #' @param pdf A logical value indicating whether to save the plot as a PDF. Default is TRUE.
 #' @param file.ann A string for additional annotation to the file name. Default is NULL.
 #' @param pdf.wid A numeric value specifying the width of the PDF file. Default is 11.
@@ -175,12 +183,7 @@ generate_taxa_indiv_change_scatterplot_pair <-
       meta_tab$ALL2 <- ""
     }
 
-    # Define the colors
-    if (is.null(palette)) {
-      colors <- c("#92c5de", "#0571b0", "#f4a582", "#ca0020")
-    } else {
-      colors <- palette
-    }
+    colors <- mStat_get_palette(palette)
 
     theme_function <- switch(
       theme.choice,

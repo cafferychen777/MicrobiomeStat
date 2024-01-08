@@ -47,23 +47,17 @@ generate_taxa_trend_volcano_long <-
            test.list,
            feature.sig.level = 0.1,
            feature.mt.method = "fdr",
-           palette = NULL,
+           palette = c("#F9F871", "#F4A261", "#FF6347"),
            pdf = FALSE,
            pdf.wid = 7,
            pdf.hei = 5) {
     meta_tab <- data.obj$meta.dat %>%
       dplyr::select(all_of(c(group.var))) %>% rownames_to_column("sample")
 
-    # Define the custom color palette
-    color_palette <- if (!is.null(palette)) {
-      palette
-    } else {
-      c("#F9F871", "#F4A261", "#FF6347")
-    }
+    color_palette <- mStat_get_palette(palette)
 
     feature.level <- names(test.list)
 
-    # 使用条件表达式设置要使用的p值变量
     p_val_var <-
       ifelse(feature.mt.method == "fdr",
              "Adjusted.P.Value",
@@ -104,16 +98,15 @@ generate_taxa_trend_volcano_long <-
                 panel.grid.major = element_line(color = "grey", linetype = "dashed"),
                 panel.grid.minor = element_line(color = "grey", linetype = "dotted"),
                 legend.position = "bottom",
-                legend.text = element_text(size = 12),       # 调整图例文本大小
-                legend.title = element_text(size = 14),      # 调整图例标题大小
-                axis.text = element_text(size = 12),          # 调整轴文本大小
-                axis.title = element_text(size = 14)          # 调整轴标题大小
+                legend.text = element_text(size = 12),
+                legend.title = element_text(size = 14),
+                axis.text = element_text(size = 12),
+                axis.title = element_text(size = 14)
               ) +
               scale_color_gradientn(colors = color_palette) +
               scale_size_continuous(range = c(3, 7)) +
               coord_cartesian(xlim = c(-max_abs_log2FC, max_abs_log2FC))
 
-            # 判断是否保存为 PDF
             if (pdf) {
               pdf_filename <- paste0("volcano_", feature.level, "_", group.level, ".pdf")
               ggsave(pdf_filename, plot = p, width = pdf.wid, height = pdf.hei)
@@ -146,17 +139,17 @@ generate_taxa_trend_volcano_long <-
             theme_bw() +
             theme(
               plot.title.position = "plot",
-              plot.title = element_text(hjust = 0.5, size = 12),  # 这里的size = 14只是示例，您可以根据需要调整此值
+              plot.title = element_text(hjust = 0.5, size = 12),
               panel.grid.major = element_line(color = "grey", linetype = "dashed"),
               panel.grid.minor = element_line(color = "grey", linetype = "dotted"),
               legend.position = "bottom",
-              legend.text = element_text(size = 12),       # 调整图例文本大小
-              legend.title = element_text(size = 14),      # 调整图例标题大小
-              axis.text = element_text(size = 12),          # 调整轴文本大小
-              axis.title = element_text(size = 14)          # 调整轴标题大小
+              legend.text = element_text(size = 12),
+              legend.title = element_text(size = 14),
+              axis.text = element_text(size = 12),
+              axis.title = element_text(size = 14)
             ) +
             scale_color_gradientn(colors = color_palette) +
-            scale_size_continuous(range = c(3, 7)) +  # 可以根据您的实际需求调整大小范围
+            scale_size_continuous(range = c(3, 7)) +
             coord_cartesian(xlim = c(-max_abs_log2FC, max_abs_log2FC))
 
           return(p)

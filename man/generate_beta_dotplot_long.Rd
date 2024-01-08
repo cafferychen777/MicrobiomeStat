@@ -14,7 +14,7 @@ generate_beta_dotplot_long(
   base.size = 16,
   theme.choice = "bw",
   custom.theme = NULL,
-  palette = NULL,
+  palette = rev(c("white", "#92c5de", "#0571b0", "#f4a582", "#ca0020")),
   pdf = FALSE,
   pdf.wid = 7,
   pdf.hei = 5

@@ -38,7 +38,22 @@
 #' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
 #' Default 0 removes no taxa by abundance filtering.
 #' @param base.size Base font size for the generated plots.
-#' @param palette Color palette used for the plots.
+#' @param palette The color palette to be used for annotating the plots.
+#'                This parameter can be specified in several ways:
+#'                - As a character string representing a predefined palette name.
+#'                  Available predefined palettes include 'npg', 'aaas', 'nejm',
+#'                  'lancet', 'jama', 'jco', and 'ucscgb'.
+#'                - As a vector of color codes in a format accepted by ggplot2
+#'                  (e.g., hexadecimal color codes).
+#'                The function uses `mStat_get_palette` to retrieve or generate
+#'                the color palette. If `palette` is NULL or an unrecognized string,
+#'                a default color palette will be used. The colors are applied to
+#'                the specified grouping variables (`group.var`, `strata.var`) in the
+#'                heatmap, ensuring each level of these variables is associated with a
+#'                unique color. If both `group.var` and `strata.var` are specified,
+#'                the function assigns colors to `group.var` from the start of the
+#'                palette and to `strata.var` from the end, ensuring distinct color
+#'                representations for each annotation layer.
 #' @param cluster.rows A logical variable indicating if rows should be clustered. Default is TRUE.
 #' @param cluster.cols A logical variable indicating if columns should be clustered. Default is FALSE.
 #' @param pdf A logical value. If TRUE (default), saves the plot as a PDF file. If FALSE, the plot will be displayed interactively without creating a PDF.
@@ -222,22 +237,7 @@ generate_taxa_heatmap_pair <- function(data.obj,
         otu_tab_norm_sorted[rownames(otu_tab_norm_sorted) %in% features.plot,]
     }
 
-    if (is.null(palette)){
-      color_vector <- c(
-        "#1F78B4",
-        "#E31A1C",
-        "#FB9A99",
-        "#33A02C",
-        "#FDBF6F",
-        "#B2DF8A",
-        "#A6CEE3",
-        "#BA7A70",
-        "#9D4E3F",
-        "#829BAB"
-      )
-    } else {
-      color_vector <- palette
-    }
+    color_vector <- mStat_get_palette(palette)
 
     if (!is.null(strata.var) & !is.null(group.var)){
       # 为演示目的，假设这些是您的唯一值

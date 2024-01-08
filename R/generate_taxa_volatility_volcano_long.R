@@ -27,7 +27,7 @@ generate_taxa_volatility_volcano_long <- function(data.obj,
                                                   test.list,
                                                   feature.sig.level = 0.1,
                                                   feature.mt.method = c("fdr","none"),
-                                                  palette = NULL,
+                                                  palette = c("#F9F871", "#F4A261", "#FF6347"),
                                                   pdf = FALSE,
                                                   pdf.wid = 7,
                                                   pdf.hei = 5){
@@ -40,11 +40,7 @@ generate_taxa_volatility_volcano_long <- function(data.obj,
   feature.level <- names(test.list)
 
   # Define the custom color palette
-  color_palette <- if (!is.null(palette)) {
-    palette
-  } else {
-    c("#F9F871", "#F4A261", "#FF6347")
-  }
+  color_palette <- mStat_get_palette(palette)
 
   group_level <- meta_tab %>% select(all_of(c(group.var))) %>% pull() %>% as.factor() %>% levels
 

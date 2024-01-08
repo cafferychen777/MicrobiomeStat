@@ -14,7 +14,7 @@ generate_alpha_dotplot_long(
   base.size = 16,
   theme.choice = "bw",
   custom.theme = NULL,
-  palette = NULL,
+  palette = rev(c("white", "#92c5de", "#0571b0", "#f4a582", "#ca0020")),
   pdf = FALSE,
   pdf.wid = 7,
   pdf.hei = 5
@@ -95,13 +95,13 @@ result2 <- generate_alpha_test_long(
   adj.vars = "sample_body_site"
 )
 # Visualizing the results for the Type 2 Diabetes dataset
-dotplot_T2D <- generate_taxa_dotplot_long(
+dotplot_T2D <- generate_alpha_dotplot_long(
   data.obj = subset_T2D.obj,
   test.list = result2,
   group.var = "subject_race",
   time.var = "visit_number",
   t0.level = unique(subset_T2D.obj$meta.dat$visit_number)[1],
-  ts.levels = unique(subset_T2D.obj$meta.dat$visit_number)[-1],
+  ts.levels = unique(subset_T2D.obj$meta.dat$visit_number)[-1]
 )
 }
 }

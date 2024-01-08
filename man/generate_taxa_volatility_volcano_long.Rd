@@ -10,7 +10,7 @@ generate_taxa_volatility_volcano_long(
   test.list,
   feature.sig.level = 0.1,
   feature.mt.method = c("fdr", "none"),
-  palette = NULL,
+  palette = c("#F9F871", "#F4A261", "#FF6347"),
   pdf = FALSE,
   pdf.wid = 7,
   pdf.hei = 5

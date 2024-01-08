@@ -46,7 +46,15 @@
 #' ```
 #'
 #' Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.
-#' @param palette Vector of colors for the plot.
+#' @param palette An optional parameter specifying the color palette to be used for the plot.
+#'                It can be either a character string specifying the name of a predefined
+#'                palette or a vector of color codes in a format accepted by ggplot2
+#'                (e.g., hexadecimal color codes). Available predefined palettes include
+#'                'npg', 'aaas', 'nejm', 'lancet', 'jama', 'jco', and 'ucscgb', inspired
+#'                by various scientific publications and the `ggsci` package. If `palette`
+#'                is not provided or an unrecognized palette name is given, a default color
+#'                palette will be used. Ensure the number of colors in the palette is at
+#'                least as large as the number of groups being plotted.
 #' @param pdf Logical indicating whether to save the plot as a PDF file.
 #' @param file.ann Optional character string to append to the file name.
 #' @param pdf.wid Numeric value indicating the width of the PDF file.
@@ -217,23 +225,7 @@ generate_beta_pc_spaghettiplot_long <- function(data.obj = NULL,
     }
   }
 
-  if (is.null(palette)) {
-    col <-
-      c(
-        "#E31A1C",
-        "#1F78B4",
-        "#FB9A99",
-        "#33A02C",
-        "#FDBF6F",
-        "#B2DF8A",
-        "#A6CEE3",
-        "#BA7A70",
-        "#9D4E3F",
-        "#829BAB"
-      )
-  } else{
-    col <- palette
-  }
+  col <- mStat_get_palette(palette)
 
   # Calculate new sizes based on base.size
   title.size = base.size * 1.25

@@ -7,7 +7,15 @@
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
 #' @param time.var A column name in meta.dat representing the time variable. Optional.
 #' @param group.var A column name in meta.dat representing the grouping variable. Optional.
-#' @param palette A vector of colors for grouping in histogram. Optional. Default is a preset 10 color palette.
+#' @param palette An optional parameter specifying the color palette to be used for the plot.
+#'                It can be either a character string specifying the name of a predefined
+#'                palette or a vector of color codes in a format accepted by ggplot2
+#'                (e.g., hexadecimal color codes). Available predefined palettes include
+#'                'npg', 'aaas', 'nejm', 'lancet', 'jama', 'jco', and 'ucscgb', inspired
+#'                by various scientific publications and the `ggsci` package. If `palette`
+#'                is not provided or an unrecognized palette name is given, a default color
+#'                palette will be used. Ensure the number of colors in the palette is at
+#'                least as large as the number of groups being plotted.
 #'
 #' @return A tibble containing detailed summaries of:
 #' \enumerate{
@@ -130,21 +138,7 @@ mStat_summarize_data_obj <-
           # Print the grouped data frame
           #print(grouped_df)
 
-          # Set the palette if it's NULL
-          if (is.null(palette)) {
-            palette <- c(
-              "#E31A1C",
-              "#1F78B4",
-              "#FB9A99",
-              "#33A02C",
-              "#FDBF6F",
-              "#B2DF8A",
-              "#A6CEE3",
-              "#BA7A70",
-              "#9D4E3F",
-              "#829BAB"
-            )
-          }
+            palette <- mStat_get_palette(palette)
 
           print(
             ggplot(grouped_df, aes(

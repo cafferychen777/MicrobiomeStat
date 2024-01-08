@@ -58,9 +58,15 @@
 #' ```
 #'
 #' Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.
-#' @param palette Character vector specifying colors to use for mapping groups to color aesthetic.
-#'               Should be same length as number of groups. If NULL, default palette will be used.
-#'               Colors will be mapped to groups based on order of group levels.
+#' @param palette An optional parameter specifying the color palette to be used for the plot.
+#'                It can be either a character string specifying the name of a predefined
+#'                palette or a vector of color codes in a format accepted by ggplot2
+#'                (e.g., hexadecimal color codes). Available predefined palettes include
+#'                'npg', 'aaas', 'nejm', 'lancet', 'jama', 'jco', and 'ucscgb', inspired
+#'                by various scientific publications and the `ggsci` package. If `palette`
+#'                is not provided or an unrecognized palette name is given, a default color
+#'                palette will be used. Ensure the number of colors in the palette is at
+#'                least as large as the number of groups being plotted.
 #' @param pdf a logical value indicating whether to save the plots as PDF files. Defaults to TRUE.
 #' @param file.ann a character string specifying an annotation to add to the file names of the saved plots.
 #' @param pdf.wid a numeric value specifying the width of the saved PDF files.
@@ -180,23 +186,7 @@ generate_beta_ordination_long <-
         )
     }
 
-    if (is.null(palette)) {
-      col <-
-        c(
-          "#E31A1C",
-          "#1F78B4",
-          "#FB9A99",
-          "#33A02C",
-          "#FDBF6F",
-          "#B2DF8A",
-          "#A6CEE3",
-          "#BA7A70",
-          "#9D4E3F",
-          "#829BAB"
-        )
-    } else{
-      col <- palette
-    }
+    col <- mStat_get_palette(palette)
 
     aes_function <- if (!is.null(group.var)) {
       aes(color = !!sym(group.var),

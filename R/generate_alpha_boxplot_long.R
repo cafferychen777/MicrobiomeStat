@@ -10,7 +10,15 @@
 #' @param time.var The variable in the metadata table that represents the time.
 #' @param t0.level Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.
 #' @param ts.levels Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.
-#' @param palette An optional color palette for the plot. If not provided, a default color palette will be used. The palette should be a vector of color codes in a format accepted by ggplot2 (e.g., hexadecimal color codes). The number of colors in the palette should be at least as large as the number of groups being plotted.
+#' @param palette An optional parameter specifying the color palette to be used for the plot.
+#'                It can be either a character string specifying the name of a predefined
+#'                palette or a vector of color codes in a format accepted by ggplot2
+#'                (e.g., hexadecimal color codes). Available predefined palettes include
+#'                'npg', 'aaas', 'nejm', 'lancet', 'jama', 'jco', and 'ucscgb', inspired
+#'                by various scientific publications and the `ggsci` package. If `palette`
+#'                is not provided or an unrecognized palette name is given, a default color
+#'                palette will be used. Ensure the number of colors in the palette is at
+#'                least as large as the number of groups being plotted.
 #' @param group.var An optional variable in the metadata table that represents the grouping factor.
 #' @param strata.var An optional variable in the metadata table that represents the stratification factor.
 #' @param adj.vars A character vector of variable names to be used for adjustment.
@@ -117,7 +125,7 @@
 #'   adj.vars = NULL,
 #'   base.size = 16,
 #'   theme.choice = "bw",
-#'   palette = NULL,
+#'   palette = "lancet",
 #'   pdf = TRUE,
 #'   file.ann = NULL,
 #'   pdf.wid = 20,
@@ -224,23 +232,8 @@ generate_alpha_boxplot_long <- function (data.obj,
       custom.theme else
     theme_function
 
-  if (is.null(palette)) {
-    col <-
-      c(
-        "#E31A1C",
-        "#1F78B4",
-        "#FB9A99",
-        "#33A02C",
-        "#FDBF6F",
-        "#B2DF8A",
-        "#A6CEE3",
-        "#BA7A70",
-        "#9D4E3F",
-        "#829BAB"
-      )
-  } else{
-    col <- palette
-  }
+  # Use mStat_get_palette to set the color palette
+  col <- mStat_get_palette(palette)
 
   if (is.null(group.var)) {
     alpha_df <- alpha_df %>% dplyr::mutate("ALL" = "ALL")

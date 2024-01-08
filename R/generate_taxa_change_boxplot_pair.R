@@ -64,7 +64,15 @@
 #' ```
 #'
 #' Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.
-#' @param palette A character vector specifying the color palette for the plot. Default is NULL.
+#' @param palette An optional parameter specifying the color palette to be used for the plot.
+#'                It can be either a character string specifying the name of a predefined
+#'                palette or a vector of color codes in a format accepted by ggplot2
+#'                (e.g., hexadecimal color codes). Available predefined palettes include
+#'                'npg', 'aaas', 'nejm', 'lancet', 'jama', 'jco', and 'ucscgb', inspired
+#'                by various scientific publications and the `ggsci` package. If `palette`
+#'                is not provided or an unrecognized palette name is given, a default color
+#'                palette will be used. Ensure the number of colors in the palette is at
+#'                least as large as the number of groups being plotted.
 #' @param pdf A logical value indicating whether to save the plot as a PDF. Default is TRUE.
 #' @param file.ann An optional character string to be appended to the file name of the PDF. Default is NULL.
 #' @param pdf.wid The width of the PDF. Default is 11.
@@ -168,24 +176,7 @@ generate_taxa_change_boxplot_pair <-
         custom.theme else
           theme_function
 
-    # 设置颜色，根据 time.var 的唯一值数量生成颜色列表
-    if (is.null(palette)) {
-      col <-
-        c(
-          "#E31A1C",
-          "#1F78B4",
-          "#FB9A99",
-          "#33A02C",
-          "#FDBF6F",
-          "#B2DF8A",
-          "#A6CEE3",
-          "#BA7A70",
-          "#9D4E3F",
-          "#829BAB"
-        )
-    } else{
-      col <- palette
-    }
+    col <- mStat_get_palette(palette)
 
     ylab_label <- if (feature.dat.type != "other") {
       if (is.function(feature.change.func)) {

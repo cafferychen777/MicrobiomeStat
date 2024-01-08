@@ -18,7 +18,15 @@ mStat_summarize_data_obj(
 
 \item{group.var}{A column name in meta.dat representing the grouping variable. Optional.}
 
-\item{palette}{A vector of colors for grouping in histogram. Optional. Default is a preset 10 color palette.}
+\item{palette}{An optional parameter specifying the color palette to be used for the plot.
+It can be either a character string specifying the name of a predefined
+palette or a vector of color codes in a format accepted by ggplot2
+(e.g., hexadecimal color codes). Available predefined palettes include
+'npg', 'aaas', 'nejm', 'lancet', 'jama', 'jco', and 'ucscgb', inspired
+by various scientific publications and the `ggsci` package. If `palette`
+is not provided or an unrecognized palette name is given, a default color
+palette will be used. Ensure the number of colors in the palette is at
+least as large as the number of groups being plotted.}
 }
 \value{
 A tibble containing detailed summaries of:

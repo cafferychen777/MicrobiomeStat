@@ -10,7 +10,15 @@
 #' @param t0.level Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.
 #' @param ts.levels Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.
 #' @param base.size The base font size for the plot.
-#' @param palette An optional color palette for the plot. If not provided, a default color palette will be used. The palette should be a vector of color codes in a format accepted by ggplot2 (e.g., hexadecimal color codes). The number of colors in the palette should be at least as large as the number of groups being plotted.
+#' @param palette An optional parameter specifying the color palette to be used for the plot.
+#'                It can be either a character string specifying the name of a predefined
+#'                palette or a vector of color codes in a format accepted by ggplot2
+#'                (e.g., hexadecimal color codes). Available predefined palettes include
+#'                'npg', 'aaas', 'nejm', 'lancet', 'jama', 'jco', and 'ucscgb', inspired
+#'                by various scientific publications and the `ggsci` package. If `palette`
+#'                is not provided or an unrecognized palette name is given, a default color
+#'                palette will be used. Ensure the number of colors in the palette is at
+#'                least as large as the number of groups being plotted.
 #' @param theme.choice Plot theme choice. Can be one of:
 #'   - "prism": ggprism::theme_prism()
 #'   - "classic": theme_classic()
@@ -44,7 +52,6 @@
 #' \dontrun{
 #' data("subset_T2D.obj")
 #' T2D.alpha.obj <- mStat_calculate_alpha_diversity(subset_T2D.obj$feature.tab,"shannon")
-#'
 #' generate_alpha_spaghettiplot_long(
 #'   data.obj = subset_T2D.obj,
 #'   alpha.obj = T2D.alpha.obj,
@@ -57,7 +64,27 @@
 #'   strata.var = "subject_race",
 #'   adj.vars = "sample_body_site",
 #'   theme.choice = "bw",
-#'   palette = NULL,
+#'   palette = "lancet",
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#'
+#' data("ecam.obj")
+#' generate_alpha_spaghettiplot_long(
+#'   data.obj = ecam.obj,
+#'   alpha.obj = NULL,
+#'   alpha.name = c("shannon","simpson", "observed_species"),
+#'   subject.var = "subject.id",
+#'   time.var = "month_num",
+#'   t0.level = NULL,
+#'   ts.levels = NULL,
+#'   group.var = "delivery",
+#'   strata.var = "diet",
+#'   adj.vars = NULL,
+#'   theme.choice = "bw",
+#'   palette = "lancet",
 #'   pdf = TRUE,
 #'   file.ann = NULL,
 #'   pdf.wid = 11,
@@ -167,23 +194,7 @@ generate_alpha_spaghettiplot_long <-
 
     theme_to_use <- if (!is.null(custom.theme)) custom.theme else theme_function
 
-    if (is.null(palette)){
-      col <-
-        c(
-          "#E31A1C",
-          "#1F78B4",
-          "#FB9A99",
-          "#33A02C",
-          "#FDBF6F",
-          "#B2DF8A",
-          "#A6CEE3",
-          "#BA7A70",
-          "#9D4E3F",
-          "#829BAB"
-        )
-    } else{
-      col <- palette
-    }
+    col <- mStat_get_palette(palette)
 
     # Create a plot for each alpha diversity index
     plot_list <- lapply(alpha.name, function(index) {

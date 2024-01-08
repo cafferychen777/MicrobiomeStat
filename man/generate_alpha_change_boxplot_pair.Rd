@@ -90,7 +90,15 @@ my_theme <- ggplot2::theme(
 
 Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.}
 
-\item{palette}{An optional color palette for the plot. If not provided, a default color palette will be used. The palette should be a vector of color codes in a format accepted by ggplot2 (e.g., hexadecimal color codes). The number of colors in the palette should be at least as large as the number of groups being plotted.}
+\item{palette}{An optional parameter specifying the color palette to be used for the plot.
+It can be either a character string specifying the name of a predefined
+palette or a vector of color codes in a format accepted by ggplot2
+(e.g., hexadecimal color codes). Available predefined palettes include
+'npg', 'aaas', 'nejm', 'lancet', 'jama', 'jco', and 'ucscgb', inspired
+by various scientific publications and the `ggsci` package. If `palette`
+is not provided or an unrecognized palette name is given, a default color
+palette will be used. Ensure the number of colors in the palette is at
+least as large as the number of groups being plotted.}
 
 \item{pdf}{(Optional) A boolean indicating whether to save the output as a PDF file.}
 
@@ -135,7 +143,7 @@ generate_alpha_change_boxplot_pair(
   alpha.change.func = "absolute change",
   base.size = 16,
   theme.choice = "bw",
-  palette = NULL,
+  palette = "lancet",
   pdf = TRUE,
   file.ann = NULL,
   pdf.wid = 11,
