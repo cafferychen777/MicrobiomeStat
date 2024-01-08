@@ -23,7 +23,8 @@
 #' colnames(otu.tab) <- paste0("Sample_", 1:10)
 #'
 #' # Calculate alpha diversity indices
-#' alpha.obj <- mStat_calculate_alpha_diversity(x = otu.tab, alpha.name = c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou"))
+#' alpha.obj <- mStat_calculate_alpha_diversity(x = otu.tab, alpha.name = c("shannon", "simpson",
+#' "observed_species", "chao1", "ace", "pielou"))
 #'
 #' # Subset alpha diversity object by sample IDs
 #' sample_ids <- sample(colnames(otu.tab), 5)
