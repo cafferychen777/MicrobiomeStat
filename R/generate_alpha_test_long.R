@@ -4,9 +4,15 @@
 #' It applies linear model analyses to assess the diversity of microbial communities over time within different groups or under various conditions.
 #'
 #' @param data.obj A MicrobiomeStat data object containing microbiome data and metadata.
+#' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
 #' @param alpha.name character vector containing the names of alpha diversity indices to calculate.
 #'                Possible values are: "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".
+#' @param depth An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.
 #' @param time.var A string representing the time variable in the meta.dat.
+#' @param t0.level A baseline time point for longitudinal analysis, specified as a character
+#'                 or numeric value, e.g., "week_0" or 0.
+#' @param ts.levels A vector of character strings indicating follow-up time points, such as
+#'                  c("week_4", "week_8").
 #' @param group.var Optional; a string specifying the group variable in meta.dat for between-group comparisons.
 #' @param adj.vars Optional; a vector of strings representing covariates in meta.dat for adjustment in the analysis.
 #' @return A list where each element corresponds to a different time point and contains the results of alpha diversity tests for that time point.
@@ -122,9 +128,9 @@ generate_alpha_test_long <- function(data.obj,
       alpha_dfs <- lapply(names(subset.test.list), \(alpha_name) {
         df <- subset.test.list[[alpha_name]]
         filtered_df <- filter(df, Term == term) %>%
-          select(-Term) %>%
-          mutate(Term = alpha_name) %>%
-          select(Term, everything())
+          dplyr::select(-Term) %>%
+          dplyr::mutate(Term = alpha_name) %>%
+          dplyr::select(Term, everything())
 
         if(nrow(filtered_df) == 0) {
           return(NULL)
@@ -137,8 +143,8 @@ generate_alpha_test_long <- function(data.obj,
 
     all_terms <- lapply(all_terms, function(term) {
       if (term != group.var) {
-        modified_term <- str_replace(term, paste0("^", group.var), "")
-        modified_term <- str_trim(modified_term)
+        modified_term <- stringr::str_replace(term, paste0("^", group.var), "")
+        modified_term <- stringr::str_trim(modified_term)
         paste(sprintf("%s vs %s", modified_term, reference_level), "(Reference)")
       } else {
         term
