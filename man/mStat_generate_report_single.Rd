@@ -11,7 +11,7 @@ mStat_generate_report_single(
   test.adj.vars = NULL,
   strata.var = NULL,
   subject.var,
-  time.var,
+  time.var = NULL,
   t.level = NULL,
   alpha.obj = NULL,
   alpha.name = c("shannon", "observed_species"),
