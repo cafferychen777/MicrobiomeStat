@@ -2,32 +2,44 @@
 % Please edit documentation in R/generate_taxa_volcano_single.R
 \name{generate_taxa_volcano_single}
 \alias{generate_taxa_volcano_single}
-\title{Generate volcano plots for taxa differential test for a single time point}
+\title{Generate Volcano Plots for Taxa Differential Test for a Single Time Point}
 \usage{
 generate_taxa_volcano_single(
   data.obj,
   group.var = NULL,
   test.list,
   feature.sig.level = 0.1,
-  feature.mt.method = "fdr"
+  feature.mt.method = "fdr",
+  palette = NULL,
+  pdf = FALSE,
+  pdf.wid = 7,
+  pdf.hei = 5
 )
 }
 \arguments{
 \item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
 
-\item{group.var}{The grouping variable tested, found in metadata}
+\item{group.var}{The grouping variable tested, found in metadata.}
 
-\item{test.list}{The list of test results returned by generate_taxa_trend_test_long}
+\item{test.list}{The list of test results returned by generate_taxa_trend_test_long.}
 
-\item{feature.sig.level}{The significance level cutoff for highlighting taxa}
+\item{feature.sig.level}{The significance level cutoff for highlighting taxa.}
 
-\item{feature.mt.method}{Multiple testing correction method, "fdr" or "none"}
+\item{feature.mt.method}{Multiple testing correction method, "fdr" or "none".}
+
+\item{palette}{Optional; a vector of colors for the gradient scale in the plots. If provided, it overrides the default color scale.}
+
+\item{pdf}{Boolean; whether to save the plot as a PDF file.}
+
+\item{pdf.wid}{Numeric; width of the saved PDF file.}
+
+\item{pdf.hei}{Numeric; height of the saved PDF file.}
 }
 \value{
 A list of ggplot objects of volcano plots for each taxonomic level
 }
 \description{
-Generate volcano plots for taxa differential test for a single time point
+Generate Volcano Plots for Taxa Differential Test for a Single Time Point
 }
 \examples{
 data(peerj32.obj)
