@@ -118,5 +118,26 @@ generate_beta_change_spaghettiplot_long(
   pdf.wid = 11,
   pdf.hei = 8.5
 )
+
+data(subset_T2D.obj)
+generate_beta_change_spaghettiplot_long(
+  data.obj = subset_T2D.obj,
+  dist.obj = NULL,
+  subject.var = "subject_id",
+  time.var = "visit_number_num",
+  t0.level = NULL,
+  ts.levels = NULL,
+  group.var = "subject_race",
+  strata.var = "subject_gender",
+  adj.vars = NULL,
+  dist.name = c("BC"),
+  base.size = 20,
+  theme.choice = "bw",
+  palette = NULL,
+  pdf = TRUE,
+  file.ann = NULL,
+  pdf.wid = 11,
+  pdf.hei = 8.5
+)
 }
 }
