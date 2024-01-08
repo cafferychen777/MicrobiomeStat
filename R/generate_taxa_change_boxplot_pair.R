@@ -114,6 +114,34 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
+#'
+#' data("subset_pairs.obj")
+#'
+#' # Generate the boxplot pair
+#' generate_taxa_change_boxplot_pair(
+#'   data.obj = subset_pairs.obj,
+#'   subject.var = "MouseID",
+#'   time.var = "Antibiotic",
+#'   group.var = "Sex",
+#'   strata.var = NULL,
+#'   change.base = "Baseline",
+#'   feature.change.func = "relative change",
+#'   feature.level = "original",
+#'   feature.dat.type = "count",
+#'   features.plot = NULL,
+#'   top.k.plot = 6,
+#'   top.k.func = "sd",
+#'   prev.filter = 0.01,
+#'   abund.filter = 0.01,
+#'   base.size = 16,
+#'   theme.choice = "bw",
+#'   custom.theme = NULL,
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
 #' }
 #' @export
 generate_taxa_change_boxplot_pair <-

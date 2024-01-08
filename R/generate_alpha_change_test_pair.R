@@ -104,6 +104,19 @@
 #' change.base = "2",
 #' alpha.change.func = "log fold change"
 #' )
+#'
+#' data("subset_pairs.obj")
+#' generate_alpha_change_test_pair(
+#' data.obj = subset_pairs.obj,
+#' alpha.obj = NULL,
+#' time.var = "Antibiotic",
+#' alpha.name = c("shannon"),
+#' subject.var = "MouseID",
+#' group.var = "Sex",
+#' adj.vars = NULL,
+#' change.base = "Baseline",
+#' alpha.change.func = "log fold change"
+#' )
 #' }
 #' @export
 generate_alpha_change_test_pair <-

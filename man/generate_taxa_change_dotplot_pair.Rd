@@ -162,6 +162,31 @@ generate_taxa_change_dotplot_pair(
   pdf.wid = 30,
   pdf.hei = 10
 )
+
+data("subset_pairs.obj")
+generate_taxa_change_dotplot_pair(
+  data.obj = subset_pairs.obj,
+  subject.var = "MouseID",
+  time.var = "Antibiotic",
+  group.var = "Sex",
+  strata.var = NULL,
+  change.base = "Baseline",
+  feature.change.func = "log fold change",
+  feature.level = "Family",
+  feature.dat.type = "count",
+  features.plot = NULL,
+  top.k.plot = 20,
+  top.k.func = "mean",
+  prev.filter = 0.01,
+  abund.filter = 1e-4,
+  base.size = 16,
+  theme.choice = "bw",
+  custom.theme = NULL,
+  pdf = TRUE,
+  file.ann = NULL,
+  pdf.wid = 30,
+  pdf.hei = 10
+)
 }
 # View the result
 }

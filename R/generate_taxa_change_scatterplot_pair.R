@@ -116,6 +116,38 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
+#'
+#' data("subset_pairs.obj")
+#' subset_pairs.obj$meta.dat <- subset_pairs.obj$meta.dat %>%
+#' dplyr::select(all_of("MouseID")) %>% dplyr::distinct() %>%
+#' dplyr::mutate(cons = runif(dplyr::n(),0,5)) %>%
+#' dplyr::left_join(subset_pairs.obj$meta.dat %>% rownames_to_column("sample"),by = "MouseID") %>%
+#' tibble::column_to_rownames("sample")
+#' # Generate the boxplot pair
+#' generate_taxa_change_scatterplot_pair(
+#'   data.obj = subset_pairs.obj,
+#'   subject.var = "MouseID",
+#'   time.var = "Antibiotic",
+#'   group.var = "cons",
+#'   strata.var = NULL,
+#'   change.base = "Baseline",
+#'   feature.change.func = "log fold change",
+#'   feature.level = "Genus",
+#'   feature.dat.type = "other",
+#'   features.plot = NULL,
+#'   top.k.plot = 8,
+#'   top.k.func = "mean",
+#'   prev.filter = 0.01,
+#'   abund.filter = 0.01,
+#'   base.size = 16,
+#'   theme.choice = "bw",
+#'   custom.theme = NULL,
+#'   palette = "lancet",
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
 #' }
 #' @export
 generate_taxa_change_scatterplot_pair <-
@@ -351,6 +383,12 @@ generate_taxa_change_scatterplot_pair <-
 
         if (group.var == "ALL"){
           scatterplot <- scatterplot + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), axis.title.x = element_blank())
+        }
+
+        if (strata.var == "ALL2") {
+          scatterplot <- scatterplot + theme(
+            legend.title = element_blank()
+          )
         }
 
         # Save the stacked dotplot as a PDF file

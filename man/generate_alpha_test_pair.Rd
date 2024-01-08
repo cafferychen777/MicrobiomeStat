@@ -59,7 +59,7 @@ p-value for each fixed effect in the model.
 \examples{
 
 data(peerj32.obj)
-alpha_test_results <- generate_alpha_test_pair(
+generate_alpha_test_pair(
 data.obj = peerj32.obj,
 alpha.obj = NULL,
 time.var = "time",
@@ -68,4 +68,13 @@ subject.var = "subject",
 group.var = "group"
 )
 
+data("subset_pairs.obj")
+generate_alpha_test_pair(
+data.obj = subset_pairs.obj,
+alpha.obj = NULL,
+time.var = "Antibiotic",
+alpha.name = c("shannon", "simpson", "ace"),
+subject.var = "MouseID",
+group.var = "Sex"
+)
 }

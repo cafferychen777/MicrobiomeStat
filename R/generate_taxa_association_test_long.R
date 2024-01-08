@@ -285,15 +285,5 @@ generate_taxa_association_test_long <-
     # Assign names to the elements of test.list
     names(test.list) <- feature.level
 
-    plot.list <-
-      generate_taxa_association_volcano_long(
-        data.obj = data.obj,
-        group.var = group.var,
-        test.list = test.list,
-        feature.sig.level = feature.sig.level,
-        feature.mt.method = feature.mt.method
-      )
-    print(plot.list)
-
     return(test.list)
   }

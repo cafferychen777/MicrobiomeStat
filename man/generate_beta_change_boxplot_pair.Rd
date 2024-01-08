@@ -115,7 +115,6 @@ Adjustment for covariates is supported by using adjusted distances.
 # Load required libraries and example data
 library(vegan)
 data(peerj32.obj)
-
 dist.obj <- mStat_calculate_beta_diversity(peerj32.obj, dist.name = "BC")
 generate_beta_change_boxplot_pair(
   data.obj = peerj32.obj,
@@ -126,6 +125,25 @@ generate_beta_change_boxplot_pair(
   strata.var = "sex",
   adj.vars = "sex",
   change.base = "1",
+  dist.name = c('BC'),
+  base.size = 20,
+  theme.choice = "bw",
+  custom.theme = NULL,
+  palette = "lancet",
+  pdf = TRUE,
+  file.ann = NULL,
+  pdf.wid = 11,
+  pdf.hei = 8.5
+)
+
+data("subset_pairs.obj")
+generate_beta_change_boxplot_pair(
+  data.obj = subset_pairs.obj,
+  dist.obj = NULL,
+  subject.var = "MouseID",
+  time.var = "Antibiotic",
+  group.var = "Sex",
+  change.base = "Baseline",
   dist.name = c('BC'),
   base.size = 20,
   theme.choice = "bw",

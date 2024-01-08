@@ -89,6 +89,32 @@
 #'   pdf.wid = 20,
 #'   pdf.hei = 11
 #' )
+#'
+#' data("subset_pairs.obj")
+#'
+#' # Call the function
+#' generate_taxa_dotplot_pair(
+#'   data.obj = subset_pairs.obj,
+#'   subject.var = "MouseID",
+#'   time.var = "Antibiotic",
+#'   group.var = "Sex",
+#'   strata.var = NULL,
+#'   feature.level = c("Genus"),
+#'   feature.dat.type = "count",
+#'   features.plot = NULL,
+#'   top.k.plot = 10,
+#'   top.k.func = "mean",
+#'   prev.filter = 0.01,
+#'   abund.filter = 0.001,
+#'   base.size = 16,
+#'   theme.choice = "bw",
+#'   custom.theme = NULL,
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 20,
+#'   pdf.hei = 11
+#' )
 #' }
 #' @export
 generate_taxa_dotplot_pair <- function(data.obj,

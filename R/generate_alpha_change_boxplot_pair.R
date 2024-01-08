@@ -96,7 +96,26 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
-#'
+#' data("subset_pairs.obj")
+#' generate_alpha_change_boxplot_pair(
+#'   data.obj = subset_pairs.obj,
+#'   alpha.obj = NULL,
+#'   alpha.name = c("simpson"),
+#'   subject.var = "MouseID",
+#'   time.var = "Antibiotic",
+#'   group.var = "Sex",
+#'   strata.var = NULL,
+#'   adj.vars = NULL,
+#'   change.base = "Baseline",
+#'   alpha.change.func = "log fold change",
+#'   base.size = 16,
+#'   theme.choice = "bw",
+#'   palette = "lancet",
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
 #' }
 #' @export
 generate_alpha_change_boxplot_pair <-

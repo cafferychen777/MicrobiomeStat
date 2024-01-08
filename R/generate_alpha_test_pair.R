@@ -80,7 +80,7 @@ extract_coef <- function(model) {
 #' @examples
 #'
 #' data(peerj32.obj)
-#' alpha_test_results <- generate_alpha_test_pair(
+#' generate_alpha_test_pair(
 #' data.obj = peerj32.obj,
 #' alpha.obj = NULL,
 #' time.var = "time",
@@ -89,6 +89,15 @@ extract_coef <- function(model) {
 #' group.var = "group"
 #' )
 #'
+#' data("subset_pairs.obj")
+#' generate_alpha_test_pair(
+#' data.obj = subset_pairs.obj,
+#' alpha.obj = NULL,
+#' time.var = "Antibiotic",
+#' alpha.name = c("shannon", "simpson", "ace"),
+#' subject.var = "MouseID",
+#' group.var = "Sex"
+#' )
 #' @export
 generate_alpha_test_pair <-
   function(data.obj,

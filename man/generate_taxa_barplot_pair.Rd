@@ -129,7 +129,7 @@ generate_taxa_barplot_pair(
   strata.var = NULL,
   feature.level = "Genus",
   feature.dat.type = c("count"),
-  feature.number = 10,
+  feature.number = 20,
   base.size = 10,
   theme.choice = "bw",
   custom.theme = NULL,

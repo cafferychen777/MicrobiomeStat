@@ -174,5 +174,33 @@ generate_taxa_indiv_change_boxplot_pair(
   pdf.wid = 11,
   pdf.hei = 8.5
 )
+
+data("subset_pairs.obj")
+
+# Generate the boxplot pair
+generate_taxa_indiv_change_boxplot_pair(
+  data.obj = subset_pairs.obj,
+  subject.var = "MouseID",
+  time.var = "Antibiotic",
+  group.var = "Sex",
+  strata.var = NULL,
+  change.base = "Baseline",
+  feature.change.func = "log fold change",
+  feature.level = c("Family"),
+  features.plot = NULL,
+  feature.dat.type = "count",
+  top.k.plot = NULL,
+  top.k.func = NULL,
+  prev.filter = 0.01,
+  abund.filter = 0.01,
+  base.size = 20,
+  theme.choice = "bw",
+  custom.theme = NULL,
+  palette = NULL,
+  pdf = TRUE,
+  file.ann = NULL,
+  pdf.wid = 11,
+  pdf.hei = 8.5
+)
 }
 }

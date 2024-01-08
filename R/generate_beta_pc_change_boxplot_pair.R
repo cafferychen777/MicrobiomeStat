@@ -101,7 +101,6 @@
 #' library(vegan)
 #' library(ggh4x)
 #' data(peerj32.obj)
-#'
 #' generate_beta_pc_change_boxplot_pair(
 #'   data.obj = peerj32.obj,
 #'   dist.obj = NULL,
@@ -112,6 +111,29 @@
 #'   group.var = "group",
 #'   strata.var = "sex",
 #'   change.base = "1",
+#'   change.func = "absolute change",
+#'   dist.name = c('BC'),
+#'   base.size = 20,
+#'   theme.choice = "bw",
+#'   custom.theme = NULL,
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#'
+#' data(peerj32.obj)
+#' generate_beta_pc_change_boxplot_pair(
+#'   data.obj = subset_pairs.obj,
+#'   dist.obj = NULL,
+#'   pc.obj = NULL,
+#'   pc.ind = c(1, 2),
+#'   subject.var = "MouseID",
+#'   time.var = "Antibiotic",
+#'   group.var = "Sex",
+#'   strata.var = NULL,
+#'   change.base = "Baseline",
 #'   change.func = "absolute change",
 #'   dist.name = c('BC'),
 #'   base.size = 20,

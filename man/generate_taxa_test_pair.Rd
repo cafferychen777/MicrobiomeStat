@@ -97,6 +97,27 @@ generate_taxa_volcano_single(
  feature.sig.level = 0.1,
  feature.mt.method = "none"
 )
+
+data("subset_pairs.obj")
+test.list <- generate_taxa_test_pair(
+  data.obj = subset_pairs.obj,
+  subject.var = "MouseID",
+  time.var = "Antibiotic",
+  group.var = "Sex",
+  adj.vars = NULL,
+  feature.level = c("Genus"),
+  prev.filter = 0.1,
+  abund.filter = 0.0001,
+  feature.dat.type = "count"
+)
+plot.list <-
+generate_taxa_volcano_single(
+ data.obj = subset_pairs.obj,
+ group.var = "Sex",
+ test.list = test.list,
+ feature.sig.level = 0.1,
+ feature.mt.method = "none"
+)
 }
 
 }

@@ -117,6 +117,30 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
+#'
+#' data("subset_pairs.obj")
+#' generate_taxa_heatmap_pair(
+#'   data.obj = subset_pairs.obj,
+#'   subject.var = "MouseID",
+#'   time.var = "Antibiotic",
+#'   group.var = "Sex",
+#'   strata.var = NULL,
+#'   feature.level = c("Phylum","Family","Genus"),
+#'   feature.dat.type = "count",
+#'   features.plot = NULL,
+#'   top.k.plot = NULL,
+#'   top.k.func = NULL,
+#'   prev.filter = 0.01,
+#'   abund.filter = 0.001,
+#'   cluster.rows = NULL,
+#'   cluster.cols = NULL,
+#'   base.size = 12,
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
 #' }
 #' @export
 generate_taxa_heatmap_pair <- function(data.obj,

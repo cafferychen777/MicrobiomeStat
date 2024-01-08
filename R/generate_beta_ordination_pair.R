@@ -91,6 +91,28 @@
 #'   pdf.hei       = 8.5
 #' )
 #'
+#' data(subset_pairs.obj)
+#'
+#' # Perform beta ordination pair analysis using `generate_beta_ordination_pair`
+#' generate_beta_ordination_pair(
+#'   data.obj      = subset_pairs.obj,
+#'   dist.obj      = NULL,
+#'   pc.obj        = NULL,
+#'   subject.var   = "MouseID",
+#'   time.var      = "Antibiotic",
+#'   group.var     = "Sex",
+#'   strata.var    = NULL,
+#'   adj.vars      = NULL,
+#'   dist.name     = c("BC"),
+#'   base.size     = 16,
+#'   theme.choice  = "bw",
+#'   custom.theme  = NULL,
+#'   palette       = NULL,
+#'   pdf           = TRUE,
+#'   file.ann      = NULL,
+#'   pdf.wid       = 11,
+#'   pdf.hei       = 8.5
+#' )
 #' }
 #' @export
 generate_beta_ordination_pair <-

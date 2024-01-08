@@ -181,7 +181,7 @@ generate_taxa_areaplot_long <-
         stop("The number of unique features exceeds the length of the provided palette. Please provide a larger palette.")
       }
 
-      pal = palette
+      pal <- palette
     }
 
     if (feature.dat.type == "count"){
@@ -410,7 +410,6 @@ generate_taxa_areaplot_long <-
         ggsave(filename = pdf_name, plot = stack_areaplot_average, width = pdf.wid, height = pdf.hei)
       }
 
-      # 返回堆叠条形图以进行显示
       return(stack_areaplot_average)
     })
 

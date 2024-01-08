@@ -53,6 +53,17 @@
 #'   dist.name = c('BC', 'Jaccard')
 #' )
 #'
+#' data("subset_pairs.obj")
+#' generate_beta_change_test_pair(
+#'   data.obj = subset_pairs.obj,
+#'   dist.obj = NULL,
+#'   time.var = "Antibiotic",
+#'   subject.var = "MouseID",
+#'   group.var = "Sex",
+#'   adj.vars = NULL,
+#'   change.base = "Baseline",
+#'   dist.name = c('BC', 'Jaccard')
+#' )
 #' }
 #' @return A named list containing linear modeling results for each beta diversity metric.
 
