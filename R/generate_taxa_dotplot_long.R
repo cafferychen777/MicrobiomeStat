@@ -9,6 +9,8 @@
 #' @param t0.level Optional; a baseline time level for time series analysis.
 #' @param ts.levels Optional; time series levels for analysis.
 #' @param feature.level A string or vector of strings indicating the taxonomic level(s) for analysis (e.g., "Phylum", "Class") and for displaying in the dot plot.
+#' @param feature.sig.level The significance level cutoff for highlighting taxa
+#' @param feature.mt.method Multiple testing correction method, "fdr" or "none"
 #' @param base.size Numeric; base font size for text elements in the plot. Default is 16.
 #' @param theme.choice A string indicating the choice of ggplot2 theme for the plot. Supported themes include 'prism', 'classic', 'gray', and 'bw'. Default is 'bw'.
 #' @param custom.theme Optional; a custom ggplot2 theme. If provided, it overrides the standard theme choice.
@@ -158,7 +160,6 @@ generate_taxa_dotplot_long <- function(data.obj,
 
       data_for_plot$Significance_Label <- ifelse(data_for_plot[[p_val_var]] < feature.sig.level, "*", "")
 
-      # 创建点图
       dotplot <- ggplot(data_for_plot, aes(x = !!sym(time.var), y = Variable, size = Coefficient)) +
         geom_point(aes(color = !!sym(p_val_var)), alpha = 0.6, shape = 19) +
         geom_text(aes(label = Significance_Label), vjust = 0.8, show.legend = FALSE, color = "white") +
