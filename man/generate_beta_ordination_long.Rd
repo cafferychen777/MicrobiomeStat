@@ -159,7 +159,7 @@ generate_beta_ordination_long(
   strata.var = NULL,
   adj.vars = NULL,
   dist.name = 'BC',
-  base.size = 20,
+  base.size = 16,
   theme.choice = "bw",
   custom.theme = NULL,
   palette = NULL,
