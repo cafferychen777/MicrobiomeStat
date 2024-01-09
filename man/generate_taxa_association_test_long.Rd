@@ -79,19 +79,27 @@ When group.var and adj.vars are NULL, the intercept is tested without adjusting 
 }
 \examples{
 \dontrun{
-# Example 1
+# Example 1: Generate taxa association tests and volcano plots for the ecam dataset
 data("ecam.obj")
-generate_taxa_association_test_long(
+test.list <- generate_taxa_association_test_long(
   data.obj = ecam.obj,
   subject.var = "studyid",
   group.var = "delivery",
-  feature.level = c("Phylum","Class"),
+  feature.level = c("Phylum", "Class"),
   feature.dat.type = c("count")
 )
 
-# Example 2
+volcano_plots_ecam <- generate_taxa_volcano_single(
+  data.obj = ecam.obj,
+  group.var = "delivery",
+  test.list = test.list,
+  feature.sig.level = 0.1,
+  feature.mt.method = "fdr"
+)
+
+# Example 2: Generate taxa association tests and volcano plots for a subset of the T2D dataset
 data("subset_T2D.obj")
-generate_taxa_association_test_long(
+test.list_T2D <- generate_taxa_association_test_long(
   data.obj = subset_T2D.obj,
   subject.var = "subject_id",
   feature.level = "Genus",
@@ -99,6 +107,14 @@ generate_taxa_association_test_long(
   feature.dat.type = c("count"),
   prev.filter = 0.1,
   abund.filter = 0.001
+)
+
+volcano_plots_T2D <- generate_taxa_volcano_single(
+  data.obj = subset_T2D.obj,
+  group.var = "subject_race",
+  test.list = test.list_T2D,
+  feature.sig.level = 0.1,
+  feature.mt.method = "fdr"
 )
 }
 }
