@@ -167,7 +167,7 @@ generate_beta_dotplot_long <- function(data.obj,
     data_for_plot$Significance_Label <- ifelse(data_for_plot[[p_val_var]] < 0.05, "*", "")
 
     dotplot <- ggplot(data_for_plot, aes(x = !!sym(time.var), y = Term, size = Estimate)) +
-      geom_point(aes(color = !!sym(p_val_var)), beta = 0.6, shape = 19) +
+      geom_point(aes(color = !!sym(p_val_var)), alpha = 0.6, shape = 19) +
       geom_text(aes(label = Significance_Label), vjust = 0.8, show.legend = FALSE, color = "white") +
       scale_color_gradientn(colors = col) +
       labs(title = group.names,
