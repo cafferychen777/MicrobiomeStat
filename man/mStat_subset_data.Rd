@@ -37,19 +37,56 @@ The function returns the subsetted data object.
 \dontrun{
 # Load the required libraries
 library(MicrobiomeStat)
-
 # Prepare data for the function
 data(peerj32.obj)
-# Subset data object by sample IDs
-subset.ids <- rownames(peerj32.obj$meta.dat)[1:10] # for example
-subset_peerj32.obj <- mStat_subset_data(data.obj = peerj32.obj, samIDs = subset.ids)
-
-# Subset data object by condition
-condition <- "time == '1'" # for example
-subset_peerj32.obj2 <- mStat_subset_data(data.obj = peerj32.obj, condition = condition)
-
+peerj32.obj$meta.dat <- peerj32.obj$meta.dat \%>\%
+dplyr::select(all_of("subject")) \%>\% dplyr::distinct() \%>\%
+dplyr::mutate(cons = runif(dplyr::n(),0,5)) \%>\%
+dplyr::left_join(peerj32.obj$meta.dat \%>\% rownames_to_column("sample"),by = "subject") \%>\%
+tibble::column_to_rownames("sample")
+# Example 1: Subset data for a specific time point
+# Subset to include only samples from time point 1
+subset_time1 <- mStat_subset_data(data.obj = peerj32.obj, condition = "time == '1'")
+# Example 2: Subset data for a specific group
+# Subset to include only samples from the 'LGG' group
+subset_LGG <- mStat_subset_data(data.obj = peerj32.obj, condition = "group == 'LGG'")
+# Example 3: Subset data for a specific sex
+# Subset to include only male samples
+subset_male <- mStat_subset_data(data.obj = peerj32.obj, condition = "sex == 'male'")
+# Example 4: Complex condition subsetting
+# Subset based on multiple conditions: male samples from 'Placebo' group at time point 2
+complex_condition <- "sex == 'male' & group == 'Placebo' & time == '2'"
+subset_complex <- mStat_subset_data(data.obj = peerj32.obj, condition = complex_condition)
+# Example 5: Subset data using a combination of sample IDs and condition
+# First, get a subset of sample IDs (e.g., first 10 samples)
+subset_ids <- rownames(peerj32.obj$meta.dat)[1:10]
+# Subset the data object based on these sample IDs
+subset_by_ids <- mStat_subset_data(data.obj = peerj32.obj, samIDs = subset_ids)
+# Then, further subset the result to include only those samples from the 'Placebo' group
+subset_ids_condition <- mStat_subset_data(data.obj = subset_by_ids,
+condition = "group == 'Placebo'")
+# Example 6: Subset data for female samples in the 'Placebo' group
+# Subset to include only female samples from the 'Placebo' group
+subset_female_placebo <- mStat_subset_data(data.obj = peerj32.obj,
+condition = "sex == 'female' & group == 'Placebo'")
+# Example 7: Subset data excluding certain subjects
+# Subset to exclude subjects S1 and S2
+subset_exclude_subjects <- mStat_subset_data(data.obj = peerj32.obj,
+condition = "!subject \%in\% c('S1', 'S2')")
+# Example 8: Subset data for a specific range of the 'cons' variable
+# Subset to include samples with 'cons' values greater than 2
+subset_cons_gt_2 <- mStat_subset_data(data.obj = peerj32.obj, condition = "cons > 2")
+# Example 9: Subset data for samples with even-numbered IDs
+# Subset to include samples with even-numbered IDs
+even_sample_ids <- rownames(peerj32.obj$meta.dat)[as.integer(gsub('sample-', '',
+rownames(peerj32.obj$meta.dat))) \%\% 2 == 0]
+subset_even_samples <- mStat_subset_data(data.obj = peerj32.obj, samIDs = even_sample_ids)
+# Example 10: Combine multiple conditions with logical operators
+# Subset to include male samples from 'LGG' group at time point 1 with 'cons' less than 3
+complex_multiple_conditions <- "sex == 'male' & group == 'LGG' & time == '1' & cons < 3"
+subset_complex_multiple <- mStat_subset_data(data.obj = peerj32.obj,
+condition = complex_multiple_conditions)
 }
-
 }
 \seealso{
 \code{\link[dplyr]{filter}}, \code{\link[dplyr]{select}}
