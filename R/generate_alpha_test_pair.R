@@ -78,7 +78,6 @@ extract_coef <- function(model) {
 #' index.
 #'
 #' @examples
-#'
 #' data(peerj32.obj)
 #' generate_alpha_test_pair(
 #' data.obj = peerj32.obj,
