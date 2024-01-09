@@ -77,23 +77,36 @@ ordination. Can be empty or NULL if no adjustment needed.}
 
 \item{base.size}{a numeric value specifying the base size for the plot text.}
 
-\item{theme.choice}{Plot theme choice. Can be one of:
-  - "prism": ggprism::theme_prism()
-  - "classic": theme_classic()
-  - "gray": theme_gray()
-  - "bw": theme_bw()
-Default is "bw".}
+\item{theme.choice}{Plot theme choice. Specifies the visual style of the plot. Can be one of the following pre-defined themes:
+  - "prism": Utilizes the ggprism::theme_prism() function from the ggprism package, offering a polished and visually appealing style.
+  - "classic": Applies theme_classic() from ggplot2, providing a clean and traditional look with minimal styling.
+  - "gray": Uses theme_gray() from ggplot2, which offers a simple and modern look with a light gray background.
+  - "bw": Employs theme_bw() from ggplot2, creating a classic black and white plot, ideal for formal publications and situations where color is best minimized.
+  - "light": Implements theme_light() from ggplot2, featuring a light theme with subtle grey lines and axes, suitable for a fresh, modern look.
+  - "dark": Uses theme_dark() from ggplot2, offering a dark background, ideal for presentations or situations where a high-contrast theme is desired.
+  - "minimal": Applies theme_minimal() from ggplot2, providing a minimalist theme with the least amount of background annotations and colors.
+  - "void": Employs theme_void() from ggplot2, creating a blank canvas with no axes, gridlines, or background, ideal for custom, creative plots.
+Each theme option adjusts various elements like background color, grid lines, and font styles to match the specified aesthetic.
+Default is "bw", offering a universally compatible black and white theme suitable for a wide range of applications.}
 
-\item{custom.theme}{A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. To use a custom theme, first create a theme object with ggplot2::theme(), then pass it to this argument. For example:
+\item{custom.theme}{A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. Custom themes are useful for creating publication-ready figures with specific formatting requirements.
+
+To use a custom theme, create a theme object with ggplot2::theme(), including any desired customizations. Common customizations for publication-ready figures might include adjusting text size for readability, altering line sizes for clarity, and repositioning or formatting the legend. For example:
 
 ```r
 my_theme <- ggplot2::theme(
-  axis.title = ggplot2::element_text(size=16, color="red"),
-  legend.position = "none"
+  axis.title = ggplot2::element_text(size=14, face="bold"),        # Bold axis titles with larger font
+  axis.text = ggplot2::element_text(size=12),                      # Slightly larger axis text
+  legend.position = "top",                                         # Move legend to the top
+  legend.background = ggplot2::element_rect(fill="lightgray"),     # Light gray background for legend
+  panel.background = ggplot2::element_rect(fill="white", colour="black"), # White panel background with black border
+  panel.grid.major = ggplot2::element_line(colour = "grey90"),     # Lighter color for major grid lines
+  panel.grid.minor = ggplot2::element_blank(),                     # Remove minor grid lines
+  plot.title = ggplot2::element_text(size=16, hjust=0.5)           # Centered plot title with larger font
 )
 ```
 
-Then pass `my_theme` to `custom.theme`. Default is NULL, which will use the default theme based on `theme.choice`.}
+Then pass `my_theme` to `custom.theme`. If `custom.theme` is NULL (the default), the theme is determined by `theme.choice`. This flexibility allows for both easy theme selection for general use and detailed customization for specific presentation or publication needs.}
 
 \item{palette}{An optional parameter specifying the color palette to be used for the plot.
 It can be either a character string specifying the name of a predefined
