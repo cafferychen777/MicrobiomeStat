@@ -86,7 +86,6 @@ reference:
       - generate_taxa_test_single
       - generate_taxa_volcano_single
       - generate_taxa_association_test_long
-      - generate_taxa_association_volcano_long
       - generate_taxa_trend_test_long
       - generate_taxa_trend_volcano_long
       - generate_taxa_volatility_test_long
