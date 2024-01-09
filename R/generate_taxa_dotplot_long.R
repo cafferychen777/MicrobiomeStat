@@ -104,19 +104,9 @@ generate_taxa_dotplot_long <- function(data.obj,
     dplyr::distinct() %>%
     dplyr::pull()
 
-  theme_function <- switch(
-    theme.choice,
-    prism = ggprism::theme_prism(),
-    classic = theme_classic(),
-    gray = theme_gray(),
-    bw = theme_bw(),
-    ggprism::theme_prism()
-  )
-
-  theme_to_use <-
-    if (!is.null(custom.theme))
-      custom.theme else
-        theme_function
+  # Assuming mStat_get_theme function is already defined
+  # Replace the existing theme selection code with this:
+  theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
   group.names <- names(time.test.list[[1]][[1]])
 

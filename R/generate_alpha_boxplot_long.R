@@ -218,19 +218,9 @@ generate_alpha_boxplot_long <- function (data.obj,
     dplyr::inner_join(meta_tab %>% rownames_to_column(var = "sample"),
                       by = c("sample"))
 
-  theme_function <- switch(
-    theme.choice,
-    prism = ggprism::theme_prism(),
-    classic = theme_classic(),
-    gray = theme_gray(),
-    bw = theme_bw(),
-    ggprism::theme_prism()
-  )
-
-  theme_to_use <-
-    if (!is.null(custom.theme))
-      custom.theme else
-    theme_function
+  # Assuming mStat_get_theme function is already defined
+  # Replace the existing theme selection code with this:
+  theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
   # Use mStat_get_palette to set the color palette
   col <- mStat_get_palette(palette)

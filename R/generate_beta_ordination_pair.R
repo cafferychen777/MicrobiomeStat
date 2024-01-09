@@ -174,19 +174,9 @@ generate_beta_ordination_pair <-
       aes(color = !!sym(time.var))
     }
 
-    theme_function <- switch(
-      theme.choice,
-      prism = ggprism::theme_prism(),
-      classic = theme_classic(),
-      gray = theme_gray(),
-      bw = theme_bw(),
-      ggprism::theme_prism()
-    )
-
-    theme_to_use <-
-      if (!is.null(custom.theme))
-        custom.theme else
-      theme_function
+    # Assuming mStat_get_theme function is already defined
+    # Replace the existing theme selection code with this:
+    theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
     plot_list <- lapply(dist.name, function(dist.name) {
       pc.mat <- pc.obj[[dist.name]]$points[, 1:2]

@@ -40,7 +40,7 @@ mStat_combine_data <- function(data.obj1, data.obj2) {
     cols_to_replace <- setdiff(names(data1), "feature")
 
     combined_data <- data1 %>%
-      full_join(data2, by = "feature") %>%
+      dplyr::full_join(data2, by = "feature") %>%
       tidyr::replace_na(setNames(as.list(rep(0, length(cols_to_replace))), cols_to_replace)) %>%
       tidyr::gather(key = "sample", value = "count", -feature) %>%
       tidyr::spread(key = "sample", value = "count") %>% column_to_rownames("feature")

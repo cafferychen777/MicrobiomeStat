@@ -218,21 +218,9 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
     )
   }
 
-  theme_function <- switch(
-    theme.choice,
-    prism = ggprism::theme_prism(),
-    classic = theme_classic(),
-    gray = theme_gray(),
-    bw = theme_bw(),
-    ggprism::theme_prism()
-  ) # 根据用户选择设置主题
-
-  # 使用用户自定义主题（如果提供），否则使用默认主题
-  theme_to_use <-
-    if (!is.null(custom.theme))
-      custom.theme
-  else
-    theme_function
+  # Assuming mStat_get_theme function is already defined
+  # Replace the existing theme selection code with this:
+  theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
   plot_list <- lapply(dist.name, function(dist.name) {
     if (is.null(pc.obj)) {
