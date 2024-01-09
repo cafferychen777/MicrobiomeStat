@@ -50,24 +50,32 @@ A list of ggplot objects of volcano plots for each taxonomic level
 Generate Volcano Plots for Taxa Differential Test for a Single Time Point
 }
 \examples{
-data(peerj32.obj)
-test.list <- generate_taxa_test_single(
+\dontrun{
+  # Load the data
+  data(peerj32.obj)
+
+  # Generate a list of tests for taxa significance
+  test.list <- generate_taxa_test_single(
     data.obj = peerj32.obj,
     time.var = "time",
     t.level = "2",
     group.var = "group",
     adj.vars = "sex",
     feature.dat.type = "count",
-    feature.level = c("Phylum","Genus","Family"),
+    feature.level = c("Phylum", "Genus", "Family"),
     prev.filter = 0.1,
     abund.filter = 0.0001,
     feature.sig.level = 0.1,
     feature.mt.method = "none"
-)
-   volcano_plots <- generate_taxa_volcano_single(data.obj = peerj32.obj,
-                                                 group.var = "group",
-                                                 test.list = test.list,
-                                                 feature.sig.level = 0.1,
-                                                 feature.mt.method = "none")
+  )
 
+  # Generate volcano plots from the test results
+  volcano_plots <- generate_taxa_volcano_single(
+    data.obj = peerj32.obj,
+    group.var = "group",
+    test.list = test.list,
+    feature.sig.level = 0.1,
+    feature.mt.method = "none"
+  )
+}
 }
