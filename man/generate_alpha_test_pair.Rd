@@ -57,7 +57,6 @@ index. Each table includes the term, estimate, standard error, t value, and
 p-value for each fixed effect in the model.
 }
 \examples{
-
 data(peerj32.obj)
 generate_alpha_test_pair(
 data.obj = peerj32.obj,
