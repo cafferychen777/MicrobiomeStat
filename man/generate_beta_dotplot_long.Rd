@@ -95,48 +95,52 @@ The function prepares data by merging and transforming the results from `generat
 }
 \examples{
 \dontrun{
-# Example 1: Analyzing the ECAM dataset
-data("ecam.obj")
-# Analyzing the impact of delivery method on microbial composition over months
-result1 <- generate_beta_test_long(
-  data.obj = ecam.obj,
-  beta.name = c("shannon", "simpson", "observed_species", "pielou"),
-  time.var = "month_num",
-  t0.level = unique(ecam.obj$meta.dat$month_num)[1],
-  ts.levels = unique(ecam.obj$meta.dat$month_num)[-1],
-  group.var = "delivery",
-  adj.vars = "diet"
+data(subset_T2D.obj)
+result1 <- generate_beta_change_test_long(
+  data.obj = subset_T2D.obj,
+  dist.obj = NULL,
+  time.var = "visit_number_num",
+  t0.level = unique(subset_T2D.obj$meta.dat$visit_number_num)[1],
+  ts.levels = unique(subset_T2D.obj$meta.dat$visit_number_num)[-1],
+  subject.var = "subject_id",
+  group.var = "subject_race",
+  adj.vars = NULL,
+  dist.name = c('BC', 'Jaccard', 'JS')
 )
+
+# Visualizing the results for the Type 2 Diabetes dataset
+dotplot_T2D <- generate_beta_dotplot_long(
+  data.obj = subset_T2D.obj,
+  test.list = result1,
+  group.var = "subject_race",
+  time.var = "visit_number_num",
+  t0.level = unique(subset_T2D.obj$meta.dat$visit_number_num)[1],
+  ts.levels = unique(subset_T2D.obj$meta.dat$visit_number_num)[-1],
+)
+
+data(ecam.obj)
+dist.obj <- mStat_calculate_beta_diversity(ecam.obj, c('BC', 'Jaccard', "JS"))
+result2 <- generate_beta_change_test_long(
+  data.obj = ecam.obj,
+  dist.obj = dist.obj,
+  time.var = "month",
+  t0.level = unique(ecam.obj$meta.dat$month)[1],
+  ts.levels = unique(ecam.obj$meta.dat$month)[-1],
+  subject.var = "subject.id",
+  group.var = "diet",
+  adj.vars = NULL,
+  dist.name = c('BC', 'Jaccard', "JS")
+)
+
 # Visualizing the results for the ECAM dataset
 dotplot_ecam <- generate_beta_dotplot_long(
   data.obj = ecam.obj,
-  test.list = result1,
-  group.var = "delivery",
-  time.var = "month_num",
-  t0.level = unique(ecam.obj$meta.dat$month_num)[1],
-  ts.levels = unique(ecam.obj$meta.dat$month_num)[-1]
-)
-
-# Example 2: Analyzing the Type 2 Diabetes dataset
-data("subset_T2D.obj")
-# Longitudinal analysis of microbial changes in different racial groups
-result2 <- generate_beta_test_long(
-  data.obj = subset_T2D.obj,
-  beta.name = c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou"),
-  time.var = "visit_number",
-  t0.level = unique(subset_T2D.obj$meta.dat$visit_number)[1],
-  ts.levels = unique(subset_T2D.obj$meta.dat$visit_number)[-1],
-  group.var = "subject_race",
-  adj.vars = "sample_body_site"
-)
-# Visualizing the results for the Type 2 Diabetes dataset
-dotplot_T2D <- generate_taxa_dotplot_long(
-  data.obj = subset_T2D.obj,
   test.list = result2,
-  group.var = "subject_race",
-  time.var = "visit_number",
-  t0.level = unique(subset_T2D.obj$meta.dat$visit_number)[1],
-  ts.levels = unique(subset_T2D.obj$meta.dat$visit_number)[-1],
+  group.var = "delivery",
+  time.var = "month",
+  t0.level = unique(ecam.obj$meta.dat$month)[1],
+  ts.levels = unique(ecam.obj$meta.dat$month)[-1],
+  base.size = 15
 )
 }
 }
