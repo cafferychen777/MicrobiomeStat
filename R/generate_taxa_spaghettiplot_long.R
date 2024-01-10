@@ -111,7 +111,7 @@
 #'   ts.levels = NULL,
 #'   group.var = "diet",
 #'   strata.var = "antiexposedall",
-#'   feature.level = c("Phylum"),
+#'   feature.level = c("Genus"),
 #'   features.plot = NULL,
 #'   feature.dat.type = "proportion",
 #'   top.k.plot = 10,
@@ -120,7 +120,30 @@
 #'   abund.filter = 0,
 #'   base.size = 16,
 #'   theme.choice = "bw",
-#'   palette = NULL,
+#'   palette = "lancet",
+#'   pdf = TRUE,
+#'   file.ann = NULL
+#' )
+#'
+#' data("subset_T2D.obj")
+#' generate_taxa_spaghettiplot_long(
+#'   data.obj = subset_T2D.obj,
+#'   subject.var = "subject_id",
+#'   time.var = "visit_number_num",
+#'   t0.level = NULL,
+#'   ts.levels = NULL,
+#'   group.var = "subject_race",
+#'   strata.var = "sample_body_site",
+#'   feature.level = c("Genus"),
+#'   features.plot = NULL,
+#'   feature.dat.type = "count",
+#'   top.k.plot = 10,
+#'   top.k.func = "mean",
+#'   prev.filter = 0,
+#'   abund.filter = 0,
+#'   base.size = 16,
+#'   theme.choice = "bw",
+#'   palette = "npg",
 #'   pdf = TRUE,
 #'   file.ann = NULL
 #' )
