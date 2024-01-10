@@ -18,30 +18,41 @@ mStat_calculate_beta_diversity(
 }
 \value{
 A list containing the calculated beta diversity indices. The indices are named with the abbreviation.
+
+\dontrun{
+library(vegan) # Used for community ecology analyses
+library(GUniFrac) # For generalized UniFrac distances
+library(philentropy) # For distance measures like Jensen-Shannon divergence
+# library(phyloseq) # For handling and analyzing phylogenetic sequencing data
+# Load example data
+# data(GlobalPatterns) # An example dataset from the phyloseq package
+# Convert the phyloseq object to a MicrobiomeStat data object
+# This step is crucial for making the dataset compatible with MicrobiomeStat functions
+# GlobalPatterns.obj <- mStat_convert_phyloseq_to_data_obj(GlobalPatterns)
+# Calculate various beta diversity indices
+# Beta diversity measures the difference in microbial communities across samples
+# Bray-Curtis dissimilarity (BC)
+# A commonly used measure of dissimilarity based on counts
+# dist.obj <- mStat_calculate_beta_diversity(GlobalPatterns.obj, dist.name = c('BC'))
+# Jaccard index
+# A measure based on presence/absence, useful for binary data
+# dist.obj <- mStat_calculate_beta_diversity(GlobalPatterns.obj, dist.name = c("Jaccard"))
+# UniFrac distance
+# A phylogenetic measure of community dissimilarity
+# Requires a phylogenetic tree as part of the input
+# dist.obj <- mStat_calculate_beta_diversity(GlobalPatterns.obj, dist.name = c('UniFrac'))
+# Weighted UniFrac distance (WUniFrac)
+# A variation of UniFrac that accounts for relative abundance
+# Also requires a phylogenetic tree
+# dist.obj <- mStat_calculate_beta_diversity(GlobalPatterns.obj, dist.name = c('WUniFrac'))
+# Jensen-Shannon divergence (JS)
+# A symmetric and smoothed version of the Kullback-Leibler divergence
+# Useful for comparing probability distributions
+# dist.obj <- mStat_calculate_beta_diversity(GlobalPatterns.obj, dist.name = c('JS'))
+}
 }
 \description{
 This function calculates a variety of beta diversity indices based on the input data, such as
 Bray-Curtis (BC), Jaccard, unweighted UniFrac (UniFrac), generalized UniFrac (GUniFrac),
 weighted UniFrac (WUniFrac), and Jensen-Shannon divergence (JS).
-}
-\examples{
-\dontrun{
-library(vegan)
-library(GUniFrac)
-library(philentropy)
-library(phyloseq)
-
-# Load example data
-data(GlobalPatterns)
-
-GlobalPatterns.obj <- mStat_convert_phyloseq_to_data_obj(GlobalPatterns)
-
-# Calculate various beta diversity indices
-dist.obj <- mStat_calculate_beta_diversity(GlobalPatterns.obj, dist.name = c('BC'))
-dist.obj <- mStat_calculate_beta_diversity(GlobalPatterns.obj, dist.name = c("Jaccard"))
-dist.obj <- mStat_calculate_beta_diversity(GlobalPatterns.obj, dist.name = c('UniFrac'))
-dist.obj <- mStat_calculate_beta_diversity(GlobalPatterns.obj, dist.name = c('WUniFrac'))
-dist.obj <- mStat_calculate_beta_diversity(GlobalPatterns.obj, dist.name = c('JS'))
-}
-
 }
