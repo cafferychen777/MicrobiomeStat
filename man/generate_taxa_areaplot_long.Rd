@@ -147,7 +147,7 @@ generate_taxa_areaplot_long(
   group.var = "subject_id",
   strata.var = "subject_gender",
   feature.level = c("Genus"),
-  feature.dat.type = "proportion",
+  feature.dat.type = "count",
   feature.number = 40,
   t0.level = NULL,
   ts.levels = NULL,
