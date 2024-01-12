@@ -84,7 +84,15 @@
 
 
 <dt>palette</dt>
-<dd><p>Optional; a vector of colors for the gradient scale in the plots. If provided, it overrides the default color scale.</p></dd>
+<dd><p>An optional parameter specifying the color palette to be used for the plot.
+It can be either a character string specifying the name of a predefined
+palette or a vector of color codes in a format accepted by ggplot2
+(e.g., hexadecimal color codes). Available predefined palettes include
+'npg', 'aaas', 'nejm', 'lancet', 'jama', 'jco', and 'ucscgb', inspired
+by various scientific publications and the `ggsci` package. If `palette`
+is not provided or an unrecognized palette name is given, a default color
+palette will be used. Ensure the number of colors in the palette is at
+least as large as the number of groups being plotted.</p></dd>
 
 
 <dt>pdf</dt>
@@ -108,55 +116,34 @@
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">peerj32.obj</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">test.list</span> <span class="op">&lt;-</span> <span class="fu"><a href="generate_taxa_test_single.html">generate_taxa_test_single</a></span><span class="op">(</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="co"># Load the data</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">peerj32.obj</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span>  <span class="co"># Generate a list of tests for taxa significance</span></span></span>
+<span class="r-in"><span>  <span class="va">test.list</span> <span class="op">&lt;-</span> <span class="fu"><a href="generate_taxa_test_single.html">generate_taxa_test_single</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>    data.obj <span class="op">=</span> <span class="va">peerj32.obj</span>,</span></span>
 <span class="r-in"><span>    time.var <span class="op">=</span> <span class="st">"time"</span>,</span></span>
 <span class="r-in"><span>    t.level <span class="op">=</span> <span class="st">"2"</span>,</span></span>
 <span class="r-in"><span>    group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
 <span class="r-in"><span>    adj.vars <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
 <span class="r-in"><span>    feature.dat.type <span class="op">=</span> <span class="st">"count"</span>,</span></span>
-<span class="r-in"><span>    feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Phylum"</span>,<span class="st">"Genus"</span>,<span class="st">"Family"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Phylum"</span>, <span class="st">"Genus"</span>, <span class="st">"Family"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>    prev.filter <span class="op">=</span> <span class="fl">0.1</span>,</span></span>
 <span class="r-in"><span>    abund.filter <span class="op">=</span> <span class="fl">0.0001</span>,</span></span>
 <span class="r-in"><span>    feature.sig.level <span class="op">=</span> <span class="fl">0.1</span>,</span></span>
 <span class="r-in"><span>    feature.mt.method <span class="op">=</span> <span class="st">"none"</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Rule 1 passed: data.obj is a list.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Rule 2 passed: meta.dat is a data.frame.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Rule 3 passed: The row names of feature.tab match the row names of feature.ann.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Rule 4 passed: The column names of feature.tab match the row names of meta.dat.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Rule 5 passed: feature.tab is a matrix.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Rule 6 passed: feature.ann is a matrix.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Please note: The data components should follow base R data.frame and matrix structures, not phyloseq's formal class.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Validation passed.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Note: Passing validation does not guarantee the absence of all data issues. Further data exploration may be needed.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Data has been subsetted based on the provided condition.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Updated metadata to match the subsetted data.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> The following samples were excluded: sample-1, sample-3, sample-5, sample-7, sample-9, sample-11, sample-13, sample-15, sample-17, sample-19, sample-21, sample-23, sample-25, sample-27, sample-29, sample-31, sample-33, sample-35, sample-37, sample-39, sample-41, sample-43</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Updated feature table to match the subsetted data.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Updated feature annotation to match the subsetted data.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Data subsetting complete. Returning updated data object.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Data has been successfully normalized using TSS method.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 0 features are filtered!</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> The filtered data has 22 samples and 6 features that will be tested!</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Fit linear models ...</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Completed.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 0 features are filtered!</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> The filtered data has 22 samples and 115 features that will be tested!</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Fit linear models ...</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Completed.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 0 features are filtered!</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> The filtered data has 22 samples and 18 features that will be tested!</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Fit linear models ...</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Completed.</span>
-<span class="r-in"><span>   <span class="va">volcano_plots</span> <span class="op">&lt;-</span> <span class="fu">generate_taxa_volcano_single</span><span class="op">(</span>data.obj <span class="op">=</span> <span class="va">peerj32.obj</span>,</span></span>
-<span class="r-in"><span>                                                 group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
-<span class="r-in"><span>                                                 test.list <span class="op">=</span> <span class="va">test.list</span>,</span></span>
-<span class="r-in"><span>                                                 feature.sig.level <span class="op">=</span> <span class="fl">0.1</span>,</span></span>
-<span class="r-in"><span>                                                 feature.mt.method <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span>  <span class="co"># Generate volcano plots from the test results</span></span></span>
+<span class="r-in"><span>  <span class="va">volcano_plots</span> <span class="op">&lt;-</span> <span class="fu">generate_taxa_volcano_single</span><span class="op">(</span></span></span>
+<span class="r-in"><span>    data.obj <span class="op">=</span> <span class="va">peerj32.obj</span>,</span></span>
+<span class="r-in"><span>    group.var <span class="op">=</span> <span class="st">"group"</span>,</span></span>
+<span class="r-in"><span>    test.list <span class="op">=</span> <span class="va">test.list</span>,</span></span>
+<span class="r-in"><span>    feature.sig.level <span class="op">=</span> <span class="fl">0.1</span>,</span></span>
+<span class="r-in"><span>    feature.mt.method <span class="op">=</span> <span class="st">"none"</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

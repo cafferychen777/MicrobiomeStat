@@ -127,9 +127,8 @@ p-value for each fixed effect in the model.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">peerj32.obj</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">alpha_test_results</span> <span class="op">&lt;-</span> <span class="fu">generate_alpha_test_pair</span><span class="op">(</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">peerj32.obj</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">generate_alpha_test_pair</span><span class="op">(</span></span></span>
 <span class="r-in"><span>data.obj <span class="op">=</span> <span class="va">peerj32.obj</span>,</span></span>
 <span class="r-in"><span>alpha.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>time.var <span class="op">=</span> <span class="st">"time"</span>,</span></span>
@@ -152,7 +151,87 @@ p-value for each fixed effect in the model.</p>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Complex model failed. Trying a simpler model...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Complex model failed. Trying a simpler model...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Complex model failed. Trying a simpler model...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $shannon</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 4 × 5</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Term               Estimate Std.Error Statistic  P.Value</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                 <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> (Intercept)          3.51      0.036<span style="text-decoration: underline;">3</span>     96.7  2.13<span style="color: #949494;">e</span><span style="color: #BB0000;">-46</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> groupPlacebo         0.106     0.045<span style="text-decoration: underline;">5</span>      2.33 2.52<span style="color: #949494;">e</span><span style="color: #BB0000;">- 2</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> time2                0.060<span style="text-decoration: underline;">8</span>    0.043<span style="text-decoration: underline;">9</span>      1.39 1.81<span style="color: #949494;">e</span><span style="color: #BB0000;">- 1</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span> groupPlacebo:time2  -<span style="color: #BB0000;">0.056</span><span style="color: #BB0000; text-decoration: underline;">6</span>    0.055<span style="text-decoration: underline;">1</span>     -<span style="color: #BB0000;">1.03</span> 3.16<span style="color: #949494;">e</span><span style="color: #BB0000;">- 1</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $simpson</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 4 × 5</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Term               Estimate Std.Error Statistic  P.Value</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                 <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> (Intercept)         0.945     0.003<span style="text-decoration: underline;">92</span>   241.    9.26<span style="color: #949494;">e</span><span style="color: #BB0000;">-64</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> groupPlacebo        0.009<span style="text-decoration: underline;">53</span>   0.004<span style="text-decoration: underline;">91</span>     1.94  5.96<span style="color: #949494;">e</span><span style="color: #BB0000;">- 2</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> time2               0.006<span style="text-decoration: underline;">25</span>   0.005<span style="text-decoration: underline;">13</span>     1.22  2.37<span style="color: #949494;">e</span><span style="color: #BB0000;">- 1</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span> groupPlacebo:time2 -<span style="color: #BB0000;">0.005</span><span style="color: #BB0000; text-decoration: underline;">03</span>   0.006<span style="text-decoration: underline;">43</span>    -<span style="color: #BB0000;">0.784</span> 4.43<span style="color: #949494;">e</span><span style="color: #BB0000;">- 1</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $ace</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 4 × 5</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Term               Estimate Std.Error Statistic  P.Value</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                 <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> (Intercept)           98.0       3.29    29.8   4.72<span style="color: #949494;">e</span><span style="color: #BB0000;">-22</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> groupPlacebo           3.24      4.12     0.787 4.38<span style="color: #949494;">e</span><span style="color: #BB0000;">- 1</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> time2                  4.87      2.53     1.92  6.93<span style="color: #949494;">e</span><span style="color: #BB0000;">- 2</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span> groupPlacebo:time2    -<span style="color: #BB0000;">2.51</span>      3.18    -<span style="color: #BB0000;">0.789</span> 4.40<span style="color: #949494;">e</span><span style="color: #BB0000;">- 1</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"subset_pairs.obj"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">generate_alpha_test_pair</span><span class="op">(</span></span></span>
+<span class="r-in"><span>data.obj <span class="op">=</span> <span class="va">subset_pairs.obj</span>,</span></span>
+<span class="r-in"><span>alpha.obj <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>time.var <span class="op">=</span> <span class="st">"Antibiotic"</span>,</span></span>
+<span class="r-in"><span>alpha.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shannon"</span>, <span class="st">"simpson"</span>, <span class="st">"ace"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>subject.var <span class="op">=</span> <span class="st">"MouseID"</span>,</span></span>
+<span class="r-in"><span>group.var <span class="op">=</span> <span class="st">"Sex"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Diversity analysis needs rarefaction! Call 'mStat_rarefy_data' to rarefy the data!</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> No depth specified, using the smallest column sum:  2529</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Removed  62  rows from the OTU table and feature annotations due to all-zero counts after rarefication. The removed rows are:  16, 21, 29, 30, 34, 41, 46, 51, 56, 57, 65, 66, 68, 71, 76, 78, 81, 82, 85, 87, 89, 95, 105, 107, 108, 109, 110, 114, 120, 146, 148, 150, 151, 152, 154, 160, 162, 165, 166, 167, 168, 169, 170, 174, 175, 176, 177, 178, 179, 181, 182, 183, 184, 185, 187, 188, 193, 198, 199, 210, 244, 255 .</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Data has been subsetted based on the provided samIDs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Updated metadata to match the subsetted data.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> The following samples were excluded: </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Updated feature table to match the subsetted data.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Updated feature annotation to match the subsetted data.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Data subsetting complete. Returning updated data object.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Calculating shannon diversity...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Calculating simpson diversity...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Calculating ace diversity...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Diversity calculations complete.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Complex model failed. Trying a simpler model...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Complex model failed. Trying a simpler model...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Complex model failed. Trying a simpler model...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> boundary (singular) fit: see help('isSingular')</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $shannon</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 4 × 5</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Term                  Estimate Std.Error Statistic  P.Value</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> (Intercept)             1.54      0.094<span style="text-decoration: underline;">4</span>    16.3   1.19<span style="color: #949494;">e</span><span style="color: #BB0000;">-26</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> SexM                   -<span style="color: #BB0000;">0.392</span>     0.135     -<span style="color: #BB0000;">2.90</span>  4.88<span style="color: #949494;">e</span><span style="color: #BB0000;">- 3</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> AntibioticWeek 2       -<span style="color: #BB0000;">0.079</span><span style="color: #BB0000; text-decoration: underline;">3</span>    0.114     -<span style="color: #BB0000;">0.695</span> 4.91<span style="color: #949494;">e</span><span style="color: #BB0000;">- 1</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span> SexM:AntibioticWeek 2   0.482     0.163      2.95  5.25<span style="color: #949494;">e</span><span style="color: #BB0000;">- 3</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $simpson</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 4 × 5</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Term                  Estimate Std.Error Statistic  P.Value</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> (Intercept)             0.631     0.033<span style="text-decoration: underline;">1</span>    19.1   5.69<span style="color: #949494;">e</span><span style="color: #BB0000;">-31</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> SexM                   -<span style="color: #BB0000;">0.131</span>     0.047<span style="text-decoration: underline;">4</span>    -<span style="color: #BB0000;">2.75</span>  7.33<span style="color: #949494;">e</span><span style="color: #BB0000;">- 3</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> AntibioticWeek 2       -<span style="color: #BB0000;">0.039</span><span style="color: #BB0000; text-decoration: underline;">3</span>    0.040<span style="text-decoration: underline;">8</span>    -<span style="color: #BB0000;">0.964</span> 3.41<span style="color: #949494;">e</span><span style="color: #BB0000;">- 1</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span> SexM:AntibioticWeek 2   0.181     0.058<span style="text-decoration: underline;">4</span>     3.10  3.54<span style="color: #949494;">e</span><span style="color: #BB0000;">- 3</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $ace</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 4 × 5</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Term                  Estimate Std.Error Statistic  P.Value</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> (Intercept)              46.2       2.69    17.2   6.48<span style="color: #949494;">e</span><span style="color: #BB0000;">-29</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> SexM                     -<span style="color: #BB0000;">7.35</span>      3.85    -<span style="color: #BB0000;">1.91</span>  5.98<span style="color: #949494;">e</span><span style="color: #BB0000;">- 2</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> AntibioticWeek 2          2.97      3.80     0.781 4.37<span style="color: #949494;">e</span><span style="color: #BB0000;">- 1</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span> SexM:AntibioticWeek 2     5.63      5.44     1.03  3.04<span style="color: #949494;">e</span><span style="color: #BB0000;">- 1</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

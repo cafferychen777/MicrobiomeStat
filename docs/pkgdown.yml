@@ -2,7 +2,7 @@ pandoc: 3.1.1
 pkgdown: 2.0.7
 pkgdown_sha: ~
 articles: {}
-last_built: 2024-01-08T10:16Z
+last_built: 2024-01-10T12:39Z
 urls:
   reference: https://cafferychen777.github.io/MicrobiomeStat/reference
   article: https://cafferychen777.github.io/MicrobiomeStat/articles

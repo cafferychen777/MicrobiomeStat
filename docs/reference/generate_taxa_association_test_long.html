@@ -144,19 +144,27 @@ Subject variability is accounted for through random effects.</p>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span><span class="co"># Example 1</span></span></span>
+<span class="r-in"><span><span class="co"># Example 1: Generate taxa association tests and volcano plots for the ecam dataset</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"ecam.obj"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">generate_taxa_association_test_long</span><span class="op">(</span></span></span>
+<span class="r-in"><span><span class="va">test.list</span> <span class="op">&lt;-</span> <span class="fu">generate_taxa_association_test_long</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">ecam.obj</span>,</span></span>
 <span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"studyid"</span>,</span></span>
 <span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"delivery"</span>,</span></span>
-<span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Phylum"</span>,<span class="st">"Class"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  feature.level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Phylum"</span>, <span class="st">"Class"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"count"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Example 2</span></span></span>
+<span class="r-in"><span><span class="va">volcano_plots_ecam</span> <span class="op">&lt;-</span> <span class="fu"><a href="generate_taxa_volcano_single.html">generate_taxa_volcano_single</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">ecam.obj</span>,</span></span>
+<span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"delivery"</span>,</span></span>
+<span class="r-in"><span>  test.list <span class="op">=</span> <span class="va">test.list</span>,</span></span>
+<span class="r-in"><span>  feature.sig.level <span class="op">=</span> <span class="fl">0.1</span>,</span></span>
+<span class="r-in"><span>  feature.mt.method <span class="op">=</span> <span class="st">"fdr"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Example 2: Generate taxa association tests and volcano plots for a subset of the T2D dataset</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"subset_T2D.obj"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">generate_taxa_association_test_long</span><span class="op">(</span></span></span>
+<span class="r-in"><span><span class="va">test.list_T2D</span> <span class="op">&lt;-</span> <span class="fu">generate_taxa_association_test_long</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">subset_T2D.obj</span>,</span></span>
 <span class="r-in"><span>  subject.var <span class="op">=</span> <span class="st">"subject_id"</span>,</span></span>
 <span class="r-in"><span>  feature.level <span class="op">=</span> <span class="st">"Genus"</span>,</span></span>
@@ -164,6 +172,14 @@ Subject variability is accounted for through random effects.</p>
 <span class="r-in"><span>  feature.dat.type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"count"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  prev.filter <span class="op">=</span> <span class="fl">0.1</span>,</span></span>
 <span class="r-in"><span>  abund.filter <span class="op">=</span> <span class="fl">0.001</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">volcano_plots_T2D</span> <span class="op">&lt;-</span> <span class="fu"><a href="generate_taxa_volcano_single.html">generate_taxa_volcano_single</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  data.obj <span class="op">=</span> <span class="va">subset_T2D.obj</span>,</span></span>
+<span class="r-in"><span>  group.var <span class="op">=</span> <span class="st">"subject_race"</span>,</span></span>
+<span class="r-in"><span>  test.list <span class="op">=</span> <span class="va">test.list_T2D</span>,</span></span>
+<span class="r-in"><span>  feature.sig.level <span class="op">=</span> <span class="fl">0.1</span>,</span></span>
+<span class="r-in"><span>  feature.mt.method <span class="op">=</span> <span class="st">"fdr"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>

@@ -136,6 +136,7 @@ reference:
   - title: "Miscellaneous"
     contents:
       - mStat_get_palette
+      - mStat_get_theme
       - is_categorical
       - is_continuous_numeric
       - linda.plot
