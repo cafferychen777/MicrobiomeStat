@@ -260,6 +260,8 @@ generate_taxa_test_pair <-
         # 如果出错，打印错误消息
         message("Error in linda: ", e)
 
+        message("Due to the above error, a simpler model will be used for fitting.")
+
         # 使用修正后的公式重新运行 linda 函数
         linda(feature.dat = otu_tax_agg_filter,
               meta.dat = meta_tab,
