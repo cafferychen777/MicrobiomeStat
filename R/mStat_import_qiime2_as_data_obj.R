@@ -19,6 +19,7 @@
 #' # please ensure that you have installed and loaded these packages.
 #' # library(Biostrings)
 #' # library(yaml)
+#' # library(biomformat)
 #' #data_obj <- mStat_import_qiime2_as_data_obj(otu_qza = "path_to_otu.qza",
 #' #                                             taxa_qza = "path_to_taxa.qza",
 #' #                                              sam_tab = "path_to_sample_metadata",
