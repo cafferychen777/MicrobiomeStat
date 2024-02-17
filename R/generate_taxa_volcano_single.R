@@ -114,15 +114,15 @@ generate_taxa_volcano_single <-
               linewidth = 1.5,
               color = "grey"
             ) +
-            geom_text(
+            geom_text_repel(
               aes(label = ifelse(
                 get(p_val_var) < feature.sig.level,
                 as.character(Variable),
                 ''
               )),
-              vjust = -0.5,
-              hjust = 0.5,
-              size = 3.5
+              size = 3.5,
+              box.padding = 0.35,
+              point.padding = 0.5
             ) +
             scale_shape_manual(values = c(16, 17)) +
             labs(
