@@ -84,8 +84,12 @@ generate_taxa_volatility_volcano_long <- function(data.obj,
           geom_point() +
           geom_vline(aes(xintercept = 0), linetype = "dashed", linewidth = 1.5, color = "grey") +
           geom_hline(aes(yintercept = -log10(feature.sig.level)), linetype = "dashed", linewidth = 1.5, color = "grey") +
-          geom_text(aes(label = ifelse(get(p_val_var) < feature.sig.level, as.character(Variable), '')),
-                    vjust = -0.5, hjust = 0.5, size = 3.5) +
+          geom_text_repel(
+            aes(label = ifelse(get(p_val_var) < feature.sig.level, as.character(Variable), '')),
+            size = 3.5,
+            box.padding = 0.35,
+            point.padding = 0.5
+          ) +
           scale_shape_manual(values = c(16, 17)) +
           labs(title = group.level, x = "Coefficient", y = "-log10(p-value)", color = "Prevalence", size = "Mean Abundance") +
           theme_bw() +
