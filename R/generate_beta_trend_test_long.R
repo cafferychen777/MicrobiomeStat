@@ -119,11 +119,13 @@ generate_beta_trend_test_long <-
     mStat_validate_data(data.obj)
 
     message(
-      "The trend test in 'generate_beta_trend_test_long' relies on a numeric time variable.\n",
+      "The trend test in 'generate_alpha_trend_test_long' relies on a numeric time variable.\n",
       "Please ensure that your time variable is coded as numeric.\n",
       "If the time variable is not numeric, it may cause issues in computing the results of the trend test.\n",
-      "The time variable will be processed within the function if needed."
+      "The time variable will be converted to numeric within the function if needed."
     )
+
+    data.obj$meta.dat <- data.obj$meta.dat %>% dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
 
     if (is.null(dist.obj)) {
       meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var, adj.vars)))
