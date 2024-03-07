@@ -1,9 +1,10 @@
 #' Generate Taxa Test Pair
 #'
-#' This function takes a MicrobiomeStat data object as input, filters taxa based on
-#' prevalence and abundance thresholds, aggregates taxon abundances by sample,
-#' fits linear mixed effects models using the linda method to identify significant
-#' taxon changes across groups over time, accounting for specified covariates.
+#' This function, `generate_taxa_test_pair`, is designed for analysis in microbiome studies.
+#' It takes a MicrobiomeStat data object as input and performs several key steps in the analysis of microbiome data.
+#' The function filters taxa based on prevalence and abundance thresholds, aggregates taxon abundances by sample,
+#' and applies the linda method to fit linear mixed effects models. These models are used to identify significant
+#' taxon changes across different groups over time, taking into account various covariates.
 #'
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
 #' @param subject.var A string that specifies the name of the subject variable column in the metadata.
@@ -339,17 +340,6 @@ generate_taxa_test_pair <-
 
     # Assign names to the elements of test.list
     names(test.list) <- feature.level
-
-    # plot.list <-
-    #   generate_taxa_trend_volcano_long(
-    #     data.obj = data.obj,
-    #     group.var = group.var,
-    #     test.list = test.list,
-    #     feature.sig.level = feature.sig.level,
-    #     feature.mt.method = feature.mt.method
-    #   )
-    #
-    # print(plot.list)
 
     return(test.list)
 
