@@ -77,5 +77,4 @@ mStat_validate_data <- function(data.obj) {
   # Add a final message to remind the user that validation is not exhaustive
   message("Note: Passing validation does not guarantee the absence of all data issues. Further data exploration may be needed.")
 
-  return(data.obj)
 }
