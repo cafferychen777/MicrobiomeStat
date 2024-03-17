@@ -105,7 +105,7 @@ generate_alpha_test_long <- function(data.obj,
   # Get unique time levels
   time.levels <- c(t0.level, ts.levels)
 
-  test.list <- lapply(c(t0.level, ts.levels), function(t.level){
+  test.list <- lapply(time.levels, function(t.level){
     # Subset the data for the specific time level
     condition <- paste(time.var, "== '", t.level, "'", sep = "")
     subset_data.obj <- mStat_subset_data(data.obj, condition = condition)
