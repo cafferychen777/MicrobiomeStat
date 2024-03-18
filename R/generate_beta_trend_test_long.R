@@ -163,7 +163,7 @@ generate_beta_trend_test_long <-
         dplyr::left_join(meta_tab, by = c("sample2" = "sample"), suffix = c(".subject", ".sample")) %>%
         filter(!!sym(paste0(subject.var, ".subject")) == !!sym(paste0(subject.var, ".sample"))) %>%
         dplyr::group_by(!!sym(paste0(subject.var, ".subject"))) %>%
-        filter(!!sym(paste0(time.var,".sample")) == min(meta_tab[,time.var])) %>%
+        filter(!!sym(paste0(time.var,".sample")) == min(!!sym(paste0(time.var,".sample")))) %>%
         filter(!!sym(paste0(time.var,".subject")) != !!sym(paste0(time.var,".sample"))) %>%
         dplyr::ungroup() %>%
         dplyr::select(!!sym(paste0(subject.var, ".subject")), !!sym(paste0(time.var, ".subject")), distance) %>%
@@ -179,6 +179,7 @@ generate_beta_trend_test_long <-
       long.df <- long.df %>% dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
 
       model <- lmer(formula, data = long.df)
+
       if (!is.null(group.var)){
         # Check if group.var is multi-category
         if (length(unique(long.df[[group.var]])) > 2) {
