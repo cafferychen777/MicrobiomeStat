@@ -1,7 +1,11 @@
 #' @title Generate beta diversity change spaghetti plot for longitudinal data
 #'
 #' @description This function generates a spaghetti plot visualizing the change in beta diversity over time for different groups and strata in longitudinal data. Optionally, a user can specify whether to save the plot as a PDF file. Change is defined as distance between samples from two time points.
+#'
+#' @note This function requires subjects to have a baseline time point (specified by `t0.level`) to calculate the change in beta diversity. Subjects without a baseline time point will be excluded from the visualization.
+#'
 #' @name generate_beta_change_spaghettiplot_long
+#'
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
 #' @param dist.obj Distance matrix between samples, usually calculated using
 #' \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
@@ -166,6 +170,8 @@ generate_beta_change_spaghettiplot_long <-
     axis.text.size = base.size * 0.5
     legend.title.size = base.size * 1
     legend.text.size = base.size * 0.75
+
+    message("Note: This function requires subjects to have a baseline time point (specified by `t0.level`) to calculate the change in beta diversity. Subjects without a baseline time point will be excluded from the visualization.")
 
     plot_list <- lapply(dist.name,function(dist.name){
       if (is.null(dist.obj)) {
