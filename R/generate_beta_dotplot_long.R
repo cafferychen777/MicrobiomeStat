@@ -72,7 +72,7 @@
 #'   subject.var = "subject_id",
 #'   group.var = "subject_race",
 #'   adj.vars = NULL,
-#'   dist.name = c('BC', 'Jaccard', 'JS')
+#'   dist.name = c('BC', 'Jaccard')
 #' )
 #'
 #' # Visualizing the results for the Type 2 Diabetes dataset
@@ -86,7 +86,7 @@
 #' )
 #'
 #' data(ecam.obj)
-#' dist.obj <- mStat_calculate_beta_diversity(ecam.obj, c('BC', 'Jaccard', "JS"))
+#' dist.obj <- mStat_calculate_beta_diversity(ecam.obj, c('BC', 'Jaccard'))
 #' result2 <- generate_beta_change_test_long(
 #'   data.obj = ecam.obj,
 #'   dist.obj = dist.obj,
@@ -96,7 +96,7 @@
 #'   subject.var = "subject.id",
 #'   group.var = "diet",
 #'   adj.vars = NULL,
-#'   dist.name = c('BC', 'Jaccard', "JS")
+#'   dist.name = c('BC', 'Jaccard')
 #' )
 #'
 #' # Visualizing the results for the ECAM dataset
