@@ -255,6 +255,22 @@ generate_alpha_spaghettiplot_long <-
           dplyr::left_join(sub_alpha.df, sub_alpha.df.mean, by = c(time.var, group.var, strata.var))
       }
 
+      if (is.null(t0.level)) {
+        if (is.numeric(meta_tab[, time.var])) {
+          t0.level <- sort(unique(meta_tab[, time.var]))[1]
+        } else {
+          t0.level <- levels(meta_tab[, time.var])[1]
+        }
+      }
+
+      if (is.null(ts.levels)) {
+        if (is.numeric(meta_tab[, time.var])) {
+          ts.levels <- sort(unique(meta_tab[, time.var]))[-1]
+        } else {
+          ts.levels <- levels(meta_tab[, time.var])[-1]
+        }
+      }
+
       # create a vector of time points
       time.points <- c(t0.level, ts.levels)
 

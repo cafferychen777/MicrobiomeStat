@@ -137,6 +137,22 @@ generate_beta_change_test_long <-
 
     reference_level <- levels(as.factor(metadata[,group.var]))[1]
 
+    if (is.null(t0.level)) {
+      if (is.numeric(meta_tab[, time.var])) {
+        t0.level <- sort(unique(meta_tab[, time.var]))[1]
+      } else {
+        t0.level <- levels(meta_tab[, time.var])[1]
+      }
+    }
+
+    if (is.null(ts.levels)) {
+      if (is.numeric(meta_tab[, time.var])) {
+        ts.levels <- sort(unique(meta_tab[, time.var]))[-1]
+      } else {
+        ts.levels <- levels(meta_tab[, time.var])[-1]
+      }
+    }
+
     time.levels <- c(t0.level, ts.levels)
 
     test.list <- lapply(ts.levels, function(ts.level){
