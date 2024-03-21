@@ -100,6 +100,8 @@ dotplot_T2D <- generate_taxa_dotplot_long(
   time.test.list = result2,
   group.var = "subject_race",
   time.var = "visit_number",
+  t0.level = unique(subset_T2D.obj$meta.dat$visit_number)[1],
+  ts.levels = unique(subset_T2D.obj$meta.dat$visit_number)[-1],
   feature.level = c("Genus", "Family")
 )
 }

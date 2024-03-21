@@ -133,7 +133,7 @@ generate_taxa_heatmap_single(
   t.level = "1",
   group.var = "group",
   strata.var = "sex",
-  feature.level = c("Family"),
+  feature.level = c("Genus"),
   feature.dat.type = "count",
   features.plot = NULL,
   top.k.plot = NULL,

@@ -114,7 +114,7 @@ volcano_plots_T2D <- generate_taxa_volcano_single(
   group.var = "subject_race",
   test.list = test.list_T2D,
   feature.sig.level = 0.1,
-  feature.mt.method = "fdr"
+  feature.mt.method = "none"
 )
 }
 }

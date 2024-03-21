@@ -65,10 +65,11 @@ Default is "count", which assumes raw OTU table input.}
 A named list containing data frames summarizing taxon test results for each taxonomic level.
 }
 \description{
-This function takes a MicrobiomeStat data object as input, filters taxa based on
-prevalence and abundance thresholds, aggregates taxon abundances by sample,
-fits linear mixed effects models using the linda method to identify significant
-taxon changes across groups over time, accounting for specified covariates.
+This function, `generate_taxa_test_pair`, is designed for analysis in microbiome studies.
+It takes a MicrobiomeStat data object as input and performs several key steps in the analysis of microbiome data.
+The function filters taxa based on prevalence and abundance thresholds, aggregates taxon abundances by sample,
+and applies the linda method to fit linear mixed effects models. These models are used to identify significant
+taxon changes across different groups over time, taking into account various covariates.
 }
 \details{
 Each list element corresponds to a taxonomic level specified in `feature.level`.

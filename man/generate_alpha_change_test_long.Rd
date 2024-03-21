@@ -99,7 +99,8 @@ alpha_test_results_T2D <- generate_alpha_change_test_long(
   ts.levels = unique(subset_T2D.obj$meta.dat$visit_number)[-1],
   subject.var = "subject_id",
   group.var = "subject_race",
-  adj.vars = c("sample_body_site")
+  adj.vars = c("sample_body_site"),
+  alpha.change.func = "log fold change"
 )
 
 # Generate dot plots for the T2D dataset results
