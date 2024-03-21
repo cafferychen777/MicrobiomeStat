@@ -276,7 +276,7 @@ generate_taxa_spaghettiplot_long <-
       }
 
       taxa.levels <-
-        df %>% select(feature.level) %>% dplyr::distinct() %>% dplyr::pull()
+        df %>% select(all_of(feature.level)) %>% dplyr::distinct() %>% dplyr::pull()
 
       if (!is.null(features.plot)) {
 
@@ -314,6 +314,16 @@ generate_taxa_spaghettiplot_long <-
             color = group.var
           ),
           size = 2
+        ) +
+        geom_point(
+          data = sub_df,
+          aes_string(
+            x = time.var,
+            y = "mean_count",
+            group = group.var,
+            color = group.var
+          ),
+          size = 3
         ) +
         scale_color_manual(values = col) +
         {
