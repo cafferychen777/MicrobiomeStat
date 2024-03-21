@@ -19,13 +19,15 @@ v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/li
 
 [EN](README.md) \| [CN](README-CN.md) \| [ES](README-ES.md)
 
-The `MicrobiomeStat` package is a dedicated R tool for exploring
-**longitudinal microbiome data**. It also accommodates multi-omics data
+The MicrobiomeStat package is a dedicated R tool for exploring
+*longitudinal microbiome data*. It also accommodates multi-omics data
 and cross-sectional studies, valuing the collective efforts within the
-community. This tool aims to support researchers through their extensive
-biological inquiries over time, with a spirit of gratitude towards the
-community’s existing resources and a collaborative ethos for furthering
-microbiome research.
+community. One of its standout features is the ability to generate
+comprehensive microbiome analysis reports, spanning dozens of pages,
+with just a single click. This tool aims to support researchers through
+their extensive biological inquiries over time, with a spirit of
+gratitude towards the community’s existing resources and a collaborative
+ethos for furthering microbiome research.
 
 # News
 
