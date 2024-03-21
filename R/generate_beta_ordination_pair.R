@@ -157,16 +157,16 @@ generate_beta_ordination_pair <-
     if (is.null(dist.obj)) {
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
-      metadata <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
+      meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
       if (!is.null(adj.vars)){
         dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
       }
       print(dist.obj)
     } else {
       if (is.null(data.obj)) {
-        metadata <- attr(dist.obj[[dist.name[1]]], "labels") %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
+        meta_tab <- attr(dist.obj[[dist.name[1]]], "labels") %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
       } else {
-        metadata <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
+        meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
       }
     }
 
@@ -197,7 +197,7 @@ generate_beta_ordination_pair <-
       pc.mat <- pc.obj[[dist.name]]$points[, 1:2]
       df <- as.data.frame(pc.mat) %>%
         setNames(c("PC1", "PC2")) %>%
-        dplyr::bind_cols(metadata[, c(subject.var, time.var, group.var, strata.var)]) %>%
+        dplyr::bind_cols(meta_tab[, c(subject.var, time.var, group.var, strata.var)]) %>%
         dplyr::mutate(
           x_start = PC1,
           y_start = PC2,
