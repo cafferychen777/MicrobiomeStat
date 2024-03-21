@@ -196,8 +196,8 @@ generate_beta_pc_change_boxplot_pair <-
     if (is.null(dist.obj)) {
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
-      metadata <- data.obj$meta.dat
-      if (is.null(metadata)) {
+      meta_tab <- data.obj$meta.dat
+      if (is.null(meta_tab)) {
         stop("No metadata could be loaded from data.obj. Please ensure it contains the necessary metadata.")
       }
       if (!is.null(adj.vars)){
@@ -208,14 +208,14 @@ generate_beta_pc_change_boxplot_pair <-
         stop(paste0("The requested dist.name(s) ", paste(dist.name[!dist.name %in% names(dist.obj)], collapse = ", "),
                     " are not available in the provided dist.obj. Please check again."))
       }
-      metadata <- attr(dist.obj[[dist.name[1]]], "labels")
-      if (is.null(metadata)) {
+      meta_tab <- attr(dist.obj[[dist.name[1]]], "labels")
+      if (is.null(meta_tab)) {
         message("No metadata found in dist.obj. Attempting to load metadata from data.obj.")
         if (is.null(data.obj)) {
           stop("No data.obj provided to load metadata from. Please ensure either dist.obj or data.obj contain the necessary metadata.")
         }
-        metadata <- data.obj$meta.dat
-        if (is.null(metadata)) {
+        meta_tab <- data.obj$meta.dat
+        if (is.null(meta_tab)) {
           stop("No metadata could be loaded from data.obj. Please ensure it contains the necessary metadata.")
         }
       }
@@ -247,7 +247,7 @@ generate_beta_pc_change_boxplot_pair <-
         pc.mat <- pc.mat %>% as_tibble()
 
         df <-
-          cbind(pc.mat[, paste0("PC", pc.ind)], metadata[, c(subject.var, time.var, group.var, strata.var)])
+          cbind(pc.mat[, paste0("PC", pc.ind)], meta_tab[, c(subject.var, time.var, group.var, strata.var)])
 
         change.after <-
           unique(df %>% select(all_of(c(time.var))))[unique(df %>% select(all_of(c(time.var)))) != change.base]
@@ -284,7 +284,7 @@ generate_beta_pc_change_boxplot_pair <-
           })
 
         combined_data <-
-          combined_data %>% dplyr::left_join(metadata %>% select(all_of(
+          combined_data %>% dplyr::left_join(meta_tab %>% select(all_of(
             c(subject.var, time.var, group.var, strata.var)
           )) %>% filter(!!sym(time.var) == change.after),
           by = subject.var)
