@@ -233,7 +233,9 @@ generate_alpha_change_test_pair <-
 
       # Run lm and create a coefficient table
       lm.model <- lm(formula, data = combined_alpha)
+
       summary <- summary(lm.model)
+
       coef.tab <- summary$coefficients %>%
         as.data.frame() %>%
         tibble::rownames_to_column(var = "Term") %>%
