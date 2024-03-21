@@ -15,8 +15,6 @@ maintain this project. 🌟
 [![Downloads](https://cranlogs.r-pkg.org/badges/grand-total/MicrobiomeStat)](https://cran.r-project.org/package=MicrobiomeStat)
 [![License: GPL
 v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![GitHub
-version](https://img.shields.io/github/v/tag/cafferychen777/MicrobiomeStat?logo=github)](https://github.com/cafferychen777/MicrobiomeStat/Github)
 <!-- badges: end -->
 
 [EN](README.md) \| [CN](README-CN.md) \| [ES](README-ES.md)
@@ -147,40 +145,34 @@ devtools::install_github("cafferychen777/MicrobiomeStat")
 
 # Online Tutorials
 
-`MicrobiomeStat` provides a comprehensive suite of tools for microbiome
+## **[📘 Explore MicrobiomeStat Tutorials](https://www.microbiomestat.wiki)**
+
+MicrobiomeStat provides a comprehensive suite of tools for microbiome
 data analysis, encompassing a variety of functions from data input to
 visualization.
 
-To acquaint users with `MicrobiomeStat`, we offer an extensive online
+To acquaint users with MicrobiomeStat, we offer an extensive online
 tutorial on GitBook. The tutorial covers the following areas:
 
-- Installation and Configuration Instructions
+- **Installation and Configuration Instructions**
   - These guidelines help ensure that your setup is correctly configured
     and optimized.
-- Analysis Demonstrations Based on Real-World Scenarios
+- **Analysis Demonstrations Based on Real-World Scenarios**
   - These demonstrations provide practical insights and skills.
-- Code Examples for Practice
+- **Code Examples for Practice**
   - These examples allow users to familiarize themselves with
-    `MicrobiomeStat` coding practices.
-- Guides for Interpreting Results and Creating Visualizations
+    MicrobiomeStat coding practices.
+- **Guides for Interpreting Results and Creating Visualizations**
   - These guides help users understand and effectively present their
     data.
-- Answers to Frequently Asked Questions
+- **Answers to Frequently Asked Questions**
   - This section provides quick solutions to common questions.
-
-## Acquaint Yourself for a Seamless Experience
-
-For a seamless experience with `MicrobiomeStat`, make the most of these
-enriching resources:
-
-[**📘 Explore MicrobiomeStat
-Tutorials**](https://www.microbiomestat.wiki)
 
 ## Discovering MicrobiomeStat
 
 The realm of microbiome research is intricate and continually advancing.
 The analytical tools selected can play a crucial role in navigating
-through the research journey. In this scenario, `MicrobiomeStat` aims to
+through the research journey. In this scenario, MicrobiomeStat aims to
 be a supportive companion.
 
 ### Acknowledgements

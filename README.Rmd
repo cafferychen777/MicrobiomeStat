@@ -112,30 +112,30 @@ devtools::install_github("cafferychen777/MicrobiomeStat")
 
 # Online Tutorials {#online-tutorials}
 
-`MicrobiomeStat` provides a comprehensive suite of tools for microbiome data analysis, encompassing a variety of functions from data input to visualization.
+## **[📘 Explore MicrobiomeStat Tutorials](https://www.microbiomestat.wiki)**
 
-To acquaint users with `MicrobiomeStat`, we offer an extensive online tutorial on GitBook. The tutorial covers the following areas:
+MicrobiomeStat provides a comprehensive suite of tools for microbiome data analysis, encompassing a variety of functions from data input to visualization.
 
-- Installation and Configuration Instructions
+To acquaint users with MicrobiomeStat, we offer an extensive online tutorial on GitBook. The tutorial covers the following areas:
+
+- **Installation and Configuration Instructions**
   - These guidelines help ensure that your setup is correctly configured and optimized.
-- Analysis Demonstrations Based on Real-World Scenarios
+
+- **Analysis Demonstrations Based on Real-World Scenarios**
   - These demonstrations provide practical insights and skills.
-- Code Examples for Practice
-  - These examples allow users to familiarize themselves with `MicrobiomeStat` coding practices.
-- Guides for Interpreting Results and Creating Visualizations
+
+- **Code Examples for Practice**
+  - These examples allow users to familiarize themselves with MicrobiomeStat coding practices.
+
+- **Guides for Interpreting Results and Creating Visualizations**
   - These guides help users understand and effectively present their data.
-- Answers to Frequently Asked Questions
+
+- **Answers to Frequently Asked Questions**
   - This section provides quick solutions to common questions.
-
-## Acquaint Yourself for a Seamless Experience
-
-For a seamless experience with `MicrobiomeStat`, make the most of these enriching resources:
-
-[**📘 Explore MicrobiomeStat Tutorials**](https://www.microbiomestat.wiki)
 
 ## Discovering MicrobiomeStat {#explore-microbiomestat}
 
-The realm of microbiome research is intricate and continually advancing. The analytical tools selected can play a crucial role in navigating through the research journey. In this scenario, `MicrobiomeStat` aims to be a supportive companion.
+The realm of microbiome research is intricate and continually advancing. The analytical tools selected can play a crucial role in navigating through the research journey. In this scenario, MicrobiomeStat aims to be a supportive companion.
 
 ### Acknowledgements {#acknowledgements}
 
