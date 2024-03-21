@@ -314,6 +314,16 @@ generate_alpha_spaghettiplot_long <-
           ),
           size = 2
         ) +
+        geom_point(
+          data = sub_alpha.df,
+          aes_string(
+            x = time.var,
+            y = "mean_alpha",
+            group = group.var,
+            color = group.var
+          ),
+          size = 3
+        ) +
         labs(x = time.var, y = y_label, color = group.var) +
         scale_color_manual(
           values = col
