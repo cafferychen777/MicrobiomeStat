@@ -266,6 +266,16 @@ generate_taxa_indiv_spaghettiplot_long <-
             ),
             size = 2
           ) +
+          geom_point(
+            data = sub_df,
+            aes_string(
+              x = time.var,
+              y = "mean_count",
+              group = group.var,
+              color = group.var
+            ),
+            size = 3
+          ) +
           scale_color_manual(values = col) +
           {
             if (feature.dat.type != "other") {
