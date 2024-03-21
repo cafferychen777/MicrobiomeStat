@@ -116,7 +116,7 @@ generate_beta_change_test_long <-
     if (is.null(dist.obj)) {
       data.obj <-
         mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
-      metadata <- data.obj$meta.dat %>% dplyr::select(all_of(c(time.var, group.var)))
+      meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(time.var, group.var)))
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
       if (!is.null(adj.vars)){
@@ -126,16 +126,16 @@ generate_beta_change_test_long <-
       if (!is.null(data.obj) & !is.null(data.obj$meta.dat)){
         data.obj <-
           mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
-        metadata <- data.obj$meta.dat %>% dplyr::select(all_of(c(time.var, group.var)))
+        meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(time.var, group.var)))
       } else {
-        metadata <- attr(dist.obj[[dist.name[1]]], "labels") %>% dplyr::select(all_of(c(time.var, group.var)))
-        data.obj <- list(meta.dat = metadata)
-        data.obj <- mStat_process_time_variable(metadata, time.var, t0.level, ts.levels)
-        metadata <- data.obj$meta.dat
+        meta_tab <- attr(dist.obj[[dist.name[1]]], "labels") %>% dplyr::select(all_of(c(time.var, group.var)))
+        data.obj <- list(meta.dat = meta_tab)
+        data.obj <- mStat_process_time_variable(meta_tab, time.var, t0.level, ts.levels)
+        meta_tab <- data.obj$meta.dat
       }
     }
 
-    reference_level <- levels(as.factor(metadata[,group.var]))[1]
+    reference_level <- levels(as.factor(meta_tab[,group.var]))[1]
 
     if (is.null(t0.level)) {
       if (is.numeric(meta_tab[, time.var])) {
