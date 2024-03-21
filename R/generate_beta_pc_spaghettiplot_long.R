@@ -331,6 +331,16 @@ generate_beta_pc_spaghettiplot_long <- function(data.obj = NULL,
           ),
           size = 2
         ) +
+        geom_point(
+          data = sub_df,
+          aes_string(
+            x = time.var,
+            y = "mean_value",
+            group = group.var,
+            color = group.var
+          ),
+          size = 3
+        ) +
         labs(x = time.var, y = paste("Distance:",
                                      dist.name,
                                      " - Axis",
