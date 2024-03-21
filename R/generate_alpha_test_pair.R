@@ -140,14 +140,15 @@ generate_alpha_test_pair <-
     }
 
     test.list <- lapply(alpha.name, function(index) {
+
       try_complex_model <- function(alpha_df, formula_str) {
         tryCatch({
-          # 尝试估计复杂模型
+          # Complex model
           lme.model <- lmerTest::lmer(formula_str, data = alpha_df)
           return(lme.model)
         },
         error = function(e) {
-          # 如果发生错误，尝试简化的模型
+          # Complex model failed. Trying a simpler model
           message("Complex model failed. Trying a simpler model...")
 
           correct_formula <-
@@ -156,6 +157,7 @@ generate_alpha_test_pair <-
                      time.var,
                      subject.var,
                      adj.vars) {
+
               if (!is.null(group.var)) {
                 formula_part <-
                   paste(index,
