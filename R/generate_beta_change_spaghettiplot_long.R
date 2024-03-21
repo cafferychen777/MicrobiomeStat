@@ -308,18 +308,18 @@ generate_beta_change_spaghettiplot_long <-
             group = group.var,
             color = group.var
           ),
-          linewidth = 2
+          size = 2
         ) +
-        # geom_errorbar(
-        #   data = summary.df,
-        #   aes_string(
-        #     x = time.var,
-        #     ymin = "lower",
-        #     ymax = "upper",
-        #     color = group.var
-        #   ),
-        #   width = 0.2
-        # ) +
+        geom_point(
+          data = long.df,
+          aes_string(
+            x = time.var,
+            y = "mean_distance",
+            group = group.var,
+            color = group.var
+          ),
+          size = 3
+        ) +
         labs(x = time.var, y = y_label, color = group.var) +
         scale_color_manual(
           values = col
