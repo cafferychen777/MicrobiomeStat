@@ -348,7 +348,7 @@ generate_alpha_boxplot_single <- function (data.obj,
 
   # Save the plots as a PDF file
   if (pdf) {
-    for (plot_index in seq_along(plot_list)) {
+    plot_list <- lapply(seq_along(plot_list), function(plot_index) {
       plot <- plot_list[[plot_index]]
       current_alpha_name <- alpha.name[plot_index]
 
@@ -380,10 +380,12 @@ generate_alpha_boxplot_single <- function (data.obj,
       pdf(pdf_name, width = pdf.wid, height = pdf.hei)
       print(plot)
       dev.off()
-    }
-  }
 
-  names(plot_list) <- alpha.name
+      return(plot)
+    })
+
+    names(plot_list) <- alpha.name
+  }
 
   return(plot_list)
 }
