@@ -84,7 +84,7 @@ generate_taxa_volatility_volcano_long <- function(data.obj,
           geom_point() +
           geom_vline(aes(xintercept = 0), linetype = "dashed", linewidth = 1.5, color = "grey") +
           geom_hline(aes(yintercept = -log10(feature.sig.level)), linetype = "dashed", linewidth = 1.5, color = "grey") +
-          geom_text_repel(
+          ggrepel::geom_text_repel(
             aes(label = ifelse(get(p_val_var) < feature.sig.level, as.character(Variable), '')),
             size = 3.5,
             box.padding = 0.35,
