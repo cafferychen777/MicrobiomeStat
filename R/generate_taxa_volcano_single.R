@@ -114,7 +114,7 @@ generate_taxa_volcano_single <-
               linewidth = 1.5,
               color = "grey"
             ) +
-            geom_text_repel(
+            ggrepel::geom_text_repel(
               aes(label = ifelse(
                 get(p_val_var) < feature.sig.level,
                 as.character(Variable),
