@@ -18,7 +18,13 @@ mStat_calculate_beta_diversity(
 }
 \value{
 A list containing the calculated beta diversity indices. The indices are named with the abbreviation.
-
+}
+\description{
+This function calculates a variety of beta diversity indices based on the input data, such as
+Bray-Curtis (BC), Jaccard, unweighted UniFrac (UniFrac), generalized UniFrac (GUniFrac),
+weighted UniFrac (WUniFrac), and Jensen-Shannon divergence (JS).
+}
+\examples{
 \dontrun{
 library(vegan) # Used for community ecology analyses
 library(GUniFrac) # For generalized UniFrac distances
@@ -50,9 +56,4 @@ library(philentropy) # For distance measures like Jensen-Shannon divergence
 # Useful for comparing probability distributions
 # dist.obj <- mStat_calculate_beta_diversity(GlobalPatterns.obj, dist.name = c('JS'))
 }
-}
-\description{
-This function calculates a variety of beta diversity indices based on the input data, such as
-Bray-Curtis (BC), Jaccard, unweighted UniFrac (UniFrac), generalized UniFrac (GUniFrac),
-weighted UniFrac (WUniFrac), and Jensen-Shannon divergence (JS).
 }
