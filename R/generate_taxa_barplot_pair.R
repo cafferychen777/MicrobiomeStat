@@ -469,9 +469,12 @@ generate_taxa_barplot_pair <-
       unique_values <- unique(df$joint_factor)
       result <- numeric(length(unique_values) %/% 2)
 
-      for (i in 1:length(result)) {
-        result[i] <- (unique_values[2 * i - 1] + unique_values[2 * i]) / 2
-      }
+      # Calculate the midpoints of consecutive pairs in unique_values
+      midpoints <- (unique_values[seq(1, length(unique_values) - 1, by = 2)] +
+                      unique_values[seq(2, length(unique_values), by = 2)]) / 2
+
+      # Assign the midpoints to the result vector
+      result <- midpoints
 
       stack_barplot_indiv  <- # Main plot code
         df %>%
