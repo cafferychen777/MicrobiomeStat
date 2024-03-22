@@ -396,7 +396,7 @@ generate_alpha_change_boxplot_pair <-
 
     # Save the plots as a PDF file
     if (pdf) {
-      for (i in seq_along(plot_list)) {
+      lapply(seq_along(plot_list), function(i) {
         plot <- plot_list[[i]]
         alpha_index <- alpha.name[i]
 
@@ -438,8 +438,10 @@ generate_alpha_change_boxplot_pair <-
           height = pdf.hei,
           dpi = 300
         )
-      }
+      })
     }
+
     names(plot_list) <- alpha.name
+
     return(plot_list)
   }
