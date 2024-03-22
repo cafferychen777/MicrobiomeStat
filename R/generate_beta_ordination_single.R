@@ -235,7 +235,9 @@ generate_beta_ordination_single <-
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
     plot_list <- lapply(dist.name, function(dist.name) {
+
       pc.mat <- pc.obj[[dist.name]]$points[, 1:2]
+
       df <-
         pc.mat %>%
         as.data.frame() %>%
