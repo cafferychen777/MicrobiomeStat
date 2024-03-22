@@ -11,7 +11,7 @@
 #'
 #' @return A list containing the calculated beta diversity indices. The indices are named with the abbreviation.
 #'
-# Examples with Annotations
+#' @examples
 #' \dontrun{
 #' library(vegan) # Used for community ecology analyses
 #' library(GUniFrac) # For generalized UniFrac distances
