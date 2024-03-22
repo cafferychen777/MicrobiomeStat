@@ -104,20 +104,41 @@ mStat_calculate_beta_diversity <- function(data.obj,
   }
 
   if ('JS' %in% dist.name) {
-    if (!"philentropy" %in% utils::installed.packages()) {
-      message("The 'philentropy' package is required for Jensen-Shannon divergence calculation. Please install it using install.packages('philentropy').")
-      return()
-    }
     message("Calculating Jensen-Shannon divergence...")
-    jsd <- philentropy::JSD(as.matrix(t(otu_tab)))
-    rownames(jsd) <- colnames(otu_tab)
-    colnames(jsd) <- colnames(otu_tab)
-    dist.obj$JS <- as.dist(jsd)
+
+    # Normalize OTU table to relative abundances
+    otu_tab_norm <- sweep(otu_tab, 2, colSums(otu_tab), FUN = "/")
+
+    # Define KLD and JSD functions
+    KLD <- function(p, q) {
+      non_zero <- p > 0
+      sum(p[non_zero] * log(p[non_zero] / q[non_zero]))
+    }
+
+    JSD <- function(p, q) {
+      m <- (p + q) / 2
+      (KLD(p, m) + KLD(q, m)) / 2
+    }
+
+    # Calculate JSD for each pair of samples
+    num_samples <- ncol(otu_tab_norm)
+    jsd_matrix <- matrix(0, nrow = num_samples, ncol = num_samples)
+
+    for (i in 1:(num_samples - 1)) {
+      for (j in (i + 1):num_samples) {
+        jsd_matrix[i, j] <- JSD(otu_tab_norm[, i], otu_tab_norm[, j])
+        jsd_matrix[j, i] <- jsd_matrix[i, j]  # JSD is symmetric
+      }
+    }
+
+    rownames(jsd_matrix) <- colnames(otu_tab)
+    colnames(jsd_matrix) <- colnames(otu_tab)
+
+    # Convert to a dist object
+    jsd_dist <- as.dist(jsd_matrix)
+    dist.obj$JS <- jsd_dist
   }
 
   message("All calculations complete.")
   return(dist.obj)
 }
-
-
-
