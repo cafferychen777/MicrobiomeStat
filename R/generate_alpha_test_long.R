@@ -18,18 +18,21 @@
 #' @return A list where each element corresponds to a different time point and contains the results of alpha diversity tests for that time point.
 #' @examples
 #' \dontrun{
-#' # Example 1: Analyzing the ECAM dataset
+#' # Example 1: Analyzing the ECAM dataset (without providing alpha.obj)
 #' data("ecam.obj")
+#'
 #' # Perform the longitudinal alpha diversity test for the ECAM dataset
 #' alpha_test_results_ecam <- generate_alpha_test_long(
 #'   data.obj = ecam.obj,
 #'   alpha.name = c("shannon", "simpson", "observed_species", "pielou"),
+#'   depth = 1000,
 #'   time.var = "month",
 #'   t0.level = unique(ecam.obj$meta.dat$month)[1],
 #'   ts.levels = unique(ecam.obj$meta.dat$month)[-1],
 #'   group.var = "delivery",
 #'   adj.vars = c("diet")
 #' )
+#'
 #' # Generate dot plots for the ECAM dataset results
 #' dot_plots_ecam <- generate_alpha_dotplot_long(
 #'   data.obj = ecam.obj,
@@ -42,11 +45,19 @@
 #'   theme.choice = "bw"
 #' )
 #'
-#' # Example 2: Analyzing the Type 2 Diabetes (T2D) dataset
+#' # Example 2: Analyzing the Type 2 Diabetes (T2D) dataset (with providing alpha.obj)
 #' data("subset_T2D.obj")
+#'
+#' # Calculate alpha diversity indices
+#' alpha.obj <- mStat_calculate_alpha_diversity(
+#'   x = subset_T2D.obj$feature.tab,
+#'   alpha.name = c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou")
+#' )
+#'
 #' # Perform the longitudinal alpha diversity test for the T2D dataset
 #' alpha_test_results_T2D <- generate_alpha_test_long(
 #'   data.obj = subset_T2D.obj,
+#'   alpha.obj = alpha.obj,
 #'   alpha.name = c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou"),
 #'   time.var = "visit_number",
 #'   t0.level = unique(subset_T2D.obj$meta.dat$visit_number)[1],
@@ -54,6 +65,7 @@
 #'   group.var = "subject_race",
 #'   adj.vars = c("sample_body_site")
 #' )
+#'
 #' # Generate dot plots for the T2D dataset results
 #' dot_plots_T2D <- generate_alpha_dotplot_long(
 #'   data.obj = subset_T2D.obj,
@@ -126,9 +138,13 @@ generate_alpha_test_long <- function(data.obj,
     condition <- paste(time.var, "== '", t.level, "'", sep = "")
     subset_data.obj <- mStat_subset_data(data.obj, condition = condition)
 
+    # Subset the alpha.obj to match the subsetted data
+    subset_alpha.obj <- mStat_subset_alpha(alpha.obj, rownames(subset_data.obj$meta.dat))
+
     # Perform alpha diversity test for the subset data
     subset.test.list <- generate_alpha_test_single(
       data.obj = subset_data.obj,
+      alpha.obj = subset_alpha.obj,
       alpha.name = alpha.name,
       time.var = time.var,
       t.level = t.level,
