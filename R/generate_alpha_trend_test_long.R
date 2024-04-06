@@ -21,7 +21,8 @@ construct_formula <- function(index, group.var, time.var, subject.var, adj.vars)
   }
 
   if (!is.null(adj.vars)) {
-    formula_str <- paste(formula_part, "+", adj.vars)
+    adj_str <- paste(adj.vars, collapse = " + ")
+    formula_str <- paste(formula_part, "+", adj_str)
   } else {
     formula_str <- formula_part
   }
@@ -56,30 +57,63 @@ construct_formula <- function(index, group.var, time.var, subject.var, adj.vars)
 #'
 #' @examples
 #' \dontrun{
+#' # Load example data
 #' data("subset_T2D.obj")
-#' generate_alpha_trend_test_long(
-#' data.obj = subset_T2D.obj,
-#' alpha.name = c("shannon","observed_species"),
-#' time.var = "visit_number_num",
-#' subject.var = "subject_id",
-#' group.var = "subject_race",
-#' adj.vars = NULL
+#'
+#' # Example 1: Test trend for multiple alpha indices with group and no adjustment
+#' result1 <- generate_alpha_trend_test_long(
+#'   data.obj = subset_T2D.obj,
+#'   alpha.name = c("shannon", "observed_species"),
+#'   time.var = "visit_number_num",
+#'   subject.var = "subject_id",
+#'   group.var = "subject_race"
 #' )
-#' generate_alpha_trend_test_long(
-#' data.obj = subset_T2D.obj,
-#' alpha.name = c("shannon","observed_species"),
-#' time.var = "visit_number_num",
-#' subject.var = "subject_id",
-#' group.var = "subject_race",
-#' adj.vars = "subject_gender"
+#'
+#' # Example 2: Test trend for multiple alpha indices with group and adjustment for one covariate
+#' result2 <- generate_alpha_trend_test_long(
+#'   data.obj = subset_T2D.obj,
+#'   alpha.name = c("shannon", "observed_species"),
+#'   time.var = "visit_number_num",
+#'   subject.var = "subject_id",
+#'   group.var = "subject_race",
+#'   adj.vars = "subject_gender"
 #' )
-#' generate_alpha_trend_test_long(
-#' data.obj = subset_T2D.obj,
-#' alpha.name = c("shannon","observed_species"),
-#' time.var = "visit_number_num",
-#' subject.var = "subject_id",
-#' group.var = NULL,
-#' adj.vars = NULL
+#'
+#' # Example 3: Test trend for multiple alpha indices with group and adjustment for multiple covariates
+#' result3 <- generate_alpha_trend_test_long(
+#'   data.obj = subset_T2D.obj,
+#'   alpha.name = c("shannon", "observed_species"),
+#'   time.var = "visit_number_num",
+#'   subject.var = "subject_id",
+#'   group.var = "subject_race",
+#'   adj.vars = c("subject_gender", "sample_body_site")
+#' )
+#'
+#' # Example 4: Test trend for multiple alpha indices without group
+#' result4 <- generate_alpha_trend_test_long(
+#'   data.obj = subset_T2D.obj,
+#'   alpha.name = c("shannon", "observed_species"),
+#'   time.var = "visit_number_num",
+#'   subject.var = "subject_id"
+#' )
+#'
+#' # Example 5: Test trend for a single alpha index with group
+#' result5 <- generate_alpha_trend_test_long(
+#'   data.obj = subset_T2D.obj,
+#'   alpha.name = "chao1",
+#'   time.var = "visit_number_num",
+#'   subject.var = "subject_id",
+#'   group.var = "subject_race"
+#' )
+#'
+#' # Example 6: Test trend using pre-calculated alpha diversity
+#' alpha.obj <- mStat_calculate_alpha_diversity(subset_T2D.obj$feature.tab, c("shannon", "observed_species"))
+#' result6 <- generate_alpha_trend_test_long(
+#'   data.obj = subset_T2D.obj,
+#'   alpha.obj = alpha.obj,
+#'   time.var = "visit_number_num",
+#'   subject.var = "subject_id",
+#'   group.var = "subject_race"
 #' )
 #' }
 #' @export
@@ -154,19 +188,18 @@ generate_alpha_trend_test_long <- function(data.obj,
         coef.tab <- extract_coef(model)
         # Append the last row of the anova_result to the coef.tab
         last_row <- utils::tail(anova_result, 1)
-        # 获取last_row的列名
+        # Get the column name of the last_row
         var_name <- rownames(last_row)[1]
 
-        # 调整last_row以匹配coef.tab的格式
+        # Adjust last_row to match the format of coef.tab
         adjusted_last_row <- data.frame(
           Term = var_name,
-          Estimate = NA,  # 你可以根据需求进行更改
-          Std.Error = NA,  # 你可以根据需求进行更改
+          Estimate = NA,
+          Std.Error = NA,
           Statistic = last_row$`F value`,
           P.Value = last_row$`Pr(>F)`
         )
 
-        # 合并coef.tab和adjusted_last_row
         coef.tab <- rbind(coef.tab, adjusted_last_row)
       } else {
         coef.tab <- extract_coef(model)
