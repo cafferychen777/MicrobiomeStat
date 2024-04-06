@@ -190,10 +190,10 @@ generate_beta_trend_test_long <-
           coef.tab <- extract_coef(model)
           # Append the last row of the anova_result to the coef.tab
           last_row <- utils::tail(anova_result, 1)
-          # 获取last_row的列名
+          # Get the column name of the last_row
           var_name <- rownames(last_row)[1]
 
-          # 调整last_row以匹配coef.tab的格式
+          # Adjust last_row to match the format of coef.tab
           adjusted_last_row <- data.frame(
             Term = var_name,
             Estimate = NA,
@@ -202,7 +202,7 @@ generate_beta_trend_test_long <-
             P.Value = last_row$`Pr(>F)`
           )
 
-          # 合并coef.tab和adjusted_last_row
+          # Merge coef.tab and adjusted_last_row
           coef.tab <- rbind(coef.tab, adjusted_last_row)
 
         } else {
