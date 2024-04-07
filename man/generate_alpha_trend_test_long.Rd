@@ -52,30 +52,63 @@ related parameters to conduct the test.
 }
 \examples{
 \dontrun{
+# Load example data
 data("subset_T2D.obj")
-generate_alpha_trend_test_long(
-data.obj = subset_T2D.obj,
-alpha.name = c("shannon","observed_species"),
-time.var = "visit_number_num",
-subject.var = "subject_id",
-group.var = "subject_race",
-adj.vars = NULL
+
+# Example 1: Test trend for multiple alpha indices with group and no adjustment
+result1 <- generate_alpha_trend_test_long(
+  data.obj = subset_T2D.obj,
+  alpha.name = c("shannon", "observed_species"),
+  time.var = "visit_number_num",
+  subject.var = "subject_id",
+  group.var = "subject_race"
 )
-generate_alpha_trend_test_long(
-data.obj = subset_T2D.obj,
-alpha.name = c("shannon","observed_species"),
-time.var = "visit_number_num",
-subject.var = "subject_id",
-group.var = "subject_race",
-adj.vars = "subject_gender"
+
+# Example 2: Test trend for multiple alpha indices with group and adjustment for one covariate
+result2 <- generate_alpha_trend_test_long(
+  data.obj = subset_T2D.obj,
+  alpha.name = c("shannon", "observed_species"),
+  time.var = "visit_number_num",
+  subject.var = "subject_id",
+  group.var = "subject_race",
+  adj.vars = "subject_gender"
 )
-generate_alpha_trend_test_long(
-data.obj = subset_T2D.obj,
-alpha.name = c("shannon","observed_species"),
-time.var = "visit_number_num",
-subject.var = "subject_id",
-group.var = NULL,
-adj.vars = NULL
+
+# Example 3: Test trend for multiple alpha indices with group and adjustment for multiple covariates
+result3 <- generate_alpha_trend_test_long(
+  data.obj = subset_T2D.obj,
+  alpha.name = c("shannon", "observed_species"),
+  time.var = "visit_number_num",
+  subject.var = "subject_id",
+  group.var = "subject_race",
+  adj.vars = c("subject_gender", "sample_body_site")
+)
+
+# Example 4: Test trend for multiple alpha indices without group
+result4 <- generate_alpha_trend_test_long(
+  data.obj = subset_T2D.obj,
+  alpha.name = c("shannon", "observed_species"),
+  time.var = "visit_number_num",
+  subject.var = "subject_id"
+)
+
+# Example 5: Test trend for a single alpha index with group
+result5 <- generate_alpha_trend_test_long(
+  data.obj = subset_T2D.obj,
+  alpha.name = "chao1",
+  time.var = "visit_number_num",
+  subject.var = "subject_id",
+  group.var = "subject_race"
+)
+
+# Example 6: Test trend using pre-calculated alpha diversity
+alpha.obj <- mStat_calculate_alpha_diversity(subset_T2D.obj$feature.tab, c("shannon", "observed_species"))
+result6 <- generate_alpha_trend_test_long(
+  data.obj = subset_T2D.obj,
+  alpha.obj = alpha.obj,
+  time.var = "visit_number_num",
+  subject.var = "subject_id",
+  group.var = "subject_race"
 )
 }
 }
