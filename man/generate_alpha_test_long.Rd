@@ -47,18 +47,21 @@ It applies linear model analyses to assess the diversity of microbial communitie
 }
 \examples{
 \dontrun{
-# Example 1: Analyzing the ECAM dataset
+# Example 1: Analyzing the ECAM dataset (without providing alpha.obj)
 data("ecam.obj")
+
 # Perform the longitudinal alpha diversity test for the ECAM dataset
 alpha_test_results_ecam <- generate_alpha_test_long(
   data.obj = ecam.obj,
   alpha.name = c("shannon", "simpson", "observed_species", "pielou"),
+  depth = 1000,
   time.var = "month",
   t0.level = unique(ecam.obj$meta.dat$month)[1],
   ts.levels = unique(ecam.obj$meta.dat$month)[-1],
   group.var = "delivery",
   adj.vars = c("diet")
 )
+
 # Generate dot plots for the ECAM dataset results
 dot_plots_ecam <- generate_alpha_dotplot_long(
   data.obj = ecam.obj,
@@ -71,11 +74,19 @@ dot_plots_ecam <- generate_alpha_dotplot_long(
   theme.choice = "bw"
 )
 
-# Example 2: Analyzing the Type 2 Diabetes (T2D) dataset
+# Example 2: Analyzing the Type 2 Diabetes (T2D) dataset (with providing alpha.obj)
 data("subset_T2D.obj")
+
+# Calculate alpha diversity indices
+alpha.obj <- mStat_calculate_alpha_diversity(
+  x = subset_T2D.obj$feature.tab,
+  alpha.name = c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou")
+)
+
 # Perform the longitudinal alpha diversity test for the T2D dataset
 alpha_test_results_T2D <- generate_alpha_test_long(
   data.obj = subset_T2D.obj,
+  alpha.obj = alpha.obj,
   alpha.name = c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou"),
   time.var = "visit_number",
   t0.level = unique(subset_T2D.obj$meta.dat$visit_number)[1],
@@ -83,6 +94,7 @@ alpha_test_results_T2D <- generate_alpha_test_long(
   group.var = "subject_race",
   adj.vars = c("sample_body_site")
 )
+
 # Generate dot plots for the T2D dataset results
 dot_plots_T2D <- generate_alpha_dotplot_long(
   data.obj = subset_T2D.obj,
