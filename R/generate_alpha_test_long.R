@@ -105,6 +105,17 @@ generate_alpha_test_long <- function(data.obj,
     otu_tab <- data.obj$feature.tab
     alpha.obj <-
       mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name)
+  } else {
+    # Verify that all alpha.name are present in alpha.obj
+    if (!all(alpha.name %in% unlist(lapply(alpha.obj, function(x)
+      colnames(x))))) {
+      missing_alphas <- alpha.name[!alpha.name %in% names(alpha.obj)]
+      stop(
+        "The following alpha diversity indices are not available in alpha.obj: ",
+        paste(missing_alphas, collapse = ", "),
+        call. = FALSE
+      )
+    }
   }
 
   meta_tab <-

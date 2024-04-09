@@ -30,7 +30,7 @@
 #'                                              c("shannon", "observed_species"))
 #' generate_alpha_test_single(data.obj = subset_T2D.obj,
 #'                            alpha.obj = alpha.obj,
-#'                            alpha.name = c("shannon", "observed_species"),
+#'                            alpha.name = c("shannon", "observed_species", "ace"),
 #'                            time.var = "visit_number",
 #'                            t.level = NULL,
 #'                            group.var = "subject_race",
@@ -68,8 +68,10 @@ generate_alpha_test_single <-
     }
 
     if (!is.null(time.var) & !is.null(t.level)) {
-      condition <- paste(time.var, "== '", t.level, "'", sep = "")
-      data.obj <- mStat_subset_data(data.obj, condition = condition)
+      subset.ids <- rownames(data.obj$meta.dat %>%
+                               filter(!!sym(time.var) %in% c(t.level)))
+
+      subset_data.obj <- mStat_subset_data(data.obj, samIDs = subset.ids)
     }
 
     if (is.null(alpha.obj)) {
@@ -81,12 +83,23 @@ generate_alpha_test_single <-
       }
       otu_tab <- data.obj$feature.tab
       alpha.obj <- mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name)
+    } else {
+      # Verify that all alpha.name are present in alpha.obj
+      if (!all(alpha.name %in% unlist(lapply(alpha.obj, function(x)
+        colnames(x))))) {
+        missing_alphas <- alpha.name[!alpha.name %in% names(alpha.obj)]
+        stop(
+          "The following alpha diversity indices are not available in alpha.obj: ",
+          paste(missing_alphas, collapse = ", "),
+          call. = FALSE
+        )
+      }
     }
 
     # Generate tests
-    test.list <- lapply(seq_along(alpha.obj), function(i) {
+    test.list <- lapply(alpha.name, function(alpha.name) {
 
-      df <- alpha.obj[[i]]
+      df <- alpha.obj[[alpha.name]]
       # Join the alpha diversity index with metadata
       merged_df <-
         dplyr::inner_join(
