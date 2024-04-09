@@ -61,6 +61,7 @@ Importantly, the function conducts differential abundance analysis separately fo
 \dontrun{
 # Example 1: Analyzing the ECAM dataset
 data("ecam.obj")
+
 # Analyzing the impact of delivery method on microbial composition over months
 result1 <- generate_taxa_test_long(
   data.obj = ecam.obj,
@@ -71,6 +72,7 @@ result1 <- generate_taxa_test_long(
   feature.level = c("Phylum", "Class"),
   feature.dat.type = "proportion"
 )
+
 # Visualizing the results for the ECAM dataset
 dotplot_ecam <- generate_taxa_dotplot_long(
   data.obj = ecam.obj,
@@ -82,11 +84,12 @@ dotplot_ecam <- generate_taxa_dotplot_long(
 
 # Example 2: Analyzing the Type 2 Diabetes dataset
 data("subset_T2D.obj")
+
 # Longitudinal analysis of microbial changes in different racial groups
 result2 <- generate_taxa_test_long(
   data.obj = subset_T2D.obj,
   subject.var = "subject_id",
-  time.var = "visit_number",
+  time.var = "visit_number_num",
   group.var = "subject_race",
   adj.vars = "sample_body_site",
   prev.filter = 0.1,
@@ -94,14 +97,15 @@ result2 <- generate_taxa_test_long(
   feature.level = c("Genus", "Family"),
   feature.dat.type = "count"
 )
+
 # Visualizing the results for the Type 2 Diabetes dataset
 dotplot_T2D <- generate_taxa_dotplot_long(
   data.obj = subset_T2D.obj,
   time.test.list = result2,
   group.var = "subject_race",
-  time.var = "visit_number",
-  t0.level = unique(subset_T2D.obj$meta.dat$visit_number)[1],
-  ts.levels = unique(subset_T2D.obj$meta.dat$visit_number)[-1],
+  time.var = "visit_number_num",
+  t0.level = unique(subset_T2D.obj$meta.dat$visit_number_num)[1],
+  ts.levels = unique(subset_T2D.obj$meta.dat$visit_number_num)[-1],
   feature.level = c("Genus", "Family")
 )
 }
