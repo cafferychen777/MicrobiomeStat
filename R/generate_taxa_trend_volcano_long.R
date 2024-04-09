@@ -59,6 +59,7 @@ generate_taxa_trend_volcano_long <-
            pdf = FALSE,
            pdf.wid = 7,
            pdf.hei = 5) {
+
     meta_tab <- data.obj$meta.dat %>%
       dplyr::select(all_of(c(group.var))) %>% rownames_to_column("sample")
 
@@ -130,7 +131,7 @@ generate_taxa_trend_volcano_long <-
         names(sub_plot.list) <-
           names(sub_test.list)
       } else {
-        # 当group.var为NULL时
+        # When group.var is NULL
         sub_test.result <- sub_test.list[[time.var]]
 
         # Find max absolute log2FoldChange for symmetric x-axis
