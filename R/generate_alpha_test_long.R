@@ -38,7 +38,7 @@
 #'   data.obj = ecam.obj,
 #'   test.list = alpha_test_results_ecam,
 #'   group.var = "delivery",
-#'   time.var = "month_num",
+#'   time.var = "month",
 #'   t0.level = unique(ecam.obj$meta.dat$month)[1],
 #'   ts.levels = unique(ecam.obj$meta.dat$month)[-1],
 #'   base.size = 16,
@@ -59,9 +59,9 @@
 #'   data.obj = subset_T2D.obj,
 #'   alpha.obj = alpha.obj,
 #'   alpha.name = c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou"),
-#'   time.var = "visit_number",
-#'   t0.level = unique(subset_T2D.obj$meta.dat$visit_number)[1],
-#'   ts.levels = unique(subset_T2D.obj$meta.dat$visit_number)[-1],
+#'   time.var = "visit_number_num",
+#'   t0.level = unique(subset_T2D.obj$meta.dat$visit_number_num)[1],
+#'   ts.levels = unique(subset_T2D.obj$meta.dat$visit_number_num)[-1],
 #'   group.var = "subject_race",
 #'   adj.vars = c("sample_body_site")
 #' )
@@ -71,9 +71,9 @@
 #'   data.obj = subset_T2D.obj,
 #'   test.list = alpha_test_results_T2D,
 #'   group.var = "subject_race",
-#'   time.var = "visit_number",
-#'   t0.level = unique(subset_T2D.obj$meta.dat$visit_number)[1],
-#'   ts.levels = unique(subset_T2D.obj$meta.dat$visit_number)[-1],
+#'   time.var = "visit_number_num",
+#'   t0.level = unique(subset_T2D.obj$meta.dat$visit_number_num)[1],
+#'   ts.levels = unique(subset_T2D.obj$meta.dat$visit_number_num)[-1],
 #'   base.size = 16,
 #'   theme.choice = "bw"
 #' )
@@ -135,11 +135,13 @@ generate_alpha_test_long <- function(data.obj,
 
   test.list <- lapply(time.levels, function(t.level){
     # Subset the data for the specific time level
-    condition <- paste(time.var, "== '", t.level, "'", sep = "")
-    subset_data.obj <- mStat_subset_data(data.obj, condition = condition)
+    subset.ids <- rownames(data.obj$meta.dat %>%
+                             filter(!!sym(time.var) %in% c(t.level)))
+
+    subset_data.obj <- mStat_subset_data(data.obj, samIDs = subset.ids)
 
     # Subset the alpha.obj to match the subsetted data
-    subset_alpha.obj <- mStat_subset_alpha(alpha.obj, rownames(subset_data.obj$meta.dat))
+    subset_alpha.obj <- mStat_subset_alpha(alpha.obj, samIDs = subset.ids)
 
     # Perform alpha diversity test for the subset data
     subset.test.list <- generate_alpha_test_single(
