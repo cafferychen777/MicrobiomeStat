@@ -28,6 +28,7 @@
 #' \dontrun{
 #' # Example 1: Analyzing the ECAM dataset
 #' data("ecam.obj")
+#'
 #' # Analyzing the impact of delivery method on microbial composition over months
 #' result1 <- generate_taxa_test_long(
 #'   data.obj = ecam.obj,
@@ -38,6 +39,7 @@
 #'   feature.level = c("Phylum", "Class"),
 #'   feature.dat.type = "proportion"
 #' )
+#'
 #' # Visualizing the results for the ECAM dataset
 #' dotplot_ecam <- generate_taxa_dotplot_long(
 #'   data.obj = ecam.obj,
@@ -49,11 +51,12 @@
 #'
 #' # Example 2: Analyzing the Type 2 Diabetes dataset
 #' data("subset_T2D.obj")
+#'
 #' # Longitudinal analysis of microbial changes in different racial groups
 #' result2 <- generate_taxa_test_long(
 #'   data.obj = subset_T2D.obj,
 #'   subject.var = "subject_id",
-#'   time.var = "visit_number",
+#'   time.var = "visit_number_num",
 #'   group.var = "subject_race",
 #'   adj.vars = "sample_body_site",
 #'   prev.filter = 0.1,
@@ -61,12 +64,15 @@
 #'   feature.level = c("Genus", "Family"),
 #'   feature.dat.type = "count"
 #' )
+#'
 #' # Visualizing the results for the Type 2 Diabetes dataset
 #' dotplot_T2D <- generate_taxa_dotplot_long(
 #'   data.obj = subset_T2D.obj,
 #'   time.test.list = result2,
 #'   group.var = "subject_race",
-#'   time.var = "visit_number",
+#'   time.var = "visit_number_num",
+#'   t0.level = unique(subset_T2D.obj$meta.dat$visit_number_num)[1],
+#'   ts.levels = unique(subset_T2D.obj$meta.dat$visit_number_num)[-1],
 #'   feature.level = c("Genus", "Family")
 #' )
 #' }
@@ -148,9 +154,10 @@ generate_taxa_test_long <-
 
     time.test.list <- lapply(time.levels, function(t.level){
 
-      condition <- paste(time.var, "== '", t.level, "'", sep = "")
+      subset.ids <- rownames(data.obj$meta.dat %>%
+                               filter(!!sym(time.var) %in% c(t.level)))
 
-      subset_data.obj <- mStat_subset_data(data.obj, condition = condition)
+      subset_data.obj <- mStat_subset_data(data.obj, samIDs = subset.ids)
 
       meta_tab <-
         subset_data.obj$meta.dat %>% select(all_of(c(
@@ -199,13 +206,13 @@ generate_taxa_test_long <-
           reference_level <- levels(as.factor(meta_tab[,group.var]))[1]
         }
 
-        # 计算每个分组的平均丰度
+        # Calculate the average abundance of each group
         prop_prev_data <-
           otu_tax_agg %>%
           as.matrix() %>%
           as.table() %>%
           as.data.frame() %>%
-          dplyr::group_by(Var1) %>%  # Var1是taxa
+          dplyr::group_by(Var1) %>%
           dplyr::summarise(
             avg_abundance = mean(Freq),
             prevalence = sum(Freq > 0) / dplyr::n()
@@ -214,29 +221,29 @@ generate_taxa_test_long <-
 
         extract_data_frames <- function(linda_object, group_var = NULL) {
 
-          # 初始化一个空的list来存储提取的数据框
+          # Initialize an empty list to store the extracted dataframes
           result_list <- list()
 
-          # 获取所有匹配的数据框名
+          # Get all matching data frame names
           matching_dfs <- grep(group_var, names(linda_object$output), value = TRUE)
 
-          # 循环遍历所有匹配的数据框名并提取它们
+          # Iterate through all matching dataframe names and extract them
           for (df_name in matching_dfs) {
-            # 从数据框名中提取组值
+            # Extract group values from the data frame name
             group_prefix <- paste0(group_var)
 
-            # 提取group_prefix后面的内容，并在":"之前停止
+            # Extract the content after "group_prefix", and stop before the ":"
             group_value <- unlist(strsplit(df_name, split = ":"))[1]
             group_value <- gsub(pattern = group_prefix, replacement = "", x = group_value)
 
-            # 将数据框添加到结果列表中
+            # Add the data frame to the result list
             result_list[[paste0(group_value," vs ", reference_level, " (Reference)")]] <- linda_object$output[[df_name]]
           }
 
           return(result_list)
         }
 
-        # 使用函数提取数据框
+        # Extract data from a data frame using a function
         sub_test.list <- extract_data_frames(linda_object = linda.obj, group_var = group.var)
 
         sub_test.list <- lapply(sub_test.list, function(df){
