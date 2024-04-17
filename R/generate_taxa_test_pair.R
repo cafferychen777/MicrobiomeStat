@@ -247,19 +247,19 @@ generate_taxa_test_pair <-
       }
 
       linda.obj <- tryCatch({
-        # 尝试运行 linda 函数
+        # Try running the linda function
         linda(feature.dat = otu_tax_agg_filter,
               meta.dat = meta_tab,
               formula = paste("~", formula),
               feature.dat.type = feature.dat.type,
               ...)
       }, error = function(e) {
-        # 如果出错，打印错误消息
+        # If an error occurs, print the error message
         message("Error in linda: ", e)
 
         message("Due to the above error, a simpler model will be used for fitting.")
 
-        # 使用修正后的公式重新运行 linda 函数
+        # Run the linda function again with the corrected formula
         linda(feature.dat = otu_tax_agg_filter,
               meta.dat = meta_tab,
               formula = paste("~", formula_corrected),
@@ -270,13 +270,13 @@ generate_taxa_test_pair <-
         reference_level <- levels(as.factor(meta_tab[,group.var]))[1]
       }
 
-      # 计算每个分组的平均丰度
+      # Compute the average abundance for each group
       prop_prev_data <-
         otu_tax_agg %>%
         as.matrix() %>%
         as.table() %>%
         as.data.frame() %>%
-        dplyr::group_by(Var1) %>%  # Var1是taxa
+        dplyr::group_by(Var1) %>%  # Var1 is taxa
         dplyr::summarise(
           avg_abundance = mean(Freq),
           prevalence = sum(Freq > 0) / dplyr::n()
@@ -285,25 +285,25 @@ generate_taxa_test_pair <-
 
       extract_data_frames <- function(linda_object, group_var = NULL) {
 
-        # 初始化一个空的list来存储提取的数据框
+        # Initialize an empty list to store the extracted dataframes
         result_list <- list()
 
-        # 获取所有匹配的数据框名
+        # Get all matching dataframe names
         matching_dfs <- grep(paste0(group_var), names(linda_object$output), value = TRUE)
 
-        # 循环遍历所有匹配的数据框名并提取它们
+        # Iteratively traverse all matching dataframe names and extract them
         for (df_name in matching_dfs) {
-          # 从数据框名中提取组值
+          # Extract group values from data frame names
           group_prefix <- paste0(group_var)
 
-          # 提取group_prefix后面的内容，并在":"之前停止
+          # Extract the content after "group_prefix" and stop before the ":"
           group_value <- unlist(strsplit(df_name, split = ":"))[1]
           group_value <- gsub(pattern = group_prefix, replacement = "", x = group_value)
 
           if (grepl(pattern = time.var, x = df_name)){
             result_list[[paste0(group_value," vs ", reference_level, " (Reference) [", "Interaction", "]")]] <- linda_object$output[[df_name]]
           } else {
-            # 将数据框添加到结果列表中
+            # Add the data frame to the result list
             result_list[[paste0(group_value," vs ", reference_level, " (Reference) [", "Main Effect", "]")]] <- linda_object$output[[df_name]]
           }
         }
@@ -311,7 +311,7 @@ generate_taxa_test_pair <-
         return(result_list)
       }
 
-      # 使用函数提取数据框
+      # Extract data frame using functions
       sub_test.list <- extract_data_frames(linda_object = linda.obj, group_var = group.var)
 
       sub_test.list <- lapply(sub_test.list, function(df){
