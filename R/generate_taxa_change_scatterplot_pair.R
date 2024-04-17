@@ -172,7 +172,7 @@ generate_taxa_change_scatterplot_pair <-
            group.var = NULL,
            strata.var = NULL,
            change.base = NULL,
-           feature.change.func = "absolute change",
+           feature.change.func = "relative change",
            feature.level = NULL,
            feature.dat.type = c("count", "proportion", "other"),
            features.plot = NULL,
@@ -320,7 +320,6 @@ generate_taxa_change_scatterplot_pair <-
 
       df <- df %>% setNames(ifelse(names(.) == paste0(time.var,"_ts"), time.var, names(.)))
 
-      # 提前判断feature.change.func的类型，如果是自定义函数则给出特定的标签，否则保持原样
       ylab_label <- if (feature.dat.type != "other") {
         if (is.function(feature.change.func)) {
           paste0("Change in Relative Abundance", " (custom function)")
