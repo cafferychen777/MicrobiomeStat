@@ -137,11 +137,11 @@ generate_taxa_heatmap_single <- function(data.obj,
 
     col <- c("white", "#92c5de", "#0571b0", "#f4a582", "#ca0020")
 
-  # 创建颜色映射函数
+  # Create color mapping function
   my_col <- colorRampPalette(col)
 
-  # 计算颜色的数量
-  # 这通常取决于你的数据，你可能需要根据你的实际情况进行调整
+  # Calculate the number of colors
+  # This usually depends on your data, you may need to adjust it based on your actual situation
   n_colors <- 100
 
   if (is.null(cluster.cols)) {
@@ -236,10 +236,10 @@ generate_taxa_heatmap_single <- function(data.obj,
       annotation_col <- NULL
     }
 
-    # 创建一个空字符串作为标题的默认值
+    # Create an empty string as the default value for the title
     heatmap_title <- NA
 
-    # 如果time.var不为NULL，并且t.level存在
+    # If time.var is not NULL, and t.level exists
     if (!is.null(time.var) & !is.null(t.level)) {
       heatmap_title <- paste0("Time = ", t.level)
     }
@@ -252,27 +252,27 @@ generate_taxa_heatmap_single <- function(data.obj,
     color_vector <- mStat_get_palette(palette)
 
     if (!is.null(strata.var) & !is.null(group.var)){
-      # 为演示目的，假设这些是您的唯一值
+
       group_levels <- annotation_col %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
 
-      # 为 group.var 分配颜色
+      # Assign colors to group.var
       group_colors <- setNames(color_vector[1:length(group_levels)], group_levels)
 
       strata_levels <- annotation_col %>% dplyr::select(all_of(c(strata.var))) %>% distinct() %>% pull()
-      # 为 strata.var 分配颜色
+      # Allocate colors for strata.var
       strata_colors <- setNames(rev(color_vector)[1:length(strata_levels)], strata_levels)
 
-      # 创建注释颜色列表
+      # Create comment color list
       annotation_colors_list <- setNames(
         list(group_colors, strata_colors),
         c(group.var, strata.var)
       )
     } else if (!is.null(group.var)){
-      # 为演示目的，假设这些是您的唯一值
+      # For demonstration purposes, assume these are your only values
       group_levels <- annotation_col %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
-      # 为 group.var 分配颜色
+      # Assign colors to group.var
       group_colors <- setNames(color_vector[1:length(group_levels)], group_levels)
-      # 创建注释颜色列表
+      # Create comment color list
       annotation_colors_list <- setNames(
         list(group_colors),
         c(group.var)
