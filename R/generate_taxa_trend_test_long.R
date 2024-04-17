@@ -242,7 +242,7 @@ generate_taxa_trend_test_long <-
         reference_level <- levels(as.factor(meta_tab[,group.var]))[1]
       }
 
-      # 计算每个分组的平均丰度
+      # Compute the average abundance for each group
       prop_prev_data <-
         otu_tax_agg %>%
         as.matrix() %>%
@@ -257,29 +257,29 @@ generate_taxa_trend_test_long <-
 
       extract_data_frames <- function(linda_object, group_var = NULL, time_var) {
 
-        # 初始化一个空的list来存储提取的数据框
+        # Initialize an empty list to store the extracted data frame
         result_list <- list()
 
-        # 如果group.var不为NULL
+        # If group.var is not NULL
         if (!is.null(group_var)) {
-          # 获取所有匹配的数据框名
+          # Get all matching data frame names
           matching_dfs <- grep(paste0(group_var, ".*:", time_var), names(linda_object$output), value = TRUE)
 
-          # 循环遍历所有匹配的数据框名并提取它们
+          # Iterate through all the matching dataframes and extract them
           for (df_name in matching_dfs) {
-            # 从数据框名中提取组值
+            # Extract group value from data frame name
             group_prefix <- paste0(group_var)
 
-            # 提取group_prefix后面的内容，并在":"之前停止
+            # Extract the content after group_prefix and stop before ":"
             group_value <- unlist(strsplit(df_name, split = ":"))[1]
             group_value <- gsub(pattern = group_prefix, replacement = "", x = group_value)
 
-            # 将数据框添加到结果列表中
+            # Add the data frame to the result list
             result_list[[paste0(group_value," vs ", reference_level, " (Reference)")]] <- linda_object$output[[df_name]]
           }
 
         } else {
-          # 如果group.var为NULL，则直接提取名字为time.var的数据框
+          # If group.var is NULL, then directly extract the data frame with the name time.var
           df <- linda_object$output[[time_var]]
           if (!is.null(df)) {
             result_list[[time_var]] <- df
@@ -291,7 +291,6 @@ generate_taxa_trend_test_long <-
         return(result_list)
       }
 
-      # 使用函数提取数据框
       sub_test.list <- extract_data_frames(linda_object = linda.obj, group_var = group.var, time_var = time.var)
 
       sub_test.list <- lapply(sub_test.list, function(df){
