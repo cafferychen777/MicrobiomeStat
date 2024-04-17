@@ -154,7 +154,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
                                               group.var = NULL,
                                               strata.var = NULL,
                                               change.base = "1",
-                                              feature.change.func = "log fold change",
+                                              feature.change.func = "relative change",
                                               feature.level = NULL,
                                               feature.dat.type = c("count", "proportion", "other"),
                                               features.plot = NULL,
@@ -240,7 +240,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
       features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
     }
 
-    # 计算每个分组的平均丰度
+    # Calculate the average abundance for each group
     otu_tab_norm_agg <- otu_tax_agg %>%
       tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
       dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
@@ -250,7 +250,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
     change.after <-
       unique(meta_tab %>% select(all_of(c(time.var))))[unique(meta_tab %>% select(all_of(c(time.var)))) != change.base]
 
-    # 将数据从长格式转换为宽格式，将不同的时间点的mean_abundance放到不同的列中
+    # Convert data from long format to wide format, placing the mean_abundance values at different time points in different columns.
     otu_tab_norm_agg_wide <- otu_tab_norm_agg %>%
       tidyr::spread(key = !!sym(time.var), value = mean_abundance) %>%
       dplyr::rename(
@@ -282,7 +282,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
         otu_tab_norm_agg_wide %>% dplyr::mutate(abundance_change = time2_mean_abundance - time1_mean_abundance)
     }
 
-    # 计算每个taxon在每个时间点的prevalence
+    # Compute the prevalence of each taxon at each time point
     prevalence_time <- otu_tax_agg %>%
       tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
       dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
@@ -294,7 +294,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
       dplyr::rename(time1_prevalence = change.base,
                     time2_prevalence = change.after)
 
-    # 计算不同时间点的prevalence差值
+    # Compute the difference in prevalence at different time points
     if (is.function(feature.change.func)) {
       prevalence_time_wide <-
         prevalence_time_wide %>% dplyr::mutate(prevalence_change = feature.change.func(time2_prevalence, time1_prevalence))
@@ -319,7 +319,6 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
         prevalence_time_wide %>% dplyr::mutate(prevalence_change = time2_prevalence - time1_prevalence)
     }
 
-    # 将两个结果合并
     otu_tab_norm_agg_wide <-
       otu_tab_norm_agg_wide %>% dplyr::left_join(prevalence_time_wide, by = c(feature.level, group.var))
 
@@ -394,24 +393,24 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
       }
     }
 
-    # 找到 abundance_change 的最小值和最大值
+    # Find the minimum and maximum values of abundance_change
     change_min <- min(otu_tab_norm_agg_wide$change)
     change_max <- max(otu_tab_norm_agg_wide$change)
 
-    # 归一化的函数
+    # Normalized function
     normalize <- function(x, min, max) {
       return((x - min) / (max - min))
     }
 
-    # 归一化的值
+    # Normalized value
     change_min_norm <-
       normalize(change_min, change_min, change_max)
     change_max_norm <-
       normalize(change_max, change_min, change_max)
     change_mid_norm <-
-      normalize(0, change_min, change_max)  # abundance_change 的中点为0
+      normalize(0, change_min, change_max)  # The midpoint of abundance_change is 0
 
-    # 计算其他颜色的归一化值
+    # Calculate the normalized value of other colors
     first_color_norm <-
       change_min_norm + (change_mid_norm - change_min_norm) / 2
     second_color_norm <-
@@ -420,7 +419,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
     taxa.levels <-
       otu_tab_norm_agg_wide %>% dplyr::ungroup() %>% select(all_of(c(feature.level))) %>% pull() %>% unique() %>% length()
 
-    # 将患病率添加为点的大小，并将平均丰度作为点的颜色
+    # Add disease prevalence as the size of the points, and use the average abundance as the color of the points
     dotplot <-
       ggplot(
         otu_tab_norm_agg_wide,
