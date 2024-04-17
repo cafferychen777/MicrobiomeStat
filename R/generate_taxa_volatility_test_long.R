@@ -41,12 +41,6 @@
 #' @param feature.dat.type Character string specifying the data type of the abundance data. Should be
 #'                        one of "count", "proportion", or "other". Determines transform. This should
 #'                        match the units of data used in feature.level.
-#' @param feature.mt.method Character string specifying multiple testing correction method.
-#'                         Either "fdr" for BH FDR control or "none" for no correction.
-#'                         Default is "fdr".
-#' @param feature.sig.level Numeric specifying the significance threshold for statistical
-#'                          testing. Taxa with adj.p below this level are considered
-#'                          significant. Default 0.1.
 #' @param transform Character string specifying transformation method. If "CLR", count and
 #'                 proportion data will be CLR transformed before volatility calculation.
 #'                 Default "CLR".
@@ -85,8 +79,6 @@ generate_taxa_volatility_test_long <- function(data.obj,
                                                abund.filter = 0,
                                                feature.level,
                                                feature.dat.type = c("count", "proportion", "other"),
-                                               feature.mt.method = c("fdr","none"),
-                                               feature.sig.level = 0.1,
                                                transform = "CLR",
                                                ...) {
   # Validate and extract data
@@ -281,14 +273,6 @@ generate_taxa_volatility_test_long <- function(data.obj,
   })
 
   names(test.list) <- feature.level
-
-  # volcano_plots <- generate_taxa_volatility_volcano_long(data.obj = data.obj,
-  #                                                         group.var = group.var,
-  #                                                         test.list = test.list,
-  #                                                         feature.sig.level = feature.sig.level,
-  #                                                         feature.mt.method = feature.mt.method)
-  #
-  # print(volcano_plots)
 
   return(test.list)
 }

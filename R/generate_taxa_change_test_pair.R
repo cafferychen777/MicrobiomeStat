@@ -43,8 +43,6 @@
 #' - "other": Custom abundance data that has unknown scaling. No normalization applied.
 #' The choice affects preprocessing steps as well as plot axis labels.
 #' Default is "count", which assumes raw OTU table input.
-#' @param feature.mt.method Character, multiple testing method for features, "fdr" or "none", default is "fdr".
-#' @param feature.sig.level Numeric, significance level cutoff for highlighting features, default is 0.1.
 #' @param ... Additional parameters to be passed to the ZicoSeq function.
 #'
 #' @examples
@@ -96,8 +94,6 @@ generate_taxa_change_test_pair <-
            prev.filter = 0.1,
            abund.filter = 1e-4,
            feature.dat.type = c("count", "proportion", "other"),
-           feature.mt.method = "fdr",
-           feature.sig.level = 0.1,
            ...) {
     # Extract data
     mStat_validate_data(data.obj)

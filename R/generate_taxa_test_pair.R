@@ -32,8 +32,6 @@
 #' - "other": Custom abundance data that has unknown scaling. No normalization applied.
 #' The choice affects preprocessing steps as well as plot axis labels.
 #' Default is "count", which assumes raw OTU table input.
-#' @param feature.sig.level A numeric threshold, usually between 0 and 1, for assessing the significance of individual taxa. Default is 0.1.
-#' @param feature.mt.method A character string specifying the method employed for multiple testing correction (e.g., "fdr" for False Discovery Rate). Default is "fdr".
 #' @param ... Additional parameters to be passed to the linda function.
 #'
 #' @examples
@@ -97,8 +95,6 @@ generate_taxa_test_pair <-
            prev.filter = 0,
            abund.filter = 0,
            feature.dat.type = c("count", "proportion", "other"),
-           feature.sig.level = 0.1,
-           feature.mt.method = "fdr",
            ...) {
     # Extract data
     mStat_validate_data(data.obj)

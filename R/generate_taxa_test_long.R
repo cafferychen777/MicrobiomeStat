@@ -11,8 +11,6 @@
 #' @param prev.filter Numeric; a minimum prevalence threshold for taxa inclusion in the analysis.
 #' @param abund.filter Numeric; a minimum abundance threshold for taxa inclusion in the analysis.
 #' @param feature.dat.type Character; "count" or "proportion", indicating the type of feature data.
-#' @param feature.sig.level Numeric; significance level for feature testing.
-#' @param feature.mt.method Character; method for multiple testing correction, such as "fdr".
 #' @param ... Additional arguments passed to other methods.
 #' @details
 #' The function integrates various data manipulations, normalization procedures, and statistical tests to assess the significance of taxa changes over time or between groups. It allows for the adjustment of covariates and handles both count and proportion data types.
@@ -87,8 +85,6 @@ generate_taxa_test_long <-
            prev.filter = 0,
            abund.filter = 0,
            feature.dat.type = c("count", "proportion"),
-           feature.sig.level = 0.1,
-           feature.mt.method = "fdr",
            ...) {
     # Extract data
     mStat_validate_data(data.obj)

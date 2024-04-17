@@ -30,8 +30,6 @@
 #' - "other": Custom abundance data that has unknown scaling. No normalization applied.
 #' The choice affects preprocessing steps as well as plot axis labels.
 #' Default is "count", which assumes raw OTU table input.
-#' @param feature.sig.level A numeric threshold, usually between 0 and 1, for assessing the significance of individual taxa. Default is 0.1.
-#' @param feature.mt.method A character string specifying the method employed for multiple testing correction (e.g., "fdr" for False Discovery Rate). Default is "fdr".
 #' @param ... Additional arguments to be passed to the ZicoSeq function.
 #'
 #' @return A list of tibble(s) containing information about significant taxa, including R.Squared, F.Statistic, Estimate, P.Value, Adjusted.P.Value, Mean.Proportion, Mean.Prevalence, SD.Abundance and SD.Prevalence.
@@ -68,8 +66,6 @@
 #'     feature.level = c("Phylum","Genus","Family"),
 #'     prev.filter = 0.1,
 #'     abund.filter = 0.0001,
-#'     feature.sig.level = 0.1,
-#'     feature.mt.method = "none"
 #' )
 #' plot.list <- generate_taxa_volcano_single(
 #'     data.obj = peerj32.obj, # or other data.obj you want to use
@@ -90,8 +86,6 @@ generate_taxa_test_single <- function(data.obj,
                                       abund.filter = 0,
                                       feature.level,
                                       feature.dat.type = c("count", "proportion", "other"),
-                                      feature.sig.level = 0.1,
-                                      feature.mt.method = "fdr",
                                       ...) {
   # Extract data
   mStat_validate_data(data.obj)
@@ -237,17 +231,6 @@ generate_taxa_test_single <- function(data.obj,
 
   # Assign names to the elements of test.list
   names(test.list) <- feature.level
-
-  # plot.list <-
-  #   generate_taxa_volcano_single(
-  #     data.obj = data.obj,
-  #     group.var = group.var,
-  #     test.list = test.list,
-  #     feature.sig.level = feature.sig.level,
-  #     feature.mt.method = feature.mt.method
-  #   )
-  #
-  # print(plot.list)
 
   # Return the results table
   return(test.list)

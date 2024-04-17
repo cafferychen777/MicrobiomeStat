@@ -16,8 +16,6 @@
 #' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
 #' Default 0 removes no taxa by abundance filtering.
 #' @param feature.dat.type A character string, either "count" or "proportion", indicating the nature of the data in the `data.obj`. This helps the function to determine if normalization is required. Default is "count".
-#' @param feature.sig.level A numeric threshold, usually between 0 and 1, for assessing the significance of individual taxa. Default is 0.1.
-#' @param feature.mt.method A character string specifying the method employed for multiple testing correction (e.g., "fdr" for False Discovery Rate). Default is "fdr".
 #' @param ... Additional arguments to cater to any specialized requirements. For now, these are placeholder and not used.
 #' @details
 #' Based on whether group.var and adj.vars are NULL, the formula tests:
@@ -83,7 +81,7 @@
 #'   group.var = "subject_race",
 #'   test.list = test.list_T2D,
 #'   feature.sig.level = 0.1,
-#'   feature.mt.method = "fdr"
+#'   feature.mt.method = "none"
 #' )
 #' }
 #' @export
@@ -96,8 +94,6 @@ generate_taxa_association_test_long <-
            abund.filter = 0,
            feature.level,
            feature.dat.type = c("count", "proportion"),
-           feature.sig.level = 0.1,
-           feature.mt.method = "fdr",
            ...) {
     # Extract data
     mStat_validate_data(data.obj)

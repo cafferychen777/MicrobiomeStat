@@ -15,8 +15,6 @@
 #' taxa before analysis. Taxa with mean abundance below this value will be removed.
 #' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
 #' @param feature.dat.type A character string, either "count" or "proportion", indicating the nature of the data in the `data.obj`. This helps the function to determine if normalization is required. Default is "count".
-#' @param feature.sig.level A numeric threshold, usually between 0 and 1, for assessing the significance of individual taxa. Default is 0.1.
-#' @param feature.mt.method A character string specifying the method employed for multiple testing correction (e.g., "fdr" for False Discovery Rate). Default is "fdr".
 #' @param ... Additional arguments to cater to any specialized requirements. For now, these are placeholder and not used.
 #' @details
 #' Based on whether group.var, adj.vars, and time.var are NULL, the formula tests:
@@ -110,7 +108,6 @@
 #'   group.var = "subject_race",
 #'   time.var = "visit_number_num",
 #'   test.list = test.list,
-#'   feature.sig.level = 0.1,
 #'   feature.mt.method = "none")
 #'
 #' }
@@ -125,8 +122,6 @@ generate_taxa_trend_test_long <-
            prev.filter = 0,
            abund.filter = 0,
            feature.dat.type = c("count", "proportion"),
-           feature.sig.level = 0.1,
-           feature.mt.method = "fdr",
            ...) {
     # Extract data
     mStat_validate_data(data.obj)
@@ -321,18 +316,6 @@ generate_taxa_trend_test_long <-
 
     # Assign names to the elements of test.list
     names(test.list) <- feature.level
-
-    # plot.list <-
-    #   generate_taxa_trend_volcano_long(
-    #     data.obj = data.obj,
-    #     group.var = group.var,
-    #     time.var = time.var,
-    #     test.list = test.list,
-    #     feature.sig.level = feature.sig.level,
-    #     feature.mt.method = feature.mt.method
-    #   )
-    #
-    # print(plot.list)
 
     return(test.list)
   }
