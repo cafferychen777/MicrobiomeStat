@@ -14,8 +14,6 @@ generate_taxa_volatility_test_long(
   abund.filter = 0,
   feature.level,
   feature.dat.type = c("count", "proportion", "other"),
-  feature.mt.method = c("fdr", "none"),
-  feature.sig.level = 0.1,
   transform = "CLR",
   ...
 )
@@ -53,14 +51,6 @@ before volatility calculation, e.g. c("Phylum", "Genus"). The special value
 \item{feature.dat.type}{Character string specifying the data type of the abundance data. Should be
 one of "count", "proportion", or "other". Determines transform. This should
 match the units of data used in feature.level.}
-
-\item{feature.mt.method}{Character string specifying multiple testing correction method.
-Either "fdr" for BH FDR control or "none" for no correction.
-Default is "fdr".}
-
-\item{feature.sig.level}{Numeric specifying the significance threshold for statistical
-testing. Taxa with adj.p below this level are considered
-significant. Default 0.1.}
 
 \item{transform}{Character string specifying transformation method. If "CLR", count and
 proportion data will be CLR transformed before volatility calculation.

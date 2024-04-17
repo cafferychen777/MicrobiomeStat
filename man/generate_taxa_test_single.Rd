@@ -14,8 +14,6 @@ generate_taxa_test_single(
   abund.filter = 0,
   feature.level,
   feature.dat.type = c("count", "proportion", "other"),
-  feature.sig.level = 0.1,
-  feature.mt.method = "fdr",
   ...
 )
 }
@@ -57,10 +55,6 @@ Should be one of:
 The choice affects preprocessing steps as well as plot axis labels.
 Default is "count", which assumes raw OTU table input.}
 
-\item{feature.sig.level}{A numeric threshold, usually between 0 and 1, for assessing the significance of individual taxa. Default is 0.1.}
-
-\item{feature.mt.method}{A character string specifying the method employed for multiple testing correction (e.g., "fdr" for False Discovery Rate). Default is "fdr".}
-
 \item{...}{Additional arguments to be passed to the ZicoSeq function.}
 }
 \value{
@@ -101,8 +95,6 @@ test.list <- generate_taxa_test_single(
     feature.level = c("Phylum","Genus","Family"),
     prev.filter = 0.1,
     abund.filter = 0.0001,
-    feature.sig.level = 0.1,
-    feature.mt.method = "none"
 )
 plot.list <- generate_taxa_volcano_single(
     data.obj = peerj32.obj, # or other data.obj you want to use

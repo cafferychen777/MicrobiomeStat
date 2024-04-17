@@ -14,8 +14,6 @@ generate_taxa_trend_test_long(
   prev.filter = 0,
   abund.filter = 0,
   feature.dat.type = c("count", "proportion"),
-  feature.sig.level = 0.1,
-  feature.mt.method = "fdr",
   ...
 )
 }
@@ -41,10 +39,6 @@ taxa before analysis. Taxa with mean abundance below this value will be removed.
 Abundance refers to counts or proportions depending on \code{feature.dat.type}.}
 
 \item{feature.dat.type}{A character string, either "count" or "proportion", indicating the nature of the data in the `data.obj`. This helps the function to determine if normalization is required. Default is "count".}
-
-\item{feature.sig.level}{A numeric threshold, usually between 0 and 1, for assessing the significance of individual taxa. Default is 0.1.}
-
-\item{feature.mt.method}{A character string specifying the method employed for multiple testing correction (e.g., "fdr" for False Discovery Rate). Default is "fdr".}
 
 \item{...}{Additional arguments to cater to any specialized requirements. For now, these are placeholder and not used.}
 }
@@ -143,7 +137,6 @@ plot.list <- generate_taxa_trend_volcano_long(
   group.var = "subject_race",
   time.var = "visit_number_num",
   test.list = test.list,
-  feature.sig.level = 0.1,
   feature.mt.method = "none")
 
 }

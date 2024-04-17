@@ -14,8 +14,6 @@ generate_taxa_test_long(
   prev.filter = 0,
   abund.filter = 0,
   feature.dat.type = c("count", "proportion"),
-  feature.sig.level = 0.1,
-  feature.mt.method = "fdr",
   ...
 )
 }
@@ -37,10 +35,6 @@ generate_taxa_test_long(
 \item{abund.filter}{Numeric; a minimum abundance threshold for taxa inclusion in the analysis.}
 
 \item{feature.dat.type}{Character; "count" or "proportion", indicating the type of feature data.}
-
-\item{feature.sig.level}{Numeric; significance level for feature testing.}
-
-\item{feature.mt.method}{Character; method for multiple testing correction, such as "fdr".}
 
 \item{...}{Additional arguments passed to other methods.}
 }

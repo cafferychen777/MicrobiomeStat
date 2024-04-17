@@ -156,30 +156,30 @@ generate_taxa_change_test_pair <-
                      abund.filter = abund.filter) %>%
         rownames_to_column(feature.level)
 
-      # 将otu_tax_agg_filter从宽格式转换为长格式
+      # Convert the otu_tax_agg_filter from wide format to long format.
       otu_tax_long <- otu_tax_agg_filter %>%
         tidyr::gather(key = "sample", value = "value", -feature.level)
 
-      # 将otu_tax_long和meta_tab按sample列连接
+      # Connect otu_tax_long and meta_tab by the sample column.
       merged_data <- otu_tax_long %>%
         dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample")
 
-      # 根据time列分组
+      # Based on the time column
       grouped_data <- merged_data %>%
         dplyr::group_by(!!sym(time.var))
 
       change.after <-
         unique(grouped_data %>% select(all_of(c(time.var))))[unique(grouped_data %>% select(all_of(c(time.var)))) != change.base]
 
-      # 拆分成一个列表，每个time值都有一个独立的tibble
+      # Split into a list, with each time value having an independent tibble.
       split_data <-
         split(merged_data, f = grouped_data %>% select(all_of(c(time.var))))
 
-      # 提取split_data中的第一个和第二个表
+      # Extract the first and second tables from split_data.
       data_time_1 <- split_data[[change.base]]
       data_time_2 <- split_data[[change.after]]
 
-      # 将这两个表连接在一起，以便计算差值
+      # Join these two tables together to calculate the difference
       combined_data <- data_time_1 %>%
         dplyr::inner_join(
           data_time_2,

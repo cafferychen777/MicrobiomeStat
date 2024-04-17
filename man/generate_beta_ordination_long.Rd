@@ -140,7 +140,6 @@ saving the plots as PDF files.
 \examples{
 \dontrun{
 data(subset_T2D.obj)
-
 generate_beta_ordination_long(
   data.obj = subset_T2D.obj,
   dist.obj = NULL,
@@ -173,7 +172,7 @@ generate_beta_ordination_long(
   subject.var = "subject.id",
   time.var = "month",
   t0.level = "0",
-  ts.levels = as.character(sort(as.numeric(unique(ecam.obj$meta.dat$month))))[2:4],
+  ts.levels = as.character(sort(as.numeric(unique(ecam.obj$meta.dat$month))))[2:20],
   group.var = "diet",
   strata.var = NULL,
   adj.vars = NULL,

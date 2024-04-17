@@ -13,8 +13,6 @@ generate_taxa_association_test_long(
   abund.filter = 0,
   feature.level,
   feature.dat.type = c("count", "proportion"),
-  feature.sig.level = 0.1,
-  feature.mt.method = "fdr",
   ...
 )
 }
@@ -40,10 +38,6 @@ Default 0 removes no taxa by abundance filtering.}
 \item{feature.level}{A character string indicating the taxonomic resolution for analysis (e.g., "Phylum", "Class"). This choice will determine the granularity of the analysis.}
 
 \item{feature.dat.type}{A character string, either "count" or "proportion", indicating the nature of the data in the `data.obj`. This helps the function to determine if normalization is required. Default is "count".}
-
-\item{feature.sig.level}{A numeric threshold, usually between 0 and 1, for assessing the significance of individual taxa. Default is 0.1.}
-
-\item{feature.mt.method}{A character string specifying the method employed for multiple testing correction (e.g., "fdr" for False Discovery Rate). Default is "fdr".}
 
 \item{...}{Additional arguments to cater to any specialized requirements. For now, these are placeholder and not used.}
 }
