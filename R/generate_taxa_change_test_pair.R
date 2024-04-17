@@ -89,7 +89,7 @@ generate_taxa_change_test_pair <-
            group.var = NULL,
            adj.vars = NULL,
            change.base,
-           feature.change.func = "log fold change",
+           feature.change.func = "relative change",
            feature.level,
            prev.filter = 0.1,
            abund.filter = 1e-4,
