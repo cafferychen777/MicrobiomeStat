@@ -94,7 +94,6 @@
 #' @examples
 #' \dontrun{
 #' data(subset_T2D.obj)
-#'
 #' generate_beta_ordination_long(
 #'   data.obj = subset_T2D.obj,
 #'   dist.obj = NULL,
@@ -127,7 +126,7 @@
 #'   subject.var = "subject.id",
 #'   time.var = "month",
 #'   t0.level = "0",
-#'   ts.levels = as.character(sort(as.numeric(unique(ecam.obj$meta.dat$month))))[2:4],
+#'   ts.levels = as.character(sort(as.numeric(unique(ecam.obj$meta.dat$month))))[2:20],
 #'   group.var = "diet",
 #'   strata.var = NULL,
 #'   adj.vars = NULL,
@@ -229,8 +228,15 @@ generate_beta_ordination_long <-
       df <- df %>%
         dplyr::group_by(!!sym(subject.var)) %>%
         dplyr::arrange(!!sym(time.var)) %>%
-        dplyr::mutate(x_end = dplyr::if_else(!!sym(time.var) == max(levels(!!sym(time.var))), NA_real_, dplyr::lead(PC1)),
-               y_end = dplyr::if_else(!!sym(time.var) == max(levels(!!sym(time.var))), NA_real_, dplyr::lead(PC2))) %>%
+        dplyr::mutate(
+          end_condition = if (is.factor(!!sym(time.var))) {
+            levels(!!sym(time.var))[length(levels(!!sym(time.var)))]
+          } else {
+            max(!!sym(time.var))
+          },
+          x_end = dplyr::if_else(!!sym(time.var) == end_condition, NA_real_, dplyr::lead(PC1)),
+          y_end = dplyr::if_else(!!sym(time.var) == end_condition, NA_real_, dplyr::lead(PC2))
+        ) %>%
         dplyr::ungroup()
 
       # If strata.var is not NULL, include it in the grouping
@@ -244,26 +250,42 @@ generate_beta_ordination_long <-
         df_mean <- df_mean %>%
           dplyr::group_by(!!sym(group.var), !!sym(strata.var)) %>%
           dplyr::arrange(!!sym(time.var)) %>%
-          dplyr::mutate(x_end = dplyr::if_else(!!sym(time.var) == max(levels(!!sym(time.var))), NA_real_, dplyr::lead(mean_PC1)),
-                        y_end = dplyr::if_else(!!sym(time.var) == max(levels(!!sym(time.var))), NA_real_, dplyr::lead(mean_PC2))) %>%
+          dplyr::mutate(
+            end_condition = if (is.factor(!!sym(time.var))) {
+              levels(!!sym(time.var))[length(levels(!!sym(time.var)))]
+            } else {
+              max(!!sym(time.var))
+            },
+            x_end = dplyr::if_else(!!sym(time.var) == end_condition, NA_real_, dplyr::lead(mean_PC1)),
+            y_end = dplyr::if_else(!!sym(time.var) == end_condition, NA_real_, dplyr::lead(mean_PC2))
+          ) %>%
           dplyr::ungroup() %>%
           dplyr::mutate(x_start = mean_PC1,
                         y_start = mean_PC2)
+
       } else if (!is.null(group.var)){
         df_mean <- df %>%
           dplyr::group_by(!!sym(time.var), !!sym(group.var)) %>%
-          dplyr::summarise(mean_PC1 = median(PC1, na.rm = TRUE),
-                           mean_PC2 = median(PC2, na.rm = TRUE)) %>%
+          dplyr::summarise(mean_PC1 = mean(PC1, na.rm = TRUE),
+                           mean_PC2 = mean(PC2, na.rm = TRUE)) %>%
           dplyr::ungroup()
 
         df_mean <- df_mean %>%
           dplyr::group_by(!!sym(group.var)) %>%
           dplyr::arrange(!!sym(time.var)) %>%
-          dplyr::mutate(x_end = dplyr::if_else(!!sym(time.var) == max(levels(!!sym(time.var))), NA_real_, dplyr::lead(mean_PC1)),
-                        y_end = dplyr::if_else(!!sym(time.var) == max(levels(!!sym(time.var))), NA_real_, dplyr::lead(mean_PC2))) %>%
+          dplyr::mutate(
+            end_condition = if (is.factor(!!sym(time.var))) {
+              levels(!!sym(time.var))[length(levels(!!sym(time.var)))]
+            } else {
+              max(!!sym(time.var))
+            },
+            x_end = dplyr::if_else(!!sym(time.var) == end_condition, NA_real_, dplyr::lead(mean_PC1)),
+            y_end = dplyr::if_else(!!sym(time.var) == end_condition, NA_real_, dplyr::lead(mean_PC2))
+          ) %>%
           dplyr::ungroup() %>%
           dplyr::mutate(x_start = mean_PC1,
                         y_start = mean_PC2)
+
       } else {
         df_mean <- df %>%
           dplyr::group_by(!!sym(time.var)) %>%
@@ -273,11 +295,19 @@ generate_beta_ordination_long <-
 
         df_mean <- df_mean %>%
           dplyr::arrange(!!sym(time.var)) %>%
-          dplyr::mutate(x_end = dplyr::if_else(!!sym(time.var) == max(levels(!!sym(time.var))), NA_real_, dplyr::lead(mean_PC1)),
-                        y_end = dplyr::if_else(!!sym(time.var) == max(levels(!!sym(time.var))), NA_real_, dplyr::lead(mean_PC2))) %>%
+          dplyr::mutate(
+            end_condition = if (is.factor(!!sym(time.var))) {
+              levels(!!sym(time.var))[length(levels(!!sym(time.var)))]
+            } else {
+              max(!!sym(time.var))
+            },
+            x_end = dplyr::if_else(!!sym(time.var) == end_condition, NA_real_, dplyr::lead(mean_PC1)),
+            y_end = dplyr::if_else(!!sym(time.var) == end_condition, NA_real_, dplyr::lead(mean_PC2))
+          ) %>%
           dplyr::ungroup() %>%
           dplyr::mutate(x_start = mean_PC1,
                         y_start = mean_PC2)
+
       }
 
       p <- ggplot2::ggplot(df, ggplot2::aes(PC1, PC2)) +
