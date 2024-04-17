@@ -215,7 +215,6 @@ generate_taxa_indiv_change_boxplot_pair <-
 
     col <- mStat_get_palette(palette)
 
-    # 提前判断feature.change.func的类型，如果是自定义函数则给出特定的标签，否则保持原样
     ylab_label <- if (feature.dat.type != "other") {
       if (is.function(feature.change.func)) {
         paste0("Change in Relative Abundance", " (custom function)")
