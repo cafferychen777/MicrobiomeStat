@@ -133,20 +133,20 @@ generate_taxa_volatility_test_long <- function(data.obj,
       otu_tax_agg <- data.obj$feature.tab
     }
 
-    # 计算每个分组的平均丰度
+    # Calculate the average abundance of each group
     prop_prev_data <-
       otu_tax_agg %>%
       as.matrix() %>%
       as.table() %>%
       as.data.frame() %>%
-      dplyr::group_by(Var1) %>%  # Var1是taxa
+      dplyr::group_by(Var1) %>%
       dplyr::summarise(
         avg_abundance = mean(Freq),
         prevalence = sum(Freq > 0) / dplyr::n()
       ) %>% column_to_rownames("Var1") %>%
       rownames_to_column(feature.level)
 
-    # 对数据进行CLR转换的函数
+    # Function for performing CLR transformation on data
     clr_transform <- function(x) {
       gm = exp(mean(log(x)))
       return(log(x / gm))
@@ -160,13 +160,13 @@ generate_taxa_volatility_test_long <- function(data.obj,
 
     otu_tax_agg_imputed_temp <- apply(otu_tax_agg, 1, impute_zeros_rowwise)
 
-    # 转置矩阵，以便行和列回到原来的位置
+    # Transpose the matrix to return the rows and columns to their original positions
     otu_tax_agg_imputed <- t(otu_tax_agg_imputed_temp)
 
-    # 应用CLR转换
+    # Application CLR conversion
     otu_tax_agg_clr <- apply(otu_tax_agg_imputed, 1, clr_transform)
 
-    # 转置回来
+    # Transpose back
     otu_tax_agg_clr <- t(otu_tax_agg_clr)
 
     otu_tax_agg_clr_long <- otu_tax_agg_clr %>%
@@ -236,10 +236,10 @@ generate_taxa_volatility_test_long <- function(data.obj,
     # Assign names to the elements of test.list
     names(sub_test.list) <- otu_tax_agg_clr_long %>% select(all_of(feature.level)) %>% pull() %>% unique()
 
-    # 找到所有唯一的Term
+    # Find all unique terms
     unique_terms <- grep(paste0("^", group.var, "$|^", group.var, ".*"), unique(unlist(lapply(sub_test.list, function(df) unique(df$Term)))), value = TRUE)
 
-    # 为每一个Term提取数据并存入新list
+    # Extract data for each Term and store it in a new list
     result_list <- lapply(unique_terms, function(term) {
       do.call(rbind, lapply(sub_test.list, function(df) {
         df %>% dplyr::filter(Term == term)
@@ -255,11 +255,11 @@ generate_taxa_volatility_test_long <- function(data.obj,
                       Prevalence = prevalence)
     })
 
-    # 给新list命名
+    # Name the new list
     names(result_list) <- unique_terms
 
     new_names <- sapply(names(result_list), function(name) {
-      # 检查名称是否匹配指定模式，并且不是ANOVA的结果
+      # Check whether the name matches the specified pattern and is not the result of ANOVA
       if (grepl(paste0("^", group.var), name) && !grepl(paste0("^", group.var, "$"), name)) {
         sub_name <- sub(paste0(group.var), "", name)
         return(paste(sub_name, "vs", reference_level, "(Reference)"))
