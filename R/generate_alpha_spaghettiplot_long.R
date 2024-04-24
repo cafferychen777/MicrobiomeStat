@@ -212,12 +212,12 @@ generate_alpha_spaghettiplot_long <-
 
       if (!is.null(adj.vars)) {
 
-        # 对非数值型协变量进行因子转换
+        # Covariate conversion for non-numeric variables
         data_subset <- sub_alpha.df %>%
           dplyr::select(all_of(adj.vars)) %>%
           dplyr::mutate(dplyr::across(where(is.character) & !is.factor, factor))
 
-        # 创建模型矩阵，并为非数值型协变量设定对比度
+        # Create a model matrix and set contrasts for non-numeric covariates
         M <- model.matrix(
           ~ 0 + .,
           data = data_subset,
@@ -230,13 +230,13 @@ generate_alpha_spaghettiplot_long <-
         # Fit the regression model
         fit <- lm(sub_alpha.df[[index]] ~ M_centered)
 
-        # 计算调整后的alpha多样性值
+        # Compute the adjusted alpha diversity value
         adjusted_value <- fit$coefficients[1] + residuals(fit)
 
-        # 在sub_alpha.df中更新alpha多样性值
+        # Update the alpha diversity values in sub_alpha.df
         sub_alpha.df[[index]] <- adjusted_value
 
-        # 显示消息，表示已经为特定的协变量调整了alpha多样性
+        # Display a message indicating that alpha diversity has been adjusted for a specific covariate
         message("Alpha diversity has been adjusted for the following covariates: ",
                 paste(adj.vars, collapse = ", "), ".")
       }
