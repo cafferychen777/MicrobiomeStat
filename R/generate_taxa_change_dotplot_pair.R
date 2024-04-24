@@ -341,7 +341,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
       as.matrix() %>%
       as.table() %>%
       as.data.frame() %>%
-      dplyr::group_by(Var1) %>%  # Var1是taxa
+      dplyr::group_by(Var1) %>%
       dplyr::summarise(avg_abundance = mean(Freq),
                        prevalence = sum(Freq > 0) / dplyr::n()) %>% column_to_rownames("Var1") %>%
       rownames_to_column(feature.level)
