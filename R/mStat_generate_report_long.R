@@ -254,7 +254,7 @@
 #'   feature.box.axis.transform = "sqrt",
 #'   theme.choice = "bw",
 #'   base.size = 20,
-#'   output.file = "/Users/apple/MicrobiomeStat/ecam_obj_report_long.pdf"
+#'   output.file = "/Users/apple/Research/MicrobiomeStat/result/ecam_obj_report_long.pdf"
 #' )
 #' }
 #' @export
@@ -298,7 +298,7 @@ mStat_generate_report_long <- function(data.obj,
   template <- "
 ---
 title: '`r sub(\".pdf$\", \"\", basename(output.file))`'
-author: '[Powered by MicrobiomeStat (Ver 1.1.2)](http://www.microbiomestat.wiki)'
+author: '[Powered by MicrobiomeStat (Ver 1.1.3)](http://www.microbiomestat.wiki)'
 date: '`r Sys.Date()`'
 output:
   pdf_document:
