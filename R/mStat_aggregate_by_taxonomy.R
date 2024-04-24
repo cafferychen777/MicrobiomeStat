@@ -42,7 +42,7 @@ mStat_aggregate_by_taxonomy <-
     tax_tab <- data.obj$feature.ann %>%
       as.data.frame()
 
-    # 检查 otu_tab 的行名和 tax_tab 的行名是否完全一致
+    # Check if the row names in the otu_tab and tax_tab are completely consistent
     otu_not_in_tax <- setdiff(rownames(otu_tab), rownames(tax_tab))
     tax_not_in_otu <- setdiff(rownames(tax_tab), rownames(otu_tab))
 
@@ -71,7 +71,7 @@ mStat_aggregate_by_taxonomy <-
                             by = "sample") %>%
           column_to_rownames("sample")
 
-        # 聚合 OTU 表
+        # Aggregate OTU table
         otu_tax_agg <- otu_tax %>%
           tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
           dplyr::group_by_at(vars(sample, !!sym(feature.level))) %>%
