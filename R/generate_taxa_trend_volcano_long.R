@@ -55,7 +55,7 @@ generate_taxa_trend_volcano_long <-
            test.list,
            feature.sig.level = 0.1,
            feature.mt.method = "fdr",
-           palette = c("#F9F871", "#F4A261", "#FF6347"),
+           palette = c("white", "#7FB695", "#006D2C"),
            pdf = FALSE,
            pdf.wid = 7,
            pdf.hei = 5) {

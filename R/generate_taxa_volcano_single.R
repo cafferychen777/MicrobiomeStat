@@ -35,9 +35,7 @@
 #'     feature.dat.type = "count",
 #'     feature.level = c("Phylum", "Genus", "Family"),
 #'     prev.filter = 0.1,
-#'     abund.filter = 0.0001,
-#'     feature.sig.level = 0.1,
-#'     feature.mt.method = "none"
+#'     abund.filter = 0.0001
 #'   )
 #'
 #'   # Generate volcano plots from the test results
@@ -57,7 +55,7 @@ generate_taxa_volcano_single <-
            test.list,
            feature.sig.level = 0.1,
            feature.mt.method = "fdr",
-           palette = c("#F9F871", "#F4A261", "#FF6347"),
+           palette = c("white", "#7FB695", "#006D2C"),
            pdf = FALSE,
            pdf.wid = 7,
            pdf.hei = 5) {
@@ -69,7 +67,7 @@ generate_taxa_volcano_single <-
 
     feature.level <- names(test.list)
 
-    # 使用条件表达式设置要使用的p值变量
+    # Set the p-value variable to be used using conditional expressions
     p_val_var <-
       ifelse(feature.mt.method == "fdr",
              "Adjusted.P.Value",

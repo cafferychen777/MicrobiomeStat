@@ -20,14 +20,27 @@
 #' @return A list of ggplot objects of volcano plots for each taxonomic level.
 #'
 #' @examples
-#' # data("subset_T2D.obj")
-#' # test_list <- generate_taxa_volatility_test_long(data.obj, ...)
-#' # volcano_plots <- generate_taxa_volatility_volcano_long(data.obj,
-#'                                                       # group.var,
-#'                                                       # test.list,
-#'                                                       # feature.sig.level = 0.05,
-#'                                                       # feature.mt.method = "fdr")
+#' \dontrun{
+#' data("subset_T2D.obj")
+#' test.list <- generate_taxa_volatility_test_long(
+#' data.obj = subset_T2D.obj,
+#' time.var = "visit_number",
+#' subject.var = "subject_id",
+#' group.var = "subject_race",
+#' adj.vars = "sample_body_site",
+#' prev.filter = 0.1,
+#' abund.filter = 0.0001,
+#' feature.level = c("Order", "Family", "Genus"),
+#' feature.dat.type = "count",
+#' transform = "CLR"
+#' )
+#' plot.list <- generate_taxa_volatility_volcano_long(data.obj = subset_T2D.obj,
+#'                                                    group.var = "subject_race",
+#'                                                    test.list = test.list,
+#'                                                    feature.sig.level = 0.1,
+#'                                                    feature.mt.method = "none")
 #'
+#' }
 #' @importFrom dplyr pull
 #' @export
 generate_taxa_volatility_volcano_long <- function(data.obj,
@@ -35,7 +48,7 @@ generate_taxa_volatility_volcano_long <- function(data.obj,
                                                   test.list,
                                                   feature.sig.level = 0.1,
                                                   feature.mt.method = c("fdr","none"),
-                                                  palette = c("#F9F871", "#F4A261", "#FF6347"),
+                                                  palette = c("white", "#7FB695", "#006D2C"),
                                                   pdf = FALSE,
                                                   pdf.wid = 7,
                                                   pdf.hei = 5){
@@ -54,7 +67,7 @@ generate_taxa_volatility_volcano_long <- function(data.obj,
 
   reference_level <- group_level[1]
 
-  # 使用条件表达式设置要使用的p值变量
+  # Set the p value variable to be used using conditional expressions.
   p_val_var <-
     ifelse(feature.mt.method == "fdr",
            "Adjusted.P.Value",
@@ -108,7 +121,6 @@ generate_taxa_volatility_volcano_long <- function(data.obj,
           scale_size_continuous(range = c(3, 7)) +
           coord_cartesian(xlim = c(-max_abs_log2FC, max_abs_log2FC))
 
-        # 判断是否保存为 PDF
         if (pdf) {
           pdf_filename <- paste0("volcano_", feature.level, "_", group.level, ".pdf")
           ggsave(pdf_filename, plot = p, width = pdf.wid, height = pdf.hei)
