@@ -89,6 +89,7 @@ generate_taxa_test_pair <-
   function(data.obj,
            subject.var,
            time.var = NULL,
+           change.base,
            group.var,
            adj.vars,
            feature.level,
@@ -98,6 +99,8 @@ generate_taxa_test_pair <-
            ...) {
     # Extract data
     mStat_validate_data(data.obj)
+
+    feature.dat.type <- match.arg(feature.dat.type)
 
     meta_tab <-
       data.obj$meta.dat %>% select(all_of(c(
@@ -245,6 +248,8 @@ generate_taxa_test_pair <-
       if (feature.dat.type == "count"){
         feature.dat.type <- "proportion"
       }
+
+
 
       linda.obj <- tryCatch({
         # Try running the linda function
