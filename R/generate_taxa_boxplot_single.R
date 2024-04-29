@@ -370,7 +370,7 @@ generate_taxa_boxplot_single <-
       }
 
       if (feature.dat.type != "other") {
-        # 添加对Y轴刻度的修改
+        # Modify Y-axis ticks
         if (transform == "sqrt") {
           boxplot <- boxplot + scale_y_continuous(
             labels = function(x)
