@@ -202,7 +202,7 @@
 #'   base.size = 20,
 #'   feature.mt.method = "none",
 #'   feature.sig.level = 0.2,
-#'   output.file = "/Users/apple/MicrobiomeStat/ecam.obj_report.pdf"
+#'   output.file = "/Users/apple/Research/MicrobiomeStat/result/ecam.obj_report.pdf"
 #' )
 #' }
 #' @export
@@ -812,9 +812,7 @@ taxa_test_results <- generate_taxa_test_single(data.obj = data.obj,
                                                prev.filter = prev.filter,
                                                abund.filter = abund.filter,
                                                feature.level = test.feature.level,
-                                               feature.dat.type = feature.dat.type,
-                                               feature.sig.level = feature.sig.level,
-                                               feature.mt.method = feature.mt.method)
+                                               feature.dat.type = feature.dat.type)
 ```
 
 ```{r taxa-test-results-display, echo=FALSE, message=FALSE, results='asis', warning = FALSE, fig.align='center', fig.width = 10, fig.height = 8}
