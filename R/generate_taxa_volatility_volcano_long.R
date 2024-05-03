@@ -40,6 +40,26 @@
 #'                                                    feature.sig.level = 0.1,
 #'                                                    feature.mt.method = "none")
 #'
+#' data("ecam.obj")
+#' test.list <- generate_taxa_volatility_test_long(
+#'   data.obj = ecam.obj,
+#'   time.var = "month_num",
+#'   subject.var = "subject.id",
+#'   group.var = "antiexposedall",
+#'   adj.vars = "delivery",
+#'   prev.filter = 0.1,
+#'   abund.filter = 0.0001,
+#'   feature.level = c("Order", "Family", "Genus"),
+#'   feature.dat.type = "proportion",
+#'   transform = "CLR"
+#' )
+#' plot.list <- generate_taxa_volatility_volcano_long(
+#'   data.obj = ecam.obj,
+#'   group.var = "antiexposedall",
+#'   test.list = test.list,
+#'   feature.sig.level = 0.1,
+#'   feature.mt.method = "none"
+#' )
 #' }
 #' @importFrom dplyr pull
 #' @export
