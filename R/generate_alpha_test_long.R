@@ -152,7 +152,7 @@ generate_alpha_test_long <- function(data.obj,
     subset_data.obj <- mStat_subset_data(data.obj, samIDs = subset.ids)
 
     # Subset the alpha.obj to match the subsetted data
-    subset_alpha.obj <- mStat_subset_alpha(alpha.obj, samIDs = subset.ids)
+    subset_alpha.obj <- mStat_subset_alpha(alpha.obj = alpha.obj, samIDs = subset.ids)
 
     # Perform alpha diversity test for the subset data
     subset.test.list <- generate_alpha_test_single(
