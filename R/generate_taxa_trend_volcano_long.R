@@ -44,6 +44,15 @@
 #'   test.list = test.list,
 #'   feature.sig.level = 0.1,
 #'   feature.mt.method = "none")
+#'
+#' generate_taxa_trend_test_long(
+#'   data.obj = ecam.obj,
+#'   subject.var = "studyid",
+#'   time.var = "month_num",
+#'   group.var = NULL,
+#'   feature.level = c("Phylum","Class"),
+#'   feature.dat.type = c("proportion")
+#' )
 #' }
 #'
 #' @importFrom dplyr distinct pull
