@@ -16,6 +16,8 @@
 #' @examples
 #' \dontrun{
 #'   #library(microbiome)
+#'   # Load phangorn for midpoint rooting if tree is present
+#'   #library(phangorn)
 #'   #data(peerj32)
 #'   #peerj32.phy <- peerj32$phyloseq
 #'   #data.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
@@ -43,7 +45,7 @@ mStat_convert_phyloseq_to_data_obj <- function (phylo.obj) {
   if (!is.null(phylo.obj@sam_data)) {
     data.obj$meta.dat <- phylo.obj@sam_data %>% as.matrix() %>%
       as.data.frame()
-    # 检查是否存在"sample"列，如果存在，就删除
+    # Check if the "sample" column exists, and if it does, delete it
     if ("sample" %in% colnames(data.obj$meta.dat)) {
       data.obj$meta.dat <- data.obj$meta.dat %>% select(-sample)
     }
