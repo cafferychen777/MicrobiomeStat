@@ -27,6 +27,8 @@ This function checks each component (OTU table, sample data, taxonomy table, and
 \examples{
 \dontrun{
   #library(microbiome)
+  # Load phangorn for midpoint rooting if tree is present
+  #library(phangorn)
   #data(peerj32)
   #peerj32.phy <- peerj32$phyloseq
   #data.obj <- mStat_convert_phyloseq_to_data_obj(peerj32.phy)
