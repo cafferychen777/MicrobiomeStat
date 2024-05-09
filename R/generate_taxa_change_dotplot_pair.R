@@ -171,6 +171,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
                                               pdf.wid = 11,
                                               pdf.hei = 8.5,
                                               ...) {
+
   feature.dat.type <- match.arg(feature.dat.type)
 
   # Extract data
