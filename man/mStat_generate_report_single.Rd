@@ -30,7 +30,7 @@ mStat_generate_report_single(
   feature.analysis.rarafy = TRUE,
   feature.mt.method = c("fdr", "none"),
   feature.sig.level = 0.1,
-  feature.box.axis.transform = c("identity", "sqrt", "log"),
+  feature.box.axis.transform = c("sqrt"),
   base.size = 16,
   theme.choice = "bw",
   custom.theme = NULL,
@@ -281,7 +281,7 @@ mStat_generate_report_single(
   base.size = 20,
   feature.mt.method = "none",
   feature.sig.level = 0.2,
-  output.file = "/Users/apple/MicrobiomeStat/ecam.obj_report.pdf"
+  output.file = "/Users/apple/Research/MicrobiomeStat/result/ecam.obj_report.pdf"
 )
 }
 }
