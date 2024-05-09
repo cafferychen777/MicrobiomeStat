@@ -329,7 +329,7 @@ mStat_generate_report_long(
   feature.box.axis.transform = "sqrt",
   theme.choice = "bw",
   base.size = 20,
-  output.file = "/Users/apple/MicrobiomeStat/ecam_obj_report_long.pdf"
+  output.file = "/Users/apple/Research/MicrobiomeStat/result/ecam_obj_report_long.pdf"
 )
 }
 }
