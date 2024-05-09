@@ -11,7 +11,7 @@ generate_taxa_change_dotplot_pair(
   group.var = NULL,
   strata.var = NULL,
   change.base = "1",
-  feature.change.func = "log fold change",
+  feature.change.func = "relative change",
   feature.level = NULL,
   feature.dat.type = c("count", "proportion", "other"),
   features.plot = NULL,
