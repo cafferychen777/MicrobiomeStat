@@ -11,7 +11,7 @@ generate_taxa_indiv_change_scatterplot_pair(
   group.var = NULL,
   strata.var = NULL,
   change.base = NULL,
-  feature.change.func = "log fold change",
+  feature.change.func = "relative change",
   feature.level = NULL,
   features.plot = NULL,
   feature.dat.type = c("count", "proportion", "other"),
