@@ -16,7 +16,7 @@ generate_taxa_boxplot_single(
   features.plot = NULL,
   top.k.plot = NULL,
   top.k.func = NULL,
-  transform = c("identity", "sqrt", "log"),
+  transform = c("sqrt", "identity", "log"),
   prev.filter = 0.05,
   abund.filter = 0.01,
   base.size = 16,
