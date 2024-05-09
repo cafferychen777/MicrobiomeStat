@@ -8,6 +8,7 @@ generate_taxa_test_pair(
   data.obj,
   subject.var,
   time.var = NULL,
+  change.base,
   group.var,
   adj.vars,
   feature.level,
