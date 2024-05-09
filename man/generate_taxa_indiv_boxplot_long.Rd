@@ -17,7 +17,7 @@ generate_taxa_indiv_boxplot_long(
   feature.dat.type = c("count", "proportion", "other"),
   top.k.plot = NULL,
   top.k.func = NULL,
-  transform = c("identity", "sqrt", "log"),
+  transform = c("sqrt", "identity", "log"),
   prev.filter = 0.01,
   abund.filter = 0.01,
   base.size = 16,
