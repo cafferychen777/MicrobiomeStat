@@ -10,7 +10,7 @@ generate_taxa_volcano_single(
   test.list,
   feature.sig.level = 0.1,
   feature.mt.method = "fdr",
-  palette = c("#F9F871", "#F4A261", "#FF6347"),
+  palette = c("white", "#7FB695", "#006D2C"),
   pdf = FALSE,
   pdf.wid = 7,
   pdf.hei = 5
@@ -64,9 +64,7 @@ Generate Volcano Plots for Taxa Differential Test for a Single Time Point
     feature.dat.type = "count",
     feature.level = c("Phylum", "Genus", "Family"),
     prev.filter = 0.1,
-    abund.filter = 0.0001,
-    feature.sig.level = 0.1,
-    feature.mt.method = "none"
+    abund.filter = 0.0001
   )
 
   # Generate volcano plots from the test results
