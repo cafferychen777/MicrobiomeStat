@@ -69,7 +69,6 @@
 #'   adj.vars = c("sample_body_site"),
 #'   alpha.change.func = "log fold change"
 #' )
-#'
 #' # Generate dot plots for the T2D dataset results
 #' dot_plots_T2D <- generate_alpha_dotplot_long(
 #'   data.obj = subset_T2D.obj,
