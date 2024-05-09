@@ -11,7 +11,7 @@ generate_taxa_change_scatterplot_pair(
   group.var = NULL,
   strata.var = NULL,
   change.base = NULL,
-  feature.change.func = "absolute change",
+  feature.change.func = "relative change",
   feature.level = NULL,
   feature.dat.type = c("count", "proportion", "other"),
   features.plot = NULL,
