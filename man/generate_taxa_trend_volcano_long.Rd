@@ -11,7 +11,7 @@ generate_taxa_trend_volcano_long(
   test.list,
   feature.sig.level = 0.1,
   feature.mt.method = "fdr",
-  palette = c("#F9F871", "#F4A261", "#FF6347"),
+  palette = c("white", "#7FB695", "#006D2C"),
   pdf = FALSE,
   pdf.wid = 7,
   pdf.hei = 5
@@ -77,6 +77,15 @@ plot.list <- generate_taxa_trend_volcano_long(
   test.list = test.list,
   feature.sig.level = 0.1,
   feature.mt.method = "none")
+
+generate_taxa_trend_test_long(
+  data.obj = ecam.obj,
+  subject.var = "studyid",
+  time.var = "month_num",
+  group.var = NULL,
+  feature.level = c("Phylum","Class"),
+  feature.dat.type = c("proportion")
+)
 }
 
 }
