@@ -115,7 +115,51 @@
 #'   custom.theme = NULL,
 #'   palette = NULL,
 #'   pdf = TRUE,
-#'   file.ann = "test",
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#' generate_taxa_boxplot_single(
+#'   data.obj = ecam.obj,
+#'   subject.var = "studyid",
+#'   time.var = "month",
+#'   t.level = "1",
+#'   group.var = "diet",
+#'   strata.var = "antiexposedall",
+#'   feature.level = c("Phylum"),
+#'   features.plot = sample(unique(ecam.obj$feature.ann[,"Phylum"]),3),
+#'   feature.dat.type = "proportion",
+#'   transform = "log",
+#'   prev.filter = 0,
+#'   abund.filter = 0,
+#'   base.size = 12,
+#'   theme.choice = "classic",
+#'   custom.theme = NULL,
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#' generate_taxa_boxplot_single(
+#'   data.obj = ecam.obj,
+#'   subject.var = "studyid",
+#'   time.var = "month",
+#'   t.level = "1",
+#'   group.var = NULL,
+#'   strata.var = NULL,
+#'   feature.level = c("Phylum"),
+#'   features.plot = sample(unique(ecam.obj$feature.ann[,"Phylum"]),3),
+#'   feature.dat.type = "proportion",
+#'   transform = "log",
+#'   prev.filter = 0,
+#'   abund.filter = 0,
+#'   base.size = 12,
+#'   theme.choice = "classic",
+#'   custom.theme = NULL,
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
@@ -162,7 +206,7 @@ generate_taxa_boxplot_single <-
            prev.filter = 0.05,
            abund.filter = 0.01,
            base.size = 16,
-           theme.choice = "prism",
+           theme.choice = "bw",
            custom.theme = NULL,
            palette = NULL,
            pdf = TRUE,
@@ -189,6 +233,11 @@ generate_taxa_boxplot_single <-
       condition <- paste(time.var, "== '", t.level, "'", sep = "")
       data.obj <-
         mStat_subset_data(data.obj, condition = condition)
+    }
+
+    if (is.null(group.var)) {
+      data.obj$meta.dat <- data.obj$meta.dat %>% dplyr::mutate("ALL" = "ALL")
+      group.var <- "ALL"
     }
 
     meta_tab <-
@@ -293,7 +342,7 @@ generate_taxa_boxplot_single <-
       }
 
       taxa.levels <-
-        otu_tax_agg_merged %>% select(feature.level) %>% dplyr::distinct() %>% dplyr::pull()
+        otu_tax_agg_merged %>% select(all_of(feature.level)) %>% dplyr::distinct() %>% dplyr::pull()
 
       n_subjects <-
         length(unique(otu_tax_agg_merged[[subject.var]]))
