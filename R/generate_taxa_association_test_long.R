@@ -64,6 +64,7 @@
 #'   feature.mt.method = "fdr"
 #' )
 #'
+#'
 #' # Example 2: Generate taxa association tests and volcano plots for a subset of the T2D dataset
 #' data("subset_T2D.obj")
 #' test.list_T2D <- generate_taxa_association_test_long(
@@ -212,29 +213,29 @@ generate_taxa_association_test_long <-
 
       extract_data_frames <- function(linda_object, group_var = NULL) {
 
-        # 初始化一个空的list来存储提取的数据框
+        # Initialize an empty list to store the extracted dataframes
         result_list <- list()
 
-        # 获取所有匹配的数据框名
+        # Get all matching dataframe names
         matching_dfs <- grep(group_var, names(linda_object$output), value = TRUE)
 
-        # 循环遍历所有匹配的数据框名并提取它们
+        # Iterate through all matching dataframe names and extract them
         for (df_name in matching_dfs) {
-          # 从数据框名中提取组值
+          # Extract group values from the data frame name
           group_prefix <- paste0(group_var)
 
-          # 提取group_prefix后面的内容，并在":"之前停止
+          # Extract the content after the "group_prefix" and stop before the ":".
           group_value <- unlist(strsplit(df_name, split = ":"))[1]
           group_value <- gsub(pattern = group_prefix, replacement = "", x = group_value)
 
-          # 将数据框添加到结果列表中
+          # Add the data frame to the result list.
           result_list[[paste0(group_value," vs ", reference_level, " (Reference)")]] <- linda_object$output[[df_name]]
         }
 
         return(result_list)
       }
 
-      # 使用函数提取数据框
+      # Extract data frame using function
       sub_test.list <- extract_data_frames(linda_object = linda.obj, group_var = group.var)
 
       sub_test.list <- lapply(sub_test.list, function(df){
