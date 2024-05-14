@@ -401,8 +401,9 @@ generate_taxa_boxplot_single <-
           width = 0.2
         ) +
         geom_jitter(
-          position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.8),
-          alpha = 0.1,
+          aes(color = !!sym(group.var)),
+          position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.8),
+          alpha = 0.6,
           size = 1
         ) +
         scale_fill_manual(values = col) +
