@@ -170,6 +170,31 @@
 #'   time.var = "time",
 #'   t.level = "1",
 #'   group.var = "group",
+#'   strata.var = NULL,
+#'   feature.level = c("Family"),
+#'   feature.dat.type = "count",
+#'   features.plot = NULL,
+#'   top.k.plot = NULL,
+#'   top.k.func = NULL,
+#'   transform = "log",
+#'   prev.filter = 0.1,
+#'   abund.filter = 0.0001,
+#'   base.size = 12,
+#'   theme.choice = "bw",
+#'   custom.theme = NULL,
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#' data(peerj32.obj)
+#' generate_taxa_boxplot_single(
+#'   data.obj = peerj32.obj,
+#'   subject.var = "subject",
+#'   time.var = "time",
+#'   t.level = "1",
+#'   group.var = "group",
 #'   strata.var = "sex",
 #'   feature.level = c("Family"),
 #'   feature.dat.type = "count",
@@ -246,14 +271,13 @@ generate_taxa_boxplot_single <-
       )))
 
     aes_function <- aes(
-      x = !!sym(group.var),
+      x = !!sym(feature.level),
       y = value,
       fill = !!sym(group.var)
     )
 
     col <- mStat_get_palette(palette)
 
-    # Assuming mStat_get_theme function is already defined
     # Replace the existing theme selection code with this:
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
@@ -366,18 +390,21 @@ generate_taxa_boxplot_single <-
       boxplot <-
         ggplot(sub_otu_tax_agg_merged %>% filter(!!sym(feature.level) %in% features.plot),
                aes_function) +
-        geom_violin(trim = FALSE, alpha = 0.8) +
-        stat_boxplot(geom = "errorbar",
-                     position = position_dodge(width = 0.2),
-                     width = 0.1) +
+        #geom_violin(trim = FALSE, alpha = 0.8) +
+        stat_boxplot(
+          geom = "errorbar",
+          position = position_dodge(width = 0.8),
+          width = 0.2
+        ) +
         geom_boxplot(
           position = position_dodge(width = 0.8),
-          width = 0.1,
-          fill = "white"
+          width = 0.2
         ) +
-        geom_jitter(width = 0.1,
-                    alpha = 0.1,
-                    size = 1) +
+        geom_jitter(
+          position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.8),
+          alpha = 0.1,
+          size = 1
+        ) +
         scale_fill_manual(values = col) +
         {
           if (feature.dat.type == "other") {
@@ -393,7 +420,8 @@ generate_taxa_boxplot_single <-
           strip.text.x = element_text(size = base.size, color = "black"),
           strip.text.y = element_text(size = base.size, color = "black"),
           axis.text = element_text(color = "black"),
-          axis.text.x =  element_blank(),
+          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1, size = (base.size -
+                                                                                   2)),
           axis.text.y = element_text(color = "black", size = (base.size -
                                                                 2)),
           axis.title.x = element_blank(),
@@ -406,14 +434,10 @@ generate_taxa_boxplot_single <-
 
       if (!is.null(group.var)) {
         if (is.null(strata.var)) {
-          boxplot <-
-            boxplot + ggh4x::facet_nested_wrap(as.formula(paste(
-              "~", feature.level, "+", group.var
-            )), scales = "free_x", ncol = group.levels*4)
         } else {
           boxplot <- boxplot + ggh4x::facet_nested_wrap(
-            as.formula(paste('~', feature.level, '+', strata.var, '+', group.var)),
-            scales = "free_x", ncol = group.levels*4
+            as.formula(paste('~', strata.var)),
+            scales = "free_x"
           )
         }
       }
