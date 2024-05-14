@@ -14,7 +14,7 @@
 #'
 #' @noRd
 create_mixed_effects_formula <- function(response.var, time.var, group.var = NULL, subject.var) {
-  # 构建固定效应部分的公式
+  # Formula for the fixed effects part
   fixed_effects <- response.var
   if (!is.null(group.var)) {
     fixed_effects <- paste(fixed_effects, group.var, sep = " ~ ")
@@ -23,16 +23,16 @@ create_mixed_effects_formula <- function(response.var, time.var, group.var = NUL
     fixed_effects <- paste(fixed_effects, "~", time.var, sep = "")
   }
 
-  # 构建随机效应部分的公式
+  # Formula for constructing the random effects part
   random_effects <- paste("(1 +", time.var, "|", subject.var, ")", sep = "")
 
-  # 合并固定效应和随机效应部分
+  # Merge fixed effects and random effects parts
   formula_str <- paste(fixed_effects, random_effects, sep = " + ")
 
-  # 用as.formula转换为公式对象
+  # Convert to formula object using as.formula
   formula_obj <- as.formula(formula_str)
 
-  # 返回公式对象
+  # Return formula object
   return(formula_obj)
 }
 
