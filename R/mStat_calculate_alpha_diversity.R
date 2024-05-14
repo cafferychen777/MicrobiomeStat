@@ -23,6 +23,11 @@ mStat_calculate_alpha_diversity <- function(x, alpha.name) {
     return()
   }
 
+  # Check if the data has been rarefied
+  if (length(unique(colSums(x))) != 1) {
+    warning("It appears the data may not have been rarefied. Please verify.")
+  }
+
   x_transpose <- t(x)
 
     alpha.obj <- lapply(alpha.name, function(index) {
