@@ -52,8 +52,11 @@ mStat_calculate_beta_diversity <- function(data.obj,
   }
 
   otu_tab <- data.obj$feature.tab
-  tax_tab <- data.obj$feature.ann
-  meta_tab <- data.obj$meta.dat
+
+  # Check if the data has been rarefied
+  if (length(unique(colSums(otu_tab))) != 1) {
+    warning("It appears the data may not have been rarefied. Please verify.")
+  }
 
   message("Initializing distance objects...")
   dist.obj <- list()
