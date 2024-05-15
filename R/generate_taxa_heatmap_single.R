@@ -70,9 +70,8 @@
 #' \dontrun{
 #' # Load required libraries and example data
 #' library(pheatmap)
-#' data(peerj32.obj)
 #'
-#' # Generate the boxplot pair
+#' data(peerj32.obj)
 #' generate_taxa_heatmap_single(
 #'   data.obj = peerj32.obj,
 #'   subject.var = "subject",
@@ -80,12 +79,103 @@
 #'   t.level = "1",
 #'   group.var = "group",
 #'   strata.var = "sex",
-#'   feature.level = c("Genus"),
+#'   other.vars = NULL,
+#'   feature.level = c("Phylum", "Family", "Genus"),
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
 #'   top.k.plot = NULL,
 #'   top.k.func = NULL,
-#'   prev.filter = 0.01,
+#'   prev.filter = 0.001,
+#'   abund.filter = 0.01,
+#'   base.size = 10,
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#' generate_taxa_heatmap_single(
+#'   data.obj = peerj32.obj,
+#'   subject.var = "subject",
+#'   time.var = "time",
+#'   t.level = "1",
+#'   group.var = "group",
+#'   strata.var = NULL,
+#'   other.vars = NULL,
+#'   feature.level = c("Phylum", "Family", "Genus"),
+#'   feature.dat.type = "count",
+#'   features.plot = NULL,
+#'   top.k.plot = NULL,
+#'   top.k.func = NULL,
+#'   prev.filter = 0.001,
+#'   abund.filter = 0.01,
+#'   base.size = 10,
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#' generate_taxa_heatmap_single(
+#'   data.obj = peerj32.obj,
+#'   subject.var = "subject",
+#'   time.var = "time",
+#'   t.level = "1",
+#'   group.var = NULL,
+#'   strata.var = NULL,
+#'   other.vars = NULL,
+#'   feature.level = c("Phylum", "Family", "Genus"),
+#'   feature.dat.type = "count",
+#'   features.plot = NULL,
+#'   top.k.plot = NULL,
+#'   top.k.func = NULL,
+#'   prev.filter = 0.001,
+#'   abund.filter = 0.01,
+#'   base.size = 10,
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#'
+#' data(ecam.obj)
+#' generate_taxa_heatmap_single(
+#'   data.obj = ecam.obj,
+#'   subject.var = "subject.id",
+#'   time.var = "month",
+#'   t.level = "0",
+#'   group.var = "antiexposedall",
+#'   strata.var = "diet",
+#'   other.vars = "delivery",
+#'   feature.level = c("Order", "Family", "Genus"),
+#'   feature.dat.type = "proportion",
+#'   features.plot = NULL,
+#'   top.k.plot = NULL,
+#'   top.k.func = NULL,
+#'   prev.filter = 0.001,
+#'   abund.filter = 0.01,
+#'   base.size = 10,
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#' generate_taxa_heatmap_single(
+#'   data.obj = ecam.obj,
+#'   subject.var = "subject.id",
+#'   time.var = "month",
+#'   t.level = "0",
+#'   group.var = "antiexposedall",
+#'   strata.var = "diet",
+#'   other.vars = "delivery",
+#'   feature.level = c("Genus"),
+#'   feature.dat.type = "proportion",
+#'   features.plot = unique(ecam.obj$feature.ann[,"Genus"])[-c(1,9)],
+#'   top.k.plot = NULL,
+#'   top.k.func = NULL,
+#'   prev.filter = 0.001,
 #'   abund.filter = 0.01,
 #'   base.size = 10,
 #'   palette = NULL,
@@ -104,6 +194,7 @@ generate_taxa_heatmap_single <- function(data.obj,
                                          t.level = NULL,
                                          group.var = NULL,
                                          strata.var = NULL,
+                                         other.vars = NULL,
                                          feature.level = NULL,
                                          feature.dat.type = c("count", "proportion", "other"),
                                          features.plot = NULL,
@@ -133,7 +224,7 @@ generate_taxa_heatmap_single <- function(data.obj,
   }
 
   meta_tab <- data.obj$meta.dat %>% select(all_of(
-    c(subject.var, time.var, group.var, strata.var)))
+    c(subject.var, time.var, group.var, strata.var, other.vars)))
 
     col <- c("white", "#92c5de", "#0571b0", "#f4a582", "#ca0020")
 
@@ -219,20 +310,19 @@ generate_taxa_heatmap_single <- function(data.obj,
         gaps <-
           cumsum(table(meta_tab_sorted[[strata.var]]))[-length(table(meta_tab_sorted[[strata.var]]))]
       }
-    } else if (!is.null(group.var) & !is.numeric(meta_tab[[group.var]])){
-      gaps <-
-        cumsum(table(meta_tab_sorted[[group.var]]))[-length(table(meta_tab_sorted[[group.var]]))]
+    } else if (!is.null(group.var)){
+      if (!is.numeric(meta_tab[[group.var]])) {
+        gaps <-
+          cumsum(table(meta_tab_sorted[[group.var]]))[-length(table(meta_tab_sorted[[group.var]]))]
+      }
     } else {
       gaps <- NULL
     }
 
-    # Set up annotation_col based on group.var and strata.var values
-    if (!is.null(group.var) & !is.null(strata.var)) {
-      annotation_col <-
-        meta_tab %>% select(all_of(c(group.var, strata.var)))
-    } else if (!is.null(group.var) & is.null(strata.var)) {
-      annotation_col <- meta_tab %>% select(all_of(c(group.var)))
-    } else {
+    annotation_col <-
+      meta_tab %>% select(all_of(c(other.vars, group.var, strata.var)))
+
+    if (ncol(annotation_col) == 0){
       annotation_col <- NULL
     }
 
