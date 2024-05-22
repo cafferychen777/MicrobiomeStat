@@ -233,7 +233,6 @@ generate_alpha_boxplot_long <- function (data.obj,
     dplyr::inner_join(meta_tab %>% rownames_to_column(var = "sample"),
                       by = c("sample"))
 
-  # Assuming mStat_get_theme function is already defined
   # Replace the existing theme selection code with this:
   theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
