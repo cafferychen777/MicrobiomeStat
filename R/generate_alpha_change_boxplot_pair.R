@@ -92,25 +92,87 @@
 #' \dontrun{
 #' library(vegan)
 #' data(peerj32.obj)
+#' # Example 1: Both group.var and strata.var are NULL
 #' generate_alpha_change_boxplot_pair(
 #'   data.obj = peerj32.obj,
 #'   alpha.obj = NULL,
-#'   alpha.name = c("simpson"),
+#'   alpha.name = "simpson",
 #'   subject.var = "subject",
 #'   time.var = "time",
-#'   group.var = "group",
-#'   strata.var = "sex",
-#'   adj.vars = "sex",
+#'   group.var = NULL,
+#'   strata.var = NULL,
+#'   adj.vars = NULL,
 #'   change.base = "1",
 #'   alpha.change.func = "absolute change",
 #'   base.size = 16,
 #'   theme.choice = "bw",
 #'   palette = "lancet",
 #'   pdf = TRUE,
-#'   file.ann = NULL,
+#'   file.ann = "no_groups",
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
+#' # Example 2: Only group.var is non-NULL
+#' generate_alpha_change_boxplot_pair(
+#'   data.obj = peerj32.obj,
+#'   alpha.obj = NULL,
+#'   alpha.name = "simpson",
+#'   subject.var = "subject",
+#'   time.var = "time",
+#'   group.var = "group",
+#'   strata.var = NULL,
+#'   adj.vars = NULL,
+#'   change.base = "1",
+#'   alpha.change.func = "log fold change",
+#'   base.size = 16,
+#'   theme.choice = "classic",
+#'   palette = "npg",
+#'   pdf = TRUE,
+#'   file.ann = "group_only",
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#' # Example 3: Both group.var and strata.var are non-NULL
+#' generate_alpha_change_boxplot_pair(
+#'   data.obj = peerj32.obj,
+#'   alpha.obj = NULL,
+#'   alpha.name = "simpson",
+#'   subject.var = "subject",
+#'   time.var = "time",
+#'   group.var = "group",
+#'   strata.var = "sex",
+#'   adj.vars = NULL,
+#'   change.base = "1",
+#'   alpha.change.func = "log fold change",
+#'   base.size = 16,
+#'   theme.choice = "gray",
+#'   palette = "aaas",
+#'   pdf = TRUE,
+#'   file.ann = "group_and_strata",
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#' # Example 4: Both group.var and adj.vars are non-NULL, strata.var is NULL
+#' generate_alpha_change_boxplot_pair(
+#'   data.obj = peerj32.obj,
+#'   alpha.obj = NULL,
+#'   alpha.name = "simpson",
+#'   subject.var = "subject",
+#'   time.var = "time",
+#'   group.var = "group",
+#'   strata.var = NULL,
+#'   adj.vars = c("sex"),
+#'   change.base = "1",
+#'   alpha.change.func = "absolute change",
+#'   base.size = 16,
+#'   theme.choice = "minimal",
+#'   palette = "jama",
+#'   pdf = TRUE,
+#'   file.ann = "group_and_adj",
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#'
 #' data("subset_pairs.obj")
 #' generate_alpha_change_boxplot_pair(
 #'   data.obj = subset_pairs.obj,
@@ -291,7 +353,6 @@ generate_alpha_change_boxplot_pair <-
         , by = c(subject.var))
     }
 
-    # Assuming mStat_get_theme function is already defined
     # Replace the existing theme selection code with this:
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
