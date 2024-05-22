@@ -217,7 +217,6 @@ generate_alpha_boxplot_single <- function (data.obj,
     group.var <- "ALL"
   }
 
-  # Assuming mStat_get_theme function is already defined
   # Replace the existing theme selection code with this:
   theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
