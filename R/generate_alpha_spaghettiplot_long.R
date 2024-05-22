@@ -95,9 +95,63 @@
 #'   time.var = "month_num",
 #'   t0.level = NULL,
 #'   ts.levels = NULL,
+#'   group.var = NULL,
+#'   strata.var = NULL,
+#'   adj.vars = NULL,
+#'   theme.choice = "bw",
+#'   palette = "lancet",
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#' generate_alpha_spaghettiplot_long(
+#'   data.obj = ecam.obj,
+#'   alpha.obj = NULL,
+#'   alpha.name = c("shannon","simpson", "observed_species"),
+#'   subject.var = "subject.id",
+#'   time.var = "month_num",
+#'   t0.level = NULL,
+#'   ts.levels = NULL,
+#'   group.var = "delivery",
+#'   strata.var = NULL,
+#'   adj.vars = NULL,
+#'   theme.choice = "bw",
+#'   palette = "lancet",
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#' generate_alpha_spaghettiplot_long(
+#'   data.obj = ecam.obj,
+#'   alpha.obj = NULL,
+#'   alpha.name = c("shannon","simpson", "observed_species"),
+#'   subject.var = "subject.id",
+#'   time.var = "month_num",
+#'   t0.level = NULL,
+#'   ts.levels = NULL,
 #'   group.var = "delivery",
 #'   strata.var = "diet",
 #'   adj.vars = NULL,
+#'   theme.choice = "bw",
+#'   palette = "lancet",
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#' generate_alpha_spaghettiplot_long(
+#'   data.obj = ecam.obj,
+#'   alpha.obj = NULL,
+#'   alpha.name = c("shannon","simpson", "observed_species"),
+#'   subject.var = "subject.id",
+#'   time.var = "month_num",
+#'   t0.level = NULL,
+#'   ts.levels = NULL,
+#'   group.var = "delivery",
+#'   strata.var = "diet",
+#'   adj.vars = "antiexposedall",
 #'   theme.choice = "bw",
 #'   palette = "lancet",
 #'   pdf = TRUE,
@@ -200,7 +254,6 @@ generate_alpha_spaghettiplot_long <-
       group.var <- "ALL"
     }
 
-    # Assuming mStat_get_theme function is already defined
     # Replace the existing theme selection code with this:
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
