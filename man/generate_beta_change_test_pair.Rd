@@ -74,8 +74,6 @@ library(vegan)
 
 # Load data
 data(peerj32.obj)
-
-# Generate beta diversity test
 generate_beta_change_test_pair(
   data.obj = peerj32.obj,
   dist.obj = NULL,
@@ -83,6 +81,16 @@ generate_beta_change_test_pair(
   subject.var = "subject",
   group.var = "group",
   adj.vars = NULL,
+  change.base = "1",
+  dist.name = c('BC', 'Jaccard')
+)
+generate_beta_change_test_pair(
+  data.obj = peerj32.obj,
+  dist.obj = NULL,
+  time.var = "time",
+  subject.var = "subject",
+  group.var = "group",
+  adj.vars = "sex",
   change.base = "1",
   dist.name = c('BC', 'Jaccard')
 )
