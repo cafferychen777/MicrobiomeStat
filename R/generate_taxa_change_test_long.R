@@ -55,7 +55,7 @@
 #'   t0.level = unique(subset_T2D.obj$meta.dat$visit_number)[1],
 #'   ts.levels = unique(subset_T2D.obj$meta.dat$visit_number)[-1],
 #'   group.var = "subject_race",
-#'   adj.vars = "sample_body_site",
+#'   adj.vars = "subject_gender",
 #'   prev.filter = 0.1,
 #'   abund.filter = 0.001,
 #'   feature.level = c("Genus", "Family"),
@@ -70,6 +70,19 @@
 #'   group.var = "subject_race",
 #'   time.var = "visit_number",
 #'   feature.level = c("Genus", "Family")
+#' )
+#' result2 <- generate_taxa_change_test_long(
+#'   data.obj = subset_T2D.obj,
+#'   subject.var = "subject_id",
+#'   time.var = "visit_number",
+#'   t0.level = unique(subset_T2D.obj$meta.dat$visit_number)[1],
+#'   ts.levels = unique(subset_T2D.obj$meta.dat$visit_number)[-1],
+#'   group.var = "subject_race",
+#'   adj.vars = NULL,
+#'   prev.filter = 0.1,
+#'   abund.filter = 0.001,
+#'   feature.level = c("Genus", "Family"),
+#'   feature.dat.type = "count"
 #' )
 #' }
 #' @export
@@ -100,12 +113,23 @@ generate_taxa_change_test_long <-
         !is.character(group.var))
       stop("`group.var` should be a character string or NULL.")
 
-    # 提取数据
     data.obj <- mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
 
     meta_tab <- data.obj$meta.dat %>%
       as.data.frame() %>%
       select(all_of(c(subject.var, group.var, time.var, adj.vars)))
+
+    if (!is.null(adj.vars)){
+      # Use the modified mStat_identify_time_varying_vars function
+      time_varying_info <- mStat_identify_time_varying_vars(meta.dat = meta_tab, adj.vars = adj.vars, subject.var = subject.var)
+
+      # Check if there are any time-varying variables
+      if (length(time_varying_info$time_varying_vars) > 0) {
+        stop("Feature-level analysis does not yet support adjustment for time-varying variables. Found time-varying variables: ",
+             paste(time_varying_info$time_varying_vars, collapse = ", "),
+             ". Future versions will support this feature.")
+      }
+    }
 
     if (is.null(t0.level)) {
       if (is.numeric(meta_tab[, time.var])) {

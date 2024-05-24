@@ -1,11 +1,6 @@
-#' Compute taxa changes between time points and analyze differential abundance between groups
+#' Compute taxa changes and analyze differential abundance
 #'
-#' This function calculates taxa abundance changes between two time points in the metadata, using the time values specified in `time.var` and baseline `change.base`.
-#' It computes changes based on the method in `feature.change.func`.
-#' The function then uses the ZicoSeq method to perform differential abundance analysis between the groups in `group.var`, adjusted for `adj.vars`.
-#' It returns data frames summarizing the results of the differential abundance tests for each taxonomic level in `feature.level`.
-#' If `time.var` is not provided, the first unique value in the metadata will be used as `change.base`.
-#' If only one time value exists, the function will exit with a message.
+#' This function calculates taxa abundance changes between two time points and performs differential abundance analysis between groups using linear models or ANOVA.
 #'
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
 #' @param subject.var The name of the subject variable column in the metadata.
@@ -31,11 +26,9 @@
 #' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
 #' taxa before analysis. Taxa with prevalence below this value will be removed.
 #' Prevalence is calculated as the proportion of samples where the taxon is present.
-#' Default 0 removes no taxa by prevalence filtering.
 #' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering
 #' taxa before analysis. Taxa with mean abundance below this value will be removed.
 #' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
-#' Default 0 removes no taxa by abundance filtering.
 #' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
 #' Should be one of:
 #' - "count": Raw count data, will be normalized by the function.
@@ -43,12 +36,10 @@
 #' - "other": Custom abundance data that has unknown scaling. No normalization applied.
 #' The choice affects preprocessing steps as well as plot axis labels.
 #' Default is "count", which assumes raw OTU table input.
-#' @param ... Additional parameters to be passed to the ZicoSeq function.
 #'
 #' @examples
 #' \dontrun{
 #' data(peerj32.obj)
-#'
 #' generate_taxa_change_test_pair(
 #'   data.obj = peerj32.obj,
 #'   subject.var = "subject",
@@ -93,8 +84,7 @@ generate_taxa_change_test_pair <-
            feature.level,
            prev.filter = 0.1,
            abund.filter = 1e-4,
-           feature.dat.type = c("count", "proportion", "other"),
-           ...) {
+           feature.dat.type = c("count", "proportion", "other")) {
     # Extract data
     mStat_validate_data(data.obj)
 
@@ -103,6 +93,18 @@ generate_taxa_change_test_pair <-
         time.var, group.var, adj.vars, subject.var
       )))
 
+    if (!is.null(adj.vars)){
+      # Use the modified mStat_identify_time_varying_vars function
+      time_varying_info <- mStat_identify_time_varying_vars(meta.dat = meta_tab, adj.vars = adj.vars, subject.var = subject.var)
+
+      # Check if there are any time-varying variables
+      if (length(time_varying_info$time_varying_vars) > 0) {
+        stop("Feature-level analysis does not yet support adjustment for time-varying variables. Found time-varying variables: ",
+             paste(time_varying_info$time_varying_vars, collapse = ", "),
+             ". Future versions will support this feature.")
+      }
+    }
+
     group_level <-
       meta_tab %>% select(all_of(c(group.var))) %>% pull() %>% as.factor() %>% levels
 
@@ -110,10 +112,12 @@ generate_taxa_change_test_pair <-
 
     # Create a formula including the group variable and adjustment variables (if any)
     formula_str <- paste("value ~", group.var)
+
     if (!is.null(adj.vars)) {
       formula_str <-
         paste(formula_str, "+", paste(adj.vars, collapse = " + "))
     }
+
     formula <- as.formula(formula_str)
 
     if (is.null(change.base)) {

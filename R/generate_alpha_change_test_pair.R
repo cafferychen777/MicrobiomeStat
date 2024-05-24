@@ -78,45 +78,51 @@
 #' library(vegan)
 #' data(peerj32.obj)
 #'
+#' # Example 1: Using both group.var and adj.vars
 #' generate_alpha_change_test_pair(
-#' data.obj = peerj32.obj,
-#' alpha.obj = NULL,
-#' time.var = "time",
-#' alpha.name = c("shannon"),
-#' subject.var = "subject",
-#' group.var = "sex",
-#' adj.vars = "group",
-#' change.base = "2",
-#' alpha.change.func = "log fold change"
+#'   data.obj = peerj32.obj,
+#'   alpha.obj = NULL,
+#'   time.var = "time",
+#'   alpha.name = c("shannon"),
+#'   subject.var = "subject",
+#'   group.var = "sex",
+#'   adj.vars = NULL,
+#'   change.base = "2",
+#'   alpha.change.func = "log fold change"
 #' )
 #'
+#' # Rename the time variable in peerj32.obj's metadata
 #' peerj32.obj$meta.dat <- peerj32.obj$meta.dat %>%
-#' dplyr::rename(Day = time)
+#'   dplyr::rename(Day = time)
 #'
+#' # Example 2: Using group.var and adj.vars with a renamed time variable
 #' generate_alpha_change_test_pair(
-#' data.obj = peerj32.obj,
-#' alpha.obj = NULL,
-#' time.var = "Day",
-#' alpha.name = c("shannon"),
-#' subject.var = "subject",
-#' group.var = "sex",
-#' adj.vars = "group",
-#' change.base = "2",
-#' alpha.change.func = "log fold change"
+#'   data.obj = peerj32.obj,
+#'   alpha.obj = NULL,
+#'   time.var = "Day",
+#'   alpha.name = c("shannon"),
+#'   subject.var = "subject",
+#'   group.var = "sex",
+#'   adj.vars = c("group"),
+#'   change.base = "2",
+#'   alpha.change.func = "log fold change"
 #' )
 #'
 #' data("subset_pairs.obj")
+#'
+#' # Example 3: With group.var and without adj.vars
 #' generate_alpha_change_test_pair(
-#' data.obj = subset_pairs.obj,
-#' alpha.obj = NULL,
-#' time.var = "Antibiotic",
-#' alpha.name = c("shannon"),
-#' subject.var = "MouseID",
-#' group.var = "Sex",
-#' adj.vars = NULL,
-#' change.base = "Baseline",
-#' alpha.change.func = "log fold change"
+#'   data.obj = subset_pairs.obj,
+#'   alpha.obj = NULL,
+#'   time.var = "Antibiotic",
+#'   alpha.name = c("shannon"),
+#'   subject.var = "MouseID",
+#'   group.var = "Sex",
+#'   adj.vars = NULL,
+#'   change.base = "Baseline",
+#'   alpha.change.func = "log fold change"
 #' )
+#'
 #' }
 #' @export
 generate_alpha_change_test_pair <-
@@ -162,6 +168,17 @@ generate_alpha_change_test_pair <-
         subject.var, group.var, time.var, adj.vars
       )))
 
+    time_varying_info <- NULL
+
+    if (!is.null(adj.vars)){
+      # Use the modified mStat_identify_time_varying_vars function
+      time_varying_info <- mStat_identify_time_varying_vars(meta.dat = meta_tab, adj.vars = adj.vars, subject.var = subject.var)
+
+      if (length(time_varying_info$non_time_varying_vars) > 0){
+        alpha.obj <- mStat_calculate_adjusted_alpha_diversity(alpha.obj, meta.dat = meta_tab, time_varying_info$non_time_varying_vars)
+      }
+    }
+
     # Convert the alpha.obj list to a data frame
     alpha_df <-
       dplyr::bind_cols(alpha.obj) %>% rownames_to_column("sample") %>%
@@ -186,7 +203,8 @@ generate_alpha_change_test_pair <-
       dplyr::inner_join(
         alpha_time_2,
         by = c(subject.var, group.var),
-        suffix = c("_time_1", "_time_2")
+        suffix = c("_time_1", "_time_2"),
+        relationship = "many-to-many"
       )
 
     diff_columns <- lapply(alpha.name, function(index) {
@@ -225,13 +243,11 @@ generate_alpha_change_test_pair <-
 
     combined_alpha <- dplyr::bind_cols(combined_alpha, diff_columns)
 
-    if (!is.null(adj.vars)) {
-      combined_alpha <-
-        combined_alpha %>% dplyr::left_join(alpha_time_1 %>% dplyr::select(all_of(c(
-          subject.var, adj.vars
-        )))
-        , by = c(subject.var))
-    }
+      if (length(time_varying_info$time_varying_vars) > 0) {
+        names_map <- setNames(paste0(time_varying_info$time_varying_vars, "_time_2"), time_varying_info$time_varying_vars)
+        combined_alpha <- combined_alpha %>%
+          rename(!!!names_map)
+      }
 
     # Generate tests
     test.list <- lapply(alpha.name, function(index) {
@@ -239,7 +255,7 @@ generate_alpha_change_test_pair <-
       # Create a formula for lm
       formula <-
         as.formula(paste0(paste0(index, "_diff"), "~", paste(c(
-          adj.vars, group.var
+          time_varying_info$time_varying_vars, group.var
         ), collapse = "+")))
 
       # Run lm and create a coefficient table

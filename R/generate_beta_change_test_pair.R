@@ -40,8 +40,6 @@
 #'
 #' # Load data
 #' data(peerj32.obj)
-#'
-#' # Generate beta diversity test
 #' generate_beta_change_test_pair(
 #'   data.obj = peerj32.obj,
 #'   dist.obj = NULL,
@@ -49,6 +47,16 @@
 #'   subject.var = "subject",
 #'   group.var = "group",
 #'   adj.vars = NULL,
+#'   change.base = "1",
+#'   dist.name = c('BC', 'Jaccard')
+#' )
+#' generate_beta_change_test_pair(
+#'   data.obj = peerj32.obj,
+#'   dist.obj = NULL,
+#'   time.var = "time",
+#'   subject.var = "subject",
+#'   group.var = "group",
+#'   adj.vars = "sex",
 #'   change.base = "1",
 #'   dist.name = c('BC', 'Jaccard')
 #' )
@@ -104,6 +112,18 @@ generate_beta_change_test_pair <-
       }
     }
 
+    time_varying_info <- NULL
+
+    if (!is.null(adj.vars)){
+      # Use the modified mStat_identify_time_varying_vars function
+      time_varying_info <- mStat_identify_time_varying_vars(meta.dat = meta_tab, adj.vars = adj.vars, subject.var = subject.var)
+
+      if (length(time_varying_info$non_time_varying_vars) > 0){
+        dist.obj <- mStat_calculate_adjusted_distance(data.obj, dist.obj, time_varying_info$non_time_varying_vars, dist.name)
+      }
+
+    }
+
     if (is.null(change.base)){
       change.base <- unique(meta_tab %>% dplyr::select(all_of(c(time.var))))[1,]
       message("The 'change.base' variable was NULL. It has been set to the first unique value in the 'time.var' column of the 'meta.dat' data frame: ", change.base)
@@ -135,7 +155,7 @@ generate_beta_change_test_pair <-
       # Create a formula for lm
       formula <-
         as.formula(paste0("distance", "~", paste(c(
-          adj.vars, group.var
+          time_varying_info$time_varying_vars, group.var
         ), collapse = "+")))
 
       # Run lm and create a coefficient table
