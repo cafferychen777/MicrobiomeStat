@@ -51,6 +51,12 @@
 #'                            alpha.name = c("shannon", "observed_species"),
 #'                            group.var = "group",
 #'                            adj.vars = "sex")
+#' generate_alpha_test_single(data.obj = peerj32.obj,
+#'                            time.var = "time",
+#'                            t.level = "1",
+#'                            alpha.name = c("shannon", "observed_species"),
+#'                            group.var = "group",
+#'                            adj.vars = NULL)
 #' }
 #' @export
 generate_alpha_test_single <-
