@@ -11,6 +11,7 @@ generate_taxa_heatmap_single(
   t.level = NULL,
   group.var = NULL,
   strata.var = NULL,
+  other.vars = NULL,
   feature.level = NULL,
   feature.dat.type = c("count", "proportion", "other"),
   features.plot = NULL,
@@ -123,9 +124,8 @@ using the “pheatmap” package. It can also save the resulting heatmap as a PD
 \dontrun{
 # Load required libraries and example data
 library(pheatmap)
-data(peerj32.obj)
 
-# Generate the boxplot pair
+data(peerj32.obj)
 generate_taxa_heatmap_single(
   data.obj = peerj32.obj,
   subject.var = "subject",
@@ -133,12 +133,103 @@ generate_taxa_heatmap_single(
   t.level = "1",
   group.var = "group",
   strata.var = "sex",
-  feature.level = c("Genus"),
+  other.vars = NULL,
+  feature.level = c("Phylum", "Family", "Genus"),
   feature.dat.type = "count",
   features.plot = NULL,
   top.k.plot = NULL,
   top.k.func = NULL,
-  prev.filter = 0.01,
+  prev.filter = 0.001,
+  abund.filter = 0.01,
+  base.size = 10,
+  palette = NULL,
+  pdf = TRUE,
+  file.ann = NULL,
+  pdf.wid = 11,
+  pdf.hei = 8.5
+)
+generate_taxa_heatmap_single(
+  data.obj = peerj32.obj,
+  subject.var = "subject",
+  time.var = "time",
+  t.level = "1",
+  group.var = "group",
+  strata.var = NULL,
+  other.vars = NULL,
+  feature.level = c("Phylum", "Family", "Genus"),
+  feature.dat.type = "count",
+  features.plot = NULL,
+  top.k.plot = NULL,
+  top.k.func = NULL,
+  prev.filter = 0.001,
+  abund.filter = 0.01,
+  base.size = 10,
+  palette = NULL,
+  pdf = TRUE,
+  file.ann = NULL,
+  pdf.wid = 11,
+  pdf.hei = 8.5
+)
+generate_taxa_heatmap_single(
+  data.obj = peerj32.obj,
+  subject.var = "subject",
+  time.var = "time",
+  t.level = "1",
+  group.var = NULL,
+  strata.var = NULL,
+  other.vars = NULL,
+  feature.level = c("Phylum", "Family", "Genus"),
+  feature.dat.type = "count",
+  features.plot = NULL,
+  top.k.plot = NULL,
+  top.k.func = NULL,
+  prev.filter = 0.001,
+  abund.filter = 0.01,
+  base.size = 10,
+  palette = NULL,
+  pdf = TRUE,
+  file.ann = NULL,
+  pdf.wid = 11,
+  pdf.hei = 8.5
+)
+
+data(ecam.obj)
+generate_taxa_heatmap_single(
+  data.obj = ecam.obj,
+  subject.var = "subject.id",
+  time.var = "month",
+  t.level = "0",
+  group.var = "antiexposedall",
+  strata.var = "diet",
+  other.vars = "delivery",
+  feature.level = c("Order", "Family", "Genus"),
+  feature.dat.type = "proportion",
+  features.plot = NULL,
+  top.k.plot = NULL,
+  top.k.func = NULL,
+  prev.filter = 0.001,
+  abund.filter = 0.01,
+  base.size = 10,
+  palette = NULL,
+  pdf = TRUE,
+  file.ann = NULL,
+  pdf.wid = 11,
+  pdf.hei = 8.5
+)
+generate_taxa_heatmap_single(
+  data.obj = ecam.obj,
+  subject.var = "subject.id",
+  time.var = "month",
+  t.level = "0",
+  group.var = "antiexposedall",
+  strata.var = "diet",
+  other.vars = "delivery",
+  feature.level = c("Genus"),
+  feature.dat.type = "proportion",
+  features.plot = unique(ecam.obj$feature.ann[,"Genus"])[-c(1,9)],
+  top.k.plot = NULL,
+  top.k.func = NULL,
+  prev.filter = 0.001,
   abund.filter = 0.01,
   base.size = 10,
   palette = NULL,
