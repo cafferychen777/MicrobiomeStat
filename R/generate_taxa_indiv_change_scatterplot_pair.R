@@ -14,7 +14,7 @@
 #' @export
 is_continuous_numeric <- function(x) {
   if (is.numeric(x) && length(unique(x)) >= 10) {
-    # 10是你选择的阈值，你可以根据需要调整
+
     return(TRUE)
   } else {
     return(FALSE)
