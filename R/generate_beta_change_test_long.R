@@ -71,6 +71,18 @@
 #'   ts.levels = unique(subset_T2D.obj$meta.dat$visit_number_num)[-1],
 #' )
 #'
+#' generate_beta_change_test_long(
+#'   data.obj = subset_T2D.obj,
+#'   dist.obj = NULL,
+#'   time.var = "visit_number_num",
+#'   t0.level = unique(subset_T2D.obj$meta.dat$visit_number_num)[1],
+#'   ts.levels = unique(subset_T2D.obj$meta.dat$visit_number_num)[-1],
+#'   subject.var = "subject_id",
+#'   group.var = "subject_race",
+#'   adj.vars = c("sample_body_site", "subject_gender"),
+#'   dist.name = c('BC', 'Jaccard')
+#' )
+#'
 #' data(ecam.obj)
 #' dist.obj <- mStat_calculate_beta_diversity(ecam.obj, c('BC', 'Jaccard'))
 #' result2 <- generate_beta_change_test_long(
