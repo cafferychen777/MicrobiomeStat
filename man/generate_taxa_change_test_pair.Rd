@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_taxa_change_test_pair.R
 \name{generate_taxa_change_test_pair}
 \alias{generate_taxa_change_test_pair}
-\title{Compute taxa changes between time points and analyze differential abundance between groups}
+\title{Compute taxa changes and analyze differential abundance}
 \usage{
 generate_taxa_change_test_pair(
   data.obj,
@@ -15,8 +15,7 @@ generate_taxa_change_test_pair(
   feature.level,
   prev.filter = 0.1,
   abund.filter = 1e-04,
-  feature.dat.type = c("count", "proportion", "other"),
-  ...
+  feature.dat.type = c("count", "proportion", "other")
 )
 }
 \arguments{
@@ -51,13 +50,11 @@ is also NULL.}
 
 \item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
 taxa before analysis. Taxa with prevalence below this value will be removed.
-Prevalence is calculated as the proportion of samples where the taxon is present.
-Default 0 removes no taxa by prevalence filtering.}
+Prevalence is calculated as the proportion of samples where the taxon is present.}
 
 \item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering
 taxa before analysis. Taxa with mean abundance below this value will be removed.
-Abundance refers to counts or proportions depending on \code{feature.dat.type}.
-Default 0 removes no taxa by abundance filtering.}
+Abundance refers to counts or proportions depending on \code{feature.dat.type}.}
 
 \item{feature.dat.type}{The type of the feature data, which determines how the data is handled in downstream analyses.
 Should be one of:
@@ -66,24 +63,16 @@ Should be one of:
 - "other": Custom abundance data that has unknown scaling. No normalization applied.
 The choice affects preprocessing steps as well as plot axis labels.
 Default is "count", which assumes raw OTU table input.}
-
-\item{...}{Additional parameters to be passed to the ZicoSeq function.}
 }
 \value{
 A named list where each element corresponds to a feature level and contains a dataframe with the calculated taxa changes, their corresponding p-values, and other statistics from the linear model.
 }
 \description{
-This function calculates taxa abundance changes between two time points in the metadata, using the time values specified in `time.var` and baseline `change.base`.
-It computes changes based on the method in `feature.change.func`.
-The function then uses the ZicoSeq method to perform differential abundance analysis between the groups in `group.var`, adjusted for `adj.vars`.
-It returns data frames summarizing the results of the differential abundance tests for each taxonomic level in `feature.level`.
-If `time.var` is not provided, the first unique value in the metadata will be used as `change.base`.
-If only one time value exists, the function will exit with a message.
+This function calculates taxa abundance changes between two time points and performs differential abundance analysis between groups using linear models or ANOVA.
 }
 \examples{
 \dontrun{
 data(peerj32.obj)
-
 generate_taxa_change_test_pair(
   data.obj = peerj32.obj,
   subject.var = "subject",
