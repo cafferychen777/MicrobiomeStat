@@ -37,6 +37,7 @@ This function reads a BIOM file, which typically contains a biological observati
 }
 \examples{
 \dontrun{
+  #library(biomformat)
   #rich_dense_biom <- system.file("extdata", "rich_dense_otu_table.biom",  package="phyloseq")
   #treefilename <- system.file("extdata", "biom-tree.phy",  package="phyloseq")
   #data.obj <- mStat_import_biom_as_data_obj(rich_dense_biom,
