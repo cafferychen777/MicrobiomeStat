@@ -106,5 +106,29 @@ dot_plots_T2D <- generate_alpha_dotplot_long(
   base.size = 16,
   theme.choice = "bw"
 )
+
+# Example 3: Analyzing the ECAM dataset without adjustment variables
+alpha_test_results_ecam_no_adj <- generate_alpha_test_long(
+  data.obj = ecam.obj,
+  alpha.name = c("shannon", "simpson", "observed_species", "pielou"),
+  depth = 1000,
+  time.var = "month",
+  t0.level = unique(ecam.obj$meta.dat$month)[1],
+  ts.levels = unique(ecam.obj$meta.dat$month)[-1],
+  group.var = "delivery",
+  adj.vars = NULL
+)
+
+# Generate dot plots for the ECAM dataset results without adjustment variables
+dot_plots_ecam_no_adj <- generate_alpha_dotplot_long(
+  data.obj = ecam.obj,
+  test.list = alpha_test_results_ecam_no_adj,
+  group.var = "delivery",
+  time.var = "month",
+  t0.level = unique(ecam.obj$meta.dat$month)[1],
+  ts.levels = unique(ecam.obj$meta.dat$month)[-1],
+  base.size = 16,
+  theme.choice = "minimal"
+)
 }
 }
