@@ -91,6 +91,7 @@ volcano_plots_ecam <- generate_taxa_volcano_single(
   feature.mt.method = "fdr"
 )
 
+
 # Example 2: Generate taxa association tests and volcano plots for a subset of the T2D dataset
 data("subset_T2D.obj")
 test.list_T2D <- generate_taxa_association_test_long(
