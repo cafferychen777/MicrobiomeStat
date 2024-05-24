@@ -109,44 +109,50 @@ summarizing the results of the linear models and ANOVA tests.
 library(vegan)
 data(peerj32.obj)
 
+# Example 1: Using both group.var and adj.vars
 generate_alpha_change_test_pair(
-data.obj = peerj32.obj,
-alpha.obj = NULL,
-time.var = "time",
-alpha.name = c("shannon"),
-subject.var = "subject",
-group.var = "sex",
-adj.vars = "group",
-change.base = "2",
-alpha.change.func = "log fold change"
+  data.obj = peerj32.obj,
+  alpha.obj = NULL,
+  time.var = "time",
+  alpha.name = c("shannon"),
+  subject.var = "subject",
+  group.var = "sex",
+  adj.vars = NULL,
+  change.base = "2",
+  alpha.change.func = "log fold change"
 )
 
+# Rename the time variable in peerj32.obj's metadata
 peerj32.obj$meta.dat <- peerj32.obj$meta.dat \%>\%
-dplyr::rename(Day = time)
+  dplyr::rename(Day = time)
 
+# Example 2: Using group.var and adj.vars with a renamed time variable
 generate_alpha_change_test_pair(
-data.obj = peerj32.obj,
-alpha.obj = NULL,
-time.var = "Day",
-alpha.name = c("shannon"),
-subject.var = "subject",
-group.var = "sex",
-adj.vars = "group",
-change.base = "2",
-alpha.change.func = "log fold change"
+  data.obj = peerj32.obj,
+  alpha.obj = NULL,
+  time.var = "Day",
+  alpha.name = c("shannon"),
+  subject.var = "subject",
+  group.var = "sex",
+  adj.vars = c("group"),
+  change.base = "2",
+  alpha.change.func = "log fold change"
 )
 
 data("subset_pairs.obj")
+
+# Example 3: With group.var and without adj.vars
 generate_alpha_change_test_pair(
-data.obj = subset_pairs.obj,
-alpha.obj = NULL,
-time.var = "Antibiotic",
-alpha.name = c("shannon"),
-subject.var = "MouseID",
-group.var = "Sex",
-adj.vars = NULL,
-change.base = "Baseline",
-alpha.change.func = "log fold change"
+  data.obj = subset_pairs.obj,
+  alpha.obj = NULL,
+  time.var = "Antibiotic",
+  alpha.name = c("shannon"),
+  subject.var = "MouseID",
+  group.var = "Sex",
+  adj.vars = NULL,
+  change.base = "Baseline",
+  alpha.change.func = "log fold change"
 )
+
 }
 }
