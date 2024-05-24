@@ -160,7 +160,6 @@ generate_beta_change_spaghettiplot_long <-
 
     col <- mStat_get_palette(palette)
 
-    # Assuming mStat_get_theme function is already defined
     # Replace the existing theme selection code with this:
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
