@@ -131,7 +131,6 @@ generate_beta_dotplot_long <- function(data.obj,
   # Extract unique time levels
   time_levels <- unique(data.obj$meta.dat[[time.var]])
 
-  # Assuming mStat_get_theme function is already defined
   # Replace the existing theme selection code with this:
   theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
