@@ -119,13 +119,13 @@ generate_alpha_dotplot_long <- function(data.obj,
   # Extract unique time levels
   time_levels <- unique(data.obj$meta.dat[[time.var]])
 
-  # Assuming mStat_get_theme function is already defined
   # Replace the existing theme selection code with this:
   theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
   group.names <- names(test.list[[1]])
 
   test.list <- lapply(group.names, function(group.names){
+
     merge_time_points <- function(time_test_list, group_name) {
 
       data_list <- lapply(time_test_list, function(time_point_data) {
@@ -141,6 +141,7 @@ generate_alpha_dotplot_long <- function(data.obj,
     }
 
     merged_data_genus <- merge_time_points(test.list, group.names)
+
     return(merged_data_genus)
   })
 
