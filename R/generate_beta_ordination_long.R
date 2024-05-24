@@ -116,6 +116,28 @@
 #'   pdf.hei = 8.5
 #' )
 #'
+#' generate_beta_ordination_long(
+#'   data.obj = subset_T2D.obj,
+#'   dist.obj = NULL,
+#'   pc.obj = NULL,
+#'   subject.var = "subject_id",
+#'   time.var = "visit_number_num",
+#'   t0.level = NULL,
+#'   ts.levels = NULL,
+#'   group.var = NULL,
+#'   strata.var = NULL,
+#'   adj.vars = NULL,
+#'   dist.name = 'BC',
+#'   base.size = 12,
+#'   theme.choice = "bw",
+#'   custom.theme = NULL,
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#'
 #' data(ecam.obj)
 #' dist.obj <- mStat_calculate_beta_diversity(ecam.obj, "BC")
 #' pc.obj <- mStat_calculate_PC(dist.obj)
@@ -126,8 +148,29 @@
 #'   subject.var = "subject.id",
 #'   time.var = "month",
 #'   t0.level = "0",
-#'   ts.levels = as.character(sort(as.numeric(unique(ecam.obj$meta.dat$month))))[2:20],
+#'   ts.levels = as.character(sort(as.numeric(unique(ecam.obj$meta.dat$month))))[2:10],
 #'   group.var = "diet",
+#'   strata.var = NULL,
+#'   adj.vars = NULL,
+#'   dist.name = 'BC',
+#'   base.size = 16,
+#'   theme.choice = "bw",
+#'   custom.theme = NULL,
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#' generate_beta_ordination_long(
+#'   data.obj = ecam.obj,
+#'   dist.obj = dist.obj,
+#'   pc.obj = pc.obj,
+#'   subject.var = "subject.id",
+#'   time.var = "month_num",
+#'   t0.level = NULL,
+#'   ts.levels = NULL,
+#'   group.var = NULL,
 #'   strata.var = NULL,
 #'   adj.vars = NULL,
 #'   dist.name = 'BC',
