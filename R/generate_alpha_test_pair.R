@@ -74,6 +74,10 @@ extract_coef <- function(model) {
 #' @param subject.var A string specifying the subject variable column in the metadata.
 #' @param adj.vars A character vector with the names of adjustment variables in
 #' the metadata.
+#' @param change.base A value indicating the base level for the time variable.
+#' If provided, the specified level will be used as the reference category in
+#' the model. Default is NULL, which means the first level of the factor will
+#' be used.
 #' @return A list containing the association tests for each alpha diversity
 #' index.
 #'
@@ -85,7 +89,36 @@ extract_coef <- function(model) {
 #' time.var = "time",
 #' alpha.name = c("shannon", "simpson", "ace"),
 #' subject.var = "subject",
+#' group.var = NULL
+#' )
+#'
+#' generate_alpha_test_pair(
+#' data.obj = peerj32.obj,
+#' alpha.obj = NULL,
+#' time.var = "time",
+#' alpha.name = c("shannon", "simpson", "ace"),
+#' subject.var = "subject",
+#' group.var = NULL,
+#' change.base = "2"
+#' )
+#'
+#' generate_alpha_test_pair(
+#' data.obj = peerj32.obj,
+#' alpha.obj = NULL,
+#' time.var = "time",
+#' alpha.name = c("shannon", "simpson", "ace"),
+#' subject.var = "subject",
 #' group.var = "group"
+#' )
+#'
+#' generate_alpha_test_pair(
+#' data.obj = peerj32.obj,
+#' alpha.obj = NULL,
+#' time.var = "time",
+#' alpha.name = c("shannon", "simpson", "ace"),
+#' subject.var = "subject",
+#' group.var = "group",
+#' adj.vars = "sex"
 #' )
 #'
 #' data("subset_pairs.obj")
@@ -97,6 +130,15 @@ extract_coef <- function(model) {
 #' subject.var = "MouseID",
 #' group.var = "Sex"
 #' )
+#' generate_alpha_test_pair(
+#' data.obj = subset_pairs.obj,
+#' alpha.obj = NULL,
+#' time.var = "Antibiotic",
+#' alpha.name = c("shannon", "simpson", "ace"),
+#' subject.var = "MouseID",
+#' group.var = "Sex",
+#' change.base = "Week 2"
+#' )
 #' @export
 generate_alpha_test_pair <-
   function(data.obj,
@@ -106,7 +148,8 @@ generate_alpha_test_pair <-
            time.var,
            subject.var,
            group.var,
-           adj.vars = NULL) {
+           adj.vars = NULL,
+           change.base = NULL) {
 
     if (is.null(alpha.name)){
       return()
@@ -139,6 +182,16 @@ generate_alpha_test_pair <-
       data.obj$meta.dat %>% as.data.frame() %>% dplyr::select(all_of(c(
         subject.var, group.var, time.var, adj.vars
       )))
+
+
+    # Change the base level for time.var if change.base is specified
+    if (!is.null(change.base) && !is.null(time.var)) {
+      if (change.base %in% meta_tab[[time.var]]) {
+        meta_tab[[time.var]] <- relevel(as.factor(meta_tab[[time.var]]), ref = change.base)
+      } else {
+        stop("Specified change.base is not a level in the time.var column.", call. = FALSE)
+      }
+    }
 
     # Convert the alpha.obj list to a data frame
     alpha_df <-

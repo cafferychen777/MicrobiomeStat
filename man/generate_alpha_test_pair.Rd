@@ -12,7 +12,8 @@ generate_alpha_test_pair(
   time.var,
   subject.var,
   group.var,
-  adj.vars = NULL
+  adj.vars = NULL,
+  change.base = NULL
 )
 }
 \arguments{
@@ -36,6 +37,11 @@ metadata.}
 
 \item{adj.vars}{A character vector with the names of adjustment variables in
 the metadata.}
+
+\item{change.base}{A value indicating the base level for the time variable.
+If provided, the specified level will be used as the reference category in
+the model. Default is NULL, which means the first level of the factor will
+be used.}
 }
 \value{
 A list containing the association tests for each alpha diversity
@@ -64,7 +70,36 @@ alpha.obj = NULL,
 time.var = "time",
 alpha.name = c("shannon", "simpson", "ace"),
 subject.var = "subject",
+group.var = NULL
+)
+
+generate_alpha_test_pair(
+data.obj = peerj32.obj,
+alpha.obj = NULL,
+time.var = "time",
+alpha.name = c("shannon", "simpson", "ace"),
+subject.var = "subject",
+group.var = NULL,
+change.base = "2"
+)
+
+generate_alpha_test_pair(
+data.obj = peerj32.obj,
+alpha.obj = NULL,
+time.var = "time",
+alpha.name = c("shannon", "simpson", "ace"),
+subject.var = "subject",
 group.var = "group"
+)
+
+generate_alpha_test_pair(
+data.obj = peerj32.obj,
+alpha.obj = NULL,
+time.var = "time",
+alpha.name = c("shannon", "simpson", "ace"),
+subject.var = "subject",
+group.var = "group",
+adj.vars = "sex"
 )
 
 data("subset_pairs.obj")
@@ -75,5 +110,14 @@ time.var = "Antibiotic",
 alpha.name = c("shannon", "simpson", "ace"),
 subject.var = "MouseID",
 group.var = "Sex"
+)
+generate_alpha_test_pair(
+data.obj = subset_pairs.obj,
+alpha.obj = NULL,
+time.var = "Antibiotic",
+alpha.name = c("shannon", "simpson", "ace"),
+subject.var = "MouseID",
+group.var = "Sex",
+change.base = "Week 2"
 )
 }
