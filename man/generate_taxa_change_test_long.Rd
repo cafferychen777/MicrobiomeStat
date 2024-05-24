@@ -92,7 +92,7 @@ result <- generate_taxa_change_test_long(
   t0.level = unique(subset_T2D.obj$meta.dat$visit_number)[1],
   ts.levels = unique(subset_T2D.obj$meta.dat$visit_number)[-1],
   group.var = "subject_race",
-  adj.vars = "sample_body_site",
+  adj.vars = "subject_gender",
   prev.filter = 0.1,
   abund.filter = 0.001,
   feature.level = c("Genus", "Family"),
@@ -107,6 +107,19 @@ dotplot_T2D <- generate_taxa_dotplot_long(
   group.var = "subject_race",
   time.var = "visit_number",
   feature.level = c("Genus", "Family")
+)
+result2 <- generate_taxa_change_test_long(
+  data.obj = subset_T2D.obj,
+  subject.var = "subject_id",
+  time.var = "visit_number",
+  t0.level = unique(subset_T2D.obj$meta.dat$visit_number)[1],
+  ts.levels = unique(subset_T2D.obj$meta.dat$visit_number)[-1],
+  group.var = "subject_race",
+  adj.vars = NULL,
+  prev.filter = 0.1,
+  abund.filter = 0.001,
+  feature.level = c("Genus", "Family"),
+  feature.dat.type = "count"
 )
 }
 }
