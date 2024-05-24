@@ -43,6 +43,8 @@ on beta diversity. The function outputs the PERMANOVA results for the selected b
 }
 \examples{
 \dontrun{
+
+set.seed(123)
 library(vegan)
 data(peerj32.obj)
 
