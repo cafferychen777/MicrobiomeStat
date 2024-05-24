@@ -86,29 +86,28 @@ mStat_identify_time_varying_vars <- function(meta.dat, adj.vars, subject.var) {
 
   # Use dplyr to detect which variables are time-varying
   # Group and summarize the data, calculate the number of unique values for each variable within each subject
+  library(dplyr)
   time_varying_info <- meta.dat %>%
-    select(subject.var, adj.vars) %>%
+    select(c(subject.var, adj.vars)) %>%
     group_by(!!sym(subject.var)) %>%
-    summarise(across(all_of(adj.vars), ~n_distinct(.)), .groups = 'drop')
+    summarise(across(all_of(adj.vars), ~n_distinct(.x)), .groups = 'drop')
 
-  # Initialize time-varying variable list
+  # Initialize lists to hold the status of each variable
   time_varying_vars <- character(0)
+  non_time_varying_vars <- character(0)
 
   # Iterate through all the adjustable variables, check if they are time-varying
   for (var in adj.vars) {
     if (any(time_varying_info[[var]] > 1)) {
-      # Find all time-varying subjects.
-      varying_subjects <- time_varying_info[[subject.var]][time_varying_info[[var]] > 1]
-      # Record time-varying variables
+      # If variable is time-varying for any subject, add to time-varying list
       time_varying_vars <- c(time_varying_vars, var)
-      # Issue error message and stop
-      stop(sprintf("Variable '%s' is time-varying within subjects %s and should not be adjusted in the model.",
-                   var, paste(varying_subjects, collapse = ", ")))
+    } else {
+      # Otherwise, add to non-time-varying list
+      non_time_varying_vars <- c(non_time_varying_vars, var)
     }
   }
 
-  # If no time-varying variable is found, send a message.
-  if (length(time_varying_vars) == 0) {
-    message("All specified adjustable variables are non-time-varying within the same subject.")
-  }
+  # Return a list of time-varying and non-time-varying variables
+  return(list(time_varying_vars = time_varying_vars,
+              non_time_varying_vars = non_time_varying_vars))
 }
