@@ -66,29 +66,56 @@ these values to assess changes. The comparison can be done using different metho
 \dontrun{
 library(vegan)
 data(peerj32.obj)
+# Perform the longitudinal alpha diversity test for the peerj32 dataset
 alpha_test_results_peerj32 <- generate_alpha_change_test_long(
-data.obj = peerj32.obj,
-alpha.obj = NULL,
-time.var = "time",
-t0.level = unique(peerj32.obj$meta.dat$time)[1],
-ts.levels = unique(peerj32.obj$meta.dat$time)[-1],
-alpha.name = c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou"),
-subject.var = "subject",
-group.var = "sex",
-adj.vars = "group",
-alpha.change.func = "log fold change"
+  data.obj = peerj32.obj,
+  alpha.obj = NULL,
+  alpha.name = c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou"),
+  time.var = "time",
+  t0.level = unique(peerj32.obj$meta.dat$time)[1],
+  ts.levels = unique(peerj32.obj$meta.dat$time)[-1],
+  subject.var = "subject",
+  group.var = "sex",
+  adj.vars = "group",
+  alpha.change.func = "log fold change"
 )
 # Generate dot plots for the peerj32 dataset results
 generate_alpha_dotplot_long(
-data.obj = peerj32.obj,
-test.list = alpha_test_results_peerj32,
-group.var = "sex",
-time.var = "time",
-t0.level = unique(peerj32.obj$meta.dat$time)[1],
-ts.levels = unique(peerj32.obj$meta.dat$time)[-1],
-base.size = 16,
-theme.choice = "bw"
+  data.obj = peerj32.obj,
+  test.list = alpha_test_results_peerj32,
+  group.var = "sex",
+  time.var = "time",
+  t0.level = unique(peerj32.obj$meta.dat$time)[1],
+  ts.levels = unique(peerj32.obj$meta.dat$time)[-1],
+  base.size = 16,
+  theme.choice = "bw"
 )
+
+# Perform the longitudinal alpha diversity test for the peerj32 dataset without adjustment variables
+alpha_test_results_peerj32_no_adj <- generate_alpha_change_test_long(
+  data.obj = peerj32.obj,
+  alpha.obj = NULL,
+  alpha.name = c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou"),
+  time.var = "time",
+  t0.level = unique(peerj32.obj$meta.dat$time)[1],
+  ts.levels = unique(peerj32.obj$meta.dat$time)[-1],
+  subject.var = "subject",
+  group.var = "sex",
+  adj.vars = NULL,
+  alpha.change.func = "log fold change"
+)
+# Generate dot plots for the peerj32 dataset results without adjustment variables
+generate_alpha_dotplot_long(
+  data.obj = peerj32.obj,
+  test.list = alpha_test_results_peerj32_no_adj,
+  group.var = "sex",
+  time.var = "time",
+  t0.level = unique(peerj32.obj$meta.dat$time)[1],
+  ts.levels = unique(peerj32.obj$meta.dat$time)[-1],
+  base.size = 16,
+  theme.choice = "minimal"
+)
+
 data("subset_T2D.obj")
 # Perform the longitudinal alpha diversity test for the T2D dataset
 alpha_test_results_T2D <- generate_alpha_change_test_long(
@@ -106,6 +133,30 @@ alpha_test_results_T2D <- generate_alpha_change_test_long(
 dot_plots_T2D <- generate_alpha_dotplot_long(
   data.obj = subset_T2D.obj,
   test.list = alpha_test_results_T2D,
+  group.var = "subject_race",
+  time.var = "visit_number",
+  t0.level = unique(subset_T2D.obj$meta.dat$visit_number)[1],
+  ts.levels = unique(subset_T2D.obj$meta.dat$visit_number)[-1],
+  base.size = 16,
+  theme.choice = "bw"
+)
+
+# Perform the longitudinal alpha diversity test for the T2D dataset without adjustment variables
+alpha_test_results_T2D_no_adj <- generate_alpha_change_test_long(
+  data.obj = subset_T2D.obj,
+  alpha.name = c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou"),
+  time.var = "visit_number",
+  t0.level = unique(subset_T2D.obj$meta.dat$visit_number)[1],
+  ts.levels = unique(subset_T2D.obj$meta.dat$visit_number)[-1],
+  subject.var = "subject_id",
+  group.var = "subject_race",
+  adj.vars = NULL,
+  alpha.change.func = "log fold change"
+)
+# Generate dot plots for the T2D dataset results without adjustment variables
+dot_plots_T2D_no_adj <- generate_alpha_dotplot_long(
+  data.obj = subset_T2D.obj,
+  test.list = alpha_test_results_T2D_no_adj,
   group.var = "subject_race",
   time.var = "visit_number",
   t0.level = unique(subset_T2D.obj$meta.dat$visit_number)[1],
