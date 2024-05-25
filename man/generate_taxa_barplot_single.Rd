@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_taxa_barplot_single.R
 \name{generate_taxa_barplot_single}
 \alias{generate_taxa_barplot_single}
-\title{Generate Stacked Taxa Barplots for Longitudinal Data}
+\title{Generate Stacked Taxa Barplots for Single or Longitudinal Data}
 \usage{
 generate_taxa_barplot_single(
   data.obj,
@@ -105,8 +105,8 @@ Then pass `my_theme` to `custom.theme`. If `custom.theme` is NULL (the default),
 A list of ggplot objects of the taxa barplots.
 }
 \description{
-This function generates stacked barplots to visualize the taxonomic composition of samples for longitudinal data.
-It also provides options for grouping and stratifying data.
+This function generates stacked barplots to visualize the taxonomic composition of samples for single or longitudinal data.
+It provides options for grouping and stratifying data, and generates both individual and average barplots.
 }
 \details{
 This function generates a stacked barplot of taxa proportions for longitudinal data.
