@@ -128,6 +128,7 @@
 #'
 #' @examples
 #' \dontrun{
+#' set.seed(123)
 #' library(aplot)
 #' data(peerj32.obj)
 #' mStat_generate_report_single(
@@ -152,7 +153,7 @@
 #'   base.size = 20,
 #'   feature.mt.method = "none",
 #'   feature.sig.level = 0.2,
-#'   output.file = "/Users/apple/MicrobiomeStat/report.pdf"
+#'   output.file = "/Users/apple/Research/MicrobiomeStat/result/peerj32.obj_report.pdf"
 #' )
 #' data(subset_T2D.obj)
 #' mStat_generate_report_single(
@@ -384,7 +385,7 @@ if (!all(unique_levels %in% names(data.obj$feature.agg.list))) {
 
 if (is.null(depth)){
   depth <- round(min(colSums(data.obj$feature.tab)))
-  cat(sprintf('No rarefaction depth is specified. The minimum depth, %d, is used as the rarefaction depth. ', depth))
+  cat(sprintf('No rarefaction depth is specified. The minimum depth, %.0f, is used as the rarefaction depth. ', depth))
 }
 
 # Now, let's tell the user how many samples remain after rarefaction.
