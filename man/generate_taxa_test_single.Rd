@@ -9,7 +9,7 @@ generate_taxa_test_single(
   time.var = NULL,
   t.level = NULL,
   group.var,
-  adj.vars,
+  adj.vars = NULL,
   prev.filter = 0,
   abund.filter = 0,
   feature.level,
