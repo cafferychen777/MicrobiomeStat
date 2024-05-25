@@ -174,9 +174,6 @@ generate_taxa_barplot_single <-
 
     feature.dat.type <- match.arg(feature.dat.type)
 
-    pander::add.blank.lines(NULL)
-    tinytex::check_installed(NULL)
-
     # Extract data
     mStat_validate_data(data.obj)
 
