@@ -100,10 +100,8 @@ generate_taxa_test_single <- function(data.obj,
   meta_tab <-
     data.obj$meta.dat %>% select(all_of(c(time.var, group.var, adj.vars)))
 
-  # 初始化formula为group.var
   formula <- group.var
 
-  # 如果adj.vars不为空，则将其添加到formula中
   if (!is.null(adj.vars)) {
     adj.vars_string <- paste(adj.vars, collapse = " + ")
     formula <- paste(formula, "+", adj.vars_string)
@@ -154,39 +152,33 @@ generate_taxa_test_single <- function(data.obj,
       reference_level <- levels(as.factor(meta_tab[, group.var]))[1]
     }
 
-    # 计算每个分组的平均丰度
     prop_prev_data <-
       otu_tax_agg %>%
       as.matrix() %>%
       as.table() %>%
       as.data.frame() %>%
-      dplyr::group_by(Var1) %>%  # Var1是taxa
+      dplyr::group_by(Var1) %>%
       dplyr::summarise(avg_abundance = mean(Freq),
                        prevalence = sum(Freq > 0) / dplyr::n()) %>% column_to_rownames("Var1") %>%
       rownames_to_column(feature.level)
 
     extract_data_frames <-
       function(linda_object, group_var = NULL) {
-        # 初始化一个空的list来存储提取的数据框
         result_list <- list()
 
-        # 获取所有匹配的数据框名
         matching_dfs <-
           grep(paste0(group_var), names(linda_object$output), value = TRUE)
 
-        # 循环遍历所有匹配的数据框名并提取它们
         for (df_name in matching_dfs) {
-          # 从数据框名中提取组值
+
           group_prefix <- paste0(group_var)
 
-          # 提取group_prefix后面的内容，并在":"之前停止
           group_value <- unlist(strsplit(df_name, split = ":"))[1]
           group_value <-
             gsub(pattern = group_prefix,
                  replacement = "",
                  x = group_value)
 
-          # 将数据框添加到结果列表中
           result_list[[paste0(group_value, " vs ", reference_level, " (Reference)")]] <-
             linda_object$output[[df_name]]
         }
@@ -194,7 +186,6 @@ generate_taxa_test_single <- function(data.obj,
         return(result_list)
       }
 
-    # 使用函数提取数据框
     sub_test.list <-
       extract_data_frames(linda_object = linda.obj, group_var = group.var)
 
@@ -229,9 +220,7 @@ generate_taxa_test_single <- function(data.obj,
     return(sub_test.list)
   })
 
-  # Assign names to the elements of test.list
   names(test.list) <- feature.level
 
-  # Return the results table
   return(test.list)
 }
