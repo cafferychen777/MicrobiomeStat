@@ -197,7 +197,6 @@ generate_taxa_barplot_single <-
       time.var = "ALL2"
     }
 
-    # Assuming mStat_get_theme function is already defined
     # Replace the existing theme selection code with this:
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
@@ -259,34 +258,28 @@ generate_taxa_barplot_single <-
         as.data.frame() %>%
         rownames_to_column(feature.level)
 
-      # 标准化数据
       otu_tab_norm <- apply(t(otu_tax_agg %>% select(-one_of(feature.level))), 1, function(x) x)
       rownames(otu_tab_norm) <- as.matrix(otu_tax_agg[, feature.level])
 
       meta_tab_sorted <- meta_tab[colnames(otu_tab_norm), ]
 
-      # 计算每个taxon的平均相对丰度
       avg_abund <- rowMeans(otu_tab_norm)
 
-      # 将相对丰度低于阈值的taxon替换为"Other"
       otu_tab_other <- otu_tab_norm %>%
         as.data.frame() %>%
         rownames_to_column(feature.level)
 
-      # 将feature.number之后以下的相对丰度定为阈值
       other.abund.cutoff <- sort(avg_abund, decreasing=TRUE)[feature.number]
 
       if (!is.na(other.abund.cutoff)){
         otu_tab_other[, feature.level][avg_abund <= other.abund.cutoff] <- "Other"
       }
 
-      # 转换数据框为长格式
       otu_tab_long <- otu_tab_other %>%
         dplyr::group_by(!!sym(feature.level)) %>%
         dplyr::summarize_all(sum) %>%
         tidyr::gather(key = "sample", value = "value", -feature.level)
 
-      # 将 otu_tab_long 和 meta_tab_sorted 合并
       merged_long_df <- otu_tab_long %>%
         dplyr::inner_join(meta_tab_sorted  %>% rownames_to_column("sample"), by = "sample")
 
@@ -336,7 +329,6 @@ generate_taxa_barplot_single <-
         df <- df %>% dplyr::arrange(!!sym(subject.var))
       }
 
-      # 修改 subject.var 的因子水平
       df <- df %>%
         dplyr::mutate(!!sym(subject.var) := factor(!!sym(subject.var), levels = unique(!!sym(subject.var))))
 
@@ -348,11 +340,9 @@ generate_taxa_barplot_single <-
       unique_values <- unique(df$joint_factor)
       result <- numeric(length(unique_values) %/% 2)
 
-      # Calculate the midpoints of consecutive pairs in unique_values
       midpoints <- (unique_values[seq(1, length(unique_values) - 1, by = 2)] +
                       unique_values[seq(2, length(unique_values), by = 2)]) / 2
 
-      # Assign the midpoints to the result vector
       result <- midpoints
 
       stack_barplot_indiv  <- # Main plot code
@@ -392,7 +382,6 @@ generate_taxa_barplot_single <-
               panel.grid.major=element_blank(),
               panel.grid.minor=element_blank())
 
-      # 以下为average barplot的绘制
       last_time_ids <- sorted_merged_long_df %>%
         select(!!sym(time.var)) %>% dplyr::pull() %>% as.factor() %>% levels() %>% dplyr::last()
 
@@ -474,7 +463,6 @@ generate_taxa_barplot_single <-
               panel.grid.major=element_blank(),
               panel.grid.minor=element_blank())
 
-      # Save the stacked barplots as a PDF file
       if (pdf) {
         pdf_name <- paste0("taxa_barplot_single",
                            "_",
@@ -525,7 +513,7 @@ generate_taxa_barplot_single <-
       stack_barplot_list <- list(stack_barplot_indiv,stack_barplot_average)
 
       names(stack_barplot_list) <- c("indiv", "average")
-      # 返回堆叠条形图以进行显示
+
       return(stack_barplot_list)
     })
 
