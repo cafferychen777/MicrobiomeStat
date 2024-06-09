@@ -10,7 +10,8 @@
 #' \dontrun{
 #' # Assume 'data.obj' is your data object
 #' data(peerj32.obj)
-#' validated_data <- mStat_validate_data(peerj32.obj)
+#' mStat_validate_data(peerj32.obj)
+#' mStat_validate_data(mStat_normalize_data(peerj32.obj, "TSS")$data.obj.norm)
 #' }
 #'
 #' @details
