@@ -245,7 +245,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
     otu_tab_norm_agg <- otu_tax_agg %>%
       tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
       dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
-      dplyr::group_by(!!sym(group.var),!!sym(feature.level),!!sym(time.var)) %>% # Add time.var to dplyr::group_by
+      dplyr::group_by(!!sym(group.var), !!sym(feature.level), !!sym(time.var), !!sym(subject.var)) %>% # Add time.var to dplyr::group_by
       dplyr::summarise(mean_abundance = mean(count))
 
     change.after <-
@@ -419,6 +419,14 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
 
     taxa.levels <-
       otu_tab_norm_agg_wide %>% dplyr::ungroup() %>% select(all_of(c(feature.level))) %>% pull() %>% unique() %>% length()
+
+    otu_tab_norm_agg_wide <- otu_tab_norm_agg_wide  %>%
+      select(-all_of(subject.var)) %>%
+      dplyr::group_by(!!sym(group.var),!!sym(feature.level)) %>%
+      dplyr::mutate(
+        change = mean(change)
+      ) %>%
+      dplyr::distinct()
 
     # Add disease prevalence as the size of the points, and use the average abundance as the color of the points
     dotplot <-
