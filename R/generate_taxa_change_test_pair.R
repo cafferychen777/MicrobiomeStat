@@ -36,6 +36,14 @@
 #' - "other": Custom abundance data that has unknown scaling. No normalization applied.
 #' The choice affects preprocessing steps as well as plot axis labels.
 #' Default is "count", which assumes raw OTU table input.
+#' @param winsor.qt A numeric value between 0 and 1, specifying the quantile for winsorization (default: 0.97).
+#'   Winsorization is a data preprocessing method used to limit extreme values or outliers in the data.
+#'   The `winsor.qt` parameter determines the upper and lower quantiles for winsorization.
+#'   For example, if `winsor.qt` is set to 0.97, the lower quantile will be (1 - 0.97) / 2 = 0.015,
+#'   and the upper quantile will be 1 - (1 - 0.97) / 2 = 0.985.
+#'   Values below the lower quantile will be replaced with the lower quantile,
+#'   and values above the upper quantile will be replaced with the upper quantile.
+#'   This helps to reduce the impact of extreme values or outliers on subsequent analyses.
 #'
 #' @examples
 #' \dontrun{
@@ -84,7 +92,8 @@ generate_taxa_change_test_pair <-
            feature.level,
            prev.filter = 0.1,
            abund.filter = 1e-4,
-           feature.dat.type = c("count", "proportion", "other")) {
+           feature.dat.type = c("count", "proportion", "other"),
+           winsor.qt = 0.97) {
     # Extract data
     mStat_validate_data(data.obj)
 
@@ -160,6 +169,40 @@ generate_taxa_change_test_pair <-
                      abund.filter = abund.filter) %>%
         rownames_to_column(feature.level)
 
+      if (feature.dat.type %in% c("count", "proportion")) {
+        # 使用 half nonzero minimum 方法进行零值填充
+        half_nonzero_min <- apply(otu_tax_agg_filter[, -1], 2, function(x) min(x[x > 0]) / 2)
+
+        # 创建一个与 otu_tax_agg_filter[, -1] 相同维度的逻辑矩阵
+        zero_matrix <- otu_tax_agg_filter[, -1] == 0
+
+        # 将 half_nonzero_min 向量重塑为与 zero_matrix 相同维度的矩阵
+        half_nonzero_min_matrix <- matrix(half_nonzero_min, nrow = nrow(zero_matrix), ncol = ncol(zero_matrix), byrow = TRUE)
+
+        # 使用逻辑矩阵作为索引更新 otu_tax_agg_filter 中的零值
+        otu_tax_agg_filter[, -1][zero_matrix] <- half_nonzero_min_matrix[zero_matrix]
+
+        # 添加一条消息,告知用户已执行填充操作
+        message("Imputation was performed using half the minimum nonzero proportion for each taxon across all time points.")
+
+        # 对填充后的 proportion 数据进行 97% winsorization
+        otu_tax_agg_filter[, -1] <- apply(otu_tax_agg_filter[, -1], 2, function(x) {
+          qt <- quantile(x, probs = c((1 - winsor.qt) / 2, 1 - (1 - winsor.qt) / 2))
+          x[x < qt[1]] <- qt[1]
+          x[x > qt[2]] <- qt[2]
+          return(x)
+        })
+
+      } else if (feature.dat.type == "other") {
+        # 如果是 "other" 类型,对顶部和底部进行 winsorization
+        otu_tax_agg_filter[, -1] <- apply(otu_tax_agg_filter[, -1], 2, function(x) {
+          qt <- quantile(x, probs = c((1 - winsor.qt) / 2, 1 - (1 - winsor.qt) / 2))
+          x[x < qt[1]] <- qt[1]
+          x[x > qt[2]] <- qt[2]
+          return(x)
+        })
+      }
+
       # Convert the otu_tax_agg_filter from wide format to long format.
       otu_tax_long <- otu_tax_agg_filter %>%
         tidyr::gather(key = "sample", value = "value", -feature.level)
@@ -195,49 +238,11 @@ generate_taxa_change_test_pair <-
         combined_data <-
           combined_data %>% dplyr::mutate(value_diff = feature.change.func(value_time_2, value_time_1))
       } else if (feature.change.func == "log fold change") {
-        half_nonzero_min_time_2 <- combined_data %>%
-          filter(value_time_2 > 0) %>%
-          dplyr::group_by(!!sym(feature.level)) %>%
-          dplyr::summarize(half_nonzero_min = min(value_time_2) / 2,
-                           .groups = "drop")
-        half_nonzero_min_time_1 <- combined_data %>%
-          filter(value_time_1 > 0) %>%
-          dplyr::group_by(!!sym(feature.level)) %>%
-          dplyr::summarize(half_nonzero_min = min(value_time_1) / 2,
-                           .groups = "drop")
-
-        combined_data <-
-          dplyr::left_join(
-            combined_data,
-            half_nonzero_min_time_2,
-            by = feature.level,
-            suffix = c("_time_1", "_time_2")
-          )
-        combined_data <-
-          dplyr::left_join(
-            combined_data,
-            half_nonzero_min_time_1,
-            by = feature.level,
-            suffix = c("_time_1", "_time_2")
-          )
-        combined_data$value_time_2[combined_data$value_time_2 == 0] <-
-          combined_data$half_nonzero_min_time_2[combined_data$value_time_2 == 0]
-        combined_data$value_time_1[combined_data$value_time_1 == 0] <-
-          combined_data$half_nonzero_min_time_1[combined_data$value_time_1 == 0]
-
-        # Add a message to inform users that an imputation operation was performed.
-        message(
-          "Imputation was performed using half the minimum nonzero proportion for each taxon at different time points."
-        )
-
         combined_data <-
           combined_data %>% dplyr::mutate(value_diff = log2(value_time_2) - log2(value_time_1))
       } else if (feature.change.func == "relative change") {
         combined_data <- combined_data %>%
-          dplyr::mutate(value_diff = dplyr::case_when(
-            value_time_2 == 0 & value_time_1 == 0 ~ 0,
-            TRUE ~ (value_time_2 - value_time_1) / (value_time_2 + value_time_1)
-          ))
+          dplyr::mutate(value_diff = (value_time_2 - value_time_1) / (value_time_2 + value_time_1))
       } else if (feature.change.func == "absolute change"){
         combined_data <-
           combined_data %>% dplyr::mutate(value_diff = value_time_2 - value_time_1)
