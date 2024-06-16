@@ -14,7 +14,8 @@
 #' @param ts.levels Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.
 #' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
 #' @param alpha.name The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".
-#' @param depth An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.
+#' @param depth An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
+#' If NULL, no rarefaction is performed.
 #' @param dist.obj Distance matrix between samples, usually calculated using
 #' \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
 #' If NULL, beta diversity will be automatically computed from \code{data.obj}
