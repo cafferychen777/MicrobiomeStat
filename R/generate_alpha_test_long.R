@@ -7,7 +7,8 @@
 #' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
 #' @param alpha.name character vector containing the names of alpha diversity indices to calculate.
 #'                Possible values are: "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".
-#' @param depth An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.
+#' @param depth An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
+#' If NULL, no rarefaction is performed.
 #' @param time.var A string representing the time variable in the meta.dat.
 #' @param t0.level A baseline time point for longitudinal analysis, specified as a character
 #'                 or numeric value, e.g., "week_0" or 0.
@@ -120,9 +121,9 @@ generate_alpha_test_long <- function(data.obj,
   }
 
   if (is.null(alpha.obj)) {
-    if (!is_rarefied(data.obj)) {
+    if (!is.null(depth)) {
       message(
-        "Diversity analysis needs rarefaction! Call 'mStat_rarefy_data' to rarefy the data!"
+        "Detected that the 'depth' parameter is not NULL. Proceeding with rarefaction. Call 'mStat_rarefy_data' to rarefy the data!"
       )
       data.obj <- mStat_rarefy_data(data.obj, depth = depth)
     }

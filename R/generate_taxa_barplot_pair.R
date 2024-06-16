@@ -332,7 +332,7 @@ generate_taxa_barplot_pair <-
         "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
       )
       data.obj <-
-        mStat_normalize_data(data.obj, method = "Rarefy-TSS")$data.obj.norm
+        mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
     } else if (feature.dat.type == "other") {
       stop(
         "The 'other' type is suitable for situations where the user has analyzed the data using a method not provided in 'mStat_normalize_data' method, and the 'areaplot' is only applicable to raw data that has not undergone any processing or proportion data that adds up to 1. If you believe your data falls into these two categories, please modify 'feature.dat.type'."

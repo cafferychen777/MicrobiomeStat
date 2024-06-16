@@ -215,7 +215,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
         "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
       )
       data.obj <-
-        mStat_normalize_data(data.obj, method = "Rarefy-TSS")$data.obj.norm
+        mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
     }
 
     if (is.null(data.obj$feature.agg.list[[feature.level]]) &

@@ -21,7 +21,8 @@
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
 #' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
 #' @param alpha.name The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou". Previously named as `alpha.index`.
-#' @param depth An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.
+#' @param depth An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
+#' If NULL, no rarefaction is performed.
 #' @param time.var Character string specifying the column name in metadata containing
 #'                time values for each sample. Required to identify pairs of time
 #'                points to calculate changes between.
@@ -142,9 +143,9 @@ generate_alpha_change_test_pair <-
     }
 
     if (is.null(alpha.obj)) {
-      if (!is_rarefied(data.obj)) {
+      if (!is.null(depth)) {
         message(
-          "Diversity analysis needs rarefaction! Call 'mStat_rarefy_data' to rarefy the data!"
+          "Detected that the 'depth' parameter is not NULL. Proceeding with rarefaction. Call 'mStat_rarefy_data' to rarefy the data!"
         )
         data.obj <- mStat_rarefy_data(data.obj, depth = depth)
       }

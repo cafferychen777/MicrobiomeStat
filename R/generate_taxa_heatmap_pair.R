@@ -193,7 +193,7 @@ generate_taxa_heatmap_pair <- function(data.obj,
     message(
       "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
     )
-    data.obj <- mStat_normalize_data(data.obj, method = "Rarefy-TSS")$data.obj.norm
+    data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
   }
 
   plot_list <- lapply(feature.level, function(feature.level) {

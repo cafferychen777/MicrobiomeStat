@@ -66,7 +66,8 @@ extract_coef <- function(model) {
 #' @param alpha.name A character vector with the names of alpha diversity
 #' indices to compute. Options include: "shannon", "simpson",
 #' "observed_species", "chao1", "ace", and "pielou".
-#' @param depth An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.
+#' @param depth An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
+#' If NULL, no rarefaction is performed.
 #' @param group.var A string representing the group variable's name in the
 #' metadata.
 #' @param time.var A string representing the time variable's name in the
@@ -156,9 +157,9 @@ generate_alpha_test_pair <-
     }
 
     if (is.null(alpha.obj)) {
-      if (!is_rarefied(data.obj)) {
+      if (!is.null(depth)) {
         message(
-          "Diversity analysis needs rarefaction! Call 'mStat_rarefy_data' to rarefy the data!"
+          "Detected that the 'depth' parameter is not NULL. Proceeding with rarefaction. Call 'mStat_rarefy_data' to rarefy the data!"
         )
         data.obj <- mStat_rarefy_data(data.obj, depth = depth)
       }
