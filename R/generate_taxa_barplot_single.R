@@ -154,7 +154,7 @@
 #' @export
 generate_taxa_barplot_single <-
   function(data.obj,
-           subject.var,
+           subject.var = NULL,
            time.var = NULL,
            t.level = NULL,
            group.var = NULL,
@@ -176,6 +176,11 @@ generate_taxa_barplot_single <-
 
     # Extract data
     mStat_validate_data(data.obj)
+
+    if (is.null(subject.var)){
+      data.obj$meta.dat$subject.id <- rownames(data.obj$meta.dat)
+      subject.var <- "subject.id"
+    }
 
     if (!is.null(time.var)){
       if (!is.null(t.level)){

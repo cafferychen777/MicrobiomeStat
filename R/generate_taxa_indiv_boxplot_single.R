@@ -172,8 +172,11 @@ generate_taxa_indiv_boxplot_single <-
 
     mStat_validate_data(data.obj)
 
-    if (!is.character(subject.var))
-      stop("`subject.var` should be a character string.")
+    if (is.null(subject.var)){
+      data.obj$meta.dat$subject.id <- rownames(data.obj$meta.dat)
+      subject.var <- "subject.id"
+    }
+
     if (!is.null(group.var) &&
         !is.character(group.var))
       stop("`group.var` should be a character string or NULL.")

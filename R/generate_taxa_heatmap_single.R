@@ -216,6 +216,11 @@ generate_taxa_heatmap_single <- function(data.obj,
 
   feature.dat.type <- match.arg(feature.dat.type)
 
+  if (is.null(subject.var)){
+    data.obj$meta.dat$subject.id <- rownames(data.obj$meta.dat)
+    subject.var <- "subject.id"
+  }
+
   if (!is.null(time.var)) {
     if (!is.null(t.level)) {
       condition <- paste(time.var, "== '", t.level, "'", sep = "")

@@ -245,14 +245,17 @@ generate_taxa_boxplot_single <-
 
     mStat_validate_data(data.obj)
 
-    if (!is.character(subject.var))
-      stop("`subject.var` should be a character string.")
     if (!is.null(group.var) &&
         !is.character(group.var))
       stop("`group.var` should be a character string or NULL.")
     if (!is.null(strata.var) &&
         !is.character(strata.var))
       stop("`strata.var` should be a character string or NULL.")
+
+    if (is.null(subject.var)){
+      data.obj$meta.dat$subject.id <- rownames(data.obj$meta.dat)
+      subject.var <- "subject.id"
+    }
 
     if (!is.null(time.var) & !is.null(t.level)) {
       condition <- paste(time.var, "== '", t.level, "'", sep = "")
