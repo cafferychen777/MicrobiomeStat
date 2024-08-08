@@ -285,17 +285,17 @@ generate_taxa_change_boxplot_pair <-
         unique(otu_tax_agg_merged %>% select(all_of(c(time.var))))[unique(otu_tax_agg_merged %>% select(all_of(c(time.var)))) != change.base]
 
       # Calculate the change in abundance for each taxa
-      # 拆分成一个列表，每个time值都有一个独立的tibble
+      # Split into a list, each time value has an independent tibble.
       split_data <-
         split(otu_tax_agg_merged,
               f = otu_tax_agg_merged %>%
                 dplyr::group_by(!!sym(time.var)) %>% select(all_of(c(time.var))))
 
-      # 提取split_data中的第一个和第二个表
+      # Extract the first and second tables from split_data.
       data_time_1 <- split_data[[change.base]]
       data_time_2 <- split_data[[change.after]]
 
-      # 将这两个表连接在一起，以便计算差值
+      # Connect these two tables together to calculate the difference.
       combined_data <- data_time_1 %>%
         dplyr::inner_join(
           data_time_2,
@@ -303,7 +303,7 @@ generate_taxa_change_boxplot_pair <-
           suffix = c("_time_1", "_time_2")
         )
 
-      # 计算value的差值
+      # Calculate the difference of value.
       if (is.function(feature.change.func)) {
         combined_data <-
           combined_data %>% dplyr::mutate(value_diff = feature.change.func(value_time_2, value_time_1))
@@ -393,7 +393,7 @@ generate_taxa_change_boxplot_pair <-
             fill = !!sym(group.var)
           )
         ) +
-        geom_violin(trim = F, alpha = 0.8) +
+        #geom_violin(trim = F, alpha = 0.8) +
         geom_jitter(width = 0.1,
                     alpha = 0.3,
                     size = 1.5) +
@@ -403,7 +403,7 @@ generate_taxa_change_boxplot_pair <-
         geom_boxplot(
           position = position_dodge(width = 0.8),
           width = 0.1,
-          fill = "white"
+          #fill = "white"
         ) +
         scale_alpha_manual(values = c(0.5, 0.5)) +
         scale_fill_manual(values = col) +

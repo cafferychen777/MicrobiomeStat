@@ -184,7 +184,7 @@ generate_taxa_indiv_boxplot_long <-
         !is.character(strata.var))
       stop("`strata.var` should be a character string or NULL.")
 
-    # 提取数据
+    # Extract data
     data.obj <- mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
 
     meta_tab <- data.obj$meta.dat %>% as.data.frame() %>% select(all_of(c(subject.var,group.var,time.var,strata.var)))
@@ -315,7 +315,7 @@ generate_taxa_indiv_boxplot_long <-
 
         sub_otu_tax_agg_merged <- otu_tax_agg_merged %>% filter(!!sym(feature.level) == tax)
 
-        # 在数据处理部分创建一个新的数据框
+        # Create a new data frame in the data processing section.
         average_sub_otu_tax_agg_merged <- NULL
         if (n_times > 10 || n_subjects > 25) {
           if (!is.null(group.var) && !is.null(strata.var)) {
@@ -343,7 +343,7 @@ generate_taxa_indiv_boxplot_long <-
           ggplot(sub_otu_tax_agg_merged  %>%
                    dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var))),
                  aes_function) +
-          geom_violin(trim = FALSE, alpha = 0.8) +
+          #geom_violin(trim = FALSE, alpha = 0.8) +
           stat_boxplot(
             geom = "errorbar",
             position = position_dodge(width = 0.2),
@@ -352,14 +352,14 @@ generate_taxa_indiv_boxplot_long <-
           geom_boxplot(
             position = position_dodge(width = 0.8),
             width = 0.1,
-            fill = "white"
+            #fill = "white"
           ) +
           geom_line(
             line_aes_function,
             alpha = 1,
             linewidth = 0.6,
             color = "black",
-            linetype = "dashed", # 更改线条类型为虚线
+            linetype = "dashed",
             data = if (!is.null(average_sub_otu_tax_agg_merged)) average_sub_otu_tax_agg_merged %>%
               dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var))) else sub_otu_tax_agg_merged %>%
               dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var)))
@@ -413,7 +413,7 @@ generate_taxa_indiv_boxplot_long <-
         }
 
         if (feature.dat.type != "other"){
-          # 添加对Y轴刻度的修改
+          # Modify the Y-axis scale.
           if (transform == "sqrt") {
             boxplot <- boxplot + scale_y_continuous(
               labels = function(x) sapply(x, function(i) as.expression(substitute(a^b, list(a = i, b = 2))))

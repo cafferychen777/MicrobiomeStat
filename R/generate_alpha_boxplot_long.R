@@ -288,9 +288,6 @@ generate_alpha_boxplot_long <- function (data.obj,
           contrasts.arg = lapply(data_subset, stats::contrasts, contrasts = FALSE)
         )
 
-      # 去掉截距
-      # M <- M[, -1] 这一步在创建模型矩阵时通过 ~ 0 + . 已经实现了
-
       # Center the covariates
       M_centered <- scale(M, scale = FALSE)
 
@@ -350,14 +347,14 @@ generate_alpha_boxplot_long <- function (data.obj,
 
     boxplot <- ggplot(alpha_df,
                       aes_function) +
-      geom_violin(trim = FALSE, alpha = 0.8) +
+      #geom_violin(trim = FALSE, alpha = 0.8) +
       stat_boxplot(geom = "errorbar",
                    position = position_dodge(width = 0.2),
                    width = 0.1) +
       geom_boxplot(
         position = position_dodge(width = 0.8),
         width = 0.1,
-        fill = "white"
+        #fill = "white"
       ) +
       geom_line(
         line_aes_function,

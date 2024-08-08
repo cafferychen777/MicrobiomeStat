@@ -303,7 +303,7 @@ generate_beta_pc_change_boxplot_pair <-
               fill = !!sym(group.var)
             )
           ) +
-            geom_violin(trim = F, alpha = 0.8) +
+            #geom_violin(trim = F, alpha = 0.8) +
             stat_boxplot(
               geom = "errorbar",
               position = position_dodge(width = 0.2),
@@ -312,7 +312,7 @@ generate_beta_pc_change_boxplot_pair <-
             geom_boxplot(
               position = position_dodge(width = 0.8),
               width = 0.1,
-              fill = "white"
+              #fill = "white"
             ) +
             geom_jitter(width = 0.1,
                         alpha = 0.5,

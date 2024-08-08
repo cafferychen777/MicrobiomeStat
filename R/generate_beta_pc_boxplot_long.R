@@ -203,7 +203,7 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
 
   col <- mStat_get_palette(palette)
 
-  # 根据 strata.var 和 group.var 的值调整 ggplot() 函数
+  # Adjust the ggplot() function based on the values of strata.var and group.var.
   aes_function <- if (!is.null(group.var)) {
     aes(
       x = !!sym(time.var),
@@ -276,7 +276,6 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
     sub_plot_list <- lapply(unique(df$PC), function(pc.index) {
       sub_df <- df %>% filter(PC == pc.index)
 
-      # 在数据处理部分创建一个新的数据框
       average_sub_df <- NULL
       if (n_times > 10 || n_subjects > 25) {
         if (!is.null(strata.var) & !is.null(group.var)) {
@@ -304,7 +303,7 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
 
       boxplot <- ggplot(sub_df,
                         aes_function) +
-        geom_violin(trim = FALSE, alpha = 0.8) +
+        #geom_violin(trim = FALSE, alpha = 0.8) +
         stat_boxplot(
           geom = "errorbar",
           position = position_dodge(width = 0.2),
@@ -313,7 +312,7 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
         geom_boxplot(
           position = position_dodge(width = 0.8),
           width = 0.1,
-          fill = "white"
+          #fill = "white"
         ) +
         geom_line(
           line_aes_function,

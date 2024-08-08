@@ -296,7 +296,7 @@ generate_taxa_indiv_boxplot_single <-
         boxplot <-
           ggplot(sub_otu_tax_agg_merged,
                  aes_function) +
-          geom_violin(trim = FALSE, alpha = 0.8) +
+          #geom_violin(trim = FALSE, alpha = 0.8) +
           stat_boxplot(
             geom = "errorbar",
             position = position_dodge(width = 0.2),
@@ -305,7 +305,7 @@ generate_taxa_indiv_boxplot_single <-
           geom_boxplot(
             position = position_dodge(width = 0.8),
             width = 0.1,
-            fill = "white"
+            #fill = "white"
           ) +
           geom_jitter(width = 0.1, alpha = 0.1, size = 1) +
           scale_fill_manual(values = col) +

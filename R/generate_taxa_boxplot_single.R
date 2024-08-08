@@ -401,7 +401,8 @@ generate_taxa_boxplot_single <-
         ) +
         geom_boxplot(
           position = position_dodge(width = 0.8),
-          width = 0.2
+          width = 0.2,
+          #fill = "white"
         ) +
         geom_jitter(
           aes(color = !!sym(group.var)),

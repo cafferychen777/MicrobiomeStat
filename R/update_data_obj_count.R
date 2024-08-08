@@ -10,52 +10,42 @@
 #' @keywords internal
 #' @noRd
 update_data_obj_count <- function(data.obj, new_count_table) {
-
-  # 检查新的计数表是否有效
+  # Check if the new count table is valid
   if (is.null(new_count_table)) {
     stop("The provided count table is NULL.")
   }
-
-  # 检查新的计数表是否有行和列的名字
+  # Check if the new count table has row and column names
   if (is.null(rownames(new_count_table)) || is.null(colnames(new_count_table))) {
     stop("The provided count table must have row and column names.")
   }
-
-  # 定义优先检查的变量名列表
+  # Define a list of priority variable names to check
   primary_names <- c("feature.tab", "otu.tab", "otu_tab", "expression.tab", "exp.tab", "gene.counts",
                      "metabolite.tab", "metab.tab", "metabolite.counts", "protein.tab", "prot.tab", "protein.counts",
                      "count", "counts", "abundance")
-
-  # 定义可能导致混淆的其他变量名列表
+  # Define a list of other variable names that might cause confusion
   possible_confusing_names <- c("otu.table", "otu_matrix", "otu_mat", "otu_data", "otu_list", "otu_counts",
                                 "otu_abundance", "exp_matrix", "exp_mat", "exp_data", "metab_matrix",
                                 "metab_mat", "metab_data", "prot_matrix", "prot_mat", "prot_data")
-
-  # 查看 data.obj 中是否存在优先检查的变量名
+  # Check if any priority variable names exist in data.obj
   keys_in_data_obj <- names(data.obj)
   existing_primary_names <- intersect(primary_names, keys_in_data_obj)
-
-  # 如果存在优先检查的变量名，则更新对应的数据
+  # If priority variable names exist, update the corresponding data
   if (length(existing_primary_names) > 0) {
     data.obj[[existing_primary_names[1]]] <- new_count_table
     return(data.obj)
   }
-
-  # 否则，查看 data.obj 中是否存在其他可能导致混淆的变量名
+  # Otherwise, check if any potentially confusing variable names exist in data.obj
   existing_confusing_names <- intersect(possible_confusing_names, keys_in_data_obj)
-
-  # 如果存在多个冲突名字，发送警告消息并更新第一个冲突名字对应的数据
+  # If multiple conflicting names exist, send a warning message and update the data corresponding to the first conflicting name
   if (length(existing_confusing_names) > 1) {
     message("Multiple potential count tables detected: ", paste(existing_confusing_names, collapse=", "), ". Updating the first one.")
   }
-
   if (length(existing_confusing_names) > 0) {
-    # 更新第一个存在的冲突名字对应的数据
+    # Update the data corresponding to the first existing conflicting name
     data.obj[[existing_confusing_names[1]]] <- new_count_table
     return(data.obj)
   }
-
-  # 如果不存在冲突名字，发送警告消息并返回 NULL
+  # If no conflicting names exist, send a warning message and return NULL
   message("No potential count tables detected. The count table was not updated.")
   return(data.obj)
 }
