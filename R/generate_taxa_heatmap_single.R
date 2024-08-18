@@ -94,6 +94,30 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
+#' data(peerj32.obj)
+#' generate_taxa_heatmap_single(
+#'   data.obj = peerj32.obj,
+#'   subject.var = "subject",
+#'   time.var = "time",
+#'   t.level = "1",
+#'   group.var = "group",
+#'   strata.var = "sex",
+#'   other.vars = NULL,
+#'   feature.level = c("Phylum", "Family", "Genus"),
+#'   feature.dat.type = "count",
+#'   features.plot = NULL,
+#'   top.k.plot = NULL,
+#'   top.k.func = NULL,
+#'   cluster.rows = FALSE,
+#'   prev.filter = 0.001,
+#'   abund.filter = 0.01,
+#'   base.size = 10,
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
 #' generate_taxa_heatmap_single(
 #'   data.obj = peerj32.obj,
 #'   subject.var = "subject",
@@ -378,7 +402,7 @@ generate_taxa_heatmap_single <- function(data.obj,
 
     # Plot stacked heatmap
     heatmap_plot <- pheatmap::pheatmap(
-      otu_tab_norm_sorted,
+      mat = otu_tab_norm_sorted[order(rowMeans(otu_tab_norm_sorted, na.rm = TRUE), decreasing = TRUE), ],
       annotation_col = annotation_col,
       annotation_colors = annotation_colors_list,
       cluster_rows = cluster.rows,

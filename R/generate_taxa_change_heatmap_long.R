@@ -106,6 +106,29 @@
 #'   pdf = TRUE,
 #'   file.ann = NULL
 #' )
+#'
+#' generate_taxa_change_heatmap_long(
+#'   data.obj = ecam.obj,
+#'   subject.var = "studyid",
+#'   time.var = "month",
+#'   t0.level = unique(ecam.obj$meta.dat$month)[1],
+#'   ts.levels = unique(ecam.obj$meta.dat$month)[-1],
+#'   group.var = "antiexposedall",
+#'   strata.var = "diet",
+#'   feature.level = c("Family","Class"),
+#'   feature.change.func = "log fold change",
+#'   feature.dat.type = "proportion",
+#'   features.plot = NULL,
+#'   cluster.rows = FALSE,
+#'   top.k.plot = 10,
+#'   top.k.func = "sd",
+#'   palette = NULL,
+#'   prev.filter = 0.01,
+#'   abund.filter = 0.01,
+#'   pdf = TRUE,
+#'   file.ann = NULL
+#' )
+#'
 #' data(subset_T2D.obj)
 #' generate_taxa_change_heatmap_long(
 #'   data.obj = subset_T2D.obj,
@@ -119,6 +142,29 @@
 #'   feature.change.func = "log fold change",
 #'   feature.dat.type = "count",
 #'   features.plot = NULL,
+#'   top.k.plot = 50,
+#'   top.k.func = "mean",
+#'   prev.filter = 0.01,
+#'   abund.filter = 0.01,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#'
+#' generate_taxa_change_heatmap_long(
+#'   data.obj = subset_T2D.obj,
+#'   subject.var = "subject_id",
+#'   time.var = "visit_number",
+#'   t0.level = unique(subset_T2D.obj$meta.dat$visit_number)[1],
+#'   ts.levels = unique(subset_T2D.obj$meta.dat$visit_number)[-1],
+#'   group.var = "subject_gender",
+#'   strata.var = "subject_race",
+#'   feature.level = c("Phylum"),
+#'   feature.change.func = "log fold change",
+#'   feature.dat.type = "count",
+#'   features.plot = NULL,
+#'   cluster.rows = FALSE,
 #'   top.k.plot = 50,
 #'   top.k.func = "mean",
 #'   prev.filter = 0.01,
@@ -174,7 +220,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
       !is.character(strata.var))
     stop("`strata.var` should be a character string or NULL.")
 
-  # 提取数据
+  # Extract data
   data.obj <- mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
 
   meta_tab <- data.obj$meta.dat %>%
@@ -298,7 +344,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
     df_wide <-
       df_wide[, c(feature.level, group.var, paste0("change_", ts.levels))]
 
-    # 首先将数据框转化为长格式
+    # First convert the data frame to long format.
     df_long <- df_wide %>%
       tidyr::pivot_longer(
         cols = starts_with("change"),
@@ -306,10 +352,10 @@ generate_taxa_change_heatmap_long <- function(data.obj,
         values_to = "value"
       )
 
-    # 删除 "time" 列名中的 "change_" 部分
+    # Remove the "change_" part from the column name "time"
     df_long$time <- gsub("change_", "", df_long$time)
 
-    # 再将数据框转化为宽格式，并在此过程中修改列名
+    # Convert the data frame to wide format and modify column names in the process.
     df_wide_new <- df_long %>%
       tidyr::unite("group_time", c(group.var, "time"), sep = "_") %>%
       tidyr::pivot_wider(names_from = "group_time",
@@ -320,7 +366,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
     df_wide <-
       df_wide[, c(feature.level, group.var, paste0("change_", ts.levels))]
 
-    # 首先将数据框转化为长格式
+    # First convert the data frame to long format.
     df_long <- df_wide %>%
       tidyr::pivot_longer(
         cols = starts_with("change"),
@@ -328,10 +374,10 @@ generate_taxa_change_heatmap_long <- function(data.obj,
         values_to = "value"
       )
 
-    # 删除 "time" 列名中的 "change_" 部分
+    # Remove the "change_" part from the column name "time"
     df_long$time <- gsub("change_", "", df_long$time)
 
-    # 再将数据框转化为宽格式，并在此过程中修改列名
+    # Convert the data frame to wide format and modify the column names in the process.
     df_wide_new <- df_long %>%
       tidyr::unite("group_time", c(group.var, "time"), sep = "_") %>%
       tidyr::pivot_wider(names_from = "group_time",
@@ -415,16 +461,16 @@ generate_taxa_change_heatmap_long <- function(data.obj,
 
     #if (is.null(palette)) {
       col <- c("#0571b0", "#92c5de", "white", "#f4a582", "#ca0020")
-      # 找出数据中的最大绝对值
+      # Find the maximum absolute value in the data.
       max_abs_val <-
         max(abs(range(na.omit(
           c(as.matrix(wide_data_sorted))
         ))))
 
-      # 计算零值在新色彩向量中的位置
+      # Calculate the position of the zero value in the new color vector
       zero_pos <- round(max_abs_val / (2 * max_abs_val) * n_colors)
 
-      # 创建颜色向量
+      # Creating color vectors
       my_col <-
         c(
           colorRampPalette(col[1:3])(zero_pos),
@@ -437,27 +483,27 @@ generate_taxa_change_heatmap_long <- function(data.obj,
       color_vector <- mStat_get_palette(palette)
 
       if (!is.null(strata.var) & !is.null(group.var)){
-        # 为演示目的，假设这些是您的唯一值
+        # For demonstration purposes, assume these are your only values.
         group_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
 
-        # 为 group.var 分配颜色
+        # Assign colors to group.var
         group_colors <- setNames(color_vector[1:length(group_levels)], group_levels)
 
         strata_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(strata.var))) %>% distinct() %>% pull()
-        # 为 strata.var 分配颜色
+        # Assign colors to strata.var
         strata_colors <- setNames(rev(color_vector)[1:length(strata_levels)], strata_levels)
 
-        # 创建注释颜色列表
+        # Create a list of comment colors
         annotation_colors_list <- setNames(
           list(group_colors, strata_colors),
           c(group.var, strata.var)
         )
       } else if (!is.null(group.var) & group.var != "ALL"){
-        # 为演示目的，假设这些是您的唯一值
+        # For demonstration purposes, assume these are your only values.
         group_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
-        # 为 group.var 分配颜色
+        # Assign colors to group.var
         group_colors <- setNames(color_vector[1:length(group_levels)], group_levels)
-        # 创建注释颜色列表
+        # Create comment color list
         annotation_colors_list <- setNames(
           list(group_colors),
           c(group.var)
@@ -468,7 +514,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
 
       # Plot stacked heatmap
       heatmap_plot <- pheatmap::pheatmap(
-        wide_data_sorted,
+        mat = wide_data_sorted[order(rowMeans(abs(wide_data_sorted), na.rm = TRUE), decreasing = TRUE), ],
         annotation_col = annotation_col_sorted,
         annotation_colors = annotation_colors_list,
         cluster_rows = cluster.rows,

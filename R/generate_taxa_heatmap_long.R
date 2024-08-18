@@ -82,6 +82,28 @@
 #'   pdf.hei = 8.5
 #' )
 #'
+#' generate_taxa_heatmap_long(
+#'   data.obj = ecam.obj,
+#'   subject.var = "studyid",
+#'   time.var = "month",
+#'   t0.level = unique(ecam.obj$meta.dat$month)[1],
+#'   ts.levels = unique(ecam.obj$meta.dat$month)[2:18],
+#'   group.var = "delivery",
+#'   strata.var = "diet",
+#'   feature.level = c("Family","Phylum","Genus", "Class"),
+#'   feature.dat.type = "proportion",
+#'   features.plot = NULL,
+#'   cluster.rows = FALSE,
+#'   top.k.plot = NULL,
+#'   top.k.func = NULL,
+#'   prev.filter = 0.01,
+#'   abund.filter = 0.01,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#'
 #' data(subset_T2D.obj)
 #' generate_taxa_heatmap_long(
 #'   data.obj = subset_T2D.obj,
@@ -145,7 +167,7 @@ generate_taxa_heatmap_long <- function(data.obj,
       !is.character(strata.var))
     stop("`strata.var` should be a character string or NULL.")
 
-  # 提取数据
+  # Extract data
   data.obj <-
     mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
 
@@ -277,11 +299,11 @@ generate_taxa_heatmap_long <- function(data.obj,
 
     col <- c("white", "#92c5de", "#0571b0", "#f4a582", "#ca0020")
 
-    # 创建颜色映射函数
+    # Create color mapping function
     my_col <- colorRampPalette(col)
 
-    # 计算颜色的数量
-    # 这通常取决于你的数据，你可能需要根据你的实际情况进行调整
+    # Calculate the number of colors
+    # This usually depends on your data, and you may need to adjust according to your actual situation.
     n_colors <- 100
 
     if (!is.null(features.plot)) {
@@ -292,23 +314,23 @@ generate_taxa_heatmap_long <- function(data.obj,
     # Define the colors
     color_vector <- mStat_get_palette(palette)
 
-    # 为演示目的，假设这些是您的唯一值
+    # For demonstration purposes, assume these are your only values.
     group_levels <-
       annotation_col_sorted %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
 
-    # 为 group.var 分配颜色
+    # Assign colors to group.var
     group_colors <-
       setNames(color_vector[1:length(group_levels)], group_levels)
 
     if (!is.null(strata.var)){
       strata_levels <-
         annotation_col_sorted %>% dplyr::select(all_of(c(strata.var))) %>% distinct() %>% pull()
-      # 为 strata.var 分配颜色
+      # Assign colors to strata.var
       strata_colors <-
         setNames(rev(color_vector)[1:length(strata_levels)], strata_levels)
     }
 
-    # 创建注释颜色列表
+    # Create comment color list
     if (!is.null(strata.var)){
       annotation_colors_list <- setNames(list(group_colors, strata_colors),
                                          c(group.var, strata.var))
@@ -324,7 +346,7 @@ generate_taxa_heatmap_long <- function(data.obj,
 
     # Plot stacked heatmap
     heatmap_plot_average <- pheatmap::pheatmap(
-      wide_data_sorted,
+      mat = wide_data_sorted[order(rowMeans(wide_data_sorted, na.rm = TRUE), decreasing = TRUE), ],
       annotation_col = annotation_col_sorted,
       annotation_colors = annotation_colors_list,
       cluster_rows = cluster.rows,
@@ -355,10 +377,10 @@ generate_taxa_heatmap_long <- function(data.obj,
     }
 
     heatmap_plot_indiv <- pheatmap::pheatmap(
-      otu_tab_norm,
+      mat = otu_tab_norm[order(rowMeans(otu_tab_norm, na.rm = TRUE), decreasing = TRUE), ],
       annotation_col = meta_tab,
       annotation_colors = annotation_colors_list,
-      cluster_rows = TRUE,
+      cluster_rows = cluster.rows,
       cluster_cols = TRUE,
       show_colnames = FALSE,
       gaps_col = gaps,

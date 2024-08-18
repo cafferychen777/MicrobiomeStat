@@ -105,6 +105,31 @@
 #'   pdf.hei = 8.5
 #' )
 #'
+#' generate_taxa_change_heatmap_pair(
+#'   data.obj = peerj32.obj,
+#'   subject.var = "subject",
+#'   time.var = "time",
+#'   group.var = "group",
+#'   strata.var = "sex",
+#'   change.base = "1",
+#'   feature.change.func = "relative change",
+#'   feature.level = c("Genus"),
+#'   feature.dat.type = "count",
+#'   features.plot = NULL,
+#'   top.k.plot = 10,
+#'   top.k.func = "sd",
+#'   prev.filter = 0.1,
+#'   abund.filter = 0.001,
+#'   base.size = 10,
+#'   palette = NULL,
+#'   cluster.rows = FALSE,
+#'   cluster.cols = FALSE,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#'
 #' data(subset_pairs.obj)
 #' generate_taxa_change_heatmap_pair(
 #'   data.obj = subset_pairs.obj,
@@ -124,6 +149,31 @@
 #'   base.size = 10,
 #'   palette = NULL,
 #'   cluster.rows = NULL,
+#'   cluster.cols = FALSE,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#'
+#' generate_taxa_change_heatmap_pair(
+#'   data.obj = subset_pairs.obj,
+#'   subject.var = "MouseID",
+#'   time.var = "Antibiotic",
+#'   group.var = "Sex",
+#'   strata.var = NULL,
+#'   change.base = "Baseline",
+#'   feature.change.func = "relative change",
+#'   feature.level = c("Genus"),
+#'   feature.dat.type = "count",
+#'   features.plot = NULL,
+#'   top.k.plot = 10,
+#'   top.k.func = "sd",
+#'   prev.filter = 0.1,
+#'   abund.filter = 0.001,
+#'   base.size = 10,
+#'   palette = NULL,
+#'   cluster.rows = FALSE,
 #'   cluster.cols = FALSE,
 #'   pdf = TRUE,
 #'   file.ann = NULL,
@@ -312,28 +362,28 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
       select(all_of(c(subject.var, group.var, strata.var))) %>%
       dplyr::distinct(!!sym(subject.var), .keep_all = TRUE) %>% as_tibble()
 
-    # 获取元素的顺序
+    # Get the order of elements
     order_index <-
       match(colnames(value_diff_matrix),
             as.matrix(unique_meta_tab %>% select(!!sym(subject.var))))
 
     suppressWarnings({
-      # 根据顺序对 unique_meta_tab 进行排序
+      # Sort unique_meta_tab in order.
       sorted_meta_tab <- unique_meta_tab[order_index,]
       rownames(sorted_meta_tab) <-
         as.matrix(sorted_meta_tab[, subject.var])
     })
 
-    # 如果 group.var 不为空，则根据 group.var 对 sorted_meta_tab 进行排序
+    # If group.var is not empty, sorted_meta_tab is sorted by group.var
     if (!is.null(group.var)) {
       sorted_meta_tab <-
         sorted_meta_tab[order(sorted_meta_tab %>% select(!!sym(group.var)) %>% as.matrix()),]
     }
 
-    # 从 sorted_meta_tab 中提取 subject 列
+    # Extract subject column from sorted_meta_tab
     subjects <- sorted_meta_tab %>% select(all_of(subject.var))
 
-    # 使用这些索引以正确的顺序重新排列 value_diff_matrix 的列
+    # Use these indexes to rearrange the columns of the value_diff_matrix in the correct order
     value_diff_matrix <- value_diff_matrix[, as.matrix(subjects)]
 
     if (!is.null(strata.var) & !is.null(group.var)){
@@ -363,7 +413,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
         cumsum(table(sorted_meta_tab[[strata.var]]))[-length(sorted_meta_tab[[strata.var]])]
     } else {
       if (!is.null(group.var)) {
-        # 计算分隔线应该出现的位置
+        # Calculate where the divider should appear
         gaps <-
           cumsum(table(sorted_meta_tab[[group.var]]))[-length(sorted_meta_tab[[group.var]])]
       } else {
@@ -379,15 +429,15 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
     n_colors <- 100
 
     col <- c("#0571b0", "#92c5de", "white", "#f4a582", "#ca0020")
-    # 找出数据中的最大绝对值
+    # Find the largest absolute value in the data
     max_abs_val <- max(abs(range(na.omit(
       c(value_diff_matrix)
     ))))
 
-    # 计算零值在新色彩向量中的位置
+    # Calculate the position of the zero value in the new color vector
     zero_pos <- round(max_abs_val / (2 * max_abs_val) * n_colors)
 
-    # 创建颜色向量
+    # Creating color vectors
     my_col <-
       c(
         colorRampPalette(col[1:3])(zero_pos),
@@ -405,7 +455,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
       strata_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(strata.var))) %>% distinct() %>% pull()
       strata_colors <- setNames(rev(color_vector)[1:length(strata_levels)], strata_levels)
 
-      # 创建注释颜色列表
+      # Creating annotated color lists
       annotation_colors_list <- setNames(
         list(group_colors, strata_colors),
         c(group.var, strata.var)
@@ -423,7 +473,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
     }
 
     heatmap_plot <- pheatmap::pheatmap(
-      value_diff_matrix,
+      mat = value_diff_matrix[order(rowMeans(abs(value_diff_matrix), na.rm = TRUE), decreasing = TRUE), ],
       annotation_col = annotation_col_sorted,
       annotation_colors = annotation_colors_list,
       cluster_rows = cluster.rows,
@@ -453,22 +503,22 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
         as.matrix()
 
       create_annotation_df <- function(colnames_vec, delimiter = "_") {
-        # 提取组和层级变量
+        # Extracting Group and Hierarchical Variables
         split_names <- strsplit(colnames_vec, delimiter)
 
-        # 确保所有的列名都有相同数量的分隔符
+        # Ensure that all column names have the same number of separators
         if (length(unique(sapply(split_names, length))) != 1) {
           stop("All column names must have the same number of delimiters.")
         }
 
-        # 创建数据框
+        # Creating Data Frames
         annotation_df <- do.call(rbind.data.frame, split_names)
         colnames(annotation_df) <- c(group.var, strata.var)
 
-        # 转换为因子
+        # Convert to factor
         annotation_df[] <- lapply(annotation_df, function(x) factor(x, levels = unique(x)))
 
-        # 转换为矩阵
+        # Convert to Matrix
         annotation_matrix <- as.data.frame(annotation_df)
         rownames(annotation_matrix) <- colnames_vec
 
@@ -514,7 +564,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
     }
 
     average_heatmap_plot <- pheatmap::pheatmap(
-      average_value_diff_matrix,
+      mat = average_value_diff_matrix[order(rowMeans(abs(average_value_diff_matrix), na.rm = TRUE), decreasing = TRUE), ],
       annotation_col = annotation_df,
       annotation_colors = annotation_colors_list,
       cluster_rows = cluster.rows,
@@ -531,7 +581,6 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
     )
 
     gg_average_heatmap_plot <- as.ggplot(average_heatmap_plot)
-
 
     if (is.function(feature.change.func)) {
       feature.change.func = "custom function"
