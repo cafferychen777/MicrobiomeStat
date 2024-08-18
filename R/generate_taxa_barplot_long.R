@@ -88,7 +88,7 @@
 #'   strata.var = "diet",
 #'   feature.level = "Family",
 #'   feature.dat.type = "proportion",
-#'   feature.number = 10,
+#'   feature.number = 30,
 #'   t0.level = NULL,
 #'   ts.levels = NULL,
 #'   theme.choice = "bw",
@@ -155,7 +155,7 @@ generate_taxa_barplot_long <-
         !is.character(strata.var))
       stop("`strata.var` should be a character string or NULL.")
 
-    # 提取数据
+    # Extract data
     data.obj <- mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
 
     meta_tab <- data.obj$meta.dat %>% as.data.frame() %>% select(all_of(c(subject.var,group.var,time.var,strata.var)))
@@ -220,35 +220,35 @@ generate_taxa_barplot_long <-
         as.data.frame() %>%
         rownames_to_column(feature.level)
 
-      # 标准化数据
+      # Standardized data
       otu_tab_norm <- apply(t(otu_tax_agg %>% select(-all_of(feature.level))), 1, function(x) x)
 
       rownames(otu_tab_norm) <- as.matrix(otu_tax_agg[, feature.level])
 
       meta_tab_sorted <- meta_tab[colnames(otu_tab_norm), ]
 
-      # 计算每个taxon的平均相对丰度
+      # Calculate the average relative abundance of each taxon.
       avg_abund <- rowMeans(otu_tab_norm)
 
-      # 将相对丰度低于阈值的taxon替换为"Other"
+      # Replace taxa with relative abundance lower than the threshold with "Other".
       otu_tab_other <- otu_tab_norm %>%
         as.data.frame() %>%
         rownames_to_column(feature.level)
 
-      # 将feature.number之后以下的相对丰度定为阈值
+      # Set the relative abundance after feature.number as the threshold.
       other.abund.cutoff <- sort(avg_abund, decreasing=TRUE)[feature.number]
 
       if (!is.na(other.abund.cutoff)){
         otu_tab_other[, feature.level][avg_abund < other.abund.cutoff] <- "Other"
       }
 
-      # 转换数据框为长格式
+      # Convert data frame to long format
       otu_tab_long <- otu_tab_other %>%
         dplyr::group_by(!!sym(feature.level)) %>%
         dplyr::summarize_all(sum) %>%
         tidyr::gather(key = "sample", value = "value", -feature.level)
 
-      # 将 otu_tab_long 和 meta_tab_sorted 合并
+      # Merge otu_tab_long and meta_tab_sorted
       merged_long_df <- otu_tab_long %>%
         dplyr::inner_join(meta_tab_sorted  %>% rownames_to_column("sample"), by = "sample")
 
@@ -261,22 +261,29 @@ generate_taxa_barplot_long <-
 
       sorted_merged_long_df <- sorted_merged_long_df %>% dplyr::mutate(!!sym(feature.level) := as.factor(!!sym(feature.level)))
 
-      original_levels <- levels(sorted_merged_long_df[[feature.level]])
+      # 计算每个特征的平均值并排序
+      df_sorted <- sorted_merged_long_df %>%
+        dplyr::group_by(!!sym(feature.level)) %>%
+        dplyr::summarise(overall_mean = mean(value, na.rm = TRUE)) %>%
+        dplyr::mutate(is_other = ifelse(!!sym(feature.level) == "Other", TRUE, FALSE)) %>%
+        dplyr::arrange(is_other, overall_mean) %>%
+        dplyr::mutate(!!feature.level := factor(!!sym(feature.level), levels = !!sym(feature.level)))
 
-      if (!is.na(other.abund.cutoff)){
-        new_levels <- c("Other", setdiff(original_levels, "Other"))
+      # 更新 new_levels
+      if (!is.na(other.abund.cutoff)) {
+        new_levels <- c("Other", setdiff(levels(df_sorted[[feature.level]]), "Other"))
       } else {
-        new_levels <- original_levels
+        new_levels <- levels(df_sorted[[feature.level]])
       }
 
+      # 应用新的排序
       sorted_merged_long_df <- sorted_merged_long_df %>%
-        dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = original_levels)) %>%
-        dplyr::mutate(!!sym(feature.level) := forcats::fct_relevel(!!sym(feature.level), new_levels))
+        dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = new_levels))
 
+      # 修改 df 的创建
       df <- sorted_merged_long_df %>%
         dplyr::group_by(sample) %>%
-        dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = original_levels)) %>%
-        dplyr::mutate(!!sym(feature.level) := forcats::fct_relevel(!!sym(feature.level), new_levels)) %>%
+        dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = new_levels)) %>%
         dplyr::arrange(match(!!sym(feature.level), new_levels)) %>%
         dplyr::mutate(cumulative_value = (1-cumsum(value))) %>%
         dplyr::ungroup() %>%
@@ -284,12 +291,13 @@ generate_taxa_barplot_long <-
         dplyr::mutate(next_cumulative_value = dplyr::if_else(sample %in% last_sample_ids$last_sample_id, NA_real_, dplyr::lead(cumulative_value))) %>%
         dplyr::ungroup()
 
-      color_pal <- setNames(pal, as.matrix(unique(df %>% select(!!sym(feature.level)))))
+      # 更新颜色调色板
+      color_pal <- setNames(pal[1:length(new_levels)], new_levels)
 
       bar_width <- 0.6
       bar_spacing <- bar_width / 2
 
-      # 以下为average barplot的绘制
+      # The following is the drawing of the average barplot.
       if (is.factor(meta_tab[, time.var])) {
         last_time_ids <- dplyr::last(levels(meta_tab[, time.var]))
       } else if (is.numeric(meta_tab[, time.var])) {
@@ -316,8 +324,7 @@ generate_taxa_barplot_long <-
       df_average <- sorted_merged_long_df %>%
         dplyr::group_by(!!sym(feature.level),!!sym(group.var),!!sym(time.var)) %>%
         dplyr::summarise(mean_value  = mean(value)) %>%
-        dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = original_levels)) %>%
-        dplyr::mutate(!!sym(feature.level) := forcats::fct_relevel(!!sym(feature.level), new_levels)) %>%
+        dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = new_levels)) %>%
         dplyr::arrange(match(!!sym(feature.level), new_levels),!!sym(group.var),!!sym(time.var)) %>%
         dplyr::group_by(!!sym(group.var),!!sym(time.var)) %>%
         dplyr::mutate(cumulative_mean_value = (1-cumsum(mean_value))) %>%
@@ -413,7 +420,7 @@ generate_taxa_barplot_long <-
         ggsave(filename = pdf_name, plot = stack_barplot_average, width = pdf.wid, height = pdf.hei)
       }
 
-      # 返回堆叠条形图以进行显示
+      # Return stacked bar chart for display
       return(stack_barplot_average)
     })
 

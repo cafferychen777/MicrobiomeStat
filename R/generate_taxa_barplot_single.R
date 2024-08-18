@@ -140,7 +140,7 @@
 #'   strata.var = NULL,
 #'   feature.level = c("Phylum", "Family", "Genus"),
 #'   feature.dat.type = "count",
-#'   feature.number = 30,
+#'   feature.number = 10,
 #'   base.size = 10,
 #'   theme.choice = "bw",
 #'   custom.theme = NULL,
@@ -350,6 +350,17 @@ generate_taxa_barplot_single <-
 
       result <- midpoints
 
+      df_sorted <- df %>%
+        group_by(!!sym(feature.level)) %>%
+        summarise(overall_mean = mean(value, na.rm = TRUE)) %>%
+        mutate(is_other = ifelse(!!sym(feature.level) == "Other", FALSE, TRUE)) %>%
+        arrange(is_other, overall_mean) %>%
+        mutate(!!feature.level := factor(!!sym(feature.level), levels = !!sym(feature.level)))
+
+      # Apply sorted factor levels to the original data frame
+      df <- df %>%
+        mutate(!!feature.level := factor(!!sym(feature.level), levels = levels(df_sorted[[feature.level]])))
+
       stack_barplot_indiv  <- # Main plot code
         df %>%
         ggplot(aes(x = !!sym(subject.var), y = value, fill = !!sym(feature.level))) +
@@ -428,6 +439,17 @@ generate_taxa_barplot_single <-
         df_average <- df_average %>%
           tidyr::separate(!!sym(group.var), into = c(group.var, strata.var), sep = "\\.")
       }
+
+      df_average_sorted <- df_average %>%
+        group_by(!!sym(feature.level)) %>%
+        summarise(overall_mean = mean(mean_value, na.rm = TRUE)) %>%
+        mutate(is_other = ifelse(!!sym(feature.level) == "Other", FALSE, TRUE)) %>%
+        arrange(is_other, overall_mean) %>%
+        mutate(!!feature.level := factor(!!sym(feature.level), levels = !!sym(feature.level)))
+
+      # Apply the sorted factor levels to the original data frame.
+      df_average <- df_average %>%
+        mutate(!!feature.level := factor(!!sym(feature.level), levels = levels(df_average_sorted[[feature.level]])))
 
       stack_barplot_average  <- # Main plot code
         df_average %>%
