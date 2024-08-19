@@ -147,7 +147,7 @@ generate_taxa_barplot_pair <-
     if (is.null(palette)) {
       pal <-
         rep(
-          c(
+          c("#E0E0E0",
             "#E41A1C",
             "#1E90FF",
             "#FF8C00",
@@ -403,7 +403,7 @@ generate_taxa_barplot_pair <-
       sorted_merged_long_df <-
         sorted_merged_long_df %>% dplyr::mutate(!!sym(feature.level) := as.factor(!!sym(feature.level)))
 
-      # 计算每个特征的平均值并排序
+      # Calculate the average value of each feature and sort them.
       df_sorted <- sorted_merged_long_df %>%
         dplyr::group_by(!!sym(feature.level)) %>%
         dplyr::summarise(overall_mean = mean(value, na.rm = TRUE)) %>%
@@ -411,11 +411,11 @@ generate_taxa_barplot_pair <-
         dplyr::arrange(is_other, overall_mean) %>%
         dplyr::mutate(!!feature.level := factor(!!sym(feature.level), levels = !!sym(feature.level)))
 
-      # 应用新的排序
+      # Applying the new ordering
       sorted_merged_long_df <- sorted_merged_long_df %>%
         dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = levels(df_sorted[[feature.level]])))
 
-      # 更新 new_levels
+      # Update new_levels
       if (!is.na(other.abund.cutoff)) {
         new_levels <- c("Other", setdiff(levels(sorted_merged_long_df[[feature.level]]), "Other"))
       } else {
@@ -586,13 +586,11 @@ generate_taxa_barplot_pair <-
         }
       }
 
-      # 修改这部分代码
       df_average <- sorted_merged_long_df %>%
         dplyr::group_by(!!sym(feature.level), !!sym(group.var), !!sym(time.var)) %>%
         dplyr::summarise(mean_value  = mean(value)) %>%
         dplyr::ungroup()
 
-      # 添加这部分新代码
       df_average_sorted <- df_average %>%
         dplyr::group_by(!!sym(feature.level)) %>%
         dplyr::summarise(overall_mean = mean(mean_value, na.rm = TRUE)) %>%
@@ -600,14 +598,13 @@ generate_taxa_barplot_pair <-
         dplyr::arrange(is_other, overall_mean) %>%
         dplyr::mutate(!!feature.level := factor(!!sym(feature.level), levels = !!sym(feature.level)))
 
-      # 更新 new_levels
+      # Update new_levels
       if (!is.na(other.abund.cutoff)) {
         new_levels <- c("Other", setdiff(levels(df_average_sorted[[feature.level]]), "Other"))
       } else {
         new_levels <- levels(df_average_sorted[[feature.level]])
       }
 
-      # 继续修改
       df_average <- df_average %>%
         dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = new_levels)) %>%
         dplyr::arrange(match(!!sym(feature.level), new_levels)) %>%
