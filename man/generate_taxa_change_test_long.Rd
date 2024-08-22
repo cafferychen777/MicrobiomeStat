@@ -101,7 +101,7 @@ result <- generate_taxa_change_test_long(
 # Visualizing the results for the Type 2 Diabetes dataset
 dotplot_T2D <- generate_taxa_dotplot_long(
   data.obj = subset_T2D.obj,
-  time.test.list = result,
+  test.list = result,
   t0.level = unique(subset_T2D.obj$meta.dat$visit_number)[1],
   ts.levels = unique(subset_T2D.obj$meta.dat$visit_number)[-1],
   group.var = "subject_race",

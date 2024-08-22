@@ -6,7 +6,7 @@
 \usage{
 generate_taxa_dotplot_long(
   data.obj,
-  time.test.list,
+  test.list,
   group.var,
   time.var,
   t0.level = NULL,
@@ -26,7 +26,7 @@ generate_taxa_dotplot_long(
 \arguments{
 \item{data.obj}{A MicrobiomeStat data object containing microbiome data and metadata.}
 
-\item{time.test.list}{A list of test results from `generate_taxa_test_long` function, representing the statistical analysis of taxa over time.}
+\item{test.list}{A list of test results from `generate_taxa_test_long` function, representing the statistical analysis of taxa over time.}
 
 \item{group.var}{A string specifying the group variable in meta.dat for between-group comparisons in the dot plot.}
 
@@ -113,7 +113,7 @@ result1 <- generate_taxa_test_long(
 # Visualizing the results for the ECAM dataset
 dotplot_ecam <- generate_taxa_dotplot_long(
   data.obj = ecam.obj,
-  time.test.list = result1,
+  test.list = result1,
   group.var = "delivery",
   time.var = "month_num",
   feature.level = c("Phylum", "Class", "Family"),
@@ -138,7 +138,7 @@ result2 <- generate_taxa_test_long(
 # Visualizing the results for the Type 2 Diabetes dataset
 dotplot_T2D <- generate_taxa_dotplot_long(
   data.obj = subset_T2D.obj,
-  time.test.list = result2,
+  test.list = result2,
   group.var = "subject_race",
   time.var = "visit_number",
   t0.level = unique(subset_T2D.obj$meta.dat$visit_number)[1],

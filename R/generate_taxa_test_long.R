@@ -41,7 +41,7 @@
 #' # Visualizing the results for the ECAM dataset
 #' dotplot_ecam <- generate_taxa_dotplot_long(
 #'   data.obj = ecam.obj,
-#'   time.test.list = result1,
+#'   test.list = result1,
 #'   group.var = "delivery",
 #'   time.var = "month_num",
 #'   feature.level = c("Phylum", "Class")
@@ -66,7 +66,7 @@
 #' # Visualizing the results for the Type 2 Diabetes dataset
 #' dotplot_T2D <- generate_taxa_dotplot_long(
 #'   data.obj = subset_T2D.obj,
-#'   time.test.list = result2,
+#'   test.list = result2,
 #'   group.var = "subject_race",
 #'   time.var = "visit_number_num",
 #'   t0.level = unique(subset_T2D.obj$meta.dat$visit_number_num)[1],
@@ -148,7 +148,7 @@ generate_taxa_test_long <-
 
     time.levels <- data.obj$meta.dat %>% select(all_of(c(time.var))) %>% unique() %>% pull()
 
-    time.test.list <- lapply(time.levels, function(t.level){
+    test.list <- lapply(time.levels, function(t.level){
 
       subset.ids <- rownames(data.obj$meta.dat %>%
                                filter(!!sym(time.var) %in% c(t.level)))
@@ -268,7 +268,7 @@ generate_taxa_test_long <-
       return(test.list)
     })
 
-    names(time.test.list) <- time.levels
+    names(test.list) <- time.levels
 
-    return(time.test.list)
+    return(test.list)
   }
