@@ -209,30 +209,62 @@ generate_beta_ordination_pair <-
         df %>% dplyr::select(all_of(time.var)) %>% dplyr::pull() %>% unique()
 
       df <- df %>%
-        dplyr::arrange(!!sym(subject.var),!!sym(time.var)) %>% # 排序，确保时间的正确顺序
+        dplyr::arrange(!!sym(subject.var),!!sym(time.var)) %>% # Sort to ensure the correct order of time.
         dplyr::group_by(!!sym(subject.var)) %>%
         dplyr::mutate(x_end = dplyr::lead(PC1),
                       y_end = dplyr::lead(PC2)) %>%
         dplyr::ungroup()
 
-      p <- ggplot2::ggplot(df, ggplot2::aes(PC1, PC2)) +
-        ggplot2::geom_point(
-          size = 10,
-          aes_function,
-          show.legend = T,
-          alpha = 0.8
-        ) +
+      # Create a dataset with all points for each facet
+      if (!is.null(strata.var)) {
+        all_strata <- unique(df[[strata.var]])
+        df_all <- do.call(rbind, lapply(all_strata, function(s) {
+          df_temp <- df
+          df_temp$facet <- s
+          df_temp$is_facet <- df_temp[[strata.var]] == s
+          return(df_temp)
+        }))
+      } else {
+        df_all <- df
+        df_all$facet <- "All"
+        df_all$is_facet <- TRUE
+      }
+
+      # Create base plot
+      p <- ggplot2::ggplot(df_all, ggplot2::aes(PC1, PC2))
+
+      # Add gray points and lines for all data
+      p <- p +
+        ggplot2::geom_point(data = subset(df_all, !is_facet),
+                            aes_function,
+                            size = 10, alpha = 0.5, color = "gray80") +
         ggplot2::geom_segment(
+          data = subset(df_all, !is_facet),
+          aes(x = x_start, y = y_start, xend = x_end, yend = y_end),
+          color = "gray80", size = 1, alpha = 0.5,
+          arrow = ggplot2::arrow(length = unit(0.25, "cm"), type = "open")
+        )
+
+      # Define aesthetic mapping
+      aes_function <- if (!is.null(group.var)) {
+        aes(shape = !!sym(time.var), color = !!sym(group.var))
+      } else {
+        aes(shape = !!sym(time.var), color = !!sym(time.var))
+      }
+
+      p <- p +
+        ggplot2::geom_point(data = subset(df_all, is_facet), aes_function, size = 10, show.legend = TRUE) +
+        ggplot2::geom_segment(
+          data = subset(df_all, is_facet),
           aes(
-            x = x_start,
-            y = y_start,
-            xend = x_end,
-            yend = y_end
+            x = x_start, y = y_start, xend = x_end, yend = y_end,
+            color = if (!is.null(group.var)) !!sym(group.var) else !!sym(time.var)
           ),
           arrow = ggplot2::arrow(length = unit(0.25, "cm"), type = "open"),
-          size = 1,
-          color = "black"
-        ) +
+          size = 1
+        )
+
+      p <- p +
         ggplot2::labs(
           x = ifelse(
             !is.null(pc.obj[[dist.name]]$eig),
@@ -250,13 +282,9 @@ generate_beta_ordination_pair <-
           )
         ) +
         scale_color_manual(values = col) +
-        ggplot2::geom_vline(xintercept = 0,
-                            linetype = "dashed",
-                            color = "black") +
-        ggplot2::geom_hline(yintercept = 0,
-                            linetype = "dashed",
-                            color = "black") +
-        theme_to_use  +
+        ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
+        ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+        theme_to_use +
         ggplot2::theme(
           panel.spacing.x = unit(0, "cm"),
           panel.spacing.y = unit(0, "cm"),
@@ -271,15 +299,16 @@ generate_beta_ordination_pair <-
           panel.grid.major = ggplot2::element_blank(),
           panel.grid.minor = ggplot2::element_blank(),
           panel.background = ggplot2::element_blank(),
-          axis.text = ggplot2::element_text(color = "black",
-                                            size = base.size),
+          axis.text = ggplot2::element_text(color = "black", size = base.size),
           legend.text = ggplot2::element_text(size = 16),
           legend.title = ggplot2::element_text(size = 16)
         )
 
       if (!is.null(strata.var)) {
-        p <- p + ggh4x::facet_nested(as.formula(paste(".~", strata.var)))
+        p <- p + ggh4x::facet_nested(as.formula(paste("~ facet")))
       }
+
+
       # Save the plots as a PDF file
       if (pdf) {
         pdf_name <- paste0(
