@@ -124,6 +124,28 @@
 #'   time.var = "visit_number_num",
 #'   t0.level = NULL,
 #'   ts.levels = NULL,
+#'   group.var = "subject_race",
+#'   strata.var = "subject_gender",
+#'   adj.vars = NULL,
+#'   dist.name = 'BC',
+#'   base.size = 12,
+#'   theme.choice = "bw",
+#'   custom.theme = NULL,
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#'
+#' generate_beta_ordination_long(
+#'   data.obj = subset_T2D.obj,
+#'   dist.obj = NULL,
+#'   pc.obj = NULL,
+#'   subject.var = "subject_id",
+#'   time.var = "visit_number_num",
+#'   t0.level = NULL,
+#'   ts.levels = NULL,
 #'   group.var = NULL,
 #'   strata.var = NULL,
 #'   adj.vars = NULL,

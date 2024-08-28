@@ -167,7 +167,7 @@ generate_alpha_boxplot_single <- function (data.obj,
                                            alpha.name = c("shannon",
                                                           "observed_species"),
                                            depth = NULL,
-                                           subject.var,
+                                           subject.var = NULL,
                                            time.var = NULL,
                                            t.level = NULL,
                                            group.var = NULL,
@@ -344,8 +344,6 @@ generate_alpha_boxplot_single <- function (data.obj,
     return(boxplot)
   })
 
-
-
   # Save the plots as a PDF file
   if (pdf) {
     plot_list <- lapply(seq_along(plot_list), function(plot_index) {
@@ -355,9 +353,6 @@ generate_alpha_boxplot_single <- function (data.obj,
       pdf_name <- paste0(
         "alpha_boxplot_single_",
         current_alpha_name,
-        "_",
-        "subject_",
-        subject.var,
         "_",
         "time_",
         time.var
@@ -384,8 +379,9 @@ generate_alpha_boxplot_single <- function (data.obj,
       return(plot)
     })
 
-    names(plot_list) <- alpha.name
   }
+
+  names(plot_list) <- alpha.name
 
   return(plot_list)
 }

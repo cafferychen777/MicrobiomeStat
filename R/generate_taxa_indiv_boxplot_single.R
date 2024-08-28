@@ -159,7 +159,7 @@ generate_taxa_indiv_boxplot_single <-
            prev.filter = 0.01,
            abund.filter = 0.01,
            base.size = 16,
-           theme.choice = "prism",
+           theme.choice = "bw",
            custom.theme = NULL,
            palette = NULL,
            pdf = TRUE,
@@ -349,7 +349,7 @@ generate_taxa_indiv_boxplot_single <-
         }
 
         if (feature.dat.type != "other"){
-          # 添加对Y轴刻度的修改
+          # Addition of Y-axis scale modification
           if (transform == "sqrt") {
             boxplot <- boxplot + scale_y_continuous(
               labels = function(x) sapply(x, function(i) as.expression(substitute(a^b, list(a = i, b = 2))))

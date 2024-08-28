@@ -106,7 +106,6 @@
 #'   base.size = 16,
 #'   theme.choice = "bw",
 #'   custom.theme = NULL,
-#'   palette = NULL,
 #'   pdf = TRUE,
 #'   file.ann = NULL,
 #'   pdf.wid = 20,
@@ -132,7 +131,6 @@
 #'   base.size = 16,
 #'   theme.choice = "bw",
 #'   custom.theme = NULL,
-#'   palette = NULL,
 #'   pdf = TRUE,
 #'   file.ann = NULL,
 #'   pdf.wid = 20,
@@ -223,25 +221,25 @@ generate_taxa_dotplot_pair <- function(data.obj,
       features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
     }
 
-    # 转换计数为数值类型
+    # Convert the count to a numerical type.
     otu_tax_agg_numeric <-
       dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
 
-    # 计算每个分组的平均丰度
+    # Calculate the average abundance of each group.
     otu_tab_norm_agg <- otu_tax_agg_numeric %>%
       tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
       dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
       dplyr::group_by(!!sym(group.var),!!sym(feature.level),!!sym(time.var)) %>% # Add time.var to dplyr::group_by
       dplyr::summarise(mean_abundance = sqrt(mean(count)))
 
-    # 计算所有样本中的prevalence
+    # Calculate the prevalence in all samples.
     prevalence_all <- otu_tax_agg_numeric %>%
       tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
       dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
       dplyr::group_by(!!sym(group.var),!!sym(feature.level),!!sym(time.var)) %>% # Add time.var to dplyr::group_by
       dplyr::summarise(prevalence = sum(count > 0) / dplyr::n()) %>% as.data.frame()
 
-    # 将两个结果合并
+    # Merge the two results.
     otu_tab_norm_agg <-
       otu_tab_norm_agg %>% dplyr::left_join(prevalence_all, c(feature.level,group.var,time.var))
 
@@ -284,7 +282,7 @@ generate_taxa_dotplot_pair <- function(data.obj,
       }
     }
 
-    # 将患病率添加为点的大小，并将平均丰度作为点的颜色
+    # Add the disease rate as the size of the points, and use the average abundance as the color of the points.
     dotplot <-
       ggplot(
         otu_tab_norm_agg,
@@ -339,7 +337,7 @@ generate_taxa_dotplot_pair <- function(data.obj,
         axis.text.y = element_blank(),
         axis.title.y = element_blank(),
         axis.ticks.y = element_blank(),
-        axis.title.x = element_text(size = base.size),
+        axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
         panel.spacing = unit(0, "lines"),
         strip.text.x = element_blank(),

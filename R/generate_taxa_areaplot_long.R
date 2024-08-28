@@ -296,7 +296,7 @@ generate_taxa_areaplot_long <-
       sorted_merged_long_df <- sorted_merged_long_df %>%
         dplyr::mutate(!!sym(feature.level) := as.factor(!!sym(feature.level)))
 
-      # 计算每个特征的平均值并排序
+      # Calculate the average value of each feature and sort them.
       df_sorted <- sorted_merged_long_df %>%
         dplyr::group_by(!!sym(feature.level)) %>%
         dplyr::summarise(overall_mean = mean(value, na.rm = TRUE)) %>%
@@ -304,18 +304,18 @@ generate_taxa_areaplot_long <-
         dplyr::arrange(is_other, overall_mean) %>%
         dplyr::mutate(!!feature.level := factor(!!sym(feature.level), levels = !!sym(feature.level)))
 
-      # 更新 new_levels
+      # Update new_levels
       if (!is.na(other.abund.cutoff)) {
         new_levels <- c("Other", setdiff(levels(df_sorted[[feature.level]]), "Other"))
       } else {
         new_levels <- levels(df_sorted[[feature.level]])
       }
 
-      # 应用新的排序
+      # Apply new sorting
       sorted_merged_long_df <- sorted_merged_long_df %>%
         dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = new_levels))
 
-      # 修改 df 的创建
+      # Modify the creation of df
       df <- sorted_merged_long_df %>%
         dplyr::group_by(sample) %>%
         dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = new_levels)) %>%
@@ -326,7 +326,7 @@ generate_taxa_areaplot_long <-
         dplyr::mutate(next_cumulative_value = dplyr::if_else(sample %in% last_sample_ids$last_sample_id, NA_real_, dplyr::lead(cumulative_value))) %>%
         dplyr::ungroup()
 
-      # 更新颜色调色板
+      # Update color palette
       color_pal <- setNames(pal[1:length(new_levels)], new_levels)
 
       bar_width <- 0.6
@@ -356,7 +356,7 @@ generate_taxa_areaplot_long <-
         }
       }
 
-      # 修改 df_average 的创建
+      # Modify the creation of df_average
       df_average <- sorted_merged_long_df %>%
         dplyr::group_by(!!sym(feature.level),!!sym(group.var),!!sym(time.var)) %>%
         dplyr::summarise(mean_value  = mean(value)) %>%

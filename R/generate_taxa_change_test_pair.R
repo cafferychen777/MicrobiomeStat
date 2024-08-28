@@ -170,22 +170,22 @@ generate_taxa_change_test_pair <-
         rownames_to_column(feature.level)
 
       if (feature.dat.type %in% c("count", "proportion")) {
-        # 使用 half nonzero minimum 方法进行零值填充
+        # Use the half nonzero minimum method for zero padding.
         half_nonzero_min <- apply(otu_tax_agg_filter[, -1], 2, function(x) min(x[x > 0]) / 2)
 
-        # 创建一个与 otu_tax_agg_filter[, -1] 相同维度的逻辑矩阵
+        # Create a logical matrix with the same dimensions as otu_tax_agg_filter[, -1]
         zero_matrix <- otu_tax_agg_filter[, -1] == 0
 
-        # 将 half_nonzero_min 向量重塑为与 zero_matrix 相同维度的矩阵
+        # Reshape the half_nonzero_min vector into a matrix with the same dimensions as the zero_matrix.
         half_nonzero_min_matrix <- matrix(half_nonzero_min, nrow = nrow(zero_matrix), ncol = ncol(zero_matrix), byrow = TRUE)
 
-        # 使用逻辑矩阵作为索引更新 otu_tax_agg_filter 中的零值
+        # Use a logical matrix as an index to update the zero values in otu_tax_agg_filter.
         otu_tax_agg_filter[, -1][zero_matrix] <- half_nonzero_min_matrix[zero_matrix]
 
-        # 添加一条消息,告知用户已执行填充操作
+        # Add a message to inform the user that the fill operation has been performed.
         message("Imputation was performed using half the minimum nonzero proportion for each taxon across all time points.")
 
-        # 对填充后的 proportion 数据进行 97% winsorization
+        # Apply 97% winsorization to the filled proportion data.
         otu_tax_agg_filter[, -1] <- apply(otu_tax_agg_filter[, -1], 2, function(x) {
           qt <- quantile(x, probs = c((1 - winsor.qt) / 2, 1 - (1 - winsor.qt) / 2))
           x[x < qt[1]] <- qt[1]
@@ -194,7 +194,7 @@ generate_taxa_change_test_pair <-
         })
 
       } else if (feature.dat.type == "other") {
-        # 如果是 "other" 类型,对顶部和底部进行 winsorization
+        # If it is of "other" type, winsorize the top and bottom.
         otu_tax_agg_filter[, -1] <- apply(otu_tax_agg_filter[, -1], 2, function(x) {
           qt <- quantile(x, probs = c((1 - winsor.qt) / 2, 1 - (1 - winsor.qt) / 2))
           x[x < qt[1]] <- qt[1]

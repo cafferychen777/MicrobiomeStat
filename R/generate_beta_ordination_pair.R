@@ -22,6 +22,10 @@
 #' @param time.var The variable in the metadata table that represents the time.
 #' @param group.var (Optional) The variable in the metadata table that represents the grouping factor.
 #' @param strata.var (Optional) The variable in the metadata table that represents the stratification factor.
+#'                   When provided, the plot will be faceted based on this variable. Each facet will display
+#'                   all data points, with points relevant to the current facet shown in color and points
+#'                   from other facets shown in gray. This allows for easy comparison across strata while
+#'                   maintaining context of the overall data distribution.
 #' @param adj.vars A character vector containing the names of the columns in data.obj$meta.dat to include as covariates in the PERMANOVA analysis. If no covariates are needed, use NULL (default).
 #' @param dist.name A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').
 #' @param base.size (Optional) Base font size for the plot (default is 16).
@@ -141,7 +145,7 @@ generate_beta_ordination_pair <-
            adj.vars = NULL,
            dist.name = c('BC', 'Jaccard'),
            base.size = 16,
-           theme.choice = "prism",
+           theme.choice = "bw",
            custom.theme = NULL,
            palette = NULL,
            pdf = TRUE,

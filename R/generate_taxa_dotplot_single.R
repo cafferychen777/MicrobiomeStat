@@ -207,14 +207,14 @@ generate_taxa_dotplot_single <- function(data.obj,
       features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
     }
 
-    # 计算每个分组的平均丰度
+    # Calculate the average abundance of each group.
     otu_tab_norm_agg <- otu_tax_agg %>%
       tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
       dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
       dplyr::group_by(!!sym(group.var),!!sym(feature.level)) %>% # Add time.var to dplyr::group_by
       dplyr::summarise(mean_abundance = sqrt(mean(count)))
 
-    # 计算所有样本中的prevalence
+    # Calculate the prevalence in all samples.
     prevalence_all <- otu_tax_agg %>%
       column_to_rownames(feature.level) %>%
       as.matrix() %>%
@@ -227,7 +227,7 @@ generate_taxa_dotplot_single <- function(data.obj,
       column_to_rownames("Var1") %>%
       rownames_to_column(feature.level)
 
-    # 将两个结果合并
+    # Merge the two results.
     otu_tab_norm_agg <-
       otu_tab_norm_agg %>% dplyr::left_join(prevalence_all, feature.level)
 
@@ -244,7 +244,7 @@ generate_taxa_dotplot_single <- function(data.obj,
       otu_tab_norm_agg <- otu_tab_norm_agg %>% filter(!!sym(feature.level) %in% features.plot)
     }
 
-    # 将患病率添加为点的大小，并将平均丰度作为点的颜色
+    # Add the disease rate as the size of the points, and use the average abundance as the color of the points.
     dotplot <-
       ggplot(
         otu_tab_norm_agg,
@@ -289,7 +289,7 @@ generate_taxa_dotplot_single <- function(data.obj,
         axis.text.y = element_blank(),
         axis.title.y = element_blank(),
         axis.ticks.y = element_blank(),
-        axis.title.x = element_text(size = base.size),
+        axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
         panel.spacing = unit(0, "lines"),
         legend.position = "right",
