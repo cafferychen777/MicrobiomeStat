@@ -16,6 +16,8 @@
 #' column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
 #' for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
 #' is also NULL.
+#' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+#' Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.
 #' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
 #' Should be one of:
 #' - "count": Raw count data, will be normalized by the function.
@@ -111,6 +113,7 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
+#'
 #' data("subset_T2D.obj")
 #' generate_taxa_barplot_single(
 #'   data.obj = subset_T2D.obj,
@@ -150,6 +153,60 @@
 #'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
+#' data(ecam.obj)
+#' generate_taxa_barplot_single(
+#'   data.obj = ecam.obj,
+#'   time.var = "month",
+#'   group.var = "antiexposedall",
+#'   strata.var = NULL,
+#'   feature.level = c("Phylum", "Family", "Genus"),
+#'   feature.dat.type = "proportion",
+#'   feature.number = 10,
+#'   base.size = 10,
+#'   theme.choice = "bw",
+#'   custom.theme = NULL,
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#' generate_taxa_barplot_single(
+#'   data.obj = ecam.obj,
+#'   time.var = "month",
+#'   t.level = "0",
+#'   group.var = "antiexposedall",
+#'   strata.var = NULL,
+#'   feature.level = c("Phylum", "Family", "Genus"),
+#'   feature.dat.type = "proportion",
+#'   feature.number = 10,
+#'   base.size = 10,
+#'   theme.choice = "bw",
+#'   custom.theme = NULL,
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
+#' generate_taxa_barplot_single(
+#'   data.obj = ecam.obj,
+#'   time.var = "month",
+#'   t.level = "0",
+#'   group.var = "antiexposedall",
+#'   strata.var = NULL,
+#'   feature.level = c("Family"),
+#'   feature.dat.type = "proportion",
+#'   features.plot = unique(ecam.obj$feature.ann[,"Family"])[1:12],
+#'   base.size = 10,
+#'   theme.choice = "bw",
+#'   custom.theme = NULL,
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL,
+#'   pdf.wid = 11,
+#'   pdf.hei = 8.5
+#' )
 #' }
 #' @export
 generate_taxa_barplot_single <-
@@ -161,6 +218,7 @@ generate_taxa_barplot_single <-
            strata.var = NULL,
            feature.level = "original",
            feature.dat.type = c("count", "proportion", "other"),
+           features.plot = NULL,
            feature.number = 20,
            base.size = 10,
            theme.choice = "bw",
@@ -242,12 +300,13 @@ generate_taxa_barplot_single <-
       )
       data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
     } else if (feature.dat.type == "proportion"){
-
+      data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
     } else if (feature.dat.type == "other"){
       stop("The 'other' type is suitable for situations where the user has analyzed the data using a method not provided in 'mStat_normalize_data' method, and the 'areaplot' is only applicable to raw data that has not undergone any processing or proportion data that adds up to 1. If you believe your data falls into these two categories, please modify 'feature.dat.type'.")
     }
 
     plot_list_all <- lapply(feature.level,function(feature.level){
+
 
       if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
         data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
@@ -257,6 +316,10 @@ generate_taxa_barplot_single <-
         otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
       } else {
         otu_tax_agg <- data.obj$feature.tab
+      }
+
+      if (!is.null(features.plot)){
+        otu_tax_agg <- otu_tax_agg[features.plot,]
       }
 
       otu_tax_agg <-  otu_tax_agg %>%
@@ -351,15 +414,15 @@ generate_taxa_barplot_single <-
       result <- midpoints
 
       df_sorted <- df %>%
-        group_by(!!sym(feature.level)) %>%
-        summarise(overall_mean = mean(value, na.rm = TRUE)) %>%
-        mutate(is_other = ifelse(!!sym(feature.level) == "Other", FALSE, TRUE)) %>%
-        arrange(is_other, overall_mean) %>%
-        mutate(!!feature.level := factor(!!sym(feature.level), levels = !!sym(feature.level)))
+        dplyr::group_by(!!sym(feature.level)) %>%
+        dplyr::summarise(overall_mean = mean(value, na.rm = TRUE)) %>%
+        dplyr::mutate(is_other = ifelse(!!sym(feature.level) == "Other", FALSE, TRUE)) %>%
+        dplyr::arrange(is_other, overall_mean) %>%
+        dplyr::mutate(!!feature.level := factor(!!sym(feature.level), levels = !!sym(feature.level)))
 
       # Apply sorted factor levels to the original data frame
       df <- df %>%
-        mutate(!!feature.level := factor(!!sym(feature.level), levels = levels(df_sorted[[feature.level]])))
+        dplyr::mutate(!!feature.level := factor(!!sym(feature.level), levels = levels(df_sorted[[feature.level]])))
 
       stack_barplot_indiv  <- # Main plot code
         df %>%
@@ -441,15 +504,15 @@ generate_taxa_barplot_single <-
       }
 
       df_average_sorted <- df_average %>%
-        group_by(!!sym(feature.level)) %>%
-        summarise(overall_mean = mean(mean_value, na.rm = TRUE)) %>%
-        mutate(is_other = ifelse(!!sym(feature.level) == "Other", FALSE, TRUE)) %>%
-        arrange(is_other, overall_mean) %>%
-        mutate(!!feature.level := factor(!!sym(feature.level), levels = !!sym(feature.level)))
+        dplyr::group_by(!!sym(feature.level)) %>%
+        dplyr::summarise(overall_mean = mean(mean_value, na.rm = TRUE)) %>%
+        dplyr::mutate(is_other = ifelse(!!sym(feature.level) == "Other", FALSE, TRUE)) %>%
+        dplyr::arrange(is_other, overall_mean) %>%
+        dplyr::mutate(!!feature.level := factor(!!sym(feature.level), levels = !!sym(feature.level)))
 
       # Apply the sorted factor levels to the original data frame.
       df_average <- df_average %>%
-        mutate(!!feature.level := factor(!!sym(feature.level), levels = levels(df_average_sorted[[feature.level]])))
+        dplyr::mutate(!!feature.level := factor(!!sym(feature.level), levels = levels(df_average_sorted[[feature.level]])))
 
       stack_barplot_average  <- # Main plot code
         df_average %>%
@@ -493,8 +556,6 @@ generate_taxa_barplot_single <-
       if (pdf) {
         pdf_name <- paste0("taxa_barplot_single",
                            "_",
-                           "subject_", subject.var,
-                           "_",
                            "time_", time.var,
                            "_",
                            "feature_level_", feature.level,
@@ -516,8 +577,6 @@ generate_taxa_barplot_single <-
       # Save the stacked barplots as a PDF file
       if (pdf) {
         pdf_name <- paste0("taxa_barplot_single",
-                           "_",
-                           "subject_", subject.var,
                            "_",
                            "time_", time.var,
                            "_",

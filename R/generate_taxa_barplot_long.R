@@ -16,6 +16,8 @@
 #' column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
 #' for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
 #' is also NULL.
+#' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+#' Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.
 #' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
 #' Should be one of:
 #' - "count": Raw count data, will be normalized by the function.
@@ -97,6 +99,41 @@
 #'   file.ann = NULL
 #' )
 #'
+#' generate_taxa_barplot_long(
+#'   data.obj = ecam.obj,
+#'   subject.var = "studyid",
+#'   time.var = "month_num",
+#'   group.var = "delivery",
+#'   strata.var = "diet",
+#'   feature.level = "Genus",
+#'   feature.dat.type = "proportion",
+#'   feature.number = 30,
+#'   t0.level = NULL,
+#'   ts.levels = NULL,
+#'   theme.choice = "bw",
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL
+#' )
+#'
+#' generate_taxa_barplot_long(
+#'   data.obj = ecam.obj,
+#'   subject.var = "studyid",
+#'   time.var = "month_num",
+#'   group.var = "delivery",
+#'   strata.var = "diet",
+#'   feature.level = "Genus",
+#'   feature.dat.type = "proportion",
+#'   features.plot = unique(ecam.obj$feature.ann[,"Genus"])[1:10],
+#'   feature.number = 30,
+#'   t0.level = NULL,
+#'   ts.levels = NULL,
+#'   theme.choice = "bw",
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL
+#' )
+#'
 #' data(subset_T2D.obj)
 #' generate_taxa_barplot_long(
 #'   data.obj = subset_T2D.obj,
@@ -106,6 +143,26 @@
 #'   strata.var = "subject_gender",
 #'   feature.level = c("Genus"),
 #'   feature.dat.type = "count",
+#'   feature.number = 40,
+#'   t0.level = NULL,
+#'   ts.levels = NULL,
+#'   base.size = 10,
+#'   theme.choice = "bw",
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   pdf.wid = 49,
+#'   file.ann = NULL
+#' )
+#'
+#' generate_taxa_barplot_long(
+#'   data.obj = subset_T2D.obj,
+#'   subject.var = "subject_id",
+#'   time.var = "visit_number_num",
+#'   group.var = "subject_race",
+#'   strata.var = "subject_gender",
+#'   feature.level = c("Genus"),
+#'   feature.dat.type = "count",
+#'   features.plot = unique(subset_T2D.obj$feature.ann[,"Genus"][1:6]),
 #'   feature.number = 40,
 #'   t0.level = NULL,
 #'   ts.levels = NULL,
@@ -127,6 +184,7 @@ generate_taxa_barplot_long <-
            feature.level = "original",
            feature.dat.type = c("count", "proportion", "other"),
            feature.number = 20,
+           features.plot = NULL,
            t0.level = NULL,
            ts.levels = NULL,
            base.size = 10,
@@ -216,6 +274,11 @@ generate_taxa_barplot_long <-
         otu_tax_agg <- data.obj$feature.tab
       }
 
+      if (!is.null(features.plot)){
+        otu_tax_agg <- otu_tax_agg[na.omit(features.plot),]
+        otu_tax_agg <- apply(otu_tax_agg, 2, function(x) x / sum(x))
+      }
+
       otu_tax_agg <-  otu_tax_agg %>%
         as.data.frame() %>%
         rownames_to_column(feature.level)
@@ -261,7 +324,7 @@ generate_taxa_barplot_long <-
 
       sorted_merged_long_df <- sorted_merged_long_df %>% dplyr::mutate(!!sym(feature.level) := as.factor(!!sym(feature.level)))
 
-      # 计算每个特征的平均值并排序
+      # Calculate the average value of each feature and sort them.
       df_sorted <- sorted_merged_long_df %>%
         dplyr::group_by(!!sym(feature.level)) %>%
         dplyr::summarise(overall_mean = mean(value, na.rm = TRUE)) %>%
@@ -269,18 +332,18 @@ generate_taxa_barplot_long <-
         dplyr::arrange(is_other, overall_mean) %>%
         dplyr::mutate(!!feature.level := factor(!!sym(feature.level), levels = !!sym(feature.level)))
 
-      # 更新 new_levels
+      # Update new_levels
       if (!is.na(other.abund.cutoff)) {
         new_levels <- c("Other", setdiff(levels(df_sorted[[feature.level]]), "Other"))
       } else {
         new_levels <- levels(df_sorted[[feature.level]])
       }
 
-      # 应用新的排序
+      # Apply new sorting
       sorted_merged_long_df <- sorted_merged_long_df %>%
         dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = new_levels))
 
-      # 修改 df 的创建
+      # Modify the creation of df
       df <- sorted_merged_long_df %>%
         dplyr::group_by(sample) %>%
         dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = new_levels)) %>%
@@ -291,7 +354,7 @@ generate_taxa_barplot_long <-
         dplyr::mutate(next_cumulative_value = dplyr::if_else(sample %in% last_sample_ids$last_sample_id, NA_real_, dplyr::lead(cumulative_value))) %>%
         dplyr::ungroup()
 
-      # 更新颜色调色板
+      # Update color palette
       color_pal <- setNames(pal[1:length(new_levels)], new_levels)
 
       bar_width <- 0.6

@@ -18,6 +18,8 @@
 #'                     which will use the original taxon identifiers. Multiple levels can be specified
 #'                     and data will be plotted separately for each. **Cannot be NULL, as NULL value
 #'                     will lead to errors.** Default is "original".
+#' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+#' Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.
 #' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
 #' Should be one of:
 #' - "count": Raw count data, will be normalized by the function.
@@ -111,6 +113,24 @@
 #'   pdf = TRUE,
 #'   file.ann = NULL
 #' )
+#' generate_taxa_areaplot_long(
+#'   data.obj = ecam.obj,
+#'   subject.var = "studyid",
+#'   time.var = "month_num",
+#'   group.var = "delivery",
+#'   strata.var = "diet",
+#'   feature.level = c("Genus"),
+#'   feature.dat.type = "proportion",
+#'   feature.number = 20,
+#'   features.plot = unique(ecam.obj$feature.ann[,"Genus"])[1:15],
+#'   t0.level = NULL,
+#'   ts.levels = NULL,
+#'   base.size = 10,
+#'   theme.choice = "bw",
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   file.ann = NULL
+#' )
 #' data(subset_T2D.obj)
 #' generate_taxa_areaplot_long(
 #'   data.obj = subset_T2D.obj,
@@ -162,6 +182,7 @@ generate_taxa_areaplot_long <-
            feature.level = "original",
            feature.dat.type = c("count", "proportion", "other"),
            feature.number = 20,
+           features.plot = NULL,
            t0.level = NULL,
            ts.levels = NULL,
            base.size = 10,
@@ -247,6 +268,10 @@ generate_taxa_areaplot_long <-
         otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
       } else {
         otu_tax_agg <- data.obj$feature.tab
+      }
+
+      if (!is.null(features.plot)){
+        otu_tax_agg <- otu_tax_agg[features.plot,]
       }
 
       otu_tax_agg <-  otu_tax_agg %>%
