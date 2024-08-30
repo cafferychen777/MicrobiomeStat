@@ -4,12 +4,16 @@
 #' It provides options for grouping and stratifying data, and generates both individual and average barplots.
 #'
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param subject.var A string indicating the variable for subject identifiers.
-#' @param time.var A string indicating the variable for time points.
+#' @param subject.var Character string specifying the column name in metadata containing
+#'                    unique subject IDs. Required to connect samples from the same subject.
+#' @param time.var Character string specifying the column name in metadata containing the
+#'                time variable. Required to order and connect samples over time.
 #' @param t.level Character string specifying the time level/value to subset data to,
 #' if a time variable is provided. Default NULL does not subset data.
-#' @param group.var A string indicating the variable for group identifiers. Default is NULL.
-#' @param strata.var A string indicating the variable for strata identifiers. Default is NULL.
+#' @param group.var Character string specifying the column name in metadata containing grouping
+#'                 categories. Used for coloring lines in the plot. Optional, can be NULL.
+#' @param strata.var Character string specifying the column name in metadata containing stratification
+#'                  categories. Used for nested faceting in the plots. Optional, can be NULL.
 #' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
 #' to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
 #' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
@@ -302,7 +306,7 @@ generate_taxa_barplot_single <-
     } else if (feature.dat.type == "proportion"){
       data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
     } else if (feature.dat.type == "other"){
-      stop("The 'other' type is suitable for situations where the user has analyzed the data using a method not provided in 'mStat_normalize_data' method, and the 'areaplot' is only applicable to raw data that has not undergone any processing or proportion data that adds up to 1. If you believe your data falls into these two categories, please modify 'feature.dat.type'.")
+      message("The 'other' type is suitable for situations where the user has analyzed the data using a method not provided in 'mStat_normalize_data' method, and the 'areaplot' is only applicable to raw data that has not undergone any processing or proportion data that adds up to 1. If you believe your data falls into these two categories, please modify 'feature.dat.type'.")
     }
 
     plot_list_all <- lapply(feature.level,function(feature.level){

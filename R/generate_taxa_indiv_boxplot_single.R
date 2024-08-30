@@ -155,7 +155,7 @@ generate_taxa_indiv_boxplot_single <-
            feature.dat.type = c("count", "proportion", "other"),
            top.k.plot = NULL,
            top.k.func = NULL,
-           transform = c("identity", "sqrt", "log"),
+           transform = c("sqrt", "identity", "log"),
            prev.filter = 0.01,
            abund.filter = 0.01,
            base.size = 16,
@@ -169,6 +169,8 @@ generate_taxa_indiv_boxplot_single <-
            ...) {
 
     feature.dat.type <- match.arg(feature.dat.type)
+
+    transform <- match.arg(transform)
 
     mStat_validate_data(data.obj)
 

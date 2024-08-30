@@ -97,6 +97,8 @@ generate_taxa_change_test_pair <-
     # Extract data
     mStat_validate_data(data.obj)
 
+    feature.dat.type <- match.arg(feature.dat.type)
+
     meta_tab <-
       data.obj$meta.dat %>% select(all_of(c(
         time.var, group.var, adj.vars, subject.var

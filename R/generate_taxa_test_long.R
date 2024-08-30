@@ -89,6 +89,8 @@ generate_taxa_test_long <-
     # Extract data
     mStat_validate_data(data.obj)
 
+    feature.dat.type <- match.arg(feature.dat.type)
+
     # Function to generate the formula
     generate_formula <- function(group.var = NULL, adj.vars = NULL, time.var = NULL, subject.var = NULL) {
 

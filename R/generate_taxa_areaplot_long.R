@@ -169,6 +169,25 @@
 #'   pdf.wid = 49,
 #'   file.ann = NULL
 #' )
+#'
+#' generate_taxa_areaplot_long(
+#'   data.obj = subset_T2D.obj,
+#'   subject.var = "subject_id",
+#'   time.var = "visit_number_num",
+#'   group.var = "sample_body_site",
+#'   strata.var = "subject_race",
+#'   feature.level = c("Genus"),
+#'   feature.dat.type = "count",
+#'   feature.number = 40,
+#'   t0.level = NULL,
+#'   ts.levels = NULL,
+#'   base.size = 10,
+#'   theme.choice = "bw",
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   pdf.wid = 49,
+#'   file.ann = NULL
+#' )
 #' }
 #' @import rlang
 #' @import tibble
@@ -271,7 +290,7 @@ generate_taxa_areaplot_long <-
       }
 
       if (!is.null(features.plot)){
-        otu_tax_agg <- otu_tax_agg[features.plot,]
+        otu_tax_agg <- otu_tax_agg[na.omit(features.plot),]
       }
 
       otu_tax_agg <-  otu_tax_agg %>%

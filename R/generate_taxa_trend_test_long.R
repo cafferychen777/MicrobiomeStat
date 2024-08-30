@@ -126,6 +126,8 @@ generate_taxa_trend_test_long <-
     # Extract data
     mStat_validate_data(data.obj)
 
+    feature.dat.type <- match.arg(feature.dat.type)
+
     message(
       "The trend test calculation relies on a numeric time variable.\n",
       "Please check that your time variable is coded as numeric.\n",

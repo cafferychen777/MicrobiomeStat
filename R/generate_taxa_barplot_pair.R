@@ -201,6 +201,11 @@ generate_taxa_barplot_pair <-
         otu_tax_agg <- data.obj$feature.tab
       }
 
+      if (!is.null(features.plot)){
+        otu_tax_agg <- otu_tax_agg[na.omit(features.plot),]
+        otu_tax_agg <- apply(otu_tax_agg, 2, function(x) x / sum(x))
+      }
+
       otu_tax_agg <-  otu_tax_agg %>%
         as.data.frame() %>%
         rownames_to_column(feature.level)

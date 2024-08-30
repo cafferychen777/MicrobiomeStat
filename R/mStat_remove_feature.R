@@ -55,16 +55,18 @@ mStat_remove_feature <- function (data.obj, featureIDs, feature.level = NULL) {
   found.levels <- feature.levels[sapply(feature.levels, function(x) any(data.obj$feature.ann[, x] %in% featureIDs))]
 
   if (is.null(feature.level)) {
-    stop(paste("The feature IDs were found in the following levels:", paste(found.levels, collapse = ", "),
+    message(paste("The feature IDs were found in the following levels:", paste(found.levels, collapse = ", "),
                ". Please specify the 'feature.level' parameter for the level you want to remove."))
+    return()
   } else if (!(feature.level %in% found.levels)) {
-    stop(paste("The specified 'feature.level' does not contain any of the feature IDs. The feature IDs were found in the following levels:",
+    message(paste("The specified 'feature.level' does not contain any of the feature IDs. The feature IDs were found in the following levels:",
                paste(found.levels, collapse = ", "), "."))
+    return()
   }
 
   # Use the tidyverse function 'filter' to subset the data
-  data.obj$feature.tab <- dplyr::filter(data.obj$feature.tab, !(data.obj$feature.ann[, feature.level] %in% featureIDs))
-  data.obj$feature.ann <- dplyr::filter(data.obj$feature.ann, !(data.obj$feature.ann[, feature.level] %in% featureIDs))
+  data.obj$feature.tab <- dplyr::filter(data.obj$feature.tab %>% as.data.frame(), !(data.obj$feature.ann[, feature.level] %in% featureIDs))
+  data.obj$feature.ann <- dplyr::filter(data.obj$feature.ann %>% as.data.frame(), !(data.obj$feature.ann[, feature.level] %in% featureIDs))
 
   # Message about removed features
   removed_features <- length(featureIDs) - nrow(data.obj$feature.tab)
