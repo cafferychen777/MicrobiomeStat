@@ -15,7 +15,7 @@ generate_beta_ordination_pair(
   adj.vars = NULL,
   dist.name = c("BC", "Jaccard"),
   base.size = 16,
-  theme.choice = "prism",
+  theme.choice = "bw",
   custom.theme = NULL,
   palette = NULL,
   pdf = TRUE,
@@ -51,7 +51,11 @@ See \code{\link[MicrobiomeStat]{mStat_calculate_PC}} function for details on out
 
 \item{group.var}{(Optional) The variable in the metadata table that represents the grouping factor.}
 
-\item{strata.var}{(Optional) The variable in the metadata table that represents the stratification factor.}
+\item{strata.var}{(Optional) The variable in the metadata table that represents the stratification factor.
+When provided, the plot will be faceted based on this variable. Each facet will display
+all data points, with points relevant to the current facet shown in color and points
+from other facets shown in gray. This allows for easy comparison across strata while
+maintaining context of the overall data distribution.}
 
 \item{adj.vars}{A character vector containing the names of the columns in data.obj$meta.dat to include as covariates in the PERMANOVA analysis. If no covariates are needed, use NULL (default).}
 

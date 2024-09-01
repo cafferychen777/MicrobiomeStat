@@ -137,6 +137,28 @@ generate_taxa_heatmap_long(
   pdf.hei = 8.5
 )
 
+generate_taxa_heatmap_long(
+  data.obj = ecam.obj,
+  subject.var = "studyid",
+  time.var = "month",
+  t0.level = unique(ecam.obj$meta.dat$month)[1],
+  ts.levels = unique(ecam.obj$meta.dat$month)[2:18],
+  group.var = "delivery",
+  strata.var = "diet",
+  feature.level = c("Family","Phylum","Genus", "Class"),
+  feature.dat.type = "proportion",
+  features.plot = NULL,
+  cluster.rows = FALSE,
+  top.k.plot = NULL,
+  top.k.func = NULL,
+  prev.filter = 0.01,
+  abund.filter = 0.01,
+  pdf = TRUE,
+  file.ann = NULL,
+  pdf.wid = 11,
+  pdf.hei = 8.5
+)
+
 data(subset_T2D.obj)
 generate_taxa_heatmap_long(
   data.obj = subset_T2D.obj,

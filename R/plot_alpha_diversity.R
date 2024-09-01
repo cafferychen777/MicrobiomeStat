@@ -4,9 +4,9 @@
 #' to visualize alpha diversity measures in microbiome data. It supports different
 #' visualization schemes for single time point, paired time points, and longitudinal data.
 #'
-#' @param alpha.obj A matrix or data frame containing alpha diversity measures.
+#' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
 #' @param meta.dat A data frame containing metadata for the samples.
-#' @param measure Character string specifying the alpha diversity measure to plot.
+#' @param measure The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".
 #' @param group.var Character string specifying the grouping variable in meta.dat.
 #' @param strata.var Character string specifying the stratification variable in meta.dat.
 #' @param subject.var Character string specifying the subject variable in meta.dat.

@@ -23,7 +23,8 @@ generate_alpha_test_single(
 \item{alpha.name}{character vector containing the names of alpha diversity indices to calculate.
 Possible values are: "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".}
 
-\item{depth}{An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.}
+\item{depth}{An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
+If NULL, no rarefaction is performed.}
 
 \item{time.var}{Character string specifying the column name in metadata containing time variable.
 Used to subset to a single time point if provided. Default NULL does not subset data.}

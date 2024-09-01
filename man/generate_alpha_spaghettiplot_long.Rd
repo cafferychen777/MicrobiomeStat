@@ -34,7 +34,8 @@ generate_alpha_spaghettiplot_long(
 
 \item{alpha.name}{The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou". Previously named as `alpha.index`.}
 
-\item{depth}{An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.}
+\item{depth}{An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
+If NULL, no rarefaction is performed.}
 
 \item{subject.var}{The name of the subject variable.}
 

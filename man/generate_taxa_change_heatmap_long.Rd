@@ -166,6 +166,29 @@ generate_taxa_change_heatmap_long(
   pdf = TRUE,
   file.ann = NULL
 )
+
+generate_taxa_change_heatmap_long(
+  data.obj = ecam.obj,
+  subject.var = "studyid",
+  time.var = "month",
+  t0.level = unique(ecam.obj$meta.dat$month)[1],
+  ts.levels = unique(ecam.obj$meta.dat$month)[-1],
+  group.var = "antiexposedall",
+  strata.var = "diet",
+  feature.level = c("Family","Class"),
+  feature.change.func = "log fold change",
+  feature.dat.type = "proportion",
+  features.plot = NULL,
+  cluster.rows = FALSE,
+  top.k.plot = 10,
+  top.k.func = "sd",
+  palette = NULL,
+  prev.filter = 0.01,
+  abund.filter = 0.01,
+  pdf = TRUE,
+  file.ann = NULL
+)
+
 data(subset_T2D.obj)
 generate_taxa_change_heatmap_long(
   data.obj = subset_T2D.obj,
@@ -179,6 +202,29 @@ generate_taxa_change_heatmap_long(
   feature.change.func = "log fold change",
   feature.dat.type = "count",
   features.plot = NULL,
+  top.k.plot = 50,
+  top.k.func = "mean",
+  prev.filter = 0.01,
+  abund.filter = 0.01,
+  pdf = TRUE,
+  file.ann = NULL,
+  pdf.wid = 11,
+  pdf.hei = 8.5
+)
+
+generate_taxa_change_heatmap_long(
+  data.obj = subset_T2D.obj,
+  subject.var = "subject_id",
+  time.var = "visit_number",
+  t0.level = unique(subset_T2D.obj$meta.dat$visit_number)[1],
+  ts.levels = unique(subset_T2D.obj$meta.dat$visit_number)[-1],
+  group.var = "subject_gender",
+  strata.var = "subject_race",
+  feature.level = c("Phylum"),
+  feature.change.func = "log fold change",
+  feature.dat.type = "count",
+  features.plot = NULL,
+  cluster.rows = FALSE,
   top.k.plot = 50,
   top.k.func = "mean",
   prev.filter = 0.01,

@@ -9,6 +9,10 @@
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
 #' @param subject.var A string that specifies the name of the subject variable column in the metadata.
 #' @param time.var A string that specifies the name of the time variable column in the metadata. If not provided, it's NULL by default.
+#' @param change.base A value indicating the base level for the time variable.
+#' If provided, the specified level will be used as the reference category in
+#' the model. Default is NULL, which means the first level of the factor will
+#' be used.
 #' @param group.var A string that specifies the name of the grouping variable column in the metadata for linear modelling.
 #' @param adj.vars A vector of strings that specify the names of additional variables to be used as covariates in the analysis.
 #' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering

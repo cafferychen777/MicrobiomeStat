@@ -266,15 +266,15 @@ generate_beta_change_boxplot_long <-
       if (!is.null(strata.var)){
         # Join meta data to get group and time information
         dist_meta <- dist_tibble %>%
-          pivot_longer(cols = -Sample1, names_to = "Sample2", values_to = "Distance") %>%
-          left_join(meta_tab %>% select(sample, Group = all_of(group.var), Time = all_of(time.var), Strata = all_of(strata.var)), by = c("Sample1" = "sample")) %>%
-          left_join(meta_tab %>% select(sample, Group = all_of(group.var), Time = all_of(time.var), Strata = all_of(strata.var)), by = c("Sample2" = "sample"))
+          tidyr::pivot_longer(cols = -Sample1, names_to = "Sample2", values_to = "Distance") %>%
+          dplyr::left_join(meta_tab %>% select(sample, Group = all_of(group.var), Time = all_of(time.var), Strata = all_of(strata.var)), by = c("Sample1" = "sample")) %>%
+          dplyr::left_join(meta_tab %>% select(sample, Group = all_of(group.var), Time = all_of(time.var), Strata = all_of(strata.var)), by = c("Sample2" = "sample"))
       } else {
         # Join meta data to get group and time information
         dist_meta <- dist_tibble %>%
-          pivot_longer(cols = -Sample1, names_to = "Sample2", values_to = "Distance") %>%
-          left_join(meta_tab %>% select(sample, Group = all_of(group.var), Time = all_of(time.var)), by = c("Sample1" = "sample")) %>%
-          left_join(meta_tab %>% select(sample, Group = all_of(group.var), Time = all_of(time.var)), by = c("Sample2" = "sample"))
+          tidyr::pivot_longer(cols = -Sample1, names_to = "Sample2", values_to = "Distance") %>%
+          dplyr::left_join(meta_tab %>% select(sample, Group = all_of(group.var), Time = all_of(time.var)), by = c("Sample1" = "sample")) %>%
+          dplyr::left_join(meta_tab %>% select(sample, Group = all_of(group.var), Time = all_of(time.var)), by = c("Sample2" = "sample"))
       }
 
       if (length(unique(dist_meta$Group.x)) <= 2) {
@@ -283,9 +283,9 @@ generate_beta_change_boxplot_long <-
           # If group.var has only two levels, use the existing plot
           within_between_dist <- dist_meta %>%
             filter(Time.x == Time.y) %>%
-            mutate(
-              Type = if_else(Group.x == Group.y, "Within", "Between"),
-              Group = if_else(Type == "Within", Group.x, paste(Group.x, Group.y, sep = "-")),
+            dplyr::mutate(
+              Type = dplyr::if_else(Group.x == Group.y, "Within", "Between"),
+              Group = dplyr::if_else(Type == "Within", Group.x, paste(Group.x, Group.y, sep = "-")),
               Time = Time.x
             ) %>%
             select(Group, Distance, Type, Time, Strata = Strata.x)
@@ -293,9 +293,9 @@ generate_beta_change_boxplot_long <-
           # If group.var has only two levels, use the existing plot
           within_between_dist <- dist_meta %>%
             filter(Time.x == Time.y) %>%
-            mutate(
-              Type = if_else(Group.x == Group.y, "Within", "Between"),
-              Group = if_else(Type == "Within", Group.x, paste(Group.x, Group.y, sep = "-")),
+            dplyr::mutate(
+              Type = dplyr::if_else(Group.x == Group.y, "Within", "Between"),
+              Group = dplyr::if_else(Type == "Within", Group.x, paste(Group.x, Group.y, sep = "-")),
               Time = Time.x
             ) %>%
             select(Group, Distance, Type, Time)
@@ -336,23 +336,23 @@ generate_beta_change_boxplot_long <-
           # If group.var has more than two levels, use the new plot
           within_between_dist <- dist_meta %>%
             filter(Time.x == Time.y) %>%
-            mutate(
+            dplyr::mutate(
               Type = paste(Group.x, Group.y, sep = "-"),
               Time = Time.x
             ) %>%
             select(Type, Distance, Time, Strata = Strata.x) %>%
-            mutate(Type = apply(select(., Type), 1, function(x) paste(sort(unlist(strsplit(x, "-"))), collapse = "-"))) %>%
+            dplyr::mutate(Type = apply(select(., Type), 1, function(x) paste(sort(unlist(strsplit(x, "-"))), collapse = "-"))) %>%
             distinct(Type, Time, Distance, Strata, .keep_all = TRUE)
         } else {
           # If group.var has more than two levels, use the new plot
           within_between_dist <- dist_meta %>%
             filter(Time.x == Time.y) %>%
-            mutate(
+            dplyr::mutate(
               Type = paste(Group.x, Group.y, sep = "-"),
               Time = Time.x
             ) %>%
             select(Type, Distance, Time) %>%
-            mutate(Type = apply(select(., Type), 1, function(x) paste(sort(unlist(strsplit(x, "-"))), collapse = "-"))) %>%
+            dplyr::mutate(Type = apply(select(., Type), 1, function(x) paste(sort(unlist(strsplit(x, "-"))), collapse = "-"))) %>%
             distinct(Type, Time, Distance, .keep_all = TRUE)
         }
 

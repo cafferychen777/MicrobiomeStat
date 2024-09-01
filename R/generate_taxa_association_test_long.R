@@ -99,6 +99,8 @@ generate_taxa_association_test_long <-
     # Extract data
     mStat_validate_data(data.obj)
 
+    feature.dat.type <- match.arg(feature.dat.type)
+
     meta_tab <-
       data.obj$meta.dat %>% select(all_of(c(
         group.var, adj.vars, subject.var

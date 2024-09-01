@@ -18,7 +18,7 @@ generate_beta_pc_spaghettiplot_long(
   adj.vars = NULL,
   dist.name = c("BC"),
   base.size = 16,
-  theme.choice = "prism",
+  theme.choice = "bw",
   custom.theme = NULL,
   palette = NULL,
   pdf = TRUE,

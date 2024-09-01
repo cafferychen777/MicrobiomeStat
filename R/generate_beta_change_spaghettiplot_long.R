@@ -140,8 +140,6 @@ generate_beta_change_spaghettiplot_long <-
            pdf.wid = 11,
            pdf.hei = 8.5,
            ...) {
-    # Data validation
-    mStat_validate_data(data.obj)
 
     if (is.null(dist.name)){
       return()

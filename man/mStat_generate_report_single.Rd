@@ -65,7 +65,8 @@ if a time variable is provided. Default NULL does not subset data.}
 
 \item{alpha.name}{The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".}
 
-\item{depth}{An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.}
+\item{depth}{An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
+If NULL, no rarefaction is performed.}
 
 \item{dist.obj}{Distance matrix between samples, usually calculated using
 \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
@@ -207,6 +208,7 @@ to perform analysis on cross-sectional data, a single time point from longitudin
 }
 \examples{
 \dontrun{
+set.seed(123)
 library(aplot)
 data(peerj32.obj)
 mStat_generate_report_single(
@@ -231,7 +233,7 @@ mStat_generate_report_single(
   base.size = 20,
   feature.mt.method = "none",
   feature.sig.level = 0.2,
-  output.file = "/Users/apple/MicrobiomeStat/report.pdf"
+  output.file = "/Users/apple/Research/MicrobiomeStat/result/peerj32.obj_report.pdf"
 )
 data(subset_T2D.obj)
 mStat_generate_report_single(

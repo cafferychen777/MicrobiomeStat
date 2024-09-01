@@ -13,6 +13,7 @@ generate_taxa_barplot_long(
   feature.level = "original",
   feature.dat.type = c("count", "proportion", "other"),
   feature.number = 20,
+  features.plot = NULL,
   t0.level = NULL,
   ts.levels = NULL,
   base.size = 10,
@@ -55,6 +56,9 @@ The choice affects preprocessing steps as well as plot axis labels.
 Default is "count", which assumes raw OTU table input.}
 
 \item{feature.number}{A numeric value indicating the number of top abundant features to retain in the plot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.}
+
+\item{features.plot}{A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.}
 
 \item{t0.level}{Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.}
 
@@ -134,7 +138,42 @@ generate_taxa_barplot_long(
   strata.var = "diet",
   feature.level = "Family",
   feature.dat.type = "proportion",
-  feature.number = 10,
+  feature.number = 30,
+  t0.level = NULL,
+  ts.levels = NULL,
+  theme.choice = "bw",
+  palette = NULL,
+  pdf = TRUE,
+  file.ann = NULL
+)
+
+generate_taxa_barplot_long(
+  data.obj = ecam.obj,
+  subject.var = "studyid",
+  time.var = "month_num",
+  group.var = "delivery",
+  strata.var = "diet",
+  feature.level = "Genus",
+  feature.dat.type = "proportion",
+  feature.number = 30,
+  t0.level = NULL,
+  ts.levels = NULL,
+  theme.choice = "bw",
+  palette = NULL,
+  pdf = TRUE,
+  file.ann = NULL
+)
+
+generate_taxa_barplot_long(
+  data.obj = ecam.obj,
+  subject.var = "studyid",
+  time.var = "month_num",
+  group.var = "delivery",
+  strata.var = "diet",
+  feature.level = "Genus",
+  feature.dat.type = "proportion",
+  features.plot = unique(ecam.obj$feature.ann[,"Genus"])[1:10],
+  feature.number = 30,
   t0.level = NULL,
   ts.levels = NULL,
   theme.choice = "bw",
@@ -152,6 +191,26 @@ generate_taxa_barplot_long(
   strata.var = "subject_gender",
   feature.level = c("Genus"),
   feature.dat.type = "count",
+  feature.number = 40,
+  t0.level = NULL,
+  ts.levels = NULL,
+  base.size = 10,
+  theme.choice = "bw",
+  palette = NULL,
+  pdf = TRUE,
+  pdf.wid = 49,
+  file.ann = NULL
+)
+
+generate_taxa_barplot_long(
+  data.obj = subset_T2D.obj,
+  subject.var = "subject_id",
+  time.var = "visit_number_num",
+  group.var = "subject_race",
+  strata.var = "subject_gender",
+  feature.level = c("Genus"),
+  feature.dat.type = "count",
+  features.plot = unique(subset_T2D.obj$feature.ann[,"Genus"][1:6]),
   feature.number = 40,
   t0.level = NULL,
   ts.levels = NULL,

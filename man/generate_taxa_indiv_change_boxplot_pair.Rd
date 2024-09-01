@@ -20,7 +20,7 @@ generate_taxa_indiv_change_boxplot_pair(
   prev.filter = 0.01,
   abund.filter = 0.01,
   base.size = 16,
-  theme.choice = "prism",
+  theme.choice = "bw",
   custom.theme = NULL,
   palette = NULL,
   pdf = TRUE,

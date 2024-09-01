@@ -26,7 +26,8 @@ If NULL (the default), alpha diversity will be calculated from the data.obj usin
 \item{alpha.name}{A string with the name of the alpha diversity index to compute.
 Options could include: "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".}
 
-\item{depth}{An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.}
+\item{depth}{An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
+If NULL, no rarefaction is performed.}
 
 \item{time.var}{A string representing the time variable's name in the
 metadata. The default is NULL.}

@@ -6,13 +6,14 @@
 \usage{
 generate_taxa_barplot_single(
   data.obj,
-  subject.var,
+  subject.var = NULL,
   time.var = NULL,
   t.level = NULL,
   group.var = NULL,
   strata.var = NULL,
   feature.level = "original",
   feature.dat.type = c("count", "proportion", "other"),
+  features.plot = NULL,
   feature.number = 20,
   base.size = 10,
   theme.choice = "bw",
@@ -28,16 +29,20 @@ generate_taxa_barplot_single(
 \arguments{
 \item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
 
-\item{subject.var}{A string indicating the variable for subject identifiers.}
+\item{subject.var}{Character string specifying the column name in metadata containing
+unique subject IDs. Required to connect samples from the same subject.}
 
-\item{time.var}{A string indicating the variable for time points.}
+\item{time.var}{Character string specifying the column name in metadata containing the
+time variable. Required to order and connect samples over time.}
 
 \item{t.level}{Character string specifying the time level/value to subset data to,
 if a time variable is provided. Default NULL does not subset data.}
 
-\item{group.var}{A string indicating the variable for group identifiers. Default is NULL.}
+\item{group.var}{Character string specifying the column name in metadata containing grouping
+categories. Used for coloring lines in the plot. Optional, can be NULL.}
 
-\item{strata.var}{A string indicating the variable for strata identifiers. Default is NULL.}
+\item{strata.var}{Character string specifying the column name in metadata containing stratification
+categories. Used for nested faceting in the plots. Optional, can be NULL.}
 
 \item{feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
 to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
@@ -53,6 +58,9 @@ Should be one of:
 - "other": Custom abundance data that has unknown scaling. No normalization applied.
 The choice affects preprocessing steps as well as plot axis labels.
 Default is "count", which assumes raw OTU table input.}
+
+\item{features.plot}{A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.}
 
 \item{feature.number}{A numeric value indicating the number of top abundant features to retain in the plot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.}
 
@@ -155,6 +163,7 @@ generate_taxa_barplot_single(
   pdf.wid = 11,
   pdf.hei = 8.5
 )
+
 data("subset_T2D.obj")
 generate_taxa_barplot_single(
   data.obj = subset_T2D.obj,
@@ -184,7 +193,61 @@ generate_taxa_barplot_single(
   strata.var = NULL,
   feature.level = c("Phylum", "Family", "Genus"),
   feature.dat.type = "count",
-  feature.number = 30,
+  feature.number = 10,
+  base.size = 10,
+  theme.choice = "bw",
+  custom.theme = NULL,
+  palette = NULL,
+  pdf = TRUE,
+  file.ann = NULL,
+  pdf.wid = 11,
+  pdf.hei = 8.5
+)
+data(ecam.obj)
+generate_taxa_barplot_single(
+  data.obj = ecam.obj,
+  time.var = "month",
+  group.var = "antiexposedall",
+  strata.var = NULL,
+  feature.level = c("Phylum", "Family", "Genus"),
+  feature.dat.type = "proportion",
+  feature.number = 10,
+  base.size = 10,
+  theme.choice = "bw",
+  custom.theme = NULL,
+  palette = NULL,
+  pdf = TRUE,
+  file.ann = NULL,
+  pdf.wid = 11,
+  pdf.hei = 8.5
+)
+generate_taxa_barplot_single(
+  data.obj = ecam.obj,
+  time.var = "month",
+  t.level = "0",
+  group.var = "antiexposedall",
+  strata.var = NULL,
+  feature.level = c("Phylum", "Family", "Genus"),
+  feature.dat.type = "proportion",
+  feature.number = 10,
+  base.size = 10,
+  theme.choice = "bw",
+  custom.theme = NULL,
+  palette = NULL,
+  pdf = TRUE,
+  file.ann = NULL,
+  pdf.wid = 11,
+  pdf.hei = 8.5
+)
+generate_taxa_barplot_single(
+  data.obj = ecam.obj,
+  time.var = "month",
+  t.level = "0",
+  group.var = "antiexposedall",
+  strata.var = NULL,
+  feature.level = c("Family"),
+  feature.dat.type = "proportion",
+  features.plot = unique(ecam.obj$feature.ann[,"Family"])[1:12],
   base.size = 10,
   theme.choice = "bw",
   custom.theme = NULL,

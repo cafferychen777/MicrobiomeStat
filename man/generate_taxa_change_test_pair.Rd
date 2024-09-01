@@ -15,7 +15,8 @@ generate_taxa_change_test_pair(
   feature.level,
   prev.filter = 0.1,
   abund.filter = 1e-04,
-  feature.dat.type = c("count", "proportion", "other")
+  feature.dat.type = c("count", "proportion", "other"),
+  winsor.qt = 0.97
 )
 }
 \arguments{
@@ -63,6 +64,15 @@ Should be one of:
 - "other": Custom abundance data that has unknown scaling. No normalization applied.
 The choice affects preprocessing steps as well as plot axis labels.
 Default is "count", which assumes raw OTU table input.}
+
+\item{winsor.qt}{A numeric value between 0 and 1, specifying the quantile for winsorization (default: 0.97).
+Winsorization is a data preprocessing method used to limit extreme values or outliers in the data.
+The `winsor.qt` parameter determines the upper and lower quantiles for winsorization.
+For example, if `winsor.qt` is set to 0.97, the lower quantile will be (1 - 0.97) / 2 = 0.015,
+and the upper quantile will be 1 - (1 - 0.97) / 2 = 0.985.
+Values below the lower quantile will be replaced with the lower quantile,
+and values above the upper quantile will be replaced with the upper quantile.
+This helps to reduce the impact of extreme values or outliers on subsequent analyses.}
 }
 \value{
 A named list where each element corresponds to a feature level and contains a dataframe with the calculated taxa changes, their corresponding p-values, and other statistics from the linear model.

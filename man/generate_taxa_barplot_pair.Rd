@@ -13,6 +13,7 @@ generate_taxa_barplot_pair(
   feature.level = "original",
   feature.dat.type = c("count", "proportion", "other"),
   feature.number = 20,
+  features.plot = NULL,
   base.size = 10,
   theme.choice = "bw",
   custom.theme = NULL,
@@ -51,6 +52,9 @@ The choice affects preprocessing steps as well as plot axis labels.
 Default is "count", which assumes raw OTU table input.}
 
 \item{feature.number}{A numeric value indicating the number of top abundant features to retain in the plot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.}
+
+\item{features.plot}{A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.}
 
 \item{base.size}{A numeric value indicating the base font size for the plot.}
 
@@ -122,7 +126,7 @@ generate_taxa_barplot_pair(
   strata.var = "sex",
   feature.level = "Genus",
   feature.dat.type = c("count"),
-  feature.number = 40,
+  feature.number = 20,
   base.size = 10,
   theme.choice = "bw",
   custom.theme = NULL,
@@ -142,7 +146,7 @@ generate_taxa_barplot_pair(
   strata.var = NULL,
   feature.level = "Genus",
   feature.dat.type = c("count"),
-  feature.number = 20,
+  feature.number = 30,
   base.size = 10,
   theme.choice = "bw",
   custom.theme = NULL,

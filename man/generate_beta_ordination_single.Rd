@@ -16,7 +16,7 @@ generate_beta_ordination_single(
   dist.name = c("BC", "Jaccard"),
   pc.obj = NULL,
   base.size = 16,
-  theme.choice = "prism",
+  theme.choice = "bw",
   custom.theme = NULL,
   palette = NULL,
   pdf = TRUE,

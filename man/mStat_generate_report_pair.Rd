@@ -87,7 +87,8 @@ mStat_generate_report_pair(
 
   - Default behavior (if no recognized string or function is provided) is to compute the absolute difference between t and t0.}
 
-\item{depth}{An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.}
+\item{depth}{An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
+If NULL, no rarefaction is performed.}
 
 \item{dist.obj}{Distance matrix between samples, usually calculated using
 \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
