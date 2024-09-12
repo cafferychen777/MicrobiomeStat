@@ -224,7 +224,7 @@
 #'   feature.box.axis.transform = "sqrt",
 #'   theme.choice = "bw",
 #'   base.size = 20,
-#'   output.file = "/Users/apple/MicrobiomeStat/report.pdf"
+#'   output.file = "/Users/apple/Research/MicrobiomeStat/result"
 #' )
 #' data(ecam.obj)
 #' mStat_generate_report_long(
@@ -1168,104 +1168,93 @@ if (feature.analysis.rarafy) {
 
 ```
 
-## 4.1 Trend test
+## 4.1 Per-Time Point Differential Abundance Analysis
 
-```{r taxa-trend-test-longitudinal-generation, message=FALSE, results='hide', warning = FALSE}
-taxa_trend_test_results <- generate_taxa_trend_test_long(
-                                               data.obj = data.obj,
-                                               subject.var = subject.var,
-                                               time.var = time.var,
-                                               group.var = group.var,
-                                               adj.vars = test.adj.vars,
-                                               prev.filter = prev.filter,
-                                               abund.filter = abund.filter,
-                                               feature.level = test.feature.level,
-                                               feature.dat.type = feature.dat.type)
+```{r taxa-per-time-test-generation, message=FALSE, results='hide', warning = FALSE}
+taxa_per_time_test_results <- generate_taxa_per_time_test_long(
+  data.obj = data.obj,
+  subject.var = subject.var,
+  time.var = time.var,
+  group.var = group.var,
+  adj.vars = test.adj.vars,
+  prev.filter = prev.filter,
+  abund.filter = abund.filter,
+  feature.level = test.feature.level,
+  feature.dat.type = feature.dat.type
+)
 ```
 
-```{r taxa-trend-test-results-print, echo=FALSE, message=FALSE, results='asis', warning = FALSE, fig.align='center', fig.width = 10, fig.height = 8}
+```{r taxa-per-time-test-results-print, echo=FALSE, message=FALSE, results='asis', warning = FALSE, fig.align='center', fig.width = 10, fig.height = 8}
+# Generate dotplot for visualization
+dotplot_results <- generate_taxa_per_time_dotplot_long(
+  data.obj = data.obj,
+  test.list = taxa_per_time_test_results,
+  group.var = group.var,
+  time.var = time.var,
+  feature.level = test.feature.level
+)
 
-trend_volcano_plots <- generate_taxa_trend_volcano_long(
-                                               data.obj = data.obj,
-                                               group.var = group.var,
-                                               time.var = time.var,
-                                               test.list = taxa_trend_test_results,
-                                               feature.sig.level = feature.sig.level,
-                                               feature.mt.method = feature.mt.method
-                                                  )
-
-trend_volcano_plots
+# Display the dotplot
+dotplot_results
 
 # Initial description
-if (!is.null(group.var)) {
-    cat(sprintf('In this analysis, we utilized the LinDA linear mixed effects model to investigate potential differences in trend. Specifically, we tested the interaction between the variables %s and %s, for different taxa, while adjusting for other covariates.\n\n', group.var, time.var))
-} else {
-    cat(sprintf('In this analysis, we utilized the LinDA linear mixed effects model for the trend test. For different taxa, since no group variable (group.var) was provided, we tested the slope, i.e., the linear trend, of %s only, while adjusting for other covariates.\n\n', time.var))
-}
+cat(sprintf('In this analysis, we utilized the LinDA linear mixed effects model to investigate differential abundance at each time point. Specifically, we tested the effect of %s on microbial abundance at different time points, while adjusting for other covariates.\n\n', group.var))
 
-# Iterate over each taxonomic rank in taxa_trend_test_results
-for(taxon_rank in names(taxa_trend_test_results)) {
+# Iterate over each time point in taxa_per_time_test_results
+for(time_point in names(taxa_per_time_test_results)) {
+  cat(sprintf('\n### Time point: %s\n\n', time_point))
 
-  # Extract the specific taxonomic rank results
-  taxon_results <- taxa_trend_test_results[[taxon_rank]]
+  # Iterate over each taxonomic rank for this time point
+  for(taxon_rank in names(taxa_per_time_test_results[[time_point]])) {
+    cat(sprintf('\n#### %s\n\n', taxon_rank))
 
-  # Iterate over each comparison in taxon_results
-  for(comparison in names(taxon_results)) {
+    # Iterate over each comparison for this taxon rank
+    for(comparison in names(taxa_per_time_test_results[[time_point]][[taxon_rank]])) {
+      cat(sprintf('\n##### %s\n\n', comparison))
 
-    # Extract specific comparison results data frame
-    comparison_df <- taxon_results[[comparison]]
+      # Extract specific comparison results data frame
+      comparison_df <- taxa_per_time_test_results[[time_point]][[taxon_rank]][[comparison]]
 
-    # Filter interaction terms based on the selected multiple testing method
-    if (feature.mt.method == 'fdr') {
-        interaction_terms_results <- comparison_df %>%
-            dplyr::filter(Adjusted.P.Value < feature.sig.level)
+      # Filter significant results based on the selected multiple testing method
+      if (feature.mt.method == 'fdr') {
+        sig_results <- comparison_df %>%
+          dplyr::filter(Adjusted.P.Value < feature.sig.level)
         p_value_str = 'adjusted p-value'
-    } else if (feature.mt.method == 'none') {
-        interaction_terms_results <- comparison_df %>%
-            dplyr::filter(P.Value < feature.sig.level)
+      } else if (feature.mt.method == 'none') {
+        sig_results <- comparison_df %>%
+          dplyr::filter(P.Value < feature.sig.level)
         p_value_str = 'p-value'
-    }
+      }
 
-    # Check if filtered results have rows
-    if (nrow(interaction_terms_results) == 0) {
-        cat(sprintf('For the taxa investigated under the %s category in comparison %s, no significant results were detected using the %s method for p-value adjustment, at a %s threshold of %s. ', taxon_rank, comparison, feature.mt.method, p_value_str, feature.sig.level))
-    } else {
-        cat(sprintf('For the taxon %s in comparison %s, significant results were identified using the %s method for p-value adjustment, based on a threshold of %s. ', taxon_rank, comparison, feature.mt.method, feature.sig.level))
-        cat('\n')
-        output <- pander::pander(interaction_terms_results)
+      # Check if filtered results have rows
+      if (nrow(sig_results) == 0) {
+        cat(sprintf('No significant results were detected using the %s method for p-value adjustment, at a %s threshold of %s.\n\n', feature.mt.method, p_value_str, feature.sig.level))
+      } else {
+        cat(sprintf('Significant results were identified using the %s method for p-value adjustment, based on a threshold of %s:\n\n', feature.mt.method, feature.sig.level))
+        output <- pander::pander(sig_results)
         cat(output)
+      }
     }
   }
 }
 
-
-filename_prefix <- 'taxa_trend_test_results_'
-file_ext <- '.csv'
-
-# Extract the directory path from output.file
+# Save results to CSV files
 output_dir <- dirname(output.file)
 if (!dir.exists(output_dir)) {
-    dir.create(output_dir)
+  dir.create(output_dir)
 }
 
-for(taxon_rank in names(taxa_trend_test_results)) {
-    comparisons <- names(taxa_trend_test_results[[taxon_rank]])
-
-    for(comparison in comparisons) {
-
-        file_name <- paste0(filename_prefix, taxon_rank, '_', gsub(' ', '_', gsub('/', '_or_', comparison)), file_ext)
-
-        # Include the output directory in the file path
-        file_path <- file.path(output_dir, file_name)
-
-        write.csv(taxa_trend_test_results[[taxon_rank]][[comparison]],
-                  file = file_path,
-                  row.names = FALSE)
+for(time_point in names(taxa_per_time_test_results)) {
+  for(taxon_rank in names(taxa_per_time_test_results[[time_point]])) {
+    for(comparison in names(taxa_per_time_test_results[[time_point]][[taxon_rank]])) {
+      file_name <- paste0('taxa_per_time_test_results_', time_point, '_', taxon_rank, '_', gsub(' ', '_', gsub('/', '_or_', comparison)), '.csv')
+      file_path <- file.path(output_dir, file_name)
+      write.csv(taxa_per_time_test_results[[time_point]][[taxon_rank]][[comparison]], file = file_path, row.names = FALSE)
     }
+  }
 }
 
-cat(sprintf('\n\nThe trend test results for features have been saved in the directory: %s. Each taxa rank and its corresponding comparison have their own file named with the prefix: %s followed by the taxon rank, the comparison, and the file extension %s. Please refer to these files for more detailed data.', output_dir, filename_prefix, file_ext))
-
+cat(sprintf('\n\nThe per-time point differential abundance test results have been saved in the directory: %s. Each time point, taxa rank, and its corresponding comparison have their own CSV file. Please refer to these files for more detailed data.\n', output_dir))
 ```
 
 ## 4.2 Volatility test
@@ -1394,12 +1383,25 @@ process_list <- function(test_results) {
     return(unlist(significant_vars))
 }
 
-# Process each main list and extract significant variables
-significant_vars_trend <- process_list(taxa_trend_test_results)
+# Function to process the nested list structure of taxa_per_time_test_results
+process_per_time_list <- function(test_results) {
+    significant_vars <- lapply(test_results, function(time_point_results) {
+        lapply(time_point_results, function(taxon_results) {
+            lapply(taxon_results, function(comparison_df) {
+                extract_significant_variables(comparison_df, p_value_column)
+            })
+        })
+    })
+    return(unique(unlist(significant_vars)))
+}
+
+# Process taxa_per_time_test_results and extract significant variables
+significant_vars_per_time <- process_per_time_list(taxa_per_time_test_results)
+
 significant_vars_volatility <- process_list(taxa_volatility_test_results)
 
 # Combine and de-duplicate the results
-combined_significant_taxa <- unique(c(significant_vars_trend, significant_vars_volatility))
+combined_significant_taxa <- unique(c(significant_vars_per_time, significant_vars_volatility))
 
 ```
 
