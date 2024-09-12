@@ -5,6 +5,7 @@
 #' @param test.list The list of test results returned by generate_taxa_trend_test_long.
 #' @param feature.sig.level The significance level cutoff for highlighting taxa.
 #' @param feature.mt.method Multiple testing correction method, "fdr" or "none".
+#' @param features.plot A character vector of taxa to be plotted. If NULL, all taxa will be plotted.
 #' @param palette An optional parameter specifying the color palette to be used for the plot.
 #'                It can be either a character string specifying the name of a predefined
 #'                palette or a vector of color codes in a format accepted by ggplot2
@@ -33,7 +34,7 @@
 #'     group.var = "group",
 #'     adj.vars = "sex",
 #'     feature.dat.type = "count",
-#'     feature.level = c("Phylum", "Genus", "Family"),
+#'     feature.level = c("Family"),
 #'     prev.filter = 0.1,
 #'     abund.filter = 0.0001
 #'   )
@@ -46,6 +47,15 @@
 #'     feature.sig.level = 0.1,
 #'     feature.mt.method = "none"
 #'   )
+#'
+#'   volcano_plots <- generate_taxa_volcano_single(
+#'     data.obj = peerj32.obj,
+#'     group.var = "group",
+#'     test.list = test.list,
+#'     features.plot = peerj32.obj$feature.ann[,"Family"][1:10],
+#'     feature.sig.level = 0.1,
+#'     feature.mt.method = "none"
+#'   )
 #' }
 #' @importFrom dplyr distinct pull
 #' @export
@@ -55,6 +65,7 @@ generate_taxa_volcano_single <-
            test.list,
            feature.sig.level = 0.1,
            feature.mt.method = "fdr",
+           features.plot = NULL,
            palette = c("white", "#7FB695", "#006D2C"),
            pdf = FALSE,
            pdf.wid = 7,
@@ -67,7 +78,6 @@ generate_taxa_volcano_single <-
 
     feature.level <- names(test.list)
 
-    # Set the p-value variable to be used using conditional expressions
     p_val_var <-
       ifelse(feature.mt.method == "fdr",
              "Adjusted.P.Value",
@@ -85,7 +95,12 @@ generate_taxa_volcano_single <-
         lapply(names(sub_test.list), function(group.level) {
           sub_test.result <- sub_test.list[[group.level]]
 
-          # Find max absolute log2FoldChange for symmetric x-axis
+          # If features.plot is not NULL, only the specified taxa are retained.
+          if (!is.null(features.plot)) {
+            sub_test.result <- sub_test.result %>%
+              filter(Variable %in% features.plot)
+          }
+
           max_abs_log2FC <-
             max(abs(sub_test.result$Coefficient), na.rm = TRUE)
 
@@ -159,7 +174,6 @@ generate_taxa_volcano_single <-
 
       return(sub_plot.list)
     })
-
 
     names(plot.list) <- feature.level
     return(plot.list)

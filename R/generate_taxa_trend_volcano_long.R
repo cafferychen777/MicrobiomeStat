@@ -6,6 +6,7 @@
 #' @param test.list The list of test results returned by generate_taxa_trend_test_long.
 #' @param feature.sig.level The significance level cutoff for highlighting taxa.
 #' @param feature.mt.method Multiple testing correction method, "fdr" or "none".
+#' @param features.plot An optional parameter specifying the features to be plotted. If provided, only these features will be plotted.
 #' @param palette An optional parameter specifying the color palette to be used for the plot.
 #'                It can be either a character string specifying the name of a predefined
 #'                palette or a vector of color codes in a format accepted by ggplot2
@@ -64,6 +65,7 @@ generate_taxa_trend_volcano_long <-
            test.list,
            feature.sig.level = 0.1,
            feature.mt.method = "fdr",
+           features.plot = NULL,
            palette = c("white", "#7FB695", "#006D2C"),
            pdf = FALSE,
            pdf.wid = 7,
@@ -94,6 +96,12 @@ generate_taxa_trend_volcano_long <-
           lapply(names(sub_test.list), function(group.level) {
 
             sub_test.result <- sub_test.list[[group.level]]
+            
+            # If features.plot is provided, only these features will be plotted.
+            if (!is.null(features.plot)) {
+              sub_test.result <- sub_test.result %>% 
+                filter(Variable %in% features.plot)
+            }
 
             # Find max absolute log2FoldChange for symmetric x-axis
             max_abs_log2FC <-
@@ -142,6 +150,12 @@ generate_taxa_trend_volcano_long <-
       } else {
         # When group.var is NULL
         sub_test.result <- sub_test.list[[time.var]]
+        
+        # If features.plot is provided, only these features will be plotted.
+        if (!is.null(features.plot)) {
+          sub_test.result <- sub_test.result %>% 
+            filter(Variable %in% features.plot)
+        }
 
         # Find max absolute log2FoldChange for symmetric x-axis
         max_abs_log2FC <-
@@ -185,7 +199,6 @@ generate_taxa_trend_volcano_long <-
       }
       return(sub_plot.list)
     })
-
 
     names(plot.list) <- feature.level
     return(plot.list)

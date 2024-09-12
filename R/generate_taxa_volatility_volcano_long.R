@@ -5,6 +5,7 @@
 #' @param test.list The list of test results returned by generate_taxa_volatility_test_long.
 #' @param feature.sig.level The significance level cutoff for highlighting taxa.
 #' @param feature.mt.method Multiple testing correction method, "fdr" or "none".
+#' @param features.plot A character vector of feature names to be plotted. If NULL, all features will be plotted.
 #' @param palette An optional parameter specifying the color palette to be used for the plot.
 #'                It can be either a character string specifying the name of a predefined
 #'                palette or a vector of color codes in a format accepted by ggplot2
@@ -68,6 +69,7 @@ generate_taxa_volatility_volcano_long <- function(data.obj,
                                                   test.list,
                                                   feature.sig.level = 0.1,
                                                   feature.mt.method = c("fdr","none"),
+                                                  features.plot = NULL,
                                                   palette = c("white", "#7FB695", "#006D2C"),
                                                   pdf = FALSE,
                                                   pdf.wid = 7,
@@ -106,6 +108,11 @@ generate_taxa_volatility_volcano_long <- function(data.obj,
       lapply(group.levels, function(group.level) {
 
         sub_test.result <- sub_test.list[[group.level]]
+
+        # If features.plot is provided, only keep these features.
+        if (!is.null(features.plot)) {
+          sub_test.result <- sub_test.result[sub_test.result$Variable %in% features.plot, ]
+        }
 
         # Find max absolute log2FoldChange for symmetric x-axis
         max_abs_log2FC <-
