@@ -253,8 +253,6 @@ generate_taxa_test_pair <-
         feature.dat.type <- "proportion"
       }
 
-
-
       linda.obj <- tryCatch({
         # Try running the linda function
         linda(feature.dat = otu_tax_agg_filter,

@@ -80,7 +80,8 @@ changes from the baseline (first time point) using the method specified in `alph
 }
 \examples{
 data(peerj32.obj)
-alpha.obj <- mStat_calculate_alpha_diversity(peerj32.obj$feature.tab, alpha.name = c("shannon", "observed_species"))
+alpha.obj <- mStat_calculate_alpha_diversity(peerj32.obj$feature.tab,
+alpha.name = c("shannon", "observed_species"))
 plot_alpha_diversity(alpha.obj = alpha.obj,
                      meta.dat = peerj32.obj$meta.dat,
                      measure = c("shannon", "observed_species"),
@@ -124,7 +125,8 @@ plot_alpha_diversity(alpha.obj = alpha.obj,
                      plot.type = "spaghettiplot")
 
 data(ecam.obj)
-alpha.obj <- mStat_calculate_alpha_diversity(ecam.obj$feature.tab, alpha.name = c("shannon", "observed_species"))
+alpha.obj <- mStat_calculate_alpha_diversity(ecam.obj$feature.tab,
+alpha.name = c("shannon", "observed_species"))
 plot_alpha_diversity(alpha.obj = alpha.obj,
                      meta.dat = ecam.obj$meta.dat,
                      measure = c("shannon", "observed_species"),

@@ -7,7 +7,7 @@ Authors@R: c(
               person("Jun", "Chen", role = c("aut", "cre"),
                      email = "chen.jun2@mayo.edu"),
               person("Huijuan", "Zhou", role = "ctb"),
-              person("Caffery(Chen)", "Yang", role = "aut", email = "cafferychen7850@gmail.com"))
+              person("Caffery(Chen)", "Yang", role = "aut", email = "cafferychen777@tamu.edu"))
 Author: Xianyang Zhang [aut],
   Jun Chen [aut, cre],
   Huijuan Zhou [ctb],
@@ -15,7 +15,7 @@ Author: Xianyang Zhang [aut],
 Maintainer: Jun Chen <chen.jun2@mayo.edu>
 Description: MicrobiomeStat is a dedicated R package designed for advanced, longitudinal microbiome and multi-omics data analysis. It stands out with a special focus on in-depth longitudinal microbiome analysis, ensuring precise and detailed data interpretation across time. Generate professional microbiome analysis reports with just a click through the MicrobiomeStat One Click feature. This package guarantees robust solutions for diverse analytic scenarios and effortless handling of multi-omics data, amplifying the efficiency and scope of research. The user-friendly design, diverse features, and practical use cases of MicrobiomeStat assist researchers in navigating the complexities of microbiome data, delivering meaningful insights for longitudinal studies.
 BugReports: https://github.com/cafferychen777/MicrobiomeStat/issues
-URL: https://www.microbiomestat.wiki
+URL: https://cafferychen777.github.io/MicrobiomeStat
 Depends: 
     R (>= 3.5.0),
     rlang, 

@@ -25,6 +25,11 @@ generate_taxa_test_pair(
 
 \item{time.var}{A string that specifies the name of the time variable column in the metadata. If not provided, it's NULL by default.}
 
+\item{change.base}{A value indicating the base level for the time variable.
+If provided, the specified level will be used as the reference category in
+the model. Default is NULL, which means the first level of the factor will
+be used.}
+
 \item{group.var}{A string that specifies the name of the grouping variable column in the metadata for linear modelling.}
 
 \item{adj.vars}{A vector of strings that specify the names of additional variables to be used as covariates in the analysis.}

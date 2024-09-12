@@ -43,7 +43,8 @@ norm_result_tss <- mStat_normalize_data(data.obj = peerj32.obj, method = "TSS")
 print(norm_result_tss$data.obj.norm)  # Display normalized data object
 
 # Applying Rarefaction followed by Total Sum Scaling (Rarefy-TSS) with a specified depth
-norm_result_rarefy_tss <- mStat_normalize_data(data.obj = peerj32.obj, method = "Rarefy-TSS", depth = 5000)
+norm_result_rarefy_tss <- mStat_normalize_data(data.obj = peerj32.obj,
+method = "Rarefy-TSS", depth = 5000)
 print(norm_result_rarefy_tss$data.obj.norm)  # Display normalized data object
 
 # Normalization using Geometric Mean of Pairwise Ratios (GMPR)
@@ -57,13 +58,12 @@ print(norm_result_deseq$data.obj.norm)  # Display normalized data object
 
 # Example of error handling when an incorrect depth is specified for the "Rarefy" method
 tryCatch({
-  norm_result_error <- mStat_normalize_data(data.obj = peerj32.obj, method = "Rarefy", depth = 10000000)
+  norm_result_error <- mStat_normalize_data(data.obj = peerj32.obj,
+  method = "Rarefy", depth = 10000000)
   print(norm_result_error$data.obj.norm)
 }, error = function(e) {
   print(e$message)  # Print the error message if depth is not feasible
 })
 
-# Note: Users should ensure that the required libraries like vegan, edgeR, and GUniFrac are installed and loaded
-# before running these examples, as they are required for some normalization methods.
 }
 }

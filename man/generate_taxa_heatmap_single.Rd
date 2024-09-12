@@ -44,6 +44,11 @@ if a time variable is provided. Default NULL does not subset data.}
 
 \item{strata.var}{The name of the strata variable in the samples}
 
+\item{other.vars}{A character vector specifying additional variables from the metadata to include
+in the heatmap annotation. These variables will be added to the annotation columns alongside
+`group.var` and `strata.var`. This allows for the visualization of additional metadata
+information in the heatmap. Default is NULL, which means no additional variables are included.}
+
 \item{feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
 to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
 annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more

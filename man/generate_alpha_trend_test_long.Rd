@@ -103,7 +103,8 @@ result5 <- generate_alpha_trend_test_long(
 )
 
 # Example 6: Test trend using pre-calculated alpha diversity
-alpha.obj <- mStat_calculate_alpha_diversity(subset_T2D.obj$feature.tab, c("shannon", "observed_species"))
+alpha.obj <- mStat_calculate_alpha_diversity(subset_T2D.obj$feature.tab,
+c("shannon", "observed_species"))
 result6 <- generate_alpha_trend_test_long(
   data.obj = subset_T2D.obj,
   alpha.obj = alpha.obj,

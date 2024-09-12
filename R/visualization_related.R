@@ -28,7 +28,8 @@ utils::globalVariables(c(
   "diff_time", "time_diff", "test_df", "taxa", "diff_value", "Output.Element", "Log2.Fold.Change", "AdjP", "logP","Var1","Freq",
   "avg_abundance", "SequencingDepth", "Group", "mean_PC1", "mean_PC2", "Distance", "log2FoldChange", "lfcSE", "pvalue", "padj",
   "Coefficient", "Prevalence", "Mean.Abundance","Base", "Type", "change", "column_name", "mean_value_diff", "Std. Error", "t value",
-  "Pr(>|t|)", "F value", "Significance_Label"
+  "Pr(>|t|)", "F value", "Significance_Label", "relevel", "Sample1", "Time.x", "Time.y", "Group.x", "Group.y", "Time", "Strata.x",
+  "Strata", "facet_wrap2", "end_condition", "is_facet", "is_other", "overall_mean", "is_significant", "group_by", "summarise","across"
 ))
 
 plot_fun <- function(.call, envir = parent.frame()) {

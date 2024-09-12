@@ -46,8 +46,6 @@ plot_beta_diversity(
 \item{plot.type}{Character string specifying the plot type, one of c("PCoA", "boxplot", "spaghettiplot").}
 
 \item{...}{Additional arguments passed to the underlying plotting functions.}
-
-\item{file.name}{Character string specifying the file name for saving the plot (optional).}
 }
 \value{
 A ggplot object representing the beta diversity plot.

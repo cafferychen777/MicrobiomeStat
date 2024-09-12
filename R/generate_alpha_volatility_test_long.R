@@ -4,7 +4,7 @@
 #' of alpha diversity measures in longitudinal data and tests the association
 #' between the volatility and a group variable. Volatility is calculated as the mean
 #' of absolute differences between consecutive alpha diversity measures, normalized
-#' by the time difference (mean(abs(alpha_j - alpha_{j-1}) / (t_j - t_{j-1}))).
+#' by the time difference (mean(abs(alpha_j - alpha_\{j-1\}) / (t_j - t_\{j-1\}))).
 #'
 #' The function first obtains the residuals by fitting a linear model with alpha
 #' diversity as the response and adjustment variables as predictors. It then calculates

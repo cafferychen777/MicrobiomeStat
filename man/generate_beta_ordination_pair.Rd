@@ -38,10 +38,10 @@ This should be the output from functions like \code{\link[MicrobiomeStat]{mStat_
 If NULL (default), dimension reduction will be automatically performed using metric multidimensional scaling (MDS) via \code{\link[MicrobiomeStat]{mStat_calculate_PC}}.
 The pc.obj list structure should contain:
 \itemize{
- \item{$points:}{A matrix with samples as rows and PCs as columns containing the coordinates.}
- \item{$eig:}{Eigenvalues for each PC dimension.}
- \item{$vectors:}{Loadings vectors for features onto each PC.}
- \item{Other metadata like $method, $dist.name, etc.}
+  \item{$points}{A matrix with samples as rows and PCs as columns containing the coordinates.}
+  \item{$eig}{Eigenvalues for each PC dimension.}
+  \item{$vectors}{Loadings vectors for features onto each PC.}
+  \item{Other metadata like $method, $dist.name, etc.}
 }
 See \code{\link[MicrobiomeStat]{mStat_calculate_PC}} function for details on output format.}
 
