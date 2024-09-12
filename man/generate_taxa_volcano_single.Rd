@@ -10,6 +10,7 @@ generate_taxa_volcano_single(
   test.list,
   feature.sig.level = 0.1,
   feature.mt.method = "fdr",
+  features.plot = NULL,
   palette = c("white", "#7FB695", "#006D2C"),
   pdf = FALSE,
   pdf.wid = 7,
@@ -26,6 +27,8 @@ generate_taxa_volcano_single(
 \item{feature.sig.level}{The significance level cutoff for highlighting taxa.}
 
 \item{feature.mt.method}{Multiple testing correction method, "fdr" or "none".}
+
+\item{features.plot}{A character vector of taxa to be plotted. If NULL, all taxa will be plotted.}
 
 \item{palette}{An optional parameter specifying the color palette to be used for the plot.
 It can be either a character string specifying the name of a predefined
@@ -62,7 +65,7 @@ Generate Volcano Plots for Taxa Differential Test for a Single Time Point
     group.var = "group",
     adj.vars = "sex",
     feature.dat.type = "count",
-    feature.level = c("Phylum", "Genus", "Family"),
+    feature.level = c("Family"),
     prev.filter = 0.1,
     abund.filter = 0.0001
   )
@@ -72,6 +75,15 @@ Generate Volcano Plots for Taxa Differential Test for a Single Time Point
     data.obj = peerj32.obj,
     group.var = "group",
     test.list = test.list,
+    feature.sig.level = 0.1,
+    feature.mt.method = "none"
+  )
+
+  volcano_plots <- generate_taxa_volcano_single(
+    data.obj = peerj32.obj,
+    group.var = "group",
+    test.list = test.list,
+    features.plot = peerj32.obj$feature.ann[,"Family"][1:10],
     feature.sig.level = 0.1,
     feature.mt.method = "none"
   )

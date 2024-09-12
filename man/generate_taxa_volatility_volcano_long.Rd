@@ -10,6 +10,7 @@ generate_taxa_volatility_volcano_long(
   test.list,
   feature.sig.level = 0.1,
   feature.mt.method = c("fdr", "none"),
+  features.plot = NULL,
   palette = c("white", "#7FB695", "#006D2C"),
   pdf = FALSE,
   pdf.wid = 7,
@@ -26,6 +27,8 @@ generate_taxa_volatility_volcano_long(
 \item{feature.sig.level}{The significance level cutoff for highlighting taxa.}
 
 \item{feature.mt.method}{Multiple testing correction method, "fdr" or "none".}
+
+\item{features.plot}{A character vector of feature names to be plotted. If NULL, all features will be plotted.}
 
 \item{palette}{An optional parameter specifying the color palette to be used for the plot.
 It can be either a character string specifying the name of a predefined
