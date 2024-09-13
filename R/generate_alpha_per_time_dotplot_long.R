@@ -122,7 +122,9 @@ generate_alpha_per_time_dotplot_long <- function(data.obj,
   # Replace the existing theme selection code with this:
   theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
+  # Filter group names to only include those with "vs"
   group.names <- names(test.list[[1]])
+  group.names <- group.names[grep("vs", group.names)]
 
   test.list <- lapply(group.names, function(group.names){
 
