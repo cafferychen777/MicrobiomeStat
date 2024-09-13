@@ -8,8 +8,9 @@
 #' @param test.list A list of test results. If NULL, it will be generated using generate_taxa_test_single.
 #' @param group.var The name of the grouping variable in meta.dat.
 #' @param feature.level A character vector specifying taxonomic levels to be analyzed.
+#' @param feature.mt.method Multiple testing method for features, "none" (default), "fdr", or other methods supported by p.adjust.
 #' @param cutoff The p-value cutoff for significance.
-#' @param color.group.level The taxonomic level to split the tree.
+#' @param color.group.level The taxonomic level used to color-code the branches of the cladogram.
 #' @param pdf Boolean indicating whether to save the plot as a PDF.
 #' @param pdf.width The width of the PDF file if saved.
 #' @param pdf.height The height of the PDF file if saved.
@@ -169,7 +170,7 @@ generate_taxa_cladogram_single <- function(
 
   # Generate plot
   # Custom color palette
-  color_v <- c(
+  palette <- c(
     "#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3",
     "#FB8072", "#80B1D3", "#FDB462", "#BC80BD",
     "#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
@@ -235,13 +236,12 @@ generate_taxa_cladogram_single <- function(
         legend.text = element_text(size = 6),
         legend.title = element_text(size = 8)
       ) +
-      scale_color_manual(values = unique(color_v)[1:length(unique(comparison_data[[color.group.level]]))]) +
+      scale_color_manual(values = unique(palette)[1:length(unique(comparison_data[[color.group.level]]))]) +
       guides(
         fill = guide_colorbar(title = "Coefficient", barwidth = 10, barheight = 0.5),
         color = guide_legend(
           title = color.group.level,
           override.aes = list(size = 2),
-          nrow = 3,
           byrow = TRUE,
           keywidth = unit(0.5, "lines"),
           keyheight = unit(0.5, "lines")
