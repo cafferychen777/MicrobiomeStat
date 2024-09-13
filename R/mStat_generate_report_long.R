@@ -127,7 +127,6 @@
 #' @param pdf.wid Numeric, width of PDF plots in inches, default is 11.
 #' @param pdf.hei Numeric, height of PDF plots in inches, default is 8.5.
 #' @param output.file Character, output PDF report filename (required).
-#' @param ... Additional arguments passed to generate_taxa_trend_test_long().
 #'
 #' @return A PDF report containing:
 #'
@@ -224,7 +223,7 @@
 #'   feature.box.axis.transform = "sqrt",
 #'   theme.choice = "bw",
 #'   base.size = 20,
-#'   output.file = "/Users/apple/Research/MicrobiomeStat/result"
+#'   output.file = "/Users/apple/Research/MicrobiomeStat/result/per_time_test_report.pdf"
 #' )
 #' data(ecam.obj)
 #' mStat_generate_report_long(
@@ -294,8 +293,7 @@ mStat_generate_report_long <- function(data.obj,
                                        file.ann = NULL,
                                        pdf.wid = 11,
                                        pdf.hei = 8.5,
-                                       output.file,
-                                       ...) {
+                                       output.file) {
   template <- "
 ---
 title: '`r sub(\".pdf$\", \"\", basename(output.file))`'
@@ -685,24 +683,23 @@ alpha_spaghettiplot_results <- generate_alpha_spaghettiplot_long(
 alpha_spaghettiplot_results
 ```
 
-## 2.2 Trend test
+## 2.2 Per-time point test
 
-```{r alpha-trend-test-generation, message = FALSE, warning = FALSE}
-alpha_trend_test_results <- generate_alpha_trend_test_long(
-                                                 data.obj = data.obj,
-                                                 alpha.obj = alpha.obj,
-                                                 alpha.name = alpha.name,
-                                                 depth = depth,
-                                                 time.var = time.var,
-                                                 subject.var = subject.var,
-                                                 group.var = group.var,
-                                                 adj.vars = test.adj.vars)
+```{r alpha-per-time-test-generation, message = FALSE, warning = FALSE}
+alpha_per_time_test_results <- generate_alpha_per_time_test_long(
+                                                       data.obj = data.obj,
+                                                       alpha.obj = alpha.obj,
+                                                       alpha.name = alpha.name,
+                                                       depth = depth,
+                                                       time.var = time.var,
+                                                       t0.level = t0.level,
+                                                       ts.levels = ts.levels,
+                                                       group.var = group.var,
+                                                       adj.vars = test.adj.vars)
 ```
 
-```{r alpha-trend-test-results-print, echo=FALSE, message=FALSE, results='asis'}
-
+```{r alpha-per-time-test-results, echo=FALSE, message=FALSE, results='asis'}
 group_levels <- data.obj$meta.dat %>% dplyr::select(!!sym(group.var)) %>% dplyr::pull() %>% as.factor() %>% levels
-
 reference_level <- group_levels[1]
 
 adj.vars_string <- if (!is.null(test.adj.vars)) {
@@ -713,94 +710,77 @@ adj.vars_string <- if (!is.null(test.adj.vars)) {
 
 message_text <- if (!is.null(group.var)) {
     if (!is.null(test.adj.vars)) {
-        sprintf('In this analysis, we utilized a linear mixed effects model with both a random intercept and a random slope to investigate a potential difference in trend. Specifically, we included %s, %s and %s as covariates and tested the interaction between the variables %s and %s.', time.var, group.var, adj.vars_string, group.var, time.var)
+        sprintf('\n In this analysis, we performed alpha diversity testing at each time point. We used a linear model to investigate potential differences between groups. Specifically, we included %s and %s as covariates in our model. \n\n', group.var, adj.vars_string)
     } else {
-        sprintf('In this analysis, we utilized a linear mixed effects model with both a random intercept and a random slope to investigate a potential difference in trend. Specifically, we included %s and %s as covariates and tested the interaction between the variables %s and %s.', time.var, group.var, group.var, time.var)
+        sprintf('\n In this analysis, we performed alpha diversity testing at each time point. We used a linear model to investigate potential differences between groups, considering %s as the main variable of interest. \n\n', group.var)
     }
 } else {
     if (!is.null(test.adj.vars)) {
-        sprintf('In this analysis, we utilized a linear mixed effects model with both a random intercept and a random slope to investigate a potential difference in trend. Specifically, we included %s and %s as covariates and tested the slope, i.e., the linear trend, of %s.', time.var, adj.vars_string, time.var)
+        sprintf('\n In this analysis, we performed alpha diversity testing at each time point. We used a linear model to investigate changes over time, adjusting for %s. \n\n', adj.vars_string)
     } else {
-        sprintf('In this analysis, we utilized a linear mixed effects model with both a random intercept and a random slope to investigate a potential difference in trend. Specifically, we included %s as a covariate and tested the slope, i.e., the linear trend, of %s.', time.var, time.var)
+        sprintf('\n In this analysis, we performed alpha diversity testing at each time point using a simple linear model. \n\n')
     }
 }
 
 cat(message_text)
 
-report_significance <- function(data_frame, group.var, time.var) {
-
-  # Extract p-value for a given term
-  extract_p_val <- function(term) {
-    return(data_frame[data_frame$Term == term,]$P.Value)
-  }
-
-  # Report significant trend for interaction term
-  report_interaction_significance <- function(term, group.var) {
-    p_val <- extract_p_val(term)
-    level <- gsub(group.var, '', strsplit(term, ':')[[1]][1])
-    level <- gsub('_', '', level) # Remove underscores
-
-    if(p_val < 0.05) {
-      cat(sprintf('\n Based on the linear mixed effects model, a significant trend difference was observed between %s and %s of the variable %s, with a p-value of %.3f.\n\n', reference_level, level, group.var, p_val))
-    } else {
-      cat(sprintf('\n Based on the linear mixed effects model, no significant trend difference was detected between %s and %s of the variable %s, with a p-value of %.3f.\n\n', reference_level, level, group.var, p_val))
-    }
-  }
-
-  # Report significant trend for linear term
-  report_linear_significance <- function(term) {
-    p_val <- extract_p_val(term)
-
-    if(p_val < 0.05) {
-      cat(sprintf('\n Based on the linear mixed effects model, a significant linear trend with respect to %s was identified, with a p-value of %.3f.\n\n', time.var, p_val))
-    } else {
-      cat(sprintf('\n Based on the linear mixed effects model, no significant linear trend was observed with respect to %s, with a p-value of %.3f.\n\n', time.var, p_val))
-    }
-  }
-
-  if (is.null(group.var)) {
-    report_linear_significance(time.var)
-    return()
-  }
-
-  # Extracting interaction terms
-  interaction_terms <- grep(paste0(group.var, '.+:', time.var), data_frame$Term, value = TRUE)
-
-  if (length(interaction_terms) > 1) {
-    p_val <- extract_p_val(paste0(group.var, ':', time.var))
-    cat(sprintf('\n An ANOVA test of the null hypothesis of no difference among the %s groups produces a p-value of %.3f.\n\n', length(interaction_terms)+1, p_val))
-    return()
-  }
-
-  for(term in interaction_terms) {
-    report_interaction_significance(term, group.var)
-  }
-}
-
 # Function to convert first letter to uppercase
 firstToUpper <- function(s) {
   paste0(toupper(substring(s, 1, 1)), substring(s, 2))
 }
+```
 
+### 2.2.1 Alpha Diversity Dotplot Visualization
+
+```{r alpha-diversity-dotplot, fig.width=7, fig.height=4, fig.align='center', message=FALSE, warning=FALSE, results='asis'}
+dot_plots <- generate_alpha_per_time_dotplot_long(
+                                        data.obj = data.obj,
+                                        test.list = alpha_per_time_test_results,
+                                        group.var = group.var,
+                                        time.var = time.var,
+                                        t0.level = t0.level,
+                                        ts.levels = ts.levels,
+                                        theme.choice = theme.choice)
+
+dot_plots
+```
+
+### 2.2.2 Detailed results by time point
+
+```{r alpha-per-time-test-detailed-results-print, echo=FALSE, message=FALSE, results='asis'}
 # Initialize the sub-section counter
 counter <- 1
 
-# Report significance for each diversity index
-for(index_name in names(alpha_trend_test_results)) {
-  # Print with updated counter and index name
-  cat(sprintf('\n\n### 2.2.%d %s index \n\n', counter, firstToUpper(index_name)))
-  cat('\n')
+# Iterate through each time point
+for(time_point in names(alpha_per_time_test_results)) {
+  cat(sprintf('\n\n#### 2.2.2.%d Time point: %s \n\n', counter, time_point))
 
-  # Report significance
-  report_significance(alpha_trend_test_results[[index_name]], group.var, time.var)
+  # Iterate through each comparison within the time point
+  for(comparison in names(alpha_per_time_test_results[[time_point]])) {
+    cat(sprintf('\n##### %s\n\n', comparison))
 
-  output <- pander::pander(alpha_trend_test_results[[index_name]])
-  cat(output)
+    # Get the results for this comparison
+    results_df <- alpha_per_time_test_results[[time_point]][[comparison]]
+
+    # Print the results
+    output <- pander::pander(results_df)
+    cat(output)
+
+    # Report significance
+    significant_results <- results_df[results_df$P.Value < 0.05,]
+    if(nrow(significant_results) > 0) {
+      cat('\nSignificant differences were observed for the following alpha diversity measures:\n\n')
+      for(i in 1:nrow(significant_results)) {
+        cat(sprintf('- %s (p-value: %.3f)\n', significant_results$Term[i], significant_results$P.Value[i]))
+      }
+    } else {
+      cat('\nNo significant differences were observed for any alpha diversity measures at this time point.\n')
+    }
+  }
 
   # Increment the counter
   counter <- counter + 1
 }
-
 ```
 
 ## 2.3 Volatility test
@@ -993,89 +973,81 @@ cat(sprintf('\n In this visualization, the beta change represents the distance o
 spaghettiplot_longitudinal_results
 ```
 
-## 3.2 Distance-based trend test
+## 3.2 Distance-based per-time point test
 
-```{r beta-trend-test-longitudinal-generation, message=FALSE, fig.align='center', warning = FALSE}
-beta_trend_test_longitudinal_results <- generate_beta_trend_test_long(
-                                                  data.obj = data.obj,
-                                                  dist.obj = dist.obj,
-                                                  subject.var = subject.var,
-                                                  time.var = time.var,
-                                                  group.var = group.var,
-                                                  adj.vars = test.adj.vars,
-                                                  dist.name = dist.name)
+```{r beta-change-test-longitudinal-generation, message=FALSE, results='hide', warning=FALSE}
+beta_change_test_longitudinal_results <- generate_beta_change_per_time_test_long(
+  data.obj = data.obj,
+  dist.obj = dist.obj,
+  time.var = time.var,
+  t0.level = t0.level,
+  ts.levels = ts.levels,
+  subject.var = subject.var,
+  group.var = group.var,
+  adj.vars = test.adj.vars,
+  dist.name = dist.name
+)
 ```
 
-```{r beta-trend-test-results-print, echo=FALSE, message=FALSE, results='asis'}
+```{r beta-change-test-description, echo=FALSE, results='asis'}
+cat(sprintf('In this analysis, we performed beta diversity change tests at each time point compared to the baseline (%s). We used a linear model to investigate potential differences between groups in terms of their beta diversity changes.\n\n', t0.level))
 
-if (!is.null(group.var)) {
 if (!is.null(test.adj.vars)) {
-    adj.vars_string <- paste(test.adj.vars, collapse = ', ')
-
-    cat(sprintf('In this analysis, we utilized a linear mixed effects model with both a random intercept and a random slope to investigate a potential difference in trend. Specifically, we included %s, %s and %s as covariates and tested the interaction between the variables %s and %s.\n\n', time.var, group.var, adj.vars_string, group.var, time.var))
-} else {
-    cat(sprintf('In this analysis, we utilized a linear mixed effects model with both a random intercept and a random slope to investigate a potential difference in trend. Specifically, we included %s, %s and tested the interaction between the variables %s and %s.\n\n', time.var, group.var, group.var, time.var))
+  adj.vars_string <- paste(test.adj.vars, collapse = ', ')
+  cat(sprintf('The model adjusted for the following covariates: %s.\n\n', adj.vars_string))
 }
-} else {
-    if (!is.null(test.adj.vars)) {
-        cat(sprintf('In this analysis, we utilized a linear mixed effects model with both a random intercept and a random slope to investigate a potential difference in trend. Specifically, we included %s and %s as covariates and tested the slope, i.e., the linear trend, of %s.\n\n', time.var, adj.vars_string, time.var))
-    } else {
-        cat(sprintf('In this analysis, we utilized a linear mixed effects model with both a random intercept and a random slope to investigate a potential difference in trend. Specifically, we included %s as a covariate and tested the slope, i.e., the linear trend, of %s.\n\n', time.var, time.var))
+```
+
+### 3.2.1 Beta diversity change dotplot
+
+```{r beta-diversity-change-dotplot, fig.width=10, fig.height=6, fig.align='center', message=FALSE, warning=FALSE, echo=TRUE}
+dot_plots <- generate_beta_per_time_dotplot_long(
+  data.obj = data.obj,
+  test.list = beta_change_test_longitudinal_results,
+  group.var = group.var,
+  time.var = time.var,
+  t0.level = t0.level,
+  ts.levels = ts.levels,
+  theme.choice = theme.choice
+)
+dot_plots
+```
+
+### 3.2.2 Detailed results by time point
+
+```{r beta-change-test-results-print, echo=FALSE, results='asis'}
+# Function to report significance
+report_beta_significance <- function(results_df) {
+  significant_results <- results_df[results_df$P.Value < 0.05,]
+  if(nrow(significant_results) > 0) {
+    cat('Significant differences were observed for the following beta diversity measures:\n\n')
+    for(i in 1:nrow(significant_results)) {
+      cat(sprintf('- %s (p-value: %.3f)\n', significant_results$Term[i], significant_results$P.Value[i]))
     }
-}
-
-# Define a function to report the significance of interaction terms for Beta diversity
-report_beta_significance <- function(data_frame, group.var, time.var) {
-   if (!is.null(group.var)) {
-    # Extracting interaction terms
-    interaction_terms <- grep(paste0(group.var, '.+:', time.var), data_frame$Term, value = TRUE)
-
-    if (length(interaction_terms) > 1){
-      p_val <- data_frame[data_frame$Term == paste0(group.var, ':', time.var),]$P.Value
-
-        cat(sprintf('\n An ANOVA test of the null hypothesis of no difference among the %s groups produces a p-value of %.3f.\n\n', length(interaction_terms) + 1, p_val))
-
-    } else {
-      for(term in interaction_terms) {
-      p_val <- data_frame[data_frame$Term == term,]$P.Value
-
-      level <- gsub(group.var, '', strsplit(term, ':')[[1]][1])
-      level <- gsub('_', '', level) # Remove any underscores if they exist
-
-      # Describing interaction terms
-      if(p_val < 0.05) {
-        cat(sprintf('\n Based on the linear mixed effects model, a significant trend difference was observed between %s and %s of the variable %s, with a p-value of %.3f.\n\n', reference_level, level, group.var, p_val))
-      } else {
-        cat(sprintf('\n Based on the linear mixed effects model, no significant trend difference was detected between %s and %s of the variable %s, with a p-value of %.3f.\n\n', reference_level, level, group.var, p_val))
-      }
-    }
-    }
-
   } else {
-    p_val <- data_frame[data_frame$Term == time.var,]$P.Value
+    cat('No significant differences were observed for any beta diversity measures at this time point.\n')
+  }
+  cat('\n')
+}
 
-    # Describing the linear trend
-    if(p_val < 0.05) {
-      cat(sprintf('\n Based on the linear mixed effects model, a significant linear trend with respect to %s was identified, with a p-value of %.3f.\n\n', time.var, p_val))
-    } else {
-      cat(sprintf('\n Based on the linear mixed effects model, no significant linear trend was observed with respect to %s, with a p-value of %.3f.\n\n', time.var, p_val))
-    }
+# Iterate through each time point
+for(time_point in names(beta_change_test_longitudinal_results)) {
+  cat(sprintf('\n#### Time point: %s \n\n', time_point))
+
+  # Iterate through each comparison within the time point
+  for(comparison in names(beta_change_test_longitudinal_results[[time_point]])) {
+    cat(sprintf('\n##### %s\n\n', comparison))
+
+    # Get the results for this comparison
+    results_df <- beta_change_test_longitudinal_results[[time_point]][[comparison]]
+
+    # Print the results
+    print(knitr::kable(results_df, format = 'markdown'))
+
+    # Report significance
+    report_beta_significance(results_df)
   }
 }
-
-counter <- 1
-
-# Report significance for each Beta diversity index in beta_trend_test_longitudinal_results
-for(index_name in names(beta_trend_test_longitudinal_results)) {
-  cat(sprintf('\n### 3.2.%d %s distance \n\n', counter, ifelse(index_name == 'BC', 'Bray-Curtis', index_name)))
-  cat('\n')
-
-  report_beta_significance(beta_trend_test_longitudinal_results[[index_name]], group.var, time.var)
-  output <- pander::pander(beta_trend_test_longitudinal_results[[index_name]])
-  cat(output)
-  counter <- counter + 1
-}
-
 ```
 
 ## 3.3 Distance-based volatility test
@@ -1168,7 +1140,7 @@ if (feature.analysis.rarafy) {
 
 ```
 
-## 4.1 Per-Time Point Differential Abundance Analysis
+## 4.1 Per-time point differential abundance
 
 ```{r taxa-per-time-test-generation, message=FALSE, results='hide', warning = FALSE}
 taxa_per_time_test_results <- generate_taxa_per_time_test_long(
@@ -1184,8 +1156,13 @@ taxa_per_time_test_results <- generate_taxa_per_time_test_long(
 )
 ```
 
-```{r taxa-per-time-test-results-print, echo=FALSE, message=FALSE, results='asis', warning = FALSE, fig.align='center', fig.width = 10, fig.height = 8}
-# Generate dotplot for visualization
+```{r taxa-per-time-test-description, echo=FALSE, results='asis'}
+cat(sprintf('In this analysis, we utilized the LinDA linear mixed effects model to investigate differential abundance at each time point. Specifically, we tested the effect of %s on microbial abundance at different time points, while adjusting for other covariates.\n\n', group.var))
+```
+
+### 4.1.1 Differential abundance dotplot
+
+```{r taxa-per-time-dotplot, echo=TRUE, message=FALSE, warning = FALSE, fig.align='center', fig.width = 10, fig.height = 8, results='asis'}
 dotplot_results <- generate_taxa_per_time_dotplot_long(
   data.obj = data.obj,
   test.list = taxa_per_time_test_results,
@@ -1193,24 +1170,23 @@ dotplot_results <- generate_taxa_per_time_dotplot_long(
   time.var = time.var,
   feature.level = test.feature.level
 )
-
-# Display the dotplot
 dotplot_results
+```
 
-# Initial description
-cat(sprintf('In this analysis, we utilized the LinDA linear mixed effects model to investigate differential abundance at each time point. Specifically, we tested the effect of %s on microbial abundance at different time points, while adjusting for other covariates.\n\n', group.var))
+### 4.1.2 Detailed results by time point
 
+```{r taxa-per-time-test-results-print, echo=FALSE, message=FALSE, results='asis', warning = FALSE}
 # Iterate over each time point in taxa_per_time_test_results
 for(time_point in names(taxa_per_time_test_results)) {
-  cat(sprintf('\n### Time point: %s\n\n', time_point))
+  cat(sprintf('\n#### Time point: %s\n\n', time_point))
 
   # Iterate over each taxonomic rank for this time point
   for(taxon_rank in names(taxa_per_time_test_results[[time_point]])) {
-    cat(sprintf('\n#### %s\n\n', taxon_rank))
+    cat(sprintf('\n##### %s\n\n', taxon_rank))
 
     # Iterate over each comparison for this taxon rank
     for(comparison in names(taxa_per_time_test_results[[time_point]][[taxon_rank]])) {
-      cat(sprintf('\n##### %s\n\n', comparison))
+      cat(sprintf('\n###### %s\n\n', comparison))
 
       # Extract specific comparison results data frame
       comparison_df <- taxa_per_time_test_results[[time_point]][[taxon_rank]][[comparison]]
@@ -1231,8 +1207,8 @@ for(time_point in names(taxa_per_time_test_results)) {
         cat(sprintf('No significant results were detected using the %s method for p-value adjustment, at a %s threshold of %s.\n\n', feature.mt.method, p_value_str, feature.sig.level))
       } else {
         cat(sprintf('Significant results were identified using the %s method for p-value adjustment, based on a threshold of %s:\n\n', feature.mt.method, feature.sig.level))
-        output <- pander::pander(sig_results)
-        cat(output)
+        print(knitr::kable(sig_results, format = 'markdown'))
+        cat('\n')
       }
     }
   }
