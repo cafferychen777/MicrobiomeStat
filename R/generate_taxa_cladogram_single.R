@@ -76,6 +76,7 @@ generate_taxa_cladogram_single <- function(
     feature.mt.method = "none",
     cutoff = 1,
     color.group.level = NULL,
+    palette = NULL,
     pdf = FALSE,
     pdf.width = 10,
     pdf.height = 10
@@ -170,17 +171,19 @@ generate_taxa_cladogram_single <- function(
 
   # Generate plot
   # Custom color palette
-  palette <- c(
-    "#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3",
-    "#FB8072", "#80B1D3", "#FDB462", "#BC80BD",
-    "#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
-    "#FF7F00", "#A65628", "#F781BF", "#A6D854",
-    "#1E88E5", "#D81B60", "#004D40", "#FFC107",
-    "#5E35B1", "#00ACC1", "#3949AB", "#8E24AA",
-    "#00897B", "#7CB342", "#C0CA33", "#FB8C00",
-    "#6D4C41", "#546E7A", "#B71C1C", "#880E4F",
-    "#4A148C", "#311B92", "#0D47A1", "#006064"
-  )
+  if (is.null(palette)){
+    palette <- c(
+      "#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3",
+      "#FB8072", "#80B1D3", "#FDB462", "#BC80BD",
+      "#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
+      "#FF7F00", "#A65628", "#F781BF", "#A6D854",
+      "#1E88E5", "#D81B60", "#004D40", "#FFC107",
+      "#5E35B1", "#00ACC1", "#3949AB", "#8E24AA",
+      "#00897B", "#7CB342", "#C0CA33", "#FB8C00",
+      "#6D4C41", "#546E7A", "#B71C1C", "#880E4F",
+      "#4A148C", "#311B92", "#0D47A1", "#006064"
+    )
+  }
 
   calculate_offset <- function(feature_level_length) {
     base_points <- list(
