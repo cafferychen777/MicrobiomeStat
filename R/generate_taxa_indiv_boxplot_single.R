@@ -102,8 +102,9 @@
 #'   t.level = NULL,
 #'   group.var = "antiexposedall",
 #'   strata.var = NULL,
-#'   feature.level = c("Phylum","Family"),
+#'   feature.level = c("Phylum","Genus"),
 #'   feature.dat.type = "proportion",
+#'   features.plot = c(ecam.obj$feature.ann[, "Phylum"][1:5], ecam.obj$feature.ann[, "Genus"][1:5]),
 #'   transform = "log",
 #'   prev.filter = 0.01,
 #'   abund.filter = 0.01,
@@ -319,7 +320,6 @@ generate_taxa_indiv_boxplot_single <-
               )
             } else {
               labs(
-                x = time.var,
                 y = paste("Relative Abundance(", transform, ")"),
                 title = tax
               )
