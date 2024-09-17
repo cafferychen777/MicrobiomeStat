@@ -148,7 +148,7 @@
 #'   feature.box.axis.transform = "sqrt",
 #'   strata.var = NULL,
 #'   vis.feature.level = c("Phylum", "Family", "Genus"),
-#'   test.feature.level = "Family",
+#'   test.feature.level = c("Phylum", "Family", "Genus"),
 #'   feature.dat.type = "count",
 #'   theme.choice = "bw",
 #'   base.size = 20,
@@ -179,7 +179,7 @@
 #'   base.size = 20,
 #'   feature.mt.method = "none",
 #'   feature.sig.level = 0.2,
-#'   output.file = "/Users/apple/MicrobiomeStat/report.pdf"
+#'   output.file = "/Users/apple/Research/MicrobiomeStat/result/report.pdf"
 #' )
 #' data(ecam.obj)
 #' mStat_generate_report_single(
@@ -521,7 +521,7 @@ taxa_heatmap_results <- generate_taxa_heatmap_single(data.obj = data.obj,
                                                      pdf.hei = pdf.hei)
 ```
 
-```{r taxa-heatmap-indiv-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 20, fig.height = 12, warning = FALSE}
+```{r taxa-heatmap-indiv-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 20, fig.height = 20, warning = FALSE}
 cat('The following plots display the individual proportions for each sample. \n\n')
 taxa_heatmap_results
 ```
@@ -819,8 +819,26 @@ taxa_test_results <- generate_taxa_test_single(data.obj = data.obj,
                                                feature.dat.type = feature.dat.type)
 ```
 
-```{r taxa-test-results-display, echo=FALSE, message=FALSE, results='asis', warning = FALSE, fig.align='center', fig.width = 10, fig.height = 8}
+```{r taxa-test-description, echo=FALSE, results='hide'}
+cat(sprintf('In this analysis, we utilized the LinDA linear model to investigate potential differences in abundance. Specifically, we tested the effect of variables %s for different taxa, while adjusting for other covariates.\n\n', group.var))
+```
 
+```{r taxa-cladogram, message=FALSE, warning=FALSE, fig.align='center', fig.width=12, fig.height=12, results='asis'}
+cladogram_plots <- generate_taxa_cladogram_single(
+  data.obj = data.obj,
+  test.list = taxa_test_results,
+  group.var = group.var,
+  feature.level = test.feature.level,
+  feature.mt.method = feature.mt.method,
+  cutoff = 1,
+  color.group.level = test.feature.level[length(test.feature.level)-1]
+)
+
+cladogram_plots
+
+```
+
+```{r taxa-volcano , message=FALSE, warning=FALSE, fig.align='center', fig.width=10, fig.height=8, results='asis'}
 volcano_plots <- generate_taxa_volcano_single(
                                   data.obj = data.obj,
                                   group.var = group.var,
@@ -829,9 +847,9 @@ volcano_plots <- generate_taxa_volcano_single(
                                   feature.mt.method = feature.mt.method
 )
 volcano_plots
+```
 
-cat(sprintf('In this analysis, we utilized the LinDA linear model to investigate potential differences in abundance. Specifically, we tested the effect of variables %s for different taxa, while adjusting for other covariates.\n\n', group.var))
-
+```{r taxa-test-results-output, echo=FALSE, results='hide'}
 # Iterate over each taxonomic rank in taxa_test_results
 for(taxon_rank in names(taxa_test_results)) {
 
@@ -894,7 +912,6 @@ for(taxon_rank in names(taxa_test_results)) {
 }
 
 cat(sprintf('\n\nThe differential abundance test results for features have been saved in the directory: %s. Each taxa rank and its corresponding comparison have their own file named with the prefix: %s followed by the taxon rank, the comparison, and the file extension %s. Please refer to these files for more detailed data.', output_dir, filename_prefix, file_ext))
-
 ```
 
 ```{r extract_significant_taxa, echo=FALSE, results='hide', warning = FALSE}
@@ -936,30 +953,6 @@ significant_vars <- as.vector(significant_vars)
 
 ```{r taxa-significant-boxplot-generation, message=FALSE, fig.align='center', fig.width = 8, fig.height = 4, results='asis', warning = FALSE}
 if (length(significant_vars) != 0) {
-  taxa_boxplot_results_sig_features <- generate_taxa_boxplot_single(
-    data.obj = data.obj,
-    subject.var = subject.var,
-    time.var = time.var,
-    t.level = t.level,
-    group.var = group.var,
-    strata.var = strata.var,
-    feature.level = test.feature.level,
-    feature.dat.type = feature.dat.type,
-    features.plot = significant_vars,
-    top.k.plot = NULL,
-    top.k.func = NULL,
-    transform = feature.box.axis.transform,
-    prev.filter = prev.filter,
-    abund.filter = abund.filter,
-    base.size = base.size,
-    theme.choice = theme.choice,
-    custom.theme = custom.theme,
-    palette = palette,
-    pdf = pdf,
-    file.ann = file.ann,
-    pdf.wid = pdf.wid,
-    pdf.hei = pdf.hei
-  )
 
   taxa_indiv_boxplot_results_sig_features <- generate_taxa_indiv_boxplot_single(
     data.obj = data.obj,
@@ -1071,7 +1064,7 @@ for (feature_level in names(taxa_indiv_boxplot_results)) {
   # Close the PDF device
   dev.off()
 
-  cat(paste0('The boxplot results for all individual taxa or features at the ', feature_level, ' level can be found at: ', full_file_path, '. Please refer to this file for more detailed visualizations.\n'))
+  cat(paste0('The boxplot results for all individual taxa or features at the ', feature_level, ' level can be found at: ', full_file_path, '. Please refer to this file for more detailed visualizations.\n\n'))
 }
 
 ```

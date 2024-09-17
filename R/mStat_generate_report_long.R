@@ -1544,11 +1544,6 @@ taxa_indiv_spaghettiplot_results_sig_features
 ```
 
 ```{r spaghettiplot-pdf-name-creation, echo=FALSE, message=FALSE, results='asis'}
-output_dir <- dirname(output.file) # Extract the directory path from output.file
-
-if (!dir.exists(output_dir)) {
-  dir.create(output_dir)
-}
 
 taxa_indiv_spaghettiplot_results <- generate_taxa_indiv_spaghettiplot_long(
                                    data.obj = data.obj,
@@ -1574,51 +1569,6 @@ taxa_indiv_spaghettiplot_results <- generate_taxa_indiv_spaghettiplot_long(
                                    file.ann = file.ann,
                                    pdf.wid = pdf.wid,
                                    pdf.hei = pdf.hei)
-
-# Loop over each feature level in taxa_indiv_spaghettiplot_results
-for (feature_level in names(taxa_indiv_spaghettiplot_results)) {
-  pdf_name <- paste0(
-    'taxa_indiv_spaghettiplot_long',
-    '_',
-    'subject_',
-    subject.var,
-    '_',
-    'time_',
-    time.var,
-    '_',
-    'feature_level_',
-    feature_level, # Use the current feature level as part of the file name
-    '_',
-    'prev_filter_',
-    prev.filter,
-    '_',
-    'abund_filter_',
-    abund.filter
-  )
-  if (!is.null(group.var)) {
-    pdf_name <- paste0(pdf_name, '_', 'group_', group.var)
-  }
-  if (!is.null(strata.var)) {
-    pdf_name <- paste0(pdf_name, '_', 'strata_', strata.var)
-  }
-  if (!is.null(file.ann)) {
-    pdf_name <- paste0(pdf_name, '_', file.ann)
-  }
-
-  pdf_name <- paste0(pdf_name, '.pdf')
-
-  # Create the full file path by combining the output directory and the file name
-  full_file_path <- file.path(output_dir, pdf_name)
-
-  # Create a multi-page PDF file
-  pdf(full_file_path, width = pdf.wid, height = pdf.hei)
-  # Use lapply to print each ggplot object in the list to a new PDF page
-  lapply(taxa_indiv_spaghettiplot_results[[feature_level]], print)
-  # Close the PDF device
-  dev.off()
-
-  cat(paste0('The spaghettiplot results for individual features at the ', feature_level, ' level can be found at: ', full_file_path, '. Please refer to this file for more detailed visualizations.\n'))
-}
 
 ```
 
