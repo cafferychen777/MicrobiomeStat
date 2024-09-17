@@ -148,8 +148,8 @@
 #'   t.level = "1",
 #'   group.var = NULL,
 #'   strata.var = NULL,
-#'   feature.level = c("Phylum"),
-#'   features.plot = sample(unique(ecam.obj$feature.ann[,"Phylum"]),3),
+#'   feature.level = c("Order", "Phylum", "Genus"),
+#'   features.plot = NULL,
 #'   feature.dat.type = "proportion",
 #'   transform = "log",
 #'   prev.filter = 0,
@@ -273,12 +273,6 @@ generate_taxa_boxplot_single <-
         subject.var, group.var, time.var, strata.var
       )))
 
-    aes_function <- aes(
-      x = !!sym(feature.level),
-      y = value,
-      fill = !!sym(group.var)
-    )
-
     col <- mStat_get_palette(palette)
 
     # Replace the existing theme selection code with this:
@@ -299,6 +293,13 @@ generate_taxa_boxplot_single <-
     }
 
     plot_list <- lapply(feature.level, function(feature.level) {
+
+      aes_function <- aes(
+        x = !!sym(feature.level),
+        y = value,
+        fill = !!sym(group.var)
+      )
+
       if (is.null(data.obj$feature.agg.list[[feature.level]]) &
           feature.level != "original") {
         data.obj <-
