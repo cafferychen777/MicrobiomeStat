@@ -222,6 +222,10 @@ generate_taxa_cladogram_single <- function(
   }
 
   calculate_offset <- function(feature_level_length) {
+    if (feature_level_length == 1) {
+      return(0.2)
+    }
+
     base_points <- list(
       c(1, 0.5),
       c(2, 0.8),
