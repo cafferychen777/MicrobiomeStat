@@ -45,6 +45,28 @@
 #'   color.group.level = "Order"
 #' )
 #'
+#' test.list <- generate_taxa_test_single(
+#'     data.obj = subset_T2D.obj,
+#'     time.var = "visit_number",
+#'     t.level = NULL,
+#'     group.var = "subject_race",
+#'     adj.vars = "subject_gender",
+#'     feature.level = c("Order"),
+#'     feature.dat.type = "count",
+#'     prev.filter = 0.1,
+#'     abund.filter = 0.0001,
+#' )
+#'
+#' plot.list <- generate_taxa_cladogram_single(
+#'   data.obj = subset_T2D.obj,
+#'   test.list = test.list,
+#'   group.var = "subject_gender",
+#'   feature.level = c("Order"),
+#'   feature.mt.method = "none",
+#'   cutoff = 0.9,
+#'   color.group.level = "Order"
+#' )
+#'
 #' data(peerj32.obj)
 #'
 #' test.list <- generate_taxa_test_single(
@@ -81,6 +103,10 @@ generate_taxa_cladogram_single <- function(
     pdf.width = 10,
     pdf.height = 10
 ) {
+
+  if (length(color.group.level) == 0){
+    color.group.level <- feature.level
+  }
 
   # Process the data
   level_seq <- feature.level
@@ -165,8 +191,18 @@ generate_taxa_cladogram_single <- function(
   inputframe_linked <- filter_h(inputframe_linked, level_seq, feature.mt.method)
 
   sub_inputframe <- inputframe_linked %>% dplyr::filter(Sites_layr == {{color.group.level}})
+
+  # Process the "Unclassified" label
+  sub_inputframe$Variable <- ifelse(sub_inputframe$Variable == "Unclassified",
+                                    paste0("Unclassified_", seq_along(which(sub_inputframe$Variable == "Unclassified"))),
+                                    sub_inputframe$Variable)
+
+  # Ensure that the tree labels match the data labels.
+  common_labels <- intersect(treex$tip.label, sub_inputframe$Variable)
+  treex <- ape::keep.tip(treex, common_labels)
+  sub_inputframe <- sub_inputframe[sub_inputframe$Variable %in% common_labels, ]
+
   split_group <- split(sub_inputframe$Variable, f = sub_inputframe[[color.group.level]])
-  treex <- ape::keep.tip(treex, sub_inputframe$Variable)
   treexx <- ggtree::groupOTU(treex, .node = split_group, group_name = color.group.level)
 
   # Generate plot
