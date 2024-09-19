@@ -55,7 +55,6 @@ data("ecam.obj")
 alpha_test_results_ecam <- generate_alpha_per_time_test_long(
   data.obj = ecam.obj,
   alpha.name = c("shannon", "simpson", "observed_species", "pielou"),
-  depth = 1000,
   time.var = "month",
   t0.level = unique(ecam.obj$meta.dat$month)[1],
   ts.levels = unique(ecam.obj$meta.dat$month)[-1],
