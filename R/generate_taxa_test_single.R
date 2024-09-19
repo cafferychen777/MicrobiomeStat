@@ -68,13 +68,12 @@
 #'     abund.filter = 0.0001,
 #' )
 #' plot.list <- generate_taxa_volcano_single(
-#'     data.obj = peerj32.obj, # or other data.obj you want to use
-#'     group.var = "group", # or other group.var you want to use
+#'     data.obj = peerj32.obj,
+#'     group.var = "group",
 #'     test.list = test.list,
-#'     feature.sig.level = 0.1, # or other sig.level you want to use
-#'     feature.mt.method = "none" # or other mt.method you want to use
+#'     feature.sig.level = 0.1,
+#'     feature.mt.method = "none"
 #' )
-#' print(plot.list)
 #' }
 #' @export
 generate_taxa_test_single <- function(data.obj,
