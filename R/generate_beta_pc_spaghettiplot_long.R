@@ -176,26 +176,26 @@
 #' }
 #' @export
 generate_beta_pc_spaghettiplot_long <- function(data.obj = NULL,
-                                          dist.obj = NULL,
-                                          pc.obj = NULL,
-                                          pc.ind = c(1, 2),
-                                          subject.var,
-                                          time.var,
-                                          t0.level = NULL,
-                                          ts.levels = NULL,
-                                          group.var = NULL,
-                                          strata.var = NULL,
-                                          adj.vars = NULL,
-                                          dist.name = c("BC"),
-                                          base.size = 16,
-                                          theme.choice = "bw",
-                                          custom.theme = NULL,
-                                          palette = NULL,
-                                          pdf = TRUE,
-                                          file.ann = NULL,
-                                          pdf.wid = 11,
-                                          pdf.hei = 8.5,
-                                          ...) {
+                                                dist.obj = NULL,
+                                                pc.obj = NULL,
+                                                pc.ind = c(1, 2),
+                                                subject.var,
+                                                time.var,
+                                                t0.level = NULL,
+                                                ts.levels = NULL,
+                                                group.var = NULL,
+                                                strata.var = NULL,
+                                                adj.vars = NULL,
+                                                dist.name = c("BC"),
+                                                base.size = 16,
+                                                theme.choice = "bw",
+                                                custom.theme = NULL,
+                                                palette = NULL,
+                                                pdf = TRUE,
+                                                file.ann = NULL,
+                                                pdf.wid = 11,
+                                                pdf.hei = 8.5,
+                                                ...) {
 
   if (is.null(dist.name)){
     return()
@@ -311,7 +311,7 @@ generate_beta_pc_spaghettiplot_long <- function(data.obj = NULL,
       sub_df <- df %>% filter(PC == pc.index)
 
       p <- ggplot() +
-        geom_line(
+        geom_point(
           data = sub_df,
           aes_string(
             x = time.var,
@@ -319,7 +319,8 @@ generate_beta_pc_spaghettiplot_long <- function(data.obj = NULL,
             group = subject.var,
             color = group.var
           ),
-          alpha = 0.3
+          alpha = 0.3,
+          size = 3
         ) +
         geom_line(
           data = sub_df,
@@ -339,7 +340,7 @@ generate_beta_pc_spaghettiplot_long <- function(data.obj = NULL,
             group = group.var,
             color = group.var
           ),
-          size = 3
+          size = 5
         ) +
         labs(x = time.var, y = paste("Distance:",
                                      dist.name,
@@ -353,13 +354,15 @@ generate_beta_pc_spaghettiplot_long <- function(data.obj = NULL,
           panel.spacing.x = unit(0, "cm"),
           panel.spacing.y = unit(0, "cm"),
           strip.text.x = element_text(size = 12, color = "black"),
-          axis.title.x = element_text(size = axis.title.size),
-          axis.title.y = element_text(size = axis.title.size),
-          axis.text.x = element_text(angle = 90, color = "black", vjust = 0.5, size = base.size * 0.75),
-          axis.text.y = element_text(size = base.size),
+          axis.title.x = element_text(size = axis.title.size*2),
+          axis.title.y = element_text(size = axis.title.size*2),
+          axis.text.x = element_text(angle = 90, color = "black", vjust = 0.5, size = base.size * 2),
+          axis.text.y = element_text(size = base.size*2),
           plot.margin = unit(c(0.3, 0.3, 0.3, 0.3), units = "cm"),
-          legend.text = ggplot2::element_text(size = 16),
-          legend.title = ggplot2::element_text(size = 16)
+          legend.text = ggplot2::element_text(size = 16 * 2),
+          legend.title = ggplot2::element_text(size = 16 * 2),
+          legend.key.size = unit(10, "mm"),
+          legend.key.spacing = unit(2, "mm")
         )
 
       if (group.var == "ALL"){

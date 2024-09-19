@@ -240,163 +240,163 @@ generate_beta_pc_change_boxplot_pair <-
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
     plot_list <- lapply(dist.name, function(dist.name) {
-        pc.mat <- pc.obj[[dist.name]]$points
+      pc.mat <- pc.obj[[dist.name]]$points
 
-        colnames(pc.mat) <- paste0("PC", 1:ncol(pc.mat))
+      colnames(pc.mat) <- paste0("PC", 1:ncol(pc.mat))
 
-        pc.mat <- pc.mat %>% as_tibble()
+      pc.mat <- pc.mat %>% as_tibble()
 
-        df <-
-          cbind(pc.mat[, paste0("PC", pc.ind)], meta_tab[, c(subject.var, time.var, group.var, strata.var)])
+      df <-
+        cbind(pc.mat[, paste0("PC", pc.ind)], meta_tab[, c(subject.var, time.var, group.var, strata.var)])
 
-        change.after <-
-          unique(df %>% select(all_of(c(time.var))))[unique(df %>% select(all_of(c(time.var)))) != change.base]
+      change.after <-
+        unique(df %>% select(all_of(c(time.var))))[unique(df %>% select(all_of(c(time.var)))) != change.base]
 
-        df <-
-          df %>%
-          as_tibble() %>%
-          tidyr::gather(
-            key = "PC",
-            value = "value",-one_of(subject.var, group.var, time.var, strata.var)
+      df <-
+        df %>%
+        as_tibble() %>%
+        tidyr::gather(
+          key = "PC",
+          value = "value",-one_of(subject.var, group.var, time.var, strata.var)
+        )
+
+      split_data <-
+        split(df, f = df %>%
+                dplyr::group_by(!!sym(time.var)) %>% select(!!sym(time.var)))
+
+      data_time_1 <- split_data[[change.base]]
+      data_time_2 <- split_data[[change.after]]
+
+      combined_data <- data_time_1 %>%
+        dplyr::inner_join(
+          data_time_2,
+          by = c("PC", subject.var),
+          suffix = c("_time_1", "_time_2")
+        )
+
+      combined_data <- combined_data %>%
+        dplyr::mutate(value_diff = if (is.function(change.func)) {
+          change.func(value_time_2, value_time_1)
+        } else if (change.func == "absolute change"){
+          value_time_2 - value_time_1
+        } else {
+          value_time_2 - value_time_1
+        })
+
+      combined_data <-
+        combined_data %>% dplyr::left_join(meta_tab %>% select(all_of(
+          c(subject.var, time.var, group.var, strata.var)
+        )) %>% filter(!!sym(time.var) == change.after),
+        by = subject.var)
+
+      if (is.null(group.var)) {
+        group.var = "ALL"
+        combined_data$ALL <- "ALL"
+      }
+
+      sub.plot_list <- lapply(paste0("PC", pc.ind), function(pc.index) {
+        boxplot <- ggplot(
+          combined_data %>% filter(PC == pc.index),
+          aes(
+            x = !!sym(group.var),
+            y = value_diff,
+            fill = !!sym(group.var)
+          )
+        ) +
+          #geom_violin(trim = F, alpha = 0.8) +
+          stat_boxplot(
+            geom = "errorbar",
+            position = position_dodge(width = 0.2),
+            width = 0.3
+          ) +
+          geom_boxplot(
+            position = position_dodge(width = 0.8),
+            width = 0.3
+            #fill = "white"
+          ) +
+          geom_jitter(width = 0.3,
+                      alpha = 0.5,
+                      size = 1.7) +
+          scale_alpha_manual(values = c(0.5, 0.5)) +
+          scale_fill_manual(values = col) +
+          labs(x = group.var, y = paste("Change in ", "Axis ", gsub("PC", "", pc.index), " - ",
+                                        if(is.function(change.func)){
+                                          "custom function"
+                                        } else {
+                                          change.func
+                                        })) +
+          theme_to_use +
+          theme(
+            panel.spacing.x = unit(0, "cm"),
+            panel.spacing.y = unit(0, "cm"),
+            strip.text.x = element_text(size = 12, color = "black"),
+            axis.text.x = element_blank(),
+            axis.text.y = element_text(color = "black", size = base.size),
+            axis.title.x = element_blank(),
+            axis.title.y = element_text(size = base.size),
+            axis.ticks.x = element_blank(),
+            plot.margin = unit(c(0.3, 0.3, 0.3, 0.3), units = "cm"),
+            legend.text = ggplot2::element_text(size = base.size),
+            legend.title = ggplot2::element_text(size = base.size)
           )
 
-        split_data <-
-          split(df, f = df %>%
-                  dplyr::group_by(!!sym(time.var)) %>% select(!!sym(time.var)))
-
-        data_time_1 <- split_data[[change.base]]
-        data_time_2 <- split_data[[change.after]]
-
-        combined_data <- data_time_1 %>%
-          dplyr::inner_join(
-            data_time_2,
-            by = c("PC", subject.var),
-            suffix = c("_time_1", "_time_2")
-          )
-
-        combined_data <- combined_data %>%
-          dplyr::mutate(value_diff = if (is.function(change.func)) {
-            change.func(value_time_2, value_time_1)
-          } else if (change.func == "absolute change"){
-            value_time_2 - value_time_1
-          } else {
-            value_time_2 - value_time_1
-          })
-
-        combined_data <-
-          combined_data %>% dplyr::left_join(meta_tab %>% select(all_of(
-            c(subject.var, time.var, group.var, strata.var)
-          )) %>% filter(!!sym(time.var) == change.after),
-          by = subject.var)
-
-        if (is.null(group.var)) {
-          group.var = "ALL"
-          combined_data$ALL <- "ALL"
+        if (is.null(strata.var)) {
+          boxplot <- boxplot
+        } else {
+          boxplot <- boxplot +
+            ggh4x::facet_nested(cols = vars(!!sym(strata.var)),
+                                scales = "fixed",
+                                space = "free")
         }
 
-        sub.plot_list <- lapply(paste0("PC", pc.ind), function(pc.index) {
-          boxplot <- ggplot(
-            combined_data %>% filter(PC == pc.index),
-            aes(
-              x = !!sym(group.var),
-              y = value_diff,
-              fill = !!sym(group.var)
-            )
-          ) +
-            #geom_violin(trim = F, alpha = 0.8) +
-            stat_boxplot(
-              geom = "errorbar",
-              position = position_dodge(width = 0.2),
-              width = 0.1
-            ) +
-            geom_boxplot(
-              position = position_dodge(width = 0.8),
-              width = 0.1,
-              #fill = "white"
-            ) +
-            geom_jitter(width = 0.1,
-                        alpha = 0.5,
-                        size = 1.7) +
-            scale_alpha_manual(values = c(0.5, 0.5)) +
-            scale_fill_manual(values = col) +
-            labs(x = group.var, y = paste("Change in ", "Axis ", gsub("PC", "", pc.index), " - ",
-                                          if(is.function(change.func)){
-                                            "custom function"
-                                          } else {
-                                            change.func
-                                          })) +
-            theme_to_use +
-            theme(
-              panel.spacing.x = unit(0, "cm"),
-              panel.spacing.y = unit(0, "cm"),
-              strip.text.x = element_text(size = 12, color = "black"),
-              axis.text.x = element_blank(),
-              axis.text.y = element_text(color = "black", size = base.size),
-              axis.title.x = element_blank(),
-              axis.title.y = element_text(size = base.size),
-              axis.ticks.x = element_blank(),
-              plot.margin = unit(c(0.3, 0.3, 0.3, 0.3), units = "cm"),
-              legend.text = ggplot2::element_text(size = base.size),
-              legend.title = ggplot2::element_text(size = base.size)
-            )
 
-          if (is.null(strata.var)) {
-            boxplot <- boxplot
-          } else {
-            boxplot <- boxplot +
-              ggh4x::facet_nested(cols = vars(!!sym(strata.var)),
-                         scales = "fixed",
-                         space = "free")
+        if (group.var == "ALL") {
+          boxplot <- boxplot  + theme(
+            axis.text.x = element_blank(),
+            axis.title.x = element_blank(),
+            legend.position = "none",
+            strip.text.x = element_blank()
+          )
+        }
+
+
+        # Save the plots as a PDF file
+        if (pdf) {
+          pdf_name <- paste0(
+            "beta_pc_change_boxplot_pair_",
+            dist.name,
+            "_",
+            "subject_",
+            subject.var,
+            "_",
+            "time_",
+            time.var,
+            "_",
+            "change_base_",
+            change.base
+          )
+          if (!is.null(group.var)) {
+            pdf_name <- paste0(pdf_name, "_", "group_", group.var)
           }
-
-
-            if (group.var == "ALL") {
-              boxplot <- boxplot  + theme(
-                axis.text.x = element_blank(),
-                axis.title.x = element_blank(),
-                legend.position = "none",
-                strip.text.x = element_blank()
-              )
-            }
-
-
-          # Save the plots as a PDF file
-          if (pdf) {
-              pdf_name <- paste0(
-                "beta_pc_change_boxplot_pair_",
-                dist.name,
-                "_",
-                "subject_",
-                subject.var,
-                "_",
-                "time_",
-                time.var,
-                "_",
-                "change_base_",
-                change.base
-              )
-              if (!is.null(group.var)) {
-                pdf_name <- paste0(pdf_name, "_", "group_", group.var)
-              }
-              if (!is.null(strata.var)) {
-                pdf_name <- paste0(pdf_name, "_", "strata_", strata.var)
-              }
-              if (!is.null(file.ann)) {
-                pdf_name <- paste0(pdf_name, "_", file.ann)
-              }
-              pdf_name <- paste0(pdf_name, ".pdf")
-              ggsave(
-                filename = pdf_name,
-                plot = boxplot,
-                width = pdf.wid,
-                height = pdf.hei,
-                dpi = 300
-              )
+          if (!is.null(strata.var)) {
+            pdf_name <- paste0(pdf_name, "_", "strata_", strata.var)
           }
-          return(boxplot)
+          if (!is.null(file.ann)) {
+            pdf_name <- paste0(pdf_name, "_", file.ann)
+          }
+          pdf_name <- paste0(pdf_name, ".pdf")
+          ggsave(
+            filename = pdf_name,
+            plot = boxplot,
+            width = pdf.wid,
+            height = pdf.hei,
+            dpi = 300
+          )
+        }
+        return(boxplot)
       })
-        names(sub.plot_list) <- paste0("PC", pc.ind)
-        return(sub.plot_list)
+      names(sub.plot_list) <- paste0("PC", pc.ind)
+      return(sub.plot_list)
     })
     names(plot_list) <- dist.name
     return(plot_list)

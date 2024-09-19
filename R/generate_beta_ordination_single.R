@@ -255,7 +255,7 @@ generate_beta_ordination_single <-
       colnames(df)[1:2] <- c("PC1", "PC2")
 
       p <- ggplot2::ggplot(df, ggplot2::aes(PC1, PC2)) +
-        ggplot2::geom_point(size = 12, aes_function, show.legend = T) +
+        ggplot2::geom_point(size = 10, aes_function, show.legend = T) +
         ggplot2::labs(
           x = ifelse(!is.null(pc.obj[[dist.name]]$eig),paste0("Axis 1 (", round(pc.obj[[dist.name]]$eig[1]/sum(pc.obj[["BC"]]$eig)*100,2),"%)"),"Axis 1"),
           y = ifelse(!is.null(pc.obj[[dist.name]]$eig),paste0("Axis 2 (", round(pc.obj[[dist.name]]$eig[2]/sum(pc.obj[["BC"]]$eig)*100,2),"%)"),"Axis 2")

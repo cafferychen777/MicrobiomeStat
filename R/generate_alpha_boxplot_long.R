@@ -350,10 +350,10 @@ generate_alpha_boxplot_long <- function (data.obj,
       #geom_violin(trim = FALSE, alpha = 0.8) +
       stat_boxplot(geom = "errorbar",
                    position = position_dodge(width = 0.2),
-                   width = 0.1) +
+                   width = 0.3) +
       geom_boxplot(
         position = position_dodge(width = 0.8),
-        width = 0.1,
+        width = 0.3,
         #fill = "white"
       ) +
       geom_line(
@@ -422,8 +422,10 @@ generate_alpha_boxplot_long <- function (data.obj,
         axis.title.x = element_text(size = base.size),
         axis.title.y = element_text(size = base.size),
         plot.margin = unit(c(0.3, 0.3, 0.3, 0.3), units = "cm"),
-        legend.text = ggplot2::element_text(size = 16),
-        legend.title = ggplot2::element_text(size = 16)
+        legend.text = ggplot2::element_text(size = 16 * 2),
+        legend.title = ggplot2::element_text(size = 16 * 2),
+        legend.key.size = unit(10, "mm"),
+        legend.key.spacing = unit(2, "mm")
       ) + {
         if (group.var == "ALL") {
           guides(fill = "none")

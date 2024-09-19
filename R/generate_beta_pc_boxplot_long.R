@@ -307,11 +307,11 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
         stat_boxplot(
           geom = "errorbar",
           position = position_dodge(width = 0.2),
-          width = 0.1
+          width = 0.3
         ) +
         geom_boxplot(
           position = position_dodge(width = 0.8),
-          width = 0.1,
+          width = 0.3,
           #fill = "white"
         ) +
         geom_line(
@@ -345,40 +345,40 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
           legend.text = ggplot2::element_text(size = base.size),
           legend.title = ggplot2::element_text(size = base.size)
         )
-    if (time.levels > 2){
-      if (!is.null(group.var)) {
-        if (is.null(strata.var)) {
-          boxplot <-
-            boxplot + ggh4x::facet_nested(cols = vars(!!sym(group.var)),
-                                          scales = "free",
-                                          space = "free")
-        } else {
-          boxplot <-
-            boxplot + ggh4x::facet_nested(
-              cols = vars(!!sym(group.var)),
-              rows = vars(!!sym(strata.var)),
-              scales = "free",
-              space = "free"
-            )
+      if (time.levels > 2){
+        if (!is.null(group.var)) {
+          if (is.null(strata.var)) {
+            boxplot <-
+              boxplot + ggh4x::facet_nested(cols = vars(!!sym(group.var)),
+                                            scales = "free",
+                                            space = "free")
+          } else {
+            boxplot <-
+              boxplot + ggh4x::facet_nested(
+                cols = vars(!!sym(group.var)),
+                rows = vars(!!sym(strata.var)),
+                scales = "free",
+                space = "free"
+              )
+          }
+        }
+      } else {
+        if (!is.null(group.var)) {
+          if (is.null(strata.var)) {
+            boxplot <-
+              boxplot + ggh4x::facet_nested(cols = vars(!!sym(group.var)),
+                                            scales = "free",
+                                            space = "free")
+          } else {
+            boxplot <-
+              boxplot + ggh4x::facet_nested(
+                cols = vars(!!sym(strata.var), !!sym(group.var)),
+                scales = "free",
+                space = "free"
+              )
+          }
         }
       }
-    } else {
-      if (!is.null(group.var)) {
-        if (is.null(strata.var)) {
-          boxplot <-
-            boxplot + ggh4x::facet_nested(cols = vars(!!sym(group.var)),
-                                          scales = "free",
-                                          space = "free")
-        } else {
-          boxplot <-
-            boxplot + ggh4x::facet_nested(
-              cols = vars(!!sym(strata.var), !!sym(group.var)),
-              scales = "free",
-              space = "free"
-            )
-        }
-      }
-    }
 
       # Add geom_jitter() if the number of unique time points or subjects is greater than 10
       if (n_subjects > 10 || n_times > 10) {

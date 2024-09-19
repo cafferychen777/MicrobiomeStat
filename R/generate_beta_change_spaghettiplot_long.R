@@ -287,7 +287,7 @@ generate_beta_change_spaghettiplot_long <-
       }
 
       p <- ggplot() +
-        geom_line(
+        geom_point(
           data = long.df,
           aes_string(
             x = time.var,
@@ -295,7 +295,8 @@ generate_beta_change_spaghettiplot_long <-
             group = subject.var,
             color = group.var
           ),
-          alpha = 0.3
+          alpha = 0.3,
+          size = 3
         ) +
         geom_line(
           data = long.df,
@@ -315,7 +316,7 @@ generate_beta_change_spaghettiplot_long <-
             group = group.var,
             color = group.var
           ),
-          size = 3
+          size = 5
         ) +
         labs(x = time.var, y = y_label, color = group.var) +
         scale_color_manual(
@@ -326,13 +327,15 @@ generate_beta_change_spaghettiplot_long <-
           panel.spacing.x = unit(0, "cm"),
           panel.spacing.y = unit(0, "cm"),
           strip.text.x = element_text(size = 12, color = "black"),
-          axis.title.x = element_text(size = axis.title.size),
-          axis.title.y = element_text(size = axis.title.size),
-          axis.text.x = element_text(angle = 90, color = "black", vjust = 0.5, size = base.size * 0.75),
-          axis.text.y = element_text(size = base.size),
+          axis.title.x = element_text(size = axis.title.size*2),
+          axis.title.y = element_text(size = axis.title.size*2),
+          axis.text.x = element_text(angle = 90, color = "black", vjust = 0.5, size = base.size * 2),
+          axis.text.y = element_text(size = base.size*2),
           plot.margin = unit(c(0.3, 0.3, 0.3, 0.3), units = "cm"),
-          legend.text = ggplot2::element_text(size = 16),
-          legend.title = ggplot2::element_text(size = 16)
+          legend.text = ggplot2::element_text(size = 16 * 2),
+          legend.title = ggplot2::element_text(size = 16 * 2),
+          legend.key.size = unit(10, "mm"),
+          legend.key.spacing = unit(2, "mm")
         )
 
       if (group.var == "ALL"){

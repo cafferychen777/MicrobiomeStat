@@ -283,15 +283,15 @@ generate_alpha_boxplot_single <- function (data.obj,
     boxplot <- ggplot(alpha_df,
                       aes_function) +
       #geom_violin(trim = FALSE, alpha = 0.8) +
-      geom_jitter(width = 0.1,
+      geom_jitter(width = 0.3,
                   alpha = 0.5,
-                  size = 1) +
+                  size = 2) +
       stat_boxplot(geom = "errorbar",
                    position = position_dodge(width = 0.2),
-                   width = 0.1) +
+                   width = 0.3) +
       geom_boxplot(
         position = position_dodge(width = 0.8),
-        width = 0.1,
+        width = 0.3,
         #fill = "white"
       ) +
       scale_fill_manual(values = col) +

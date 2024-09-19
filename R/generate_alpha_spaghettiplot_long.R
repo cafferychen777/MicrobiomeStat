@@ -348,7 +348,7 @@ generate_alpha_spaghettiplot_long <-
       }
 
       plot <- ggplot() +
-        geom_line(
+        geom_point(
           data = sub_alpha.df,
           aes_string(
             x = time.var,
@@ -356,7 +356,8 @@ generate_alpha_spaghettiplot_long <-
             group = subject.var,
             color = group.var
           ),
-          alpha = 0.5
+          alpha = 0.5,
+          size = 3
         ) +
         geom_line(
           data = sub_alpha.df,
@@ -376,7 +377,7 @@ generate_alpha_spaghettiplot_long <-
             group = group.var,
             color = group.var
           ),
-          size = 3
+          size = 5
         ) +
         labs(x = time.var, y = y_label, color = group.var) +
         scale_color_manual(
@@ -386,14 +387,16 @@ generate_alpha_spaghettiplot_long <-
         theme_to_use +
         theme(
           strip.text.x = element_text(size = 15, color = "black"),
-          axis.title.x = element_text(size = base.size),
-          axis.title.y = element_text(size = base.size),
-          axis.text.x = element_text(angle = 90, color = "black", vjust = 0.5, size = base.size * 0.75),
-          axis.text.y = element_text(size = base.size),
-          legend.text = ggplot2::element_text(size = 16),
-          legend.title = ggplot2::element_text(size = 16),
-          panel.spacing.x = unit(0, "cm"),
-          panel.spacing.y = unit(0, "cm"),
+          axis.title.x = element_text(size = base.size*2),
+          axis.title.y = element_text(size = base.size*2),
+          axis.text.x = element_text(angle = 90, color = "black", vjust = 0.5, size = base.size*2),
+          axis.text.y = element_text(size = base.size*2),
+          legend.text = ggplot2::element_text(size = 16 * 2),
+          legend.title = ggplot2::element_text(size = 16 * 2),
+          legend.key.size = unit(10, "mm"),
+          legend.key.spacing = unit(2, "mm"),
+          panel.spacing.x = unit(1, "cm"),
+          panel.spacing.y = unit(1, "cm"),
           plot.margin = unit(c(0.3, 0.3, 0.3, 0.3), units = "cm")
         )
 
