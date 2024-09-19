@@ -40,8 +40,7 @@ mStat_generate_report_long(
   file.ann = NULL,
   pdf.wid = 11,
   pdf.hei = 8.5,
-  output.file,
-  ...
+  output.file
 )
 }
 \arguments{
@@ -202,8 +201,6 @@ least as large as the number of groups being plotted.}
 \item{pdf.hei}{Numeric, height of PDF plots in inches, default is 8.5.}
 
 \item{output.file}{Character, output PDF report filename (required).}
-
-\item{...}{Additional arguments passed to generate_taxa_trend_test_long().}
 }
 \value{
 A PDF report containing:
@@ -299,7 +296,7 @@ mStat_generate_report_long(
   feature.box.axis.transform = "sqrt",
   theme.choice = "bw",
   base.size = 20,
-  output.file = "/Users/apple/MicrobiomeStat/report.pdf"
+  output.file = "/Users/apple/Research/MicrobiomeStat/result/per_time_test_report.pdf"
 )
 data(ecam.obj)
 mStat_generate_report_long(
