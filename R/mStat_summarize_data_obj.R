@@ -138,24 +138,25 @@ mStat_summarize_data_obj <-
           # Print the grouped data frame
           #print(grouped_df)
 
-            palette <- mStat_get_palette(palette)
-
+          palette <- mStat_get_palette(palette)
+          p1 <- ggplot(grouped_df, aes(
+            x = !!sym(time.var),
+            y = SampleCount,
+            fill = !!sym(group.var)
+          )) +
+            geom_bar(stat = "identity", position = "stack") +
+            scale_fill_manual(values = palette) +
+            theme_minimal() +
+            theme(plot.title = element_text(hjust = 0.5)) +
+            labs(
+              title = "Histogram of Sample Counts over Time",
+              x = time.var,
+              y = "Sample Count"
+            ) +
+            scale_y_continuous(expand = expansion(mult = c(0, 0.05)), limits = c(0, NA))
           print(
-            ggplot(grouped_df, aes(
-              x = !!sym(time.var),
-              y = SampleCount,
-              fill = !!sym(group.var)
-            )) +
-              geom_bar(stat = "identity", position = "stack") +
-              scale_fill_manual(values = palette) +
-              theme_minimal() +
-              theme(plot.title = element_text(hjust = 0.5)) +
-              labs(
-                title = "Histogram of Sample Counts over Time",
-                x = time.var,
-                y = "Sample Count"
-              ) +
-              scale_y_continuous(expand = expansion(mult = c(0, 0.05)), limits = c(0, NA))
+            # patchwork::plot_spacer() + p1 + patchwork::plot_spacer()
+            p1
           )
         } else {
           # Calculate the table

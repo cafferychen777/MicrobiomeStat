@@ -256,8 +256,8 @@ generate_taxa_indiv_boxplot_long <-
         rownames_to_column(feature.level)
 
       if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
-      computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
-      features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
+        computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
+        features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
       }
 
       otu_tax_agg_numeric <- otu_tax_agg %>%
@@ -267,12 +267,12 @@ generate_taxa_indiv_boxplot_long <-
       otu_tax_agg_merged <-
         dplyr::left_join(otu_tax_agg_numeric, meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
         select(one_of(c("sample",
-               feature.level,
-               subject.var,
-               time.var,
-               group.var,
-               strata.var,
-               "value")))
+                        feature.level,
+                        subject.var,
+                        time.var,
+                        group.var,
+                        strata.var,
+                        "value")))
 
       # Apply transformation
       if (feature.dat.type %in% c("count","proportion")){
@@ -347,11 +347,11 @@ generate_taxa_indiv_boxplot_long <-
           stat_boxplot(
             geom = "errorbar",
             position = position_dodge(width = 0.2),
-            width = 0.1
+            width = 0.3
           ) +
           geom_boxplot(
             position = position_dodge(width = 0.8),
-            width = 0.1,
+            width = 0.3,
             #fill = "white"
           ) +
           geom_line(
@@ -397,15 +397,15 @@ generate_taxa_indiv_boxplot_long <-
             legend.title = ggplot2::element_text(size = 16)
           )
 
-          if (!is.null(group.var)) {
-            if (is.null(strata.var)) {
-              boxplot <-
-                boxplot + ggh4x::facet_nested(as.formula(paste("~", group.var)), scales = "fixed")
-            } else {
-              boxplot <-
-                boxplot + ggh4x::facet_nested(as.formula(paste("~", strata.var, "+", group.var)), scales = "free", space = "free") + theme(panel.spacing = unit(0,"lines"))
-            }
+        if (!is.null(group.var)) {
+          if (is.null(strata.var)) {
+            boxplot <-
+              boxplot + ggh4x::facet_nested(as.formula(paste("~", group.var)), scales = "fixed")
+          } else {
+            boxplot <-
+              boxplot + ggh4x::facet_nested(as.formula(paste("~", strata.var, "+", group.var)), scales = "free", space = "free") + theme(panel.spacing = unit(0,"lines"))
           }
+        }
 
         # Add geom_jitter() if the number of unique time points or subjects is greater than 10
         if (n_subjects > 20 || n_times > 10) {

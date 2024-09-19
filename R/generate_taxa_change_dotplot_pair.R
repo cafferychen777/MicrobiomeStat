@@ -169,7 +169,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
                                               pdf = TRUE,
                                               file.ann = NULL,
                                               pdf.wid = 11,
-                                              pdf.hei = 8.5,
+                                              pdf.hei = 6,
                                               ...) {
 
   feature.dat.type <- match.arg(feature.dat.type)

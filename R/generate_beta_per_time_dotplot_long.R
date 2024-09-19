@@ -112,18 +112,18 @@
 #' }
 #' @export
 generate_beta_per_time_dotplot_long <- function(data.obj,
-                                        test.list,
-                                        group.var,
-                                        time.var,
-                                        t0.level,
-                                        ts.levels,
-                                        base.size = 16,
-                                        theme.choice = "bw",
-                                        custom.theme = NULL,
-                                        palette = rev(c("white", "#92c5de", "#0571b0", "#f4a582", "#ca0020")),
-                                        pdf = FALSE,
-                                        pdf.wid = 7,
-                                        pdf.hei = 5
+                                                test.list,
+                                                group.var,
+                                                time.var,
+                                                t0.level,
+                                                ts.levels,
+                                                base.size = 16,
+                                                theme.choice = "bw",
+                                                custom.theme = NULL,
+                                                palette = rev(c("white", "#92c5de", "#0571b0", "#f4a582", "#ca0020")),
+                                                pdf = FALSE,
+                                                pdf.wid = 7,
+                                                pdf.hei = 5
 ){
   # Process the time variable in the data
   data.obj <- mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
@@ -178,6 +178,7 @@ generate_beta_per_time_dotplot_long <- function(data.obj,
            y = "Term",
            size = "Coefficient",
            color = p_val_var) +
+      scale_radius(range = c(0, 10)) +
       theme_to_use +
       theme(
         axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = base.size),

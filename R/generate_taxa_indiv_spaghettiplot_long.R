@@ -189,8 +189,8 @@ generate_taxa_indiv_spaghettiplot_long <-
         rownames_to_column(feature.level)
 
       if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
-      computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
-      features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
+        computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
+        features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
       }
 
       # 转换计数为数值类型
@@ -212,13 +212,13 @@ generate_taxa_indiv_spaghettiplot_long <-
           dplyr::summarize(mean_count = mean(count), na.rm = TRUE)
         df <-
           dplyr::left_join(df,
-                    mean_df,
-                    by = c(feature.level, time.var, group.var, strata.var))
+                           mean_df,
+                           by = c(feature.level, time.var, group.var, strata.var))
       } else {
         mean_df <-
           df %>% dplyr::group_by(!!sym(feature.level),
-                          !!sym(time.var),
-                          !!sym(group.var)) %>%
+                                 !!sym(time.var),
+                                 !!sym(group.var)) %>%
           dplyr::summarize(mean_count = mean(count), na.rm = TRUE)
         df <-
           dplyr::left_join(df, mean_df, by = c(feature.level, time.var, group.var))
@@ -246,7 +246,7 @@ generate_taxa_indiv_spaghettiplot_long <-
       plot_list <- lapply(taxa.levels, function(tax) {
         sub_df <- df %>% filter(!!sym(feature.level) == tax)
         lineplot <- ggplot() +
-          geom_line(
+          geom_point(
             data = sub_df,
             aes_string(
               x = time.var,

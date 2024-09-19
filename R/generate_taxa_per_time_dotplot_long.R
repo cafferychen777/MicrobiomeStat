@@ -111,24 +111,24 @@
 #' }
 #' @export
 generate_taxa_per_time_dotplot_long <- function(data.obj,
-                                       test.list,
-                                       group.var,
-                                       time.var,
-                                       t0.level = NULL,
-                                       ts.levels = NULL,
-                                       feature.level,
-                                       feature.mt.method = "none",
-                                       feature.sig.level = 0.05,
-                                       features.plot = NULL,
-                                       filter_significant = TRUE,
-                                       base.size = 16,
-                                       theme.choice = "bw",
-                                       custom.theme = NULL,
-                                       palette = NULL,
-                                       pdf = FALSE,
-                                       pdf.wid = 7,
-                                       pdf.hei = 5
-                                       ){
+                                                test.list,
+                                                group.var,
+                                                time.var,
+                                                t0.level = NULL,
+                                                ts.levels = NULL,
+                                                feature.level,
+                                                feature.mt.method = "none",
+                                                feature.sig.level = 0.05,
+                                                features.plot = NULL,
+                                                filter_significant = TRUE,
+                                                base.size = 16,
+                                                theme.choice = "bw",
+                                                custom.theme = NULL,
+                                                palette = NULL,
+                                                pdf = FALSE,
+                                                pdf.wid = 7,
+                                                pdf.hei = 5
+){
 
   data.obj <- mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
 
@@ -208,6 +208,7 @@ generate_taxa_per_time_dotplot_long <- function(data.obj,
              y = feature.level,
              size = "Coefficient",
              color = p_val_var) +
+        scale_radius(range = c(0, 10)) +
         theme_to_use +
         theme(
           axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = base.size),

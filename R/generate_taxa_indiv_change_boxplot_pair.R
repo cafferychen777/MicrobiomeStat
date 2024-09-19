@@ -262,8 +262,8 @@ generate_taxa_indiv_change_boxplot_pair <-
         rownames_to_column(feature.level)
 
       if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
-      computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
-      features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
+        computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
+        features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
       }
 
       # Convert values to numeric and add sample ID
@@ -275,12 +275,12 @@ generate_taxa_indiv_change_boxplot_pair <-
       otu_tax_agg_merged <-
         dplyr::left_join(otu_tax_agg_numeric, meta_tab, by = "sample") %>%
         select(all_of(c("sample",
-               feature.level,
-               subject.var,
-               time.var,
-               group.var,
-               strata.var,
-               "value")))
+                        feature.level,
+                        subject.var,
+                        time.var,
+                        group.var,
+                        strata.var,
+                        "value")))
 
       change.after <-
         unique(otu_tax_agg_merged %>% select(all_of(c(time.var))))[unique(otu_tax_agg_merged %>% select(all_of(c(time.var)))) != change.base]
@@ -312,12 +312,12 @@ generate_taxa_indiv_change_boxplot_pair <-
           filter(value_time_2 > 0) %>%
           dplyr::group_by(!!sym(feature.level)) %>%
           dplyr::summarize(half_nonzero_min = min(value_time_2) / 2,
-                    .groups = "drop")
+                           .groups = "drop")
         half_nonzero_min_time_1 <- combined_data %>%
           filter(value_time_1 > 0) %>%
           dplyr::group_by(!!sym(feature.level)) %>%
           dplyr::summarize(half_nonzero_min = min(value_time_1) / 2,
-                    .groups = "drop")
+                           .groups = "drop")
 
         combined_data <- dplyr::left_join(combined_data, half_nonzero_min_time_2, by = feature.level, suffix = c("_time_1", "_time_2"))
         combined_data <- dplyr::left_join(combined_data, half_nonzero_min_time_1, by = feature.level, suffix = c("_time_1", "_time_2"))
@@ -370,14 +370,14 @@ generate_taxa_indiv_change_boxplot_pair <-
           stat_boxplot(
             geom = "errorbar",
             position = position_dodge(width = 0.2),
-            width = 0.1
+            width = 0.3
           ) +
           geom_boxplot(
             position = position_dodge(width = 0.8),
-            width = 0.1,
+            width = 0.3,
             #fill = "white"
           ) +
-          geom_jitter(width = 0.1,
+          geom_jitter(width = 0.3,
                       alpha = 0.3,
                       size = 1.7) +
           scale_alpha_manual(values = c(0.5, 0.5)) +
@@ -407,8 +407,8 @@ generate_taxa_indiv_change_boxplot_pair <-
         if (!is.null(strata.var)) {
           boxplot <- boxplot +
             ggh4x::facet_nested(cols = vars(!!sym(strata.var)),
-                       scales = "fixed",
-                       space = "free")
+                                scales = "fixed",
+                                space = "free")
         }
 
         if (group.var == "group" && unique(combined_data$group)[1] == "ALL") {

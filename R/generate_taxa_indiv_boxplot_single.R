@@ -102,9 +102,8 @@
 #'   t.level = NULL,
 #'   group.var = "antiexposedall",
 #'   strata.var = NULL,
-#'   feature.level = c("Phylum","Genus"),
+#'   feature.level = c("Phylum","Family"),
 #'   feature.dat.type = "proportion",
-#'   features.plot = c(ecam.obj$feature.ann[, "Phylum"][1:5], ecam.obj$feature.ann[, "Genus"][1:5]),
 #'   transform = "log",
 #'   prev.filter = 0.01,
 #'   abund.filter = 0.01,
@@ -238,8 +237,8 @@ generate_taxa_indiv_boxplot_single <-
         rownames_to_column(feature.level)
 
       if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
-      computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
-      features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
+        computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
+        features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
       }
 
       otu_tax_agg_numeric <- otu_tax_agg %>%
@@ -282,6 +281,12 @@ generate_taxa_indiv_boxplot_single <-
           }
         }
       }
+      manysample <- length(unique(data.obj$meta.dat[[time.var]]))*length(unique(data.obj$meta.dat[[group.var]])) > 8
+      if(manysample){
+        wds <- 7
+      } else{
+        wds <- 3
+      }
 
       taxa.levels <-
         otu_tax_agg_merged %>% select(feature.level) %>% dplyr::distinct() %>% dplyr::pull()
@@ -303,14 +308,14 @@ generate_taxa_indiv_boxplot_single <-
           stat_boxplot(
             geom = "errorbar",
             position = position_dodge(width = 0.2),
-            width = 0.1
+            width = 0.3
           ) +
           geom_boxplot(
             position = position_dodge(width = 0.8),
-            width = 0.1,
+            width = 0.3,
             #fill = "white"
           ) +
-          geom_jitter(width = 0.1, alpha = 0.1, size = 1) +
+          geom_jitter(width = 0.3, alpha = 0.1, size = 1) +
           scale_fill_manual(values = col) +
           {
             if (feature.dat.type == "other"){
@@ -320,6 +325,7 @@ generate_taxa_indiv_boxplot_single <-
               )
             } else {
               labs(
+                x = time.var,
                 y = paste("Relative Abundance(", transform, ")"),
                 title = tax
               )
@@ -332,7 +338,7 @@ generate_taxa_indiv_boxplot_single <-
             plot.title = element_text(hjust = 0.5, size = 20),
             strip.text.x = element_text(size = base.size, color = "black"),
             axis.text = element_text(color = "black"),
-            axis.text.x = element_text(color = "black", size = base.size),
+            axis.text.x = element_text(color = "black", size = base.size * 0.8),
             axis.text.y = element_text(color = "black", size = (base.size-2)),
             axis.title.x = element_text(size = base.size),
             axis.title.y = element_text(size = base.size),
@@ -341,6 +347,11 @@ generate_taxa_indiv_boxplot_single <-
             legend.text = ggplot2::element_text(size = 16),
             legend.title = ggplot2::element_text(size = 16)
           )
+
+        if(length(unique(data.obj$meta.dat[[group.var]])) > 2){
+          boxplot <- boxplot +
+            scale_x_discrete(guide = guide_axis(n.dodge = 2))
+        }
 
         if (!is.null(group.var)) {
           if (is.null(strata.var)) {
