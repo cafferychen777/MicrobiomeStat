@@ -158,6 +158,25 @@
 #'   data.obj = subset_T2D.obj,
 #'   subject.var = "subject_id",
 #'   time.var = "visit_number_num",
+#'   group.var = "sample_body_site",
+#'   strata.var = "subject_race",
+#'   feature.level = c("Family"),
+#'   feature.dat.type = "count",
+#'   feature.number = 20,
+#'   t0.level = NULL,
+#'   ts.levels = NULL,
+#'   base.size = 10,
+#'   theme.choice = "bw",
+#'   palette = NULL,
+#'   pdf = TRUE,
+#'   pdf.wid = 49,
+#'   file.ann = NULL
+#' )
+#'
+#' generate_taxa_barplot_long(
+#'   data.obj = subset_T2D.obj,
+#'   subject.var = "subject_id",
+#'   time.var = "visit_number_num",
 #'   group.var = "subject_race",
 #'   strata.var = "subject_gender",
 #'   feature.level = c("Genus"),
