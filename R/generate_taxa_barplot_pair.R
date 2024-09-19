@@ -109,7 +109,7 @@
 #'   palette = NULL,
 #'   pdf = TRUE,
 #'   file.ann = NULL,
-#'   pdf.wid = 25,
+#'   pdf.wid = 11,
 #'   pdf.hei = 8.5
 #' )
 #' }
@@ -396,29 +396,23 @@ generate_taxa_barplot_pair <-
         scale_fill_manual(values = color_pal) +
         scale_color_manual(values = color_pal) +
         theme_to_use +
-        theme(
-          strip.background = element_rect(fill = "white", color = "black"),
-          panel.spacing = unit(0, "lines"),
-          strip.text.x = element_text(size = base.size, color = "black"),
-          axis.text.y = element_text(size = base.size, color = "black"),
-          axis.text.x = element_text(
-            angle = 90,
-            color = "black",
-            vjust = 0.5,
-            size = base.size
-          ),
-          axis.title.y = element_text(size = base.size, color = "black"),
-          legend.key = element_blank(),
-          legend.text = element_text(color = "black", size = base.size),
-          legend.title = element_text(color = "black", size = base.size),
-          legend.spacing.x = unit(0.1, 'cm'),
-          legend.spacing.y = unit(0.1, 'cm'),
-          legend.key.width = unit(0.4, 'cm'),
-          legend.key.height = unit(0.4, 'cm'),
-          legend.background = element_blank(),
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank()
-        )
+        theme(strip.background = element_rect(fill="white",color="black"),
+              panel.spacing = unit(0,"lines"),
+              strip.text.x = element_text(size= base.size,color="black"),
+              axis.text.y=element_text(size= base.size,color="black"),
+              axis.text.x = element_text(angle = 90, color = "black", vjust = 0.5, size = base.size),
+              axis.title.y = element_text(size= base.size,color="black"),
+              legend.key=element_blank(),
+              plot.title = element_text(hjust = 0.5, size = 20),
+              legend.text = element_text(color="black",size= base.size),
+              legend.title = element_text(color="black",size= base.size),
+              legend.spacing.x=unit(0.1,'cm'),
+              legend.spacing.y=unit(0.1,'cm'),
+              legend.key.width=unit(0.4,'cm'),
+              legend.key.height=unit(0.4,'cm'),
+              legend.background=element_blank(),
+              panel.grid.major=element_blank(),
+              panel.grid.minor=element_blank())
 
       # The following is the drawing of the average barplot.
       last_time_ids <- sorted_merged_long_df %>%
