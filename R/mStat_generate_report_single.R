@@ -245,6 +245,15 @@ mStat_generate_report_single <- function(data.obj,
                                          output.file,
                                          ...) {
 
+  sample_count <- length(unique(data.obj$meta.dat[[time.var]])) * length(unique(data.obj$meta.dat[[group.var]]))
+  has_many_samples <- sample_count > 8
+
+  if (has_many_samples) {
+    width <- 7
+  } else {
+    width <- 3
+  }
+
   template <- "
 ---
 title: '`r sub(\".pdf$\", \"\", basename(output.file))`'
@@ -357,7 +366,7 @@ pander::pander(params_data)
 
 ## 1.2 Summary statistics
 
-```{r mStat-data-summary, message=FALSE}
+```{r mStat-data-summary, message=FALSE, fig.width = width, fig.height = 4}
 mStat_results <- mStat_summarize_data_obj(data.obj = data.obj,
                                           time.var = time.var,
                                           group.var = group.var,
@@ -521,7 +530,7 @@ taxa_heatmap_results <- generate_taxa_heatmap_single(data.obj = data.obj,
                                                      pdf.hei = pdf.hei)
 ```
 
-```{r taxa-heatmap-indiv-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 20, fig.height = 20, warning = FALSE}
+```{r taxa-heatmap-indiv-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 20, fig.height = 12, warning = FALSE}
 cat('The following plots display the individual proportions for each sample. \n\n')
 taxa_heatmap_results
 ```
@@ -838,7 +847,7 @@ cladogram_plots
 
 ```
 
-```{r taxa-volcano , message=FALSE, warning=FALSE, fig.align='center', fig.width=10, fig.height=8, results='asis'}
+```{r taxa-volcano , message = FALSE, warning = FALSE, fig.align = 'center', fig.width = 6.5, fig.height = 6.5, results= 'asis'}
 volcano_plots <- generate_taxa_volcano_single(
                                   data.obj = data.obj,
                                   group.var = group.var,

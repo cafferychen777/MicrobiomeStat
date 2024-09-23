@@ -387,7 +387,7 @@ pander::pander(params_data)
 
 ## 1.2 Summary statistics
 
-```{r mStat-data-summary, message=FALSE}
+```{r mStat-data-summary, message=FALSE, fig.width = 3, fig.height = 4}
 mStat_results <- mStat_summarize_data_obj(data.obj = data.obj,
                                           time.var = time.var,
                                           group.var = group.var,
@@ -541,7 +541,7 @@ indiv_list
 
 ### 1.3.3 Feature dotplot
 
-```{r taxa-dotplot-generation, message=FALSE, fig.align='center', fig.width = 25, fig.height = 12, results='asis'}
+```{r taxa-dotplot-generation, message=FALSE, results='asis'}
 taxa_dotplot_results <- generate_taxa_dotplot_pair(
                                               data.obj = data.obj,
                                               subject.var = subject.var,
@@ -627,7 +627,7 @@ average_list
 
 ### 1.3.5 Feature change dotplot
 
-```{r taxa-change-dotplot, message=FALSE, fig.align='center', fig.width = 25, fig.height = 12, results='asis'}
+```{r taxa-change-dotplot, message=FALSE, results='asis'}
 taxa_change_dotplot_results <- generate_taxa_change_dotplot_pair(
                                              data.obj = data.obj,
                                              subject.var = subject.var,
@@ -954,7 +954,7 @@ for(index_name in names(alpha_change_test_results)) {
 
 ### 3.1.1 Beta diversity ordinationplot
 
-```{r beta-ordination-pair-generation, message=FALSE, fig.align='center', warning = FALSE, fig.width = 18, fig.height = 8, results='asis'}
+```{r beta-ordination-pair-generation, message=FALSE, fig.align='center', warning = FALSE, fig.width = 14, fig.height = 12, results='asis'}
 beta_ordination_results <- generate_beta_ordination_pair(
                                                     data.obj = data.obj,
                                                     dist.obj = dist.obj,
@@ -973,7 +973,9 @@ beta_ordination_results <- generate_beta_ordination_pair(
                                                     pdf.wid = pdf.wid,
                                                     pdf.hei = pdf.hei)
 beta_ordination_results
+```
 
+```{r beta-ordination-pair-generation-2, message=FALSE, fig.align='center', warning = FALSE, fig.width = 16, fig.height = 8, results='asis'}
 if (!is.null(strata.var)){
 beta_ordination_stratified_results <- generate_beta_ordination_pair(
                                                     data.obj = data.obj,
@@ -1185,7 +1187,7 @@ taxa_test_results <- generate_taxa_test_pair(data.obj = data.obj,
                                                feature.dat.type = feature.dat.type)
 ```
 
-```{r taxa-test-results-display, echo=FALSE, message=FALSE, results='asis', warning = FALSE, fig.align='center', fig.width = 10, fig.height = 8}
+```{r taxa-test-results-display, echo=FALSE, message=FALSE, results='asis', warning = FALSE, fig.align='center', fig.width = 6.5, fig.height = 6.5}
 volcano_plots <- generate_taxa_volcano_single(
                                   data.obj = data.obj,
                                   group.var = group.var,
@@ -1279,7 +1281,7 @@ taxa_change_test_results <- generate_taxa_change_test_pair(data.obj = data.obj,
                                                feature.dat.type = feature.dat.type)
 ```
 
-```{r taxa-change-test-results-display, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 10, fig.height = 8}
+```{r taxa-change-test-results-display, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 6.5, fig.height = 6.5}
 
 change_volcano_plots <- generate_taxa_volcano_single(data.obj = data.obj,
                                                      group.var = group.var,

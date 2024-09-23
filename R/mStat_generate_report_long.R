@@ -866,7 +866,7 @@ for(index_name in names(alpha_volatility_test_results)) {
 
 ### 3.1.1 Beta diversity ordinationplot
 
-```{r beta-ordination-generation, message=FALSE, fig.align='center', warning = FALSE, fig.width = 18, fig.height = 8, results='asis'}
+```{r beta-ordination-generation, message=FALSE, fig.align='center', warning = FALSE, fig.width = 10, fig.height = 7, results='asis'}
 beta_ordination_results <- generate_beta_ordination_long(data.obj = data.obj,
                                                            dist.obj = dist.obj,
                                                            pc.obj = pc.obj,
@@ -1249,7 +1249,7 @@ taxa_volatility_test_results <- generate_taxa_volatility_test_long(
                                                )
 ```
 
-```{r taxa-volatility-test-results-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 10, fig.height = 8, warning = FALSE}
+```{r taxa-volatility-test-results-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 6.5, fig.height = 6.5, warning = FALSE}
 
 volatility_volcano_plots <- generate_taxa_volatility_volcano_long(data.obj = data.obj,
                                                                   group.var = group.var,
