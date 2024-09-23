@@ -29,63 +29,63 @@
 #' peerj32.obj <- mStat_aggregate_by_taxonomy(peerj32.obj, feature.level)
 #' }
 #' @export
-mStat_aggregate_by_taxonomy <-
-  function (data.obj,
-            feature.level = NULL) {
-    # Check if feature.level is not NULL
-    if (is.null(feature.level)) {
-      stop("feature.level can not be NULL.")
-    }
-
-    otu_tab <- data.obj$feature.tab %>%
-      as.data.frame()
-    tax_tab <- data.obj$feature.ann %>%
-      as.data.frame()
-
-    # Check if the row names in the otu_tab and tax_tab are completely consistent
-    otu_not_in_tax <- setdiff(rownames(otu_tab), rownames(tax_tab))
-    tax_not_in_otu <- setdiff(rownames(tax_tab), rownames(otu_tab))
-
-    if (length(otu_not_in_tax) > 0) {
-      message(
-        "The following row names are in 'feature.tab' but not in 'feature.ann': ",
-        paste(otu_not_in_tax, collapse = ", ")
-      )
-    }
-
-    if (length(tax_not_in_otu) > 0) {
-      message(
-        "The following row names are in 'feature.ann' but not in 'feature.tab': ",
-        paste(tax_not_in_otu, collapse = ", ")
-      )
-    }
-
-    data.obj$feature.agg.list <-
-      setNames(lapply(feature.level, function(feature.level) {
-
-        otu_tax <-
-          otu_tab %>% rownames_to_column("sample") %>%
-          dplyr::inner_join(tax_tab %>%
-                              select(all_of(feature.level)) %>%
-                              rownames_to_column("sample"),
-                            by = "sample") %>%
-          column_to_rownames("sample")
-
-        # Aggregate OTU table
-        otu_tax_agg <- otu_tax %>%
-          tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
-          dplyr::group_by_at(vars(sample, !!sym(feature.level))) %>%
-          dplyr::summarise(value = sum(value)) %>%
-          tidyr::spread(key = "sample", value = "value") %>%
-          dplyr::mutate(!!feature.level := tidyr::replace_na(!!sym(feature.level), "Unclassified")) %>%
-          column_to_rownames(feature.level) %>%
-          as.matrix()
-
-        # Remove rows with all zero
-        otu_tax_agg <- otu_tax_agg[rowSums(otu_tax_agg) > 0, ]
-
-        return(otu_tax_agg)
-      }), feature.level)
-
-    return(data.obj)
+mStat_aggregate_by_taxonomy <- function(data.obj, feature.level = NULL) {
+  # Check if feature.level is not NULL
+  if (is.null(feature.level)) {
+    stop("feature.level can not be NULL.")
   }
+
+  otu_tab <- data.obj$feature.tab %>% as.data.frame()
+  tax_tab <- data.obj$feature.ann %>% as.data.frame()
+
+  # Check if the row names in the otu_tab and tax_tab are completely consistent
+  otu_not_in_tax <- setdiff(rownames(otu_tab), rownames(tax_tab))
+  tax_not_in_otu <- setdiff(rownames(tax_tab), rownames(otu_tab))
+
+  if (length(otu_not_in_tax) > 0) {
+    message(
+      "The following row names are in 'feature.tab' but not in 'feature.ann': ",
+      paste(otu_not_in_tax, collapse = ", ")
+    )
+  }
+
+  if (length(tax_not_in_otu) > 0) {
+    message(
+      "The following row names are in 'feature.ann' but not in 'feature.tab': ",
+      paste(tax_not_in_otu, collapse = ", ")
+    )
+  }
+
+  # Store original sample order
+  original_sample_order <- colnames(otu_tab)
+
+  data.obj$feature.agg.list <- setNames(lapply(feature.level, function(feature.level) {
+    otu_tax <- otu_tab %>%
+      rownames_to_column("sample") %>%
+      dplyr::inner_join(
+        tax_tab %>% select(all_of(feature.level)) %>% rownames_to_column("sample"),
+        by = "sample"
+      ) %>%
+      column_to_rownames("sample")
+
+    # Aggregate OTU table
+    otu_tax_agg <- otu_tax %>%
+      tidyr::pivot_longer(cols = -all_of(feature.level), names_to = "sample", values_to = "value") %>%
+      dplyr::group_by_at(vars(!!sym(feature.level), sample)) %>%
+      dplyr::summarise(value = sum(value), .groups = "drop") %>%
+      tidyr::pivot_wider(names_from = sample, values_from = value, values_fill = list(value = 0)) %>%
+      dplyr::mutate(!!feature.level := tidyr::replace_na(!!sym(feature.level), "Unclassified")) %>%
+      column_to_rownames(feature.level) %>%
+      as.matrix()
+
+    # Ensure the output maintains the original sample order
+    otu_tax_agg <- otu_tax_agg[, original_sample_order]
+
+    # Remove rows with all zero
+    otu_tax_agg <- otu_tax_agg[rowSums(otu_tax_agg) > 0, , drop = FALSE]
+
+    return(otu_tax_agg)
+  }), feature.level)
+
+  return(data.obj)
+}
