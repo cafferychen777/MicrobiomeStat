@@ -1,47 +1,47 @@
 winsor.fun <- function(Y, quan, feature.dat.type) {
-  # 如果feature.dat.type是 "count"
+  # If feature.dat.type is "count"
   if (feature.dat.type == "count") {
-    # 计算矩阵Y每列的和，保存在变量N中
+    # Calculate column sums of matrix Y
     N <- colSums(Y)
 
-    # 将Y矩阵中的每个元素除以其相应列的和，得到矩阵P
-    # 对矩阵P进行两次转置以得到与Y相同的维度
+    # Normalize Y by dividing each column by its sum
+    # Transpose twice to maintain original dimensions
     P <- t(t(Y) / N)
 
-    # 对P矩阵的每行应用quantile函数，以quan为参数，得到一个向量cut
+    # Compute quantiles for each row of P
     cut <- apply(P, 1, quantile, quan)
 
-    # 复制cut向量以创建一个与Y矩阵相同维度的矩阵Cut
+    # Replicate cut vector to create a matrix with same dimensions as Y
     Cut <- matrix(rep(cut, ncol(Y)), nrow(Y))
 
-    # 创建一个逻辑矩阵ind
-    # 其中每个元素为TRUE，如果相应的P矩阵元素大于相应的Cut矩阵元素
+    # Create a logical matrix ind
+    # TRUE where P > Cut, FALSE otherwise
     ind <- P > Cut
 
-    # 将P矩阵中大于Cut矩阵中对应元素的值，用Cut矩阵中的对应元素替换
+    # Winsorize: replace values in P exceeding Cut with corresponding Cut values
     P[ind] <- Cut[ind]
 
-    # 四舍五入P矩阵中的每个元素，并将结果保存在Y矩阵中
+    # Scale back to original magnitude and round to integers
     Y <- round(t(t(P) * N))
   }
 
-  # 如果feature.dat.type是 "proportion"
+  # If feature.dat.type is "proportion"
   if (feature.dat.type == "proportion") {
-    # 对Y矩阵的每行应用quantile函数，以quan为参数，得到一个向量cut
+    # Compute quantiles for each row of Y
     cut <- apply(Y, 1, quantile, quan)
 
-    # 复制cut向量以创建一个与Y矩阵相同维度的矩阵Cut
+    # Replicate cut vector to create a matrix with same dimensions as Y
     Cut <- matrix(rep(cut, ncol(Y)), nrow(Y))
 
-    # 创建一个逻辑矩阵ind
-    # 其中每个元素为TRUE，如果相应的Y矩阵元素大于相应的Cut矩阵元素
+    # Create a logical matrix ind
+    # TRUE where Y > Cut, FALSE otherwise
     ind <- Y > Cut
 
-    # 将Y矩阵中大于Cut矩阵中对应元素的值，用Cut矩阵中的对应元素替换
+    # Winsorize: replace values in Y exceeding Cut with corresponding Cut values
     Y[ind] <- Cut[ind]
   }
 
-  # 返回修改后的Y矩阵
+  # Return the Winsorized matrix
   return(Y)
 }
 
