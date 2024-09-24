@@ -28,7 +28,6 @@ weighted UniFrac (WUniFrac), and Jensen-Shannon divergence (JS).
 \dontrun{
 library(vegan) # Used for community ecology analyses
 library(GUniFrac) # For generalized UniFrac distances
-library(philentropy) # For distance measures like Jensen-Shannon divergence
 # library(phyloseq) # For handling and analyzing phylogenetic sequencing data
 # Load example data
 # data(GlobalPatterns) # An example dataset from the phyloseq package

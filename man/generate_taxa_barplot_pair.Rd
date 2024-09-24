@@ -153,7 +153,7 @@ generate_taxa_barplot_pair(
   palette = NULL,
   pdf = TRUE,
   file.ann = NULL,
-  pdf.wid = 25,
+  pdf.wid = 11,
   pdf.hei = 8.5
 )
 }

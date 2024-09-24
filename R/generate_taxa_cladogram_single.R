@@ -11,6 +11,7 @@
 #' @param feature.mt.method Multiple testing method for features, "none" (default), "fdr", or other methods supported by p.adjust.
 #' @param cutoff The p-value cutoff for significance.
 #' @param color.group.level The taxonomic level used to color-code the branches of the cladogram.
+#' @param palette An optional vector of colors to be used for the plot. If NULL, a default color palette will be used.
 #' @param pdf Boolean indicating whether to save the plot as a PDF.
 #' @param pdf.width The width of the PDF file if saved.
 #' @param pdf.height The height of the PDF file if saved.

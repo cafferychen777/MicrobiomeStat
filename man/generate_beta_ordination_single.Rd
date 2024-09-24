@@ -50,14 +50,15 @@ using \code{mStat_calculate_beta_diversity}.}
 \item{dist.name}{A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').}
 
 \item{pc.obj}{A list containing the results of dimension reduction/Principal Component Analysis.
-This should be the output from functions like \code{\link[MicrobiomeStat]{mStat_calculate_PC}}, containing the PC coordinates and other metadata.
-If NULL (default), dimension reduction will be automatically performed using metric multidimensional scaling (MDS) via \code{\link[MicrobiomeStat]{mStat_calculate_PC}}.
-The pc.obj list structure should contain:
-\itemize{
-  \item{$points}{A matrix with samples as rows and PCs as columns containing the coordinates.}
-  \item{$eig}{Eigenvalues for each PC dimension.}
-  \item{$vectors}{Loadings vectors for features onto each PC.}
-  \item{Other metadata like $method, $dist.name, etc.}
+This should be the output from functions like \code{\link[MicrobiomeStat]{mStat_calculate_PC}},
+containing the PC coordinates and other metadata. If NULL (default), dimension reduction
+will be automatically performed using metric multidimensional scaling (MDS) via
+\code{\link[MicrobiomeStat]{mStat_calculate_PC}}. The pc.obj list structure should contain:
+\describe{
+  \item{points}{A matrix with samples as rows and PCs as columns containing the coordinates.}
+  \item{eig}{Eigenvalues for each PC dimension.}
+  \item{vectors}{Loadings vectors for features onto each PC.}
+  \item{Other metadata}{like method, dist.name, etc.}
 }
 See \code{\link[MicrobiomeStat]{mStat_calculate_PC}} function for details on output format.}
 

@@ -26,7 +26,7 @@ generate_taxa_change_dotplot_pair(
   pdf = TRUE,
   file.ann = NULL,
   pdf.wid = 11,
-  pdf.hei = 8.5,
+  pdf.hei = 6,
   ...
 )
 }

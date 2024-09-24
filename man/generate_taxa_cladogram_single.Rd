@@ -12,6 +12,7 @@ generate_taxa_cladogram_single(
   feature.mt.method = "none",
   cutoff = 1,
   color.group.level = NULL,
+  palette = NULL,
   pdf = FALSE,
   pdf.width = 10,
   pdf.height = 10
@@ -31,6 +32,8 @@ generate_taxa_cladogram_single(
 \item{cutoff}{The p-value cutoff for significance.}
 
 \item{color.group.level}{The taxonomic level used to color-code the branches of the cladogram.}
+
+\item{palette}{An optional vector of colors to be used for the plot. If NULL, a default color palette will be used.}
 
 \item{pdf}{Boolean indicating whether to save the plot as a PDF.}
 
@@ -67,6 +70,28 @@ plot.list <- generate_taxa_cladogram_single(
   test.list = test.list,
   group.var = "subject_gender",
   feature.level = c("Phylum", "Class", "Order", "Family", "Genus", "Species"),
+  feature.mt.method = "none",
+  cutoff = 0.9,
+  color.group.level = "Order"
+)
+
+test.list <- generate_taxa_test_single(
+    data.obj = subset_T2D.obj,
+    time.var = "visit_number",
+    t.level = NULL,
+    group.var = "subject_race",
+    adj.vars = "subject_gender",
+    feature.level = c("Order"),
+    feature.dat.type = "count",
+    prev.filter = 0.1,
+    abund.filter = 0.0001,
+)
+
+plot.list <- generate_taxa_cladogram_single(
+  data.obj = subset_T2D.obj,
+  test.list = test.list,
+  group.var = "subject_gender",
+  feature.level = c("Order"),
   feature.mt.method = "none",
   cutoff = 0.9,
   color.group.level = "Order"

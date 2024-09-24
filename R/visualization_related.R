@@ -29,7 +29,7 @@ utils::globalVariables(c(
   "avg_abundance", "SequencingDepth", "Group", "mean_PC1", "mean_PC2", "Distance", "log2FoldChange", "lfcSE", "pvalue", "padj",
   "Coefficient", "Prevalence", "Mean.Abundance","Base", "Type", "change", "column_name", "mean_value_diff", "Std. Error", "t value",
   "Pr(>|t|)", "F value", "Significance_Label", "relevel", "Sample1", "Time.x", "Time.y", "Group.x", "Group.y", "Time", "Strata.x",
-  "Strata", "facet_wrap2", "end_condition", "is_facet", "is_other", "overall_mean", "is_significant", "group_by", "summarise","across"
+  "Strata", "facet_wrap2", "end_condition", "is_facet", "is_other", "overall_mean", "is_significant", "group_by", "summarise","across", "Sites_layr", "Comparison"
 ))
 
 plot_fun <- function(.call, envir = parent.frame()) {

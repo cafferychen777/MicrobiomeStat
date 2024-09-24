@@ -80,16 +80,17 @@ the estimated bias of the regression coefficients due to the compositional effec
  will be not equal to the number of the rows of \code{otu.tab}. Taxa are identified by the rownames.
  If the rownames of \code{otu.tab} are NULL, then \code{1 : nrow(otu.tab)} is set as the rownames of \code{otu.tab}.
  \itemize{
- \item{baseMean:}{ 2 to the power of the intercept coefficients (normalized by one million)}
- \item{log2FoldChange:}{ bias-corrected coefficients}
- \item{lfcSE:}{ standard errors of the coefficients}
- \item{stat:}{ \code{log2FoldChange / lfcSE}}
- \item{pvalue:}{ \code{2 * pt(-abs(stat), df)}}
- \item{padj:}{ \code{p.adjust(pvalue, method = p.adj.method)}}
- \item{reject:}{ \code{padj <= alpha}}
- \item{df:}{ degrees of freedom. The number of samples minus the number of explanatory variables (intercept included) for
- fixed-effect models; estimates from R package \code{lmerTest} with Satterthwaite method of approximation for mixed-effect models.}
- }}
+   \item baseMean: 2 to the power of the intercept coefficients (normalized by one million)
+   \item log2FoldChange: bias-corrected coefficients
+   \item lfcSE: standard errors of the coefficients
+   \item stat: log2FoldChange / lfcSE
+   \item pvalue: 2 * pt(-abs(stat), df)
+   \item padj: p.adjust(pvalue, method = p.adj.method)
+   \item reject: padj <= alpha
+   \item df: degrees of freedom. The number of samples minus the number of explanatory variables (intercept included) for
+   fixed-effect models; estimates from R package \code{lmerTest} with Satterthwaite method of approximation for mixed-effect models.
+ }
+}
 \item{otu.tab.use}{the OTU table used in the abundance analysis (the \code{otu.tab} after the preprocessing:
 samples that have NAs in the variables in \code{formula} or have less than \code{lib.cut} read counts are removed;
 taxa with prevalence less than \code{prev.cut} are removed and data is winsorized if \code{!is.null(winsor.quan)};

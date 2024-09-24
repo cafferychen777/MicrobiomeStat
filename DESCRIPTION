@@ -44,11 +44,12 @@ Suggests:
     parallel,
     ggprism,
     aplot,
-    philentropy,
     forcats,
     yaml,
     biomformat,
-    Biostrings
+    Biostrings,
+    ggtree,
+    ggtreeExtra
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
