@@ -177,8 +177,7 @@ disponibles para la comunidad científica:
     pheatmap, tidyr, ggh4x, ape, GUniFrac, scales, stringr, rmarkdown,
     knitr, pander, tinytex
 - Paquetes sugeridos:
-  - ggrepel, parallel, ggprism, aplot, philentropy, forcats, yaml,
-    biomformat, Biostrings
+  - ggrepel, parallel, ggprism, aplot, yaml, biomformat, Biostrings
 
 Además, extendemos nuestro más profundo agradecimiento y respeto a los
 pioneros en la comunidad de investigación del microbioma que han creado

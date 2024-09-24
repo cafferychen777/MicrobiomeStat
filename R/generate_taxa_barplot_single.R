@@ -372,12 +372,12 @@ generate_taxa_barplot_single <-
 
       sorted_merged_long_df <- sorted_merged_long_df %>%
         dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = original_levels)) %>%
-        dplyr::mutate(!!sym(feature.level) := forcats::fct_relevel(!!sym(feature.level), new_levels))
+        dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = new_levels))
 
       df <- sorted_merged_long_df %>%
         dplyr::group_by(sample) %>%
         dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = original_levels)) %>%
-        dplyr::mutate(!!sym(feature.level) := forcats::fct_relevel(!!sym(feature.level), new_levels)) %>%
+        dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = new_levels)) %>%
         dplyr::arrange(match(!!sym(feature.level), new_levels)) %>%
         dplyr::mutate(cumulative_value = (1-cumsum(value))) %>%
         dplyr::ungroup() %>%
@@ -485,7 +485,7 @@ generate_taxa_barplot_single <-
         dplyr::group_by(!!sym(feature.level),!!sym(group.var),!!sym(time.var)) %>%
         dplyr::summarise(mean_value  = mean(value)) %>%
         dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = original_levels)) %>%
-        dplyr::mutate(!!sym(feature.level) := forcats::fct_relevel(!!sym(feature.level), new_levels)) %>%
+        dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = new_levels)) %>%
         dplyr::arrange(match(!!sym(feature.level), new_levels)) %>%
         dplyr::group_by(!!sym(group.var),!!sym(time.var)) %>%
         dplyr::mutate(cumulative_mean_value = (1-cumsum(mean_value))) %>%

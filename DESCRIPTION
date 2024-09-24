@@ -44,7 +44,6 @@ Suggests:
     parallel,
     ggprism,
     aplot,
-    forcats,
     yaml,
     biomformat,
     Biostrings,

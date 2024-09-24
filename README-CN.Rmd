@@ -133,7 +133,7 @@ devtools::install_github("cafferychen777/MicrobiomeStat")
 - 导入的包：
   - ggplot2, matrixStats, lmerTest, foreach, modeest, vegan, dplyr, pheatmap, tidyr, ggh4x, ape, GUniFrac, scales, stringr, rmarkdown, knitr, pander, tinytex
 - 建议的包：
-  - ggrepel, parallel, ggprism, aplot, philentropy, forcats, yaml, biomformat, Biostrings
+  - ggrepel, parallel, aplot, forcats, yaml, biomformat, Biostrings
 
 此外，我们对在微生物组研究社区中创建和维护以下卓越工具的开创者表示最深的赞赏和尊重。他们的开创性工作已经在微生物组数据分析的复杂景观中铺设了路径，我们真心荣幸能够与他们并肩前行：
 
