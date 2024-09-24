@@ -61,6 +61,7 @@ reference:
   - title: "Feature-level Analysis"
     contents:
       - plot_feature_diversity
+      - generate_taxa_cladogram_single
       - generate_taxa_barplot_pair
       - generate_taxa_barplot_single
       - generate_taxa_boxplot_long

@@ -17,7 +17,7 @@ Note that linda is developed separately from other MicrobiomeStat functions, so 
 
     <a class="navbar-brand me-2" href="../index.html">MicrobiomeStat</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -173,12 +173,12 @@ the estimated bias of the regression coefficients due to the compositional effec
  If the rownames of <code>otu.tab</code> are NULL, then <code>1 : nrow(otu.tab)</code> is set as the rownames of <code>otu.tab</code>.</p><ul><li><p>baseMean: 2 to the power of the intercept coefficients (normalized by one million)</p></li>
 <li><p>log2FoldChange: bias-corrected coefficients</p></li>
 <li><p>lfcSE: standard errors of the coefficients</p></li>
-<li><p>stat: <code>log2FoldChange / lfcSE</code></p></li>
-<li><p>pvalue: <code>2 * pt(-abs(stat), df)</code></p></li>
-<li><p>padj: <code>p.adjust(pvalue, method = p.adj.method)</code></p></li>
-<li><p>reject: <code>padj &lt;= alpha</code></p></li>
+<li><p>stat: log2FoldChange / lfcSE</p></li>
+<li><p>pvalue: 2 * pt(-abs(stat), df)</p></li>
+<li><p>padj: p.adjust(pvalue, method = p.adj.method)</p></li>
+<li><p>reject: padj &lt;= alpha</p></li>
 <li><p>df: degrees of freedom. The number of samples minus the number of explanatory variables (intercept included) for
- fixed-effect models; estimates from R package <code>lmerTest</code> with Satterthwaite method of approximation for mixed-effect models.</p></li>
+   fixed-effect models; estimates from R package <code>lmerTest</code> with Satterthwaite method of approximation for mixed-effect models.</p></li>
 </ul></dd>
 
 <dt>otu.tab.use</dt>

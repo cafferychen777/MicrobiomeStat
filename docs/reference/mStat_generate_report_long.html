@@ -9,7 +9,7 @@ The report contains thorough statistical analysis along with data visualizations
 
     <a class="navbar-brand me-2" href="../index.html">MicrobiomeStat</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -74,8 +74,7 @@ The report contains thorough statistical analysis along with data visualizations
 <span>  file.ann <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pdf.wid <span class="op">=</span> <span class="fl">11</span>,</span>
 <span>  pdf.hei <span class="op">=</span> <span class="fl">8.5</span>,</span>
-<span>  <span class="va">output.file</span>,</span>
-<span>  <span class="va">...</span></span>
+<span>  <span class="va">output.file</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -145,13 +144,23 @@ using <code>mStat_calculate_beta_diversity</code>.</p></dd>
 
 <dt id="arg-pc-obj">pc.obj<a class="anchor" aria-label="anchor" href="#arg-pc-obj"></a></dt>
 <dd><p>A list containing the results of dimension reduction/Principal Component Analysis.
-This should be the output from functions like <code><a href="mStat_calculate_PC.html">mStat_calculate_PC</a></code>, containing the PC coordinates and other metadata.
-If NULL (default), dimension reduction will be automatically performed using metric multidimensional scaling (MDS) via <code><a href="mStat_calculate_PC.html">mStat_calculate_PC</a></code>.
-The pc.obj list structure should contain:</p><ul><li><p>$points:A matrix with samples as rows and PCs as columns containing the coordinates.</p></li>
-<li><p>$eig:Eigenvalues for each PC dimension.</p></li>
-<li><p>$vectors:Loadings vectors for features onto each PC.</p></li>
-<li><p>Other metadata like $method, $dist.name, etc.</p></li>
-</ul><p>See <code><a href="mStat_calculate_PC.html">mStat_calculate_PC</a></code> function for details on output format.</p></dd>
+This should be the output from functions like <code><a href="mStat_calculate_PC.html">mStat_calculate_PC</a></code>,
+containing the PC coordinates and other metadata. If NULL (default), dimension reduction
+will be automatically performed using metric multidimensional scaling (MDS) via
+<code><a href="mStat_calculate_PC.html">mStat_calculate_PC</a></code>. The pc.obj list structure should contain:</p><dl><dt>points</dt>
+<dd><p>A matrix with samples as rows and PCs as columns containing the coordinates.</p></dd>
+
+  <dt>eig</dt>
+<dd><p>Eigenvalues for each PC dimension.</p></dd>
+
+  <dt>vectors</dt>
+<dd><p>Loadings vectors for features onto each PC.</p></dd>
+
+  <dt>Other metadata</dt>
+<dd><p>like method, dist.name, etc.</p></dd>
+
+
+</dl><p>See <code><a href="mStat_calculate_PC.html">mStat_calculate_PC</a></code> function for details on output format.</p></dd>
 
 
 <dt id="arg-prev-filter">prev.filter<a class="anchor" aria-label="anchor" href="#arg-prev-filter"></a></dt>
@@ -305,10 +314,6 @@ least as large as the number of groups being plotted.</p></dd>
 <dt id="arg-output-file">output.file<a class="anchor" aria-label="anchor" href="#arg-output-file"></a></dt>
 <dd><p>Character, output PDF report filename (required).</p></dd>
 
-
-<dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Additional arguments passed to generate_taxa_trend_test_long().</p></dd>
-
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -395,7 +400,7 @@ least as large as the number of groups being plotted.</p></dd>
 <span class="r-in"><span>  feature.box.axis.transform <span class="op">=</span> <span class="st">"sqrt"</span>,</span></span>
 <span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
 <span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">20</span>,</span></span>
-<span class="r-in"><span>  output.file <span class="op">=</span> <span class="st">"/Users/apple/MicrobiomeStat/report.pdf"</span></span></span>
+<span class="r-in"><span>  output.file <span class="op">=</span> <span class="st">"/Users/apple/Research/MicrobiomeStat/result/per_time_test_report.pdf"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">ecam.obj</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">mStat_generate_report_long</span><span class="op">(</span></span></span>
