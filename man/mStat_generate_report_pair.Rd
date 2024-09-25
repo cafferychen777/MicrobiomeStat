@@ -41,7 +41,8 @@ mStat_generate_report_pair(
   file.ann = NULL,
   pdf.wid = 11,
   pdf.hei = 8.5,
-  output.file
+  output.file,
+  output.format = c("pdf", "html")
 )
 }
 \arguments{
@@ -224,7 +225,15 @@ least as large as the number of groups being plotted.}
 
 \item{pdf.hei}{Height of the PDF plots.}
 
-\item{output.file}{Output file name for the report.}
+\item{output.file}{A character string specifying the output file name for the report. The file extension
+(.pdf or .html) will be automatically added based on the output.format if not already present.
+This parameter also determines the title of the generated report. For example, if you set it to
+"path_to_your_location/report", the title of the report will be "report".}
+
+\item{output.format}{A character string specifying the desired output format of the report.
+Must be either "pdf" or "html". Default is c("pdf", "html"), which will use the first value ("pdf")
+if not explicitly specified. This parameter determines whether the report will be generated as a PDF
+or HTML document.}
 }
 \value{
 A report file containing the microbial ecology analysis results for paired data.
@@ -258,9 +267,56 @@ mStat_generate_report_pair(
   feature.sig.level = 0.1,
   theme.choice = "bw",
   base.size = 18,
+  output.file = "/Users/apple/Research/MicrobiomeStat/result/pair_peerj32.obj_report.pdf",
+  output.format = "pdf"
+)
+mStat_generate_report_pair(
+  data.obj = peerj32.obj,
+  dist.obj = NULL,
+  alpha.obj = NULL,
+  group.var = "group",
+  test.adj.vars = NULL,
+  vis.adj.vars = NULL,
+  subject.var = "subject",
+  time.var = "time",
+  alpha.name = c("shannon", "observed_species"),
+  dist.name = c("BC",'Jaccard'),
+  change.base = "1",
+  feature.change.func = "relative change",
+  strata.var = NULL,
+  vis.feature.level = c("Phylum","Family","Genus"),
+  test.feature.level = c("Genus"),
+  feature.dat.type = "count",
+  feature.mt.method = "none",
+  feature.sig.level = 0.1,
+  theme.choice = "bw",
+  base.size = 18,
+  output.file = "/Users/apple/Research/MicrobiomeStat/result/pair_peerj32.obj_report.html",
+  output.format = "html"
+)
+mStat_generate_report_pair(
+  data.obj = peerj32.obj,
+  dist.obj = NULL,
+  alpha.obj = NULL,
+  group.var = "group",
+  test.adj.vars = NULL,
+  vis.adj.vars = NULL,
+  subject.var = "subject",
+  time.var = "time",
+  alpha.name = c("shannon", "observed_species"),
+  dist.name = c("BC",'Jaccard'),
+  change.base = "1",
+  feature.change.func = "relative change",
+  strata.var = NULL,
+  vis.feature.level = c("Phylum","Family","Genus"),
+  test.feature.level = c("Genus"),
+  feature.dat.type = "count",
+  feature.mt.method = "none",
+  feature.sig.level = 0.1,
+  theme.choice = "bw",
+  base.size = 18,
   output.file = "/Users/apple/MicrobiomeStat/report.pdf"
 )
-
 data(peerj32.obj)
 mStat_generate_report_pair(
   data.obj = peerj32.obj,

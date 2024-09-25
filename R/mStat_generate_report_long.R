@@ -224,7 +224,40 @@
 #'   feature.box.axis.transform = "sqrt",
 #'   theme.choice = "bw",
 #'   base.size = 20,
-#'   output.file = "/Users/apple/Research/MicrobiomeStat/result/per_time_test_report.pdf"
+#'   output.file = "/Users/apple/Research/MicrobiomeStat/result/per_time_test_report.pdf",
+#'   output.format = "pdf"
+#' )
+#'
+#' mStat_generate_report_long(
+#'   data.obj = subset_T2D.obj,
+#'   group.var = "subject_race",
+#'   strata.var = NULL,
+#'   test.adj.vars = NULL,
+#'   vis.adj.vars = NULL,
+#'   subject.var = "subject_id",
+#'   time.var = "visit_number_num",
+#'   t0.level = NULL,
+#'   ts.levels = NULL,
+#'   alpha.obj = NULL,
+#'   alpha.name = c("shannon","observed_species"),
+#'   dist.obj = NULL,
+#'   dist.name = c("BC",'Jaccard'),
+#'   pc.obj = NULL,
+#'   feature.mt.method = "none",
+#'   feature.sig.level = 0.3,
+#'   vis.feature.level = c("Family","Genus"),
+#'   test.feature.level = c("Family"),
+#'   feature.change.func = "relative change",
+#'   feature.dat.type = "count",
+#'   prev.filter = 0.1,
+#'   abund.filter = 1e-4,
+#'   bar.area.feature.no = 40,
+#'   heatmap.feature.no = 40,
+#'   feature.box.axis.transform = "sqrt",
+#'   theme.choice = "bw",
+#'   base.size = 20,
+#'   output.file = "/Users/apple/Research/MicrobiomeStat/result/per_time_test_report.html",
+#'   output.format = "html"
 #' )
 #' data(ecam.obj)
 #' mStat_generate_report_long(
@@ -294,17 +327,52 @@ mStat_generate_report_long <- function(data.obj,
                                        file.ann = NULL,
                                        pdf.wid = 11,
                                        pdf.hei = 8.5,
-                                       output.file) {
-  template <- "
----
-title: '`r sub(\".pdf$\", \"\", basename(output.file))`'
-author: '[Powered by MicrobiomeStat (Ver 1.1.3)](http://www.microbiomestat.wiki)'
-date: '`r Sys.Date()`'
+                                       output.file,
+                                       output.format = c("pdf", "html")) {
+
+  # Ensure output.format is either "pdf" or "html"
+  output.format <- match.arg(output.format)
+
+  # Set pdf to TRUE if output.format is "pdf", FALSE otherwise
+  pdf <- output.format == "pdf"
+
+  # Ensure output.file has the correct extension
+  if (output.format == "pdf" && !grepl("\\.pdf$", output.file, ignore.case = TRUE)) {
+    output.file <- paste0(output.file, ".pdf")
+  } else if (output.format == "html" && !grepl("\\.html$", output.file, ignore.case = TRUE)) {
+    output.file <- paste0(output.file, ".html")
+  }
+
+  if (pdf) {
+    result.output <- "asis"
+  } else {
+    result.output <- "markup"
+  }
+
+  # Adjust the YAML front matter based on output.format
+  if (output.format == "pdf") {
+    yaml_output <- "
 output:
   pdf_document:
     toc: true
     toc_depth: 3
     latex_engine: lualatex
+"
+  } else {
+    yaml_output <- "
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+"
+  }
+
+  template <- paste0("
+---
+title: '`r sub(\".pdf$|.html$\", \"\", basename(output.file))`'
+author: '[Powered by MicrobiomeStat (Ver 1.2.1)](http://www.microbiomestat.wiki)'
+date: '`r Sys.Date()`'
+", yaml_output, "
 ---
 
 # 1. Data overview and summary statistics
@@ -480,7 +548,7 @@ if (feature.analysis.rarafy) {
 
 ### 1.3.1 Feature areaplot
 
-```{r taxa-areaplot-longitudinal-generation, message=FALSE, fig.align='center', fig.width = 20, fig.height = 8}
+```{r taxa-areaplot-longitudinal-generation, message=FALSE, fig.align='center', fig.width = 20, fig.height = 8, warning = FALSE}
 taxa_areaplot_long_results <- generate_taxa_areaplot_long(
   data.obj = data.obj,
   subject.var = subject.var,
@@ -503,7 +571,7 @@ taxa_areaplot_long_results <- generate_taxa_areaplot_long(
 )
 ```
 
-```{r taxa-areaplot-longitudinal-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 25, fig.height = 15}
+```{r taxa-areaplot-longitudinal-print, echo=FALSE, message=FALSE, results=result.output, fig.align='center', fig.width = 25, fig.height = 15, warning = FALSE}
 cat('The following plots display the average proportions for each time point, group, and stratum. \n\n')
 taxa_areaplot_long_results
 ```
@@ -537,7 +605,7 @@ taxa_heatmap_long_results <- generate_taxa_heatmap_long(
 )
 ```
 
-```{r taxa-heatmap-longitudinal-avergae-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 20, fig.height = 12}
+```{r taxa-heatmap-longitudinal-avergae-print, echo=FALSE, message=FALSE, results=result.output, fig.align='center', fig.width = 20, fig.height = 12}
 cat('The following plots display the average proportions for each time point, group, and stratum. \n\n')
 
 indiv_list <- lapply(taxa_heatmap_long_results, function(x) x$indiv)
@@ -548,7 +616,7 @@ average_list <- lapply(taxa_heatmap_long_results, function(x) x$average)
 average_list
 ```
 
-```{r taxa-heatmap-longitudinal-indiv-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 30, fig.height = 15}
+```{r taxa-heatmap-longitudinal-indiv-print, echo=FALSE, message=FALSE, results=result.output, fig.align='center', fig.width = 30, fig.height = 15}
 cat('The following plots display the individual proportions for each time point, group, and stratum. \n\n')
 indiv_list
 ```
@@ -583,7 +651,7 @@ taxa_change_heatmap_long_results <- generate_taxa_change_heatmap_long(
 )
 ```
 
-```{r taxa-change-heatmap-longitudinal-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 20, fig.height = 12}
+```{r taxa-change-heatmap-longitudinal-print, echo=FALSE, message=FALSE, results=result.output, fig.align='center', fig.width = 20, fig.height = 12}
 if (is.function(feature.change.func)) {
   cat('The changes from t0.level were computed using a custom function provided by the user.')
 } else if (feature.change.func == 'relative change') {
@@ -623,7 +691,7 @@ taxa_barplot_long_results <- generate_taxa_barplot_long(
 )
 ```
 
-```{r taxa-barplot-longitudinal-print, echo=FALSE, message=FALSE, warning = FALSE, results='asis', fig.width = 25, fig.height = 15, fig.align='center'}
+```{r taxa-barplot-longitudinal-print, echo=FALSE, message=FALSE, warning = FALSE, results=result.output, fig.width = 25, fig.height = 15, fig.align='center'}
 cat('The following plots display the average proportions for each time point, group, and stratum. \n\n')
 taxa_barplot_long_results
 ```
@@ -634,7 +702,7 @@ taxa_barplot_long_results
 
 ### 2.1.1 Alpha diversity boxplot
 
-```{r alpha-boxplot-generation, message=FALSE, warning = FALSE, fig.align='center', fig.width = 20, fig.height = 8, results='asis'}
+```{r alpha-boxplot-generation, message=FALSE, warning = FALSE, fig.align='center', fig.width = 20, fig.height = 8, results=result.output}
 alpha_boxplot_results <- generate_alpha_boxplot_long(data.obj = data.obj,
                                                        alpha.obj = alpha.obj,
                                                        alpha.name = alpha.name,
@@ -659,7 +727,7 @@ alpha_boxplot_results
 
 ### 2.1.2 Alpha diversity spaghettiplot
 
-```{r alpha-spaghettiplot-generation, message=FALSE, fig.align='center', fig.width = 20, fig.height = 8, results='asis'}
+```{r alpha-spaghettiplot-generation, message=FALSE, fig.align='center', fig.width = 20, fig.height = 8, results=result.output}
 
 alpha_spaghettiplot_results <- generate_alpha_spaghettiplot_long(
                                                        data.obj = data.obj,
@@ -733,7 +801,7 @@ firstToUpper <- function(s) {
 
 ### 2.2.1 Alpha Diversity Dotplot Visualization
 
-```{r alpha-diversity-dotplot, fig.width=7, fig.height=4, fig.align='center', message=FALSE, warning=FALSE, results='asis'}
+```{r alpha-diversity-dotplot, fig.width=7, fig.height=4, fig.align='center', message=FALSE, warning=FALSE, results=result.output}
 dot_plots <- generate_alpha_per_time_dotplot_long(
                                         data.obj = data.obj,
                                         test.list = alpha_per_time_test_results,
@@ -867,7 +935,7 @@ for(index_name in names(alpha_volatility_test_results)) {
 
 ### 3.1.1 Beta diversity ordinationplot
 
-```{r beta-ordination-generation, message=FALSE, fig.align='center', warning = FALSE, fig.width = 10, fig.height = 7, results='asis'}
+```{r beta-ordination-generation, message=FALSE, fig.align='center', warning = FALSE, fig.width = 10, fig.height = 7, results=result.output}
 beta_ordination_results <- generate_beta_ordination_long(data.obj = data.obj,
                                                            dist.obj = dist.obj,
                                                            pc.obj = pc.obj,
@@ -916,7 +984,7 @@ beta_ordination_stratified_results
 
 ### 3.1.2 Beta diversity principal coordinate spaghettiplot
 
-```{r pc-boxplot-longitudinal-generation, message=FALSE, fig.align='center', fig.width = 20, fig.height = 8, results='asis'}
+```{r pc-boxplot-longitudinal-generation, message=FALSE, fig.align='center', fig.width = 20, fig.height = 8, results=result.output}
 pc_boxplot_longitudinal_results <- generate_beta_pc_spaghettiplot_long(
   data.obj = data.obj,
   dist.obj = dist.obj,
@@ -968,7 +1036,7 @@ spaghettiplot_longitudinal_results <- generate_beta_change_spaghettiplot_long(
 )
 ```
 
-```{r spaghettiplot-longitudinal-print, echo = FALSE, message=FALSE, fig.align='center', results='asis', fig.width = 20, fig.height = 8}
+```{r spaghettiplot-longitudinal-print, echo = FALSE, message=FALSE, fig.align='center', results=result.output, fig.width = 20, fig.height = 8}
 cat(sprintf('\n In this visualization, the beta change represents the distance of each subject from their first/reference time point.\n\n'))
 
 spaghettiplot_longitudinal_results
@@ -1001,7 +1069,7 @@ if (!is.null(test.adj.vars)) {
 
 ### 3.2.1 Beta diversity change dotplot
 
-```{r beta-diversity-change-dotplot, fig.width=10, fig.height=6, fig.align='center', message=FALSE, warning=FALSE, echo=TRUE}
+```{r beta-diversity-change-dotplot, fig.width=10, fig.height=6, fig.align='center', message=FALSE, warning=FALSE, echo=TRUE, results = result.output}
 dot_plots <- generate_beta_per_time_dotplot_long(
   data.obj = data.obj,
   test.list = beta_change_test_longitudinal_results,
@@ -1163,7 +1231,7 @@ cat(sprintf('In this analysis, we utilized the LinDA linear mixed effects model 
 
 ### 4.1.1 Differential abundance dotplot
 
-```{r taxa-per-time-dotplot, echo=TRUE, message=FALSE, warning = FALSE, fig.align='center', fig.width = 10, fig.height = 8, results='asis'}
+```{r taxa-per-time-dotplot, echo=TRUE, message=FALSE, warning = FALSE, fig.align='center', fig.width = 10, fig.height = 8, results=result.output}
 dotplot_results <- generate_taxa_per_time_dotplot_long(
   data.obj = data.obj,
   test.list = taxa_per_time_test_results,
@@ -1250,7 +1318,7 @@ taxa_volatility_test_results <- generate_taxa_volatility_test_long(
                                                )
 ```
 
-```{r taxa-volatility-test-results-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 6.5, fig.height = 6.5, warning = FALSE}
+```{r taxa-volatility-test-results-print, echo=FALSE, message=FALSE, results=result.output, fig.align='center', fig.width = 6.5, fig.height = 6.5, warning = FALSE}
 
 volatility_volcano_plots <- generate_taxa_volatility_volcano_long(data.obj = data.obj,
                                                                   group.var = group.var,
@@ -1259,7 +1327,9 @@ volatility_volcano_plots <- generate_taxa_volatility_volcano_long(data.obj = dat
                                                                   feature.mt.method = feature.mt.method)
 
 volatility_volcano_plots
+```
 
+```{r taxa-volatility-test-results-print2, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 6.5, fig.height = 6.5, warning = FALSE}
 num_levels <- length(unique(data.obj$meta.dat[[group.var]]))
 
 if(num_levels > 2) {
@@ -1389,7 +1459,6 @@ combined_significant_taxa <- unique(c(significant_vars_per_time, significant_var
 ```{r taxa-test-boxplot-longitudinal-generation, message = FALSE, warning = FALSE, fig.height=10, fig.width=10, fig.align='center', results='asis'}
 
 if (length(combined_significant_taxa) != 0){
-
 taxa_indiv_boxplot_results_sig_features <- generate_taxa_indiv_boxplot_long(
                                    data.obj = data.obj,
                                    subject.var = subject.var,
@@ -1509,7 +1578,6 @@ for (feature_level in names(taxa_indiv_boxplot_results)) {
 
 ```{r taxa-spaghettiplot-longitudinal-generation, message=FALSE, fig.height=3, fig.width=8, fig.align='center', results='asis'}
 if (length(combined_significant_taxa) != 0){
-
 taxa_indiv_spaghettiplot_results_sig_features <- generate_taxa_indiv_spaghettiplot_long(
                                    data.obj = data.obj,
                                    subject.var = subject.var,
@@ -1538,7 +1606,7 @@ taxa_indiv_spaghettiplot_results_sig_features <- generate_taxa_indiv_spaghettipl
 
 ```
 
-```{r taxa-spaghettiplot-longitudinal-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 8, fig.height = 4}
+```{r taxa-spaghettiplot-longitudinal-print, echo=FALSE, message=FALSE, results=result.output, fig.align='center', fig.width = 8, fig.height = 4}
 if (length(combined_significant_taxa) != 0){
 taxa_indiv_spaghettiplot_results_sig_features
 }
@@ -1546,34 +1614,34 @@ taxa_indiv_spaghettiplot_results_sig_features
 
 ```{r spaghettiplot-pdf-name-creation, echo=FALSE, message=FALSE, results='asis'}
 
-taxa_indiv_spaghettiplot_results <- generate_taxa_indiv_spaghettiplot_long(
-                                   data.obj = data.obj,
-                                   subject.var = subject.var,
-                                   time.var = time.var,
-                                   t0.level = t0.level,
-                                   ts.levels = ts.levels,
-                                   group.var = group.var,
-                                   strata.var = strata.var,
-                                   feature.change.func = feature.change.func,
-                                   feature.level = test.feature.level,
-                                   features.plot = NULL,
-                                   feature.dat.type = feature.dat.type,
-                                   top.k.plot = NULL,
-                                   top.k.func = NULL,
-                                   prev.filter = prev.filter,
-                                   abund.filter = abund.filter,
-                                   base.size = 10,
-                                   theme.choice = theme.choice,
-                                   custom.theme = custom.theme,
-                                   palette = palette,
-                                   pdf = TRUE,
-                                   file.ann = file.ann,
-                                   pdf.wid = pdf.wid,
-                                   pdf.hei = pdf.hei)
+# taxa_indiv_spaghettiplot_results <- generate_taxa_indiv_spaghettiplot_long(
+#                                    data.obj = data.obj,
+#                                    subject.var = subject.var,
+#                                    time.var = time.var,
+#                                    t0.level = t0.level,
+#                                    ts.levels = ts.levels,
+#                                    group.var = group.var,
+#                                    strata.var = strata.var,
+#                                    feature.change.func = feature.change.func,
+#                                    feature.level = test.feature.level,
+#                                    features.plot = NULL,
+#                                    feature.dat.type = feature.dat.type,
+#                                    top.k.plot = NULL,
+#                                    top.k.func = NULL,
+#                                    prev.filter = prev.filter,
+#                                    abund.filter = abund.filter,
+#                                    base.size = 10,
+#                                    theme.choice = theme.choice,
+#                                    custom.theme = custom.theme,
+#                                    palette = palette,
+#                                    pdf = TRUE,
+#                                    file.ann = file.ann,
+#                                    pdf.wid = pdf.wid,
+#                                    pdf.hei = pdf.hei)
 
 ```
 
-"
+")
 
 rmd_code <- knitr::knit_expand(
   text = template,

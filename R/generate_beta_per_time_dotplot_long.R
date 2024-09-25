@@ -212,5 +212,7 @@ generate_beta_per_time_dotplot_long <- function(data.obj,
 
   names(plot.list) <- group.names
 
+  plot.list <- plot.list[grep("vs", names(plot.list), value = TRUE)]
+
   return(plot.list)
 }

@@ -40,6 +40,7 @@ mStat_generate_report_single(
   pdf.wid = 11,
   pdf.hei = 8.5,
   output.file,
+  output.format = c("pdf", "html"),
   ...
 )
 }
@@ -193,9 +194,15 @@ least as large as the number of groups being plotted.}
 
 \item{pdf.hei}{Height of the PDF plots.}
 
-\item{output.file}{A character string specifying the output file name for the report. This will also
-determine the title of the generated report. For example, if you set it to "path_to_your_location/report.pdf",
-the title of the report will be "report".}
+\item{output.file}{A character string specifying the output file name for the report. The file extension
+(.pdf or .html) will be automatically added based on the output.format if not already present.
+This parameter also determines the title of the generated report. For example, if you set it to
+"path_to_your_location/report", the title of the report will be "report".}
+
+\item{output.format}{A character string specifying the desired output format of the report.
+Must be either "pdf" or "html". Default is c("pdf", "html"), which will use the first value ("pdf")
+if not explicitly specified. This parameter determines whether the report will be generated as a PDF
+or HTML document.}
 
 \item{...}{Additional arguments passed to internal functions.}
 }
@@ -234,9 +241,108 @@ mStat_generate_report_single(
   base.size = 20,
   feature.mt.method = "none",
   feature.sig.level = 0.2,
-  output.file = "/Users/apple/Research/MicrobiomeStat/result/peerj32.obj_report.pdf"
+  output.file = "/Users/apple/Research/MicrobiomeStat/result/peerj32.obj_report.pdf",
+  output.format = c("pdf")
+)
+mStat_generate_report_single(
+  data.obj = peerj32.obj,
+  dist.obj = NULL,
+  alpha.obj = NULL,
+  group.var = "group",
+  vis.adj.vars = NULL,
+  test.adj.vars = NULL,
+  subject.var = "subject",
+  time.var = "time",
+  alpha.name = c("shannon", "observed_species"),
+  depth = NULL,
+  dist.name = c("BC",'Jaccard'),
+  t.level = "1",
+  feature.box.axis.transform = "sqrt",
+  strata.var = NULL,
+  vis.feature.level = c("Phylum", "Family", "Genus"),
+  test.feature.level = c("Phylum", "Family", "Genus"),
+  feature.dat.type = "count",
+  theme.choice = "bw",
+  base.size = 20,
+  feature.mt.method = "none",
+  feature.sig.level = 0.2,
+  output.file = "/Users/apple/Research/MicrobiomeStat/result/peerj32.obj_report.html",
+  output.format = c("html")
 )
 data(subset_T2D.obj)
+mStat_generate_report_single(
+  data.obj = subset_T2D.obj,
+  dist.obj = NULL,
+  alpha.obj = NULL,
+  group.var = "subject_race",
+  vis.adj.vars = "sample_body_site",
+  test.adj.vars = "sample_body_site",
+  subject.var = "subject_id",
+  time.var = "visit_number_num",
+  alpha.name = c("shannon", "observed_species"),
+  depth = 2000,
+  dist.name = c("BC",'Jaccard'),
+  t.level = 1,
+  feature.box.axis.transform = "sqrt",
+  strata.var = "subject_gender",
+  vis.feature.level = c("Phylum", "Family", "Genus"),
+  test.feature.level = "Family",
+  feature.dat.type = "count",
+  theme.choice = "bw",
+  base.size = 20,
+  feature.mt.method = "none",
+  feature.sig.level = 0.2,
+  output.file = "/Users/apple/Research/MicrobiomeStat/result/subset_T2D.obj_report.pdf"
+)
+mStat_generate_report_single(
+  data.obj = subset_T2D.obj,
+  dist.obj = NULL,
+  alpha.obj = NULL,
+  group.var = "subject_race",
+  vis.adj.vars = "sample_body_site",
+  test.adj.vars = "sample_body_site",
+  subject.var = "subject_id",
+  time.var = "visit_number_num",
+  alpha.name = c("shannon", "observed_species"),
+  depth = 2000,
+  dist.name = c("BC",'Jaccard'),
+  t.level = 1,
+  feature.box.axis.transform = "sqrt",
+  strata.var = "subject_gender",
+  vis.feature.level = c("Order", "Family", "Genus"),
+  test.feature.level = c("Order", "Family", "Genus"),
+  feature.dat.type = "count",
+  theme.choice = "bw",
+  base.size = 20,
+  feature.mt.method = "none",
+  feature.sig.level = 0.2,
+  output.file = "/Users/apple/Research/MicrobiomeStat/result/subset_T2D.obj_report.html",
+  output.format = c("html")
+)
+mStat_generate_report_single(
+  data.obj = subset_T2D.obj,
+  dist.obj = NULL,
+  alpha.obj = NULL,
+  group.var = "subject_race",
+  vis.adj.vars = "sample_body_site",
+  test.adj.vars = "sample_body_site",
+  subject.var = "subject_id",
+  time.var = "visit_number_num",
+  alpha.name = c("shannon", "observed_species"),
+  depth = 2000,
+  dist.name = c("BC",'Jaccard'),
+  t.level = 1,
+  feature.box.axis.transform = "sqrt",
+  strata.var = "subject_gender",
+  vis.feature.level = c("Phylum", "Family", "Genus"),
+  test.feature.level = "Family",
+  feature.dat.type = "count",
+  theme.choice = "bw",
+  base.size = 20,
+  feature.mt.method = "none",
+  feature.sig.level = 0.2,
+  output.file = "/Users/apple/Research/MicrobiomeStat/result/report.pdf"
+)
 mStat_generate_report_single(
   data.obj = subset_T2D.obj,
   dist.obj = NULL,
@@ -285,6 +391,31 @@ mStat_generate_report_single(
   feature.mt.method = "none",
   feature.sig.level = 0.2,
   output.file = "/Users/apple/Research/MicrobiomeStat/result/ecam.obj_report.pdf"
+)
+mStat_generate_report_single(
+  data.obj = ecam.obj,
+  dist.obj = NULL,
+  alpha.obj = NULL,
+  group.var = "delivery",
+  vis.adj.vars = "diet",
+  test.adj.vars = "diet",
+  subject.var = "subject.id",
+  time.var = "month_num",
+  alpha.name = c("shannon", "observed_species"),
+  depth = NULL,
+  dist.name = c("BC",'Jaccard'),
+  t.level = 1,
+  feature.box.axis.transform = "sqrt",
+  strata.var = "antiexposedall",
+  vis.feature.level = c("Order", "Family", "Genus"),
+  test.feature.level = c("Order", "Family", "Genus"),
+  feature.dat.type = "proportion",
+  theme.choice = "bw",
+  base.size = 20,
+  feature.mt.method = "none",
+  feature.sig.level = 0.2,
+  output.file = "/Users/apple/Research/MicrobiomeStat/result/ecam.obj_report.html",
+  output.format = c("html")
 )
 }
 }

@@ -121,9 +121,14 @@
 #' @param file.ann Annotation text for the PDF file names.
 #' @param pdf.wid Width of the PDF plots.
 #' @param pdf.hei Height of the PDF plots.
-#' @param output.file A character string specifying the output file name for the report. This will also
-#' determine the title of the generated report. For example, if you set it to "path_to_your_location/report.pdf",
-#' the title of the report will be "report".
+#' @param output.file A character string specifying the output file name for the report. The file extension
+#' (.pdf or .html) will be automatically added based on the output.format if not already present.
+#' This parameter also determines the title of the generated report. For example, if you set it to
+#' "path_to_your_location/report", the title of the report will be "report".
+#' @param output.format A character string specifying the desired output format of the report.
+#' Must be either "pdf" or "html". Default is c("pdf", "html"), which will use the first value ("pdf")
+#' if not explicitly specified. This parameter determines whether the report will be generated as a PDF
+#' or HTML document.
 #' @param ... Additional arguments passed to internal functions.
 #'
 #' @return A report file containing the microbial ecology analysis results.
@@ -155,9 +160,108 @@
 #'   base.size = 20,
 #'   feature.mt.method = "none",
 #'   feature.sig.level = 0.2,
-#'   output.file = "/Users/apple/Research/MicrobiomeStat/result/peerj32.obj_report.pdf"
+#'   output.file = "/Users/apple/Research/MicrobiomeStat/result/peerj32.obj_report.pdf",
+#'   output.format = c("pdf")
+#' )
+#' mStat_generate_report_single(
+#'   data.obj = peerj32.obj,
+#'   dist.obj = NULL,
+#'   alpha.obj = NULL,
+#'   group.var = "group",
+#'   vis.adj.vars = NULL,
+#'   test.adj.vars = NULL,
+#'   subject.var = "subject",
+#'   time.var = "time",
+#'   alpha.name = c("shannon", "observed_species"),
+#'   depth = NULL,
+#'   dist.name = c("BC",'Jaccard'),
+#'   t.level = "1",
+#'   feature.box.axis.transform = "sqrt",
+#'   strata.var = NULL,
+#'   vis.feature.level = c("Phylum", "Family", "Genus"),
+#'   test.feature.level = c("Phylum", "Family", "Genus"),
+#'   feature.dat.type = "count",
+#'   theme.choice = "bw",
+#'   base.size = 20,
+#'   feature.mt.method = "none",
+#'   feature.sig.level = 0.2,
+#'   output.file = "/Users/apple/Research/MicrobiomeStat/result/peerj32.obj_report.html",
+#'   output.format = c("html")
 #' )
 #' data(subset_T2D.obj)
+#' mStat_generate_report_single(
+#'   data.obj = subset_T2D.obj,
+#'   dist.obj = NULL,
+#'   alpha.obj = NULL,
+#'   group.var = "subject_race",
+#'   vis.adj.vars = "sample_body_site",
+#'   test.adj.vars = "sample_body_site",
+#'   subject.var = "subject_id",
+#'   time.var = "visit_number_num",
+#'   alpha.name = c("shannon", "observed_species"),
+#'   depth = 2000,
+#'   dist.name = c("BC",'Jaccard'),
+#'   t.level = 1,
+#'   feature.box.axis.transform = "sqrt",
+#'   strata.var = "subject_gender",
+#'   vis.feature.level = c("Phylum", "Family", "Genus"),
+#'   test.feature.level = "Family",
+#'   feature.dat.type = "count",
+#'   theme.choice = "bw",
+#'   base.size = 20,
+#'   feature.mt.method = "none",
+#'   feature.sig.level = 0.2,
+#'   output.file = "/Users/apple/Research/MicrobiomeStat/result/subset_T2D.obj_report.pdf"
+#' )
+#' mStat_generate_report_single(
+#'   data.obj = subset_T2D.obj,
+#'   dist.obj = NULL,
+#'   alpha.obj = NULL,
+#'   group.var = "subject_race",
+#'   vis.adj.vars = "sample_body_site",
+#'   test.adj.vars = "sample_body_site",
+#'   subject.var = "subject_id",
+#'   time.var = "visit_number_num",
+#'   alpha.name = c("shannon", "observed_species"),
+#'   depth = 2000,
+#'   dist.name = c("BC",'Jaccard'),
+#'   t.level = 1,
+#'   feature.box.axis.transform = "sqrt",
+#'   strata.var = "subject_gender",
+#'   vis.feature.level = c("Order", "Family", "Genus"),
+#'   test.feature.level = c("Order", "Family", "Genus"),
+#'   feature.dat.type = "count",
+#'   theme.choice = "bw",
+#'   base.size = 20,
+#'   feature.mt.method = "none",
+#'   feature.sig.level = 0.2,
+#'   output.file = "/Users/apple/Research/MicrobiomeStat/result/subset_T2D.obj_report.html",
+#'   output.format = c("html")
+#' )
+#' mStat_generate_report_single(
+#'   data.obj = subset_T2D.obj,
+#'   dist.obj = NULL,
+#'   alpha.obj = NULL,
+#'   group.var = "subject_race",
+#'   vis.adj.vars = "sample_body_site",
+#'   test.adj.vars = "sample_body_site",
+#'   subject.var = "subject_id",
+#'   time.var = "visit_number_num",
+#'   alpha.name = c("shannon", "observed_species"),
+#'   depth = 2000,
+#'   dist.name = c("BC",'Jaccard'),
+#'   t.level = 1,
+#'   feature.box.axis.transform = "sqrt",
+#'   strata.var = "subject_gender",
+#'   vis.feature.level = c("Phylum", "Family", "Genus"),
+#'   test.feature.level = "Family",
+#'   feature.dat.type = "count",
+#'   theme.choice = "bw",
+#'   base.size = 20,
+#'   feature.mt.method = "none",
+#'   feature.sig.level = 0.2,
+#'   output.file = "/Users/apple/Research/MicrobiomeStat/result/report.pdf"
+#' )
 #' mStat_generate_report_single(
 #'   data.obj = subset_T2D.obj,
 #'   dist.obj = NULL,
@@ -207,6 +311,31 @@
 #'   feature.sig.level = 0.2,
 #'   output.file = "/Users/apple/Research/MicrobiomeStat/result/ecam.obj_report.pdf"
 #' )
+#' mStat_generate_report_single(
+#'   data.obj = ecam.obj,
+#'   dist.obj = NULL,
+#'   alpha.obj = NULL,
+#'   group.var = "delivery",
+#'   vis.adj.vars = "diet",
+#'   test.adj.vars = "diet",
+#'   subject.var = "subject.id",
+#'   time.var = "month_num",
+#'   alpha.name = c("shannon", "observed_species"),
+#'   depth = NULL,
+#'   dist.name = c("BC",'Jaccard'),
+#'   t.level = 1,
+#'   feature.box.axis.transform = "sqrt",
+#'   strata.var = "antiexposedall",
+#'   vis.feature.level = c("Order", "Family", "Genus"),
+#'   test.feature.level = c("Order", "Family", "Genus"),
+#'   feature.dat.type = "proportion",
+#'   theme.choice = "bw",
+#'   base.size = 20,
+#'   feature.mt.method = "none",
+#'   feature.sig.level = 0.2,
+#'   output.file = "/Users/apple/Research/MicrobiomeStat/result/ecam.obj_report.html",
+#'   output.format = c("html")
+#' )
 #' }
 #' @export
 mStat_generate_report_single <- function(data.obj,
@@ -244,7 +373,10 @@ mStat_generate_report_single <- function(data.obj,
                                          pdf.wid = 11,
                                          pdf.hei = 8.5,
                                          output.file,
+                                         output.format = c("pdf", "html"),
                                          ...) {
+
+  output.format <- match.arg(output.format)
 
   sample_count <- length(unique(data.obj$meta.dat[[time.var]])) * length(unique(data.obj$meta.dat[[group.var]]))
   has_many_samples <- sample_count > 8
@@ -255,16 +387,49 @@ mStat_generate_report_single <- function(data.obj,
     width <- 3
   }
 
-  template <- "
----
-title: '`r sub(\".pdf$\", \"\", basename(output.file))`'
-author: '[Powered by MicrobiomeStat (Ver 1.1.3)](http://www.microbiomestat.wiki)'
-date: '`r Sys.Date()`'
+  # Ensure output.format is either "pdf" or "html"
+  output.format <- match.arg(output.format)
+
+  # Set pdf to TRUE if output.format is "pdf", FALSE otherwise
+  pdf <- output.format == "pdf"
+
+  # Ensure output.file has the correct extension
+  if (output.format == "pdf" && !grepl("\\.pdf$", output.file, ignore.case = TRUE)) {
+    output.file <- paste0(output.file, ".pdf")
+  } else if (output.format == "html" && !grepl("\\.html$", output.file, ignore.case = TRUE)) {
+    output.file <- paste0(output.file, ".html")
+  }
+
+  if (pdf) {
+    result.output <- "asis"
+  } else {
+    result.output <- "markup"
+  }
+
+  # Adjust the YAML front matter based on output.format
+  if (output.format == "pdf") {
+    yaml_output <- "
 output:
   pdf_document:
     toc: true
     toc_depth: 3
     latex_engine: lualatex
+"
+  } else {
+    yaml_output <- "
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+"
+  }
+
+  template <- paste0("
+---
+title: '`r sub(\".pdf$|.html$\", \"\", basename(output.file))`'
+author: '[Powered by MicrobiomeStat (Ver 1.2.1)](http://www.microbiomestat.wiki)'
+date: '`r Sys.Date()`'
+", yaml_output, "
 ---
 
 # 1. Data overview and summary statistics
@@ -464,7 +629,7 @@ taxa_barplot_results <- generate_taxa_barplot_single(data.obj = data.obj,
                                                      pdf.hei = pdf.hei)
 ```
 
-```{r taxa-barplot-avergae-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 25, fig.height = 15, warning = FALSE}
+```{r taxa-barplot-avergae-print, echo=FALSE, message=FALSE, result = result.output, fig.align='center', fig.width = 25, fig.height = 15, warning = FALSE}
 cat('The following plots display the average proportions for each group, and stratum. \n\n')
 indiv_list <- lapply(taxa_barplot_results, function(x) x$indiv)
 
@@ -473,14 +638,14 @@ average_list <- lapply(taxa_barplot_results, function(x) x$average)
 average_list
 ```
 
-```{r taxa-barplot-indiv-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 25, fig.height = 15, warning = FALSE}
+```{r taxa-barplot-indiv-print, echo=FALSE, message=FALSE, result = result.output, fig.align='center', fig.width = 25, fig.height = 15, warning = FALSE}
 cat('The following plots display the individual proportions for each group, and stratum. \n\n')
 indiv_list
 ```
 
 ### 1.3.2 Feature dotplot
 
-```{r taxa-dotplot-generation, message=FALSE, results='asis', fig.align='center', fig.width = 20, fig.height = 8, warning = FALSE}
+```{r taxa-dotplot-generation, message=FALSE, result = result.output, fig.align='center', fig.width = 20, fig.height = 8, warning = FALSE}
 taxa_dotplot_results <- generate_taxa_dotplot_single(data.obj = data.obj,
                                                      subject.var = subject.var,
                                                      time.var = time.var,
@@ -531,7 +696,7 @@ taxa_heatmap_results <- generate_taxa_heatmap_single(data.obj = data.obj,
                                                      pdf.hei = pdf.hei)
 ```
 
-```{r taxa-heatmap-indiv-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 20, fig.height = 12, warning = FALSE}
+```{r taxa-heatmap-indiv-print, echo=FALSE, message=FALSE, result = result.output, fig.align='center', fig.width = 20, fig.height = 12, warning = FALSE}
 cat('The following plots display the individual proportions for each sample. \n\n')
 taxa_heatmap_results
 ```
@@ -542,7 +707,7 @@ taxa_heatmap_results
 
 ### 2.1.1 Alpha diversity boxplot
 
-```{r alpha-boxplot-generation, message=FALSE, warning = FALSE, fig.align='center', fig.width = 16, fig.height = 8, results='asis'}
+```{r alpha-boxplot-generation, message=FALSE, warning = FALSE, fig.align='center', fig.width = 16, fig.height = 8, result = result.output}
 alpha_boxplot_results <- generate_alpha_boxplot_single(data.obj = data.obj,
                                                        alpha.obj = alpha.obj,
                                                        alpha.name = alpha.name,
@@ -658,7 +823,7 @@ for(index_name in names(alpha_test_results)) {
 
 ### 3.1.1 Beta diversity ordinationplot
 
-```{r beta-ordination-generation, message=FALSE, fig.align='center', warning = FALSE, fig.width = 10, fig.height = 8, results='asis'}
+```{r beta-ordination-generation, message=FALSE, fig.align='center', warning = FALSE, fig.width = 10, fig.height = 8, result = result.output}
 beta_ordination_results <- generate_beta_ordination_single(data.obj = data.obj,
                                                            subject.var = subject.var,
                                                            time.var = time.var,
@@ -829,11 +994,11 @@ taxa_test_results <- generate_taxa_test_single(data.obj = data.obj,
                                                feature.dat.type = feature.dat.type)
 ```
 
-```{r taxa-test-description, echo=FALSE, results='hide'}
+```{r taxa-test-description, echo=FALSE, results='asis'}
 cat(sprintf('In this analysis, we utilized the LinDA linear model to investigate potential differences in abundance. Specifically, we tested the effect of variables %s for different taxa, while adjusting for other covariates.\n\n', group.var))
 ```
 
-```{r taxa-cladogram, message=FALSE, warning=FALSE, fig.align='center', fig.width=12, fig.height=12, results='asis'}
+```{r taxa-cladogram, message=FALSE, warning=FALSE, fig.align='center', fig.width=12, fig.height=12, result = result.output}
 cladogram_plots <- generate_taxa_cladogram_single(
   data.obj = data.obj,
   test.list = taxa_test_results,
@@ -848,7 +1013,7 @@ cladogram_plots
 
 ```
 
-```{r taxa-volcano , message = FALSE, warning = FALSE, fig.align = 'center', fig.width = 6.5, fig.height = 6.5, results= 'asis'}
+```{r taxa-volcano , message = FALSE, warning = FALSE, fig.align = 'center', fig.width = 6.5, fig.height = 6.5, result = result.output}
 volcano_plots <- generate_taxa_volcano_single(
                                   data.obj = data.obj,
                                   group.var = group.var,
@@ -859,7 +1024,7 @@ volcano_plots <- generate_taxa_volcano_single(
 volcano_plots
 ```
 
-```{r taxa-test-results-output, echo=FALSE, results='hide'}
+```{r taxa-test-results-output, echo=FALSE, results='asis'}
 # Iterate over each taxonomic rank in taxa_test_results
 for(taxon_rank in names(taxa_test_results)) {
 
@@ -963,7 +1128,6 @@ significant_vars <- as.vector(significant_vars)
 
 ```{r taxa-significant-boxplot-generation, message=FALSE, fig.align='center', fig.width = 8, fig.height = 4, results='asis', warning = FALSE}
 if (length(significant_vars) != 0) {
-
   taxa_indiv_boxplot_results_sig_features <- generate_taxa_indiv_boxplot_single(
     data.obj = data.obj,
     subject.var = subject.var,
@@ -991,7 +1155,7 @@ if (length(significant_vars) != 0) {
 }
 ```
 
-```{r taxa-boxplot-single-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 8, fig.height = 4, warning = FALSE}
+```{r taxa-boxplot-single-print, echo=FALSE, message=FALSE, result = result.output, fig.align='center', fig.width = 8, fig.height = 4, warning = FALSE}
 if (length(significant_vars) != 0){
 taxa_indiv_boxplot_results_sig_features
 }
@@ -1079,7 +1243,7 @@ for (feature_level in names(taxa_indiv_boxplot_results)) {
 
 ```
 
-"
+")
 
   rmd_code <- knitr::knit_expand(
                           text = template,

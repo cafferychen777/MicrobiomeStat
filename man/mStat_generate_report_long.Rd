@@ -40,7 +40,8 @@ mStat_generate_report_long(
   file.ann = NULL,
   pdf.wid = 11,
   pdf.hei = 8.5,
-  output.file
+  output.file,
+  output.format = c("pdf", "html")
 )
 }
 \arguments{
@@ -297,7 +298,40 @@ mStat_generate_report_long(
   feature.box.axis.transform = "sqrt",
   theme.choice = "bw",
   base.size = 20,
-  output.file = "/Users/apple/Research/MicrobiomeStat/result/per_time_test_report.pdf"
+  output.file = "/Users/apple/Research/MicrobiomeStat/result/per_time_test_report.pdf",
+  output.format = "pdf"
+)
+
+mStat_generate_report_long(
+  data.obj = subset_T2D.obj,
+  group.var = "subject_race",
+  strata.var = NULL,
+  test.adj.vars = NULL,
+  vis.adj.vars = NULL,
+  subject.var = "subject_id",
+  time.var = "visit_number_num",
+  t0.level = NULL,
+  ts.levels = NULL,
+  alpha.obj = NULL,
+  alpha.name = c("shannon","observed_species"),
+  dist.obj = NULL,
+  dist.name = c("BC",'Jaccard'),
+  pc.obj = NULL,
+  feature.mt.method = "none",
+  feature.sig.level = 0.3,
+  vis.feature.level = c("Family","Genus"),
+  test.feature.level = c("Family"),
+  feature.change.func = "relative change",
+  feature.dat.type = "count",
+  prev.filter = 0.1,
+  abund.filter = 1e-4,
+  bar.area.feature.no = 40,
+  heatmap.feature.no = 40,
+  feature.box.axis.transform = "sqrt",
+  theme.choice = "bw",
+  base.size = 20,
+  output.file = "/Users/apple/Research/MicrobiomeStat/result/per_time_test_report.html",
+  output.format = "html"
 )
 data(ecam.obj)
 mStat_generate_report_long(

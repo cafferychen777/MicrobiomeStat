@@ -149,7 +149,14 @@
 #' @param file.ann Annotation text for the PDF file names.
 #' @param pdf.wid Width of the PDF plots.
 #' @param pdf.hei Height of the PDF plots.
-#' @param output.file Output file name for the report.
+#' @param output.file A character string specifying the output file name for the report. The file extension
+#' (.pdf or .html) will be automatically added based on the output.format if not already present.
+#' This parameter also determines the title of the generated report. For example, if you set it to
+#' "path_to_your_location/report", the title of the report will be "report".
+#' @param output.format A character string specifying the desired output format of the report.
+#' Must be either "pdf" or "html". Default is c("pdf", "html"), which will use the first value ("pdf")
+#' if not explicitly specified. This parameter determines whether the report will be generated as a PDF
+#' or HTML document.
 #'
 #' @return A report file containing the microbial ecology analysis results for paired data.
 #'
@@ -179,9 +186,56 @@
 #'   feature.sig.level = 0.1,
 #'   theme.choice = "bw",
 #'   base.size = 18,
+#'   output.file = "/Users/apple/Research/MicrobiomeStat/result/pair_peerj32.obj_report.pdf",
+#'   output.format = "pdf"
+#' )
+#' mStat_generate_report_pair(
+#'   data.obj = peerj32.obj,
+#'   dist.obj = NULL,
+#'   alpha.obj = NULL,
+#'   group.var = "group",
+#'   test.adj.vars = NULL,
+#'   vis.adj.vars = NULL,
+#'   subject.var = "subject",
+#'   time.var = "time",
+#'   alpha.name = c("shannon", "observed_species"),
+#'   dist.name = c("BC",'Jaccard'),
+#'   change.base = "1",
+#'   feature.change.func = "relative change",
+#'   strata.var = NULL,
+#'   vis.feature.level = c("Phylum","Family","Genus"),
+#'   test.feature.level = c("Genus"),
+#'   feature.dat.type = "count",
+#'   feature.mt.method = "none",
+#'   feature.sig.level = 0.1,
+#'   theme.choice = "bw",
+#'   base.size = 18,
+#'   output.file = "/Users/apple/Research/MicrobiomeStat/result/pair_peerj32.obj_report.html",
+#'   output.format = "html"
+#' )
+#' mStat_generate_report_pair(
+#'   data.obj = peerj32.obj,
+#'   dist.obj = NULL,
+#'   alpha.obj = NULL,
+#'   group.var = "group",
+#'   test.adj.vars = NULL,
+#'   vis.adj.vars = NULL,
+#'   subject.var = "subject",
+#'   time.var = "time",
+#'   alpha.name = c("shannon", "observed_species"),
+#'   dist.name = c("BC",'Jaccard'),
+#'   change.base = "1",
+#'   feature.change.func = "relative change",
+#'   strata.var = NULL,
+#'   vis.feature.level = c("Phylum","Family","Genus"),
+#'   test.feature.level = c("Genus"),
+#'   feature.dat.type = "count",
+#'   feature.mt.method = "none",
+#'   feature.sig.level = 0.1,
+#'   theme.choice = "bw",
+#'   base.size = 18,
 #'   output.file = "/Users/apple/MicrobiomeStat/report.pdf"
 #' )
-#'
 #' data(peerj32.obj)
 #' mStat_generate_report_pair(
 #'   data.obj = peerj32.obj,
@@ -275,17 +329,52 @@ mStat_generate_report_pair <- function(data.obj,
                                        file.ann = NULL,
                                        pdf.wid = 11,
                                        pdf.hei = 8.5,
-                                       output.file) {
-  template <- "
----
-title: '`r sub(\".pdf$\", \"\", basename(output.file))`'
-author: '[Powered by MicrobiomeStat (Ver 1.1.3)](http://www.microbiomestat.wiki)'
-date: '`r Sys.Date()`'
+                                       output.file,
+                                       output.format = c("pdf", "html")) {
+
+  # Ensure output.format is either "pdf" or "html"
+  output.format <- match.arg(output.format)
+
+  # Set pdf to TRUE if output.format is "pdf", FALSE otherwise
+  pdf <- output.format == "pdf"
+
+  # Ensure output.file has the correct extension
+  if (output.format == "pdf" && !grepl("\\.pdf$", output.file, ignore.case = TRUE)) {
+    output.file <- paste0(output.file, ".pdf")
+  } else if (output.format == "html" && !grepl("\\.html$", output.file, ignore.case = TRUE)) {
+    output.file <- paste0(output.file, ".html")
+  }
+
+  if (pdf) {
+    result.output <- "asis"
+  } else {
+    result.output <- "markup"
+  }
+
+  # Adjust the YAML front matter based on output.format
+  if (output.format == "pdf") {
+    yaml_output <- "
 output:
   pdf_document:
     toc: true
     toc_depth: 3
     latex_engine: lualatex
+"
+  } else {
+    yaml_output <- "
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+"
+  }
+
+  template <-  paste0("
+---
+title: '`r sub(\".pdf$|.html$\", \"\", basename(output.file))`'
+author: '[Powered by MicrobiomeStat (Ver 1.2.1)](http://www.microbiomestat.wiki)'
+date: '`r Sys.Date()`'
+", yaml_output, "
 ---
 
 # 1. Data overview and summary statistics
@@ -487,7 +576,7 @@ taxa_heatmap_pair_results <- generate_taxa_heatmap_pair(
 
 ```
 
-```{r taxa-heatmap-pair-avergae-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 20, fig.height = 12, warning = FALSE}
+```{r taxa-heatmap-pair-avergae-print, echo=FALSE, message=FALSE, results=result.output, fig.align='center', fig.width = 20, fig.height = 12, warning = FALSE}
 cat('The following plots display the average proportions for each time point, group, and stratum. \n\n')
 
 indiv_list <- lapply(taxa_heatmap_pair_results, function(x) x$indiv)
@@ -497,7 +586,7 @@ average_list <- lapply(taxa_heatmap_pair_results, function(x) x$average)
 average_list
 ```
 
-```{r taxa-heatmap-pair-indiv-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 30, fig.height = 15, warning = FALSE}
+```{r taxa-heatmap-pair-indiv-print, echo=FALSE, message=FALSE, results=result.output, fig.align='center', fig.width = 30, fig.height = 15, warning = FALSE}
 cat('The following plots display the individual proportions for each sample. \n\n')
 indiv_list
 ```
@@ -525,7 +614,7 @@ taxa_barplot_pair_results <- generate_taxa_barplot_pair(
 )
 ```
 
-```{r taxa-barplot-pair-avergae-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 25, fig.height = 20, warning = FALSE}
+```{r taxa-barplot-pair-avergae-print, echo=FALSE, message=FALSE, results=result.output, fig.align='center', fig.width = 25, fig.height = 20, warning = FALSE}
 cat('The following plots display the average proportions for each time point, group, and stratum. \n\n')
 
 indiv_list <- lapply(taxa_barplot_pair_results, function(x) x$indiv)
@@ -535,7 +624,7 @@ average_list <- lapply(taxa_barplot_pair_results, function(x) x$average)
 average_list
 ```
 
-```{r taxa-barplot-pair-indiv-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 25, fig.height = 20, warning = FALSE}
+```{r taxa-barplot-pair-indiv-print, echo=FALSE, message=FALSE, results=result.output, fig.align='center', fig.width = 25, fig.height = 20, warning = FALSE}
 cat('The following plots display the individual proportions for each sample. \n\n')
 indiv_list
 ```
@@ -566,14 +655,14 @@ taxa_dotplot_results <- generate_taxa_dotplot_pair(
                                               pdf.hei = pdf.hei)
 ```
 
-```{r taxa-dotplot-pair-avergae-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 25, fig.height = 12}
+```{r taxa-dotplot-pair-avergae-print, echo=FALSE, message=FALSE, results=result.output, fig.align='center', fig.width = 25, fig.height = 12}
 cat('The following plots display the average proportions for each time point, group, and stratum. \n\n')
 taxa_dotplot_results
 ```
 
 ### 1.3.4 Feature change heatmap
 
-```{r taxa-change-heatmap, message=FALSE, fig.align='center', fig.width = 25, fig.height = 20, results='asis'}
+```{r taxa-change-heatmap, message=FALSE, fig.align='center', fig.width = 25, fig.height = 20, results=result.output}
 taxa_change_heatmap_results <- generate_taxa_change_heatmap_pair(
                                       data.obj = data.obj,
                                       subject.var = subject.var,
@@ -619,7 +708,7 @@ average_list <- lapply(taxa_change_heatmap_results, function(x) x$average)
 indiv_list
 ```
 
-```{r taxa-change-heatmap-pair-print-indiv, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 25, fig.height = 20}
+```{r taxa-change-heatmap-pair-print-indiv, echo=FALSE, message=FALSE, results=result.output, fig.align='center', fig.width = 25, fig.height = 20}
 
 cat(' The following plots display the average change for each time point, group, and stratum. \n\n')
 average_list
@@ -654,7 +743,7 @@ taxa_change_dotplot_results <- generate_taxa_change_dotplot_pair(
                                              pdf.hei = pdf.hei)
 ```
 
-```{r taxa-change-dotplot-pair-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 25, fig.height = 20}
+```{r taxa-change-dotplot-pair-print, echo=FALSE, message=FALSE, results=result.output, fig.align='center', fig.width = 25, fig.height = 20}
 if (is.function(feature.change.func)) {
   cat('The changes were computed using a custom function provided by the user.')
 } else if (feature.change.func == 'relative change') {
@@ -675,7 +764,7 @@ taxa_change_dotplot_results
 
 ### 2.1.1 Alpha diversity boxplot
 
-```{r alpha-boxplot-long-generation, message=FALSE, fig.align='center', results='asis', fig.width=8, fig.height=3}
+```{r alpha-boxplot-long-generation, message=FALSE, fig.align='center', results=result.output, fig.width=8, fig.height=3}
 alpha_boxplot_results <- generate_alpha_boxplot_long(
                                                 data.obj = data.obj,
                                                 alpha.obj = alpha.obj,
@@ -700,7 +789,7 @@ alpha_boxplot_results
 
 ### 2.1.2 Alpha diversity change boxplot
 
-```{r alpha-diversity-change-boxplot, message=FALSE, fig.align='center', results='asis'}
+```{r alpha-diversity-change-boxplot, message=FALSE, fig.align='center', results=result.output}
 alpha_change_boxplot_results <- generate_alpha_change_boxplot_pair(
                                                data.obj = data.obj,
                                                alpha.obj = alpha.obj,
@@ -722,7 +811,7 @@ alpha_change_boxplot_results <- generate_alpha_change_boxplot_pair(
                                                pdf.hei = pdf.hei)
 ```
 
-```{r alpha-diversity-change-boxplot-print, message=FALSE, fig.align='center', results='asis', echo = FALSE, fig.width=8, fig.height=3}
+```{r alpha-diversity-change-boxplot-print, message=FALSE, fig.align='center', results=result.output, echo = FALSE, fig.width=8, fig.height=3}
 if (is.function(alpha.change.func)) {
   cat('The changes from change.base were computed using a custom function provided by the user.\n\n')
 } else if (alpha.change.func == 'log fold change') {
@@ -955,7 +1044,7 @@ for(index_name in names(alpha_change_test_results)) {
 
 ### 3.1.1 Beta diversity ordinationplot
 
-```{r beta-ordination-pair-generation, message=FALSE, fig.align='center', warning = FALSE, fig.width = 14, fig.height = 12, results='asis'}
+```{r beta-ordination-pair-generation, message=FALSE, fig.align='center', warning = FALSE, fig.width = 14, fig.height = 12, results=result.output}
 beta_ordination_results <- generate_beta_ordination_pair(
                                                     data.obj = data.obj,
                                                     dist.obj = dist.obj,
@@ -976,7 +1065,7 @@ beta_ordination_results <- generate_beta_ordination_pair(
 beta_ordination_results
 ```
 
-```{r beta-ordination-pair-generation-2, message=FALSE, fig.align='center', warning = FALSE, fig.width = 16, fig.height = 8, results='asis'}
+```{r beta-ordination-pair-generation-2, message=FALSE, fig.align='center', warning = FALSE, fig.width = 16, fig.height = 8, results=result.output}
 if (!is.null(strata.var)){
 beta_ordination_stratified_results <- generate_beta_ordination_pair(
                                                     data.obj = data.obj,
@@ -1021,14 +1110,14 @@ beta_change_boxplot_results <- generate_beta_change_boxplot_pair(
                                                       pdf.hei = pdf.hei)
 ```
 
-```{r beta-diversity-change-boxplot-print, message=FALSE, fig.align='center', results='hide', results='asis', fig.width=8, fig.height=3, echo = FALSE}
+```{r beta-diversity-change-boxplot-print, message=FALSE, fig.align='center', results='hide', results=result.output, fig.width=8, fig.height=3, echo = FALSE}
 cat(sprintf('\n Beta change represents the distance of each subject from their change.base.\n\n'))
 beta_change_boxplot_results
 ```
 
 ### 3.1.3 Beta diversity PC boxplot
 
-```{r beta-pc-boxplot-pair-generation, message=FALSE, fig.align='center', results='asis', fig.width=8, fig.height=3}
+```{r beta-pc-boxplot-pair-generation, message=FALSE, fig.align='center', results=result.output, fig.width=8, fig.height=3}
 pc_boxplot_longitudinal_results <- generate_beta_pc_boxplot_long(
   data.obj = data.obj,
   dist.obj = dist.obj,
@@ -1056,7 +1145,7 @@ pc_boxplot_longitudinal_results
 
 ### 3.1.4 Beta diversity PC change boxplot
 
-```{r pc-change-boxplot-pairs, message=FALSE, fig.align='center', results='hide', results='asis', fig.width=8, fig.height=3}
+```{r pc-change-boxplot-pairs, message=FALSE, fig.align='center', results='hide', results=result.output, fig.width=8, fig.height=3}
 pc_change_boxplot_pairs <- generate_beta_pc_change_boxplot_pair(
   data.obj = data.obj,
   dist.obj = dist.obj,
@@ -1188,7 +1277,7 @@ taxa_test_results <- generate_taxa_test_pair(data.obj = data.obj,
                                                feature.dat.type = feature.dat.type)
 ```
 
-```{r taxa-test-results-display, echo=FALSE, message=FALSE, results='asis', warning = FALSE, fig.align='center', fig.width = 6.5, fig.height = 6.5}
+```{r taxa-test-results-display, echo=TRUE, message=FALSE, results=result.output, warning = FALSE, fig.align='center', fig.width = 6.5, fig.height = 6.5}
 volcano_plots <- generate_taxa_volcano_single(
                                   data.obj = data.obj,
                                   group.var = group.var,
@@ -1197,7 +1286,9 @@ volcano_plots <- generate_taxa_volcano_single(
                                   feature.mt.method = feature.mt.method
 )
 volcano_plots
+```
 
+```{r taxa-test-results-display2, echo=FALSE, message=FALSE, results='asis', warning = FALSE, fig.align='center', fig.width = 6.5, fig.height = 6.5}
 cat(sprintf('In this analysis, we utilized the LinDA linear model to investigate potential differences in trend. Specifically, we tested the effect of the variable %s and the interaction between %s and %s for different taxa, while adjusting for other covariates.\n\n',
             group.var, group.var, time.var))
 
@@ -1282,7 +1373,7 @@ taxa_change_test_results <- generate_taxa_change_test_pair(data.obj = data.obj,
                                                feature.dat.type = feature.dat.type)
 ```
 
-```{r taxa-change-test-results-display, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 6.5, fig.height = 6.5}
+```{r taxa-change-test-results-display, echo=TRUE, message=FALSE, results=result.output, fig.align='center', fig.width = 6.5, fig.height = 6.5}
 
 change_volcano_plots <- generate_taxa_volcano_single(data.obj = data.obj,
                                                      group.var = group.var,
@@ -1291,7 +1382,10 @@ change_volcano_plots <- generate_taxa_volcano_single(data.obj = data.obj,
                                                      feature.mt.method = feature.mt.method)
 
 change_volcano_plots
+```
 
+
+```{r taxa-change-test-results-display2, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 6.5, fig.height = 6.5}
 # Initial description for Feature Volatility
 num_levels <- length(unique(data.obj$meta.dat[[group.var]]))
 
@@ -1447,7 +1541,7 @@ taxa_indiv_boxplot_results_sig_features <- generate_taxa_indiv_boxplot_long(
 
 ```
 
-```{r taxa-boxplot-pair-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 8, fig.height = 4}
+```{r taxa-boxplot-pair-print, echo=FALSE, message=FALSE, results=result.output, fig.align='center', fig.width = 8, fig.height = 4}
 if (length(significant_vars) != 0){
 taxa_indiv_boxplot_results_sig_features
 }
@@ -1568,7 +1662,7 @@ taxa_indiv_change_boxplot_results_sig_features <- generate_taxa_indiv_change_box
 
 ```
 
-```{r taxa-change-boxplot-pair-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 8, fig.height = 4}
+```{r taxa-change-boxplot-pair-print, echo=FALSE, message=FALSE, results=result.output, fig.align='center', fig.width = 8, fig.height = 4}
 if (length(significant_vars_change) != 0){
 taxa_indiv_change_boxplot_results_sig_features
 }
@@ -1657,7 +1751,7 @@ for (feature_level in names(taxa_indiv_change_boxplot_results)) {
 
 ```
 
-"
+")
 
 rmd_code <- knitr::knit_expand(
   text = template,
