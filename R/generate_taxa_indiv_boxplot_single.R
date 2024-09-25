@@ -315,7 +315,14 @@ generate_taxa_indiv_boxplot_single <-
             width = 0.3,
             #fill = "white"
           ) +
-          geom_jitter(width = 0.3, alpha = 0.1, size = 1) +
+          geom_jitter(
+            width = 0.35,
+            alpha = 0.6,
+            size = 2,
+            aes(color = !!sym(group.var)),
+            shape = 21,
+            stroke = 0.5
+          ) +
           scale_fill_manual(values = col) +
           {
             if (feature.dat.type == "other"){
