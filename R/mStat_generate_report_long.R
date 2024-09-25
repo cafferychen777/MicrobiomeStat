@@ -290,6 +290,38 @@
 #'   base.size = 20,
 #'   output.file = "/Users/apple/Research/MicrobiomeStat/result/ecam_obj_report_long.pdf"
 #' )
+#'
+#' mStat_generate_report_long(
+#'   data.obj = ecam.obj,
+#'   group.var = "antiexposedall",
+#'   strata.var = NULL,
+#'   test.adj.vars = "delivery",
+#'   vis.adj.vars = "delivery",
+#'   subject.var = "subject.id",
+#'   time.var = "month_num",
+#'   t0.level = NULL,
+#'   ts.levels = NULL,
+#'   alpha.obj = NULL,
+#'   alpha.name = c("shannon","observed_species"),
+#'   dist.obj = NULL,
+#'   dist.name = c("BC",'Jaccard'),
+#'   pc.obj = NULL,
+#'   feature.mt.method = "none",
+#'   feature.sig.level = 0.3,
+#'   vis.feature.level = c("Family","Genus"),
+#'   test.feature.level = c("Family"),
+#'   feature.change.func = "relative change",
+#'   feature.dat.type = "proportion",
+#'   prev.filter = 0.1,
+#'   abund.filter = 1e-4,
+#'   bar.area.feature.no = 40,
+#'   heatmap.feature.no = 40,
+#'   feature.box.axis.transform = "sqrt",
+#'   theme.choice = "bw",
+#'   base.size = 20,
+#'   output.file = "/Users/apple/Research/MicrobiomeStat/result/ecam_obj_report_long.html",
+#'   output.format = "html"
+#' )
 #' }
 #' @export
 mStat_generate_report_long <- function(data.obj,
@@ -475,7 +507,7 @@ pander::pander(params_data)
 
 ## 1.2 Summary statistics
 
-```{r mStat-data-summary, message=FALSE}
+```{r mStat-data-summary, message=FALSE, warning = FALSE}
 mStat_results <- mStat_summarize_data_obj(data.obj = data.obj,
                                           time.var = time.var,
                                           group.var = group.var,
