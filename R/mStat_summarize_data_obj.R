@@ -131,7 +131,7 @@ mStat_summarize_data_obj <-
             group.var %in% colnames(data.obj$meta.dat)) {
           # Create a grouped data frame
           grouped_df <- data.obj$meta.dat %>%
-            select(all_of(c(time.var, group.var))) %>%
+            dplyr::select(all_of(c(time.var, group.var))) %>%
             dplyr::group_by_at(vars(time.var, group.var)) %>%
             dplyr::summarise(SampleCount = dplyr::n(), .groups = "drop")
 
@@ -139,6 +139,7 @@ mStat_summarize_data_obj <-
           #print(grouped_df)
 
           palette <- mStat_get_palette(palette)
+
           p1 <- ggplot(grouped_df, aes(
             x = !!sym(time.var),
             y = SampleCount,
@@ -147,7 +148,9 @@ mStat_summarize_data_obj <-
             geom_bar(stat = "identity", position = "stack") +
             scale_fill_manual(values = palette) +
             theme_minimal() +
-            theme(plot.title = element_text(hjust = 0.5)) +
+            theme(
+              plot.title = element_text(hjust = 0.5, size = 8)
+            ) +
             labs(
               title = "Histogram of Sample Counts over Time",
               x = time.var,
@@ -176,7 +179,9 @@ mStat_summarize_data_obj <-
             ggplot(time_df, aes(x = TimePoint, y = SampleCount)) +
               geom_bar(stat = "identity", fill = "steelblue") +
               theme_minimal() +
-              theme(plot.title = element_text(hjust = 0.5)) +
+              theme(
+                plot.title = element_text(hjust = 0.5, size = 8)
+              ) +
               labs(
                 title = "Histogram of Sample Counts over Time",
                 x = "Time Point",
@@ -210,7 +215,9 @@ mStat_summarize_data_obj <-
           geom_boxplot() +
           theme_minimal() +
           #geom_jitter(position = position_dodge(width = 0.75), alpha = 0.5, size = 2) +
-          theme(plot.title = element_text(hjust = 0.5)) +
+          theme(
+            plot.title = element_text(hjust = 0.5, size = 8)
+          ) +
           labs(
             title = "Boxplot of Sequencing Depth over Time",
             x = time.var,
