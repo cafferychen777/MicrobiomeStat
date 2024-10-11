@@ -13,7 +13,7 @@
 #' The resulting formula object can be used as an input to mixed-effects modeling functions such as 'lmer' from the lme4 package.
 #'
 #' @noRd
-create_mixed_effects_formula <- function(response.var, time.var, group.var = NULL, subject.var) {
+create_mixed_effects_formula <- function(response.var, time.var, group.var = NULL, subject.var, random_slopes = TRUE) {
   # Formula for the fixed effects part
   fixed_effects <- response.var
   if (!is.null(group.var)) {
@@ -24,7 +24,11 @@ create_mixed_effects_formula <- function(response.var, time.var, group.var = NUL
   }
 
   # Formula for constructing the random effects part
-  random_effects <- paste("(1 +", time.var, "|", subject.var, ")", sep = "")
+  if (random_slopes) {
+    random_effects <- paste("(1 +", time.var, "|", subject.var, ")", sep = "")
+  } else {
+    random_effects <- paste("(1|", subject.var, ")", sep = "")
+  }
 
   # Merge fixed effects and random effects parts
   formula_str <- paste(fixed_effects, random_effects, sep = " + ")
@@ -35,6 +39,7 @@ create_mixed_effects_formula <- function(response.var, time.var, group.var = NUL
   # Return formula object
   return(formula_obj)
 }
+
 
 #' @title Generate Beta Diversity Trend Test for Longitudinal Data
 #'
@@ -147,7 +152,7 @@ generate_beta_trend_test_long <-
       dist.obj <- mStat_subset_dist(dist.obj = dist.obj, samIDs = samIDs)
     }
 
-    test.list <- lapply(dist.name,function(dist.name){
+    test.list <- lapply(dist.name, function(dist.name){
 
       dist.df <- as.matrix(dist.obj[[dist.name]])
 
@@ -171,26 +176,55 @@ generate_beta_trend_test_long <-
 
       long.df <- long.df %>% dplyr::left_join(meta_tab %>% dplyr::select(all_of(c(subject.var, group.var))) %>% dplyr::distinct(), by = subject.var, relationship = "many-to-many")
 
-      formula <- create_mixed_effects_formula(response.var = "distance",
-                                              time.var = time.var,
-                                              group.var = group.var,
-                                              subject.var = subject.var)
-
       long.df <- long.df %>% dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
 
-      model <- lmer(formula, data = long.df)
+      # Attempt to fit the model with random slopes
+      formula <- create_mixed_effects_formula(
+        response.var = "distance",
+        time.var = time.var,
+        group.var = group.var,
+        subject.var = subject.var,
+        random_slopes = TRUE
+      )
+
+      model_fit <- try(lmer(formula, data = long.df), silent = TRUE)
+
+      if (inherits(model_fit, "try-error")) {
+        # Check if the error is due to overparameterization
+        error_message <- attr(model_fit, "condition")$message
+        if (grepl("number of observations.*<=.*number of random effects", error_message, ignore.case = TRUE)) {
+          message("Simplifying the random-effects structure due to overparameterization.")
+          # Simplify the random effects structure
+          formula <- create_mixed_effects_formula(
+            response.var = "distance",
+            time.var = time.var,
+            group.var = group.var,
+            subject.var = subject.var,
+            random_slopes = FALSE
+          )
+          model_fit <- try(lmer(formula, data = long.df), silent = TRUE)
+          if (inherits(model_fit, "try-error")) {
+            # If it still fails, stop and report the error
+            stop("Model fitting failed even after simplifying the random-effects structure: ", model_fit)
+          }
+        } else {
+          # If the error is due to other reasons, stop and report the error
+          stop("Model fitting failed due to an error: ", model_fit)
+        }
+      }
+
+      model <- model_fit
 
       if (!is.null(group.var)){
         # Check if group.var is multi-category
         if (length(unique(long.df[[group.var]])) > 2) {
           anova_result <- anova(model, type = "III")
 
-          # Here, I assume you want to append this p-value to the result.
-          # Adjust the way of appending the p-value based on your desired output.
+          # Extract coefficients
           coef.tab <- extract_coef(model)
           # Append the last row of the anova_result to the coef.tab
           last_row <- utils::tail(anova_result, 1)
-          # Get the column name of the last_row
+          # Get the variable name of the last_row
           var_name <- rownames(last_row)[1]
 
           # Adjust last_row to match the format of coef.tab
