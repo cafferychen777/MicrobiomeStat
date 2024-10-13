@@ -141,10 +141,13 @@ generate_taxa_dotplot_single <- function(data.obj,
                                        pdf.hei = 8.5,
                                        ...) {
 
+  # Match the feature data type argument
   feature.dat.type <- match.arg(feature.dat.type)
 
+  # Validate the input data object
   mStat_validate_data(data.obj)
 
+  # Subset the data if a specific time point is specified
   if (!is.null(time.var)) {
     if (!is.null(t.level)) {
       condition <- paste(time.var, "== '", t.level, "'", sep = "")
@@ -152,31 +155,36 @@ generate_taxa_dotplot_single <- function(data.obj,
     }
   }
 
+  # Extract relevant variables from the metadata
   meta_tab <- data.obj$meta.dat %>% select(all_of(
     c(subject.var, time.var, group.var, strata.var)))
 
+  # If no group variable is provided, create a dummy "ALL" group
   if (is.null(group.var)) {
     group.var = "ALL"
     meta_tab$ALL <- ""
   }
 
+  # If a strata variable is provided, create an interaction term with the group variable
   if (!is.null(strata.var)) {
     meta_tab <-
       meta_tab %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(group.var), !!sym(strata.var)))
   }
 
+  # Get the color palette
   colors <- mStat_get_palette(palette)
 
-  # Assuming mStat_get_theme function is already defined
-  # Replace the existing theme selection code with this:
+  # Get the appropriate theme
   theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
+  # Determine whether to apply abundance and prevalence filters
   if (feature.dat.type == "other" || !is.null(features.plot) ||
       (!is.null(top.k.func) && !is.null(top.k.plot))) {
     prev.filter <- 0
     abund.filter <- 0
   }
 
+  # Normalize count data if necessary
   if (feature.dat.type == "count"){
     message(
       "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
@@ -184,37 +192,43 @@ generate_taxa_dotplot_single <- function(data.obj,
     data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
   }
 
+  # Create a list to store plots for each taxonomic level
   plot_list <- lapply(feature.level, function(feature.level) {
 
+    # Aggregate data by taxonomy if necessary
     if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
       data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
     }
 
+    # Get the appropriate feature table
     if (feature.level != "original"){
       otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
     } else {
       otu_tax_agg <- data.obj$feature.tab
     }
 
+    # Apply abundance and prevalence filters
     otu_tax_agg <-  otu_tax_agg %>%
       as.data.frame() %>%
       mStat_filter(prev.filter = prev.filter,
                    abund.filter = abund.filter) %>%
       tibble::rownames_to_column(feature.level)
 
+    # Select top k features if specified
     if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
       computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
       features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
     }
 
-    # Calculate the average abundance of each group.
+    # Calculate the average abundance of each group
+    # The square root transformation is applied to reduce the impact of extreme values
     otu_tab_norm_agg <- otu_tax_agg %>%
       tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
       dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
-      dplyr::group_by(!!sym(group.var),!!sym(feature.level)) %>% # Add time.var to dplyr::group_by
+      dplyr::group_by(!!sym(group.var),!!sym(feature.level)) %>%
       dplyr::summarise(mean_abundance = sqrt(mean(count)))
 
-    # Calculate the prevalence in all samples.
+    # Calculate the prevalence (proportion of non-zero values) for each feature
     prevalence_all <- otu_tax_agg %>%
       column_to_rownames(feature.level) %>%
       as.matrix() %>%
@@ -227,24 +241,27 @@ generate_taxa_dotplot_single <- function(data.obj,
       column_to_rownames("Var1") %>%
       rownames_to_column(feature.level)
 
-    # Merge the two results.
+    # Merge the abundance and prevalence data
     otu_tab_norm_agg <-
       otu_tab_norm_agg %>% dplyr::left_join(prevalence_all, feature.level)
 
-    # Calculate the midpoint from data
+    # Calculate the midpoint of mean abundance for color scaling
     midpoint <- quantile(otu_tab_norm_agg$mean_abundance, 0.5)
 
+    # Handle strata variable if present
     if (!is.null(strata.var)){
       otu_tab_norm_agg <- otu_tab_norm_agg %>%
         dplyr::mutate(temp = !!sym(group.var)) %>%
         tidyr::separate(temp, into = c(paste0(group.var,"2"), strata.var), sep = "\\.")
     }
 
+    # Filter features if specified
     if (!is.null(features.plot)){
       otu_tab_norm_agg <- otu_tab_norm_agg %>% filter(!!sym(feature.level) %in% features.plot)
     }
 
-    # Add the disease rate as the size of the points, and use the average abundance as the color of the points.
+    # Create the dot plot
+    # The size of the points represents prevalence, while the color represents mean abundance
     dotplot <-
       ggplot(
         otu_tab_norm_agg,
@@ -257,6 +274,7 @@ generate_taxa_dotplot_single <- function(data.obj,
       ) +
       geom_point(aes(group = !!sym(feature.level), fill = mean_abundance), shape = 21, color = "black", position = position_dodge(0.9)) +
       {
+        # Set up color scale based on feature data type
         if(feature.dat.type == "other") {
           quantiles <- quantile(otu_tab_norm_agg$mean_abundance, probs = c(0, 0.25, 0.5, 0.75, 1))
           scale_fill_gradientn(colors = colors,
@@ -271,6 +289,7 @@ generate_taxa_dotplot_single <- function(data.obj,
       scale_size(range = c(4, 10), name = "Prevalence") +
       scale_shape_manual(values = c(19, 1)) +
       {
+          # Set up faceting based on presence of strata variable
           if (!is.null(strata.var)){
             ggh4x::facet_nested(rows = vars(!!sym(strata.var), !!sym(paste0(group.var,"2"))), cols = vars(!!sym(feature.level)), scales = "free", switch = "y")
           } else {
@@ -301,7 +320,7 @@ generate_taxa_dotplot_single <- function(data.obj,
         legend.title = ggplot2::element_text(size = 16)
       )
 
-    # Save the stacked dotplot as a PDF file
+    # Save the dot plot as a PDF file if requested
     if (pdf) {
       dotplot <- as.ggplot(dotplot)
       pdf_name <- paste0(
@@ -343,6 +362,7 @@ generate_taxa_dotplot_single <- function(data.obj,
     return(dotplot)
   })
 
+  # Name the plots in the list by feature level
   names(plot_list) <- feature.level
 
   return(plot_list)

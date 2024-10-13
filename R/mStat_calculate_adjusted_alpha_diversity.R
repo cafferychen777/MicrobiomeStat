@@ -34,64 +34,77 @@
 #'
 #' @export
 mStat_calculate_adjusted_alpha_diversity <- function(alpha.obj, meta.dat, adj.vars) {
-  # Check that alpha.obj is a list
+  # Perform input validation checks
+  # Ensure alpha.obj is a list of data frames containing alpha diversity indices
   if (!is.list(alpha.obj)) {
     stop("`alpha.obj` should be a list of data frames.")
   }
 
-  # Check that meta.dat is a data frame
+  # Verify that meta.dat is a data frame containing metadata for samples
   if (!is.data.frame(meta.dat)) {
     stop("`meta.dat` should be a data frame.")
   }
 
-  # Check that adj.vars is non-null and character
+  # Check that adj.vars is a non-null character vector specifying covariate names
   if (is.null(adj.vars) || !is.character(adj.vars)) {
     stop("`adj.vars` should be a character vector of covariate names.")
   }
 
-  # Initialize the list to store adjusted alpha diversity data frames
+  # Initialize an empty list to store the adjusted alpha diversity data frames
   adjusted.alpha.obj <- list()
 
-  # Use lapply to adjust each alpha diversity index
+  # Iterate over each alpha diversity index and adjust it
   adjusted.alpha.obj <- lapply(names(alpha.obj), function(index_name) {
     # Extract the current alpha diversity data frame
     alpha_df <- alpha.obj[[index_name]]
 
-    # Bind with metadata
+    # Combine alpha diversity data with metadata
+    # This step ensures that we have all necessary information for adjustment
     alpha_df <- dplyr::bind_cols(alpha_df, meta.dat)
 
-    # Check if all covariates are present
+    # Verify that all specified covariates are present in the combined data
     if (!all(adj.vars %in% names(alpha_df))) {
       stop("Not all adjustment variables found in the metadata.")
     }
 
     # Prepare the model matrix for covariates
+    # This step handles both continuous and categorical variables
     data_subset <- alpha_df %>%
       dplyr::select(all_of(adj.vars)) %>%
+      # Convert character variables to factors for proper handling in the model
       dplyr::mutate(dplyr::across(dplyr::where(is.character) & !is.factor, as.factor))
 
+    # Create a model matrix without intercept
+    # This allows for proper handling of categorical variables with multiple levels
     M <- model.matrix(~ 0 + ., data = data_subset)
 
-    # Center the covariates (removing the intercept)
+    # Center the covariates by subtracting their means
+    # This step is crucial for interpretability of the adjusted values
     M_centered <- scale(M, scale = FALSE)
 
-    # Fit the linear model to adjust the alpha diversity based on the covariates
+    # Fit a linear model to adjust the alpha diversity based on the centered covariates
+    # The alpha diversity index is the response variable, and centered covariates are predictors
     fit <- lm(alpha_df[[index_name]] ~ M_centered)
 
-    # Compute adjusted values as original values minus fitted values plus the intercept
+    # Compute adjusted values
+    # We add the intercept back to ensure the adjusted values are on the same scale as the original
+    # The residuals represent the variation in alpha diversity not explained by the covariates
     adjusted_values <- fit$coefficients[1] + residuals(fit)
 
-    # Update the alpha diversity values in the data frame
+    # Update the alpha diversity values in the data frame with the adjusted values
     alpha_df[[index_name]] <- adjusted_values
 
+    # Select only the adjusted alpha diversity column
+    # This ensures the output structure matches the input
     alpha_df <- alpha_df %>% select(!!sym(index_name))
 
-    # Return the adjusted data frame
+    # Return the adjusted data frame for this alpha diversity index
     return(alpha_df)
   })
 
-  # Set names of the adjusted alpha diversity list
+  # Preserve the original names of the alpha diversity indices in the adjusted list
   names(adjusted.alpha.obj) <- names(alpha.obj)
 
+  # Return the list of adjusted alpha diversity data frames
   return(adjusted.alpha.obj)
 }

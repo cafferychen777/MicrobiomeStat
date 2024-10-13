@@ -136,11 +136,13 @@ generate_taxa_indiv_spaghettiplot_long <-
            pdf.wid = 11,
            pdf.hei = 8.5,
            ...) {
-    # Data validation
+    # Validate the input data object
     mStat_validate_data(data.obj)
 
+    # Match the feature data type argument
     feature.dat.type <- match.arg(feature.dat.type)
 
+    # Validate input variables
     if (!is.character(subject.var))
       stop("`subject.var` should be a character string.")
     if (!is.character(time.var))
@@ -152,17 +154,20 @@ generate_taxa_indiv_spaghettiplot_long <-
         !is.character(strata.var))
       stop("`strata.var` should be a character string or NULL.")
 
-    # 提取数据
+    # Process time variable and extract relevant data
     data.obj <- mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
 
+    # Extract metadata
     meta_tab <- data.obj$meta.dat %>% as.data.frame() %>% select(all_of(c(subject.var,group.var,time.var,strata.var)))
 
+    # Adjust filters if necessary
     if (feature.dat.type == "other" || !is.null(features.plot) ||
         (!is.null(top.k.func) && !is.null(top.k.plot))) {
       prev.filter <- 0
       abund.filter <- 0
     }
 
+    # Normalize count data if necessary
     if (feature.dat.type == "count"){
       message(
         "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
@@ -170,43 +175,52 @@ generate_taxa_indiv_spaghettiplot_long <-
       data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
     }
 
+    # Process each feature level
     plot_list_all <- lapply(feature.level, function(feature.level) {
 
+      # Aggregate data by taxonomy if necessary
       if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
         data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
       }
 
+      # Get the appropriate feature table
       if (feature.level != "original"){
         otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
       } else {
         otu_tax_agg <- data.obj$feature.tab
       }
 
+      # Filter the feature table
       otu_tax_agg <-  otu_tax_agg %>%
         as.data.frame() %>%
         mStat_filter(prev.filter = prev.filter,
                      abund.filter = abund.filter) %>%
         rownames_to_column(feature.level)
 
+      # Select top k features if specified
       if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
         computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
         features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
       }
 
-      # 转换计数为数值类型
+      # Convert counts to numeric type
       otu_tax_agg_numeric <-
         dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
 
+      # Reshape data for plotting
       df <- otu_tax_agg_numeric %>%
         tidyr::gather(key = "sample", value = "count",-one_of(feature.level)) %>%
         dplyr::left_join(meta_tab %>% rownames_to_column(var = "sample"), by = "sample")
 
+      # Create a dummy group if group variable is not provided
       if (is.null(group.var)) {
         df <- df %>% dplyr::mutate("ALL" = "ALL")
         group.var = "ALL"
       }
 
+      # Calculate mean counts
       if (!is.null(strata.var)) {
+        # Calculate mean counts for each combination of feature, time, group, and strata
         mean_df <-
           df %>% dplyr::group_by(!!sym(feature.level),!!sym(time.var),!!sym(group.var),!!sym(strata.var)) %>%
           dplyr::summarize(mean_count = mean(count), na.rm = TRUE)
@@ -215,6 +229,7 @@ generate_taxa_indiv_spaghettiplot_long <-
                            mean_df,
                            by = c(feature.level, time.var, group.var, strata.var))
       } else {
+        # Calculate mean counts for each combination of feature, time, and group
         mean_df <-
           df %>% dplyr::group_by(!!sym(feature.level),
                                  !!sym(time.var),
@@ -224,10 +239,10 @@ generate_taxa_indiv_spaghettiplot_long <-
           dplyr::left_join(df, mean_df, by = c(feature.level, time.var, group.var))
       }
 
+      # Get color palette
       col <- mStat_get_palette(palette)
 
-      # Assuming mStat_get_theme function is already defined
-      # Replace the existing theme selection code with this:
+      # Get the appropriate theme for plotting
       theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
       # Calculate new sizes based on base.size
@@ -237,15 +252,18 @@ generate_taxa_indiv_spaghettiplot_long <-
       legend.title.size = base.size * 1
       legend.text.size = base.size * 0.75
 
+      # Get taxa levels to plot
       if (is.null(features.plot)){
         taxa.levels <- df %>% select(feature.level) %>% dplyr::distinct() %>% dplyr::pull()
       } else {
         taxa.levels <- df %>% filter(!!sym(feature.level) %in% features.plot) %>% select(feature.level) %>% dplyr::distinct() %>% dplyr::pull()
       }
 
+      # Create a plot for each taxon
       plot_list <- lapply(taxa.levels, function(tax) {
         sub_df <- df %>% filter(!!sym(feature.level) == tax)
         lineplot <- ggplot() +
+          # Add individual subject points
           geom_point(
             data = sub_df,
             aes_string(
@@ -256,6 +274,7 @@ generate_taxa_indiv_spaghettiplot_long <-
             ),
             alpha = 0.5
           ) +
+          # Add mean abundance line
           geom_line(
             data = sub_df,
             aes_string(
@@ -266,6 +285,7 @@ generate_taxa_indiv_spaghettiplot_long <-
             ),
             size = 2
           ) +
+          # Add mean abundance points
           geom_point(
             data = sub_df,
             aes_string(
@@ -277,6 +297,7 @@ generate_taxa_indiv_spaghettiplot_long <-
             size = 3
           ) +
           scale_color_manual(values = col) +
+          # Set appropriate labels based on feature data type
           {
             if (feature.dat.type != "other") {
               labs(
@@ -294,9 +315,10 @@ generate_taxa_indiv_spaghettiplot_long <-
               )
             }
           } +
+          # Add faceting if strata variable is provided
           {
             if (!is.null(strata.var)) {
-              facet_wrap(as.formula(paste('~', strata.var)))  # Use facet_wrap with strata.var as the faceting variable
+              facet_wrap(as.formula(paste('~', strata.var)))
             }
           } +
           theme_to_use +
@@ -313,13 +335,14 @@ generate_taxa_indiv_spaghettiplot_long <-
             legend.text = element_text(size = legend.text.size)
           )
 
+        # Remove legend for single group case
         if (group.var == "ALL") {
           lineplot <- lineplot + theme(legend.position = "none")
         }
         return(lineplot)
       })
 
-      # Save the plots as a PDF file
+      # Save the plots as a PDF file if requested
       if (pdf) {
         pdf_name <- paste0(
           "taxa_indiv_spaghettiplot_long",
@@ -366,14 +389,17 @@ generate_taxa_indiv_spaghettiplot_long <-
 
         # Create a multi-page PDF file
         pdf(pdf_name, width = pdf.wid, height = pdf.hei)
-        # Use lapply to print each ggplot object in the list to a new PDF page
+        # Print each plot to a new page in the PDF
         lapply(plot_list, print)
         # Close the PDF device
         dev.off()
       }
+      # Name the plots in the list
       names(plot_list) <- taxa.levels
       return(plot_list)
     })
+    # Name the list of plot lists
     names(plot_list_all) <- feature.level
+    # Return the complete list of plots
     return(plot_list_all)
   }

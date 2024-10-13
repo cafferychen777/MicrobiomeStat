@@ -86,57 +86,71 @@ generate_taxa_test_single <- function(data.obj,
                                       feature.level,
                                       feature.dat.type = c("count", "proportion", "other"),
                                       ...) {
-  # Extract data
+  # Validate the input data object
   mStat_validate_data(data.obj)
 
+  # Subset the data if a specific time point is specified
   if (!is.null(time.var)) {
     if (!is.null(t.level)) {
+      # Create a condition string for subsetting
       condition <- paste(time.var, "== '", t.level, "'", sep = "")
+      # Subset the data object based on the condition
       data.obj <- mStat_subset_data(data.obj, condition = condition)
     }
   }
 
+  # Extract relevant variables from the metadata
   meta_tab <-
     data.obj$meta.dat %>% select(all_of(c(time.var, group.var, adj.vars)))
 
+  # Construct the formula for the linear model
   formula <- group.var
 
+  # Add adjustment variables to the formula if specified
   if (!is.null(adj.vars)) {
     adj.vars_string <- paste(adj.vars, collapse = " + ")
     formula <- paste(formula, "+", adj.vars_string)
   }
 
+  # Set filters to 0 if the feature data type is "other"
   if (feature.dat.type == "other") {
     prev.filter <- 0
     abund.filter <- 0
   }
 
+  # Normalize the data if it's in count format
   if (feature.dat.type == "count") {
     message(
       "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
     )
+    # Apply Total Sum Scaling (TSS) normalization
     data.obj <-
       mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
   }
 
+  # Perform differential abundance testing for each specified taxonomic level
   test.list <- lapply(feature.level, function(feature.level) {
+    # Aggregate data to the specified taxonomic level if necessary
     if (is.null(data.obj$feature.agg.list[[feature.level]]) &
         feature.level != "original") {
       data.obj <-
         mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
     }
 
+    # Extract the appropriate feature table
     if (feature.level != "original") {
       otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
     } else {
       otu_tax_agg <- data.obj$feature.tab
     }
 
+    # Apply prevalence and abundance filters
     otu_tax_agg_filter <-  otu_tax_agg %>%
       as.data.frame() %>%
       mStat_filter(prev.filter = prev.filter,
                    abund.filter = abund.filter)
 
+    # Perform LinDA (Linear models for Differential Abundance) analysis
     linda.obj <- linda(
       feature.dat = otu_tax_agg_filter,
       meta.dat = meta_tab,
@@ -147,10 +161,12 @@ generate_taxa_test_single <- function(data.obj,
       ...
     )
 
+    # Determine the reference level for the group variable
     if (!is.null(group.var)) {
       reference_level <- levels(as.factor(meta_tab[, group.var]))[1]
     }
 
+    # Calculate mean abundance and prevalence for each feature
     prop_prev_data <-
       otu_tax_agg %>%
       as.matrix() %>%
@@ -161,23 +177,26 @@ generate_taxa_test_single <- function(data.obj,
                        prevalence = sum(Freq > 0) / dplyr::n()) %>% column_to_rownames("Var1") %>%
       rownames_to_column(feature.level)
 
+    # Function to extract relevant data frames from LinDA output
     extract_data_frames <-
       function(linda_object, group_var = NULL) {
         result_list <- list()
 
+        # Find data frames related to the group variable
         matching_dfs <-
           grep(paste0(group_var), names(linda_object$output), value = TRUE)
 
         for (df_name in matching_dfs) {
-
           group_prefix <- paste0(group_var)
 
+          # Extract the group value from the data frame name
           group_value <- unlist(strsplit(df_name, split = ":"))[1]
           group_value <-
             gsub(pattern = group_prefix,
                  replacement = "",
                  x = group_value)
 
+          # Store the data frame with a descriptive name
           result_list[[paste0(group_value, " vs ", reference_level, " (Reference)")]] <-
             linda_object$output[[df_name]]
         }
@@ -185,13 +204,18 @@ generate_taxa_test_single <- function(data.obj,
         return(result_list)
       }
 
+    # Extract relevant data frames from LinDA output
     sub_test.list <-
       extract_data_frames(linda_object = linda.obj, group_var = group.var)
 
+    # Process each data frame in the list
     sub_test.list <- lapply(sub_test.list, function(df) {
       df <- df %>%
+        # Add feature level as a column
         rownames_to_column(feature.level) %>%
+        # Join with prevalence and abundance data
         dplyr::left_join(prop_prev_data, by = feature.level) %>%
+        # Select relevant columns
         dplyr::select(all_of(all_of(
           c(
             feature.level,
@@ -203,6 +227,7 @@ generate_taxa_test_single <- function(data.obj,
             "prevalence"
           )
         ))) %>%
+        # Rename columns for clarity
         dplyr::rename(
           Variable = feature.level,
           Coefficient = log2FoldChange,
@@ -219,6 +244,7 @@ generate_taxa_test_single <- function(data.obj,
     return(sub_test.list)
   })
 
+  # Name the elements of the test list with the feature levels
   names(test.list) <- feature.level
 
   return(test.list)

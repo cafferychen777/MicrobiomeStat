@@ -112,14 +112,19 @@ generate_alpha_per_time_test_long <- function(data.obj,
                                      ts.levels,
                                      group.var = NULL,
                                      adj.vars = NULL) {
-  # Validate input data
+  # Validate the input data object to ensure it meets the required format.
   mStat_validate_data(data.obj)
 
+  # If no alpha diversity indices are specified, exit the function.
   if (is.null(alpha.name)){
     return()
   }
 
+  # Calculate alpha diversity if not provided.
+  # This step ensures we have the necessary diversity metrics for the analysis.
   if (is.null(alpha.obj)) {
+    # Perform rarefaction if a depth is specified.
+    # Rarefaction standardizes sampling effort across all samples.
     if (!is.null(depth)) {
       message(
         "Detected that the 'depth' parameter is not NULL. Proceeding with rarefaction. Call 'mStat_rarefy_data' to rarefy the data!"
@@ -130,7 +135,7 @@ generate_alpha_per_time_test_long <- function(data.obj,
     alpha.obj <-
       mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name)
   } else {
-    # Verify that all alpha.name are present in alpha.obj
+    # Verify that all requested alpha diversity indices are available.
     if (!all(alpha.name %in% unlist(lapply(alpha.obj, function(x)
       colnames(x))))) {
       missing_alphas <- alpha.name[!alpha.name %in% names(alpha.obj)]
@@ -142,13 +147,17 @@ generate_alpha_per_time_test_long <- function(data.obj,
     }
   }
 
+  # Extract relevant metadata for the analysis.
   meta_tab <-
     data.obj$meta.dat %>% as.data.frame() %>% dplyr::select(all_of(c(
       group.var, time.var, adj.vars
     )))
 
+  # Determine the reference level for the group variable.
+  # This will be used as the baseline for comparisons.
   reference_level <- levels(as.factor(meta_tab[,group.var]))[1]
 
+  # Set the baseline time point (t0) if not provided.
   if (is.null(t0.level)) {
     if (is.numeric(meta_tab[, time.var])) {
       t0.level <- sort(unique(meta_tab[, time.var]))[1]
@@ -157,6 +166,7 @@ generate_alpha_per_time_test_long <- function(data.obj,
     }
   }
 
+  # Set the subsequent time points (ts) if not provided.
   if (is.null(ts.levels)) {
     if (is.numeric(meta_tab[, time.var])) {
       ts.levels <- sort(unique(meta_tab[, time.var]))[-1]
@@ -165,20 +175,23 @@ generate_alpha_per_time_test_long <- function(data.obj,
     }
   }
 
-  # Get unique time levels
+  # Combine all time levels for analysis.
   time.levels <- c(t0.level, ts.levels)
 
+  # Perform alpha diversity tests for each time point.
   test.list <- lapply(time.levels, function(t.level){
-    # Subset the data for the specific time level
+    # Subset the data for the specific time level.
+    # This allows for time-specific analysis of alpha diversity.
     subset.ids <- rownames(data.obj$meta.dat %>%
                              filter(!!sym(time.var) %in% c(t.level)))
 
     subset_data.obj <- mStat_subset_data(data.obj, samIDs = subset.ids)
 
-    # Subset the alpha.obj to match the subsetted data
+    # Subset the alpha diversity object to match the subsetted data.
     subset_alpha.obj <- mStat_subset_alpha(alpha.obj = alpha.obj, samIDs = subset.ids)
 
-    # Perform alpha diversity test for the subset data
+    # Perform alpha diversity test for the subset data.
+    # This generates statistical comparisons for each alpha diversity metric.
     subset.test.list <- generate_alpha_test_single(
       data.obj = subset_data.obj,
       alpha.obj = subset_alpha.obj,
@@ -189,10 +202,13 @@ generate_alpha_per_time_test_long <- function(data.obj,
       adj.vars = adj.vars
     )
 
+    # Extract all terms from the test results, excluding the intercept.
+    # This focuses on the group comparisons of interest.
     all_terms <- unique(unlist(lapply(subset.test.list, \(df) df$Term)))
     all_terms <- setdiff(all_terms, "(Intercept)")
     all_terms <- all_terms[grepl(paste0("^", group.var), all_terms)]
 
+    # Restructure the test results for easier interpretation.
     new_list <- lapply(all_terms, \(term) {
       alpha_dfs <- lapply(names(subset.test.list), \(alpha_name) {
         df <- subset.test.list[[alpha_name]]
@@ -210,6 +226,7 @@ generate_alpha_per_time_test_long <- function(data.obj,
       do.call(rbind, alpha_dfs)
     })
 
+    # Modify the terms to clearly indicate the comparison being made.
     all_terms <- lapply(all_terms, function(term) {
       if (term != group.var) {
         modified_term <- stringr::str_replace(term, paste0("^", group.var), "")
@@ -220,11 +237,13 @@ generate_alpha_per_time_test_long <- function(data.obj,
       }
     })
 
+    # Create the final list of test results for this time point.
     new_subset_test_list <- setNames(new_list, all_terms)
 
     return(new_subset_test_list)
   })
 
+  # Name the list elements by time levels for easy access.
   names(test.list) <- time.levels
 
   return(test.list)

@@ -134,21 +134,24 @@ generate_taxa_barplot_pair <-
            pdf.hei = 8.5,
            ...) {
 
+    # Match the feature data type argument
     feature.dat.type <- match.arg(feature.dat.type)
 
-    # Extract data
+    # Extract and validate the data
     mStat_validate_data(data.obj)
 
+    # Extract relevant metadata
     meta_tab <-
       data.obj$meta.dat %>% select(all_of(c(
         subject.var, group.var, time.var, strata.var
       )))
 
-    # Assuming mStat_get_theme function is already defined
-    # Replace the existing theme selection code with this:
+    # Get the appropriate theme for plotting
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
+    # Define a default color palette if none is provided
     if (is.null(palette)) {
+      # A large set of default colors
       default_colors <- c(
         "#E0E0E0", "#E41A1C", "#1E90FF", "#FF8C00", "#4DAF4A", "#984EA3", "#40E0D0", "#FFC0CB", "#00BFFF", "#FFDEAD",
         "#90EE90", "#EE82EE", "#00FFFF", "#F0A3FF", "#0075DC", "#993F00", "#4C005C", "#2BCE48", "#FFCC99", "#808080",
@@ -168,14 +171,17 @@ generate_taxa_barplot_pair <-
         "#FF8C00", "#FFA500", "#FFFF00", "#9ACD32", "#32CD32", "#00FF00", "#7FFF00", "#7CFC00", "#00FA9A", "#90EE90",
         "#98FB98", "#8FBC8F", "#3CB371", "#2E8B57", "#228B22", "#008000", "#006400"
       )
+      # Repeat the default colors to ensure enough for all features
       pal <- rep(default_colors, length.out = feature.number * 5)
     } else {
+      # Ensure the provided palette has enough colors
       if (feature.number > length(palette)) {
         stop("The number of unique features exceeds the length of the provided palette. Please provide a larger palette.")
       }
       pal <- palette
     }
 
+    # Normalize the data if it's in count format
     if (feature.dat.type == "count") {
       message(
         "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
@@ -188,46 +194,52 @@ generate_taxa_barplot_pair <-
       )
     }
 
+    # Process each feature level
     plot_list_all <- lapply(feature.level, function(feature.level) {
+      # Aggregate data by taxonomy if necessary
       if (is.null(data.obj$feature.agg.list[[feature.level]]) &
           feature.level != "original") {
         data.obj <-
           mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
       }
 
+      # Extract the appropriate feature table
       if (feature.level != "original") {
         otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
       } else {
         otu_tax_agg <- data.obj$feature.tab
       }
 
+      # Filter features if specified
       if (!is.null(features.plot)){
         otu_tax_agg <- otu_tax_agg[na.omit(features.plot),]
         otu_tax_agg <- apply(otu_tax_agg, 2, function(x) x / sum(x))
       }
 
+      # Prepare the feature table for plotting
       otu_tax_agg <-  otu_tax_agg %>%
         as.data.frame() %>%
         rownames_to_column(feature.level)
 
-      # Standardized data
+      # Normalize the data
       otu_tab_norm <-
         apply(t(otu_tax_agg %>% select(-feature.level)), 1, function(x)
           x)
       rownames(otu_tab_norm) <-
         as.matrix(otu_tax_agg[, feature.level])
 
+      # Sort the metadata to match the feature table
       meta_tab_sorted <- meta_tab[colnames(otu_tab_norm),]
 
-      # Calculate the average relative abundance of each taxon.
+      # Calculate average abundance for each feature
       avg_abund <- rowMeans(otu_tab_norm)
 
-      # Replace taxa with relative abundance lower than the threshold with "Other".
+      # Prepare data for plotting, grouping less abundant features as "Other"
       otu_tab_other <- otu_tab_norm %>%
         as.data.frame() %>%
         rownames_to_column(feature.level)
 
-      # Set the relative abundance after feature.number as the threshold.
+      # Determine the abundance cutoff for "Other" category
       other.abund.cutoff <-
         sort(avg_abund, decreasing = TRUE)[feature.number]
 
@@ -236,28 +248,31 @@ generate_taxa_barplot_pair <-
           "Other"
       }
 
-      # Convert data frame to long format
+      # Convert data to long format for plotting
       otu_tab_long <- otu_tab_other %>%
         dplyr::group_by(!!sym(feature.level)) %>%
         dplyr::summarize_all(sum) %>%
         tidyr::gather(key = "sample", value = "value",-feature.level)
 
-      # Merge otu_tab_long and meta_tab_sorted
+      # Merge feature data with metadata
       merged_long_df <- otu_tab_long %>%
         dplyr::inner_join(meta_tab_sorted  %>%
                             rownames_to_column("sample"), by = "sample")
 
+      # Sort the data by subject and time
       sorted_merged_long_df <- merged_long_df %>%
         dplyr::arrange(!!sym(subject.var),!!sym(time.var))
 
+      # Identify the last sample for each subject
       last_sample_ids <- sorted_merged_long_df %>%
         dplyr::group_by(!!sym(subject.var)) %>%
         dplyr::summarize(last_sample_id = dplyr::last(sample))
 
+      # Convert feature level to factor
       sorted_merged_long_df <-
         sorted_merged_long_df %>% dplyr::mutate(!!sym(feature.level) := as.factor(!!sym(feature.level)))
 
-      # Calculate the average value of each feature and sort them.
+      # Sort features by their overall mean abundance
       df_sorted <- sorted_merged_long_df %>%
         dplyr::group_by(!!sym(feature.level)) %>%
         dplyr::summarise(overall_mean = mean(value, na.rm = TRUE)) %>%
@@ -265,17 +280,18 @@ generate_taxa_barplot_pair <-
         dplyr::arrange(is_other, overall_mean) %>%
         dplyr::mutate(!!feature.level := factor(!!sym(feature.level), levels = !!sym(feature.level)))
 
-      # Applying the new ordering
+      # Apply the new ordering to the main dataframe
       sorted_merged_long_df <- sorted_merged_long_df %>%
         dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = levels(df_sorted[[feature.level]])))
 
-      # Update new_levels
+      # Update the levels, ensuring "Other" is first if present
       if (!is.na(other.abund.cutoff)) {
         new_levels <- c("Other", setdiff(levels(sorted_merged_long_df[[feature.level]]), "Other"))
       } else {
         new_levels <- levels(sorted_merged_long_df[[feature.level]])
       }
 
+      # Prepare the final dataframe for plotting
       df <- sorted_merged_long_df %>%
         dplyr::group_by(sample) %>%
         dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = new_levels)) %>%
@@ -292,12 +308,15 @@ generate_taxa_barplot_pair <-
         ) %>%
         dplyr::ungroup()
 
+      # Set up the color palette
       color_pal <-
         setNames(pal[1:length(new_levels)], new_levels)
 
+      # Define bar width and spacing
       bar_width <- 0.6
       bar_spacing <- bar_width / 2
 
+      # Calculate x-axis offsets for the bars
       df <- df %>%
         dplyr::mutate(x_offset = ifelse(
           cumulative_value == 0,
@@ -305,6 +324,7 @@ generate_taxa_barplot_pair <-
           -(bar_width + bar_spacing) / 2
         ))
 
+      # Sort the data based on grouping variables
       if (!is.null(group.var) && !is.null(strata.var)) {
         df <-
           df %>% dplyr::arrange(!!sym(strata.var),
@@ -316,26 +336,25 @@ generate_taxa_barplot_pair <-
         df <- df %>% dplyr::arrange(!!sym(subject.var))
       }
 
-      # Modify the factor levels of subject.var.
+      # Modify the factor levels of subject variable
       df <- df %>%
         dplyr::mutate(!!sym(subject.var) := factor(!!sym(subject.var), levels = unique(!!sym(subject.var))))
 
+      # Create a joint factor for time and subject
       df <- df %>%
         dplyr::mutate(joint_factor = interaction(!!sym(time.var),!!sym(subject.var)))
 
       df$joint_factor <- as.numeric(df$joint_factor)
 
+      # Calculate midpoints for x-axis labels
       unique_values <- unique(df$joint_factor)
       result <- numeric(length(unique_values) %/% 2)
-
-      # Calculate the midpoints of consecutive pairs in unique_values
       midpoints <- (unique_values[seq(1, length(unique_values) - 1, by = 2)] +
                       unique_values[seq(2, length(unique_values), by = 2)]) / 2
-
-      # Assign the midpoints to the result vector
       result <- midpoints
 
-      stack_barplot_indiv  <- # Main plot code
+      # Create the individual-level stacked barplot
+      stack_barplot_indiv  <- 
         df %>%
         ggplot(aes(
           x = joint_factor,
@@ -414,10 +433,11 @@ generate_taxa_barplot_pair <-
               panel.grid.major=element_blank(),
               panel.grid.minor=element_blank())
 
-      # The following is the drawing of the average barplot.
+      # Prepare data for the average barplot
       last_time_ids <- sorted_merged_long_df %>%
         select(!!sym(time.var)) %>% dplyr::pull() %>% as.factor() %>% levels() %>% dplyr::last()
 
+      # Handle grouping and stratification for average plot
       if (!is.null(strata.var)) {
         if (is.null(group.var)) {
           sorted_merged_long_df <-
@@ -434,11 +454,15 @@ generate_taxa_barplot_pair <-
         }
       }
 
+      # Calculate average values for each feature
       df_average <- sorted_merged_long_df %>%
         dplyr::group_by(!!sym(feature.level), !!sym(group.var), !!sym(time.var)) %>%
-        dplyr::summarise(mean_value  = mean(value)) %>%
+        dplyr::summarise(mean_value  = mean(
+          value, na.rm = TRUE
+        )) %>%
         dplyr::ungroup()
 
+      # Sort features by their overall mean abundance for the average plot
       df_average_sorted <- df_average %>%
         dplyr::group_by(!!sym(feature.level)) %>%
         dplyr::summarise(overall_mean = mean(mean_value, na.rm = TRUE)) %>%
@@ -446,13 +470,14 @@ generate_taxa_barplot_pair <-
         dplyr::arrange(is_other, overall_mean) %>%
         dplyr::mutate(!!feature.level := factor(!!sym(feature.level), levels = !!sym(feature.level)))
 
-      # Update new_levels
+      # Update feature levels for the average plot
       if (!is.na(other.abund.cutoff)) {
         new_levels <- c("Other", setdiff(levels(df_average_sorted[[feature.level]]), "Other"))
       } else {
         new_levels <- levels(df_average_sorted[[feature.level]])
       }
 
+      # Prepare the final dataframe for the average plot
       df_average <- df_average %>%
         dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = new_levels)) %>%
         dplyr::arrange(match(!!sym(feature.level), new_levels)) %>%
@@ -469,6 +494,7 @@ generate_taxa_barplot_pair <-
         ) %>%
         dplyr::ungroup()
 
+      # Calculate x-axis offsets for the average plot
       df_average <- df_average %>%
         dplyr::mutate(x_offset = ifelse(
           cumulative_mean_value == 0,
@@ -476,12 +502,14 @@ generate_taxa_barplot_pair <-
           -(bar_width + bar_spacing) / 2
         ))
 
+      # Create a joint factor for time and group
       df_average <- df_average %>%
         dplyr::mutate(joint_factor = interaction(!!sym(time.var),!!sym(group.var)))
 
       df_average$joint_factor_numeric <-
         as.numeric(df_average$joint_factor)
 
+      # Separate strata variable if present
       if (!is.null(strata.var)) {
         df_average <- df_average %>%
           tidyr::separate(!!sym(group.var),
@@ -489,9 +517,11 @@ generate_taxa_barplot_pair <-
                           sep = "\\.")
       }
 
+      # Set up color palette for the average plot
       color_pal <- setNames(pal[1:length(new_levels)], new_levels)
 
-      stack_barplot_average  <- # Main plot code
+      # Create the average-level stacked barplot
+      stack_barplot_average  <- 
         df_average %>%
         ggplot(aes(
           x = joint_factor_numeric,
@@ -565,8 +595,7 @@ generate_taxa_barplot_pair <-
           panel.grid.minor = element_blank()
         )
 
-
-      # Save the stacked barplots as a PDF file
+      # Save the individual-level stacked barplot as a PDF file
       if (pdf) {
         pdf_name <- paste0(
           "taxa_barplot_pair",
@@ -601,7 +630,7 @@ generate_taxa_barplot_pair <-
         )
       }
 
-      # Save the stacked barplots as a PDF file
+      # Save the average-level stacked barplot as a PDF file
       if (pdf) {
         pdf_name <- paste0(
           "taxa_barplot_pair",
@@ -636,14 +665,19 @@ generate_taxa_barplot_pair <-
         )
       }
 
+      # Create a list containing both individual and average plots
       stack_barplot_list <-
         list(stack_barplot_indiv, stack_barplot_average)
 
       names(stack_barplot_list) <- c("indiv","average")
-      # Return stacked bar chart for display
+      
+      # Return the list of stacked bar charts
       return(stack_barplot_list)
     })
 
+    # Name the list of plots by feature level
     names(plot_list_all) <- feature.level
+    
+    # Return the complete list of plots
     return(plot_list_all)
   }

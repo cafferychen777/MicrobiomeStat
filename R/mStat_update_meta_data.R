@@ -30,36 +30,47 @@
 #' }
 #' @export
 mStat_update_meta_data <- function (data.obj, map.file, meta.sep='\t', quote="\"", comment="", ...) {
-  # 输出正在加载元数据文件的信息
+  # Inform the user that the metadata file is being loaded.
+  # This provides feedback on the current operation, which is useful for tracking progress.
   cat("Load meta file...\n")
 
-  # 判断输入的元数据文件类型
+  # Determine the type of input for metadata and process accordingly.
+  # This allows flexibility in how users can provide metadata information.
   if (is.character(map.file)) {
-    # 如果输入的是文件路径，则根据文件类型读取文件
-    # 对于CSV文件，使用read.csv函数读取
-    # 对于其他类型的文件，如制表符分隔的文件，使用read.table函数读取
+    # If the input is a file path, read the file based on its type.
+    # This accommodates different file formats commonly used for metadata.
     if (grepl("csv$", map.file)) {
+      # For CSV files, use read.csv function.
+      # Parameters are set to ensure proper reading of the file structure.
       meta.dat <- read.csv(map.file, header=T, check.names=F, row.names=1, comment=comment, quote=quote, ...)
     } else {
+      # For other file types (e.g., tab-delimited), use read.table function.
+      # This allows for more flexible file format handling.
       meta.dat <- read.table(map.file, header=T, check.names=F, row.names=1, comment=comment, sep=meta.sep, quote=quote, ...)
     }
   } else {
-    # 如果输入的直接是数据框，则不需要读取文件
+    # If the input is already a data frame, use it directly.
+    # This allows users to pass pre-loaded metadata directly to the function.
     meta.dat <- map.file
   }
 
-  # 在数据对象中更新元数据
+  # Update the metadata in the data object.
+  # This step replaces any existing metadata with the newly loaded information.
   data.obj$meta.dat <- meta.dat
 
-  # 寻找元数据中的样本名和OTU表中的样本名的交集
+  # Find the intersection of sample names between the metadata and the feature table.
+  # This step is crucial for ensuring that the metadata and abundance data correspond to the same samples.
   samIDs <- intersect(rownames(meta.dat), colnames(data.obj$feature.tab))
 
-  # 如果交集为空（也就是说，元数据中的样本名和OTU表中的样本名没有共同的），则停止执行并返回错误信息
+  # Check if there are any common sample names between metadata and feature table.
+  # If no common samples are found, it indicates a mismatch between metadata and abundance data.
   if (length(samIDs) == 0)  stop('Sample names in the meta file and biom file differ?\n')
 
-  # 根据找到的样本名对数据对象进行子集化
+  # Subset the data object to include only the samples present in both metadata and feature table.
+  # This ensures consistency across all components of the data object.
   data.obj <- mStat_subset_data(data.obj, samIDs)
 
-  # 返回更新后的数据对象
+  # Return the updated data object.
+  # The returned object now has updated metadata and is consistent across all its components.
   return(data.obj)
 }

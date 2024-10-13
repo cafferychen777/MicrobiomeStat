@@ -156,8 +156,10 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
                   pseudo.cnt = 0.5, corr.cut = 0.1,
                   p.adj.method = "BH", alpha = 0.05,
                   n.cores = 1, verbose = TRUE) {
+  # Match the feature data type argument
   feature.dat.type <- match.arg(feature.dat.type)
 
+  # If a phyloseq object is provided, extract the feature and metadata from it
   if (!is.null(phyloseq.obj)) {
     feature.dat.type <- "count"
 
@@ -169,25 +171,28 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
       as.data.frame()
   }
 
+  # Check for NA values in the feature data
   if (any(is.na(feature.dat))) {
     stop(
       "The feature table contains NA values. Please remove or handle them before proceeding.\n"
     )
   }
 
+  # Extract all variables from the formula
   allvars <- all.vars(as.formula(formula))
   Z <- as.data.frame(meta.dat[, allvars])
 
   ###############################################################################
-  # Filter sample
+  # Filter samples: remove samples with NA values in any of the variables
   keep.sam <- which(rowSums(is.na(Z)) == 0)
   Y <- feature.dat[, keep.sam]
   Z <- as.data.frame(Z[keep.sam, ])
   names(Z) <- allvars
 
-  # Filter features
+  # Filter features based on prevalence, mean abundance, and maximum abundance
   temp <- t(t(Y) / colSums(Y))
 
+  # If feature data type is "other", reset all filters to 0
   if (feature.dat.type == "other" & (max.abund.filter != 0 | mean.abund.filter != 0 | prev.filter != 0 )){
     message("Note: Since feature.dat.type is set to 'other', all filters (max.abund.filter, mean.abund.filter, and prev.filter) are reset to 0.")
     max.abund.filter <- 0
@@ -195,6 +200,7 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
     prev.filter <- 0
   }
 
+  # Apply filters to features
   keep.tax <- rowMeans(temp != 0) >= prev.filter & rowMeans(temp) >= mean.abund.filter & matrixStats::rowMaxs(temp) >= max.abund.filter
   names(keep.tax) <- rownames(Y)
   rm(temp)
@@ -208,7 +214,7 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
   n <- ncol(Y)
   m <- nrow(Y)
 
-  ## some samples may have zero total counts after screening taxa
+  # Remove samples with zero total counts after feature filtering
   if (any(colSums(Y) == 0)) {
     ind <- which(colSums(Y) > 0)
     Y <- Y[, ind]
@@ -224,6 +230,7 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
     )
   }
 
+  # Warn about features with less than 3 nonzero values
   if (sum(rowSums(Y != 0) <= 2) != 0) {
     warning(
       "Some features have less than 3 nonzero values!\n",
@@ -232,22 +239,23 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
   }
 
   ###############################################################################
-  ## scaling numerical variables
+  # Scale numerical variables in the metadata
   ind <- sapply(1:ncol(Z), function(i) is.numeric(Z[, i]))
   Z[, ind] <- scale(Z[, ind])
 
-  ## winsorization
+  # Apply Winsorization to handle outliers if specified
   if (is.winsor) {
     Y <- winsor.fun(Y, 1 - outlier.pct, feature.dat.type)
   }
 
-  ##
+  # Determine if the model includes random effects
   if (grepl("\\(", formula)) {
     random.effect <- TRUE
   } else {
     random.effect <- FALSE
   }
 
+  # Assign names to taxa and samples
   if (is.null(rownames(feature.dat))) {
     taxa.name <- (1:nrow(feature.dat))[keep.tax]
   } else {
@@ -259,11 +267,12 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
     samp.name <- rownames(meta.dat)[keep.sam]
   }
 
-  ## handling zeros
+  # Handle zeros in the data
   if (feature.dat.type == "count") {
     if (any(Y == 0)) {
       N <- colSums(Y)
       if (adaptive) {
+        # Determine zero-handling method based on correlation between sequencing depth and explanatory variables
         logN <- log(N)
         if (random.effect) {
           tmp <- lmer(as.formula(paste0("logN", formula)), Z)
@@ -284,11 +293,13 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
         }
       }
       if (zero.handling == "imputation") {
+        # Impute zeros using the formula from the referenced paper
         N.mat <- matrix(rep(N, m), nrow = m, byrow = TRUE)
         N.mat[Y > 0] <- 0
         tmp <- N[max.col(N.mat)]
         Y <- Y + N.mat / tmp
       } else {
+        # Add pseudo-count to all values
         Y <- Y + pseudo.cnt
       }
     }
@@ -296,8 +307,7 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
 
   if (feature.dat.type == "proportion") {
     if (any(Y == 0)) {
-      # Half minimum approach
-
+      # Apply half-minimum approach for zero values in proportion data
       Y <- t(apply(Y, 1, function(x) {
         x[x == 0] <- 0.5 * min(x[x != 0])
         return(x)
@@ -305,18 +315,13 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
       colnames(Y) <- samp.name
       rownames(Y) <- taxa.name
     }
-
   }
 
-
-  ## CLR transformation
+  # Perform centered log-ratio (CLR) transformation
   logY <- log2(Y)
   W <- t(logY) - colMeans(logY)
 
-  ## linear regression
-
-  # 	oldw <- getOption('warn')
-  # 	options(warn = -1)
+  # Fit linear models or linear mixed effects models
   if (!random.effect) {
     if (verbose) {
       message("Fit linear models ...")
@@ -340,13 +345,14 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
     }
     res <- do.call(rbind, res)
   }
-  # 	options(warn = oldw)
 
+  # Extract and process results
   res.intc <- res[which(rownames(res) == "(Intercept)"), ]
   rownames(res.intc) <- NULL
   baseMean <- 2^res.intc[, 1]
   baseMean <- baseMean / sum(baseMean) * 1e6
 
+  # Function to process output for each variable
   output.fun <- function(x) {
     res.voi <- res[which(rownames(res) == x), ]
     rownames(res.voi) <- NULL
@@ -357,15 +363,15 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
 
     log2FoldChange <- res.voi[, 1]
     lfcSE <- res.voi[, 2]
-    # 		oldw <- getOption('warn')
-    # 		options(warn = -1)
+    
+    # Estimate and correct for bias using the mode of the regression coefficients
     suppressMessages(bias <- mlv(sqrt(n) * log2FoldChange,
       method = "meanshift", kernel = "gaussian"
     ) / sqrt(n))
-    # 		options(warn = oldw)
     log2FoldChange <- log2FoldChange - bias
     stat <- log2FoldChange / lfcSE
 
+    # Calculate p-values and adjust for multiple testing
     pvalue <- 2 * pt(-abs(stat), df)
     padj <- p.adjust(pvalue, method = p.adj.method)
     reject <- padj <= alpha
@@ -374,6 +380,7 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
     return(list(bias = bias, output = output))
   }
 
+  # Process results for all variables
   variables <- unique(rownames(res))[-1]
   variables.n <- length(variables)
   bias <- rep(NA, variables.n)
@@ -385,12 +392,15 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
   }
   names(output) <- variables
 
+  # Assign row and column names to the final data
   rownames(Y) <- taxa.name
   colnames(Y) <- samp.name
   rownames(Z) <- samp.name
   if (verbose) {
     message("Completed.")
   }
+  
+  # Return the results
   return(list(variables = variables, bias = bias, output = output, feature.dat.use = Y, meta.dat.use = Z))
 }
 

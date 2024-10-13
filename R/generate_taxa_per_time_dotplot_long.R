@@ -130,27 +130,32 @@ generate_taxa_per_time_dotplot_long <- function(data.obj,
                                                 pdf.hei = 5
 ){
 
+  # Process the time variable in the data object
+  # This step ensures that the time variable is properly formatted and levels are set correctly
   data.obj <- mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
 
+  # Extract unique time levels from the processed data
   time_levels <- data.obj$meta.dat %>%
     dplyr::select(!!dplyr::sym(time.var)) %>%
     dplyr::distinct() %>%
     dplyr::pull()
 
-  # Assuming mStat_get_theme function is already defined
-  # Replace the existing theme selection code with this:
+  # Get the appropriate theme for plotting
   theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
+  # Extract group names from the test list
   group.names <- names(test.list[[1]][[1]])
 
+  # Determine which p-value to use based on the multiple testing correction method
   p_val_var <- if (feature.mt.method == "fdr") "Adjusted.P.Value" else "P.Value"
 
+  # Process test results for each feature level and group
   test.list <- lapply(feature.level, function(feature.level){
     sub.test.list <- lapply(group.names, function(group.names){
+      # Function to merge test results across time points
       merge_time_points <- function(time_test_list, feature_level, group_name) {
-
+        # Extract and combine data for each time point
         data_list <- lapply(time_test_list, function(time_point_data) {
-
           if (feature_level %in% names(time_point_data) &&
               group_name %in% names(time_point_data[[feature_level]])) {
             return(time_point_data[[feature_level]][[group_name]])
@@ -158,12 +163,13 @@ generate_taxa_per_time_dotplot_long <- function(data.obj,
           return(NULL)
         })
 
+        # Remove NULL entries and combine data
         data_list <- Filter(Negate(is.null), data_list)
-
         merged_data <- dplyr::bind_rows(data_list, .id = time.var)
         return(merged_data)
       }
 
+      # Merge data for the current feature level and group
       merged_data_genus <- merge_time_points(test.list, feature.level, group.names)
       return(merged_data_genus)
     })
@@ -173,22 +179,28 @@ generate_taxa_per_time_dotplot_long <- function(data.obj,
 
   names(test.list) <- feature.level
 
+  # Generate plots for each feature level
   plot.list <- lapply(feature.level, function(feature.level){
 
+    # Generate plots for each group within the current feature level
     sub_plot.list <- lapply(group.names, function(group.names){
 
+      # Prepare data for plotting
       data_for_plot <- test.list[[feature.level]][[group.names]]
 
+      # Ensure time variable is a factor with correct levels
       data_for_plot[[time.var]] <- factor(data_for_plot[[time.var]], levels = time_levels)
 
+      # Add significance labels based on p-values
       data_for_plot$Significance_Label <- ifelse(data_for_plot[[p_val_var]] < feature.sig.level, "*", "")
 
+      # Filter features based on user specifications
       if (!is.null(features.plot)) {
-        # If features.plot is specified, only these features are retained
+        # If specific features are requested, keep only those
         data_for_plot <- data_for_plot %>%
           dplyr::filter(Variable %in% features.plot)
       } else if (filter_significant) {
-        # If features.plot is not specified and filter_significant is TRUE, then the significance filter is applied.
+        # If filtering for significant features is requested, keep only significant ones
         significant_features <- data_for_plot %>%
           dplyr::group_by(Variable) %>%
           dplyr::summarise(is_significant = any(!!sym(p_val_var) < feature.sig.level)) %>%
@@ -199,6 +211,7 @@ generate_taxa_per_time_dotplot_long <- function(data.obj,
           dplyr::filter(Variable %in% significant_features)
       }
 
+      # Create the dot plot
       dotplot <- ggplot(data_for_plot, aes(x = !!sym(time.var), y = Variable, size = Coefficient)) +
         geom_point(aes(color = !!sym(p_val_var)), alpha = 0.6, shape = 19) +
         geom_text(aes(label = Significance_Label), vjust = 0.8, show.legend = FALSE, color = "white") +
@@ -228,6 +241,7 @@ generate_taxa_per_time_dotplot_long <- function(data.obj,
           legend.title = element_text(size = base.size)
         )
 
+      # Save the plot as a PDF if requested
       if (pdf) {
         pdf_filename <- paste0("dotplot_", feature.level, "_", group.names, "_", time.var)
         if (!is.null(group.var)) {

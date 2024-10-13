@@ -113,18 +113,23 @@ generate_beta_test_single <- function(data.obj,
                                       adj.vars = NULL,
                                       dist.name = c('BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS')) {
 
+  # Check if distance metrics are provided
   if (is.null(dist.name)){
     return()
   }
 
   # Calculate beta diversity indices if not provided
+  # This step ensures we have the necessary distance matrices for the analysis
   if (is.null(dist.obj)) {
+    # If time variable and level are provided, subset the data to that specific time point
     if (!is.null(time.var) & !is.null(t.level)) {
       condition <- paste(time.var, "== '", t.level, "'", sep = "")
       data.obj <- mStat_subset_data(data.obj, condition = condition)
     }
+    # Calculate beta diversity using the specified distance metrics
     dist.obj <- mStat_calculate_beta_diversity(data.obj, dist.name)
   } else {
+    # If distance object is provided, use it but ensure it matches the current data
     message("Using provided dist.obj...")
     if (!is.null(time.var) & !is.null(t.level)) {
       condition <- paste(time.var, "== '", t.level, "'", sep = "")
@@ -133,20 +138,24 @@ generate_beta_test_single <- function(data.obj,
     dist.obj <- mStat_subset_dist(dist.obj, rownames(data.obj$meta.dat))
   }
 
-  # Run PermanovaG2 for the entire dist.obj
+  # Prepare for PERMANOVA analysis
   message("Running PermanovaG2 for all distances...")
 
   # Create the formula for PermanovaG2
+  # This formula will be used to specify the model for the PERMANOVA test
   if (is.null(adj.vars)) {
+    # If no adjustment variables, use only the group variable
     formula_str <- paste0("dist.obj ~ ", group.var)
   } else {
+    # If adjustment variables are provided, include them in the formula
     adj_vars_terms <- paste0(adj.vars, collapse = " + ")
     formula_str <- paste0("dist.obj ~ ", adj_vars_terms, " + ", group.var)
   }
 
   formula <- as.formula(formula_str)
 
-  # Run PermanovaG2 for the entire dist.obj
+  # Run PermanovaG2 for all distance matrices
+  # PERMANOVA is a non-parametric multivariate statistical test used to assess the significance of compositional differences among groups
   message("Running PermanovaG2 for all distances...")
   result <- GUniFrac::PermanovaG2(formula, data = data.obj$meta.dat)
 
@@ -154,11 +163,13 @@ generate_beta_test_single <- function(data.obj,
   permanova.results <- list()
 
   # Convert the p.tab results to tibble
+  # This table contains the overall p-values for each term in the model
   permanova.results$p.tab <- result$p.tab %>%
     as_tibble(rownames = "Term") %>%
     dplyr::mutate(Term = ifelse(Term == "data.obj$meta.dat[[group.var]]", group.var, Term))
 
   # Convert each aov.tab result to tibble and store them in the list
+  # These tables contain detailed ANOVA-like results for each distance metric
   for (i in seq_along(result$aov.tab.list)) {
     permanova.results$aov.tab[[dist.name[i]]] <- result$aov.tab.list[[i]] %>%
       as_tibble(rownames = "Variable") %>%
@@ -178,7 +189,8 @@ generate_beta_test_single <- function(data.obj,
       )
   }
 
-  # Format p.tab
+  # Format p.tab for better readability
+  # This step cleans up the variable names and rounds numeric values
   p.tab <- permanova.results$p.tab %>%
     dplyr::mutate(
       Term = gsub("data.obj\\$meta.dat\\[\\[\"", "", Term),
@@ -186,11 +198,13 @@ generate_beta_test_single <- function(data.obj,
       dplyr::across(where(is.numeric), ~ round(., 3))  # round all numeric values to 3 decimal places
     )
 
-  # Format aov.tab
+  # Format aov.tab for better readability
+  # This step combines results from all distance metrics and formats the output
   aov.tab <- dplyr::bind_rows(permanova.results$aov.tab) %>%
     dplyr::mutate(dplyr::across(where(is.numeric), ~ ifelse(is.na(.), "NA", round(., 3))))  # round all numeric values to 3 decimal places, replace NA with "NA"
 
   aov.tab <- aov.tab %>% dplyr::select(Distance, everything())
 
+  # Return the formatted results
   return(list("p.tab" = p.tab, "aov.tab" = aov.tab))
 }

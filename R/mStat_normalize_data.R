@@ -73,62 +73,85 @@ mStat_normalize_data <-
   function(data.obj,
            method = c("Rarefy-TSS", "Rarefy", "TSS", "GMPR", "CSS", "DESeq", "TMM"),
            depth = NULL) {
-    # Check if data.obj is the correct type
+    # Validate input data structure
+    # Ensuring the input is a list is crucial for maintaining the expected data format
     if (!is.list(data.obj)) {
       stop("data.obj should be a list.")
     }
 
-    # Get the OTU table
+    # Extract the OTU (Operational Taxonomic Unit) table from the input data object
+    # The OTU table is the core data structure in microbiome analysis, representing taxon abundances across samples
     otu_tab <- as.data.frame(data.obj$feature.tab)
 
-    # Check method
+    # Validate and select the normalization method
+    # This step ensures that only supported methods are used
     method <- match.arg(method)
 
-    # Estimate the normalization/scale factor using otu_tab
+    # Normalization process
+    # Different normalization methods are applied based on the selected method
+    # Each method addresses different aspects of microbiome data variability
+
     if (method == "Rarefy-TSS") {
+      # Rarefaction followed by Total Sum Scaling
+      # This method first standardizes sampling depth, then converts to relative abundance
       if (is.null(depth)) {
         depth <- min(colSums(otu_tab))
       } else if (depth > min(colSums(otu_tab))) {
-        stop("Depth is greater than the smallest total count dplyr::across samples.")
+        stop("Depth is greater than the smallest total count across samples.")
       }
-      rarefy_depth <-
-        ifelse(is.null(depth), min(colSums(otu_tab)), depth)
-      if (all(round(colSums(otu_tab),5) ==1)){
+      rarefy_depth <- ifelse(is.null(depth), min(colSums(otu_tab)), depth)
+      
+      # Check if data is already in relative abundance format
+      if (all(round(colSums(otu_tab),5) == 1)){
         rarefied_otu_tab <- as.matrix(otu_tab)
       } else {
-        rarefied_otu_tab <-
-          t(vegan::rrarefy(t(otu_tab), sample = rarefy_depth))
+        # Perform rarefaction using vegan package
+        rarefied_otu_tab <- t(vegan::rrarefy(t(otu_tab), sample = rarefy_depth))
       }
+      # Convert to relative abundance
       rarefied_otu_tab <- rarefied_otu_tab / rarefy_depth
       scale_factor <- rarefy_depth
     } else if (method == "Rarefy") {
+      # Rarefaction only
+      # This method standardizes sampling depth across all samples
       if (is.null(depth)) {
         depth <- min(colSums(otu_tab))
       } else if (depth > min(colSums(otu_tab))) {
-        stop("Depth is greater than the smallest total count dplyr::across samples.")
+        stop("Depth is greater than the smallest total count across samples.")
       }
-      rarefy_depth <-
-        ifelse(is.null(depth), min(colSums(otu_tab)), depth)
-      if (all(round(colSums(otu_tab),5) ==1)){
+      rarefy_depth <- ifelse(is.null(depth), min(colSums(otu_tab)), depth)
+      
+      # Check if data is already in relative abundance format
+      if (all(round(colSums(otu_tab),5) == 1)){
         rarefied_otu_tab <- as.matrix(otu_tab)
       } else {
-        rarefied_otu_tab <-
-          t(vegan::rrarefy(t(otu_tab), sample = rarefy_depth))
+        # Perform rarefaction using vegan package
+        rarefied_otu_tab <- t(vegan::rrarefy(t(otu_tab), sample = rarefy_depth))
       }
       scale_factor <- rarefy_depth
     } else if (method == "TSS") {
+      # Total Sum Scaling
+      # This method converts counts to relative abundances
       scale_factor <- colSums(otu_tab)
     } else if (method == "GMPR") {
+      # Geometric Mean of Pairwise Ratios
+      # This method is robust to compositional effects and uneven sequencing depth
       scale_factor <- GUniFrac::GMPR(otu_tab)
     } else if (method == "CSS") {
+      # Cumulative Sum Scaling
+      # This method is useful for data with varying sequencing depth
       scale_factor <- apply(otu_tab, 2, function(x) {
         sum(x) / median(x[x > 0])
       })
     } else if (method == "DESeq") {
+      # DESeq normalization
+      # This method is particularly useful for RNA-seq data from microbiome studies
       scale_factor <- apply(otu_tab, 2, function(x) {
         sum(x) / exp(mean(log(x[x > 0])))
       })
     } else if (method == "TMM") {
+      # TMM normalization
+      # This method is robust to compositional effects and uneven sequencing depth
       scale_factor <- calcNormFactors(otu_tab, method = "TMM")
     } else {
       stop("Invalid normalization method.")

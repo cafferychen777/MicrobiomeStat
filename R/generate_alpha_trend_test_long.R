@@ -128,11 +128,16 @@ generate_alpha_trend_test_long <- function(data.obj,
                                            group.var = NULL,
                                            adj.vars = NULL) {
 
+  # Exit the function if no alpha diversity indices are specified
   if (is.null(alpha.name)){
     return()
   }
 
+  # Calculate alpha diversity if not provided
+  # This ensures we have the necessary diversity metrics for the analysis
   if (is.null(alpha.obj)) {
+    # Perform rarefaction if depth is specified
+    # Rarefaction standardizes sampling effort across all samples
     if (!is.null(depth)) {
       message(
         "Detected that the 'depth' parameter is not NULL. Proceeding with rarefaction. Call 'mStat_rarefy_data' to rarefy the data!"
@@ -143,7 +148,7 @@ generate_alpha_trend_test_long <- function(data.obj,
     alpha.obj <-
       mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name)
   } else {
-    # Verify that all alpha.name are present in alpha.obj
+    # Verify that all requested alpha diversity indices are available
     if (!all(alpha.name %in% unlist(lapply(alpha.obj, function(x)
       colnames(x))))) {
       missing_alphas <- alpha.name[!alpha.name %in% names(alpha.obj)]
@@ -155,6 +160,8 @@ generate_alpha_trend_test_long <- function(data.obj,
     }
   }
 
+  # Inform the user about the importance of numeric time variable for trend test
+  # This message ensures that the user understands the requirements for proper analysis
   message(
     "The trend test in 'generate_alpha_trend_test_long' relies on a numeric time variable.\n",
     "Please ensure that your time variable is coded as numeric.\n",
@@ -162,38 +169,49 @@ generate_alpha_trend_test_long <- function(data.obj,
     "The time variable will be converted to numeric within the function if needed."
   )
 
+  # Convert the time variable to numeric
+  # This step is crucial for performing trend analysis
   data.obj$meta.dat <- data.obj$meta.dat %>% dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
 
+  # Extract relevant metadata for the analysis
   meta_tab <-
     data.obj$meta.dat %>% as.data.frame() %>% dplyr::select(all_of(c(
       subject.var, group.var, time.var, adj.vars
     )))
 
+  # Combine alpha diversity data with metadata
+  # This creates a comprehensive dataset for our analysis
   alpha_df <-
     dplyr::bind_cols(alpha.obj) %>% tibble::rownames_to_column("sample") %>%
     dplyr::inner_join(meta_tab %>% rownames_to_column("sample"),
                       by = c("sample"))
 
+  # Perform statistical tests for each alpha diversity index
   test.list <- lapply(alpha.name, function(index) {
 
+    # Construct the formula for the linear mixed-effects model
+    # This model accounts for repeated measures and potential group differences
     formula <- construct_formula(index, group.var, time.var, subject.var, adj.vars)
 
+    # Fit the linear mixed-effects model
+    # This model allows for the analysis of longitudinal data with potential confounders
     model <- lmer(formula, data = alpha_df)
 
     if (!is.null(group.var)){
-      # Check if group.var is multi-category
+      # Check if the grouping variable has more than two categories
       if (length(unique(alpha_df[[group.var]])) > 2) {
+        # Perform Type III ANOVA for multi-category grouping variables
+        # This tests for overall differences among groups, accounting for other variables
         anova_result <- anova(model, type = "III")
 
-        # Here, I assume you want to append this p-value to the result.
-        # Adjust the way of appending the p-value based on your desired output.
+        # Extract coefficients from the model
         coef.tab <- extract_coef(model)
-        # Append the last row of the anova_result to the coef.tab
+        
+        # Append the ANOVA result for the grouping variable to the coefficient table
+        # This provides both individual coefficient estimates and overall group effects
         last_row <- utils::tail(anova_result, 1)
-        # Get the column name of the last_row
         var_name <- rownames(last_row)[1]
 
-        # Adjust last_row to match the format of coef.tab
         adjusted_last_row <- data.frame(
           Term = var_name,
           Estimate = NA,
@@ -204,16 +222,18 @@ generate_alpha_trend_test_long <- function(data.obj,
 
         coef.tab <- rbind(coef.tab, adjusted_last_row)
       } else {
+        # For binary grouping variables, extract coefficients directly
         coef.tab <- extract_coef(model)
       }
     } else {
+      # If no grouping variable is specified, extract coefficients directly
       coef.tab <- extract_coef(model)
     }
 
     return(as_tibble(coef.tab))
   })
 
-  # Assign names to the elements of test.list
+  # Assign names to the elements of test.list based on the alpha diversity indices
   names(test.list) <- alpha.name
 
   return(test.list)

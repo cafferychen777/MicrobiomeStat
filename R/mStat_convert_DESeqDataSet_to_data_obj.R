@@ -35,30 +35,47 @@
 #' @export
 mStat_convert_DESeqDataSet_to_data_obj <- function (dds.obj) {
 
+  # Initialize an empty list to store the converted data
+  # This list will contain three main components: feature table, metadata, and feature annotations
   data.obj <- list()
 
+  # Extract and process the count data (feature table)
   if (!is.null(assay(dds.obj))) {
+    # Convert the count matrix to a data frame, then to a matrix
+    # This ensures consistent data structure and allows for easier manipulation
     data.obj$feature.tab <- assay(dds.obj) %>%
       as.data.frame() %>%
       as.matrix()
 
+    # Remove features (rows) with zero counts across all samples
+    # This step helps to reduce the dimensionality of the data and focus on informative features
     data.obj$feature.tab <- data.obj$feature.tab[rowSums(data.obj$feature.tab) > 0, ]
   }
 
+  # Extract and process the sample metadata
   if (!is.null(colData(dds.obj))) {
+    # Convert the column data to a data frame
+    # This preserves the sample-level information associated with the count data
     data.obj$meta.dat <- colData(dds.obj) %>%
       as.data.frame()
   }
 
+  # Extract and process the feature annotations
   if (!is.null(rowData(dds.obj))) {
+    # Convert the row data to a data frame, then to a matrix
+    # This ensures consistent structure with the feature table
     data.obj$feature.ann <- rowData(dds.obj) %>%
       as.data.frame() %>%
       as.matrix()
 
+    # Ensure that feature annotations correspond to the features in the count data
+    # This step is crucial for maintaining data integrity and consistency
     if (exists("feature.tab", data.obj)) {
       data.obj$feature.ann <- data.obj$feature.ann[rownames(data.obj$feature.ann) %in% rownames(data.obj$feature.tab), ]
     }
   }
 
+  # Return the converted data object
+  # This object now contains the count data, sample metadata, and feature annotations in a standardized format
   return(data.obj)
 }

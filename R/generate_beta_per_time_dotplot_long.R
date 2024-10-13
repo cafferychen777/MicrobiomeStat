@@ -125,61 +125,84 @@ generate_beta_per_time_dotplot_long <- function(data.obj,
                                                 pdf.wid = 7,
                                                 pdf.hei = 5
 ){
-  # Process the time variable in the data
+  # Process the time variable in the data object
+  # This ensures that the time variable is properly formatted and ordered
   data.obj <- mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
 
-  # Extract unique time levels
+  # Extract unique time levels from the processed data
+  # These levels will be used to order the x-axis in the plot
   time_levels <- unique(data.obj$meta.dat[[time.var]])
 
-  # Replace the existing theme selection code with this:
+  # Get the appropriate theme for the plot
+  # This allows for consistent styling across different plots
   theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
+  # Extract group names from the test list
+  # These names typically represent different comparison groups
   group.names <- names(test.list[[1]])
 
+  # Process the test list to merge data across time points for each group
   test.list <- lapply(group.names, function(group.names){
+    # Define a function to merge data from different time points
     merge_time_points <- function(time_test_list, group_name) {
-
+      # Extract data for the current group from each time point
       data_list <- lapply(time_test_list, function(time_point_data) {
-
         return(time_point_data[[group_name]])
-
       })
 
+      # Remove any NULL entries from the list
       data_list <- Filter(Negate(is.null), data_list)
 
+      # Combine data from all time points into a single data frame
       merged_data <- dplyr::bind_rows(data_list, .id = time.var)
       return(merged_data)
     }
 
+    # Apply the merge function to the current group
     merged_data_genus <- merge_time_points(test.list, group.names)
     return(merged_data_genus)
   })
 
+  # Assign group names to the processed test list
   names(test.list) <- group.names
 
+  # Define the variable name for p-values in the data
   p_val_var <- "P.Value"
 
+  # Get the color palette for the plot
   col <- mStat_get_palette(palette)
 
+  # Create a list of plots, one for each group
   plot.list <- lapply(group.names, function(group.names){
-
+    # Extract data for the current group
     data_for_plot <- test.list[[group.names]]
 
+    # Ensure the time variable is a factor with the correct order of levels
     data_for_plot[[time.var]] <- factor(data_for_plot[[time.var]], levels = time_levels)
 
+    # Add a significance label based on the p-value
+    # This will be used to add asterisks to significant results in the plot
     data_for_plot$Significance_Label <- ifelse(data_for_plot[[p_val_var]] < 0.05, "*", "")
 
+    # Create the dot plot using ggplot2
     dotplot <- ggplot(data_for_plot, aes(x = !!sym(time.var), y = Term, size = Estimate)) +
+      # Add points, colored by p-value
       geom_point(aes(color = !!sym(p_val_var)), alpha = 0.6, shape = 19) +
+      # Add significance labels
       geom_text(aes(label = Significance_Label), vjust = 0.8, show.legend = FALSE, color = "white") +
+      # Set color scale for p-values
       scale_color_gradientn(colors = col) +
+      # Set plot labels
       labs(title = group.names,
            x = time.var,
            y = "Term",
            size = "Coefficient",
            color = p_val_var) +
+      # Set size scale for estimates
       scale_radius(range = c(0, 10)) +
+      # Apply the chosen theme
       theme_to_use +
+      # Customize theme elements
       theme(
         axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = base.size),
         strip.text.x = element_blank(),
@@ -198,6 +221,7 @@ generate_beta_per_time_dotplot_long <- function(data.obj,
         legend.title = element_text(size = base.size)
       )
 
+    # Save the plot as a PDF if requested
     if (pdf) {
       pdf_filename <- paste0("dotplot_", "beta", "_", group.names, "_", time.var)
       if (!is.null(group.var)) {
@@ -210,8 +234,11 @@ generate_beta_per_time_dotplot_long <- function(data.obj,
     return(dotplot)
   })
 
+  # Assign group names to the list of plots
   names(plot.list) <- group.names
 
+  # Filter the plot list to include only plots with "vs" in their names
+  # This typically selects plots that compare different groups
   plot.list <- plot.list[grep("vs", names(plot.list), value = TRUE)]
 
   return(plot.list)

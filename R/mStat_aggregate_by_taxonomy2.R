@@ -34,24 +34,30 @@ mStat_aggregate_by_taxonomy2 <-
   function (feature.tab,
             feature.ann,
             feature.level = NULL) {
-    # Check if feature.level is not NULL
+    # Validate input: ensure that a taxonomic level for aggregation is specified
     if (is.null(feature.level)) {
       stop("feature.level can not be NULL.")
     }
 
+    # Ensure only one feature level is provided for aggregation
+    # This function is designed to aggregate at a single taxonomic level at a time
     if (length(feature.level) != 1) {
       stop(
         "The function 'mStat_aggregate_by_taxonomy2' only supports aggregation by a single feature level at a time. Please provide exactly one feature level for aggregation."
       )
     }
 
+    # Convert input tables to data frames for consistent processing
     otu_tab <- feature.tab %>% as.data.frame()
     tax_tab <- feature.ann %>% as.data.frame()
 
-    # 检查 otu_tab 的行名和 tax_tab 的行名是否完全一致
+    # Check for consistency between feature and taxonomy tables
+    # This step is crucial to ensure data integrity before aggregation
     otu_not_in_tax <- setdiff(rownames(otu_tab), rownames(tax_tab))
     tax_not_in_otu <- setdiff(rownames(tax_tab), rownames(otu_tab))
 
+    # Notify the user of any inconsistencies in the data
+    # This helps in identifying potential issues in the input data
     if (length(otu_not_in_tax) > 0) {
       message(
         "The following row names are in 'feature.tab' but not in 'feature.ann': ",
@@ -66,7 +72,9 @@ mStat_aggregate_by_taxonomy2 <-
       )
     }
 
-    # 将 OTU 表与分类表合并
+    # Merge the OTU table with the taxonomy table
+    # This step combines abundance data with taxonomic information
+    # An inner join is used, which means only features present in both tables are retained
     message("Performing an inner join on two tables. Rows with non-matching names will be excluded.")
 
     otu_tax <-
@@ -77,7 +85,13 @@ mStat_aggregate_by_taxonomy2 <-
                         by = "sample") %>%
       column_to_rownames("sample")
 
-    # 聚合 OTU 表
+    # Aggregate the OTU table at the specified taxonomic level
+    # This process involves several steps:
+    # 1. Reshape the data from wide to long format
+    # 2. Group by sample and the specified taxonomic level
+    # 3. Sum the abundances within each group
+    # 4. Reshape back to wide format
+    # 5. Replace NA values with "Unclassified" for better interpretability
     otu_tax_agg <- otu_tax %>%
       tidyr::gather(key = "sample", value = "value",-one_of(feature.level)) %>%
       dplyr::group_by_at(vars(sample,!!sym(feature.level))) %>%
@@ -87,8 +101,10 @@ mStat_aggregate_by_taxonomy2 <-
       column_to_rownames(feature.level) %>%
       as.matrix()
 
-    # Remove rows with all zero
+    # Remove taxa with zero abundance across all samples
+    # This step helps in reducing the dimensionality of the data and focuses on relevant taxa
     otu_tax_agg <- otu_tax_agg[rowSums(otu_tax_agg) > 0,]
 
+    # Return the aggregated OTU table
     return(otu_tax_agg)
   }

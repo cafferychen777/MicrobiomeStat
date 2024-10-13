@@ -167,12 +167,14 @@ generate_taxa_indiv_boxplot_long <-
            pdf.hei = 8.5,
            ...) {
 
+    # Match and validate input arguments
     feature.dat.type <- match.arg(feature.dat.type)
-
     transform <- match.arg(transform)
 
+    # Validate the input data object
     mStat_validate_data(data.obj)
 
+    # Check if input variables are properly specified
     if (!is.character(subject.var))
       stop("`subject.var` should be a character string.")
     if (!is.character(time.var))
@@ -184,11 +186,12 @@ generate_taxa_indiv_boxplot_long <-
         !is.character(strata.var))
       stop("`strata.var` should be a character string or NULL.")
 
-    # Extract data
+    # Process time variable and extract relevant data
     data.obj <- mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
-
     meta_tab <- data.obj$meta.dat %>% as.data.frame() %>% select(all_of(c(subject.var,group.var,time.var,strata.var)))
 
+    # Define aesthetic functions for plotting
+    # These functions determine how the data will be mapped to visual properties in the plot
     line_aes_function <- if (!is.null(group.var)) {
       aes(
         x = !!sym(time.var),
@@ -218,18 +221,20 @@ generate_taxa_indiv_boxplot_long <-
       )
     }
 
+    # Get color palette for the plot
     col <- mStat_get_palette(palette)
 
-    # Assuming mStat_get_theme function is already defined
-    # Replace the existing theme selection code with this:
+    # Get the appropriate theme for the plot
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
+    # Adjust filtering parameters based on input conditions
     if (feature.dat.type == "other" || !is.null(features.plot) ||
         (!is.null(top.k.func) && !is.null(top.k.plot))) {
       prev.filter <- 0
       abund.filter <- 0
     }
 
+    # Normalize count data if necessary
     if (feature.dat.type == "count"){
       message(
         "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
@@ -237,33 +242,40 @@ generate_taxa_indiv_boxplot_long <-
       data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
     }
 
+    # Generate plots for each taxonomic level
     plot_list_all <- lapply(feature.level, function(feature.level) {
 
+      # Aggregate data by taxonomy if necessary
       if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
         data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
       }
 
+      # Select appropriate feature table
       if (feature.level != "original"){
         otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
       } else {
         otu_tax_agg <- data.obj$feature.tab
       }
 
+      # Filter and prepare the feature table
       otu_tax_agg <-  otu_tax_agg %>%
         as.data.frame() %>%
         mStat_filter(prev.filter = prev.filter,
                      abund.filter = abund.filter) %>%
         rownames_to_column(feature.level)
 
+      # Select top k features if specified
       if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
         computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
         features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
       }
 
+      # Reshape the data for plotting
       otu_tax_agg_numeric <- otu_tax_agg %>%
         tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
         dplyr::mutate(value = as.numeric(value))
 
+      # Merge feature data with metadata
       otu_tax_agg_merged <-
         dplyr::left_join(otu_tax_agg_numeric, meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
         select(one_of(c("sample",
@@ -274,22 +286,21 @@ generate_taxa_indiv_boxplot_long <-
                         strata.var,
                         "value")))
 
-      # Apply transformation
+      # Apply data transformation if specified
       if (feature.dat.type %in% c("count","proportion")){
-        # Apply transformation
         if (transform %in% c("identity", "sqrt", "log")) {
           if (transform == "identity") {
             # No transformation needed
           } else if (transform == "sqrt") {
             otu_tax_agg_merged$value <- sqrt(otu_tax_agg_merged$value)
           } else if (transform == "log") {
-            # Find the half of the minimum non-zero proportion for each taxon
+            # For log transformation, we need to handle zeros
+            # We replace zeros with half of the minimum non-zero value for each taxon
             min_half_nonzero <- otu_tax_agg_merged %>%
               dplyr::group_by(!!sym(feature.level)) %>%
               filter(sum(value) != 0) %>%
               dplyr::summarise(min_half_value = min(value[value > 0]) / 2) %>%
               dplyr::ungroup()
-            # Replace zeros with the log of the half minimum non-zero proportion
             otu_tax_agg_merged <- otu_tax_agg_merged %>%
               dplyr::group_by(!!sym(feature.level)) %>%
               filter(sum(value) != 0) %>%
@@ -301,21 +312,25 @@ generate_taxa_indiv_boxplot_long <-
         }
       }
 
+      # Get unique taxa levels
       taxa.levels <-
         otu_tax_agg_merged %>% select(feature.level) %>% dplyr::distinct() %>% dplyr::pull()
 
+      # Count number of subjects and time points
       n_subjects <- length(unique(otu_tax_agg_merged[[subject.var]]))
       n_times <- length(unique(otu_tax_agg_merged[[time.var]]))
 
+      # Filter taxa levels if specified
       if (!is.null(features.plot)){
         taxa.levels <- taxa.levels[taxa.levels %in% features.plot]
       }
 
+      # Generate individual plots for each taxon
       plot_list <- lapply(taxa.levels, function(tax) {
 
         sub_otu_tax_agg_merged <- otu_tax_agg_merged %>% filter(!!sym(feature.level) == tax)
 
-        # Create a new data frame in the data processing section.
+        # Calculate average values if there are many subjects or time points
         average_sub_otu_tax_agg_merged <- NULL
         if (n_times > 10 || n_subjects > 25) {
           if (!is.null(group.var) && !is.null(strata.var)) {
@@ -339,11 +354,11 @@ generate_taxa_indiv_boxplot_long <-
           }
         }
 
+        # Create the boxplot
         boxplot <-
           ggplot(sub_otu_tax_agg_merged  %>%
                    dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var))),
                  aes_function) +
-          #geom_violin(trim = FALSE, alpha = 0.8) +
           stat_boxplot(
             geom = "errorbar",
             position = position_dodge(width = 0.2),
@@ -352,7 +367,6 @@ generate_taxa_indiv_boxplot_long <-
           geom_boxplot(
             position = position_dodge(width = 0.8),
             width = 0.3,
-            #fill = "white"
           ) +
           geom_line(
             line_aes_function,
@@ -397,6 +411,7 @@ generate_taxa_indiv_boxplot_long <-
             legend.title = ggplot2::element_text(size = 16)
           )
 
+        # Add faceting if group or strata variables are provided
         if (!is.null(group.var)) {
           if (is.null(strata.var)) {
             boxplot <-
@@ -407,13 +422,13 @@ generate_taxa_indiv_boxplot_long <-
           }
         }
 
-        # Add geom_jitter() if the number of unique time points or subjects is greater than 10
+        # Add jitter points if there are many subjects or time points
         if (n_subjects > 20 || n_times > 10) {
           boxplot <- boxplot + geom_jitter(width = 0.1, alpha = 0.1, size = 1)
         }
 
+        # Modify y-axis scale based on the transformation
         if (feature.dat.type != "other"){
-          # Modify the Y-axis scale.
           if (transform == "sqrt") {
             boxplot <- boxplot + scale_y_continuous(
               labels = function(x) sapply(x, function(i) as.expression(substitute(a^b, list(a = i, b = 2))))
@@ -428,8 +443,7 @@ generate_taxa_indiv_boxplot_long <-
         return(boxplot)
       })
 
-
-      # Save the plots as a PDF file
+      # Save the plots as a PDF file if requested
       if (pdf) {
         pdf_name <- paste0(
           "taxa_indiv_boxplot_long",

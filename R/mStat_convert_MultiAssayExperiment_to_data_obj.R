@@ -33,33 +33,45 @@
 #' @export
 mStat_convert_MultiAssayExperiment_to_data_obj <- function (mae.obj, experiment_name = NULL) {
 
+  # Initialize an empty list to store the converted data
   data.obj <- list()
 
+  # If no experiment name is provided, use the first experiment in the MultiAssayExperiment object
   if (is.null(experiment_name)) {
     experiment_name <- names(experiments(mae.obj))[1]
   }
 
-  # Check if the experiment name exists in the MultiAssayExperiment object
+  # Check if the specified experiment exists in the MultiAssayExperiment object
+  # If not, stop execution and provide an informative error message
   if (!experiment_name %in% names(experiments(mae.obj))) {
     stop(paste("The experiment", experiment_name, "does not exist in the MultiAssayExperiment object."))
   }
 
-  # Process assay data
+  # Extract the assay data for the specified experiment
   assay_data <- assays(mae.obj)[[experiment_name]]
+  
+  # Process the assay data if it exists
   if (!is.null(assay_data)) {
+    # Convert the assay data to a matrix format
+    # This step ensures compatibility with downstream analyses
     data.obj$feature.tab <- assay_data %>%
       as.data.frame() %>%
       as.matrix()
 
-    # Remove rows with all zeros
+    # Remove features (rows) with zero counts across all samples
+    # This step is crucial for reducing sparsity and improving statistical power in subsequent analyses
     data.obj$feature.tab <- data.obj$feature.tab[rowSums(data.obj$feature.tab) > 0, ]
   }
 
-  # Process colData (metadata about the columns of the assay data)
+  # Extract and process the column data (metadata) from the MultiAssayExperiment object
+  # This metadata typically includes sample-specific information
   if (!is.null(colData(mae.obj))) {
+    # Convert the column data to a data frame for easier manipulation
     data.obj$meta.dat <- colData(mae.obj) %>%
       as.data.frame()
   }
 
+  # Return the processed data object
+  # This object contains the feature table and metadata, ready for further analysis
   return(data.obj)
 }

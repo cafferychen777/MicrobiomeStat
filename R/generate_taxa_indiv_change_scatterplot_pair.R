@@ -199,46 +199,55 @@ generate_taxa_indiv_change_scatterplot_pair <-
            pdf.hei = 8.5,
            ...) {
 
+    # Validate the input data object
     mStat_validate_data(data.obj)
 
+    # Match the feature data type argument
     feature.dat.type <- match.arg(feature.dat.type)
 
+    # Extract metadata
     meta_tab <-
       data.obj$meta.dat %>% as.data.frame() %>% select(all_of(c(
         time.var, group.var, strata.var, subject.var
       )))
 
+    # Determine the time point after the base time point
     change.after <-
       unique(meta_tab %>% select(all_of(c(time.var))))[unique(meta_tab %>% select(all_of(c(time.var)))) != change.base]
 
+    # If group variable is not provided, create a dummy group
     if (is.null(group.var)) {
       group.var = "ALL"
       meta_tab$ALL <- ""
     }
 
+    # If strata variable is not provided, create a dummy strata
     if (is.null(strata.var)) {
       strata.var = "ALL2"
       meta_tab$ALL2 <- ""
     }
 
+    # Get color palette
     colors <- mStat_get_palette(palette)
 
-    # Assuming mStat_get_theme function is already defined
-    # Replace the existing theme selection code with this:
+    # Get the appropriate theme for plotting
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
+    # Define aesthetic function based on whether strata variable is provided
     aes_function <- if (!is.null(strata.var)){
       aes(shape = !!sym(strata.var), color = !!sym(strata.var))
     } else {
       aes(color = !!sym(time.var))
     }
 
+    # Adjust filters if necessary
     if (feature.dat.type == "other" || !is.null(features.plot) ||
         (!is.null(top.k.func) && !is.null(top.k.plot))) {
       prev.filter <- 0
       abund.filter <- 0
     }
 
+    # Normalize count data if necessary
     if (feature.dat.type == "count"){
       message(
         "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
@@ -246,53 +255,65 @@ generate_taxa_indiv_change_scatterplot_pair <-
       data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
     }
 
+    # Process each feature level
     plot_list_all <- lapply(feature.level, function(feature.level) {
 
+      # Aggregate data by taxonomy if necessary
       if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
         data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
       }
 
+      # Get the appropriate feature table
       if (feature.level != "original"){
         otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
       } else {
         otu_tax_agg <- data.obj$feature.tab
       }
 
+      # Filter the feature table
       otu_tax_agg <-  otu_tax_agg %>%
         as.data.frame() %>%
         mStat_filter(prev.filter = prev.filter,
                      abund.filter = abund.filter) %>%
         rownames_to_column(feature.level)
 
+      # Select top k features if specified
       if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
       computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
       features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
       }
 
-      # 转换计数为数值类型
+      # Convert counts to numeric type
       otu_tax_agg_numeric <-
         dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
 
+      # Create normalized OTU table
       otu_tab_norm <- otu_tax_agg_numeric %>%
         column_to_rownames(var = feature.level) %>%
         as.matrix()
 
+      # Reshape data for plotting
       otu_tab_norm_agg <- otu_tax_agg_numeric %>%
         tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
         dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample")
 
+      # Get unique taxa levels
       taxa.levels <-
         otu_tab_norm_agg %>% select(all_of(feature.level)) %>% dplyr::distinct() %>% dplyr::pull()
 
-      # 首先，把数据分为两个子集，一个为change.base，一个为change.after
+      # Split data into two subsets: one for change.base, one for change.after
       df_t0 <- otu_tab_norm_agg %>% filter(!!sym(time.var) == change.base)
       df_ts <- otu_tab_norm_agg %>% filter(!!sym(time.var) == change.after)
 
+      # Join the two subsets
       df <- dplyr::inner_join(df_ts, df_t0, by = c(feature.level, subject.var), suffix = c("_ts", "_t0"), relationship = "many-to-many")
 
+      # Calculate the change in abundance based on the specified function
       if (is.function(feature.change.func)) {
+        # Use custom function to calculate change
         df <- df %>% dplyr::mutate(new_count = feature.change.func(count_ts, count_t0))
       } else if (feature.change.func == "log fold change") {
+        # Calculate log fold change with imputation for zero values
         half_nonzero_min_time_2 <- df %>%
           filter(count_ts > 0) %>%
           dplyr::group_by(!!sym(feature.level)) %>%
@@ -309,26 +330,31 @@ generate_taxa_indiv_change_scatterplot_pair <-
         df$count_ts[df$count_ts == 0] <- df$half_nonzero_min_ts[df$count_ts == 0]
         df$count_t0[df$count_t0 == 0] <- df$half_nonzero_min_t0[df$count_t0 == 0]
 
-        # Add a message to inform users that an imputation operation was performed.
         message("Imputation was performed using half the minimum nonzero count for each taxa at different time points.")
 
         df <- df %>% dplyr::mutate(new_count = log2(count_ts) - log2(count_t0))
       } else if (feature.change.func == "relative change"){
+        # Calculate relative change
         df <- df %>%
           dplyr::mutate(new_count = dplyr::case_when(
             count_ts == 0 & count_t0 == 0 ~ 0,
             TRUE ~ (count_ts - count_t0) / (count_ts + count_t0)
           ))
       } else if (feature.change.func == "absolute change") {
+        # Calculate absolute change
         df <- df %>% dplyr::mutate(new_count = count_ts - count_t0)
       } else {
+        # Default to absolute change if unrecognized function
         df <- df %>% dplyr::mutate(new_count = count_ts - count_t0)
       }
 
+      # Join with metadata
       df <- df %>% dplyr::left_join(meta_tab %>% select(-all_of(time.var)) %>% dplyr::distinct(), by = c(subject.var))
 
+      # Rename columns
       df <- df %>% setNames(ifelse(names(.) == paste0(time.var,"_ts"), time.var, names(.)))
 
+      # Define y-axis label based on feature data type and change function
       ylab_label <- if (feature.dat.type != "other") {
         if (is.function(feature.change.func)) {
           paste0("Change in Relative Abundance", " (custom function)")
@@ -344,10 +370,12 @@ generate_taxa_indiv_change_scatterplot_pair <-
         }
       }
 
+      # Filter taxa levels if specific features are requested
       if (!is.null(features.plot)){
         taxa.levels <- taxa.levels[taxa.levels %in% features.plot]
       }
 
+      # Create a plot for each taxon
       plot_list <- lapply(taxa.levels, function(tax) {
         scatterplot <-
           ggplot(df %>% filter(!!sym(feature.level) == tax),
@@ -355,8 +383,8 @@ generate_taxa_indiv_change_scatterplot_pair <-
                    x = !!sym(group.var),
                    y = new_count,
                    fill = !!sym(strata.var),
-                   color = !!sym(strata.var),  # Add this line to tidyr::separate color by strata.var
-                   group = !!sym(strata.var)   # Add this line to tidyr::separate smoothing line by strata.var
+                   color = !!sym(strata.var),
+                   group = !!sym(strata.var)
                  )) +
           geom_smooth(se = TRUE, method = 'lm') +
           geom_point(aes_function,data = df %>% filter(!!sym(feature.level) == tax),
@@ -365,7 +393,6 @@ generate_taxa_indiv_change_scatterplot_pair <-
           scale_fill_manual(values = colors) +
           ylab(ylab_label) +
           ggtitle(tax) +
-          #scale_linetype_manual(values = c("solid", "dashed")) + # 设置曲线类型
           scale_color_manual(values = colors, guide = guide_legend(override.aes = list(size = 0))) +
           theme_to_use +
           theme(
@@ -388,10 +415,12 @@ generate_taxa_indiv_change_scatterplot_pair <-
             plot.title = element_text(hjust = 0.5, size = 20)
           )
 
+        # Adjust theme for single group case
         if (group.var == "ALL"){
           scatterplot <- scatterplot + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), axis.title.x = element_blank())
         }
 
+        # Adjust theme for single strata case
         if (strata.var == "ALL2") {
           scatterplot <- scatterplot + theme(
             legend.title = element_blank()
@@ -401,7 +430,7 @@ generate_taxa_indiv_change_scatterplot_pair <-
         return(scatterplot)
       })
 
-      # Save the stacked dotplot as a PDF file
+      # Save the plots as a PDF file if requested
       if (pdf) {
         pdf_name <- paste0(
           "taxa_indiv_change_scatterplot",
@@ -432,15 +461,18 @@ generate_taxa_indiv_change_scatterplot_pair <-
         }
         pdf_name <- paste0(pdf_name, ".pdf")
         pdf(pdf_name, width = pdf.wid, height = pdf.hei)
-        # Use lapply to print each ggplot object in the list to a new PDF page
+        # Print each plot to a new page in the PDF
         lapply(plot_list, print)
         # Close the PDF device
         dev.off()
       }
+      # Name the plots in the list
       names(plot_list) <- taxa.levels
       return(plot_list)
     })
 
+    # Name the list of plot lists
     names(plot_list_all) <- feature.level
+    # Return the complete list of plots
     return(plot_list_all)
   }

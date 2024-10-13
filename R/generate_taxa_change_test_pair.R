@@ -94,21 +94,24 @@ generate_taxa_change_test_pair <-
            abund.filter = 1e-4,
            feature.dat.type = c("count", "proportion", "other"),
            winsor.qt = 0.97) {
-    # Extract data
+    # Validate the input data object
     mStat_validate_data(data.obj)
 
+    # Match the feature data type argument
     feature.dat.type <- match.arg(feature.dat.type)
 
+    # Extract relevant columns from the metadata
     meta_tab <-
       data.obj$meta.dat %>% select(all_of(c(
         time.var, group.var, adj.vars, subject.var
       )))
 
+    # Check for time-varying covariates
     if (!is.null(adj.vars)){
-      # Use the modified mStat_identify_time_varying_vars function
+      # Identify time-varying variables in the metadata
       time_varying_info <- mStat_identify_time_varying_vars(meta.dat = meta_tab, adj.vars = adj.vars, subject.var = subject.var)
 
-      # Check if there are any time-varying variables
+      # If time-varying variables are found, stop the analysis
       if (length(time_varying_info$time_varying_vars) > 0) {
         stop("Feature-level analysis does not yet support adjustment for time-varying variables. Found time-varying variables: ",
              paste(time_varying_info$time_varying_vars, collapse = ", "),
@@ -116,21 +119,26 @@ generate_taxa_change_test_pair <-
       }
     }
 
+    # Extract levels of the grouping variable
     group_level <-
       meta_tab %>% select(all_of(c(group.var))) %>% pull() %>% as.factor() %>% levels
 
+    # Set the reference level for the grouping variable
     reference_level <- group_level[1]
 
-    # Create a formula including the group variable and adjustment variables (if any)
+    # Construct the formula for the linear model
     formula_str <- paste("value ~", group.var)
 
+    # Add adjustment variables to the formula if provided
     if (!is.null(adj.vars)) {
       formula_str <-
         paste(formula_str, "+", paste(adj.vars, collapse = " + "))
     }
 
+    # Convert the formula string to a formula object
     formula <- as.formula(formula_str)
 
+    # Set the baseline time point if not provided
     if (is.null(change.base)) {
       change.base <- unique(meta_tab %>% select(all_of(c(time.var))))[1,]
       message(
@@ -139,11 +147,13 @@ generate_taxa_change_test_pair <-
       )
     }
 
+    # Adjust filters for 'other' data type
     if (feature.dat.type == "other") {
       prev.filter <- 0
       abund.filter <- 0
     }
 
+    # Normalize count data if necessary
     if (feature.dat.type == "count") {
       message(
         "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
@@ -152,42 +162,46 @@ generate_taxa_change_test_pair <-
         mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
     }
 
+    # Perform analysis for each feature level
     test.list <- lapply(feature.level, function(feature.level) {
+      # Aggregate data by taxonomy if necessary
       if (is.null(data.obj$feature.agg.list[[feature.level]]) &
           feature.level != "original") {
         data.obj <-
           mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
       }
 
+      # Select the appropriate feature table
       if (feature.level != "original") {
         otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
       } else {
         otu_tax_agg <- data.obj$feature.tab
       }
 
+      # Filter the feature table based on prevalence and abundance
       otu_tax_agg_filter <- otu_tax_agg %>%
         as.data.frame() %>%
         mStat_filter(prev.filter = prev.filter,
                      abund.filter = abund.filter) %>%
         rownames_to_column(feature.level)
 
+      # Perform data imputation and winsorization for count or proportion data
       if (feature.dat.type %in% c("count", "proportion")) {
-        # Use the half nonzero minimum method for zero padding.
+        # Calculate half of the minimum non-zero value for each sample
         half_nonzero_min <- apply(otu_tax_agg_filter[, -1], 2, function(x) min(x[x > 0]) / 2)
 
-        # Create a logical matrix with the same dimensions as otu_tax_agg_filter[, -1]
+        # Create a logical matrix identifying zero values
         zero_matrix <- otu_tax_agg_filter[, -1] == 0
 
-        # Reshape the half_nonzero_min vector into a matrix with the same dimensions as the zero_matrix.
+        # Create a matrix of imputation values
         half_nonzero_min_matrix <- matrix(half_nonzero_min, nrow = nrow(zero_matrix), ncol = ncol(zero_matrix), byrow = TRUE)
 
-        # Use a logical matrix as an index to update the zero values in otu_tax_agg_filter.
+        # Impute zero values with half of the minimum non-zero value
         otu_tax_agg_filter[, -1][zero_matrix] <- half_nonzero_min_matrix[zero_matrix]
 
-        # Add a message to inform the user that the fill operation has been performed.
         message("Imputation was performed using half the minimum nonzero proportion for each taxon across all time points.")
 
-        # Apply 97% winsorization to the filled proportion data.
+        # Apply winsorization to limit extreme values
         otu_tax_agg_filter[, -1] <- apply(otu_tax_agg_filter[, -1], 2, function(x) {
           qt <- quantile(x, probs = c((1 - winsor.qt) / 2, 1 - (1 - winsor.qt) / 2))
           x[x < qt[1]] <- qt[1]
@@ -196,7 +210,7 @@ generate_taxa_change_test_pair <-
         })
 
       } else if (feature.dat.type == "other") {
-        # If it is of "other" type, winsorize the top and bottom.
+        # Apply winsorization for 'other' data type
         otu_tax_agg_filter[, -1] <- apply(otu_tax_agg_filter[, -1], 2, function(x) {
           qt <- quantile(x, probs = c((1 - winsor.qt) / 2, 1 - (1 - winsor.qt) / 2))
           x[x < qt[1]] <- qt[1]
@@ -205,30 +219,31 @@ generate_taxa_change_test_pair <-
         })
       }
 
-      # Convert the otu_tax_agg_filter from wide format to long format.
+      # Convert the filtered data from wide to long format
       otu_tax_long <- otu_tax_agg_filter %>%
         tidyr::gather(key = "sample", value = "value", -feature.level)
 
-      # Connect otu_tax_long and meta_tab by the sample column.
+      # Merge the long-format data with metadata
       merged_data <- otu_tax_long %>%
         dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample")
 
-      # Based on the time column
+      # Group the data by time
       grouped_data <- merged_data %>%
         dplyr::group_by(!!sym(time.var))
 
+      # Identify the time point after the baseline
       change.after <-
         unique(grouped_data %>% select(all_of(c(time.var))))[unique(grouped_data %>% select(all_of(c(time.var)))) != change.base]
 
-      # Split into a list, with each time value having an independent tibble.
+      # Split the data into separate time points
       split_data <-
         split(merged_data, f = grouped_data %>% select(all_of(c(time.var))))
 
-      # Extract the first and second tables from split_data.
+      # Extract data for the baseline and follow-up time points
       data_time_1 <- split_data[[change.base]]
       data_time_2 <- split_data[[change.after]]
 
-      # Join these two tables together to calculate the difference
+      # Join the baseline and follow-up data
       combined_data <- data_time_1 %>%
         dplyr::inner_join(
           data_time_2,
@@ -236,6 +251,7 @@ generate_taxa_change_test_pair <-
           suffix = c("_time_1", "_time_2")
         )
 
+      # Calculate the change in feature values based on the specified method
       if (is.function(feature.change.func)) {
         combined_data <-
           combined_data %>% dplyr::mutate(value_diff = feature.change.func(value_time_2, value_time_1))
@@ -255,6 +271,7 @@ generate_taxa_change_test_pair <-
 
       message("Note: For repeated measurements of the same subject at the same time point, the average will be taken.")
 
+      # Create a matrix of value differences
       value_diff_matrix <- combined_data %>%
         select(feature.level, !!sym(subject.var), value_diff) %>%
         dplyr::group_by(!!sym(feature.level), !!sym(subject.var)) %>%
@@ -263,6 +280,7 @@ generate_taxa_change_test_pair <-
         column_to_rownames(var = feature.level) %>%
         as.matrix()
 
+      # Prepare metadata for analysis
       unique_meta_tab <- meta_tab %>%
         filter(!!sym(subject.var) %in% colnames(value_diff_matrix)) %>%
         select(all_of(c(subject.var, group.var, adj.vars))) %>%
@@ -276,6 +294,7 @@ generate_taxa_change_test_pair <-
       sorted_unique_meta_tab <- unique_meta_tab %>%
         dplyr::slice(match(cols_order, rownames(unique_meta_tab)))
 
+      # Calculate average abundance and prevalence for each feature
       prop_prev_data <-
         otu_tax_agg %>%
         as.matrix() %>%
@@ -286,13 +305,16 @@ generate_taxa_change_test_pair <-
                          prevalence = sum(Freq > 0) / dplyr::n()) %>% column_to_rownames("Var1") %>%
         rownames_to_column(feature.level)
 
+      # Convert the value difference matrix to long format
       value_diff_long <- value_diff_matrix %>%
         as.data.frame() %>%
         rownames_to_column(feature.level) %>%
         tidyr::gather(key = !!sym(subject.var), value = "value", -feature.level)
 
+      # Perform statistical tests for each feature
       sub_test.list <-
         lapply(value_diff_long %>% select(all_of(feature.level)) %>% pull() %>% unique(), function(taxon) {
+          # Prepare data for the current feature
           test_df <- value_diff_long %>%
             dplyr::filter(!!sym(feature.level) == taxon) %>%
             dplyr::left_join(sorted_unique_meta_tab %>%
@@ -300,12 +322,13 @@ generate_taxa_change_test_pair <-
                                rownames_to_column(subject.var),
                              by = subject.var)
 
-          # Run the linear model
+          # Fit the linear model
           test_result <- lm(formula, data = test_df)
 
+          # Extract coefficients from the linear model
           coef.tab <- extract_coef(test_result)
 
-          # Run ANOVA on the model if group.var is multi-categorical
+          # Perform ANOVA if the grouping variable has more than two levels
           if (length(unique(test_df[[group.var]])) > 2) {
             anova <- anova(test_result)
             anova.tab <- anova %>%
@@ -329,18 +352,20 @@ generate_taxa_change_test_pair <-
                 P.Value
               )
 
+            # Combine the coefficient table and ANOVA table
             coef.tab <-
-              rbind(coef.tab, anova.tab) # Append the anova.tab to the coef.tab
+              rbind(coef.tab, anova.tab)
           }
           return(as_tibble(coef.tab))
         })
 
-      # Assign names to the elements of test.list
+      # Assign names to the elements of sub_test.list
       names(sub_test.list) <- value_diff_long %>%
         select(all_of(feature.level)) %>%
         pull() %>%
         unique()
 
+      # Extract unique terms related to the grouping variable
       unique_terms <-
         grep(paste0("^", group.var, "$|^", group.var, ".*"),
              unique(unlist(
@@ -349,6 +374,7 @@ generate_taxa_change_test_pair <-
              )),
              value = TRUE)
 
+      # Compile results for each term
       result_list <- lapply(unique_terms, function(term) {
         do.call(rbind, lapply(sub_test.list, function(df) {
           df %>% dplyr::filter(Term == term)
@@ -376,8 +402,10 @@ generate_taxa_change_test_pair <-
           )
       })
 
+      # Assign names to the result list
       names(result_list) <- unique_terms
 
+      # Modify result names to include reference level information
       new_names <- sapply(names(result_list), function(name) {
 
         if (grepl(paste0("^", group.var), name) &&

@@ -66,13 +66,15 @@ mStat_summarize_data_obj <-
            time.var = NULL,
            group.var = NULL,
            palette = NULL) {
-    # Verify that feature.tab exists in data.obj
+    # Verify the presence of the feature table in the data object.
+    # This is a crucial component for microbiome data analysis.
     if (!"feature.tab" %in% names(data.obj)) {
       stop("Data object must contain 'feature.tab'")
     }
     feature_tab <- data.obj$feature.tab
 
-    # If meta.dat exists, compute summary statistics
+    # Extract metadata if available and compute summary statistics.
+    # Metadata provides important contextual information about the samples.
     if ("meta.dat" %in% names(data.obj)) {
       meta_dat <- data.obj$meta.dat
       num_meta_vars <- ncol(meta_dat)
@@ -82,7 +84,8 @@ mStat_summarize_data_obj <-
       meta_var_names <- NA
     }
 
-    # If feature.ann exists, compute NA proportions for each column
+    # Compute the proportion of missing values in feature annotations if available.
+    # This information is crucial for understanding the completeness of taxonomic assignments.
     if ("feature.ann" %in% names(data.obj)) {
       feature_ann <- data.obj$feature.ann
       NA_props <-
@@ -92,21 +95,24 @@ mStat_summarize_data_obj <-
       NA_props <- NA
     }
 
-    # Check if tree exists
+    # Check for the presence of a phylogenetic tree.
+    # Phylogenetic information can be important for certain types of microbiome analyses.
     tree_exists <-
       ifelse("tree" %in% names(data.obj) &&
                !is.null(data.obj$tree),
              "Yes",
              "No")
 
-    # If feature.agg.list exists, get list of aggregated taxonomies
+    # Identify aggregated taxonomic levels if available.
+    # This information is useful for analyses at different taxonomic resolutions.
     if ("feature.agg.list" %in% names(data.obj)) {
       agg_taxonomies <- names(data.obj$feature.agg.list)
     } else {
       agg_taxonomies <- NA
     }
 
-    # Compute summary statistics for feature_tab
+    # Compute basic summary statistics for the feature table.
+    # These statistics provide an overview of sequencing depth and data sparsity.
     ave_reads_per_sample <-
       sum(colSums(feature_tab)) / nrow(feature_tab)
     min_reads <- min(colSums(feature_tab))
@@ -118,28 +124,25 @@ mStat_summarize_data_obj <-
     count_single_occurrence <-
       length(which(rowSums(feature_tab) == 1))
 
-    # Handling the time-series data
+    # Handle time-series data if a time variable is provided.
+    # This section creates visualizations to understand sample distribution over time.
     if (!is.null(time.var) && "meta.dat" %in% names(data.obj)) {
       if (time.var %in% colnames(data.obj$meta.dat)) {
         time_var_data <- data.obj$meta.dat[[time.var]]
 
-        # cat("Time-Series Information:\n",
-        #     "========================\n")
-
-        # Create a histogram for the time variable
+        # Create a histogram of sample counts over time, potentially grouped by a specified variable.
+        # This visualization helps to understand the temporal distribution of samples.
         if (!is.null(group.var) &&
             group.var %in% colnames(data.obj$meta.dat)) {
-          # Create a grouped data frame
+          # Create a grouped data frame for the histogram
           grouped_df <- data.obj$meta.dat %>%
             dplyr::select(all_of(c(time.var, group.var))) %>%
             dplyr::group_by_at(vars(time.var, group.var)) %>%
             dplyr::summarise(SampleCount = dplyr::n(), .groups = "drop")
 
-          # Print the grouped data frame
-          #print(grouped_df)
-
           palette <- mStat_get_palette(palette)
 
+          # Create and print the grouped histogram
           p1 <- ggplot(grouped_df, aes(
             x = !!sym(time.var),
             y = SampleCount,
@@ -157,23 +160,13 @@ mStat_summarize_data_obj <-
               y = "Sample Count"
             ) +
             scale_y_continuous(expand = expansion(mult = c(0, 0.05)), limits = c(0, NA))
-          print(
-            # patchwork::plot_spacer() + p1 + patchwork::plot_spacer()
-            p1
-          )
+          print(p1)
         } else {
-          # Calculate the table
+          # Create and print a non-grouped histogram if no grouping variable is provided
           time_table <- table(data.obj$meta.dat[[time.var]])
-
-          # Convert to a data frame
           time_df <-
             as.data.frame(table(data.obj$meta.dat[[time.var]]))
-
-          # Rename the columns
           colnames(time_df) <- c("TimePoint", "SampleCount")
-
-          # Print the data frame
-          #print(time_df)
 
           print(
             ggplot(time_df, aes(x = TimePoint, y = SampleCount)) +
@@ -191,30 +184,26 @@ mStat_summarize_data_obj <-
           )
         }
 
-        # Explanation for the boxplot
+        # Provide an explanation about the importance of sequencing depth
         message("Since the presence of those low-abundance features depends highly on the sequencing depth, the association between the sequence depth and a variable of interest could lead to false associations of the observed abundance of these low-abundance features with the variable of interest. In this case, rarefaction may be needed to reduce the sequencing depth confounding. The sequence depth plot will help diagnose such potential confounding.\n")
 
-        # Compute sequencing depth for each sample
+        # Create a boxplot of sequencing depth over time
+        # This visualization helps to identify potential confounding effects of sequencing depth
         seq_depth <- colSums(feature_tab)
-
-        # Convert it to a data.frame for plotting
         seq_depth_df <- data.frame(
           TimePoint = data.obj$meta.dat[[time.var]],
           SequencingDepth = seq_depth
         )
 
-        # If group.var is provided, add it to the data.frame
         if (!is.null(group.var) && group.var %in% colnames(data.obj$meta.dat)) {
           seq_depth_df$Group <- data.obj$meta.dat[[group.var]]
         }
 
         seq_depth_df$TimePoint <- as.factor(seq_depth_df$TimePoint)
 
-        # Plotting the sequencing depth boxplot
         seq_depth_plot <- ggplot(seq_depth_df, aes(x = TimePoint, y = SequencingDepth, fill = Group)) +
           geom_boxplot() +
           theme_minimal() +
-          #geom_jitter(position = position_dodge(width = 0.75), alpha = 0.5, size = 2) +
           theme(
             plot.title = element_text(hjust = 0.5, size = 8)
           ) +
@@ -227,12 +216,10 @@ mStat_summarize_data_obj <-
           seq_depth_plot <- seq_depth_plot + scale_fill_manual(values = palette, name = "Group")
         }
         print(seq_depth_plot)
-
-      } else {
-        #cat("The provided time variable does not exist in the metadata.\n")
       }
     }
 
+    # Initialize a data frame to store summary statistics
     table1 <- data.frame(
       Category = character(),
       Variable = character(),
@@ -240,6 +227,7 @@ mStat_summarize_data_obj <-
       stringsAsFactors = FALSE
     )
 
+    # Add basic statistics to the summary table
     basic_stats <- data.frame(
       Category = "Basic Statistics",
       Variable = c(
@@ -264,13 +252,8 @@ mStat_summarize_data_obj <-
 
     table1 <- rbind(table1, basic_stats)
 
+    # Add metadata statistics if available
     if (!is.na(num_meta_vars)) {
-      # metadata_stats <- data.frame(
-      #   Category = "Metadata",
-      #   Variable = c("Number of metadata variables", "Metadata variables"),
-      #   Value = c(num_meta_vars, paste(meta_var_names, collapse = ", "))
-      # )
-
       metadata_stats <- data.frame(
         Category = "Metadata",
         Variable = c("Number of metadata variables"),
@@ -280,6 +263,7 @@ mStat_summarize_data_obj <-
       table1 <- rbind(table1, metadata_stats)
     }
 
+    # Add feature annotation statistics if available
     if (length(NA_props) > 0) {
       for (i in 1:length(NA_props)) {
         missing_annotation <- data.frame(
@@ -294,12 +278,14 @@ mStat_summarize_data_obj <-
       }
     }
 
+    # Add information about the presence of a phylogenetic tree
     tree_info <- data.frame(Category = "Phylogenetic Tree",
                             Variable = "Exists in the dataset",
                             Value = tree_exists)
 
     table1 <- rbind(table1, tree_info)
 
+    # Add information about aggregated taxonomies if available
     if (any(!is.na(agg_taxonomies))) {
       aggregated_taxonomies <- data.frame(
         Category = "Aggregated Taxonomies",
@@ -310,6 +296,7 @@ mStat_summarize_data_obj <-
       table1 <- rbind(table1, aggregated_taxonomies)
     }
 
+    # Add time-series information if a time variable is provided
     if (!is.null(time.var) && "meta.dat" %in% names(data.obj)) {
       if (time.var %in% colnames(data.obj$meta.dat)) {
         time_var_data <- data.obj$meta.dat[[time.var]]
@@ -335,6 +322,7 @@ mStat_summarize_data_obj <-
 
         table1 <- rbind(table1, time_stats)
 
+        # Add sample count for each time point
         time_table <- table(data.obj$meta.dat[[time.var]])
         time_df <- as.data.frame(time_table)
         colnames(time_df) <- c("TimePoint", "SampleCount")
@@ -347,11 +335,10 @@ mStat_summarize_data_obj <-
           )
           table1 <- rbind(table1, distribution)
         }
-      } else {
-        #cat("The provided time variable does not exist in the metadata.\n")
       }
     }
 
+    # Add basic sample and feature count statistics
     num_samples <- ncol(feature_tab)
     num_features <- nrow(feature_tab)
     sample_feature_stats <- data.frame(
@@ -361,6 +348,7 @@ mStat_summarize_data_obj <-
     )
     table1 <- rbind(sample_feature_stats, table1)
 
+    # Round numeric values to three decimal places for readability
     is_numeric <- sapply(table1$Value, function(x) grepl("^-?[0-9.]+$", x))
 
     has_more_than_three_decimals <- sapply(table1$Value[is_numeric], function(x) {
@@ -370,5 +358,6 @@ mStat_summarize_data_obj <-
 
     table1$Value[is_numeric][has_more_than_three_decimals] <- round(as.numeric(table1$Value[is_numeric][has_more_than_three_decimals]), 3)
 
+    # Return the summary table as a tibble for easier viewing and manipulation
     return(as_tibble(table1))
   }

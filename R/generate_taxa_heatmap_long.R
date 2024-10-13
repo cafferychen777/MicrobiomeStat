@@ -152,10 +152,13 @@ generate_taxa_heatmap_long <- function(data.obj,
                                        pdf.wid = 11,
                                        pdf.hei = 8.5,
                                        ...) {
+  # Match the feature data type argument
   feature.dat.type <- match.arg(feature.dat.type)
 
+  # Validate the input data object
   mStat_validate_data(data.obj)
 
+  # Input validation for key variables
   if (!is.character(subject.var))
     stop("`subject.var` should be a character string.")
   if (!is.character(time.var))
@@ -167,25 +170,29 @@ generate_taxa_heatmap_long <- function(data.obj,
       !is.character(strata.var))
     stop("`strata.var` should be a character string or NULL.")
 
-  # Extract data
+  # Process time variable in the data object
   data.obj <-
     mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
 
+  # Extract relevant metadata
   meta_tab <-
     data.obj$meta.dat %>% as.data.frame() %>% select(all_of(c(
       subject.var, group.var, time.var, strata.var
     )))
 
+  # If no group variable is provided, create a dummy "ALL" group
   if (is.null(group.var)) {
     group.var = "ALL"
     meta_tab$ALL <- "ALL"
   }
 
+  # If a strata variable is provided, create an interaction term with the group variable
   if (!is.null(strata.var)) {
     meta_tab <-
       meta_tab %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(strata.var), !!sym(group.var)))
   }
 
+  # Set default clustering options if not specified
   if (is.null(cluster.cols)) {
     cluster.cols = FALSE
   } else {
@@ -196,12 +203,14 @@ generate_taxa_heatmap_long <- function(data.obj,
     cluster.rows = TRUE
   }
 
+  # Determine whether to apply abundance and prevalence filters
   if (feature.dat.type == "other" || !is.null(features.plot) ||
       (!is.null(top.k.func) && !is.null(top.k.plot))) {
     prev.filter <- 0
     abund.filter <- 0
   }
 
+  # Normalize count data if necessary
   if (feature.dat.type == "count") {
     message(
       "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
@@ -210,25 +219,30 @@ generate_taxa_heatmap_long <- function(data.obj,
       mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
   }
 
+  # Create a list to store plots for each taxonomic level
   plot_list <- lapply(feature.level, function(feature.level) {
+    # Aggregate data by taxonomy if necessary
     if (is.null(data.obj$feature.agg.list[[feature.level]]) &
         feature.level != "original") {
       data.obj <-
         mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
     }
 
+    # Get the appropriate feature table
     if (feature.level != "original") {
       otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
     } else {
       otu_tax_agg <- data.obj$feature.tab
     }
 
+    # Apply abundance and prevalence filters
     otu_tax_agg <-  otu_tax_agg %>%
       as.data.frame() %>%
       mStat_filter(prev.filter = prev.filter,
                    abund.filter = abund.filter) %>%
       rownames_to_column(feature.level)
 
+    # Select top k features if specified
     if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
       computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
       features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
@@ -238,27 +252,30 @@ generate_taxa_heatmap_long <- function(data.obj,
     otu_tax_agg_numeric <-
       dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
 
+    # Prepare the data for heatmap visualization
     otu_tab_norm <-
       otu_tax_agg_numeric %>%
       filter(!is.na(!!sym(feature.level))) %>%
       column_to_rownames(var = feature.level) %>%
       as.matrix()
 
-      wide_data <- otu_tab_norm %>%
-        as.data.frame() %>%
-        rownames_to_column(var = feature.level) %>%
-        tidyr::gather(key = "sample",
-                      value = "value",
-                      -one_of(feature.level)) %>%
-        dplyr::left_join(meta_tab %>%
-                           rownames_to_column("sample"), by = "sample") %>%
-        dplyr::group_by(!!sym(feature.level),
-                        !!sym(group.var),
-                        !!sym(time.var)) %>%
-        dplyr::summarise(mean_value = mean(value)) %>%
-        tidyr::unite("group_time", c(group.var, time.var), sep = "_") %>%
-        tidyr::spread(key = "group_time", value = "mean_value") %>% column_to_rownames(feature.level)
+    # Calculate mean values for each group and time point
+    wide_data <- otu_tab_norm %>%
+      as.data.frame() %>%
+      rownames_to_column(var = feature.level) %>%
+      tidyr::gather(key = "sample",
+                    value = "value",
+                    -one_of(feature.level)) %>%
+      dplyr::left_join(meta_tab %>%
+                         rownames_to_column("sample"), by = "sample") %>%
+      dplyr::group_by(!!sym(feature.level),
+                      !!sym(group.var),
+                      !!sym(time.var)) %>%
+      dplyr::summarise(mean_value = mean(value)) %>%
+      tidyr::unite("group_time", c(group.var, time.var), sep = "_") %>%
+      tidyr::spread(key = "group_time", value = "mean_value") %>% column_to_rownames(feature.level)
 
+    # Prepare column annotations for the heatmap
     annotation_col <- meta_tab %>%
       select(!!sym(time.var), !!sym(group.var)) %>%
       as_tibble() %>%
@@ -266,9 +283,11 @@ generate_taxa_heatmap_long <- function(data.obj,
       dplyr::mutate(group_time = paste(!!sym(group.var), !!sym(time.var), sep = "_")) %>%
       column_to_rownames("group_time")
 
+    # Sort the annotation columns
     annotation_col_sorted <-
       annotation_col[order(annotation_col[[group.var]], annotation_col[[time.var]]),]
 
+    # Handle strata variable if present
     if (!is.null(strata.var)) {
       annotation_col_sorted <- annotation_col_sorted %>%
         tidyr::separate(!!sym(group.var),
@@ -282,9 +301,10 @@ generate_taxa_heatmap_long <- function(data.obj,
                                     annotation_col_sorted[[time.var]]),]
     }
 
+    # Sort the data according to the annotation
     wide_data_sorted <- wide_data[, rownames(annotation_col_sorted)]
 
-    # Calculate gaps if group.var is not NULL
+    # Calculate gaps for the heatmap
     if (!is.null(group.var)) {
       gaps <-
         cumsum(table(annotation_col_sorted[[group.var]]))[-length(table(annotation_col_sorted[[group.var]]))]
@@ -297,40 +317,32 @@ generate_taxa_heatmap_long <- function(data.obj,
         cumsum(table(annotation_col_sorted[[strata.var]]))[-length(table(annotation_col_sorted[[strata.var]]))]
     }
 
+    # Define color palette for the heatmap
     col <- c("white", "#92c5de", "#0571b0", "#f4a582", "#ca0020")
-
-    # Create color mapping function
     my_col <- colorRampPalette(col)
-
-    # Calculate the number of colors
-    # This usually depends on your data, and you may need to adjust according to your actual situation.
     n_colors <- 100
 
+    # Filter features if specified
     if (!is.null(features.plot)) {
       wide_data_sorted <-
         wide_data_sorted[rownames(wide_data_sorted) %in% features.plot,]
     }
 
-    # Define the colors
+    # Define colors for group and strata variables
     color_vector <- mStat_get_palette(palette)
-
-    # For demonstration purposes, assume these are your only values.
     group_levels <-
       annotation_col_sorted %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
-
-    # Assign colors to group.var
     group_colors <-
       setNames(color_vector[1:length(group_levels)], group_levels)
 
     if (!is.null(strata.var)){
       strata_levels <-
         annotation_col_sorted %>% dplyr::select(all_of(c(strata.var))) %>% distinct() %>% pull()
-      # Assign colors to strata.var
       strata_colors <-
         setNames(rev(color_vector)[1:length(strata_levels)], strata_levels)
     }
 
-    # Create comment color list
+    # Create annotation color list
     if (!is.null(strata.var)){
       annotation_colors_list <- setNames(list(group_colors, strata_colors),
                                          c(group.var, strata.var))
@@ -344,7 +356,7 @@ generate_taxa_heatmap_long <- function(data.obj,
       annotation_colors_list <- NULL
     }
 
-    # Plot stacked heatmap
+    # Generate heatmap for average values
     heatmap_plot_average <- pheatmap::pheatmap(
       mat = wide_data_sorted[order(rowMeans(wide_data_sorted, na.rm = TRUE), decreasing = TRUE), ],
       annotation_col = annotation_col_sorted,
@@ -361,11 +373,13 @@ generate_taxa_heatmap_long <- function(data.obj,
 
     gg_heatmap_plot_average <- as.ggplot(heatmap_plot_average)
 
+    # Filter features for individual heatmap if specified
     if (!is.null(features.plot)) {
       otu_tab_norm <-
         otu_tab_norm[rownames(otu_tab_norm) %in% features.plot,]
     }
 
+    # Prepare metadata for individual heatmap
     if (group.var == "ALL"){
       meta_tab <- meta_tab %>% select(-all_of("ALL"))
       annotation_colors_list <- NULL
@@ -376,6 +390,7 @@ generate_taxa_heatmap_long <- function(data.obj,
         )))
     }
 
+    # Generate heatmap for individual samples
     heatmap_plot_indiv <- pheatmap::pheatmap(
       mat = otu_tab_norm[order(rowMeans(otu_tab_norm, na.rm = TRUE), decreasing = TRUE), ],
       annotation_col = meta_tab,
@@ -392,7 +407,7 @@ generate_taxa_heatmap_long <- function(data.obj,
 
     gg_heatmap_plot_indiv <- as.ggplot(heatmap_plot_indiv)
 
-    # Save the stacked heatmap as a PDF file
+    # Save the average heatmap as a PDF file if requested
     if (pdf) {
       pdf_name <- paste0(
         "taxa_heatmap_long_average",
@@ -433,7 +448,7 @@ generate_taxa_heatmap_long <- function(data.obj,
       )
     }
 
-    # Save the stacked heatmap as a PDF file
+    # Save the individual heatmap as a PDF file if requested
     if (pdf) {
       pdf_name <- paste0(
         "taxa_heatmap_long_indiv",
@@ -474,15 +489,16 @@ generate_taxa_heatmap_long <- function(data.obj,
       )
     }
 
+    # Combine individual and average heatmaps into a list
     sub.plot_list <- list(gg_heatmap_plot_indiv, gg_heatmap_plot_average)
-
     names(sub.plot_list) <- c("indiv","average")
 
     return(sub.plot_list)
   })
 
+  # Name the plots in the list by feature level
   names(plot_list) <- feature.level
 
-  # Return the heatmap plot for display
+  # Return the list of heatmap plots
   return(plot_list)
 }

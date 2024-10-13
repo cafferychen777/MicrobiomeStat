@@ -50,68 +50,92 @@ mStat_calculate_adjusted_distance <- function (data.obj,
                                                adj.vars,
                                                dist.name) {
 
+  # Check if dist.name is provided, if not, return early
   if (is.null(dist.name)){
     return()
   }
 
-  # Message to inform the user
+  # Inform the user about the calculation process
   message(
     "Calculating adjusted distances using the provided adjustment variables and distance matrices..."
   )
 
-  # Load metadata and select the required adjustment variables
+  # Extract metadata and select only the specified adjustment variables
+  # This step ensures we only work with the relevant variables for adjustment
   meta_tab <-
     data.obj$meta.dat %>% select(all_of(c(adj.vars)))
 
-  # Create a formula string from the adjustment variables and convert it into a formula object
+  # Create a formula string for the linear model
+  # This formula will be used to adjust the distances based on the specified variables
   formula_str <- paste("xx ~", paste(adj.vars, collapse = "+"))
   dynamic_formula <- as.formula(formula_str)
 
-  # Iterate over the distance names to calculate adjusted distances
+  # Iterate over each specified distance matrix to calculate adjusted distances
   adj.dist.obj <- lapply(dist.name, function(sub_dist.name) {
 
-    D <- as.matrix(dist.obj[[sub_dist.name]])
+    # Convert the distance object to a matrix for easier manipulation
+    distance_matrix <- as.matrix(dist.obj[[sub_dist.name]])
 
-    obj <- suppressWarnings(cmdscale(D, k = nrow(D) - 1, eig = TRUE))
+    # Perform classical multidimensional scaling (MDS) on the distance matrix
+    # This step transforms the distances into a set of coordinates in Euclidean space
+    mds_result <- suppressWarnings(cmdscale(distance_matrix, k = nrow(distance_matrix) - 1, eig = TRUE))
 
-    if (!all(obj$eig > 0)){
+    # Check if the eigenvalues are all positive
+    # If not, add a constant to make the distances Euclidean
+    if (!all(mds_result$eig > 0)){
       message("Additive constant c* is being added to the non-diagonal dissimilarities to ensure they are Euclidean.")
-      obj <- suppressWarnings(cmdscale(D, k = nrow(D) - 1, eig = TRUE, add = TRUE))
+      mds_result <- suppressWarnings(cmdscale(distance_matrix, k = nrow(distance_matrix) - 1, eig = TRUE, add = TRUE))
     }
 
-    eig <- obj$eig
+    # Extract eigenvalues from the MDS result
+    eigenvalues <- mds_result$eig
 
-    s <- sign(eig)
+    # Store the sign of eigenvalues (not used in current implementation)
+    eigenvalue_signs <- sign(eigenvalues)
 
-    eig <- abs(eig)
+    # Take the absolute value of eigenvalues
+    eigenvalues <- abs(eigenvalues)
 
-    xx <- obj$points
+    # Extract the MDS coordinates
+    mds_coordinates <- mds_result$points
 
-    # Create an empty matrix to store residuals
-    res_matrix <- matrix(0, nrow = nrow(xx), ncol = ncol(xx))
+    # Initialize a matrix to store residuals
+    # These residuals will represent the adjusted distances
+    res_matrix <- matrix(0, nrow = nrow(mds_coordinates), ncol = ncol(mds_coordinates))
+    rownames(res_matrix) <- rownames(mds_coordinates)
 
-    rownames(res_matrix) <- rownames(xx)
-
-    # Loop through each column of xx to calculate residuals
-    for (i in 1:ncol(xx)) {
+    # Iterate through each MDS dimension
+    for (i in 1:ncol(mds_coordinates)) {
+      # Create a column name for the current MDS dimension
       column_name <- paste0("MDS", i)
+      
+      # Create a formula for the linear model
+      # This model will adjust the MDS coordinates based on the specified variables
       formula_str <- paste(column_name, "~", paste(adj.vars, collapse = "+"))
       dynamic_formula <- as.formula(formula_str)
 
-      # Bind the current MDS column to meta_tab
-      current_data <- cbind(meta_tab, xx[, i, drop = FALSE])
+      # Combine the metadata with the current MDS dimension
+      current_data <- cbind(meta_tab, mds_coordinates[, i, drop = FALSE])
       colnames(current_data)[ncol(current_data)] <- column_name
 
+      # Fit a linear model and extract residuals
+      # These residuals represent the MDS coordinates after adjusting for the specified variables
       model_res <- residuals(lm(dynamic_formula, data = current_data))
       res_matrix[, i] <- model_res
     }
 
-    D.adj <- sqrt(stats::dist(t(t(res_matrix) * sqrt(eig)))^2)
+    # Calculate adjusted distances using the residuals
+    # This step transforms the adjusted coordinates back into distances
+    # The square root of eigenvalues is used to weight the dimensions appropriately
+    D.adj <- sqrt(stats::dist(t(t(res_matrix) * sqrt(eigenvalues)))^2)
 
+    # Return the adjusted distance matrix
     return(as.dist(D.adj))
   })
 
+  # Name the list of adjusted distance matrices
   names(adj.dist.obj) <- dist.name
 
+  # Return the list of adjusted distance matrices
   return(adj.dist.obj)
 }

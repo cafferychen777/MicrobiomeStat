@@ -75,49 +75,57 @@ generate_taxa_volatility_volcano_long <- function(data.obj,
                                                   pdf.wid = 7,
                                                   pdf.hei = 5){
 
+  # Extract relevant metadata and add sample names as a column
   meta_tab <- data.obj$meta.dat %>%
     dplyr::select(all_of(c(
       group.var
     ))) %>% rownames_to_column("sample")
 
+  # Extract feature levels from the test list
   feature.level <- names(test.list)
 
-  # Define the custom color palette
+  # Get the color palette for the plot
   color_palette <- mStat_get_palette(palette)
 
+  # Extract group levels from metadata
   group_level <- meta_tab %>% select(all_of(c(group.var))) %>% pull() %>% as.factor() %>% levels
 
+  # Set the reference level as the first group level
   reference_level <- group_level[1]
 
-  # Set the p value variable to be used using conditional expressions.
+  # Determine which p-value to use based on multiple testing correction method
   p_val_var <-
     ifelse(feature.mt.method == "fdr",
            "Adjusted.P.Value",
            "P.Value")
 
+  # Generate plots for each feature level
   plot.list <- lapply(feature.level, function(feature.level) {
     sub_test.list <- test.list[[feature.level]]
 
+    # Determine which group levels to plot based on the number of groups
     if (length(group_level) > 2) {
       group.levels <- names(sub_test.list)[-length(names(sub_test.list))]
     } else {
       group.levels <- names(sub_test.list)
     }
 
+    # Generate volcano plots for each group comparison
     sub_plot.list <-
       lapply(group.levels, function(group.level) {
 
         sub_test.result <- sub_test.list[[group.level]]
 
-        # If features.plot is provided, only keep these features.
+        # Filter features if a specific set is provided
         if (!is.null(features.plot)) {
           sub_test.result <- sub_test.result[sub_test.result$Variable %in% features.plot, ]
         }
 
-        # Find max absolute log2FoldChange for symmetric x-axis
+        # Calculate the maximum absolute coefficient for symmetric x-axis
         max_abs_log2FC <-
           max(abs(sub_test.result$Coefficient), na.rm = TRUE)
 
+        # Create the volcano plot
         p <-
           ggplot(sub_test.result, aes(x = Coefficient, y = -log10(get(p_val_var)),
                                       color = Prevalence, size = Mean.Abundance)) +
@@ -148,6 +156,7 @@ generate_taxa_volatility_volcano_long <- function(data.obj,
           scale_size_continuous(range = c(3, 7)) +
           coord_cartesian(xlim = c(-max_abs_log2FC, max_abs_log2FC))
 
+        # Save the plot as PDF if requested
         if (pdf) {
           pdf_filename <- paste0("volcano_", feature.level, "_", group.level, ".pdf")
           ggsave(pdf_filename, plot = p, width = pdf.wid, height = pdf.hei)
@@ -156,12 +165,14 @@ generate_taxa_volatility_volcano_long <- function(data.obj,
         return(p)
       })
 
+    # Assign names to the sub-plot list based on group levels
     names(sub_plot.list) <-
       group.levels
 
     return(sub_plot.list)
   })
 
+  # Assign names to the plot list based on feature levels
   names(plot.list) <- feature.level
 
   return(plot.list)

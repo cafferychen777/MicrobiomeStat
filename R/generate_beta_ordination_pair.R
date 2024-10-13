@@ -155,19 +155,27 @@ generate_beta_ordination_pair <-
            pdf.hei = 8.5,
            ...) {
 
+    # Check if distance metrics are provided. If not, exit the function.
     if (is.null(dist.name)){
       return()
     }
 
+    # Calculate beta diversity if not provided
     if (is.null(dist.obj)) {
+      # Compute beta diversity distances using specified metrics
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
+      # Extract relevant metadata
       meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
+      
+      # Adjust distances if adjustment variables are provided
+      # This step helps to account for potential confounding factors
       if (!is.null(adj.vars)){
         dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
       }
       print(dist.obj)
     } else {
+      # If distance object is provided, extract metadata accordingly
       if (is.null(data.obj)) {
         meta_tab <- attr(dist.obj[[dist.name[1]]], "labels") %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
       } else {
@@ -175,7 +183,10 @@ generate_beta_ordination_pair <-
       }
     }
 
+    # Perform dimension reduction if not already done
     if (is.null(pc.obj)) {
+      # Use Multidimensional Scaling (MDS) to reduce dimensions to 2
+      # This allows for visualization of high-dimensional distance data in 2D space
       pc.obj <-
         mStat_calculate_PC(
           dist.obj = dist.obj,
@@ -185,8 +196,11 @@ generate_beta_ordination_pair <-
         )
     }
 
+    # Get color palette for plotting
     col <- mStat_get_palette(palette)
 
+    # Define aesthetic mapping based on presence of group variable
+    # This determines how different variables will be represented visually
     aes_function <- if (!is.null(group.var)) {
       aes(color = !!sym(group.var),
           shape = !!sym(time.var))
@@ -194,12 +208,15 @@ generate_beta_ordination_pair <-
       aes(color = !!sym(time.var))
     }
 
-    # Assuming mStat_get_theme function is already defined
-    # Replace the existing theme selection code with this:
+    # Get appropriate theme for plotting
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
+    # Generate plots for each distance metric
     plot_list <- lapply(dist.name, function(dist.name) {
+      # Extract the first two principal coordinates
       pc.mat <- pc.obj[[dist.name]]$points[, 1:2]
+      
+      # Prepare data frame for plotting
       df <- as.data.frame(pc.mat) %>%
         setNames(c("PC1", "PC2")) %>%
         dplyr::bind_cols(meta_tab[, c(subject.var, time.var, group.var, strata.var)]) %>%
@@ -210,17 +227,21 @@ generate_beta_ordination_pair <-
           y_end = NA
         )
 
+      # Get unique time points
       Time_choices <-
         df %>% dplyr::select(all_of(time.var)) %>% dplyr::pull() %>% unique()
 
+      # Calculate end points for arrows
+      # This creates the visual effect of change over time for each subject
       df <- df %>%
-        dplyr::arrange(!!sym(subject.var),!!sym(time.var)) %>% # Sort to ensure the correct order of time.
+        dplyr::arrange(!!sym(subject.var),!!sym(time.var)) %>% 
         dplyr::group_by(!!sym(subject.var)) %>%
         dplyr::mutate(x_end = dplyr::lead(PC1),
                       y_end = dplyr::lead(PC2)) %>%
         dplyr::ungroup()
 
       # Create a dataset with all points for each facet
+      # This allows for comparison across strata while maintaining context
       if (!is.null(strata.var)) {
         all_strata <- unique(df[[strata.var]])
         df_all <- do.call(rbind, lapply(all_strata, function(s) {
@@ -239,6 +260,7 @@ generate_beta_ordination_pair <-
       p <- ggplot2::ggplot(df_all, ggplot2::aes(PC1, PC2))
 
       # Add gray points and lines for all data
+      # This provides context for the highlighted data in each facet
       p <- p +
         ggplot2::geom_point(data = subset(df_all, !is_facet),
                             aes_function,
@@ -250,13 +272,14 @@ generate_beta_ordination_pair <-
           arrow = ggplot2::arrow(length = unit(0.25, "cm"), type = "open")
         )
 
-      # Define aesthetic mapping
+      # Define aesthetic mapping for highlighted data
       aes_function <- if (!is.null(group.var)) {
         aes(shape = !!sym(time.var), color = !!sym(group.var))
       } else {
         aes(shape = !!sym(time.var), color = !!sym(time.var))
       }
 
+      # Add highlighted points and arrows for the current facet
       p <- p +
         ggplot2::geom_point(data = subset(df_all, is_facet), aes_function, size = 10, show.legend = TRUE) +
         ggplot2::geom_segment(
@@ -269,6 +292,7 @@ generate_beta_ordination_pair <-
           size = 1
         )
 
+      # Add labels and customize plot appearance
       p <- p +
         ggplot2::labs(
           x = ifelse(
@@ -309,12 +333,12 @@ generate_beta_ordination_pair <-
           legend.title = ggplot2::element_text(size = 16)
         )
 
+      # Add faceting if strata variable is provided
       if (!is.null(strata.var)) {
         p <- p + ggh4x::facet_nested(as.formula(paste("~ facet")))
       }
 
-
-      # Save the plots as a PDF file
+      # Save the plot as a PDF file if requested
       if (pdf) {
         pdf_name <- paste0(
           "beta_ordination_pair_",

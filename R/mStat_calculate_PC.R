@@ -30,32 +30,60 @@
 #' @export
 mStat_calculate_PC <- function(dist.obj, method = c('mds'), k = 2, dist.name = NULL) {
 
+  # Check if dist.name is NULL and return early if so
+  # This prevents unnecessary computations if no distance metric is specified
   if (is.null(dist.name)){
     return()
   }
 
+  # Define an inner function to calculate principal coordinates for a single method
+  # This function encapsulates the logic for different ordination techniques
   calculate_single_method <- function(m, dist_matrix, k, perplexity = NULL) {
     if (m == 'mds') {
+      # Metric Multidimensional Scaling (MDS)
+      # MDS aims to preserve the between-object distances in a lower-dimensional space
+      # It is useful for visualizing the level of similarity of individual cases in a dataset
       message("Calculating MDS...")
       return(cmdscale(dist_matrix, eig = TRUE, k = k))
     } else if (m == 'nmds') {
+      # Non-Metric Multidimensional Scaling (NMDS)
+      # NMDS is a rank-based approach that maximizes the correlation between 
+      # distances in the original high-dimensional space and distances in the ordination space
+      # It's often used when a non-linear relationship between dissimilarities is suspected
       message("Calculating NMDS...")
       return(metaMDS(dist_matrix, distance = "euclidean", k = k))
     } else {
+      # If an unsupported method is specified, warn the user and return NULL
       warning(paste("Unsupported method:", m))
       return(NULL)
     }
   }
 
+  # Inform the user that the principal coordinate calculation is starting
   message("Calculating PC...")
+  
+  # Use lapply to iterate over each specified distance metric
+  # This allows for efficient calculation of principal coordinates for multiple distance matrices
   pc.obj <- lapply(dist.name, function(dist_name) {
+    # Inform the user about which distance matrix is being processed
     message(paste("Processing", dist_name, "distance..."))
+    
+    # Extract the distance matrix for the current metric
     dist_matrix <- dist.obj[[dist_name]]
+    
+    # Calculate principal coordinates using the specified method
     pc_results <- calculate_single_method(method, dist_matrix, k)
+    
+    # Return the results for this distance metric
     return(pc_results)
   })
+  
+  # Assign names to the list of results based on the distance metrics used
   names(pc.obj) <- dist.name
 
+  # Inform the user that all calculations are complete
   message("Calculation complete.")
+  
+  # Return the list of principal coordinate results
   return(pc.obj)
 }

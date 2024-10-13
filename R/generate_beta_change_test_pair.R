@@ -96,15 +96,20 @@ generate_beta_change_test_pair <-
            change.base = NULL,
            dist.name = c('BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS')) {
 
+    # Check if dist.name is provided, if not, return early
     if (is.null(dist.name)){
       return()
     }
 
-    if (is.null(dist.obj)&!is.null(data.obj)) {
+    # Calculate beta diversity if not provided
+    if (is.null(dist.obj) & !is.null(data.obj)) {
+      # Calculate beta diversity using specified distance metrics
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
+      # Extract relevant metadata
       meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var,group.var,time.var, adj.vars))) %>% rownames_to_column("sample")
     } else {
+      # Extract metadata from data.obj or dist.obj
       if (!is.null(data.obj)){
         meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var,group.var,time.var, adj.vars))) %>% rownames_to_column("sample")
       } else {
@@ -112,57 +117,69 @@ generate_beta_change_test_pair <-
       }
     }
 
+    # Initialize variable to store time-varying information
     time_varying_info <- NULL
 
+    # Handle time-varying covariates
     if (!is.null(adj.vars)){
-      # Use the modified mStat_identify_time_varying_vars function
+      # Identify time-varying and non-time-varying variables
       time_varying_info <- mStat_identify_time_varying_vars(meta.dat = meta_tab, adj.vars = adj.vars, subject.var = subject.var)
 
+      # Adjust distances for non-time-varying variables
       if (length(time_varying_info$non_time_varying_vars) > 0){
         dist.obj <- mStat_calculate_adjusted_distance(data.obj, dist.obj, time_varying_info$non_time_varying_vars, dist.name)
       }
-
     }
 
+    # Set default change.base if not provided
     if (is.null(change.base)){
       change.base <- unique(meta_tab %>% dplyr::select(all_of(c(time.var))))[1,]
       message("The 'change.base' variable was NULL. It has been set to the first unique value in the 'time.var' column of the 'meta.dat' data frame: ", change.base)
     }
 
+    # Identify time points after the baseline
     change.after <-
       unique(meta_tab %>% dplyr::select(all_of(c(time.var))))[unique(meta_tab %>% dplyr::select(all_of(c(time.var)))) != change.base]
 
+    # Perform analysis for each distance metric
     test.list <- lapply(dist.name, function(dist.name){
 
+      # Convert distance matrix to long format
       dist.df <- as.matrix(dist.obj[[dist.name]]) %>%
         as.data.frame() %>%
         rownames_to_column("sample")
 
+      # Prepare data for analysis
       long.df <- dist.df %>%
         tidyr::gather(key = "sample2", value = "distance", -sample) %>%
         dplyr::left_join(meta_tab, by = "sample") %>%
         dplyr::left_join(meta_tab, by = c("sample2" = "sample"), suffix = c(".subject", ".sample")) %>%
+        # Filter for within-subject comparisons
         filter(!!sym(paste0(subject.var, ".subject")) == !!sym(paste0(subject.var, ".sample"))) %>%
         dplyr::group_by(!!sym(paste0(subject.var, ".subject"))) %>%
+        # Filter for baseline and follow-up time points
         filter(!!sym(paste0(time.var,".sample")) == change.base) %>%
         filter(!!sym(paste0(time.var,".subject")) != !!sym(paste0(time.var,".sample"))) %>%
         dplyr::ungroup() %>%
         dplyr::select(!!sym(paste0(subject.var, ".subject")), !!sym(paste0(time.var, ".subject")), distance) %>%
         dplyr::rename(!!sym(subject.var) := !!sym(paste0(subject.var, ".subject")), !!sym(time.var) := !!sym(paste0(time.var, ".subject")))
 
+      # Join with metadata
       long.df <- long.df %>% dplyr::left_join(meta_tab %>% dplyr::select(-any_of(c(time.var, "sample"))) %>% dplyr::distinct(), by = subject.var)
 
-      # Create a formula for lm
+      # Create formula for linear model
       formula <-
         as.formula(paste0("distance", "~", paste(c(
           time_varying_info$time_varying_vars, group.var
         ), collapse = "+")))
 
-      # Run lm and create a coefficient table
+      # Fit linear model
       lm.model <- lm(formula, data = long.df)
 
+      # Extract model summary
       summary <- summary(lm.model)
 
+      # Create coefficient table
       coef.tab <- summary$coefficients %>%
         as.data.frame() %>%
         rownames_to_column("Term") %>%
@@ -174,9 +191,11 @@ generate_beta_change_test_pair <-
                 P.Value = `Pr(>|t|)`) %>%
         as_tibble()
 
-      # Run ANOVA on the model if group.var is multi-categorical
+      # Perform ANOVA if group variable has multiple levels
       if (length(unique(meta_tab[[group.var]])) > 1) {
+        # Conduct ANOVA
         anova <- anova(lm.model)
+        # Create ANOVA table
         anova.tab <- anova %>%
           as.data.frame() %>%
           rownames_to_column("Term") %>%
@@ -193,8 +212,9 @@ generate_beta_change_test_pair <-
             P.Value
           )
 
+        # Combine coefficient and ANOVA tables
         coef.tab <-
-          rbind(coef.tab, anova.tab) # Append the anova.tab to the coef.tab
+          rbind(coef.tab, anova.tab)
       }
 
       return(coef.tab)

@@ -152,11 +152,16 @@ generate_alpha_test_pair <-
            adj.vars = NULL,
            change.base = NULL) {
 
+    # Exit the function if no alpha diversity indices are specified
     if (is.null(alpha.name)){
       return()
     }
 
+    # Calculate alpha diversity if not provided
+    # This ensures we have the necessary diversity metrics for the analysis
     if (is.null(alpha.obj)) {
+      # Perform rarefaction if depth is specified
+      # Rarefaction standardizes sampling effort across all samples
       if (!is.null(depth)) {
         message(
           "Detected that the 'depth' parameter is not NULL. Proceeding with rarefaction. Call 'mStat_rarefy_data' to rarefy the data!"
@@ -167,7 +172,7 @@ generate_alpha_test_pair <-
       alpha.obj <-
         mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name)
     } else {
-      # Verify that all alpha.name are present in alpha.obj
+      # Verify that all requested alpha diversity indices are available
       if (!all(alpha.name %in% unlist(lapply(alpha.obj, function(x)
         colnames(x))))) {
         missing_alphas <- alpha.name[!alpha.name %in% names(alpha.obj)]
@@ -179,6 +184,7 @@ generate_alpha_test_pair <-
       }
     }
 
+    # Extract relevant metadata for the analysis
     meta_tab <-
       data.obj$meta.dat %>% as.data.frame() %>% dplyr::select(all_of(c(
         subject.var, group.var, time.var, adj.vars
@@ -186,6 +192,7 @@ generate_alpha_test_pair <-
 
 
     # Change the base level for time.var if change.base is specified
+    # This allows for flexibility in choosing the reference time point
     if (!is.null(change.base) && !is.null(time.var)) {
       if (change.base %in% meta_tab[[time.var]]) {
         meta_tab[[time.var]] <- relevel(as.factor(meta_tab[[time.var]]), ref = change.base)
@@ -194,28 +201,36 @@ generate_alpha_test_pair <-
       }
     }
 
-    # Convert the alpha.obj list to a data frame
+    # Combine alpha diversity data with metadata
+    # This creates a comprehensive dataset for our analysis
     alpha_df <-
       dplyr::bind_cols(alpha.obj) %>% rownames_to_column("sample") %>%
       dplyr::inner_join(meta_tab %>% rownames_to_column("sample"),
                         by = c("sample"))
 
+    # Determine the number of levels in the group variable if it exists
+    # This information is used later to decide between t-test and ANOVA
     if (!is.null(group.var)){
       group.levels <- alpha_df %>% select(all_of(c(group.var))) %>% pull() %>% as.factor() %>% levels() %>% length()
     }
 
+    # Perform statistical tests for each alpha diversity index
     test.list <- lapply(alpha.name, function(index) {
 
+      # Function to try fitting a complex mixed-effects model
+      # If the complex model fails, it falls back to a simpler model
       try_complex_model <- function(alpha_df, formula_str) {
         tryCatch({
-          # Complex model
+          # Attempt to fit a complex mixed-effects model
+          # This model accounts for repeated measures and potential interactions
           lme.model <- lmerTest::lmer(formula_str, data = alpha_df)
           return(lme.model)
         },
         error = function(e) {
-          # Complex model failed. Trying a simpler model
+          # If the complex model fails, attempt a simpler model
           message("Complex model failed. Trying a simpler model...")
 
+          # Function to construct a simpler formula
           correct_formula <-
             function(index,
                      group.var,
@@ -250,21 +265,27 @@ generate_alpha_test_pair <-
           new_formula_str <-
             correct_formula(index, group.var, time.var, subject.var, adj.vars)
 
+          # Fit the simpler mixed-effects model
           lme.model_simple <-
             lmerTest::lmer(new_formula_str, data = alpha_df)
           return(lme.model_simple)
         })
       }
 
+      # Construct the formula for the mixed-effects model
       formula_str <-
         construct_formula(index, group.var, time.var, subject.var, adj.vars)
 
+      # Attempt to fit the model, falling back to a simpler model if necessary
       lme.model <- try_complex_model(alpha_df, formula_str)
 
+      # Extract coefficients from the fitted model
       coef.tab <- extract_coef(lme.model)
 
+    # Perform additional analysis if a grouping variable is present
     if(!is.null(group.var)){
-      # Run ANOVA on the model if group.var is multi-categorical
+      # Run ANOVA if the grouping variable has more than two levels
+      # This tests for overall differences among groups, rather than pairwise comparisons
       if (group.levels > 2) {
         anova.tab <- anova(lme.model) %>%
           as.data.frame() %>%
@@ -283,15 +304,16 @@ generate_alpha_test_pair <-
           ) %>%
           dplyr::filter(Term %in% c(group.var, paste0(group.var, ":", time.var)))
 
+        # Combine the coefficient table with the ANOVA results
         coef.tab <-
-          rbind(coef.tab, anova.tab) # Append the anova.tab to the coef.tab
+          rbind(coef.tab, anova.tab)
       }
     }
 
       return(as_tibble(coef.tab))
     })
 
-    # Assign names to the elements of test.list
+    # Assign names to the elements of test.list based on the alpha diversity indices
     names(test.list) <- alpha.name
 
     return(test.list)

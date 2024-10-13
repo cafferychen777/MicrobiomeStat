@@ -74,12 +74,15 @@ generate_beta_volatility_test_long <-
            dist.name = c("BC"),
            ...) {
 
+    # Check if distance metrics are provided
     if (is.null(dist.name)){
       return()
     }
 
+    # Validate the input data object
     mStat_validate_data(data.obj)
 
+    # Inform the user about the importance of numeric time variable
     message(
       "The volatility test in 'generate_beta_volatility_test_long' relies on a numeric time variable.\n",
       "Please ensure that your time variable is coded as numeric.\n",
@@ -87,14 +90,19 @@ generate_beta_volatility_test_long <-
       "The time variable will be processed within the function if needed."
     )
 
+    # If distance object is not provided, calculate it from the data object
     if (is.null(dist.obj)) {
+      # Extract relevant metadata
       meta_tab <- data.obj$meta.dat %>% select(all_of(c(subject.var, time.var, group.var, adj.vars)))
+      # Calculate beta diversity
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
+      # If adjustment variables are provided, calculate adjusted distances
       if (!is.null(adj.vars)){
         dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
       }
     } else {
+      # If distance object is provided, extract metadata from the appropriate source
       if (!is.null(data.obj) & !is.null(data.obj$meta.dat)){
         meta_tab <- data.obj$meta.dat %>% select(all_of(c(subject.var, time.var, group.var, adj.vars)))
       } else {
@@ -102,21 +110,24 @@ generate_beta_volatility_test_long <-
       }
     }
 
+    # Ensure the distance object and metadata have matching dimensions
     if (nrow(as.matrix(dist.obj[[dist.name[1]]])) > nrow(meta_tab)){
       samIDs <- rownames(meta_tab)
       dist.obj <- mStat_subset_dist(dist.obj = dist.obj, samIDs = samIDs)
     }
 
+    # Perform volatility test for each distance metric
     test.list <- lapply(dist.name,function(dist.name){
 
+      # Convert distance matrix to long format
       dist.df <- as.matrix(dist.obj[[dist.name]])
-
       dist.df <- dist.df %>%
         as.data.frame() %>%
         rownames_to_column("sample")
-
       meta_tab <- meta_tab %>% rownames_to_column("sample")
 
+      # Prepare data for volatility analysis
+      # This step calculates the distance between consecutive time points for each subject
       long.df <- dist.df %>%
         tidyr::gather(key = "sample2", value = "distance", -sample) %>%
         dplyr::left_join(meta_tab, by = "sample") %>%
@@ -137,10 +148,13 @@ generate_beta_volatility_test_long <-
           !!sym(paste0(time.var, ".before")) := !!sym(paste0(time.var, ".sample"))
         )
 
+      # Ensure time variables are numeric
       long.df <- long.df %>%
         dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)),
                !!sym(paste0(time.var, ".before")) := as.numeric(!!sym(paste0(time.var, ".before"))))
 
+      # Calculate volatility for each subject
+      # Volatility is defined as the mean of distances divided by time differences
       volatility_df <- long.df %>%
         dplyr::group_by(!!sym(subject.var)) %>%
         dplyr::arrange(!!sym(time.var)) %>%
@@ -153,20 +167,23 @@ generate_beta_volatility_test_long <-
           volatility = mean(distance / time_diff, na.rm = TRUE)
         )
 
+      # Join volatility data with group information
       test_df <- volatility_df %>%
         dplyr::left_join(meta_tab %>%
                            select(all_of(c(subject.var, group.var))) %>%
                            dplyr::distinct(), by = subject.var, relationship = "many-to-many")
 
-      # Test the association between the volatility and the grp.var
+      # Test the association between volatility and group variable using linear regression
       formula <- as.formula(paste("volatility ~", group.var))
       test_result <- lm(formula, data = test_df)
 
+      # Extract coefficients from the linear model
       coef.tab <- extract_coef(test_result)
 
-      # Run ANOVA on the model if group.var is multi-categorical
+      # If group variable has more than one level, perform ANOVA
       if (length(unique(test_df[[group.var]])) > 1) {
         anova <- anova(test_result)
+        # Format ANOVA results to match coefficient table structure
         anova.tab <- anova %>% as.data.frame() %>%
           rownames_to_column("Term") %>%
           select(
@@ -184,8 +201,9 @@ generate_beta_volatility_test_long <-
             P.Value
           )
 
+        # Combine coefficient table with ANOVA results
         coef.tab <-
-          rbind(coef.tab, anova.tab) # Append the anova.tab to the coef.tab
+          rbind(coef.tab, anova.tab)
       }
 
       return(as_tibble(coef.tab))

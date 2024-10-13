@@ -32,41 +32,63 @@
 #' @export
 mStat_convert_phyloseq_to_data_obj <- function (phylo.obj) {
 
+  # Initialize an empty list to store the converted data
+  # This list will contain various components of the phyloseq object in a format suitable for MicrobiomeStat
   data.obj <- list()
 
+  # Process the OTU (Operational Taxonomic Unit) table if it exists
   if (!is.null(phylo.obj@otu_table)) {
+    # Convert the OTU table to a matrix format
+    # This step ensures compatibility with downstream analyses and improves computational efficiency
     data.obj$feature.tab <- phylo.obj@otu_table %>%
       as.data.frame() %>%
       as.matrix()
 
+    # Remove features (rows) with zero counts across all samples
+    # This step is crucial for reducing sparsity in the data, which can improve statistical power and reduce computational burden in subsequent analyses
     data.obj$feature.tab <- data.obj$feature.tab[rowSums(data.obj$feature.tab) > 0, ]
   }
 
+  # Process the sample data if it exists
   if (!is.null(phylo.obj@sam_data)) {
+    # Convert the sample data to a data frame format for easier manipulation
     data.obj$meta.dat <- phylo.obj@sam_data %>% as.matrix() %>%
       as.data.frame()
-    # Check if the "sample" column exists, and if it does, delete it
+    
+    # Remove the "sample" column if it exists
+    # This step prevents redundancy, as sample information is typically contained in the row names
     if ("sample" %in% colnames(data.obj$meta.dat)) {
       data.obj$meta.dat <- data.obj$meta.dat %>% select(-sample)
     }
   }
 
+  # Process the taxonomy table if it exists
   if (!is.null(phylo.obj@tax_table)) {
+    # Convert the taxonomy table to a matrix format
     data.obj$feature.ann <- phylo.obj@tax_table %>%
       as.data.frame() %>%
       as.matrix()
 
+    # Ensure that the taxonomy table only includes features present in the OTU table
+    # This step maintains consistency between the feature table and feature annotations
     if (exists("feature.tab", data.obj)) {
       data.obj$feature.ann <- data.obj$feature.ann[rownames(data.obj$feature.ann) %in% rownames(data.obj$feature.tab), ]
     }
   }
 
+  # Process the phylogenetic tree if it exists
   if (!is.null(phylo.obj@phy_tree)) {
     data.obj$tree <- phylo.obj@phy_tree
+    
+    # Check if the tree is rooted, and if not, root it by midpoint
+    # Rooting the tree is important for many phylogenetic analyses and ensures consistency across different studies
     if (!ape::is.rooted(data.obj$tree)) {
       message('Root the tree by midpointing ...')
       data.obj$tree <- midpoint(data.obj$tree)
     }
+    
+    # Remove tree tips (leaves) that are not present in the OTU table
+    # This step ensures that the tree and OTU table are consistent, which is crucial for phylogenetic diversity analyses
     if (exists("feature.tab", data.obj)) {
       absent <- data.obj$tree$tip.label[!(data.obj$tree$tip.label %in% rownames(data.obj$feature.tab))]
       if (length(absent) != 0) {
@@ -76,5 +98,7 @@ mStat_convert_phyloseq_to_data_obj <- function (phylo.obj) {
     }
   }
 
+  # Return the processed data object
+  # This object contains all the components of the phyloseq object, reformatted for use with MicrobiomeStat functions
   return(data.obj)
 }

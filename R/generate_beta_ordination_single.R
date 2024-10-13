@@ -157,19 +157,24 @@ generate_beta_ordination_single <-
            pdf.hei = 8.5,
            ...) {
 
+    # Check if distance metrics are provided. If not, exit the function.
     if (is.null(dist.name)){
       return()
     }
 
+    # This block handles the calculation or retrieval of distance matrices and metadata
     if (is.null(dist.obj)) {
+      # Process data based on time variable if it exists
       if (!is.null(time.var)){
         if (!is.null(t.level)){
+          # Subset data to specific time point if t.level is provided
           condition <- paste(time.var, "== '", t.level, "'", sep = "")
           data.obj <- mStat_subset_data(data.obj, condition = condition)
           meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var,group.var,strata.var,time.var)))
           dist.obj <-
             mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
         } else {
+          # If no specific time point is provided, use all time points but warn if multiple exist
           meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var,group.var,strata.var,time.var)))
           if (length(levels(as.factor(meta_tab[,time.var]))) != 1){
             message("Multiple time points detected in your dataset. It is recommended to either set t.level or utilize functions for longitudinal data analysis.")
@@ -178,14 +183,17 @@ generate_beta_ordination_single <-
             mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
         }
       } else {
+        # If no time variable is provided, proceed with all data
         meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var,group.var,strata.var,time.var)))
         dist.obj <-
           mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
       }
+      # Adjust distances if adjustment variables are provided
       if (!is.null(adj.vars)){
         dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
       }
     } else {
+      # If distance object is provided, extract metadata accordingly
       if (!is.null(data.obj)){
         if (!is.null(time.var)){
           if (!is.null(t.level)){
@@ -207,6 +215,8 @@ generate_beta_ordination_single <-
       }
     }
 
+    # Perform dimension reduction if not already done
+    # This step reduces the high-dimensional distance data to 2D for visualization
     if (is.null(pc.obj)) {
       pc.obj <-
         mStat_calculate_PC(
@@ -217,13 +227,16 @@ generate_beta_ordination_single <-
         )
     }
 
+    # Get color palette for plotting
     col <- mStat_get_palette(palette)
 
+    # If no group variable is provided, create a dummy "ALL" group
     if (is.null(group.var)){
       group.var = "ALL"
       meta_tab$ALL <- "ALL"
     }
 
+    # Define aesthetic mapping based on presence of strata variable
     aes_function <- if (!is.null(strata.var)) {
       aes(color = !!sym(group.var),
           shape = !!sym(strata.var))
@@ -231,14 +244,16 @@ generate_beta_ordination_single <-
       aes(color = !!sym(group.var))
     }
 
-    # Assuming mStat_get_theme function is already defined
-    # Replace the existing theme selection code with this:
+    # Get appropriate theme for plotting
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
+    # Generate plots for each distance metric
     plot_list <- lapply(dist.name, function(dist.name) {
 
+      # Extract the first two principal coordinates
       pc.mat <- pc.obj[[dist.name]]$points[, 1:2]
 
+      # Prepare data frame for plotting
       df <-
         pc.mat %>%
         as.data.frame() %>%
@@ -247,6 +262,7 @@ generate_beta_ordination_single <-
                            dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var))) %>%
                            rownames_to_column("sample"), by = "sample")
 
+      # Filter out NA values in time variable if it exists
       if (!is.null(time.var)){
         df <- df %>% dplyr::filter(!is.na(!!sym(time.var)))
       }
@@ -255,12 +271,14 @@ generate_beta_ordination_single <-
 
       colnames(df)[1:2] <- c("PC1", "PC2")
 
+      # Create the main scatter plot
       p <- ggplot2::ggplot(df, ggplot2::aes(PC1, PC2)) +
         ggplot2::geom_point(size = 10, aes_function, show.legend = T) +
         ggplot2::labs(
           x = ifelse(!is.null(pc.obj[[dist.name]]$eig),paste0("Axis 1 (", round(pc.obj[[dist.name]]$eig[1]/sum(pc.obj[["BC"]]$eig)*100,2),"%)"),"Axis 1"),
           y = ifelse(!is.null(pc.obj[[dist.name]]$eig),paste0("Axis 2 (", round(pc.obj[[dist.name]]$eig[2]/sum(pc.obj[["BC"]]$eig)*100,2),"%)"),"Axis 2")
         ) +
+        # Add 95% confidence ellipses for each group
         ggplot2::stat_ellipse(ggplot2::aes(color = !!sym(group.var)),fill="white",geom = "polygon",
                               level=0.95,alpha = 0.01,show.legend = F) +
         ggplot2::geom_vline(
@@ -295,13 +313,14 @@ generate_beta_ordination_single <-
           legend.title = ggplot2::element_text(size = base.size)
         )
 
+      # Set color scale based on grouping
       if (group.var == "ALL") {
         p <- p + scale_color_manual(values = col, guide = "none")
       } else {
         p <- p + scale_color_manual(values = col)
       }
 
-      # Create a ggplot object for the bar plot of PC1
+      # Create a boxplot for PC1 values
       Fig1a.taxa.pc1.boxplot <-
         ggplot2::ggplot(df) +
         ggplot2::geom_boxplot(ggplot2::aes(x=!!sym(group.var), y=PC1, fill=!!sym(group.var)), color="black", alpha=0.5, show.legend = F) +
@@ -316,7 +335,7 @@ generate_beta_ordination_single <-
                        axis.ticks.y = ggplot2::element_blank())+
         ggplot2::coord_flip()
 
-      # Create a ggplot object for the bar plot of PC2
+      # Create a boxplot for PC2 values
       Fig1a.taxa.pc2.boxplot <-
         ggplot2::ggplot(df) +
         ggplot2::geom_boxplot(ggplot2::aes(x=!!sym(group.var), y=PC2, fill=!!sym(group.var)), color="black", alpha=0.5, show.legend = F) +
@@ -330,13 +349,14 @@ generate_beta_ordination_single <-
                        axis.text.y =ggplot2::element_blank(),
                        axis.ticks.y = ggplot2::element_blank())
 
-      # Combine the two plots into a single plot with the PC1 plot on top and the PC2 plot on the right
+      # Combine the main plot with the boxplots
+      # This provides a comprehensive view of the data distribution along both principal coordinates
       p <- p %>%
         aplot::insert_top(Fig1a.taxa.pc1.boxplot, height = 0.2) %>%
         aplot::insert_right(Fig1a.taxa.pc2.boxplot, width=0.2) %>%
         as.ggplot()
 
-      # Save the plots as a PDF file
+      # Save the plot as a PDF file if requested
       if (pdf) {
         pdf_name <- paste0(
           "beta_ordination_single_",
@@ -370,6 +390,7 @@ generate_beta_ordination_single <-
       return(p)
     })
 
+    # Assign names to the elements of the plot list
     names(plot_list) <- dist.name
     return(plot_list)
   }

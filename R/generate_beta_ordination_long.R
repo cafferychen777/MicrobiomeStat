@@ -230,25 +230,34 @@ generate_beta_ordination_long <-
            pdf.hei = 8.5,
            ...) {
 
+    # Check if distance metrics are provided
     if (is.null(dist.name)){
       return()
     }
 
+    # Calculate beta diversity if not provided
     if (is.null(dist.obj)) {
+      # Process time variable and extract relevant metadata
       data.obj <-
         mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
       meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
+      
+      # Calculate beta diversity
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
+      
+      # Adjust distances if adjustment variables are provided
       if (!is.null(adj.vars)){
         dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
       }
     } else {
+      # If distance object is provided, process metadata accordingly
       if (!is.null(data.obj) & !is.null(data.obj$meta.dat)){
         data.obj <-
           mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
         meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
       } else {
+        # Extract metadata from distance object if data object is not provided
         meta_tab <- attr(dist.obj[[dist.name[1]]], "labels") %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
         data.obj <- list(meta.dat = meta_tab)
         data.obj <- mStat_process_time_variable(meta_tab, time.var, t0.level, ts.levels)
@@ -256,6 +265,7 @@ generate_beta_ordination_long <-
       }
     }
 
+    # Calculate principal coordinates if not provided
     if (is.null(pc.obj)) {
       pc.obj <-
         mStat_calculate_PC(
@@ -266,8 +276,10 @@ generate_beta_ordination_long <-
         )
     }
 
+    # Get color palette
     col <- mStat_get_palette(palette)
 
+    # Define aesthetic mapping based on presence of group variable
     aes_function <- if (!is.null(group.var)) {
       aes(color = !!sym(group.var),
           alpha = !!sym(time.var))
@@ -275,13 +287,15 @@ generate_beta_ordination_long <-
       aes(color = !!sym(time.var))
     }
 
-    # Assuming mStat_get_theme function is already defined
-    # Replace the existing theme selection code with this:
+    # Get appropriate theme
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
+    # Generate plots for each distance metric
     plot_list <- lapply(dist.name, function(dist.name) {
+      # Extract principal coordinates
       pc.mat <- pc.obj[[dist.name]]$points[, 1:2]
 
+      # Prepare data frame for plotting
       df <- as.data.frame(pc.mat) %>%
         setNames(c("PC1", "PC2")) %>%
         rownames_to_column("sample") %>%
@@ -291,6 +305,7 @@ generate_beta_ordination_long <-
                x_end = NA,
                y_end = NA)
 
+      # Calculate end points for arrows
       df <- df %>%
         dplyr::group_by(!!sym(subject.var)) %>%
         dplyr::arrange(!!sym(time.var)) %>%
@@ -305,8 +320,9 @@ generate_beta_ordination_long <-
         ) %>%
         dplyr::ungroup()
 
-      # If strata.var is not NULL, include it in the grouping
+      # Calculate mean positions for different grouping scenarios
       if (!is.null(strata.var) & !is.null(group.var)) {
+        # Case: Both strata and group variables are present
         df_mean <- df %>%
           dplyr::group_by(!!sym(time.var), !!sym(group.var), !!sym(strata.var)) %>%
           dplyr::summarise(mean_PC1 = mean(PC1, na.rm = TRUE),
@@ -330,6 +346,7 @@ generate_beta_ordination_long <-
                         y_start = mean_PC2)
 
       } else if (!is.null(group.var)){
+        # Case: Only group variable is present
         df_mean <- df %>%
           dplyr::group_by(!!sym(time.var), !!sym(group.var)) %>%
           dplyr::summarise(mean_PC1 = mean(PC1, na.rm = TRUE),
@@ -353,6 +370,7 @@ generate_beta_ordination_long <-
                         y_start = mean_PC2)
 
       } else {
+        # Case: No grouping variables
         df_mean <- df %>%
           dplyr::group_by(!!sym(time.var)) %>%
           dplyr::summarise(mean_PC1 = mean(PC1, na.rm = TRUE),
@@ -376,6 +394,7 @@ generate_beta_ordination_long <-
 
       }
 
+      # Create the plot
       p <- ggplot2::ggplot(df, ggplot2::aes(PC1, PC2)) +
         ggplot2::geom_point(
           size = 5,
@@ -395,6 +414,7 @@ generate_beta_ordination_long <-
           alpha = 0.3
         ) +
         {
+          # Add group-specific or time-specific arrows
           if (!is.null(group.var)){
             ggplot2::geom_segment(data = df_mean,
                                   aes(x = x_start,
@@ -415,6 +435,7 @@ generate_beta_ordination_long <-
                                   size = 1.5)
           }
         } +
+        # Add axis labels with explained variance
         ggplot2::labs(
           x = ifelse(
             !is.null(pc.obj[[dist.name]]$eig),
@@ -431,6 +452,7 @@ generate_beta_ordination_long <-
             "Axis 2"
           )
         ) +
+        # Set color scale based on grouping variables
         {
           if (!is.null(group.var) | !is.null(strata.var)){
             scale_color_manual(values = col)
@@ -438,6 +460,7 @@ generate_beta_ordination_long <-
             ggplot2::scale_color_gradientn(colors = c("#92c5de", "#0571b0", "#f4a582", "#ca0020"))
           }
         } +
+        # Add reference lines
         ggplot2::geom_vline(xintercept = 0,
                             linetype = "dashed",
                             color = "black") +
@@ -445,6 +468,7 @@ generate_beta_ordination_long <-
                             linetype = "dashed",
                             color = "black") +
         theme_to_use  +
+        # Customize theme elements
         ggplot2::theme(
           panel.spacing.x = unit(0, "cm"),
           panel.spacing.y = unit(0, "cm"),
@@ -465,11 +489,12 @@ generate_beta_ordination_long <-
           legend.title = ggplot2::element_text(size = 16)
         )
 
+      # Add faceting if strata variable is present
       if (!is.null(strata.var)) {
         p <- p + ggh4x::facet_nested_wrap(as.formula(paste(".~", strata.var)), ncol = 3)
       }
 
-      # Save the plots as a PDF file
+      # Save the plot as a PDF file if requested
       if (pdf) {
         pdf_name <- paste0(
           "beta_ordination_long_",
@@ -503,6 +528,7 @@ generate_beta_ordination_long <-
       return(p)
     })
 
+    # Assign names to the plot list
     names(plot_list) <- dist.name
 
     return(plot_list)

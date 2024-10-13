@@ -152,19 +152,24 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
                                           pdf.hei = 8.5,
                                           ...) {
 
+  # Check if distance metrics are provided. If not, exit the function.
   if (is.null(dist.name)){
     return()
   }
 
+  # This block handles the calculation or retrieval of distance matrices and metadata
   if (is.null(dist.obj)) {
+    # Process time variable and extract relevant metadata
     data.obj <-
       mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
     meta_tab <-
       data.obj$meta.dat %>% select(all_of(c(
         subject.var, time.var, group.var, strata.var
       )))
+    # Calculate beta diversity
     dist.obj <-
       mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
+    # Adjust distances if adjustment variables are provided
     if (!is.null(adj.vars)) {
       dist.obj <-
         mStat_calculate_adjusted_distance(
@@ -175,6 +180,7 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
         )
     }
   } else {
+    # If distance object is provided, process metadata accordingly
     if (!is.null(data.obj) & !is.null(data.obj$meta.dat)) {
       data.obj <-
         mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
@@ -183,6 +189,7 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
           subject.var, time.var, group.var, strata.var
         )))
     } else {
+      # Extract metadata from distance object if data object is not provided
       meta_tab <-
         attr(dist.obj[[dist.name[1]]], "labels") %>% select(all_of(c(
           subject.var, time.var, group.var, strata.var
@@ -195,6 +202,7 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
     }
   }
 
+  # Determine the number of unique time points
   time.levels <-
     meta_tab %>% dplyr::select(all_of(c(time.var))) %>%
     pull() %>%
@@ -202,9 +210,11 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
     levels() %>%
     length()
 
+  # Get color palette for plotting
   col <- mStat_get_palette(palette)
 
-  # Adjust the ggplot() function based on the values of strata.var and group.var.
+  # Define aesthetic mappings for the plot
+  # These determine how different variables will be represented visually
   aes_function <- if (!is.null(group.var)) {
     aes(
       x = !!sym(time.var),
@@ -219,6 +229,7 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
     )
   }
 
+  # Define aesthetic mappings for the line plot
   line_aes_function <- if (!is.null(group.var)) {
     aes(
       x = !!sym(time.var),
@@ -234,16 +245,19 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
     )
   }
 
-  # Assuming mStat_get_theme function is already defined
-  # Replace the existing theme selection code with this:
+  # Get appropriate theme for plotting
   theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
+  # Generate plots for each distance metric
   plot_list <- lapply(dist.name, function(dist.name) {
+    # Perform dimension reduction if not already done
     if (is.null(pc.obj)) {
       message("No pc.obj provided, using MDS (PCoA) for dimension reduction by default.")
       message(
         "If you prefer other methods such as NMDS, t-SNE or UMAP, you can use the mStat_calculate_PC function with a specified method."
       )
+      # Use Multidimensional Scaling (MDS) to reduce dimensions
+      # This allows for visualization of high-dimensional distance data in lower-dimensional space
       pc.obj <-
         mStat_calculate_PC(
           dist.obj = dist.obj[dist.name],
@@ -253,15 +267,20 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
         )
     }
 
+    # Extract principal coordinates
     pc.mat <- pc.obj[[dist.name]]$points
 
+    # Rename columns to PC1, PC2, etc.
     colnames(pc.mat) <- paste0("PC", 1:ncol(pc.mat))
 
+    # Convert to tibble for easier manipulation
     pc.mat <- pc.mat %>% as_tibble()
 
+    # Combine principal coordinates with metadata
     df <-
       cbind(pc.mat[, paste0("PC", pc.ind)], meta_tab[, c(subject.var, time.var, group.var, strata.var)])
 
+    # Reshape data from wide to long format
     df <-
       df %>%
       as_tibble() %>%
@@ -271,12 +290,16 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
         -one_of(subject.var, group.var, time.var, strata.var)
       )
 
+    # Count unique subjects and time points
     n_subjects <- length(unique(df[[subject.var]]))
     n_times <- length(unique(df[[time.var]]))
 
+    # Generate plots for each principal coordinate
     sub_plot_list <- lapply(unique(df$PC), function(pc.index) {
       sub_df <- df %>% filter(PC == pc.index)
 
+      # Calculate average values if there are many subjects or time points
+      # This helps to simplify the visualization when there's a lot of data
       average_sub_df <- NULL
       if (n_times > 10 || n_subjects > 25) {
         if (!is.null(strata.var) & !is.null(group.var)) {
@@ -302,9 +325,9 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
         }
       }
 
+      # Create the boxplot
       boxplot <- ggplot(sub_df,
                         aes_function) +
-        #geom_violin(trim = FALSE, alpha = 0.8) +
         stat_boxplot(
           geom = "errorbar",
           position = position_dodge(width = 0.2),
@@ -313,7 +336,6 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
         geom_boxplot(
           position = position_dodge(width = 0.8),
           width = 0.3,
-          #fill = "white"
         ) +
         geom_line(
           line_aes_function,
@@ -346,6 +368,8 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
           legend.text = ggplot2::element_text(size = base.size),
           legend.title = ggplot2::element_text(size = base.size)
         )
+
+      # Add faceting based on the number of time points and grouping variables
       if (time.levels > 2){
         if (!is.null(group.var)) {
           if (is.null(strata.var)) {
@@ -381,14 +405,15 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
         }
       }
 
-      # Add geom_jitter() if the number of unique time points or subjects is greater than 10
+      # Add jittered points if there are many subjects or time points
+      # This helps to show the distribution of individual data points
       if (n_subjects > 10 || n_times > 10) {
         boxplot <- boxplot + geom_jitter(width = 0.1,
                                          alpha = 0.1,
                                          size = 1)
       }
 
-      # Save the plots as a PDF file
+      # Save the plot as a PDF file if requested
       if (pdf) {
         pdf_name <- paste0(
           "beta_pc_boxplot_long_",
@@ -421,12 +446,13 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
       return(boxplot)
     })
 
+    # Assign names to the elements of sub_plot_list
     names(sub_plot_list) <- unique(df$PC)
     return(sub_plot_list)
   })
 
+  # Assign names to the elements of plot_list
   names(plot_list) <- dist.name
-
 
   return(plot_list)
 }

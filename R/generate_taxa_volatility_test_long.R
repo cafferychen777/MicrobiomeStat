@@ -101,11 +101,13 @@ generate_taxa_volatility_test_long <- function(data.obj,
                                                feature.dat.type = c("count", "proportion", "other"),
                                                transform = "CLR",
                                                ...) {
-  # Validate and extract data
+  # Validate the input data object
   mStat_validate_data(data.obj)
 
+  # Match the feature data type argument
   feature.dat.type <- match.arg(feature.dat.type)
 
+  # Inform the user about the importance of numeric time variable
   message(
     "The volatility calculation relies on a numeric time variable.\n",
     "Please check that your time variable is coded as numeric.\n",
@@ -113,31 +115,36 @@ generate_taxa_volatility_test_long <- function(data.obj,
     "You can ensure the time variable is numeric by mutating it in the metadata."
   )
 
+  # Convert time variable to numeric
   data.obj$meta.dat <-
     data.obj$meta.dat %>% dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
 
+  # Extract relevant variables from metadata
   meta_tab <- data.obj$meta.dat %>%
     dplyr::select(all_of(c(
       time.var, subject.var, group.var, adj.vars
     ))) %>% rownames_to_column("sample")
 
+  # Extract group levels and set reference level
   group_level <- meta_tab %>% select(all_of(c(group.var))) %>% pull() %>% as.factor() %>% levels
-
   reference_level <- group_level[1]
 
+  # If CLR transformation is used, set abundance filter to 0
   if (transform == "CLR"){
     abund.filter <- 0
   }
 
-  # Create a formula including the group variable and adjustment variables (if any)
+  # Create a formula for the linear model
   formula_str <- paste("volatility ~", group.var)
   if (!is.null(adj.vars)) {
     formula_str <- paste(formula_str, "+", paste(adj.vars, collapse = " + "))
   }
   formula <- as.formula(formula_str)
 
+  # Perform analysis for each taxonomic level
   test.list <- lapply(feature.level, function(feature.level) {
 
+    # Normalize count data if necessary
     if (feature.dat.type == "count"){
       message(
         "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
@@ -145,17 +152,19 @@ generate_taxa_volatility_test_long <- function(data.obj,
       data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
     }
 
+    # Aggregate data to the specified taxonomic level if necessary
     if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
       data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
     }
 
+    # Extract the appropriate feature table
     if (feature.level != "original"){
       otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
     } else {
       otu_tax_agg <- data.obj$feature.tab
     }
 
-    # Calculate the average abundance of each group
+    # Calculate average abundance and prevalence for each feature
     prop_prev_data <-
       otu_tax_agg %>%
       as.matrix() %>%
@@ -174,23 +183,20 @@ generate_taxa_volatility_test_long <- function(data.obj,
       return(log(x / gm))
     }
 
+    # Function to impute zeros with half the minimum non-zero value
     impute_zeros_rowwise <- function(row) {
       min_nonzero <- min(row[row > 0])
       row[row == 0] <- min_nonzero / 2
       return(row)
     }
 
+    # Impute zeros and apply CLR transformation
     otu_tax_agg_imputed_temp <- apply(otu_tax_agg, 1, impute_zeros_rowwise)
-
-    # Transpose the matrix to return the rows and columns to their original positions
     otu_tax_agg_imputed <- t(otu_tax_agg_imputed_temp)
-
-    # Application CLR conversion
     otu_tax_agg_clr <- apply(otu_tax_agg_imputed, 1, clr_transform)
-
-    # Transpose back
     otu_tax_agg_clr <- t(otu_tax_agg_clr)
 
+    # Convert to long format and apply filters
     otu_tax_agg_clr_long <- otu_tax_agg_clr %>%
       as.data.frame() %>%
       mStat_filter(prev.filter = prev.filter,
@@ -200,6 +206,7 @@ generate_taxa_volatility_test_long <- function(data.obj,
 
     taxa.levels <- otu_tax_agg_clr_long %>% select(all_of(feature.level)) %>% pull() %>% unique()
 
+    # Perform volatility analysis for each taxon
     sub_test.list <-
       lapply(taxa.levels, function(taxon) {
 
@@ -207,7 +214,7 @@ generate_taxa_volatility_test_long <- function(data.obj,
           dplyr::filter(!!sym(feature.level) == taxon) %>%
           dplyr::left_join(meta_tab, by = "sample")
 
-        # Group data by subject and calculate volatility
+        # Calculate volatility for each subject
         volatility_df <- taxa_df %>%
           dplyr::arrange(!!sym(subject.var),!!sym(time.var)) %>%
           dplyr::group_by(!!sym(subject.var)) %>%
@@ -226,12 +233,12 @@ generate_taxa_volatility_test_long <- function(data.obj,
                              dplyr::distinct(),
                            by = subject.var)
 
-        # Run the linear model
+        # Fit linear model
         test_result <- lm(formula, data = test_df)
 
         coef.tab <- extract_coef(test_result)
 
-        # Run ANOVA on the model if group.var is multi-categorical
+        # Perform ANOVA if group variable has more than two levels
         if (length(unique(taxa_df[[group.var]])) > 2) {
           anova <- anova(test_result)
           anova.tab <- anova %>% as.data.frame() %>%
@@ -258,10 +265,10 @@ generate_taxa_volatility_test_long <- function(data.obj,
     # Assign names to the elements of test.list
     names(sub_test.list) <- otu_tax_agg_clr_long %>% select(all_of(feature.level)) %>% pull() %>% unique()
 
-    # Find all unique terms
+    # Find all unique terms related to the group variable
     unique_terms <- grep(paste0("^", group.var, "$|^", group.var, ".*"), unique(unlist(lapply(sub_test.list, function(df) unique(df$Term)))), value = TRUE)
 
-    # Extract data for each Term and store it in a new list
+    # Extract and process results for each term
     result_list <- lapply(unique_terms, function(term) {
       do.call(rbind, lapply(sub_test.list, function(df) {
         df %>% dplyr::filter(Term == term)
@@ -277,11 +284,11 @@ generate_taxa_volatility_test_long <- function(data.obj,
                       Prevalence = prevalence)
     })
 
-    # Name the new list
+    # Name the result list
     names(result_list) <- unique_terms
 
+    # Rename the result list elements to include reference level information
     new_names <- sapply(names(result_list), function(name) {
-      # Check whether the name matches the specified pattern and is not the result of ANOVA
       if (grepl(paste0("^", group.var), name) && !grepl(paste0("^", group.var, "$"), name)) {
         sub_name <- sub(paste0(group.var), "", name)
         return(paste(sub_name, "vs", reference_level, "(Reference)"))

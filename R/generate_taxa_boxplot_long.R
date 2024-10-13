@@ -175,12 +175,16 @@ generate_taxa_boxplot_long <-
            pdf.hei = 8.5,
            ...) {
 
+    # Match and validate the feature data type
     feature.dat.type <- match.arg(feature.dat.type)
 
+    # Match and validate the transformation method
     transform <- match.arg(transform)
 
+    # Validate the input data object
     mStat_validate_data(data.obj)
 
+    # Validate input variables
     if (!is.character(subject.var))
       stop("`subject.var` should be a character string.")
     if (!is.character(time.var))
@@ -192,13 +196,15 @@ generate_taxa_boxplot_long <-
         !is.character(strata.var))
       stop("`strata.var` should be a character string or NULL.")
 
-    # Extract data
+    # Process time variable in the data object
     data.obj <- mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
 
+    # Extract metadata and select relevant variables
     meta_tab <- data.obj$meta.dat %>%
       as.data.frame() %>%
       select(all_of(c(subject.var,group.var,time.var,strata.var)))
 
+    # Define aesthetic mapping function for line plots
     line_aes_function <- if (!is.null(group.var)) {
       aes(
         x = !!sym(time.var),
@@ -214,6 +220,7 @@ generate_taxa_boxplot_long <-
       )
     }
 
+    # Define aesthetic mapping function for box plots
     aes_function <- if (!is.null(group.var)) {
       aes(
         x = !!sym(time.var),
@@ -228,18 +235,20 @@ generate_taxa_boxplot_long <-
       )
     }
 
+    # Get color palette
     col <- mStat_get_palette(palette)
 
-    # Assuming mStat_get_theme function is already defined
-    # Replace the existing theme selection code with this:
+    # Get plot theme
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
+    # Adjust filtering parameters if necessary
     if (feature.dat.type == "other" || !is.null(features.plot) ||
         (!is.null(top.k.func) && !is.null(top.k.plot))) {
       prev.filter <- 0
       abund.filter <- 0
     }
 
+    # Normalize count data if necessary
     if (feature.dat.type == "count"){
       message(
         "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
@@ -247,33 +256,40 @@ generate_taxa_boxplot_long <-
       data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
     }
 
+    # Generate plots for each taxonomic level
     plot_list <- lapply(feature.level, function(feature.level) {
 
+      # Aggregate data by taxonomy if necessary
       if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
         data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
       }
 
+      # Extract aggregated OTU table
       if (feature.level != "original"){
         otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
       } else {
         otu_tax_agg <- data.obj$feature.tab
       }
 
+      # Filter OTU table based on prevalence and abundance
       otu_tax_agg <-  otu_tax_agg %>%
         as.data.frame() %>%
         mStat_filter(prev.filter = prev.filter,
                      abund.filter = abund.filter) %>%
         tibble::rownames_to_column(feature.level)
 
+      # Select top k features if specified
       if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
       computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
       features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
       }
 
+      # Reshape data for plotting
       otu_tax_agg_numeric <- otu_tax_agg %>%
         tidyr::gather(key = "sample", value = "value",-one_of(feature.level)) %>%
         dplyr::mutate(value = as.numeric(value))
 
+      # Merge OTU data with metadata
       otu_tax_agg_merged <-
         dplyr::left_join(otu_tax_agg_numeric,
                   meta_tab %>% rownames_to_column("sample"),
@@ -290,8 +306,8 @@ generate_taxa_boxplot_long <-
           )
         ))
 
+      # Apply data transformation if necessary
       if (feature.dat.type %in% c("count","proportion")){
-        # Apply transformation
         if (transform %in% c("identity", "sqrt", "log")) {
           if (transform == "identity") {
             # No transformation needed
@@ -316,16 +332,18 @@ generate_taxa_boxplot_long <-
         }
       }
 
+      # Get unique taxa levels
       taxa.levels <-
         otu_tax_agg_merged %>% select(all_of(c(feature.level))) %>% dplyr::distinct() %>% dplyr::pull()
 
+      # Count number of subjects and time points
       n_subjects <-
         length(unique(otu_tax_agg_merged[[subject.var]]))
       n_times <- length(unique(otu_tax_agg_merged[[time.var]]))
 
       sub_otu_tax_agg_merged <- otu_tax_agg_merged
 
-      # Create a new data box in the Data Processing section
+      # Calculate average values if number of subjects or time points is large
       average_sub_otu_tax_agg_merged <- NULL
       if (n_times > 10 || n_subjects > 25) {
         if (!is.null(group.var) & !is.null(strata.var)) {
@@ -356,6 +374,7 @@ generate_taxa_boxplot_long <-
         }
       }
 
+      # Select features to plot
       if (!is.null(features.plot)) {
 
       } else {
@@ -366,23 +385,23 @@ generate_taxa_boxplot_long <-
         }
       }
 
+      # Get number of group levels if group variable is specified
       if (!is.null(group.var)){
         group.levels <- sub_otu_tax_agg_merged %>% select(!!sym(group.var)) %>% pull() %>% unique() %>% length()
       }
 
+      # Create box plot
       boxplot <-
         ggplot(sub_otu_tax_agg_merged  %>%
                  dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var))) %>%
                  filter(!!sym(feature.level) %in% features.plot),
                aes_function) +
-        #geom_violin(trim = FALSE, alpha = 0.8) +
         stat_boxplot(geom = "errorbar",
                      position = position_dodge(width = 0.2),
                      width = 0.1) +
         geom_boxplot(
           position = position_dodge(width = 0.8),
           width = 0.1,
-          #fill = "white"
         ) +
         geom_line(
           line_aes_function,
@@ -415,7 +434,7 @@ generate_taxa_boxplot_long <-
           axis.text = element_text(color = "black"),
           axis.text.x = element_text(color = "black", size = base.size),
           axis.text.y = element_text(color = "black", size = (base.size -
-                                                                2)),
+                                                              2)),
           axis.title.x = element_text(size = base.size),
           axis.title.y = element_text(size = base.size),
           axis.ticks.x = element_blank(),
@@ -424,6 +443,7 @@ generate_taxa_boxplot_long <-
           legend.title = ggplot2::element_text(size = 16)
         )
 
+      # Add facets if group or strata variables are specified
       if (!is.null(group.var)) {
         if (is.null(strata.var)) {
           boxplot <-
@@ -438,15 +458,15 @@ generate_taxa_boxplot_long <-
         }
       }
 
-      # Add geom_jitter() if the number of unique time points or subjects is greater than 10
+      # Add jitter points if number of subjects or time points is large
       if (n_subjects > 20 || n_times > 10) {
         boxplot <- boxplot + geom_jitter(width = 0.1,
                                          alpha = 0.1,
                                          size = 1)
       }
 
+      # Modify y-axis scale based on transformation
       if (feature.dat.type != "other"){
-        # Modify the Y-axis scale
         if (transform == "sqrt") {
           boxplot <- boxplot + scale_y_continuous(
             labels = function(x)
@@ -469,7 +489,7 @@ generate_taxa_boxplot_long <-
       return(boxplot)
     })
 
-    # Save the plots as a PDF file
+    # Save plots as PDF if specified
     if (pdf) {
       pdf_name <- paste0(
         "taxa_boxplot_long",

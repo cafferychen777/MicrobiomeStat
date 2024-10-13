@@ -141,10 +141,12 @@ generate_beta_change_spaghettiplot_long <-
            pdf.hei = 8.5,
            ...) {
 
+    # Exit the function if no distance metric is specified
     if (is.null(dist.name)){
       return()
     }
 
+    # Input validation to ensure correct variable types
     if (!is.character(subject.var))
       stop("`subject.var` should be a character string.")
     if (!is.character(time.var))
@@ -156,31 +158,37 @@ generate_beta_change_spaghettiplot_long <-
         !is.character(strata.var))
       stop("`strata.var` should be a character string or NULL.")
 
+    # Get color palette for plotting
     col <- mStat_get_palette(palette)
 
-    # Replace the existing theme selection code with this:
+    # Set the theme for plotting
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
-    # Calculate new sizes based on base.size
+    # Calculate new sizes based on base.size for consistent plot aesthetics
     title.size = base.size * 1.25
     axis.title.size = base.size * 0.75
     axis.text.size = base.size * 0.5
     legend.title.size = base.size * 1
     legend.text.size = base.size * 0.75
 
+    # Inform users about the requirement for baseline time points
     message("Note: This function requires subjects to have a baseline time point (specified by `t0.level`) to calculate the change in beta diversity. Subjects without a baseline time point will be excluded from the visualization.")
 
+    # Generate plots for each specified distance metric
     plot_list <- lapply(dist.name,function(dist.name){
+      # Calculate beta diversity if not provided
       if (is.null(dist.obj)) {
         data.obj <-
           mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
         meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
         dist.obj <-
           mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
+        # Adjust distances for covariates if specified
         if (!is.null(adj.vars)){
           dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
         }
       } else {
+        # Process time variable if distance object is provided
         if (!is.null(data.obj) & !is.null(data.obj$meta.dat)){
           data.obj <-
             mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
@@ -193,15 +201,18 @@ generate_beta_change_spaghettiplot_long <-
         }
       }
 
+      # Check if the specified distance metric exists in the distance object
       if (is.null(dist.obj[[dist.name]])) {
         message(paste("dist.obj does not contain", dist.name))
       } else {
+        # Convert distance object to matrix format
         tryCatch({
           dist.df <- as.matrix(dist.obj[[dist.name]])
         }, error = function(e) {
           message(paste("Failed to convert dist.obj[[", dist.name, "]] to a matrix: ", e$message))
         })
 
+        # Check for missing samples in the distance matrix
         missing_rows <- setdiff(rownames(meta_tab), rownames(dist.df))
         missing_cols <- setdiff(rownames(meta_tab), colnames(dist.df))
 
@@ -213,17 +224,20 @@ generate_beta_change_spaghettiplot_long <-
           message(paste("The following columns in meta_tab are not in dist.df:", paste(missing_cols, collapse = ", ")))
         }
 
+        # Subset distance matrix to match metadata
         if (length(missing_rows) == 0 & length(missing_cols) == 0) {
           dist.df <- dist.df[rownames(meta_tab), rownames(meta_tab)]
         }
       }
 
+      # Convert distance matrix to long format for plotting
       dist.df <- dist.df %>%
         as.data.frame() %>%
         rownames_to_column("sample")
 
       meta_tab <- meta_tab %>% rownames_to_column("sample")
 
+      # Determine the baseline time point for change calculation
       if (is.factor(meta_tab[, time.var])) {
         change.base <- levels(meta_tab[, time.var])[1]
       } else if (is.numeric(meta_tab[, time.var])) {
@@ -232,6 +246,7 @@ generate_beta_change_spaghettiplot_long <-
         stop("The variable is neither factor nor numeric.")
       }
 
+      # Calculate pairwise distances between baseline and follow-up time points for each subject
       long.df <- dist.df %>%
         tidyr::gather(key = "sample2", value = "distance", -sample) %>%
         dplyr::left_join(meta_tab, by = "sample") %>%
@@ -244,6 +259,7 @@ generate_beta_change_spaghettiplot_long <-
         dplyr::select(!!sym(paste0(subject.var, ".subject")), !!sym(paste0(time.var, ".subject")), distance) %>%
         dplyr::rename(!!sym(subject.var) := !!sym(paste0(subject.var, ".subject")), !!sym(time.var) := !!sym(paste0(time.var, ".subject")))
 
+      # Add group and strata information to the long-format data
       if (!is.null(strata.var)&!is.null(group.var)){
         long.df <- long.df %>% dplyr::left_join(meta_tab %>% dplyr::select(-all_of("sample")) %>% dplyr::distinct(),by = c(subject.var,time.var))
       } else if (is.null(strata.var)&!is.null(group.var)){
@@ -252,11 +268,13 @@ generate_beta_change_spaghettiplot_long <-
         long.df <- long.df
       }
 
+      # Create a dummy group variable if not provided
       if (is.null(group.var)){
         long.df <- long.df %>% dplyr::mutate("ALL" = "ALL")
         group.var = "ALL"
       }
 
+      # Calculate mean distances for each time point and group (and strata if applicable)
       if (is.null(strata.var)) {
         long.df.mean <- long.df %>%
           dplyr::group_by(!!sym(time.var),!!sym(group.var)) %>%
@@ -273,19 +291,14 @@ generate_beta_change_spaghettiplot_long <-
 
       long.df <- long.df %>% dplyr::arrange(subject.var,time.var)
 
-      # summary.df <- long.df %>%
-      #   dplyr::group_by(!!sym(time.var), !!sym(group.var)) %>%
-      #   dplyr::summarise(mean_distance = mean(distance),
-      #             sd_distance = sd(distance),
-      #             lower = mean_distance - sd_distance,
-      #             upper = mean_distance + sd_distance)
-
+      # Set y-axis label based on whether distances are adjusted for covariates
       if (is.null(adj.vars)) {
         y_label <- paste(dist.name, "Distance from Baseline")
       } else {
         y_label <- paste(dist.name, "Distance from Baseline (adjusted by:", paste(adj.vars, collapse = ", "), ")")
       }
 
+      # Create the spaghetti plot
       p <- ggplot() +
         geom_point(
           data = long.df,
@@ -338,10 +351,12 @@ generate_beta_change_spaghettiplot_long <-
           legend.key.spacing = unit(2, "mm")
         )
 
+      # Remove legend if there's only one group
       if (group.var == "ALL"){
         p <- p + theme(legend.position = "none")
       }
 
+      # Add faceting by strata if a strata variable is specified
       if (!is.null(strata.var)) {
         p <- p + ggh4x::facet_nested(
           cols = vars(!!sym(strata.var)),
@@ -350,7 +365,7 @@ generate_beta_change_spaghettiplot_long <-
         )
       }
 
-      # Save the plots as a PDF file
+      # Save the plot as a PDF if requested
       if (pdf) {
         pdf_name <- paste0("beta_change_spaghettiplot_",
                            dist.name,
@@ -385,6 +400,7 @@ generate_beta_change_spaghettiplot_long <-
       return(p)
     })
 
+    # Name the plots in the list according to the distance metrics
     names(plot_list) <- dist.name
     return(plot_list)
   }

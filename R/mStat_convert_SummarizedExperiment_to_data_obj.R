@@ -32,30 +32,48 @@
 #'
 #' @export
 mStat_convert_SummarizedExperiment_to_data_obj <- function (se.obj) {
+  # Initialize an empty list to store the converted data
+  # This list will contain various components of the SummarizedExperiment object in a format suitable for MicrobiomeStat
   data.obj <- list()
 
+  # Process the assay data if it exists
+  # The assay typically contains the main experimental data, such as gene expression or microbiome abundance
   if (!is.null(assay(se.obj))) {
+    # Convert the assay to a matrix format
+    # This step ensures compatibility with downstream analyses and improves computational efficiency
     data.obj$feature.tab <- assay(se.obj) %>%
       as.data.frame() %>%
       as.matrix()
 
+    # Remove features (rows) with zero counts across all samples
+    # This filtering step is crucial for reducing data sparsity, which can improve statistical power and reduce computational burden in subsequent analyses
     data.obj$feature.tab <- data.obj$feature.tab[rowSums(data.obj$feature.tab) > 0, ]
   }
 
+  # Process the column data (sample metadata) if it exists
+  # This metadata typically includes important sample-specific information such as experimental conditions or clinical data
   if (!is.null(colData(se.obj))) {
+    # Convert the column data to a data frame for easier manipulation in downstream analyses
     data.obj$meta.dat <- colData(se.obj) %>%
       as.data.frame()
   }
 
+  # Process the row data (feature metadata) if it exists
+  # This metadata often contains annotations for each feature, such as gene names or taxonomic information for microbiome data
   if (!is.null(rowData(se.obj))) {
+    # Convert the row data to a matrix format
     data.obj$feature.ann <- rowData(se.obj) %>%
       as.data.frame() %>%
       as.matrix()
 
+    # Ensure that the feature annotations only include features present in the assay data
+    # This step maintains consistency between the feature table and feature annotations, which is crucial for accurate downstream analyses
     if (exists("exp.mat", data.obj)) {
       data.obj$feature.ann <- data.obj$feature.ann[rownames(data.obj$feature.ann) %in% rownames(data.obj$feature.tab), ]
     }
   }
 
+  # Return the processed data object
+  # This object contains all the components of the SummarizedExperiment object, reformatted for use with MicrobiomeStat functions
   return(data.obj)
 }

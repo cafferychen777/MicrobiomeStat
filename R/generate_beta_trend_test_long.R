@@ -117,12 +117,15 @@ generate_beta_trend_test_long <-
            dist.name = c("BC"),
            ...) {
 
+    # Check if distance metrics are provided
     if (is.null(dist.name)){
       return()
     }
 
+    # Validate the input data object
     mStat_validate_data(data.obj)
 
+    # Inform the user about the importance of numeric time variable
     message(
       "The trend test in 'generate_alpha_trend_test_long' relies on a numeric time variable.\n",
       "Please ensure that your time variable is coded as numeric.\n",
@@ -130,16 +133,22 @@ generate_beta_trend_test_long <-
       "The time variable will be converted to numeric within the function if needed."
     )
 
+    # Convert time variable to numeric
     data.obj$meta.dat <- data.obj$meta.dat %>% dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
 
+    # If distance object is not provided, calculate it from the data object
     if (is.null(dist.obj)) {
+      # Extract relevant metadata
       meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var, adj.vars)))
+      # Calculate beta diversity
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
+      # If adjustment variables are provided, calculate adjusted distances
       if (!is.null(adj.vars)){
         dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
       }
     } else {
+      # If distance object is provided, extract metadata from the appropriate source
       if (!is.null(data.obj) & !is.null(data.obj$meta.dat)){
         meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var, adj.vars)))
       } else {
@@ -147,21 +156,24 @@ generate_beta_trend_test_long <-
       }
     }
 
+    # Ensure the distance object and metadata have matching dimensions
     if (nrow(as.matrix(dist.obj[[dist.name[1]]])) > nrow(meta_tab)){
       samIDs <- rownames(meta_tab)
       dist.obj <- mStat_subset_dist(dist.obj = dist.obj, samIDs = samIDs)
     }
 
+    # Perform trend test for each distance metric
     test.list <- lapply(dist.name, function(dist.name){
 
+      # Convert distance matrix to long format
       dist.df <- as.matrix(dist.obj[[dist.name]])
-
       dist.df <- dist.df %>%
         as.data.frame() %>%
         rownames_to_column("sample")
-
       meta_tab <- meta_tab %>% rownames_to_column("sample")
 
+      # Prepare data for longitudinal analysis
+      # This step calculates the distance from each time point to the baseline for each subject
       long.df <- dist.df %>%
         tidyr::gather(key = "sample2", value = "distance", -sample) %>%
         dplyr::left_join(meta_tab, by = "sample") %>%
@@ -174,11 +186,14 @@ generate_beta_trend_test_long <-
         dplyr::select(!!sym(paste0(subject.var, ".subject")), !!sym(paste0(time.var, ".subject")), distance) %>%
         dplyr::rename(!!sym(subject.var) := !!sym(paste0(subject.var, ".subject")), !!sym(time.var) := !!sym(paste0(time.var, ".subject")))
 
+      # Add group information to the long format data
       long.df <- long.df %>% dplyr::left_join(meta_tab %>% dplyr::select(all_of(c(subject.var, group.var))) %>% dplyr::distinct(), by = subject.var, relationship = "many-to-many")
 
+      # Ensure time variable is numeric
       long.df <- long.df %>% dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
 
-      # Attempt to fit the model with random slopes
+      # Attempt to fit the mixed effects model with random slopes
+      # This model accounts for individual variations in the trend over time
       formula <- create_mixed_effects_formula(
         response.var = "distance",
         time.var = time.var,
@@ -189,12 +204,12 @@ generate_beta_trend_test_long <-
 
       model_fit <- try(lmer(formula, data = long.df), silent = TRUE)
 
+      # If the model fitting fails, attempt to simplify the random effects structure
       if (inherits(model_fit, "try-error")) {
-        # Check if the error is due to overparameterization
         error_message <- attr(model_fit, "condition")$message
         if (grepl("number of observations.*<=.*number of random effects", error_message, ignore.case = TRUE)) {
           message("Simplifying the random-effects structure due to overparameterization.")
-          # Simplify the random effects structure
+          # Simplify the random effects structure by removing random slopes
           formula <- create_mixed_effects_formula(
             response.var = "distance",
             time.var = time.var,
@@ -204,30 +219,27 @@ generate_beta_trend_test_long <-
           )
           model_fit <- try(lmer(formula, data = long.df), silent = TRUE)
           if (inherits(model_fit, "try-error")) {
-            # If it still fails, stop and report the error
             stop("Model fitting failed even after simplifying the random-effects structure: ", model_fit)
           }
         } else {
-          # If the error is due to other reasons, stop and report the error
           stop("Model fitting failed due to an error: ", model_fit)
         }
       }
 
       model <- model_fit
 
+      # Extract and format model results
       if (!is.null(group.var)){
-        # Check if group.var is multi-category
+        # For multi-category group variables, perform Type III ANOVA
         if (length(unique(long.df[[group.var]])) > 2) {
           anova_result <- anova(model, type = "III")
 
-          # Extract coefficients
+          # Extract coefficients and ANOVA results
           coef.tab <- extract_coef(model)
-          # Append the last row of the anova_result to the coef.tab
           last_row <- utils::tail(anova_result, 1)
-          # Get the variable name of the last_row
           var_name <- rownames(last_row)[1]
 
-          # Adjust last_row to match the format of coef.tab
+          # Adjust ANOVA results to match coefficient table format
           adjusted_last_row <- data.frame(
             Term = var_name,
             Estimate = NA,
@@ -236,13 +248,15 @@ generate_beta_trend_test_long <-
             P.Value = last_row$`Pr(>F)`
           )
 
-          # Merge coef.tab and adjusted_last_row
+          # Combine coefficient table with ANOVA results
           coef.tab <- rbind(coef.tab, adjusted_last_row)
 
         } else {
+          # For binary group variables, extract coefficients directly
           coef.tab <- extract_coef(model)
         }
       } else {
+        # If no group variable, extract coefficients
         coef.tab <- extract_coef(model)
       }
 

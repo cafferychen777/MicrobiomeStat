@@ -71,39 +71,49 @@ generate_taxa_volcano_single <-
            pdf.wid = 7,
            pdf.hei = 5) {
 
+    # Extract relevant metadata and add sample names as a column
     meta_tab <- data.obj$meta.dat %>%
       dplyr::select(all_of(c(group.var))) %>% rownames_to_column("sample")
 
+    # Get the color palette for the plot
     color_palette <- mStat_get_palette(palette)
 
+    # Extract feature levels from the test list
     feature.level <- names(test.list)
 
+    # Determine which p-value to use based on multiple testing correction method
     p_val_var <-
       ifelse(feature.mt.method == "fdr",
              "Adjusted.P.Value",
              "P.Value")
 
+    # Generate plots for each feature level
     plot.list <- lapply(feature.level, function(feature.level) {
       sub_test.list <- test.list[[feature.level]]
 
+      # Extract group levels from metadata
       group_level <-
         meta_tab %>% select(all_of(c(group.var))) %>% pull() %>% as.factor() %>% levels
 
+      # Set the reference level as the first group level
       reference_level <- group_level[1]
 
+      # Generate volcano plots for each group comparison
       sub_plot.list <-
         lapply(names(sub_test.list), function(group.level) {
           sub_test.result <- sub_test.list[[group.level]]
 
-          # If features.plot is not NULL, only the specified taxa are retained.
+          # Filter features if a specific set is provided
           if (!is.null(features.plot)) {
             sub_test.result <- sub_test.result %>%
               filter(Variable %in% features.plot)
           }
 
+          # Calculate the maximum absolute coefficient for symmetric x-axis
           max_abs_log2FC <-
             max(abs(sub_test.result$Coefficient), na.rm = TRUE)
 
+          # Create the volcano plot
           p <-
             ggplot(
               sub_test.result,
@@ -115,18 +125,21 @@ generate_taxa_volcano_single <-
               )
             ) +
             geom_point() +
+            # Add vertical line at x=0 to show no change
             geom_vline(
               aes(xintercept = 0),
               linetype = "dashed",
               linewidth = 1.5,
               color = "grey"
             ) +
+            # Add horizontal line at the significance level
             geom_hline(
               aes(yintercept = -log10(feature.sig.level)),
               linetype = "dashed",
               linewidth = 1.5,
               color = "grey"
             ) +
+            # Add labels for significant features
             ggrepel::geom_text_repel(
               aes(label = ifelse(
                 get(p_val_var) < feature.sig.level,
@@ -157,10 +170,14 @@ generate_taxa_volcano_single <-
               axis.text = element_text(size = 12),
               axis.title = element_text(size = 14)
             ) +
+            # Use a gradient color scale for prevalence
             scale_color_gradientn(colors = color_palette) +
+            # Set the size range for mean abundance
             scale_size_continuous(range = c(3, 7)) +
+            # Set x-axis limits symmetrically based on maximum absolute coefficient
             coord_cartesian(xlim = c(-max_abs_log2FC, max_abs_log2FC))
 
+          # Save the plot as PDF if requested
           if (pdf) {
             pdf_filename <- paste0("volcano_", feature.level, "_", group.level, ".pdf")
             ggsave(pdf_filename, plot = p, width = pdf.wid, height = pdf.hei)
@@ -169,12 +186,14 @@ generate_taxa_volcano_single <-
           return(p)
         })
 
+      # Assign names to the sub-plot list based on group levels
       names(sub_plot.list) <-
         names(sub_test.list)
 
       return(sub_plot.list)
     })
 
+    # Assign names to the plot list based on feature levels
     names(plot.list) <- feature.level
     return(plot.list)
   }

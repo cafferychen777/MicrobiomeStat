@@ -64,11 +64,16 @@ generate_alpha_volatility_test_long <- function(data.obj,
                                                 group.var,
                                                 adj.vars = NULL) {
 
+  # Exit the function if no alpha diversity indices are specified
   if (is.null(alpha.name)){
     return()
   }
 
+  # Calculate alpha diversity if not provided
+  # This ensures we have the necessary diversity metrics for the analysis
   if (is.null(alpha.obj)) {
+    # Perform rarefaction if depth is specified
+    # Rarefaction standardizes sampling effort across all samples
     if (!is.null(depth)) {
       message(
         "Detected that the 'depth' parameter is not NULL. Proceeding with rarefaction. Call 'mStat_rarefy_data' to rarefy the data!"
@@ -79,7 +84,7 @@ generate_alpha_volatility_test_long <- function(data.obj,
     alpha.obj <-
       mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name)
   } else {
-    # Verify that all alpha.name are present in alpha.obj
+    # Verify that all requested alpha diversity indices are available
     if (!all(alpha.name %in% unlist(lapply(alpha.obj, function(x)
       colnames(x))))) {
       missing_alphas <- alpha.name[!alpha.name %in% names(alpha.obj)]
@@ -91,6 +96,8 @@ generate_alpha_volatility_test_long <- function(data.obj,
     }
   }
 
+  # Inform the user about the importance of numeric time variable for volatility calculation
+  # This message ensures that the user understands the requirements for proper analysis
   message(
     "The volatility calculation in generate_alpha_volatility_test_long relies on a numeric time variable.\n",
     "Please check that your time variable is coded as numeric.\n",
@@ -98,21 +105,30 @@ generate_alpha_volatility_test_long <- function(data.obj,
     "You can ensure the time variable is numeric by mutating it in the metadata."
   )
 
+  # Convert the time variable to numeric
+  # This step is crucial for performing volatility analysis
   data.obj$meta.dat <-
     data.obj$meta.dat %>% dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
 
+  # Extract relevant metadata for the analysis
   meta_tab <-
     data.obj$meta.dat %>% as.data.frame() %>% dplyr::select(all_of(c(
       subject.var, group.var, time.var, adj.vars
     )))
 
+  # Combine alpha diversity data with metadata
+  # This creates a comprehensive dataset for our analysis
   alpha_df <-
     dplyr::bind_cols(alpha.obj) %>% tibble::rownames_to_column("sample") %>%
     dplyr::inner_join(meta_tab %>% rownames_to_column("sample"),
                       by = c("sample"))
 
+  # Perform statistical tests for each alpha diversity index
   test.list <- lapply(alpha.name, function(index) {
+    # Adjust for covariates if specified
+    # This step removes the effect of confounding variables on alpha diversity
     if (!is.null(adj.vars)) {
+      # Create a model matrix for the adjustment variables
       data_subset <- alpha_df %>%
         dplyr::select(all_of(adj.vars)) %>%
         dplyr::mutate(dplyr::across(where(is.character) &
@@ -125,19 +141,17 @@ generate_alpha_volatility_test_long <- function(data.obj,
           contrasts.arg = lapply(data_subset, stats::contrasts, contrasts = FALSE)
         )
 
-      # 去掉截距
-      # M <- M[, -1] 这一步在创建模型矩阵时通过 ~ 0 + . 已经实现了
-
       # Center the covariates
+      # This step is important for interpretation of the intercept in the regression model
       M_centered <- scale(M, scale = FALSE)
 
-      # Fit regression model
+      # Fit regression model to adjust for covariates
       fit <- lm(alpha_df[[index]] ~ M_centered)
 
-      # Compute the adjusted value
+      # Compute the adjusted alpha diversity value
       adjusted_value <- fit$coefficients[1] + residuals(fit)
 
-      # Update the alpha_df
+      # Update the alpha diversity values with the adjusted values
       alpha_df[[index]] <- adjusted_value
 
       message(
@@ -147,7 +161,8 @@ generate_alpha_volatility_test_long <- function(data.obj,
       )
     }
 
-    # Group data by subject and calculate volatility
+    # Calculate volatility for each subject
+    # Volatility is defined as the mean absolute difference in alpha diversity between consecutive time points, divided by the time difference
     volatility_df <- alpha_df %>%
       dplyr::group_by(!!sym(subject.var)) %>%
       dplyr::arrange(!!sym(time.var)) %>%
@@ -160,6 +175,7 @@ generate_alpha_volatility_test_long <- function(data.obj,
       dplyr::summarize(volatility = mean(diff_residuals / diff_time),
                        .groups = 'drop')
 
+    # Prepare data for testing the association between volatility and the grouping variable
     test_df <- volatility_df %>%
       dplyr::left_join(meta_tab %>%
                          dplyr::select(all_of(c(
@@ -168,14 +184,16 @@ generate_alpha_volatility_test_long <- function(data.obj,
                          dplyr::distinct(),
                        by = subject.var)
 
-    # Test the association between the volatility and the grp.var
+    # Test the association between the volatility and the grouping variable
+    # This uses a linear model to assess if volatility differs between groups
     formula <- as.formula(paste("volatility ~", group.var))
-
     test_result <- stats::lm(formula, data = test_df)
 
+    # Extract coefficients from the linear model
     coef.tab <- extract_coef(test_result)
 
-    # Run ANOVA on the model if group.var is multi-categorical
+    # Perform ANOVA if the grouping variable has more than two levels
+    # This tests for overall differences in volatility among groups
     if (length(unique(alpha_df[[group.var]])) > 2) {
       anova <- anova(test_result)
       anova.tab <- anova %>%
@@ -199,14 +217,15 @@ generate_alpha_volatility_test_long <- function(data.obj,
           P.Value
         )
 
+      # Combine the coefficient table with the ANOVA results
       coef.tab <-
-        rbind(coef.tab, anova.tab) # Append the anova.tab to the coef.tab
+        rbind(coef.tab, anova.tab)
     }
 
     return(as_tibble(coef.tab))
   })
 
-  # Assign names to the elements of test.list
+  # Assign names to the elements of test.list based on the alpha diversity indices
   names(test.list) <- alpha.name
 
   return(test.list)

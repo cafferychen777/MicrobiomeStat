@@ -145,18 +145,23 @@ generate_beta_change_boxplot_pair <-
            pdf.hei = 8.5,
            ...) {
 
+    # Exit the function if no distance metric is specified
     if (is.null(dist.name)){
       return()
     }
 
+    # Calculate beta diversity if not provided
+    # This step ensures we have the necessary distance matrices for the analysis
     if (is.null(dist.obj)) {
       meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var, adj.vars)))
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
+      # Adjust distances for covariates if specified
       if (!is.null(adj.vars)){
         dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
       }
     } else {
+      # Extract metadata if distance object is provided
       if (!is.null(data.obj) & !is.null(data.obj$meta.dat)){
         meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var, adj.vars)))
       } else {
@@ -166,33 +171,41 @@ generate_beta_change_boxplot_pair <-
       }
     }
 
+    # Add sample names to metadata
     meta_tab <- meta_tab %>% rownames_to_column("sample")
 
+    # Set the baseline time point for change calculation if not provided
     if (is.null(change.base)){
       change.base <- unique(meta_tab %>% dplyr::select(all_of(c(time.var))))[1,]
       message("The 'change.base' variable was NULL. It has been set to the first unique value in the 'time.var' column of the 'alpha_df' data frame: ", change.base)
     }
 
+    # Identify the time point after the baseline for change calculation
     change.after <-
       unique(meta_tab %>% dplyr::select(all_of(c(time.var))))[unique(meta_tab %>% dplyr::select(all_of(c(time.var)))) != change.base]
 
+    # Get color palette for plotting
     col <- mStat_get_palette(palette)
 
-    # Replace the existing theme selection code with this:
+    # Set the theme for plotting
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
+    # Generate plots for each specified distance metric
     plot_list <- lapply(dist.name,function(dist.name){
 
+      # Set y-axis label based on whether distances are adjusted for covariates
       if (is.null(adj.vars)) {
         y_label <- paste0("Distance from ", change.base, " to ", change.after)
       } else {
         y_label <- paste0("Distance from ", change.base, " to ", change.after, " (adjusted by: ", paste(adj.vars, collapse = ", "), ")")
       }
 
+      # Convert distance matrix to long format for plotting
       dist.df <- as.matrix(dist.obj[[dist.name]]) %>%
         as.data.frame() %>%
         rownames_to_column("sample")
 
+      # Calculate pairwise distances between baseline and follow-up time points for each subject
       long.df <- dist.df %>%
         tidyr::gather(key = "sample2", value = "distance", -sample) %>%
         dplyr::left_join(meta_tab, by = "sample") %>%
@@ -205,8 +218,10 @@ generate_beta_change_boxplot_pair <-
         dplyr::select(!!sym(paste0(subject.var, ".subject")), !!sym(paste0(time.var, ".subject")), distance) %>%
         dplyr::rename(!!sym(subject.var) := !!sym(paste0(subject.var, ".subject")), !!sym(time.var) := !!sym(paste0(time.var, ".subject")))
 
+      # Add group and strata information to the long-format data
       long.df <- long.df %>% dplyr::left_join(meta_tab %>% dplyr::select(-time.var) %>% dplyr::distinct(), by = subject.var)
 
+      # Set up faceting formula based on presence of strata variable
       facet_formula <-
         if (!is.null(strata.var)) {
           paste(". ~", strata.var)
@@ -214,7 +229,10 @@ generate_beta_change_boxplot_pair <-
           ". ~ 1"
         }
 
+      # Create alternative x-axis variable for cases without grouping
       long.df$x_alternative <- "ALL"
+      
+      # Set up aesthetic mapping based on presence of grouping variable
       aes_function <- if (!is.null(group.var)){
         aes(
           x = !!sym(group.var),
@@ -229,16 +247,15 @@ generate_beta_change_boxplot_pair <-
         )
       }
 
+      # Create the boxplot
       p <-
         ggplot(long.df, aes_function) +
-        #geom_violin(trim = F,alpha = 0.8) +
         stat_boxplot(geom = "errorbar",
                      position = position_dodge(width = 0.2),
                      width = 0.3) +
         geom_boxplot(
           position = position_dodge(width = 0.8),
           width = 0.3,
-          #fill = "white"
         ) +
         geom_jitter(width = 0.3, alpha = 0.5, size = 1.7) +
         scale_fill_manual(values = col) +
@@ -260,6 +277,7 @@ generate_beta_change_boxplot_pair <-
           legend.title = ggplot2::element_text(size = base.size)
         )
 
+      # Adjust plot aesthetics based on presence of grouping and strata variables
       if(is.null(group.var) && is.null(strata.var)) {
         p <- p + theme(
           axis.text.x = element_blank(),
@@ -275,8 +293,7 @@ generate_beta_change_boxplot_pair <-
         )
       }
 
-
-      # Save the plots as a PDF file
+      # Save the plot as a PDF if requested
       if (pdf) {
         pdf_name <- paste0("beta_change_boxplot_pair_",
                            dist.name,
@@ -307,6 +324,8 @@ generate_beta_change_boxplot_pair <-
       }
       return(p)
     })
+    
+    # Name the plots in the list according to the distance metrics
     names(plot_list) <- dist.name
     return(plot_list)
   }

@@ -186,29 +186,36 @@ generate_beta_pc_change_boxplot_pair <-
            pdf.hei = 8.5,
            ...) {
 
+    # Check if distance metrics are provided
     if (is.null(dist.name)){
       return()
     }
 
+    # Ensure that at least one of data.obj or dist.obj is provided
     if (is.null(data.obj) & is.null(dist.obj)) {
       stop("Both data.obj and dist.obj cannot be NULL. Please provide at least one.")
     }
 
+    # If distance object is not provided, calculate it from the data object
     if (is.null(dist.obj)) {
+      # Calculate beta diversity
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
       meta_tab <- data.obj$meta.dat
       if (is.null(meta_tab)) {
         stop("No metadata could be loaded from data.obj. Please ensure it contains the necessary metadata.")
       }
+      # If adjustment variables are provided, calculate adjusted distances
       if (!is.null(adj.vars)){
         dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
       }
     } else {
+      # Check if all requested distance metrics are available in the provided distance object
       if (!all(dist.name %in% names(dist.obj))) {
         stop(paste0("The requested dist.name(s) ", paste(dist.name[!dist.name %in% names(dist.obj)], collapse = ", "),
                     " are not available in the provided dist.obj. Please check again."))
       }
+      # Extract metadata from the distance object
       meta_tab <- attr(dist.obj[[dist.name[1]]], "labels")
       if (is.null(meta_tab)) {
         message("No metadata found in dist.obj. Attempting to load metadata from data.obj.")
@@ -222,6 +229,7 @@ generate_beta_pc_change_boxplot_pair <-
       }
     }
 
+    # If principal component object is not provided, calculate it using MDS
     if (is.null(pc.obj)) {
       message("No pc.obj provided, using MDS (PCoA) for dimension reduction by default.")
       message("If you prefer other methods such as NMDS, t-SNE or UMAP, you can use the mStat_calculate_PC function with a specified method.")
@@ -234,25 +242,30 @@ generate_beta_pc_change_boxplot_pair <-
         )
     }
 
+    # Get color palette
     col <- mStat_get_palette(palette)
 
-    # Assuming mStat_get_theme function is already defined
-    # Replace the existing theme selection code with this:
+    # Get the appropriate theme
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
+    # Create a list to store plots for each distance metric
     plot_list <- lapply(dist.name, function(dist.name) {
+      # Extract principal component coordinates
       pc.mat <- pc.obj[[dist.name]]$points
 
       colnames(pc.mat) <- paste0("PC", 1:ncol(pc.mat))
 
       pc.mat <- pc.mat %>% as_tibble()
 
+      # Combine PC coordinates with metadata
       df <-
         cbind(pc.mat[, paste0("PC", pc.ind)], meta_tab[, c(subject.var, time.var, group.var, strata.var)])
 
+      # Identify the time point to compare with the baseline
       change.after <-
         unique(df %>% select(all_of(c(time.var))))[unique(df %>% select(all_of(c(time.var)))) != change.base]
 
+      # Reshape the data from wide to long format
       df <-
         df %>%
         as_tibble() %>%
@@ -261,6 +274,7 @@ generate_beta_pc_change_boxplot_pair <-
           value = "value",-one_of(subject.var, group.var, time.var, strata.var)
         )
 
+      # Split the data by time points
       split_data <-
         split(df, f = df %>%
                 dplyr::group_by(!!sym(time.var)) %>% select(!!sym(time.var)))
@@ -268,6 +282,7 @@ generate_beta_pc_change_boxplot_pair <-
       data_time_1 <- split_data[[change.base]]
       data_time_2 <- split_data[[change.after]]
 
+      # Combine data from two time points
       combined_data <- data_time_1 %>%
         dplyr::inner_join(
           data_time_2,
@@ -275,6 +290,7 @@ generate_beta_pc_change_boxplot_pair <-
           suffix = c("_time_1", "_time_2")
         )
 
+      # Calculate the change in PC coordinates
       combined_data <- combined_data %>%
         dplyr::mutate(value_diff = if (is.function(change.func)) {
           change.func(value_time_2, value_time_1)
@@ -284,18 +300,22 @@ generate_beta_pc_change_boxplot_pair <-
           value_time_2 - value_time_1
         })
 
+      # Add metadata to the combined data
       combined_data <-
         combined_data %>% dplyr::left_join(meta_tab %>% select(all_of(
           c(subject.var, time.var, group.var, strata.var)
         )) %>% filter(!!sym(time.var) == change.after),
         by = subject.var)
 
+      # If no group variable is provided, create a dummy group
       if (is.null(group.var)) {
         group.var = "ALL"
         combined_data$ALL <- "ALL"
       }
 
+      # Create a list to store plots for each principal component
       sub.plot_list <- lapply(paste0("PC", pc.ind), function(pc.index) {
+        # Create the boxplot
         boxplot <- ggplot(
           combined_data %>% filter(PC == pc.index),
           aes(
@@ -341,6 +361,7 @@ generate_beta_pc_change_boxplot_pair <-
             legend.title = ggplot2::element_text(size = base.size)
           )
 
+        # Add faceting if strata variable is provided
         if (is.null(strata.var)) {
           boxplot <- boxplot
         } else {
@@ -350,7 +371,7 @@ generate_beta_pc_change_boxplot_pair <-
                                 space = "free")
         }
 
-
+        # Adjust theme if there's only one group
         if (group.var == "ALL") {
           boxplot <- boxplot  + theme(
             axis.text.x = element_blank(),
@@ -360,8 +381,7 @@ generate_beta_pc_change_boxplot_pair <-
           )
         }
 
-
-        # Save the plots as a PDF file
+        # Save the plot as a PDF if requested
         if (pdf) {
           pdf_name <- paste0(
             "beta_pc_change_boxplot_pair_",

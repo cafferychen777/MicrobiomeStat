@@ -168,11 +168,12 @@ generate_alpha_boxplot_long <- function (data.obj,
                                          pdf.wid = 11,
                                          pdf.hei = 8.5,
                                          ...) {
-
+  # Check if alpha.name is provided
   if (is.null(alpha.name)){
     return()
   }
 
+  # Check if alpha.obj is a list
   if (!is.null(alpha.obj) &&
       !is(alpha.obj, "list"))
     stop("`alpha.obj` should be a list or NULL.")
@@ -187,6 +188,7 @@ generate_alpha_boxplot_long <- function (data.obj,
       !is.character(strata.var))
     stop("`strata.var` should be a character string or NULL.")
 
+  # Calculate alpha diversity if not provided
   if (is.null(alpha.obj)) {
     data.obj <-
       mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
@@ -215,13 +217,12 @@ generate_alpha_boxplot_long <- function (data.obj,
       mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
   }
 
-  meta_tab <-
-    data.obj$meta.dat %>% as.data.frame() %>% dplyr::select(all_of(c(
-      subject.var, group.var, time.var, strata.var, adj.vars
-    )))
+  # Prepare metadata and alpha diversity data
+  meta_tab <- data.obj$meta.dat %>% 
+    as.data.frame() %>% 
+    dplyr::select(all_of(c(subject.var, group.var, time.var, strata.var, adj.vars)))
 
-  time.levels <-
-    meta_tab %>%
+  time.levels <- meta_tab %>%
     dplyr::select(all_of(c(time.var))) %>%
     pull() %>%
     as.factor() %>%
@@ -234,12 +235,13 @@ generate_alpha_boxplot_long <- function (data.obj,
     dplyr::inner_join(meta_tab %>% rownames_to_column(var = "sample"),
                       by = c("sample"))
 
-  # Replace the existing theme selection code with this:
+  # Set up theme and color palette
   theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
   # Use mStat_get_palette to set the color palette
   col <- mStat_get_palette(palette)
 
+  # Handle case when no grouping variable is provided
   if (is.null(group.var)) {
     alpha_df <- alpha_df %>% dplyr::mutate("ALL" = "ALL")
     group.var <- "ALL"
@@ -275,6 +277,7 @@ generate_alpha_boxplot_long <- function (data.obj,
       )
     }
 
+    # Adjust for covariates if specified
     if (!is.null(adj.vars)) {
       data_subset <- alpha_df %>%
         dplyr::select(all_of(adj.vars)) %>%
@@ -307,6 +310,7 @@ generate_alpha_boxplot_long <- function (data.obj,
       )
     }
 
+    # Calculate average alpha diversity for large datasets
     average_alpha_df <- NULL
     if (length(unique(alpha_df[[time.var]])) > 10 ||
         length(unique(alpha_df[[subject.var]])) > 25) {
@@ -334,16 +338,16 @@ generate_alpha_boxplot_long <- function (data.obj,
       }
     }
 
+    # Set up y-axis label
     if (!is.null(adj.vars)) {
       covariates <- paste(adj.vars, collapse = ", ")
-      y_label <-
-        paste0(index, " index (adjusted by: ", covariates, ")")
+      y_label <- paste0(index, " index (adjusted by: ", covariates, ")")
     } else {
       y_label <- paste0(index, " index")
     }
 
-    alpha_df <-
-      alpha_df %>% dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var)))
+    # Ensure time variable is a factor
+    alpha_df <- alpha_df %>% dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var)))
 
     boxplot <- ggplot(alpha_df,
                       aes_function) +
@@ -443,9 +447,7 @@ generate_alpha_boxplot_long <- function (data.obj,
     return(boxplot)
   })
 
-
-
-  # Save the plots as a PDF file
+  # Save plots as PDF if requested
   if (pdf) {
     for (plot_index in seq_along(plot_list)) {
       plot <- plot_list[[plot_index]]
@@ -482,6 +484,7 @@ generate_alpha_boxplot_long <- function (data.obj,
     }
   }
 
+  # Name the plots in the list
   names(plot_list) <- alpha.name
 
   return(plot_list)

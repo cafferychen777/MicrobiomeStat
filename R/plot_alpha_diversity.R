@@ -121,25 +121,35 @@ plot_alpha_diversity <- function (alpha.obj,
                                   subject.var = NULL,
                                   time.var = NULL,
                                   adj.vars = NULL,
-                                  # If specified, residuals will be used
                                   time.point.plot,
-                                  # The first pt will be the reference.
                                   is.plot.change = FALSE,
                                   alpha.change.func = "log fold change",
-                                  # User can define the change function
                                   plot.type = c("boxplot", "spaghettiplot"),
                                   ...) {
 
+  # Validate and set the plot type
+  # This step ensures that only supported plot types are used, enhancing function robustness
   plot.type <- match.arg(plot.type)
 
+  # Create a standardized data object for analysis
+  # This approach facilitates consistent data handling across different analysis functions
   data.obj <- list()
-
   data.obj$meta.dat <- meta.dat
 
+  # The function adapts to various study designs based on time variables and number of time points
+  # This flexibility allows for comprehensive analysis of different experimental setups
+
   if (is.null(time.var) | length(time.point.plot) == 1) {
-    # Plot single time point or all samples if the time variable is not specified
+    # Scenario 1: Cross-sectional data or single time point analysis
+    # This scenario is applicable for studies comparing groups at a single time point or ignoring time effects
 
     if (plot.type == "boxplot"){
+      # Generate a boxplot for single time point data
+      # Boxplots provide a statistical summary of alpha diversity distribution:
+      # - The box represents the interquartile range (IQR) containing the middle 50% of values
+      # - The line in the box represents the median
+      # - Whiskers typically extend to 1.5 times the IQR, representing the data's spread
+      # - Points beyond the whiskers are potential outliers
       p <- generate_alpha_boxplot_single(
         data.obj = data.obj,
         alpha.obj = alpha.obj,
@@ -151,6 +161,8 @@ plot_alpha_diversity <- function (alpha.obj,
         t.level = time.point.plot
       )
     } else {
+      # Inform the user if the requested plot type is not supported for this scenario
+      # This message helps users understand the function's capabilities and limitations
       message(paste(
         "Currently, we do not support",
         plot.type,
@@ -159,14 +171,23 @@ plot_alpha_diversity <- function (alpha.obj,
       return()
     }
   } else if (!is.null(time.var) & length(time.point.plot) == 2) {
-    # Plot two time points and sample pair
+    # Scenario 2: Paired data with two time points
+    # This scenario is ideal for before-after studies or studies with baseline and follow-up measurements
+    # It allows for the analysis of changes in alpha diversity over time
+
+    # Ensure that the subject variable is specified for paired analysis
+    # This is crucial for tracking individual changes over time
     if (is.null(subject.var)) {
       message("Subject variable not specified!")
       return()
     }
 
     if (is.plot.change) {
+      # Generate a plot showing change in alpha diversity between two time points
+      # This approach is useful for visualizing the magnitude and direction of changes over time
       if (plot.type == "boxplot"){
+        # The change boxplot visualizes the distribution of alpha diversity changes
+        # It allows for easy comparison of change magnitudes across different groups
         p <- generate_alpha_change_boxplot_pair(
           data.obj = data.obj,
           alpha.obj = alpha.obj,
@@ -180,6 +201,7 @@ plot_alpha_diversity <- function (alpha.obj,
           alpha.change.func = alpha.change.func,
         )
       } else {
+        # Inform the user if the requested plot type is not supported for this scenario
         message(paste(
           "Currently, we do not support",
           plot.type,
@@ -188,7 +210,12 @@ plot_alpha_diversity <- function (alpha.obj,
         return()
       }
     } else {
+      # Generate plots for two time points without explicitly showing change
+      # This approach allows for comparison of alpha diversity at each time point
       if (plot.type == "boxplot") {
+        # Boxplot for longitudinal data with two time points
+        # This visualization allows for comparison of alpha diversity distributions between time points
+        # It can reveal shifts in central tendency and spread of alpha diversity over time
         p <- generate_alpha_boxplot_long(
           data.obj = data.obj,
           alpha.obj = alpha.obj,
@@ -202,6 +229,9 @@ plot_alpha_diversity <- function (alpha.obj,
           adj.vars = adj.vars
         )
       } else if (plot.type == "spaghettiplot") {
+        # Spaghetti plot for longitudinal data with two time points
+        # This plot type visualizes individual trajectories of alpha diversity over time
+        # It's particularly useful for identifying patterns of change at the individual level
         p <- generate_alpha_spaghettiplot_long(
           data.obj = data.obj,
           alpha.obj = alpha.obj,
@@ -215,6 +245,7 @@ plot_alpha_diversity <- function (alpha.obj,
           adj.vars = adj.vars
         )
       } else {
+        # Inform the user if the requested plot type is not supported for this scenario
         message(paste(
           "Currently, we do not support",
           plot.type,
@@ -224,15 +255,24 @@ plot_alpha_diversity <- function (alpha.obj,
       }
     }
   } else if (!is.null(time.var) & length(time.point.plot) > 2) {
-    # Plot more than two time points, which are truly longitudinal
+    # Scenario 3: Longitudinal data with more than two time points
+    # This scenario is suitable for studies with multiple follow-up measurements
+    # It allows for the analysis of alpha diversity trends over extended periods
 
+    # Ensure that the subject variable is specified for longitudinal analysis
+    # This is essential for tracking individual changes across multiple time points
     if (is.null(subject.var)) {
       message("Subject variable not specified!")
       return()
     }
 
     if (!is.plot.change) {
+      # Generate plots for multiple time points
+      # This approach allows for visualization of alpha diversity trends over time
       if (plot.type == "boxplot") {
+        # Boxplot for longitudinal data with multiple time points
+        # This visualization allows for comparison of alpha diversity distributions across all time points
+        # It can reveal trends in central tendency and variability of alpha diversity over time
         p <- generate_alpha_boxplot_long(
           data.obj = data.obj,
           alpha.obj = alpha.obj,
@@ -246,6 +286,9 @@ plot_alpha_diversity <- function (alpha.obj,
           adj.vars = adj.vars
         )
       } else if (plot.type == "spaghettiplot") {
+        # Spaghetti plot for longitudinal data with multiple time points
+        # This plot type visualizes individual trajectories of alpha diversity over multiple time points
+        # It's particularly useful for identifying patterns of change at the individual level and detecting potential subgroups with similar trajectories
         p <- generate_alpha_spaghettiplot_long(
           data.obj = data.obj,
           alpha.obj = alpha.obj,
@@ -259,6 +302,7 @@ plot_alpha_diversity <- function (alpha.obj,
           adj.vars = adj.vars
         )
       } else {
+        # Inform the user if the requested plot type is not supported for this scenario
         message(paste(
           "Currently, we do not support",
           plot.type,
@@ -267,6 +311,8 @@ plot_alpha_diversity <- function (alpha.obj,
         return()
       }
     } else {
+      # Inform the user that change plots are not supported for more than two time points
+      # This limitation is due to the complexity of representing changes across multiple time points in a single plot
       message(paste(
         "Currently, we do not support",
         plot.type,
@@ -277,6 +323,8 @@ plot_alpha_diversity <- function (alpha.obj,
 
   }
 
+  # Return the generated plot
+  # The returned plot object can be further customized or directly rendered
   return(p)
 
 }

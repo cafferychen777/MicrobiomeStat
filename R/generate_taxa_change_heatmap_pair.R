@@ -38,7 +38,7 @@
 #' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
 #' Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.
 #' @param top.k.plot Integer specifying number of top k features to plot, when `features.plot` is NULL.
-#' Default is NULL, in which case all features passing filters will be plotted.
+#' Default is NULL, which case all features passing filters will be plotted.
 #' @param top.k.func Function to use for selecting top k features, when `features.plot` is NULL.
 #' Options include inbuilt functions like "mean", "sd", or a custom function. Default is NULL, in which
 #' case features will be selected by abundance.
@@ -205,17 +205,20 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
                                               pdf.wid = 11,
                                               pdf.hei = 8.5,
                                               ...) {
-  # Extract data
+  # Validate the input data object
   mStat_validate_data(data.obj)
 
+  # Match the feature data type argument
   feature.dat.type <- match.arg(feature.dat.type)
 
+  # Extract relevant metadata
   meta_tab <-  data.obj$meta.dat %>%
     select(all_of(c(
     time.var, group.var, strata.var, subject.var
   ))) %>%
     rownames_to_column("sample")
 
+  # Determine whether to cluster columns based on group variable
   if (is.null(cluster.cols)) {
     if (!is.null(group.var)) {
       if (is.numeric(meta_tab %>% select(all_of(group.var)) %>% dplyr::pull()) &&
@@ -227,20 +230,21 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
     } else {
       cluster.cols = TRUE
     }
-  } else {
-
   }
 
+  # Set default for clustering rows if not specified
   if (is.null(cluster.rows)) {
     cluster.rows = TRUE
   }
 
+  # Adjust filtering parameters based on input conditions
   if (feature.dat.type == "other" || !is.null(features.plot) ||
       (!is.null(top.k.func) && !is.null(top.k.plot))) {
     prev.filter <- 0
     abund.filter <- 0
   }
 
+  # Normalize count data if necessary
   if (feature.dat.type == "count"){
     message(
       "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
@@ -248,47 +252,58 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
     data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
   }
 
+  # Generate plots for each feature level
   plot_list <- lapply(feature.level, function(feature.level) {
 
+    # Aggregate data by taxonomy if necessary
     if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
       data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
     }
 
+    # Extract the appropriate feature table
     if (feature.level != "original"){
       otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
     } else {
       otu_tax_agg <- data.obj$feature.tab
     }
 
+    # Apply abundance and prevalence filters
     otu_tax_agg <-  otu_tax_agg %>%
       as.data.frame() %>%
       mStat_filter(prev.filter = prev.filter,
                    abund.filter = abund.filter) %>%
       rownames_to_column(feature.level)
 
+    # Select top k features if specified
     if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
       computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
       features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
     }
 
+    # Reshape data to long format
     otu_tax_long <- otu_tax_agg %>%
       tidyr::gather(key = "sample", value = "value",-feature.level)
 
+    # Merge with metadata
     merged_data <- otu_tax_long %>%
       dplyr::inner_join(meta_tab, by = "sample")
 
+    # Group data by time variable
     grouped_data <- merged_data %>%
       dplyr::group_by(!!sym(time.var))
 
+    # Identify the time point to compare against the baseline
     change.after <-
       unique(grouped_data %>% select(all_of(c(time.var))))[unique(grouped_data %>% select(all_of(c(time.var)))) != change.base]
 
+    # Split data into baseline and comparison time points
     split_data <-
       split(merged_data, f = grouped_data %>% select(all_of(c(time.var))))
 
     data_time_1 <- split_data[[change.base]]
     data_time_2 <- split_data[[change.after]]
 
+    # Combine data from both time points
     combined_data <- data_time_1 %>%
       dplyr::inner_join(
         data_time_2,
@@ -296,10 +311,12 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
         suffix = c("_time_1", "_time_2")
       )
 
+    # Calculate the change in feature values between time points
     if (is.function(feature.change.func)) {
       combined_data <-
         combined_data %>% dplyr::mutate(value_diff = feature.change.func(value_time_2, value_time_1))
     } else if (feature.change.func == "log fold change") {
+      # For log fold change, handle zero values by imputation
       half_nonzero_min_time_2 <- combined_data %>%
         filter(value_time_2 > 0) %>%
         dplyr::group_by(!!sym(feature.level)) %>%
@@ -330,7 +347,6 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
       combined_data$value_time_1[combined_data$value_time_1 == 0] <-
         combined_data$half_nonzero_min_time_1[combined_data$value_time_1 == 0]
 
-      # Add a message to inform users that an imputation operation was performed.
       message(
         "Imputation was performed using half the minimum nonzero proportion for each taxon at different time points."
       )
@@ -338,6 +354,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
       combined_data <-
         combined_data %>% dplyr::mutate(value_diff = log2(value_time_2) - log2(value_time_1))
     } else if (feature.change.func == "relative change") {
+      # Calculate relative change, handling cases where both values are zero
       combined_data <- combined_data %>%
         dplyr::mutate(value_diff = dplyr::case_when(
           value_time_2 == 0 & value_time_1 == 0 ~ 0,
@@ -351,41 +368,43 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
         combined_data %>% dplyr::mutate(value_diff = value_time_2 - value_time_1)
     }
 
+    # Create a matrix of value differences
     value_diff_matrix <- combined_data %>%
       select(feature.level, !!sym(subject.var), value_diff) %>%
       tidyr::spread(key = !!sym(subject.var), value = value_diff) %>%
       column_to_rownames(var = feature.level) %>%
       as.matrix()
 
+    # Prepare metadata for annotation
     unique_meta_tab <- meta_tab %>%
       filter(!!sym(subject.var) %in% colnames(value_diff_matrix)) %>%
       select(all_of(c(subject.var, group.var, strata.var))) %>%
       dplyr::distinct(!!sym(subject.var), .keep_all = TRUE) %>% as_tibble()
 
-    # Get the order of elements
+    # Match the order of metadata to the matrix columns
     order_index <-
       match(colnames(value_diff_matrix),
             as.matrix(unique_meta_tab %>% select(!!sym(subject.var))))
 
     suppressWarnings({
-      # Sort unique_meta_tab in order.
       sorted_meta_tab <- unique_meta_tab[order_index,]
       rownames(sorted_meta_tab) <-
         as.matrix(sorted_meta_tab[, subject.var])
     })
 
-    # If group.var is not empty, sorted_meta_tab is sorted by group.var
+    # Sort metadata by group variable if present
     if (!is.null(group.var)) {
       sorted_meta_tab <-
         sorted_meta_tab[order(sorted_meta_tab %>% select(!!sym(group.var)) %>% as.matrix()),]
     }
 
-    # Extract subject column from sorted_meta_tab
+    # Extract subject column from sorted metadata
     subjects <- sorted_meta_tab %>% select(all_of(subject.var))
 
-    # Use these indexes to rearrange the columns of the value_diff_matrix in the correct order
+    # Rearrange the columns of the value difference matrix
     value_diff_matrix <- value_diff_matrix[, as.matrix(subjects)]
 
+    # Prepare annotation columns for the heatmap
     if (!is.null(strata.var) & !is.null(group.var)){
       annotation_cols <-
         sorted_meta_tab %>%
@@ -403,17 +422,18 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
       annotation_col_sorted <- NULL
     }
 
+   # Rearrange value difference matrix columns if annotation is present
    if (!is.null(group.var) | !is.null(strata.var)){
      value_diff_matrix <-
        value_diff_matrix[, rownames(annotation_col_sorted)]
    }
 
+    # Determine gaps for the heatmap based on strata or group variables
     if (!is.null(strata.var)) {
       gaps <-
         cumsum(table(sorted_meta_tab[[strata.var]]))[-length(sorted_meta_tab[[strata.var]])]
     } else {
       if (!is.null(group.var)) {
-        # Calculate where the divider should appear
         gaps <-
           cumsum(table(sorted_meta_tab[[group.var]]))[-length(sorted_meta_tab[[group.var]])]
       } else {
@@ -421,32 +441,28 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
       }
     }
 
+    # Filter features to plot if specified
     if (!is.null(features.plot)) {
       value_diff_matrix <-
         value_diff_matrix[rownames(value_diff_matrix) %in% features.plot,]
     }
 
+    # Set up color scheme for the heatmap
     n_colors <- 100
-
     col <- c("#0571b0", "#92c5de", "white", "#f4a582", "#ca0020")
-    # Find the largest absolute value in the data
     max_abs_val <- max(abs(range(na.omit(
       c(value_diff_matrix)
     ))))
-
-    # Calculate the position of the zero value in the new color vector
     zero_pos <- round(max_abs_val / (2 * max_abs_val) * n_colors)
-
-    # Creating color vectors
     my_col <-
       c(
         colorRampPalette(col[1:3])(zero_pos),
         colorRampPalette(col[3:5])(n_colors - zero_pos + 1)
       )
-
     break_points <-
       seq(-max_abs_val, max_abs_val, length.out = length(my_col) + 1)
 
+    # Set up color palette for annotations
     color_vector <- mStat_get_palette(palette)
 
     if (!is.null(strata.var) & !is.null(group.var)){
@@ -455,7 +471,6 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
       strata_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(strata.var))) %>% distinct() %>% pull()
       strata_colors <- setNames(rev(color_vector)[1:length(strata_levels)], strata_levels)
 
-      # Creating annotated color lists
       annotation_colors_list <- setNames(
         list(group_colors, strata_colors),
         c(group.var, strata.var)
@@ -472,6 +487,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
       annotation_colors_list <- NULL
     }
 
+    # Generate the heatmap for individual data
     heatmap_plot <- pheatmap::pheatmap(
       mat = value_diff_matrix[order(rowMeans(abs(value_diff_matrix), na.rm = TRUE), decreasing = TRUE), ],
       annotation_col = annotation_col_sorted,
@@ -492,6 +508,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
 
     gg_heatmap_plot <- as.ggplot(heatmap_plot)
 
+    # Calculate average value differences for group-level heatmap
     if (!is.null(strata.var)){
       average_value_diff_matrix <- combined_data %>%
         select(feature.level, !!sym(subject.var), value_diff) %>%
@@ -502,20 +519,21 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
         column_to_rownames(var = feature.level) %>%
         as.matrix()
 
+      # Create annotation dataframe for the average heatmap
       create_annotation_df <- function(colnames_vec, delimiter = "_") {
-        # Extracting Group and Hierarchical Variables
+        # Extract group and strata variables from column names
         split_names <- strsplit(colnames_vec, delimiter)
 
-        # Ensure that all column names have the same number of separators
+        # Ensure all column names have the same number of delimiters
         if (length(unique(sapply(split_names, length))) != 1) {
           stop("All column names must have the same number of delimiters.")
         }
 
-        # Creating Data Frames
+        # Create data frame from split names
         annotation_df <- do.call(rbind.data.frame, split_names)
         colnames(annotation_df) <- c(group.var, strata.var)
 
-        # Convert to factor
+        # Convert to factors with unique levels
         annotation_df[] <- lapply(annotation_df, function(x) factor(x, levels = unique(x)))
 
         # Convert to Matrix
@@ -527,8 +545,10 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
 
       annotation_df <- create_annotation_df(colnames(average_value_diff_matrix))
 
+      # Sort annotation dataframe by strata variable
       annotation_df <- annotation_df[order(annotation_df[,strata.var]),]
     } else if (!is.null(group.var)){
+      # Calculate average value differences for group-level heatmap without strata
       average_value_diff_matrix <- combined_data %>%
         select(feature.level, !!sym(subject.var), value_diff) %>%
         dplyr::left_join(sorted_meta_tab, by = subject.var) %>%
@@ -538,11 +558,13 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
         column_to_rownames(var = feature.level) %>%
         as.matrix()
 
+      # Create simple annotation dataframe for group variable
       annotation_df <- data.frame(Var1 = colnames(average_value_diff_matrix)) %>%
         dplyr::mutate(Var2 = Var1) %>%
         column_to_rownames("Var2") %>%
         dplyr::rename(!!sym(group.var) := Var1)
     } else {
+      # Calculate overall average value differences when no group or strata variables are provided
       average_value_diff_matrix <- combined_data %>%
         select(feature.level, !!sym(subject.var), value_diff) %>%
         dplyr::left_join(sorted_meta_tab, by = subject.var) %>%
@@ -554,15 +576,18 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
       annotation_df <- NULL
     }
 
+    # Filter features for plotting if specified
     if (!is.null(features.plot)) {
       average_value_diff_matrix <-
         average_value_diff_matrix[rownames(average_value_diff_matrix) %in% features.plot,]
     }
 
+    # Reorder columns of average_value_diff_matrix to match annotation_df if applicable
     if (!is.null(group.var) | !is.null(strata.var)){
       average_value_diff_matrix <- average_value_diff_matrix[, rownames(annotation_df)]
     }
 
+    # Generate the heatmap for average data
     average_heatmap_plot <- pheatmap::pheatmap(
       mat = average_value_diff_matrix[order(rowMeans(abs(average_value_diff_matrix), na.rm = TRUE), decreasing = TRUE), ],
       annotation_col = annotation_df,
@@ -582,11 +607,12 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
 
     gg_average_heatmap_plot <- as.ggplot(average_heatmap_plot)
 
+    # Convert feature.change.func to string if it's a custom function
     if (is.function(feature.change.func)) {
       feature.change.func = "custom function"
     }
 
-    # Save the heatmap as a PDF file
+    # Save individual heatmap as PDF if specified
     if (pdf) {
       pdf_name <- paste0(
         "taxa_change_heatmap_pair_indiv",
@@ -627,7 +653,7 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
       )
     }
 
-    # Save the heatmap as a PDF file
+    # Save average heatmap as PDF if specified
     if (pdf) {
       pdf_name <- paste0(
         "taxa_change_heatmap_pair_average",
@@ -667,13 +693,15 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
         plot = gg_average_heatmap_plot
       )
     }
+    
+    # Create a list of both heatmap plots
     sub.plot_list <- list(gg_average_heatmap_plot, gg_heatmap_plot)
-
     names(sub.plot_list) <- c("average", "indiv")
 
     return(sub.plot_list)
   })
 
+  # Name the plot list with feature levels and return
   names(plot_list) <- feature.level
   return(plot_list)
 }

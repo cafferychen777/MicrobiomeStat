@@ -30,18 +30,22 @@
 #' }
 #' @export
 mStat_aggregate_by_taxonomy <- function(data.obj, feature.level = NULL) {
-  # Check if feature.level is not NULL
+  # Validate input: ensure that a taxonomic level for aggregation is specified
   if (is.null(feature.level)) {
     stop("feature.level can not be NULL.")
   }
 
+  # Extract the feature table and taxonomy table from the data object
   otu_tab <- data.obj$feature.tab %>% as.data.frame()
   tax_tab <- data.obj$feature.ann %>% as.data.frame()
 
-  # Check if the row names in the otu_tab and tax_tab are completely consistent
+  # Check for consistency between feature and taxonomy tables
+  # This step is crucial to ensure data integrity before aggregation
   otu_not_in_tax <- setdiff(rownames(otu_tab), rownames(tax_tab))
   tax_not_in_otu <- setdiff(rownames(tax_tab), rownames(otu_tab))
 
+  # Notify the user of any inconsistencies in the data
+  # This helps in identifying potential issues in the input data
   if (length(otu_not_in_tax) > 0) {
     message(
       "The following row names are in 'feature.tab' but not in 'feature.ann': ",
@@ -56,10 +60,13 @@ mStat_aggregate_by_taxonomy <- function(data.obj, feature.level = NULL) {
     )
   }
 
-  # Store original sample order
+  # Preserve the original sample order for consistent output
   original_sample_order <- colnames(otu_tab)
 
+  # Perform aggregation for each specified taxonomic level
   data.obj$feature.agg.list <- setNames(lapply(feature.level, function(feature.level) {
+    # Join the OTU table with the taxonomy table
+    # This step combines abundance data with taxonomic information
     otu_tax <- otu_tab %>%
       rownames_to_column("sample") %>%
       dplyr::inner_join(
@@ -68,7 +75,13 @@ mStat_aggregate_by_taxonomy <- function(data.obj, feature.level = NULL) {
       ) %>%
       column_to_rownames("sample")
 
-    # Aggregate OTU table
+    # Aggregate the OTU table at the specified taxonomic level
+    # This process involves several steps:
+    # 1. Reshape the data from wide to long format
+    # 2. Group by taxonomic level and sample
+    # 3. Sum the abundances within each group
+    # 4. Reshape back to wide format
+    # 5. Replace NA values with "Unclassified" for better interpretability
     otu_tax_agg <- otu_tax %>%
       tidyr::pivot_longer(cols = -all_of(feature.level), names_to = "sample", values_to = "value") %>%
       dplyr::group_by_at(vars(!!sym(feature.level), sample)) %>%
@@ -78,14 +91,16 @@ mStat_aggregate_by_taxonomy <- function(data.obj, feature.level = NULL) {
       column_to_rownames(feature.level) %>%
       as.matrix()
 
-    # Ensure the output maintains the original sample order
+    # Ensure the output maintains the original sample order for consistency
     otu_tax_agg <- otu_tax_agg[, original_sample_order]
 
-    # Remove rows with all zero
+    # Remove taxa with zero abundance across all samples
+    # This step helps in reducing the dimensionality of the data
     otu_tax_agg <- otu_tax_agg[rowSums(otu_tax_agg) > 0, , drop = FALSE]
 
     return(otu_tax_agg)
   }), feature.level)
 
+  # Return the updated data object with the new aggregated feature list
   return(data.obj)
 }

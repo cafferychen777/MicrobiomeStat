@@ -101,10 +101,13 @@ generate_taxa_change_per_time_test_long <-
            abund.filter = 0.001,
            ...) {
 
+    # Match the feature data type argument to ensure it's one of the allowed options
     feature.dat.type <- match.arg(feature.dat.type)
 
+    # Validate the input data object to ensure it meets the required format
     mStat_validate_data(data.obj)
 
+    # Check if the input variables are of the correct type
     if (!is.character(subject.var))
       stop("`subject.var` should be a character string.")
     if (!is.character(time.var))
@@ -113,17 +116,20 @@ generate_taxa_change_per_time_test_long <-
         !is.character(group.var))
       stop("`group.var` should be a character string or NULL.")
 
+    # Process the time variable to ensure it's in the correct format for analysis
     data.obj <- mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
 
+    # Extract relevant metadata for the analysis
     meta_tab <- data.obj$meta.dat %>%
       as.data.frame() %>%
       select(all_of(c(subject.var, group.var, time.var, adj.vars)))
 
+    # Check for time-varying covariates, which are not currently supported
     if (!is.null(adj.vars)){
-      # Use the modified mStat_identify_time_varying_vars function
+      # Identify any time-varying variables among the adjustment variables
       time_varying_info <- mStat_identify_time_varying_vars(meta.dat = meta_tab, adj.vars = adj.vars, subject.var = subject.var)
 
-      # Check if there are any time-varying variables
+      # If time-varying variables are found, stop the analysis and inform the user
       if (length(time_varying_info$time_varying_vars) > 0) {
         stop("Feature-level analysis does not yet support adjustment for time-varying variables. Found time-varying variables: ",
              paste(time_varying_info$time_varying_vars, collapse = ", "),
@@ -131,6 +137,7 @@ generate_taxa_change_per_time_test_long <-
       }
     }
 
+    # If baseline time point is not specified, determine it from the data
     if (is.null(t0.level)) {
       if (is.numeric(meta_tab[, time.var])) {
         t0.level <- sort(unique(meta_tab[, time.var]))[1]
@@ -139,6 +146,7 @@ generate_taxa_change_per_time_test_long <-
       }
     }
 
+    # If follow-up time points are not specified, determine them from the data
     if (is.null(ts.levels)) {
       if (is.numeric(meta_tab[, time.var])) {
         ts.levels <- sort(unique(meta_tab[, time.var]))[-1]
@@ -147,11 +155,13 @@ generate_taxa_change_per_time_test_long <-
       }
     }
 
+    # Perform the longitudinal analysis for each follow-up time point
     test_list <- lapply(ts.levels, function(ts.level){
-
+        # Subset the data to include only the baseline and current follow-up time point
         subset.ids <- rownames(data.obj$meta.dat %>% filter(!!sym(time.var) %in% c(t0.level, ts.level)))
         subset_data.obj <- mStat_subset_data(data.obj, samIDs = subset.ids)
 
+        # Perform the pairwise analysis between baseline and current follow-up time point
         subset.test.list <- generate_taxa_change_test_pair(data.obj = subset_data.obj,
                                        subject.var = subject.var,
                                        time.var = time.var,
@@ -167,7 +177,9 @@ generate_taxa_change_per_time_test_long <-
         return(subset.test.list)
       })
 
+    # Name the results list with the follow-up time points for easy reference
     names(test_list) <- ts.levels
 
+    # Return the complete list of test results for all follow-up time points
     return(test_list)
   }

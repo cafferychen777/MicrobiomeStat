@@ -214,10 +214,13 @@ generate_taxa_areaplot_long <-
            pdf.hei = 8.5,
            ...) {
 
+    # Match the feature data type argument
     feature.dat.type <- match.arg(feature.dat.type)
-    # Data validation
+    
+    # Validate the input data object
     mStat_validate_data(data.obj)
 
+    # Check if the input variables are of the correct type
     if (!is.character(subject.var))
       stop("`subject.var` should be a character string.")
     if (!is.character(time.var))
@@ -229,14 +232,16 @@ generate_taxa_areaplot_long <-
         !is.character(strata.var))
       stop("`strata.var` should be a character string or NULL.")
 
+    # Process the time variable in the data object
     data.obj <- mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
 
+    # Extract relevant metadata
     meta_tab <- data.obj$meta.dat %>% as.data.frame() %>% select(all_of(c(subject.var,group.var,time.var,strata.var)))
 
-    # Assuming mStat_get_theme function is already defined
-    # Replace the existing theme selection code with this:
+    # Get the appropriate theme for plotting
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
+    # Define a color palette if not provided
     if (is.null(palette)){
       pal <- rep(c("#E0E0E0","#E41A1C","#1E90FF","#FF8C00","#4DAF4A","#984EA3","#40E0D0","#FFC0CB",
                    "#00BFFF","#FFDEAD","#90EE90","#EE82EE","#00FFFF","#F0A3FF", "#0075DC",
@@ -260,7 +265,7 @@ generate_taxa_areaplot_long <-
                    "#98FB98", "#8FBC8F", "#3CB371", "#2E8B57", "#228B22", "#008000", "#006400"
       ),5)
     } else{
-
+      # Check if the provided palette is sufficient
       if (feature.number > length(palette)) {
         stop("The number of unique features exceeds the length of the provided palette. Please provide a larger palette.")
       }
@@ -268,6 +273,7 @@ generate_taxa_areaplot_long <-
       pal <- palette
     }
 
+    # Normalize the data if it's in count format
     if (feature.dat.type == "count"){
       message(
         "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
@@ -277,27 +283,32 @@ generate_taxa_areaplot_long <-
       stop("The 'other' type is suitable for situations where the user has analyzed the data using a method not provided in 'mStat_normalize_data' method, and the 'areaplot' is only applicable to raw data that has not undergone any processing or proportion data that adds up to 1. If you believe your data falls into these two categories, please modify 'feature.dat.type'.")
     }
 
+    # Generate plots for each feature level
     plot_list_all <- lapply(feature.level,function(feature.level){
 
+      # Aggregate data by taxonomy if necessary
       if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
         data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
       }
 
+      # Get the appropriate feature table
       if (feature.level != "original"){
         otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
       } else {
         otu_tax_agg <- data.obj$feature.tab
       }
 
+      # Subset features if specified
       if (!is.null(features.plot)){
         otu_tax_agg <- otu_tax_agg[na.omit(features.plot),]
       }
 
+      # Prepare the feature table for analysis
       otu_tax_agg <-  otu_tax_agg %>%
         as.data.frame() %>%
         rownames_to_column(feature.level)
 
-      # Standardized data (Have been dropped out)
+      # Normalize the feature table
       otu_tab_norm <- apply(t(otu_tax_agg %>% select(-all_of(feature.level))), 1, function(x) x)
 
       rownames(otu_tab_norm) <- as.matrix(otu_tax_agg[, feature.level])
@@ -307,7 +318,7 @@ generate_taxa_areaplot_long <-
       # Calculate the average relative abundance of each taxon
       avg_abund <- rowMeans(otu_tab_norm)
 
-      # Replace taxon with "Other" for relative abundance below threshold.
+      # Replace taxon with "Other" for relative abundance below threshold
       otu_tab_other <- otu_tab_norm %>%
         as.data.frame() %>%
         rownames_to_column(feature.level)
@@ -319,17 +330,18 @@ generate_taxa_areaplot_long <-
         otu_tab_other[, feature.level][avg_abund < other.abund.cutoff] <- "Other"
       }
 
-      # Converting data frames to long format
+      # Convert data to long format
       otu_tab_long <- otu_tab_other %>%
         dplyr::group_by(!!sym(feature.level)) %>%
         dplyr::summarize_all(sum) %>%
         tidyr::gather(key = "sample", value = "value", -feature.level)
 
-      # Merge otu_tab_long with meta_tab_sorted
+      # Merge feature data with metadata
       merged_long_df <- otu_tab_long %>%
         dplyr::inner_join(meta_tab_sorted  %>%
                             rownames_to_column("sample"), by = "sample")
 
+      # Sort the merged data
       sorted_merged_long_df <- merged_long_df %>%
         dplyr::arrange(!!sym(subject.var), !!sym(time.var))
 
@@ -422,25 +434,32 @@ generate_taxa_areaplot_long <-
           dplyr::mutate(joint_factor = interaction(!!sym(time.var), !!sym(group.var)))
       }
 
+      # Calculate x-axis offsets for labels
       df_average <- df_average %>%
         dplyr::mutate(x_offset = ifelse(cumulative_mean_value == 0, (bar_width + bar_spacing) / 2, -(bar_width + bar_spacing) / 2))
 
+      # Drop unused levels from joint_factor
       df_average$joint_factor <- droplevels(df_average$joint_factor)
 
+      # Convert joint_factor to numeric for plotting
       df_average$joint_factor_numeric <- match(df_average$joint_factor, levels(df_average$joint_factor))
 
+      # Extract labels for x-axis
       labels <- sub("\\..*", "", levels(df_average$joint_factor))
 
+      # Separate group and strata variables if necessary
       if(!is.null(strata.var)){
         df_average <- df_average %>%
           tidyr::separate(!!sym(group.var), into = c(group.var, strata.var), sep = "\\.")
       }
 
-      stack_areaplot_average  <- # Main plot code
+      # Create the main stacked area plot
+      stack_areaplot_average  <- 
         df_average %>%
         ggplot(aes(x = joint_factor_numeric, y = mean_value, fill = !!sym(feature.level))) +
         geom_area(stat = "identity", position = "fill") +
         {
+          # Adjust y-axis scale based on data type
           if (all(round(apply(otu_tax_agg %>% column_to_rownames(feature.level), 2, sum),2) == 1)){
             scale_y_continuous(expand = c(0, 0), labels = scales::percent)
           } else {
@@ -449,6 +468,7 @@ generate_taxa_areaplot_long <-
         } +
         scale_x_continuous(expand = c(0.01, 0.01), breaks = unique(df_average$joint_factor_numeric), labels = labels) +
         {
+          # Add faceting if group variable is present
           if (!is.null(group.var)){
             if (group.var == ""){
             } else {
@@ -471,7 +491,7 @@ generate_taxa_areaplot_long <-
               axis.text.x = element_text(angle = 90, color = "black", vjust = 0.5, size = base.size),
               axis.title.y = element_text(size= base.size,color="black"),
               legend.key=element_blank(),
-              legend.title = element_text(size= base.size+2), # Add this line to change the legend title size
+              legend.title = element_text(size= base.size+2),
               legend.text = element_text(color="black",size= base.size),
               legend.spacing.x=unit(0.1,'cm'),
               legend.spacing.y=unit(0.1,'cm'),
@@ -481,8 +501,7 @@ generate_taxa_areaplot_long <-
               panel.grid.major=element_blank(),
               panel.grid.minor=element_blank())
 
-
-      # Save the stacked barplots as a PDF file
+      # Save the plot as a PDF if requested
       if (pdf) {
         pdf_name <- paste0("taxa_areaplot_pair",
                            "_",
@@ -509,6 +528,7 @@ generate_taxa_areaplot_long <-
       return(stack_areaplot_average)
     })
 
+    # Name the plots in the list
     names(plot_list_all) <- feature.level
 
     return(plot_list_all)

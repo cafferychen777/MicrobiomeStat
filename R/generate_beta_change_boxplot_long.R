@@ -226,20 +226,26 @@ generate_beta_change_boxplot_long <-
            pdf.hei = 8.5,
            ...) {
 
+    # Exit the function if no distance metric is specified
     if (is.null(dist.name)){
       return()
     }
 
+    # Calculate beta diversity if not provided
+    # This step ensures we have the necessary distance matrices for the analysis
     if (is.null(dist.obj)) {
+      # Process time variable to ensure proper ordering in longitudinal analysis
       data.obj <-
         mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
       meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var, adj.vars)))
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
+      # Adjust distances for covariates if specified
       if (!is.null(adj.vars)){
         dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
       }
     } else {
+      # Process time variable if distance object is provided
       data.obj <-
         mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
       if (!is.null(data.obj) & !is.null(data.obj$meta.dat)){
@@ -251,36 +257,38 @@ generate_beta_change_boxplot_long <-
       }
     }
 
+    # Add sample names to metadata
     meta_tab <- meta_tab %>% rownames_to_column("sample")
 
+    # Get color palette for plotting
     col <- mStat_get_palette(palette)
 
-    # Replace the existing theme selection code with this:
+    # Set the theme for plotting
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
+    # Generate plots for each specified distance metric
     plot_list <- lapply(dist.name, function(dist.name) {
 
-      # Convert dist object to a tibble
+      # Convert distance object to a tibble for easier manipulation
       dist_tibble <- as_tibble(as.matrix(dist.obj[[dist.name]]), rownames = "Sample1")
 
+      # Join metadata with distance information
       if (!is.null(strata.var)){
-        # Join meta data to get group and time information
         dist_meta <- dist_tibble %>%
           tidyr::pivot_longer(cols = -Sample1, names_to = "Sample2", values_to = "Distance") %>%
           dplyr::left_join(meta_tab %>% select(sample, Group = all_of(group.var), Time = all_of(time.var), Strata = all_of(strata.var)), by = c("Sample1" = "sample")) %>%
           dplyr::left_join(meta_tab %>% select(sample, Group = all_of(group.var), Time = all_of(time.var), Strata = all_of(strata.var)), by = c("Sample2" = "sample"))
       } else {
-        # Join meta data to get group and time information
         dist_meta <- dist_tibble %>%
           tidyr::pivot_longer(cols = -Sample1, names_to = "Sample2", values_to = "Distance") %>%
           dplyr::left_join(meta_tab %>% select(sample, Group = all_of(group.var), Time = all_of(time.var)), by = c("Sample1" = "sample")) %>%
           dplyr::left_join(meta_tab %>% select(sample, Group = all_of(group.var), Time = all_of(time.var)), by = c("Sample2" = "sample"))
       }
 
+      # Handle different plotting scenarios based on the number of groups
       if (length(unique(dist_meta$Group.x)) <= 2) {
-
+        # For two or fewer groups, calculate within- and between-group distances
         if (!is.null(strata.var)){
-          # If group.var has only two levels, use the existing plot
           within_between_dist <- dist_meta %>%
             filter(Time.x == Time.y) %>%
             dplyr::mutate(
@@ -290,7 +298,6 @@ generate_beta_change_boxplot_long <-
             ) %>%
             select(Group, Distance, Type, Time, Strata = Strata.x)
         } else {
-          # If group.var has only two levels, use the existing plot
           within_between_dist <- dist_meta %>%
             filter(Time.x == Time.y) %>%
             dplyr::mutate(
@@ -301,6 +308,7 @@ generate_beta_change_boxplot_long <-
             select(Group, Distance, Type, Time)
         }
 
+        # Create boxplot for within- and between-group distances
         p <- ggplot(within_between_dist, aes(x = Time, y = Distance, fill = Type)) +
           geom_boxplot(alpha = 0.7, position = position_dodge(0.8)) +
           stat_boxplot(
@@ -331,9 +339,8 @@ generate_beta_change_boxplot_long <-
                 plot.title = element_text(hjust = 0.5))
 
       } else {
-
+        # For more than two groups, calculate pairwise distances between all groups
         if (!is.null(strata.var)){
-          # If group.var has more than two levels, use the new plot
           within_between_dist <- dist_meta %>%
             filter(Time.x == Time.y) %>%
             dplyr::mutate(
@@ -344,7 +351,6 @@ generate_beta_change_boxplot_long <-
             dplyr::mutate(Type = apply(select(., Type), 1, function(x) paste(sort(unlist(strsplit(x, "-"))), collapse = "-"))) %>%
             distinct(Type, Time, Distance, Strata, .keep_all = TRUE)
         } else {
-          # If group.var has more than two levels, use the new plot
           within_between_dist <- dist_meta %>%
             filter(Time.x == Time.y) %>%
             dplyr::mutate(
@@ -356,6 +362,7 @@ generate_beta_change_boxplot_long <-
             distinct(Type, Time, Distance, .keep_all = TRUE)
         }
 
+        # Create boxplot for pairwise distances between all groups
         p <- ggplot(within_between_dist, aes(x = Time, y = Distance, fill = Type)) +
           geom_boxplot(alpha = 0.7, position = position_dodge(0.8)) +
           stat_boxplot(
@@ -386,13 +393,14 @@ generate_beta_change_boxplot_long <-
                 plot.title = element_text(hjust = 0.5))
       }
 
+      # Add faceting by strata if a strata variable is specified
       if (!is.null(strata.var)) {
         p <- p + facet_wrap2("Strata", scales = "free", nrow = length(unique(meta_tab[[strata.var]])))
       } else {
         p <- p
       }
 
-      # Optional: Save the plot to a PDF file
+      # Save the plot as a PDF if requested
       if (pdf) {
         pdf_name <- paste0("beta_change_boxplot_",
                            dist.name,
@@ -425,6 +433,7 @@ generate_beta_change_boxplot_long <-
       return(p)
     })
 
+    # Name the plots in the list according to the distance metrics
     names(plot_list) <- dist.name
     return(plot_list)
   }

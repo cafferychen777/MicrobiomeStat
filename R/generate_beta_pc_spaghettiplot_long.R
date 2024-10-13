@@ -198,19 +198,26 @@ generate_beta_pc_spaghettiplot_long <- function(data.obj = NULL,
                                                 pdf.hei = 8.5,
                                                 ...) {
 
+  # Check if distance metrics are provided
   if (is.null(dist.name)){
     return()
   }
 
+  # If distance object is not provided, calculate it from the data object
   if (is.null(dist.obj)) {
+    # Process time variable and extract relevant metadata
     data.obj <-
       mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
     meta_tab <-
       data.obj$meta.dat %>% select(all_of(c(
         subject.var, time.var, group.var, strata.var
       )))
+    
+    # Calculate beta diversity
     dist.obj <-
       mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
+    
+    # If adjustment variables are provided, calculate adjusted distances
     if (!is.null(adj.vars)) {
       dist.obj <-
         mStat_calculate_adjusted_distance(
@@ -221,6 +228,7 @@ generate_beta_pc_spaghettiplot_long <- function(data.obj = NULL,
         )
     }
   } else {
+    # If data object is provided with metadata, process time variable
     if (!is.null(data.obj) & !is.null(data.obj$meta.dat)) {
       data.obj <-
         mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
@@ -229,6 +237,7 @@ generate_beta_pc_spaghettiplot_long <- function(data.obj = NULL,
           subject.var, time.var, group.var, strata.var
         )))
     } else {
+      # If no data object, extract metadata from distance object
       meta_tab <-
         attr(dist.obj[[dist.name[1]]], "labels") %>% select(all_of(c(
           subject.var, time.var, group.var, strata.var
@@ -241,20 +250,22 @@ generate_beta_pc_spaghettiplot_long <- function(data.obj = NULL,
     }
   }
 
+  # Get color palette
   col <- mStat_get_palette(palette)
 
-  # Calculate new sizes based on base.size
+  # Calculate new sizes based on base.size for consistent plot aesthetics
   title.size = base.size * 1.25
   axis.title.size = base.size * 0.75
   axis.text.size = base.size * 0.5
   legend.title.size = base.size * 1
   legend.text.size = base.size * 0.75
 
-  # Assuming mStat_get_theme function is already defined
-  # Replace the existing theme selection code with this:
+  # Get the appropriate theme
   theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
+  # Create a list to store plots for each distance metric
   plot_list <- lapply(dist.name, function(dist.name) {
+    # If principal component object is not provided, calculate it using MDS
     if (is.null(pc.obj)) {
       message("No pc.obj provided, using MDS (PCoA) for dimension reduction by default.")
       message(
@@ -269,17 +280,21 @@ generate_beta_pc_spaghettiplot_long <- function(data.obj = NULL,
         )
     }
 
+    # Extract principal component coordinates
     pc.mat <- pc.obj[[dist.name]]$points
 
     colnames(pc.mat) <- paste0("PC", 1:ncol(pc.mat))
 
+    # Ensure PC matrix rows match metadata
     pc.mat <- pc.mat[rownames(meta_tab[, c(subject.var, time.var, group.var, strata.var)]),]
 
     pc.mat <- pc.mat %>% as_tibble()
 
+    # Combine PC coordinates with metadata
     df <-
       cbind(pc.mat[, paste0("PC", pc.ind)], meta_tab[, c(subject.var, time.var, group.var, strata.var)])
 
+    # Reshape data from wide to long format
     df <-
       df %>%
       as_tibble() %>%
@@ -289,11 +304,13 @@ generate_beta_pc_spaghettiplot_long <- function(data.obj = NULL,
         -one_of(subject.var, group.var, time.var, strata.var)
       )
 
+    # If no group variable is provided, create a dummy group
     if (is.null(group.var)){
       df <- df %>% dplyr::mutate("ALL" = "ALL")
       group.var = "ALL"
     }
 
+    # Calculate mean values for each group and time point
     if (is.null(strata.var)) {
       df.mean <- df %>%
         dplyr::group_by(!!sym(time.var),!!sym(group.var), PC) %>%
@@ -308,9 +325,11 @@ generate_beta_pc_spaghettiplot_long <- function(data.obj = NULL,
         dplyr::left_join(df, df.mean, by = c(time.var, group.var, strata.var, "PC"))
     }
 
+    # Create a list to store plots for each principal component
     sub_plot_list <- lapply(unique(df$PC), function(pc.index) {
       sub_df <- df %>% filter(PC == pc.index)
 
+      # Create the spaghetti plot
       p <- ggplot() +
         geom_point(
           data = sub_df,
@@ -366,10 +385,12 @@ generate_beta_pc_spaghettiplot_long <- function(data.obj = NULL,
           legend.key.spacing = unit(2, "mm")
         )
 
+      # Remove legend if there's only one group
       if (group.var == "ALL"){
         p <- p + theme(legend.position = "none")
       }
 
+      # Add faceting if strata variable is provided
       if (!is.null(strata.var)) {
         p <- p + ggh4x::facet_nested(
           cols = vars(!!sym(strata.var)),
@@ -378,7 +399,7 @@ generate_beta_pc_spaghettiplot_long <- function(data.obj = NULL,
         )
       }
 
-      # Save the plots as a PDF file
+      # Save the plot as a PDF if requested
       if (pdf) {
         pdf_name <- paste0(
           "beta_pc_spaghettiplot_long_",

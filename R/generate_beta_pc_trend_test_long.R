@@ -108,27 +108,34 @@ generate_beta_pc_trend_test_long <- function(data.obj = NULL,
                                              dist.name = c("BC"),
                                              ...) {
 
+  # Check if distance metrics are provided
   if (is.null(dist.name)){
     return()
   }
 
+  # If distance object is not provided, calculate it from the data object
   if (is.null(dist.obj)) {
+    # Extract relevant metadata
     meta_tab <-
       data.obj$meta.dat %>% select(all_of(c(
         subject.var, time.var, group.var, adj.vars
       )))
+    # Calculate beta diversity
     dist.obj <-
       mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
+    # If adjustment variables are provided, calculate adjusted distances
     if (!is.null(adj.vars)){
       dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
     }
   } else {
+    # If data object is provided with metadata, extract relevant information
     if (!is.null(data.obj) & !is.null(data.obj$meta.dat)) {
       meta_tab <-
         data.obj$meta.dat %>% select(all_of(c(
           subject.var, time.var, group.var, adj.vars
         )))
     } else {
+      # If no data object, extract metadata from distance object
       meta_tab <-
         attr(dist.obj[[dist.name[1]]], "labels") %>% select(all_of(c(
           subject.var, time.var, group.var, adj.vars
@@ -137,6 +144,7 @@ generate_beta_pc_trend_test_long <- function(data.obj = NULL,
     }
   }
 
+  # Inform the user about the importance of numeric time variable
   message(
     "The trend test in 'generate_beta_trend_test_long' relies on a numeric time variable.\n",
     "Please ensure that your time variable is coded as numeric.\n",
@@ -144,6 +152,7 @@ generate_beta_pc_trend_test_long <- function(data.obj = NULL,
     "The time variable will be processed within the function if needed."
   )
 
+  # If principal component object is not provided, calculate it using MDS
   if (is.null(pc.obj)) {
     message("No pc.obj provided, using MDS (PCoA) for dimension reduction by default.")
     message(
@@ -158,16 +167,20 @@ generate_beta_pc_trend_test_long <- function(data.obj = NULL,
       )
   }
 
+  # Perform trend test for each distance metric
   test.list <- lapply(dist.name, function(dist.name) {
+    # Extract principal component coordinates
     pc.mat <- pc.obj[[dist.name]]$points
 
     colnames(pc.mat) <- paste0("PC", 1:ncol(pc.mat))
 
     pc.mat <- pc.mat %>% as_tibble()
 
+    # Combine PC coordinates with metadata
     df <-
       cbind(pc.mat[, paste0("PC", pc.ind)], meta_tab[, c(subject.var, time.var, group.var)])
 
+    # Reshape data from wide to long format
     df <-
       df %>%
       as_tibble() %>%
@@ -175,9 +188,11 @@ generate_beta_pc_trend_test_long <- function(data.obj = NULL,
                     value = "value",
                     -one_of(subject.var, group.var, time.var))
 
+    # Perform trend test for each principal component
     sub_test.list <- lapply(unique(df$PC), function(pc.index) {
       sub_df <- df %>% filter(PC == pc.index)
 
+      # Create formula for mixed effects model
       formula <-
         create_mixed_effects_formula(
           response.var = "value",
@@ -186,23 +201,26 @@ generate_beta_pc_trend_test_long <- function(data.obj = NULL,
           subject.var = subject.var
         )
 
+      # Ensure time variable is numeric
       sub_df <-
         sub_df %>% dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
 
+      # Fit linear mixed effects model
       model <- lmer(formula, data = sub_df, ...)
 
-      # Check if group.var is multi-category
+      # Check if group variable has more than two categories
       if (length(unique(sub_df[[group.var]])) > 2) {
+        # Perform Type III ANOVA for multi-category group variable
         anova_result <- anova(model, type = "III")
 
-        # Adjust the way of appending the p-value based on your desired output.
+        # Extract coefficients from the model
         coef.tab <- extract_coef(model)
-        # Append the last row of the anova_result to the coef.tab
+        
+        # Extract the last row of ANOVA results (overall effect of group variable)
         last_row <- utils::tail(anova_result, 1)
-        # 获取last_row的列名
         var_name <- rownames(last_row)[1]
 
-        # 调整last_row以匹配coef.tab的格式
+        # Adjust the last row to match the format of coefficient table
         adjusted_last_row <- data.frame(
           Term = var_name,
           Estimate = NA,
@@ -211,10 +229,11 @@ generate_beta_pc_trend_test_long <- function(data.obj = NULL,
           P.Value = last_row$`Pr(>F)`
         )
 
-        # 合并coef.tab和adjusted_last_row
+        # Combine coefficient table with adjusted last row
         coef.tab <- rbind(coef.tab, adjusted_last_row)
 
       } else {
+        # For binary group variable, extract coefficients directly
         coef.tab <- extract_coef(model)
       }
 

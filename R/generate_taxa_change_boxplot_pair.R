@@ -35,7 +35,7 @@
 #' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
 #' Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.
 #' @param top.k.plot Integer specifying number of top k features to plot, when `features.plot` is NULL.
-#' Default is NULL, in which case all features passing filters will be plotted.
+#' Default is NULL, which case all features passing filters will be plotted.
 #' @param top.k.func Function to use for selecting top k features, when `features.plot` is NULL.
 #' Options include inbuilt functions like "mean", "sd", or a custom function. Default is NULL, in which
 #' case features will be selected by abundance.
@@ -183,11 +183,13 @@ generate_taxa_change_boxplot_pair <-
            pdf.wid = 11,
            pdf.hei = 8.5,
            ...) {
-    # Data validation
+    # Validate input data
     mStat_validate_data(data.obj)
 
+    # Match and validate the feature data type
     feature.dat.type <- match.arg(feature.dat.type)
 
+    # Validate input variables
     if (!is.character(subject.var))
       stop("`subject.var` should be a character string.")
     if (!is.character(time.var))
@@ -199,17 +201,19 @@ generate_taxa_change_boxplot_pair <-
         !is.character(strata.var))
       stop("`strata.var` should be a character string or NULL.")
 
+    # Extract metadata
     meta_tab <-
       data.obj$meta.dat %>% as.data.frame() %>% select(all_of(c(
         subject.var, time.var, group.var, strata.var
       ))) %>% rownames_to_column("sample")
 
-    # Assuming mStat_get_theme function is already defined
-    # Replace the existing theme selection code with this:
+    # Get plot theme
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
+    # Get color palette
     col <- mStat_get_palette(palette)
 
+    # Set y-axis label based on feature data type and change function
     ylab_label <- if (feature.dat.type != "other") {
       if (is.function(feature.change.func)) {
         paste0("Change in Relative Abundance", " (custom function)")
@@ -225,14 +229,17 @@ generate_taxa_change_boxplot_pair <-
       }
     }
 
+    # Adjust filtering parameters if necessary
     if (feature.dat.type == "other" || !is.null(features.plot) ||
         (!is.null(top.k.func) && !is.null(top.k.plot))) {
       prev.filter <- 0
       abund.filter <- 0
     }
 
+    # Generate plots for each taxonomic level
     plot_list <- lapply(feature.level, function(feature.level) {
 
+      # Normalize count data if necessary
       if (feature.dat.type == "count"){
         message(
           "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
@@ -240,33 +247,37 @@ generate_taxa_change_boxplot_pair <-
         data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
       }
 
+      # Aggregate data by taxonomy if necessary
       if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
         data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
       }
 
+      # Extract aggregated OTU table
       if (feature.level != "original"){
         otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
       } else {
         otu_tax_agg <- data.obj$feature.tab
       }
 
+      # Filter OTU table based on prevalence and abundance
       otu_tax_agg <-  otu_tax_agg %>%
         as.data.frame() %>%
         mStat_filter(prev.filter = prev.filter,
                      abund.filter = abund.filter) %>%
         tibble::rownames_to_column(feature.level)
 
+      # Select top k features if specified
       if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
       computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
       features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
       }
 
-      # Convert values to numeric and add sample ID
+      # Reshape data for plotting
       otu_tax_agg_numeric <- otu_tax_agg %>%
         tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
         dplyr::mutate(value = as.numeric(value))
 
-      # Add metadata to the aggregated OTU table
+      # Merge OTU data with metadata
       otu_tax_agg_merged <-
         dplyr::left_join(otu_tax_agg_numeric, meta_tab, by = "sample") %>%
         select(all_of(
@@ -281,21 +292,21 @@ generate_taxa_change_boxplot_pair <-
           )
         ))
 
+      # Identify the time point after the change base
       change.after <-
         unique(otu_tax_agg_merged %>% select(all_of(c(time.var))))[unique(otu_tax_agg_merged %>% select(all_of(c(time.var)))) != change.base]
 
-      # Calculate the change in abundance for each taxa
-      # Split into a list, each time value has an independent tibble.
+      # Split data into separate tibbles for each time point
       split_data <-
         split(otu_tax_agg_merged,
               f = otu_tax_agg_merged %>%
                 dplyr::group_by(!!sym(time.var)) %>% select(all_of(c(time.var))))
 
-      # Extract the first and second tables from split_data.
+      # Extract data for the base time point and the change time point
       data_time_1 <- split_data[[change.base]]
       data_time_2 <- split_data[[change.after]]
 
-      # Connect these two tables together to calculate the difference.
+      # Combine data from both time points
       combined_data <- data_time_1 %>%
         dplyr::inner_join(
           data_time_2,
@@ -303,11 +314,12 @@ generate_taxa_change_boxplot_pair <-
           suffix = c("_time_1", "_time_2")
         )
 
-      # Calculate the difference of value.
+      # Calculate the change in abundance based on the specified function
       if (is.function(feature.change.func)) {
         combined_data <-
           combined_data %>% dplyr::mutate(value_diff = feature.change.func(value_time_2, value_time_1))
       } else if (feature.change.func == "log fold change") {
+        # Calculate half the minimum non-zero value for each time point
         half_nonzero_min_time_2 <- combined_data %>%
           filter(value_time_2 > 0) %>%
           dplyr::group_by(!!sym(feature.level)) %>%
@@ -319,6 +331,7 @@ generate_taxa_change_boxplot_pair <-
           dplyr::summarize(half_nonzero_min = min(value_time_1) / 2,
                     .groups = "drop")
 
+        # Join the half minimum values to the combined data
         combined_data <-
           dplyr::left_join(
             combined_data,
@@ -335,44 +348,53 @@ generate_taxa_change_boxplot_pair <-
             suffix = c("_time_1", "_time_2")
           )
 
+        # Impute zero values with half the minimum non-zero value
         combined_data$value_time_2[combined_data$value_time_2 == 0] <-
           combined_data$half_nonzero_min_time_2[combined_data$value_time_2 == 0]
 
         combined_data$value_time_1[combined_data$value_time_1 == 0] <-
           combined_data$half_nonzero_min_time_1[combined_data$value_time_1 == 0]
 
-        # Add a message to inform users that an imputation operation was performed.
+        # Inform users about the imputation
         message(
           "Imputation was performed using half the minimum nonzero proportion for each taxon at different time points."
         )
 
+        # Calculate log fold change
         combined_data <-
           combined_data %>% dplyr::mutate(value_diff = log2(value_time_2) - log2(value_time_1))
       } else if (feature.change.func == "relative change") {
+        # Calculate relative change
         combined_data <- combined_data %>%
           dplyr::mutate(value_diff = dplyr::case_when(
             value_time_2 == 0 & value_time_1 == 0 ~ 0,
             TRUE ~ (value_time_2 - value_time_1) / (value_time_2 + value_time_1)
           ))
       } else if (feature.change.func == "absolute change"){
+        # Calculate absolute change
         combined_data <-
           combined_data %>% dplyr::mutate(value_diff = value_time_2 - value_time_1)
       } else {
+        # Default to absolute change if no valid function is specified
         combined_data <-
           combined_data %>% dplyr::mutate(value_diff = value_time_2 - value_time_1)
       }
 
+      # Add metadata for the change time point
       combined_data <-
         combined_data %>% dplyr::left_join(meta_tab %>% filter(!!sym(time.var) == change.after), by = subject.var)
 
+      # Get unique taxa levels
       taxa.levels <-
         combined_data %>% select(all_of(c(feature.level))) %>% dplyr::distinct() %>% dplyr::pull()
 
+      # Set default group if not provided
       if (is.null(group.var)) {
         group.var = "group"
         combined_data$group <- "ALL"
       }
 
+      # Select features to plot
       if (!is.null(features.plot)) {
         taxa.levels <- taxa.levels[taxa.levels %in% features.plot]
       } else {
@@ -393,7 +415,6 @@ generate_taxa_change_boxplot_pair <-
             fill = !!sym(group.var)
           )
         ) +
-        #geom_violin(trim = F, alpha = 0.8) +
         geom_jitter(width = 0.1,
                     alpha = 0.3,
                     size = 1.5) +
@@ -403,7 +424,6 @@ generate_taxa_change_boxplot_pair <-
         geom_boxplot(
           position = position_dodge(width = 0.8),
           width = 0.1,
-          #fill = "white"
         ) +
         scale_alpha_manual(values = c(0.5, 0.5)) +
         scale_fill_manual(values = col) +
@@ -427,6 +447,7 @@ generate_taxa_change_boxplot_pair <-
           ...
         )
 
+      # Add facets if strata variable is provided
       if (!is.null(strata.var)) {
         boxplot <- boxplot +
           ggh4x::facet_nested_wrap(
@@ -443,6 +464,7 @@ generate_taxa_change_boxplot_pair <-
           )
       }
 
+      # Adjust theme if there's only one group
       if (group.var == "group" &&
           unique(combined_data$group)[1] == "ALL") {
         boxplot <- boxplot +
@@ -457,9 +479,10 @@ generate_taxa_change_boxplot_pair <-
 
     })
 
+    # Name the plot list with feature levels
     names(plot_list) <- feature.level
 
-    # Save the plots as a PDF file
+    # Save the plots as a PDF file if specified
     if (pdf) {
       pdf_name <- paste0(
         "taxa_change_boxplot_pair",
