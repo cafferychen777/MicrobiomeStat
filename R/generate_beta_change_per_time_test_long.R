@@ -121,20 +121,27 @@ generate_beta_change_per_time_test_long <-
            dist.name = c('BC', 'Jaccard'),
            ...) {
 
+    # Check if distance names are provided
     if (is.null(dist.name)){
       return()
     }
 
+    # Calculate beta diversity if not provided
     if (is.null(dist.obj)) {
+      # Process time variable to ensure proper ordering
       data.obj <-
         mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
+      # Extract relevant metadata
       meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(time.var, group.var)))
+      # Calculate beta diversity
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
+      # Adjust distance matrix if adjustment variables are provided
       if (!is.null(adj.vars)){
         dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
       }
     } else {
+      # If distance object is provided, extract metadata
       if (!is.null(data.obj) & !is.null(data.obj$meta.dat)){
         data.obj <-
           mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
@@ -147,8 +154,10 @@ generate_beta_change_per_time_test_long <-
       }
     }
 
+    # Determine the reference level for the grouping variable
     reference_level <- levels(as.factor(meta_tab[,group.var]))[1]
 
+    # Set default baseline time point if not provided
     if (is.null(t0.level)) {
       if (is.numeric(meta_tab[, time.var])) {
         t0.level <- sort(unique(meta_tab[, time.var]))[1]
@@ -157,6 +166,7 @@ generate_beta_change_per_time_test_long <-
       }
     }
 
+    # Set default follow-up time points if not provided
     if (is.null(ts.levels)) {
       if (is.numeric(meta_tab[, time.var])) {
         ts.levels <- sort(unique(meta_tab[, time.var]))[-1]
@@ -165,17 +175,20 @@ generate_beta_change_per_time_test_long <-
       }
     }
 
+    # Combine baseline and follow-up time points
     time.levels <- c(t0.level, ts.levels)
 
+    # Perform beta diversity change tests for each follow-up time point
     test.list <- lapply(ts.levels, function(ts.level){
       # Subset the data for the specific time level
       subset.ids <- rownames(data.obj$meta.dat %>%
                                filter(!!sym(time.var) %in% c(t0.level, ts.level)))
 
+      # Create subsets of data and distance objects
       subset_data.obj <- mStat_subset_data(data.obj, samIDs = subset.ids)
-
       subset_dist.obj <- mStat_subset_dist(dist.obj, samIDs = subset.ids)
 
+      # Perform beta diversity change test for the current time point pair
       subset.test.list <- generate_beta_change_test_pair(
         data.obj = subset_data.obj,
         dist.obj = subset_dist.obj,
@@ -187,10 +200,12 @@ generate_beta_change_per_time_test_long <-
         dist.name = dist.name
       )
 
+      # Extract all terms from the test results
       all_terms <- unique(unlist(lapply(subset.test.list, \(df) df$Term)))
       all_terms <- setdiff(all_terms, "(Intercept)")
       all_terms <- all_terms[grepl(paste0("^", group.var), all_terms)]
 
+      # Reorganize test results by term
       new_list <- lapply(all_terms, \(term) {
         alpha_dfs <- lapply(names(subset.test.list), \(alpha_name) {
           df <- subset.test.list[[alpha_name]]
@@ -208,6 +223,7 @@ generate_beta_change_per_time_test_long <-
         do.call(rbind, alpha_dfs)
       })
 
+      # Modify term names for better readability
       all_terms <- lapply(all_terms, function(term) {
         if (term != group.var) {
           modified_term <- stringr::str_replace(term, paste0("^", group.var), "")
@@ -218,11 +234,13 @@ generate_beta_change_per_time_test_long <-
         }
       })
 
+      # Set names for the reorganized test results
       new_subset_test_list <- setNames(new_list, all_terms)
 
       return(new_subset_test_list)
     })
 
+    # Set names for the test results list using follow-up time points
     names(test.list) <- ts.levels
 
     return(test.list)
