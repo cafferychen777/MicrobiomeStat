@@ -15,6 +15,7 @@ maintain this project. 🌟
 [![Downloads](https://cranlogs.r-pkg.org/badges/grand-total/MicrobiomeStat)](https://cran.r-project.org/package=MicrobiomeStat)
 [![License: GPL
 v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![R-CMD-check](https://github.com/cafferychen777/MicrobiomeStat/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/cafferychen777/MicrobiomeStat/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 [EN](README.md) \| [CN](README-CN.md) \| [ES](README-ES.md)

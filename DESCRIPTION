@@ -48,7 +48,9 @@ Suggests:
     biomformat,
     Biostrings,
     ggtree,
-    ggtreeExtra
+    ggtreeExtra,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
