@@ -128,6 +128,10 @@
 #' @param pdf.wid Numeric, width of PDF plots in inches, default is 11.
 #' @param pdf.hei Numeric, height of PDF plots in inches, default is 8.5.
 #' @param output.file Character, output PDF report filename (required).
+#' @param output.format A character string specifying the desired output format of the report.
+#' Must be either "pdf" or "html". Default is c("pdf", "html"), which will use the first value ("pdf")
+#' if not explicitly specified. This parameter determines whether the report will be generated as a PDF
+#' or HTML document.
 #'
 #' @return A PDF report containing:
 #'

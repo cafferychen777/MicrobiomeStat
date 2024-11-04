@@ -203,6 +203,11 @@ least as large as the number of groups being plotted.}
 \item{pdf.hei}{Numeric, height of PDF plots in inches, default is 8.5.}
 
 \item{output.file}{Character, output PDF report filename (required).}
+
+\item{output.format}{A character string specifying the desired output format of the report.
+Must be either "pdf" or "html". Default is c("pdf", "html"), which will use the first value ("pdf")
+if not explicitly specified. This parameter determines whether the report will be generated as a PDF
+or HTML document.}
 }
 \value{
 A PDF report containing:
@@ -363,6 +368,38 @@ mStat_generate_report_long(
   theme.choice = "bw",
   base.size = 20,
   output.file = "/Users/apple/Research/MicrobiomeStat/result/ecam_obj_report_long.pdf"
+)
+
+mStat_generate_report_long(
+  data.obj = ecam.obj,
+  group.var = "antiexposedall",
+  strata.var = NULL,
+  test.adj.vars = "delivery",
+  vis.adj.vars = "delivery",
+  subject.var = "subject.id",
+  time.var = "month_num",
+  t0.level = NULL,
+  ts.levels = NULL,
+  alpha.obj = NULL,
+  alpha.name = c("shannon","observed_species"),
+  dist.obj = NULL,
+  dist.name = c("BC",'Jaccard'),
+  pc.obj = NULL,
+  feature.mt.method = "none",
+  feature.sig.level = 0.3,
+  vis.feature.level = c("Family","Genus"),
+  test.feature.level = c("Family"),
+  feature.change.func = "relative change",
+  feature.dat.type = "proportion",
+  prev.filter = 0.1,
+  abund.filter = 1e-4,
+  bar.area.feature.no = 40,
+  heatmap.feature.no = 40,
+  feature.box.axis.transform = "sqrt",
+  theme.choice = "bw",
+  base.size = 20,
+  output.file = "/Users/apple/Research/MicrobiomeStat/result/ecam_obj_report_long.html",
+  output.format = "html"
 )
 }
 }

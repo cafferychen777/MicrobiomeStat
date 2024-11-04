@@ -72,7 +72,7 @@ Default is "count", which assumes raw OTU table input.}
 Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.}
 
 \item{top.k.plot}{Integer specifying number of top k features to plot, when `features.plot` is NULL.
-Default is NULL, in which case all features passing filters will be plotted.}
+Default is NULL, which case all features passing filters will be plotted.}
 
 \item{top.k.func}{Function to use for selecting top k features, when `features.plot` is NULL.
 Options include inbuilt functions like "mean", "sd", or a custom function. Default is NULL, in which
