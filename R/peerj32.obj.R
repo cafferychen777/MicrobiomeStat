@@ -9,7 +9,7 @@
 #' \describe{
 #'   \item{feature.tab}{A matrix of microbial abundances (130 intestinal genus-level bacteria)}
 #'   \item{meta.dat}{A data frame with 44 observations and 4 variables:
-#'     \itemize{
+#'     \describe{
 #'       \item{time}{Character. Time point of sample collection ("1" for before, "2" for after intervention)}
 #'       \item{sex}{Character. Sex of the subject}
 #'       \item{subject}{Character. Unique identifier for each subject (e.g., "S1", "S2", etc.)}

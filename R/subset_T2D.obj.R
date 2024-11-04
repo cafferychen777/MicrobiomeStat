@@ -8,7 +8,7 @@
 #' \describe{
 #'   \item{feature.tab}{A matrix of microbial abundances}
 #'   \item{meta.dat}{A data frame with 575 observations and 14 variables:
-#'     \itemize{
+#'     \describe{
 #'       \item{file_id}{Character. Unique identifier for each file}
 #'       \item{md5}{Character. MD5 hash of the file}
 #'       \item{size}{Character. File size in bytes}
