@@ -8,3 +8,7 @@ inst/doc
 /doc/
 /Meta/
 docs/
+*.Rproj
+renv/
+renv.lock
+*.pdf

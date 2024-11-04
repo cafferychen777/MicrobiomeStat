@@ -7,6 +7,9 @@ title: MicrobiomeStat
 # Use Bootstrap version 5
 template:
   bootstrap: 5
+  params:
+    search: true  # 启用基本搜索功能
+    bootswatch: flatly  # 使用 flatly 主题
 
 # Navigation bar settings
 navbar:
