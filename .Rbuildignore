@@ -11,4 +11,10 @@
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
+^LICENSE\.md$
+^cran-comments\.md$
+^CRAN-RELEASE$
+^revdep$
+^\.travis\.yml$
+^codecov\.yml$
 

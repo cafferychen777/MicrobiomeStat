@@ -29,6 +29,13 @@ their extensive biological inquiries over time, with a spirit of
 gratitude towards the community’s existing resources and a collaborative
 ethos for furthering microbiome research.
 
+<figure>
+<img
+src="https://repobeats.axiom.co/api/embed/6466765a763c06a17b91f0a2d456855888d71573.svg"
+title="Repobeats analytics image" alt="Alt" />
+<figcaption aria-hidden="true">Alt</figcaption>
+</figure>
+
 # News
 
 📢 **Update** (January 8th): Enhancement in Color Palette Functionality

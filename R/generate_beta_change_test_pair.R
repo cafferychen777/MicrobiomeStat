@@ -169,7 +169,7 @@ generate_beta_change_test_pair <-
 
       # Create formula for linear model
       formula <-
-        as.formula(paste0("distance", "~", paste(c(
+        stats::as.formula(paste0("distance", "~", paste(c(
           time_varying_info$time_varying_vars, group.var
         ), collapse = "+")))
 

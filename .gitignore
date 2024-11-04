@@ -3,3 +3,8 @@
 .RData
 .Ruserdata
 MicrobiomeStat.Rproj
+.DS_Store
+inst/doc
+/doc/
+/Meta/
+docs/
