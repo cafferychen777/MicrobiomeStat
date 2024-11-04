@@ -366,19 +366,7 @@ generate_taxa_indiv_spaghettiplot_long <-
           prev.filter,
           "_",
           "abund_filter_",
-          abund.filter,
-          "_",
-          "base_size_",
-          base.size,
-          "_",
-          "theme_choice_",
-          theme.choice,
-          "_",
-          "pdf_wid_",
-          pdf.wid,
-          "_",
-          "pdf_hei_",
-          pdf.hei
+          abund.filter
         )
 
         if (!is.null(file.ann)) {
