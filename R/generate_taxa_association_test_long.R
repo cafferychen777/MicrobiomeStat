@@ -102,12 +102,10 @@ generate_taxa_association_test_long <-
     # Match the feature data type argument
     feature.dat.type <- match.arg(feature.dat.type)
 
-    # Extract relevant metadata
-    # This step selects the specified variables from the metadata
-    meta_tab <-
-      data.obj$meta.dat %>% select(all_of(c(
-        group.var, adj.vars, subject.var
-      )))
+    # Extract relevant metadata and ensure it remains a data frame
+    meta_tab <- data.obj$meta.dat %>% 
+        as.data.frame() %>%
+        select(all_of(c(group.var, adj.vars, subject.var)))
 
     # Define a function to generate the formula for statistical modeling
     # This function creates a formula string based on the provided variables
@@ -197,19 +195,29 @@ generate_taxa_association_test_long <-
       }
 
       # Filter features based on prevalence and abundance
-      otu_tax_agg <-  otu_tax_agg %>%
+      otu_tax_agg_filter <- otu_tax_agg %>%
         as.data.frame() %>%
         mStat_filter(prev.filter = prev.filter,
                      abund.filter = abund.filter)
 
+      # Convert filtered data back to matrix
+      otu_tax_agg_filter <- as.matrix(otu_tax_agg_filter)
+
+      # Add this check before linda analysis
+      if (any(colSums(otu_tax_agg_filter) == 0)) {
+        keep_samples <- colSums(otu_tax_agg_filter) > 0
+        otu_tax_agg_filter <- otu_tax_agg_filter[, keep_samples]
+        meta_tab <- meta_tab[keep_samples, , drop = FALSE]
+      }
+
       # Perform linear mixed model analysis using LInDA
       linda.obj <- linda(
-        feature.dat = otu_tax_agg,
+        feature.dat = otu_tax_agg_filter,
         meta.dat = meta_tab,
         formula = paste("~", formula),
         feature.dat.type = "proportion",
-        prev.filter = prev.filter,
-        mean.abund.filter = abund.filter,
+        prev.filter = 0,
+        mean.abund.filter = 0,
         ...
       )
 
