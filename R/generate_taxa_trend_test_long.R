@@ -239,6 +239,13 @@ generate_taxa_trend_test_long <-
         feature.dat.type = "proportion"
       }
 
+      # Add this check before linda analysis
+      if (any(colSums(otu_tax_agg_filter) == 0)) {
+        keep_samples <- colSums(otu_tax_agg_filter) > 0
+        otu_tax_agg_filter <- otu_tax_agg_filter[, keep_samples]
+        meta_tab <- meta_tab[keep_samples, ]
+      }
+
       # Perform LinDA (Linear models for Differential Abundance) analysis
       linda.obj <- linda(
         feature.dat = otu_tax_agg_filter,
