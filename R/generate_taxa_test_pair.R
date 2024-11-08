@@ -272,6 +272,13 @@ generate_taxa_test_pair <-
         feature.dat.type <- "proportion"
       }
 
+      # Add this check before linda analysis
+      if (any(colSums(otu_tax_agg_filter) == 0)) {
+        keep_samples <- colSums(otu_tax_agg_filter) > 0
+        otu_tax_agg_filter <- otu_tax_agg_filter[, keep_samples]
+        meta_tab <- meta_tab[keep_samples, ]
+      }
+
       # Perform linear mixed model analysis using LInDA
       # If the original model fails, a simpler model is used as a fallback
       linda.obj <- tryCatch({
