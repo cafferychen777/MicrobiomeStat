@@ -53,6 +53,7 @@
 #' including bar plots, dot plots, area plots, heatmaps, spaghetti plots, box plots, and scatter plots.
 #' The function can also visualize changes over time and supports different grouping and stratification options.
 #' @examples
+#' \donttest{
 #' data(ecam.obj)
 #' plot_feature_diversity(
 #' data.obj = ecam.obj,
@@ -501,6 +502,7 @@
 #' plot.scheme = 'individual',
 #' plot.type = "boxplot"
 #' )
+#' }
 #' @export
 plot_feature_diversity <- function (data.obj,
                                     group.var = NULL,
