@@ -150,11 +150,23 @@ generate_taxa_test_single <- function(data.obj,
       mStat_filter(prev.filter = prev.filter,
                    abund.filter = abund.filter)
 
+    # 在运行 linda 之前添加检查
+    if (nrow(otu_tax_agg_filter) == 0 || ncol(otu_tax_agg_filter) == 0) {
+      warning("No features remain after filtering. Consider using less stringent filter thresholds.")
+      return(list())  # 返回空列表
+    }
+
     # Add this check before linda analysis
     if (any(colSums(otu_tax_agg_filter) == 0)) {
       keep_samples <- colSums(otu_tax_agg_filter) > 0
+      if (sum(keep_samples) == 0) {
+        warning("No samples remain after filtering.")
+        return(list())  # 返回空列表
+      }
       otu_tax_agg_filter <- otu_tax_agg_filter[, keep_samples]
-      meta_tab <- meta_tab[keep_samples, ]
+      allvars <- names(meta_tab)
+      meta_tab <- as.data.frame(meta_tab[keep_samples, ])
+      names(meta_tab) <- allvars
     }
 
     # Perform LinDA (Linear models for Differential Abundance) analysis
