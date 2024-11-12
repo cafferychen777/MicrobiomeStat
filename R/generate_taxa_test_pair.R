@@ -95,7 +95,7 @@ generate_taxa_test_pair <-
            time.var = NULL,
            change.base,
            group.var,
-           adj.vars,
+           adj.vars = NULL,
            feature.level,
            prev.filter = 0,
            abund.filter = 0,
@@ -307,7 +307,7 @@ generate_taxa_test_pair <-
         as.matrix() %>%
         as.table() %>%
         as.data.frame() %>%
-        dplyr::group_by(Var1) %>%  
+        dplyr::group_by(Var1) %>%
         dplyr::summarise(
           avg_abundance = mean(Freq),
           prevalence = sum(Freq > 0) / dplyr::n()
