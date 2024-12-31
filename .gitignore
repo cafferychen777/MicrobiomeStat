@@ -1,14 +1,35 @@
+# R specific
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
-MicrobiomeStat.Rproj
-.DS_Store
-inst/doc
-/doc/
-/Meta/
-docs/
 *.Rproj
 renv/
 renv.lock
+inst/doc
+/doc/
+/Meta/
+
+# Build related
+*.tar.gz
+src/*.o
+src/*.so
+src/*.dll
+/revdep/
+
+# Documentation
+docs/
 *.pdf
+# Ignore PDF files in docs/reference
+docs/reference/*.pdf
+
+# IDE
+.idea/
+.vscode/
+.project
+*~
+
+# OS specific
+.DS_Store
+Thumbs.db
+.directory

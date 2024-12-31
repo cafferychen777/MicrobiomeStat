@@ -17,4 +17,7 @@
 ^revdep$
 ^\.travis\.yml$
 ^codecov\.yml$
-
+^inst/doc/.*\.pdf$
+^inst/doc/reference/.*\.pdf$
+^vignettes/.*_files$
+^vignettes/.*_cache$
