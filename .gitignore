@@ -19,9 +19,11 @@ src/*.dll
 
 # Documentation
 docs/
-*.pdf
-# Ignore PDF files in docs/reference
-docs/reference/*.pdf
+# Ignore all PDF files in docs directory and its subdirectories
+docs/**/*.pdf
+# Ignore specific documentation PDFs
+inst/doc/**/*.pdf
+vignettes/**/*.pdf
 
 # IDE
 .idea/

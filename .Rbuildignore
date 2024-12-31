@@ -9,7 +9,6 @@
 ^README-ES\.md$
 ^README\.Rmd$
 ^_pkgdown\.yml$
-^docs$
 ^pkgdown$
 ^LICENSE\.md$
 ^cran-comments\.md$
@@ -17,7 +16,11 @@
 ^revdep$
 ^\.travis\.yml$
 ^codecov\.yml$
+# Documentation related
+^docs/.*\.pdf$
+^docs/reference/.*\.pdf$
 ^inst/doc/.*\.pdf$
-^inst/doc/reference/.*\.pdf$
+^vignettes/.*\.pdf$
 ^vignettes/.*_files$
 ^vignettes/.*_cache$
+^man/figures/.*\.pdf$
