@@ -25,6 +25,10 @@ docs/**/*.pdf
 inst/doc/**/*.pdf
 vignettes/**/*.pdf
 
+# Output files
+*.pdf
+check/
+
 # IDE
 .idea/
 .vscode/
