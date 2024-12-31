@@ -207,8 +207,23 @@ generate_taxa_cladogram_single <- function(
   fix_link_frame <- link_frame
   fix_link_frame[[min_label]] <- stringr::str_replace_all(fix_link_frame[[min_label]], pattern = " |\\(|\\)", replacement = "_")
   fix_link_frame[[min_label]] <- stringr::str_replace_all(fix_link_frame[[min_label]], pattern = "\\.", replacement = "")
-  # Build phylogenetic tree
-  treex <- build_tree(fix_link_frame, level_seq)
+  
+  # Check and use existing tree if available, otherwise build from taxonomy
+  if (!is.null(data.obj$tree)) {
+    tree <- data.obj$tree
+    # Ensure tree tips match our feature names
+    common_tips <- intersect(tree$tip.label, fix_link_frame[[min_label]])
+    if (length(common_tips) > 0) {
+      message("Using phylogenetic tree from data object.")
+      treex <- ape::keep.tip(tree, common_tips)
+    } else {
+      message("No matching tips found between phylogenetic tree and features. Using taxonomy-based tree instead.")
+      treex <- build_tree(fix_link_frame, level_seq)
+    }
+  } else {
+    message("Building taxonomy-based tree.")
+    treex <- build_tree(fix_link_frame, level_seq)
+  }
 
   # Join and process test results
   inputframe_linked <- join_frames(test.list, level_seq, link_frame)
