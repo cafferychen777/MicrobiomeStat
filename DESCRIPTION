@@ -13,9 +13,9 @@ Author: Xianyang Zhang [aut],
   Huijuan Zhou [ctb],
   Caffery(Chen) Yang [aut]
 Maintainer: Jun Chen <chen.jun2@mayo.edu>
-Description: MicrobiomeStat is a dedicated R package designed for advanced, longitudinal microbiome and multi-omics data analysis. It stands out with a special focus on in-depth longitudinal microbiome analysis, ensuring precise and detailed data interpretation across time. Generate professional microbiome analysis reports with just a click through the MicrobiomeStat One Click feature. This package guarantees robust solutions for diverse analytic scenarios and effortless handling of multi-omics data, amplifying the efficiency and scope of research. The user-friendly design, diverse features, and practical use cases of MicrobiomeStat assist researchers in navigating the complexities of microbiome data, delivering meaningful insights for longitudinal studies.
+Description: A comprehensive toolkit for advanced, longitudinal microbiome and multi-omics data analysis. Specializing in in-depth longitudinal microbiome analysis for precise data interpretation across time. Generate professional analysis reports with just a click through the One Click feature. Delivers robust solutions for diverse analytic scenarios and effortless handling of multi-omics data, amplifying research efficiency. The user-friendly design, diverse features, and practical use cases assist researchers in navigating microbiome data complexities, delivering meaningful insights for longitudinal studies.
 BugReports: https://github.com/cafferychen777/MicrobiomeStat/issues
-URL: https://cafferychen777.github.io/MicrobiomeStat
+URL: https://cafferychen777.github.io/MicrobiomeStat/
 Depends: 
     R (>= 3.5.0),
     rlang, 
