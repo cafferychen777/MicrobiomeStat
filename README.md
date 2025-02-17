@@ -78,14 +78,21 @@ We appreciate your understanding and continued engagement.
 ## General Citation for MicrobiomeStat
 
 If you are using features beyond the `linda` and `linda.plot` functions,
-please cite as follows, until a preprint version is published:
+please cite as follows:
 
-    @Manual{,
-      title = {MicrobiomeStat: Comprehensive Statistical and Visualization Methods for Microbiome and Multi-Omics Data},
-      author = {Xianyang Zhang and Jun Chen and Caffery(Chen) Yang},
-      year = {2023},
-      note = {R package version 1.1.1},
-      url = {https://www.microbiomestat.wiki},
+    @software{yang_2025_14881492,
+      author       = {Yang, Chen and
+                      Chen, Jun and
+                      Zhang, Xianyang and
+                      Zhou, Huijuan},
+      title        = {Comprehensive Statistical and Visualization
+                       Methods for Microbiome and Multi-Omics Data
+                      },
+      month        = feb,
+      year         = 2025,
+      publisher    = {Zenodo},
+      doi          = {10.5281/zenodo.14881492},
+      url          = {https://doi.org/10.5281/zenodo.14881492},
     }
 
 ## Citation for Specialized `MicrobiomeStat` Functions
