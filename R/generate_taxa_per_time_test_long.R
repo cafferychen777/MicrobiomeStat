@@ -161,21 +161,36 @@ generate_taxa_per_time_test_long <-
 
     # Perform analysis for each time point
     test.list <- lapply(time.levels, function(t.level){
-
-      # Subset data for the current time point
-      subset.ids <- rownames(data.obj$meta.dat %>%
-                               filter(!!sym(time.var) %in% c(t.level)))
-
-      subset_data.obj <- mStat_subset_data(data.obj, samIDs = subset.ids)
-
-      # Extract relevant metadata for the current subset
-      meta_tab <-
-        subset_data.obj$meta.dat %>% select(all_of(c(
-          time.var, group.var, adj.vars, subject.var
-        )))
-
-      # Perform analysis for each taxonomic level
-      test.list <- lapply(feature.level, function(feature.level) {
+      tryCatch({
+        # Subset data for the current time point
+        subset.ids <- rownames(data.obj$meta.dat %>%
+                                 filter(!!sym(time.var) %in% c(t.level)))
+        
+        subset_data.obj <- mStat_subset_data(data.obj, samIDs = subset.ids)
+        
+        # Extract relevant metadata for the current subset
+        meta_tab <-
+          subset_data.obj$meta.dat %>% select(all_of(c(
+            time.var, group.var, adj.vars, subject.var
+          )))
+        
+        # Check if we have enough data points for mixed effects model
+        # Count unique subjects and observations
+        n_subjects <- length(unique(meta_tab[[subject.var]]))
+        n_observations <- nrow(meta_tab)
+        
+        if (n_subjects >= n_observations) {
+          warning(
+            "At time point ", t.level, ", the number of unique subjects (", n_subjects, ") ",
+            "is greater than or equal to the number of observations (", n_observations, "). ",
+            "This makes it impossible to fit a mixed effects model. ",
+            "Skipping this time point."
+          )
+          return(NULL) # Return NULL for this time point
+        }
+        
+        # Perform analysis for each taxonomic level
+        test.list <- lapply(feature.level, function(feature.level) {
 
         # Normalize count data if necessary
         if (feature.dat.type == "count"){
@@ -289,10 +304,29 @@ generate_taxa_per_time_test_long <-
       names(test.list) <- feature.level
 
       return(test.list)
+      }, error = function(e) {
+        warning(
+          "Error analyzing time point ", t.level, ": ", conditionMessage(e), "\n",
+          "Skipping this time point and continuing with others."
+        )
+        return(NULL) # Return NULL for this time point if an error occurs
+      })
     })
 
-    # Assign time levels as names to the outer list
-    names(test.list) <- time.levels
+    # Remove NULL entries from the list (time points that were skipped)
+    test.list <- Filter(Negate(is.null), test.list)
+    
+    # If all time points were skipped, return a message
+    if (length(test.list) == 0) {
+      stop("No time points could be analyzed. Check if you have enough observations per subject at each time point.")
+    }
+    
+    # Assign time levels as names to the outer list (only for non-NULL entries)
+    names(test.list) <- time.levels[sapply(time.levels, function(t) {
+      any(sapply(test.list, function(x) {
+        !is.null(x) && any(grepl(t, names(x)))
+      }))
+    })]
 
     return(test.list)
   }
