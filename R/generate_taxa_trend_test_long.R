@@ -14,7 +14,12 @@
 #' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering
 #' taxa before analysis. Taxa with mean abundance below this value will be removed.
 #' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
-#' @param feature.dat.type A character string, either "count" or "proportion", indicating the nature of the data in the `data.obj`. This helps the function to determine if normalization is required. Default is "count".
+#' @param feature.dat.type A character string, either "count", "proportion", or "other", indicating the nature of the data in the `data.obj`. 
+#' This helps the function to determine if normalization is required. 
+#' - "count": Raw count data that will be automatically normalized using TSS.
+#' - "proportion": Pre-normalized data (e.g., relative abundance).
+#' - "other": Custom pre-processed data. Use with caution; requires appropriate pre-processing for compositional data analysis.
+#' Default is "count".
 #' @param ... Additional arguments to cater to any specialized requirements. For now, these are placeholder and not used.
 #' @details
 #' Based on whether group.var, adj.vars, and time.var are NULL, the formula tests:
@@ -121,7 +126,7 @@ generate_taxa_trend_test_long <-
            feature.level,
            prev.filter = 0,
            abund.filter = 0,
-           feature.dat.type = c("count", "proportion"),
+           feature.dat.type = c("count", "proportion", "other"),
            ...) {
     # Validate the input data object
     mStat_validate_data(data.obj)
@@ -208,12 +213,21 @@ generate_taxa_trend_test_long <-
 
     # Perform analysis for each taxonomic level
     test.list <- lapply(feature.level, function(feature.level) {
-      # Normalize count data if necessary
+      # Handle data based on feature.dat.type
       if (feature.dat.type == "count"){
         message(
           "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
         )
         data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
+      } else if (feature.dat.type == "other") {
+        message(
+          "CAUTION: You have selected 'other' as feature.dat.type. This assumes your data has been appropriately pre-processed.\n",
+          "Please ensure your data:\n",
+          "1. Does not contain zero values (required for CLR transformation)\n",
+          "2. Has been properly normalized or transformed for compositional data analysis\n",
+          "3. Is suitable for trend analysis across time points\n",
+          "Non-standard preprocessing may affect result interpretation and comparability."
+        )
       }
 
       # Aggregate data to the specified taxonomic level if necessary
@@ -237,6 +251,26 @@ generate_taxa_trend_test_long <-
       # Set feature data type to proportion if it was originally count
       if (feature.dat.type == "count"){
         feature.dat.type = "proportion"
+      }
+      
+      # Handle zero values in the data if using 'other' mode
+      if (feature.dat.type == "other" && any(otu_tax_agg_filter == 0)) {
+        warning(
+          "Zero values detected in your data with feature.dat.type='other'.\n",
+          "Applying half-minimum imputation for zeros to allow CLR transformation.\n",
+          "For full control over zero handling, please pre-process your data before analysis."
+        )
+        
+        # Apply half-minimum approach for zero values (similar to proportion handling in LinDA)
+        otu_tax_agg_filter <- t(apply(otu_tax_agg_filter, 1, function(x) {
+          if(any(x != 0)) { # Only process if row has some non-zero values
+            x[x == 0] <- 0.5 * min(x[x != 0])
+          } else {
+            # If all values are zero (unlikely after filtering), add small pseudo-count
+            x[x == 0] <- 1e-8
+          }
+          return(x)
+        }))
       }
 
       # Add this check before linda analysis
