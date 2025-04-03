@@ -73,6 +73,7 @@ jobs:
           Maintainer: Dummy <dummy@example.com>
           License: GPL-3
           EOF
+          echo 'export(dummy)' > /tmp/dummy-rhdf5filters/NAMESPACE
           R CMD INSTALL /tmp/dummy-rhdf5filters
 
       - uses: r-lib/actions/check-r-package@v2
