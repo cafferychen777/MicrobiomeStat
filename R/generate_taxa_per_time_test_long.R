@@ -321,12 +321,14 @@ generate_taxa_per_time_test_long <-
       stop("No time points could be analyzed. Check if you have enough observations per subject at each time point.")
     }
     
-    # Assign time levels as names to the outer list (only for non-NULL entries)
-    names(test.list) <- time.levels[sapply(time.levels, function(t) {
-      any(sapply(test.list, function(x) {
-        !is.null(x) && any(grepl(t, names(x)))
-      }))
-    })]
+    # Create a mapping to track which time points have valid test results
+    # This is more robust than using pattern matching with grepl()
+    valid_time_indices <- which(!sapply(test.list, is.null))
+    
+    # Only use time levels that correspond to valid test results
+    if (length(valid_time_indices) > 0) {
+      names(test.list) <- time.levels[valid_time_indices]
+    }
 
     return(test.list)
   }
