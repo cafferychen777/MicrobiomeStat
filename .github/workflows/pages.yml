@@ -1,8 +1,12 @@
-name: GitHub Pages
+# Simple workflow for deploying static content to GitHub Pages
+name: Deploy static content to Pages
 
 on:
+  # Runs on pushes targeting the default branch
   push:
-    branches: [main, master]
+    branches: ["main"]
+
+  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
@@ -11,10 +15,11 @@ permissions:
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
   group: "pages"
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   # Build job
@@ -23,42 +28,42 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
       
-      # Manual R setup instead of using r-lib/actions/setup-r
-      - name: Setup R manually
+      # Manual R setup
+      - name: Setup R
         run: |
-          # Install R
           sudo apt-get update
           sudo apt-get install -y r-base r-base-dev
-          
-          # Install system dependencies for R packages
           sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev
-          
-          # Create .Rprofile with CRAN mirror
           echo 'options(repos = c(CRAN = "https://cloud.r-project.org"))' > ~/.Rprofile
       
+      # Install R packages
       - name: Install R packages
         run: |
-          # Install required packages
           install.packages(c("remotes", "pkgdown"))
           remotes::install_deps(dependencies = TRUE)
         shell: Rscript {0}
       
-      - name: Build pkgdown site
+      # Build pkgdown site
+      - name: Build site
         run: |
           pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
+          touch docs/.nojekyll
         shell: Rscript {0}
       
-      - name: Create .nojekyll file
-        run: |
-          touch docs/.nojekyll
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./docs
+          destination: ./_site
       
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
-          path: 'docs'
+          path: ./_site
 
   # Deployment job
   deploy:
@@ -70,4 +75,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v3
+        uses: actions/deploy-pages@v4
