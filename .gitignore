@@ -25,6 +25,16 @@ docs/**/*.pdf
 inst/doc/**/*.pdf
 vignettes/**/*.pdf
 
+# Private communications
+emails/
+
+# Package build check
+*.Rcheck/
+MicrobiomeStat.Rcheck/
+
+# pkgdown generated files
+pkgdown/
+
 # Output files
 *.pdf
 *.csv
