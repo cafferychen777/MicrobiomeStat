@@ -10,7 +10,7 @@ generate_taxa_test_pair(
   time.var = NULL,
   change.base,
   group.var,
-  adj.vars,
+  adj.vars = NULL,
   feature.level,
   prev.filter = 0,
   abund.filter = 0,
