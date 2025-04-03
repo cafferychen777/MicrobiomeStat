@@ -386,21 +386,23 @@ mStat_generate_report_long <- function(data.obj,
   }
 
   # Adjust the YAML front matter based on output.format
-  if (output.format == "pdf") {
-    yaml_output <- "
-output:
-  pdf_document:
+  if (grepl("\.pdf$", output.file)) {
+    # Check if tinytex is installed and can compile PDFs
+    if (!tinytex::is_tinytex()) {
+      message("TinyTeX is not installed. PDF output may not work correctly.")
+      message("Consider installing TinyTeX with tinytex::install_tinytex()")
+    }
+    yaml_output <- paste0("output: 
+    pdf_document:
     toc: true
     toc_depth: 3
-    latex_engine: lualatex
-"
+")
   } else {
-    yaml_output <- "
-output:
-  html_document:
+    yaml_output <- paste0("output: 
+    html_document:
     toc: true
     toc_depth: 3
-"
+")
   }
 
   template <- paste0("

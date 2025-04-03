@@ -90,7 +90,7 @@ mStat_identify_time_varying_vars <- function(meta.dat, adj.vars, subject.var) {
   time_varying_info <- meta.dat %>%
     dplyr::select(c(subject.var, adj.vars)) %>%
     dplyr::group_by(!!sym(subject.var)) %>%
-    dplyr::summarise(dplyr::across(all_of(adj.vars), ~n_distinct(.x)), .groups = 'drop')
+    dplyr::summarise(dplyr::across(all_of(adj.vars), ~dplyr::n_distinct(.x)), .groups = 'drop')
 
   # Initialize lists to hold the status of each variable
   time_varying_vars <- character(0)
