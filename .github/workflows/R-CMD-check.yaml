@@ -56,7 +56,6 @@ jobs:
         with:
           extra-packages: any::rcmdcheck
           needs: check
-          dependencies: false
 
       - name: Create .Renviron file to skip problematic packages
         run: |
