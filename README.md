@@ -238,7 +238,7 @@ In case you have specific comments or questions about a particular
 function’s documentation and you find that the RStudio’s search box
 leads to a 404 error, you can directly access the function’s
 documentation at
-<https://cafferychen777.github.io/MicrobiomeStat/reference/index.html>.
+<https://cafferyang.com/MicrobiomeStat/reference/index.html>.
 
 If your question or issue has not been previously addressed, feel free
 to [open a new issue on
@@ -317,7 +317,7 @@ For assistance or inquiries, feel free to reach out to:
 | Name | Email |
 |----|----|
 | [Dr. Jun Chen](https://scholar.google.com/citations?user=gonDvdwAAAAJ&hl=en) | <Chen.Jun2@mayo.edu> |
-| [Chen Yang](https://cafferyyang.owlstown.net/) | <cafferychen777@tamu.edu> |
+| [Chen Yang](https://github.com/cafferychen777) | <cafferychen777@tamu.edu> |
 
 ## Engage in Our Discord Community
 
@@ -326,7 +326,7 @@ developments, and enhancements in `MicrobiomeStat`. Be part of vibrant
 discussions, ask questions, share insights, and avail support from peers
 and experts alike:
 
-[Join the MicrobiomeStat Discord Server!](https://discord.gg/BfNvTJAt)
+[Join the MicrobiomeStat Discord Server!](https://discord.com/invite/BfNvTJAt)
 
 In our Discord server, an automated bot keeps you informed about every
 package and tutorial update, ensuring you never miss out on new
