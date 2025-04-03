@@ -13,7 +13,7 @@ generate_taxa_trend_test_long(
   feature.level,
   prev.filter = 0,
   abund.filter = 0,
-  feature.dat.type = c("count", "proportion"),
+  feature.dat.type = c("count", "proportion", "other"),
   ...
 )
 }
@@ -38,7 +38,12 @@ Prevalence is calculated as the proportion of samples where the taxon is present
 taxa before analysis. Taxa with mean abundance below this value will be removed.
 Abundance refers to counts or proportions depending on \code{feature.dat.type}.}
 
-\item{feature.dat.type}{A character string, either "count" or "proportion", indicating the nature of the data in the `data.obj`. This helps the function to determine if normalization is required. Default is "count".}
+\item{feature.dat.type}{A character string, either "count", "proportion", or "other", indicating the nature of the data in the `data.obj`. 
+This helps the function to determine if normalization is required. 
+- "count": Raw count data that will be automatically normalized using TSS.
+- "proportion": Pre-normalized data (e.g., relative abundance).
+- "other": Custom pre-processed data. Use with caution; requires appropriate pre-processing for compositional data analysis.
+Default is "count".}
 
 \item{...}{Additional arguments to cater to any specialized requirements. For now, these are placeholder and not used.}
 }
