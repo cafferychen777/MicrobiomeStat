@@ -64,7 +64,15 @@ jobs:
           # Create a dummy rhdf5filters package to satisfy the dependency
           mkdir -p /tmp/dummy-rhdf5filters/R
           echo 'dummy <- function() { return(TRUE) }' > /tmp/dummy-rhdf5filters/R/dummy.R
-          echo 'Package: rhdf5filters\nVersion: 1.0.0\nTitle: Dummy Package\nDescription: A dummy package to satisfy dependency.\nAuthor: Dummy\nMaintainer: Dummy <dummy@example.com>\nLicense: GPL-3' > /tmp/dummy-rhdf5filters/DESCRIPTION
+          cat > /tmp/dummy-rhdf5filters/DESCRIPTION << 'EOF'
+          Package: rhdf5filters
+          Version: 1.0.0
+          Title: Dummy Package
+          Description: A dummy package to satisfy dependency.
+          Author: Dummy
+          Maintainer: Dummy <dummy@example.com>
+          License: GPL-3
+          EOF
           R CMD INSTALL /tmp/dummy-rhdf5filters
 
       - uses: r-lib/actions/check-r-package@v2
