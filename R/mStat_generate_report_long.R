@@ -386,7 +386,7 @@ mStat_generate_report_long <- function(data.obj,
   }
 
   # Adjust the YAML front matter based on output.format
-  if (grepl("\.pdf$", output.file)) {
+  if (grepl("\\.pdf$", output.file)) {
     # Check if tinytex is installed and can compile PDFs
     if (!tinytex::is_tinytex()) {
       message("TinyTeX is not installed. PDF output may not work correctly.")
