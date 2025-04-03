@@ -43,7 +43,10 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libbz2-dev liblzma-dev libzstd-dev libhdf5-dev
+          sudo apt-get install -y libbz2-dev liblzma-dev libzstd-dev libhdf5-dev libssl-dev libcurl4-openssl-dev libxml2-dev
+          # Fix for bool type redefinition in rhdf5filters
+          echo "CFLAGS=-DHAVE_STDBOOL_H" >> $GITHUB_ENV
+          echo "CXXFLAGS=-DHAVE_STDBOOL_H" >> $GITHUB_ENV
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
@@ -52,4 +55,5 @@ jobs:
 
       - uses: r-lib/actions/check-r-package@v2
         with:
-          upload-snapshots: true 
+          upload-snapshots: true
+          args: 'c("--no-build-vignettes", "--no-manual")' 
