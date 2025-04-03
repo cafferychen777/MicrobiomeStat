@@ -25,22 +25,36 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v4
-      - name: Setup R
-        uses: r-lib/actions/setup-r@v2
-        with:
-          use-public-rspm: true
-      - name: Install dependencies
+      
+      # Manual R setup instead of using r-lib/actions/setup-r
+      - name: Setup R manually
         run: |
+          # Install R
+          sudo apt-get update
+          sudo apt-get install -y r-base r-base-dev
+          
+          # Install system dependencies for R packages
+          sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev
+          
+          # Create .Rprofile with CRAN mirror
+          echo 'options(repos = c(CRAN = "https://cloud.r-project.org"))' > ~/.Rprofile
+      
+      - name: Install R packages
+        run: |
+          # Install required packages
           install.packages(c("remotes", "pkgdown"))
           remotes::install_deps(dependencies = TRUE)
         shell: Rscript {0}
-      - name: Build site
+      
+      - name: Build pkgdown site
         run: |
           pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
         shell: Rscript {0}
+      
       - name: Create .nojekyll file
         run: |
           touch docs/.nojekyll
+      
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:
