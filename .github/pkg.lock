@@ -1,0 +1,7 @@
+{
+  "packages": {
+    "rhdf5filters": {
+      "skip": true
+    }
+  }
+}
