@@ -61,20 +61,40 @@ jobs:
           Rscript -e 'install.packages(c("remotes", "rcmdcheck"))'
           Rscript -e 'remotes::install_deps(dependencies = c("Depends", "Imports", "LinkingTo"))'
           
-          # Create a dummy rhdf5filters package to satisfy the dependency
-          mkdir -p /tmp/dummy-rhdf5filters/R
-          echo 'dummy <- function() { return(TRUE) }' > /tmp/dummy-rhdf5filters/R/dummy.R
-          cat > /tmp/dummy-rhdf5filters/DESCRIPTION << 'EOF'
-          Package: rhdf5filters
-          Version: 1.0.0
-          Title: Dummy Package
-          Description: A dummy package to satisfy dependency.
-          Author: Dummy
-          Maintainer: Dummy <dummy@example.com>
-          License: GPL-3
-          EOF
-          echo 'export(dummy)' > /tmp/dummy-rhdf5filters/NAMESPACE
-          R CMD INSTALL /tmp/dummy-rhdf5filters
+      - name: Create dummy rhdf5filters package (Unix/macOS)
+        if: runner.os != 'Windows'
+        run: |
+            mkdir -p /tmp/dummy-rhdf5filters/R
+            echo 'dummy <- function() { return(TRUE) }' > /tmp/dummy-rhdf5filters/R/dummy.R
+            cat > /tmp/dummy-rhdf5filters/DESCRIPTION << 'EOF'
+            Package: rhdf5filters
+            Version: 1.0.0
+            Title: Dummy Package
+            Description: A dummy package to satisfy dependency.
+            Author: Dummy
+            Maintainer: Dummy <dummy@example.com>
+            License: GPL-3
+            EOF
+            echo 'export(dummy)' > /tmp/dummy-rhdf5filters/NAMESPACE
+            R CMD INSTALL /tmp/dummy-rhdf5filters
+            
+      - name: Create dummy rhdf5filters package (Windows)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          mkdir %TEMP%\dummy-rhdf5filters\R
+          echo dummy ^<- function() { return(TRUE) } > %TEMP%\dummy-rhdf5filters\R\dummy.R
+          (
+          echo Package: rhdf5filters
+          echo Version: 1.0.0
+          echo Title: Dummy Package
+          echo Description: A dummy package to satisfy dependency.
+          echo Author: Dummy
+          echo Maintainer: Dummy ^<dummy@example.com^>
+          echo License: GPL-3
+          ) > %TEMP%\dummy-rhdf5filters\DESCRIPTION
+          echo export(dummy) > %TEMP%\dummy-rhdf5filters\NAMESPACE
+          R CMD INSTALL %TEMP%\dummy-rhdf5filters
 
       - uses: r-lib/actions/check-r-package@v2
         with:
