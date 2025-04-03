@@ -37,8 +37,8 @@ jobs:
 
       - name: Build site
         run: |
-          mkdir -p docs/assets/css
-          echo '@import "{{ site.theme }}";' > docs/assets/css/style.scss
+          dir.create("docs/assets/css", recursive = TRUE, showWarnings = FALSE)
+          writeLines('@import "{{ site.theme }}";', "docs/assets/css/style.scss")
           pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
         shell: Rscript {0}
 
