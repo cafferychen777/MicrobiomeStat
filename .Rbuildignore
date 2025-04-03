@@ -17,10 +17,11 @@
 ^\.travis\.yml$
 ^codecov\.yml$
 # Documentation related
-^docs/.*\.pdf$
+^docs$
 ^docs/reference/.*\.pdf$
 ^inst/doc/.*\.pdf$
 ^vignettes/.*\.pdf$
 ^vignettes/.*_files$
 ^vignettes/.*_cache$
 ^man/figures/.*\.pdf$
+^emails$
