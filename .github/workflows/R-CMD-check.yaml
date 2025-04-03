@@ -59,8 +59,7 @@ jobs:
 
       - name: Create .Renviron file to skip problematic packages
         run: |
-          echo 'R_BIOC_VERSION=release' > ~/.Renviron
-          echo '_R_CHECK_FORCE_SUGGESTS_=false' >> ~/.Renviron
+          echo '_R_CHECK_FORCE_SUGGESTS_=false' > ~/.Renviron
           echo 'NOT_CRAN=true' >> ~/.Renviron
           echo 'RHDF5FILTERS_SKIP_COMPILATION=true' >> ~/.Renviron
 
