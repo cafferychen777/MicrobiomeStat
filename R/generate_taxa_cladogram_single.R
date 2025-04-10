@@ -1,6 +1,9 @@
 #' Generate a Circular Cladogram with Heatmap for Taxa
 #'
 #' This function generates a circular cladogram with an integrated heatmap for taxonomic data.
+#' 
+#' @importFrom rlang expr eval_tidy
+#' @importFrom ggplot2 aes scale_fill_gradient2 geom_text element_text guide_colorbar unit scale_color_manual guides
 #' It visualizes the phylogenetic relationships between different taxa and their abundances or other
 #' coefficients across different taxonomic levels using a tree-like structure (cladogram).
 #'
@@ -15,6 +18,12 @@
 #' @param pdf Boolean indicating whether to save the plot as a PDF.
 #' @param pdf.width The width of the PDF file if saved.
 #' @param pdf.height The height of the PDF file if saved.
+#' @param time.var Character string specifying the column name in metadata containing time variable. Used when test.list is NULL.
+#' @param t.level Character string specifying the time level/value to subset data to. Used when test.list is NULL.
+#' @param adj.vars Character vector specifying column names in metadata containing covariates. Used when test.list is NULL.
+#' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering taxa. Used when test.list is NULL.
+#' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering taxa. Used when test.list is NULL.
+#' @param feature.dat.type The type of the feature data, which determines data handling. Should be one of "count", "proportion", or "other". For CLR-transformed data, use "other". Used when test.list is NULL.
 #'
 #' @return A ggplot object representing the circular heatmap with phylogenetic tree.
 #'
@@ -93,7 +102,7 @@
 #' }
 generate_taxa_cladogram_single <- function(
     data.obj,
-    test.list,
+    test.list = NULL,
     group.var = NULL,
     feature.level,
     feature.mt.method = "none",
@@ -102,12 +111,58 @@ generate_taxa_cladogram_single <- function(
     palette = NULL,
     pdf = FALSE,
     pdf.width = 10,
-    pdf.height = 10
+    pdf.height = 10,
+    # 添加 generate_taxa_test_single 可能需要的其他参数
+    time.var = NULL,
+    t.level = NULL,
+    adj.vars = NULL,
+    prev.filter = 0.1,
+    abund.filter = 0.0001,
+    feature.dat.type = "count"
 ) {
+  # 确保必要的包可用
+  if (!requireNamespace("ggtree", quietly = TRUE)) {
+    stop("Package 'ggtree' is required but not installed.")
+  }
+  if (!requireNamespace("ggtreeExtra", quietly = TRUE)) {
+    stop("Package 'ggtreeExtra' is required but not installed.")
+  }
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    stop("Package 'ggplot2' is required but not installed.")
+  }
+  
+  # 确保所需的名称空间可用
+  requireNamespace("ggplot2", quietly = TRUE)
 
-  # If color.group.level is not specified, use the feature.level
+  # 检查 group.var 参数
+  if (is.null(group.var)) {
+    stop("'group.var' must be provided")
+  }
+
+  # 如果 test.list 为 NULL，使用 generate_taxa_test_single 生成
+  if (is.null(test.list)) {
+    message("Generating test results using generate_taxa_test_single...")
+    test.list <- generate_taxa_test_single(
+      data.obj = data.obj,
+      time.var = time.var,
+      t.level = t.level,
+      group.var = group.var,
+      adj.vars = adj.vars,
+      feature.level = feature.level,
+      feature.dat.type = feature.dat.type,
+      prev.filter = prev.filter,
+      abund.filter = abund.filter
+    )
+    
+    # 检查是否成功生成测试结果
+    if (length(test.list) == 0 || all(sapply(test.list, length) == 0)) {
+      stop("Failed to generate test results. Please check your input parameters.")
+    }
+  }
+
+  # If color.group.level is not specified, use the first feature.level
   if (length(color.group.level) == 0){
-    color.group.level <- feature.level
+    color.group.level <- feature.level[1]  # 使用第一个feature.level作为默认值
   }
 
   # Process the data
@@ -207,7 +262,7 @@ generate_taxa_cladogram_single <- function(
   fix_link_frame <- link_frame
   fix_link_frame[[min_label]] <- stringr::str_replace_all(fix_link_frame[[min_label]], pattern = " |\\(|\\)", replacement = "_")
   fix_link_frame[[min_label]] <- stringr::str_replace_all(fix_link_frame[[min_label]], pattern = "\\.", replacement = "")
-  
+
   # Check and use existing tree if available, otherwise build from taxonomy
   if (!is.null(data.obj$tree)) {
     tree <- data.obj$tree
@@ -236,10 +291,23 @@ generate_taxa_cladogram_single <- function(
   # Subset data for the chosen color grouping level
   sub_inputframe <- inputframe_linked %>% dplyr::filter(Sites_layr == {{color.group.level}})
 
-  # Process "Unclassified" labels to make them unique
-  sub_inputframe$Variable <- ifelse(sub_inputframe$Variable == "Unclassified",
-                                    paste0("Unclassified_", seq_along(which(sub_inputframe$Variable == "Unclassified"))),
-                                    sub_inputframe$Variable)
+  # 首先处理主数据框中所有的"Unclassified"标签，确保它们包含分类级别信息
+  inputframe_linked <- inputframe_linked %>%
+    dplyr::group_by(Sites_layr) %>%
+    dplyr::mutate(Variable = dplyr::case_when(
+      Variable == "Unclassified" ~ paste0("Unclassified_", Sites_layr, "_", 
+                                         dplyr::row_number()),
+      TRUE ~ Variable
+    )) %>%
+    dplyr::ungroup()
+    
+  # 然后处理子数据框中的"Unclassified"标签
+  sub_inputframe <- sub_inputframe %>%
+    dplyr::mutate(Variable = dplyr::case_when(
+      Variable == "Unclassified" ~ paste0("Unclassified_", Sites_layr, "_", 
+                                         dplyr::row_number()),
+      TRUE ~ Variable
+    ))
 
   # Ensure tree labels match data labels
   common_labels <- intersect(treex$tip.label, sub_inputframe$Variable)
@@ -272,8 +340,8 @@ generate_taxa_cladogram_single <- function(
       return(0.2)
     }
 
+    # Base points for interpolation: (num_levels, offset)
     base_points <- list(
-      c(1, 0.5),
       c(2, 0.8),
       c(3, 1.0),
       c(6, 1.7),
@@ -310,12 +378,29 @@ generate_taxa_cladogram_single <- function(
   for (comparison in unique(inputframe_linked$Comparison)) {
     comparison_data <- inputframe_linked %>% dplyr::filter(Comparison == comparison)
 
+    # 确保ggplot2命名空间在这个作用域内可用
+    if (!requireNamespace("ggplot2", quietly = TRUE)) {
+      stop("Package 'ggplot2' is required but not installed.")
+    }
+    
+    # 确保geom_tile函数在全局环境中可用
+    # ggtreeExtra::geom_fruit需要在全局环境中查找这个函数
+    if (!exists("geom_tile", envir = .GlobalEnv)) {
+      assign("geom_tile", ggplot2::geom_tile, envir = .GlobalEnv)
+    }
+    
     # Create the circular cladogram plot
     p <- ggtree::ggtree(treexx, layout = "circular", open.angle = 5) +
-      ggtreeExtra::geom_fruit(data = comparison_data, geom = geom_tile,
-                              mapping = aes(y = Variable, x = Sites_layr,
-                                            fill = Coefficient),
-                              offset = 0.03, size = 0.02, color = "black") +
+      # 使用字符串"geom_tile"作为geom参数的值
+      # 这符合ggtreeExtra::geom_fruit函数的要求
+      ggtreeExtra::geom_fruit(
+        data = comparison_data,
+        geom = "geom_tile",  # 使用字符串，而非函数对象或未求值的符号
+        mapping = aes(y = Variable, x = Sites_layr, fill = Coefficient),
+        offset = 0.03,
+        size = 0.02,
+        color = "black"
+      ) +
       ggtree::geom_tiplab(aes(color = .data[[color.group.level]]), offset = calculated_offset, align = TRUE,
                           linetype = "blank", size = 2, show.legend = FALSE) +
       scale_fill_gradient2(low = "#0571b0", high = "#ca0020") +
