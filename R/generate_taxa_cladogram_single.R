@@ -167,41 +167,41 @@ generate_taxa_cladogram_single <- function(
 
   # Process the data
   # Extract the sequence of taxonomic levels to be analyzed
-  level_seq <- feature.level
+  taxonomic_hierarchy <- feature.level
   # Identify the most specific taxonomic level (e.g., Species)
-  min_label <- level_seq[[length(level_seq)]]
+  finest_taxonomic_level <- taxonomic_hierarchy[[length(taxonomic_hierarchy)]]
 
   # Extract the feature annotation data from the input object
-  link_frame <- data.obj$feature.ann %>% as.data.frame()
+  taxonomy_annotation <- data.obj$feature.ann %>% as.data.frame()
 
   # Function to standardize the format of input frames
-  fix_frame <- function(inputframe, level_i) {
+  standardize_test_frame <- function(inputframe, level_i) {
     # Rename the first column to the current taxonomic level
     colnames(inputframe)[[1]] <- level_i
     # Add a column to indicate the taxonomic level
-    inputframe$Sites_layr <- level_i
+    inputframe$taxonomic_level <- level_i
     inputframe
   }
 
   # Function to join test results with feature annotations
-  join_frames <- function(test.list, level_seq, link_frame) {
+  merge_test_with_taxonomy <- function(test.list, taxonomic_hierarchy, taxonomy_annotation) {
     # Reverse the order of taxonomic levels for processing
-    join_order <- rev(level_seq)
-    link_frame <- link_frame[join_order]
+    join_order <- rev(taxonomic_hierarchy)
+    processed_taxonomy <- taxonomy_annotation[join_order]
 
     result <- data.frame()
 
     # Iterate through each taxonomic level and comparison
     for (level in join_order) {
       for (comparison in names(test.list[[level]])) {
-        current_frame <- fix_frame(test.list[[level]][[comparison]], level)
+        current_frame <- standardize_test_frame(test.list[[level]][[comparison]], level)
 
         # Select relevant columns
-        needed_columns <- c(level, "Coefficient", "P.Value", "Adjusted.P.Value", "Sites_layr")
+        needed_columns <- c(level, "Coefficient", "P.Value", "Adjusted.P.Value", "taxonomic_level")
         current_frame <- current_frame[, needed_columns]
 
         # Join with feature annotations
-        current_frame <- dplyr::left_join(current_frame, link_frame, by = level)
+        current_frame <- dplyr::left_join(current_frame, processed_taxonomy, by = level)
         current_frame$Comparison <- comparison
 
         # Combine results
@@ -267,14 +267,14 @@ generate_taxa_cladogram_single <- function(
     # Check if tree exists in data object
     if (is.null(data.obj$tree)) {
       if (verbose) message("No tree found in data object. Building taxonomy-based tree.")
-      return(build_tree(fix_link_frame, level_seq))
+      return(build_taxonomy_tree(fix_link_frame, level_seq))
     }
     
     # Tree exists, check if it's valid
     tree <- data.obj$tree
     if (!inherits(tree, "phylo")) {
       if (verbose) message("Tree in data object is not a valid phylogenetic tree. Building taxonomy-based tree.")
-      return(build_tree(fix_link_frame, level_seq))
+      return(build_taxonomy_tree(fix_link_frame, level_seq))
     }
     
     # Check for matching tips
@@ -300,12 +300,12 @@ generate_taxa_cladogram_single <- function(
                        total_tips, total_features))
         message("Using taxonomy-based tree instead.")
       }
-      return(build_tree(fix_link_frame, level_seq))
+      return(build_taxonomy_tree(fix_link_frame, level_seq))
     }
   }
   
   # Function to build phylogenetic tree from feature annotations
-  build_tree <- function(link_frame, level_seq) {
+  build_taxonomy_tree <- function(link_frame, level_seq) {
     link_frame <- as.data.frame(link_frame)
     link_frame <- link_frame[level_seq]
     # Create a formula for tree construction
@@ -315,18 +315,18 @@ generate_taxa_cladogram_single <- function(
       link_frame[[i]] <- as.factor(link_frame[[i]])
     }
     # Generate phylogenetic tree
-    treex <- ape::as.phylo(frm, data = link_frame, collapse = FALSE)
-    treex
+    phylogenetic_tree <- ape::as.phylo(frm, data = link_frame, collapse = FALSE)
+    return(phylogenetic_tree)
   }
 
   # Function to filter results based on statistical significance
-  filter_h <- function(inputframe_linked, level_seq, feature.mt.method) {
-    # Set cutoff values for each taxonomic level
-    del_cutoff <- setNames(rep(cutoff, length(level_seq)), level_seq)
-    for (i in 1:length(level_seq)) {
-      level_i <- rev(level_seq)[[i]]
-      if (level_i %in% names(del_cutoff)) {
-        tmp_cut_off <- del_cutoff[[level_i]]
+  filter_by_significance <- function(inputframe_linked, taxonomic_hierarchy, feature.mt.method) {
+    # Define significance thresholds
+    significance_thresholds <- setNames(rep(cutoff, length(taxonomic_hierarchy)), taxonomic_hierarchy)
+    for (i in 1:length(taxonomic_hierarchy)) {
+      level_i <- rev(taxonomic_hierarchy)[[i]]
+      if (level_i %in% names(significance_thresholds)) {
+        tmp_cut_off <- significance_thresholds[[level_i]]
         # Apply cutoff based on the multiple testing method
         if (feature.mt.method == "none") {
           # Use raw p-values if no multiple testing correction
@@ -351,62 +351,46 @@ generate_taxa_cladogram_single <- function(
 
   # Main processing
   # Prepare feature annotations for tree construction
-  fix_link_frame <- link_frame %>%
-    dplyr::mutate(
-      !!rlang::sym(min_label) := stringr::str_replace_all(
-        !!rlang::sym(min_label), 
-        pattern = " |\\(|\\)", 
-        replacement = "_"
-      ) %>%
-      stringr::str_replace_all(
-        pattern = "\\." , 
-        replacement = ""
-      )
-    )
+  processed_taxonomy <- taxonomy_annotation
+  processed_taxonomy[[finest_taxonomic_level]] <- stringr::str_replace_all(processed_taxonomy[[finest_taxonomic_level]], pattern = " |\\(|\\)", replacement = "_") %>%
+    stringr::str_replace_all(pattern = "\\.", replacement = "")
 
   # Get the appropriate phylogenetic tree using the helper function
-  treex <- get_phylogenetic_tree(
+  phylogenetic_tree <- get_phylogenetic_tree(
     data.obj = data.obj,
-    fix_link_frame = fix_link_frame,
-    min_label = min_label,
-    level_seq = level_seq,
+    fix_link_frame = processed_taxonomy,
+    min_label = finest_taxonomic_level,
+    level_seq = taxonomic_hierarchy,
     verbose = TRUE
   )
 
   # Join and process test results
-  inputframe_linked <- join_frames(test.list, level_seq, link_frame) %>%
+  merged_test_data <- merge_test_with_taxonomy(test.list, taxonomic_hierarchy, taxonomy_annotation) %>%
     dplyr::mutate(
-      Variable = stringr::str_replace_all(!!rlang::sym(min_label), pattern = "\\.", replacement = ""),
+      Variable = stringr::str_replace_all(!!rlang::sym(finest_taxonomic_level), pattern = "\\.", replacement = ""),
       Variable = stringr::str_replace_all(Variable, pattern = " |\\(|\\)", replacement = "_"),
-      Sites_layr = factor(Sites_layr, levels = level_seq)
+      taxonomic_level = factor(taxonomic_level, levels = taxonomic_hierarchy)
     )
   # Apply statistical filtering
-  inputframe_linked <- filter_h(inputframe_linked, level_seq, feature.mt.method)
+  merged_test_data <- filter_by_significance(merged_test_data, taxonomic_hierarchy, feature.mt.method)
 
   # Subset data for the chosen color grouping level
-  sub_inputframe <- inputframe_linked %>% dplyr::filter(Sites_layr == {{color.group.level}})
+  level_specific_data <- dplyr::filter(merged_test_data, taxonomic_level == color.group.level)
 
-  # Process "Unclassified" labels in both data frames
-  inputframe_linked <- process_unclassified_labels(
-    inputframe_linked, 
-    group_col = "Sites_layr", 
-    use_grouping = TRUE
-  )
+  # Process "Unclassified" labels in the main dataframe
+  merged_test_data <- process_unclassified_labels(merged_test_data, "taxonomic_level", use_grouping = TRUE)
   
-  sub_inputframe <- process_unclassified_labels(
-    sub_inputframe, 
-    group_col = "Sites_layr", 
-    use_grouping = FALSE
-  )
+  # Process "Unclassified" labels in the sub-dataframe
+  level_specific_data <- process_unclassified_labels(level_specific_data, "taxonomic_level", use_grouping = FALSE)
 
   # Ensure tree labels match data labels
-  common_labels <- intersect(treex$tip.label, sub_inputframe$Variable)
-  treex <- ape::keep.tip(treex, common_labels)
-  sub_inputframe <- sub_inputframe[sub_inputframe$Variable %in% common_labels, ]
+  matching_labels <- intersect(phylogenetic_tree$tip.label, level_specific_data$Variable)
+  phylogenetic_tree <- ape::keep.tip(phylogenetic_tree, matching_labels)
+  level_specific_data <- level_specific_data[level_specific_data$Variable %in% matching_labels, ]
 
   # Group tree nodes by taxonomic level for coloring
-  split_group <- split(sub_inputframe$Variable, f = sub_inputframe[[color.group.level]])
-  treexx <- ggtree::groupOTU(treex, .node = split_group, group_name = color.group.level)
+  split_group <- split(level_specific_data$Variable, f = level_specific_data[[color.group.level]])
+  annotated_tree <- ggtree::groupOTU(phylogenetic_tree, .node = split_group, group_name = color.group.level)
 
   # Generate plot
   # Define custom color palette if not provided
@@ -425,7 +409,7 @@ generate_taxa_cladogram_single <- function(
   }
 
   # Function to calculate offset for tip labels based on the number of taxonomic levels
-  calculate_offset <- function(feature_level_length) {
+  calculate_level_based_offset <- function(feature_level_length) {
     if (feature_level_length == 1) {
       return(0.2)
     }
@@ -459,7 +443,7 @@ generate_taxa_cladogram_single <- function(
     }
   }
 
-  calculated_offset <- calculate_offset(length(feature.level))
+  calculated_offset <- calculate_level_based_offset(length(feature.level))
 
   # Create a list to store individual plots
   plot.list <- list()
@@ -480,7 +464,7 @@ generate_taxa_cladogram_single <- function(
     }
     
     # Create the circular cladogram plot
-    p <- ggtree::ggtree(treexx, layout = "circular", open.angle = 5) +
+    p <- ggtree::ggtree(annotated_tree, layout = "circular", open.angle = 5) +
       # Use the string "geom_tile" as the value for the geom parameter
       # This complies with the requirements of the ggtreeExtra::geom_fruit function
       ggtreeExtra::geom_fruit(
