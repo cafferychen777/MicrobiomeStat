@@ -226,6 +226,43 @@ generate_taxa_cladogram_single <- function(
   #' @param verbose Logical, whether to print detailed messages
   #'
   #' @return A phylogenetic tree object
+  #' Process Unclassified taxonomic labels
+  #'
+  #' This function processes "Unclassified" labels in a data frame, ensuring they contain
+  #' taxonomic level information by appending the taxonomic level and a unique identifier.
+  #'
+  #' @param data_frame A data frame containing taxonomic data
+  #' @param group_col Column name containing taxonomic level information
+  #' @param target_col Column name containing labels to process (default: "Variable")
+  #' @param use_grouping Logical, whether to group by group_col before processing (default: TRUE)
+  #'
+  #' @return A data frame with processed "Unclassified" labels
+  process_unclassified_labels <- function(data_frame, group_col, target_col = "Variable", use_grouping = TRUE) {
+    # Convert column names to symbols for non-standard evaluation
+    group_sym <- rlang::sym(group_col)
+    target_sym <- rlang::sym(target_col)
+    
+    # Define the processing logic
+    process_fn <- function(df) {
+      df %>%
+        dplyr::mutate(!!target_sym := dplyr::case_when(
+          !!target_sym == "Unclassified" ~ paste0("Unclassified_", !!group_sym, "_", 
+                                                dplyr::row_number()),
+          TRUE ~ !!target_sym
+        ))
+    }
+    
+    # Apply the processing with or without grouping
+    if (use_grouping) {
+      data_frame %>%
+        dplyr::group_by(!!group_sym) %>%
+        process_fn() %>%
+        dplyr::ungroup()
+    } else {
+      process_fn(data_frame)
+    }
+  }
+  
   get_phylogenetic_tree <- function(data.obj, fix_link_frame, min_label, level_seq, verbose = TRUE) {
     # Check if tree exists in data object
     if (is.null(data.obj$tree)) {
@@ -349,23 +386,18 @@ generate_taxa_cladogram_single <- function(
   # Subset data for the chosen color grouping level
   sub_inputframe <- inputframe_linked %>% dplyr::filter(Sites_layr == {{color.group.level}})
 
-  # First process all "Unclassified" labels in the main dataframe, ensuring they contain taxonomic level information
-  inputframe_linked <- inputframe_linked %>%
-    dplyr::group_by(Sites_layr) %>%
-    dplyr::mutate(Variable = dplyr::case_when(
-      Variable == "Unclassified" ~ paste0("Unclassified_", Sites_layr, "_", 
-                                         dplyr::row_number()),
-      TRUE ~ Variable
-    )) %>%
-    dplyr::ungroup()
-    
-  # Then process "Unclassified" labels in the sub-dataframe
-  sub_inputframe <- sub_inputframe %>%
-    dplyr::mutate(Variable = dplyr::case_when(
-      Variable == "Unclassified" ~ paste0("Unclassified_", Sites_layr, "_", 
-                                         dplyr::row_number()),
-      TRUE ~ Variable
-    ))
+  # Process "Unclassified" labels in both data frames
+  inputframe_linked <- process_unclassified_labels(
+    inputframe_linked, 
+    group_col = "Sites_layr", 
+    use_grouping = TRUE
+  )
+  
+  sub_inputframe <- process_unclassified_labels(
+    sub_inputframe, 
+    group_col = "Sites_layr", 
+    use_grouping = FALSE
+  )
 
   # Ensure tree labels match data labels
   common_labels <- intersect(treex$tip.label, sub_inputframe$Variable)
