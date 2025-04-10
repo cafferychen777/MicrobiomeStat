@@ -212,6 +212,61 @@ generate_taxa_cladogram_single <- function(
     return(result)
   }
 
+  #' Get appropriate phylogenetic tree for cladogram
+  #'
+  #' This function determines the appropriate phylogenetic tree to use for the cladogram.
+  #' It first checks if a valid tree exists in the data object, and if so, ensures the
+  #' tree tips match the feature names. If no valid tree is found or no matching tips
+  #' are found, it builds a taxonomy-based tree.
+  #'
+  #' @param data.obj A MicrobiomeStat data object
+  #' @param fix_link_frame Processed feature annotation data frame
+  #' @param min_label The most specific taxonomic level
+  #' @param level_seq Vector of taxonomic levels in order
+  #' @param verbose Logical, whether to print detailed messages
+  #'
+  #' @return A phylogenetic tree object
+  get_phylogenetic_tree <- function(data.obj, fix_link_frame, min_label, level_seq, verbose = TRUE) {
+    # Check if tree exists in data object
+    if (is.null(data.obj$tree)) {
+      if (verbose) message("No tree found in data object. Building taxonomy-based tree.")
+      return(build_tree(fix_link_frame, level_seq))
+    }
+    
+    # Tree exists, check if it's valid
+    tree <- data.obj$tree
+    if (!inherits(tree, "phylo")) {
+      if (verbose) message("Tree in data object is not a valid phylogenetic tree. Building taxonomy-based tree.")
+      return(build_tree(fix_link_frame, level_seq))
+    }
+    
+    # Check for matching tips
+    common_tips <- intersect(tree$tip.label, fix_link_frame[[min_label]])
+    total_tips <- length(tree$tip.label)
+    total_features <- length(unique(fix_link_frame[[min_label]]))
+    match_percent_tree <- round(length(common_tips) / total_tips * 100, 1)
+    match_percent_features <- round(length(common_tips) / total_features * 100, 1)
+    
+    if (length(common_tips) > 0) {
+      if (verbose) {
+        message(sprintf("Using phylogenetic tree from data object:"))
+        message(sprintf("- Matched %d of %d tree tips (%.1f%%)", 
+                       length(common_tips), total_tips, match_percent_tree))
+        message(sprintf("- Matched %d of %d features (%.1f%%)", 
+                       length(common_tips), total_features, match_percent_features))
+      }
+      return(ape::keep.tip(tree, common_tips))
+    } else {
+      if (verbose) {
+        message("No matching tips found between phylogenetic tree and features.")
+        message(sprintf("- Tree has %d tips, features has %d unique values", 
+                       total_tips, total_features))
+        message("Using taxonomy-based tree instead.")
+      }
+      return(build_tree(fix_link_frame, level_seq))
+    }
+  }
+  
   # Function to build phylogenetic tree from feature annotations
   build_tree <- function(link_frame, level_seq) {
     link_frame <- as.data.frame(link_frame)
@@ -272,22 +327,14 @@ generate_taxa_cladogram_single <- function(
       )
     )
 
-  # Check and use existing tree if available, otherwise build from taxonomy
-  if (!is.null(data.obj$tree)) {
-    tree <- data.obj$tree
-    # Ensure tree tips match our feature names
-    common_tips <- intersect(tree$tip.label, fix_link_frame[[min_label]])
-    if (length(common_tips) > 0) {
-      message("Using phylogenetic tree from data object.")
-      treex <- ape::keep.tip(tree, common_tips)
-    } else {
-      message("No matching tips found between phylogenetic tree and features. Using taxonomy-based tree instead.")
-      treex <- build_tree(fix_link_frame, level_seq)
-    }
-  } else {
-    message("Building taxonomy-based tree.")
-    treex <- build_tree(fix_link_frame, level_seq)
-  }
+  # Get the appropriate phylogenetic tree using the helper function
+  treex <- get_phylogenetic_tree(
+    data.obj = data.obj,
+    fix_link_frame = fix_link_frame,
+    min_label = min_label,
+    level_seq = level_seq,
+    verbose = TRUE
+  )
 
   # Join and process test results
   inputframe_linked <- join_frames(test.list, level_seq, link_frame) %>%
