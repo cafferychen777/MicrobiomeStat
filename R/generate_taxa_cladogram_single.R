@@ -281,10 +281,12 @@ generate_taxa_cladogram_single <- function(
   }
 
   # Join and process test results
-  inputframe_linked <- join_frames(test.list, level_seq, link_frame)
-  inputframe_linked$Variable <- stringr::str_replace_all(inputframe_linked[[min_label]], pattern = "\\.", replacement = "")
-  inputframe_linked$Variable <- stringr::str_replace_all(inputframe_linked$Variable, pattern = " |\\(|\\)", replacement = "_")
-  inputframe_linked$Sites_layr <- factor(inputframe_linked$Sites_layr, levels = level_seq)
+  inputframe_linked <- join_frames(test.list, level_seq, link_frame) %>%
+    dplyr::mutate(
+      Variable = stringr::str_replace_all(!!rlang::sym(min_label), pattern = "\\.", replacement = ""),
+      Variable = stringr::str_replace_all(Variable, pattern = " |\\(|\\)", replacement = "_"),
+      Sites_layr = factor(Sites_layr, levels = level_seq)
+    )
   # Apply statistical filtering
   inputframe_linked <- filter_h(inputframe_linked, level_seq, feature.mt.method)
 
