@@ -300,22 +300,22 @@ generate_taxa_cladogram_single <- function(
                        total_tips, total_features))
         message("Using taxonomy-based tree instead.")
       }
-      return(build_taxonomy_tree(fix_link_frame, level_seq))
+      return(build_taxonomy_tree(taxonomy_annotation, taxonomic_hierarchy))
     }
   }
   
   # Function to build phylogenetic tree from feature annotations
-  build_taxonomy_tree <- function(link_frame, level_seq) {
-    link_frame <- as.data.frame(link_frame)
-    link_frame <- link_frame[level_seq]
+  build_taxonomy_tree <- function(taxonomy_annotation, taxonomic_hierarchy) {
+    taxonomy_annotation <- as.data.frame(taxonomy_annotation)
+    taxonomy_annotation <- taxonomy_annotation[taxonomic_hierarchy]
     # Create a formula for tree construction
-    frm <- as.formula(paste0("~", paste0(level_seq, collapse = "/")))
+    frm <- as.formula(paste0("~", paste0(taxonomic_hierarchy, collapse = "/")))
     # Convert all columns to factors
-    for (i in 1:ncol(link_frame)) {
-      link_frame[[i]] <- as.factor(link_frame[[i]])
+    for (i in seq_len(ncol(taxonomy_annotation))) {
+      taxonomy_annotation[[i]] <- as.factor(taxonomy_annotation[[i]])
     }
     # Generate phylogenetic tree
-    phylogenetic_tree <- ape::as.phylo(frm, data = link_frame, collapse = FALSE)
+    phylogenetic_tree <- ape::as.phylo(frm, data = taxonomy_annotation, collapse = FALSE)
     return(phylogenetic_tree)
   }
 
@@ -323,27 +323,27 @@ generate_taxa_cladogram_single <- function(
   filter_by_significance <- function(inputframe_linked, taxonomic_hierarchy, feature.mt.method) {
     # Define significance thresholds
     significance_thresholds <- setNames(rep(cutoff, length(taxonomic_hierarchy)), taxonomic_hierarchy)
-    for (i in 1:length(taxonomic_hierarchy)) {
+    for (i in seq_along(taxonomic_hierarchy)) {
       level_i <- rev(taxonomic_hierarchy)[[i]]
       if (level_i %in% names(significance_thresholds)) {
         tmp_cut_off <- significance_thresholds[[level_i]]
         # Apply cutoff based on the multiple testing method
         if (feature.mt.method == "none") {
           # Use raw p-values if no multiple testing correction
-          inputframe_linked$Coefficient[inputframe_linked$Sites_layr == level_i & inputframe_linked$P.Value > tmp_cut_off] <- 0
+          inputframe_linked$Coefficient[inputframe_linked$taxonomic_level == level_i & inputframe_linked$P.Value > tmp_cut_off] <- 0
         } else if (feature.mt.method == "fdr") {
           # Use FDR-adjusted p-values for multiple testing correction
-          inputframe_linked$Coefficient[inputframe_linked$Sites_layr == level_i & inputframe_linked$Adjusted.P.Value > tmp_cut_off] <- 0
+          inputframe_linked$Coefficient[inputframe_linked$taxonomic_level == level_i & inputframe_linked$Adjusted.P.Value > tmp_cut_off] <- 0
         }
       }
       # Propagate filtering to higher taxonomic levels
-      if (level_i != min_label) {
-        lower_i <- rev(level_seq)[[i-1]]
+      if (level_i != finest_taxonomic_level) {
+        lower_i <- rev(taxonomic_hierarchy)[[i-1]]
         keep_level_i <- inputframe_linked %>%
-          dplyr::filter(Sites_layr == {{lower_i}} & Coefficient != 0) %>%
+          dplyr::filter(taxonomic_level == {{lower_i}} & Coefficient != 0) %>%
           pull(level_i) %>%
           unique()
-        inputframe_linked$Coefficient[inputframe_linked$Sites_layr == level_i & (!inputframe_linked[[level_i]] %in% keep_level_i)] <- 0
+        inputframe_linked$Coefficient[inputframe_linked$taxonomic_level == level_i & (!inputframe_linked[[level_i]] %in% keep_level_i)] <- 0
       }
     }
     inputframe_linked
@@ -449,8 +449,8 @@ generate_taxa_cladogram_single <- function(
   plot.list <- list()
 
   # Generate a plot for each comparison
-  for (comparison in unique(inputframe_linked$Comparison)) {
-    comparison_data <- inputframe_linked %>% dplyr::filter(Comparison == comparison)
+  for (comparison in unique(merged_test_data$Comparison)) {
+    comparison_data <- merged_test_data %>% dplyr::filter(Comparison == comparison)
 
     # Ensure ggplot2 namespace is available in this scope
     if (!requireNamespace("ggplot2", quietly = TRUE)) {
@@ -470,7 +470,7 @@ generate_taxa_cladogram_single <- function(
       ggtreeExtra::geom_fruit(
         data = comparison_data,
         geom = "geom_tile",  # Use a string, not a function object or unevaluated symbol
-        mapping = aes(y = Variable, x = Sites_layr, fill = Coefficient),
+        mapping = aes(y = Variable, x = taxonomic_level, fill = Coefficient),
         offset = 0.03,
         size = 0.02,
         color = "black"
@@ -487,7 +487,7 @@ generate_taxa_cladogram_single <- function(
         legend.text = element_text(size = 6),
         legend.title = element_text(size = 8)
       ) +
-      scale_color_manual(values = unique(palette)[1:length(unique(comparison_data[[color.group.level]]))]) +
+      scale_color_manual(values = unique(palette)[seq_along(unique(comparison_data[[color.group.level]]))]) +
       guides(
         fill = guide_colorbar(title = "Coefficient", barwidth = 10, barheight = 0.5),
         color = guide_legend(
