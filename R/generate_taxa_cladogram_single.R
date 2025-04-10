@@ -112,7 +112,7 @@ generate_taxa_cladogram_single <- function(
     pdf = FALSE,
     pdf.width = 10,
     pdf.height = 10,
-    # 添加 generate_taxa_test_single 可能需要的其他参数
+    # Add other parameters that might be needed for generate_taxa_test_single
     time.var = NULL,
     t.level = NULL,
     adj.vars = NULL,
@@ -120,7 +120,7 @@ generate_taxa_cladogram_single <- function(
     abund.filter = 0.0001,
     feature.dat.type = "count"
 ) {
-  # 确保必要的包可用
+  # Ensure necessary packages are available
   if (!requireNamespace("ggtree", quietly = TRUE)) {
     stop("Package 'ggtree' is required but not installed.")
   }
@@ -131,15 +131,15 @@ generate_taxa_cladogram_single <- function(
     stop("Package 'ggplot2' is required but not installed.")
   }
   
-  # 确保所需的名称空间可用
+  # Ensure required namespaces are available
   requireNamespace("ggplot2", quietly = TRUE)
 
-  # 检查 group.var 参数
+  # Check group.var parameter
   if (is.null(group.var)) {
     stop("'group.var' must be provided")
   }
 
-  # 如果 test.list 为 NULL，使用 generate_taxa_test_single 生成
+  # If test.list is NULL, generate it using generate_taxa_test_single
   if (is.null(test.list)) {
     message("Generating test results using generate_taxa_test_single...")
     test.list <- generate_taxa_test_single(
@@ -154,7 +154,7 @@ generate_taxa_cladogram_single <- function(
       abund.filter = abund.filter
     )
     
-    # 检查是否成功生成测试结果
+    # Check if test results were successfully generated
     if (length(test.list) == 0 || all(sapply(test.list, length) == 0)) {
       stop("Failed to generate test results. Please check your input parameters.")
     }
@@ -162,7 +162,7 @@ generate_taxa_cladogram_single <- function(
 
   # If color.group.level is not specified, use the first feature.level
   if (length(color.group.level) == 0){
-    color.group.level <- feature.level[1]  # 使用第一个feature.level作为默认值
+    color.group.level <- feature.level[1]  # Use the first feature.level as the default value
   }
 
   # Process the data
@@ -291,7 +291,7 @@ generate_taxa_cladogram_single <- function(
   # Subset data for the chosen color grouping level
   sub_inputframe <- inputframe_linked %>% dplyr::filter(Sites_layr == {{color.group.level}})
 
-  # 首先处理主数据框中所有的"Unclassified"标签，确保它们包含分类级别信息
+  # First process all "Unclassified" labels in the main dataframe, ensuring they contain taxonomic level information
   inputframe_linked <- inputframe_linked %>%
     dplyr::group_by(Sites_layr) %>%
     dplyr::mutate(Variable = dplyr::case_when(
@@ -301,7 +301,7 @@ generate_taxa_cladogram_single <- function(
     )) %>%
     dplyr::ungroup()
     
-  # 然后处理子数据框中的"Unclassified"标签
+  # Then process "Unclassified" labels in the sub-dataframe
   sub_inputframe <- sub_inputframe %>%
     dplyr::mutate(Variable = dplyr::case_when(
       Variable == "Unclassified" ~ paste0("Unclassified_", Sites_layr, "_", 
@@ -378,24 +378,24 @@ generate_taxa_cladogram_single <- function(
   for (comparison in unique(inputframe_linked$Comparison)) {
     comparison_data <- inputframe_linked %>% dplyr::filter(Comparison == comparison)
 
-    # 确保ggplot2命名空间在这个作用域内可用
+    # Ensure ggplot2 namespace is available in this scope
     if (!requireNamespace("ggplot2", quietly = TRUE)) {
       stop("Package 'ggplot2' is required but not installed.")
     }
     
-    # 确保geom_tile函数在全局环境中可用
-    # ggtreeExtra::geom_fruit需要在全局环境中查找这个函数
+    # Ensure geom_tile function is available in the global environment
+    # ggtreeExtra::geom_fruit needs to find this function in the global environment
     if (!exists("geom_tile", envir = .GlobalEnv)) {
       assign("geom_tile", ggplot2::geom_tile, envir = .GlobalEnv)
     }
     
     # Create the circular cladogram plot
     p <- ggtree::ggtree(treexx, layout = "circular", open.angle = 5) +
-      # 使用字符串"geom_tile"作为geom参数的值
-      # 这符合ggtreeExtra::geom_fruit函数的要求
+      # Use the string "geom_tile" as the value for the geom parameter
+      # This complies with the requirements of the ggtreeExtra::geom_fruit function
       ggtreeExtra::geom_fruit(
         data = comparison_data,
-        geom = "geom_tile",  # 使用字符串，而非函数对象或未求值的符号
+        geom = "geom_tile",  # Use a string, not a function object or unevaluated symbol
         mapping = aes(y = Variable, x = Sites_layr, fill = Coefficient),
         offset = 0.03,
         size = 0.02,
