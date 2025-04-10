@@ -78,8 +78,8 @@ test_that("generate_taxa_test_single handles filtering edge cases", {
     group.var = "group",
     feature.dat.type = "count",
     feature.level = c("Genus"),
-    prev.filter = 0.5,  # 降低阈值
-    abund.filter = 0.05  # 降低阈值
+    prev.filter = 0.5,  # Lower threshold
+    abund.filter = 0.05  # Lower threshold
   )
 
   # Expectations for normal case
@@ -93,8 +93,8 @@ test_that("generate_taxa_test_single handles filtering edge cases", {
       group.var = "group",
       feature.dat.type = "count",
       feature.level = c("Genus"),
-      prev.filter = 0.9,  # 极端阈值
-      abund.filter = 0.1   # 极端阈值
+      prev.filter = 0.9,  # Extreme threshold
+      abund.filter = 0.1   # Extreme threshold
     ),
     "No features remain after filtering"
   )

@@ -1,8 +1,8 @@
 test_that("generate_taxa_cladogram_single works with and without phylogenetic tree", {
   # Create mock data objects with more realistic taxonomic structure
-  features <- paste0("ASV", 1:5)  # 使用简单的ASV标识符
+  features <- paste0("ASV", 1:5)  # Use simple ASV identifiers
 
-  # Create feature annotation data frame - 避免使用可能冲突的列名
+  # Create feature annotation data frame - avoid using column names that might conflict
   feature.ann <- data.frame(
     tax_Kingdom = rep("Bacteria", 5),
     tax_Phylum = c("Firmicutes", "Firmicutes", "Bacteroidetes", "Bacteroidetes", "Proteobacteria"),
@@ -52,11 +52,11 @@ test_that("generate_taxa_cladogram_single works with and without phylogenetic tr
     )
   )
 
-  # Create data object with tree - 确保树的标签与特征完全匹配
+  # Create data object with tree - ensure tree labels completely match features
   library(ape)
   tree <- ape::read.tree(text = paste0("(", paste(features, collapse = ","), ");"))
   tree$edge.length <- rep(1, nrow(tree$edge))
-  # 添加必要的属性
+  # Add necessary attributes
   tree$node.label <- paste0("Node", 1:(tree$Nnode))
 
   data.obj.with.tree <- data.obj.no.tree

@@ -525,7 +525,7 @@ plot_feature_diversity <- function (data.obj,
                                     prop.to.lump = 0.0001,
                                     # Mean proportion less than that will be lumped into "other"
                                     top.k.plot = NULL,
-                                    # Or top k based on some criterion，other will be lumped into "other"
+                                    # Or top k based on some criterion, other will be lumped into "other"
                                     top.k.func = NULL,
                                     # function to order the features
                                     plot.other = TRUE,

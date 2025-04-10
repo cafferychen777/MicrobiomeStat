@@ -258,7 +258,7 @@ generate_taxa_change_scatterplot_pair <-
       features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
       }
 
-      # 转换计数为数值类型
+      # Convert counts to numeric type
       otu_tax_agg_numeric <-
         dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
 
@@ -273,14 +273,14 @@ generate_taxa_change_scatterplot_pair <-
       taxa.levels <-
         otu_tab_norm_agg %>% select(all_of(feature.level)) %>% dplyr::distinct() %>% dplyr::pull()
 
-      # 首先，把数据分为两个子集，一个为change.base，一个为change.after
+      # First, divide the data into two subsets, one for change.base and one for change.after
       df_t0 <- otu_tab_norm_agg %>% filter(!!sym(time.var) == change.base)
       df_ts <- otu_tab_norm_agg %>% filter(!!sym(time.var) != change.base)
 
-      # 然后，使用dplyr::inner_join合并这两个子集，基于Phylum、subject和sex
+      # Then, use dplyr::inner_join to merge these two subsets based on Phylum, subject and sex
       df <- dplyr::inner_join(df_ts, df_t0, by = c(feature.level, subject.var), suffix = c("_ts", "_t0"), relationship = "many-to-many")
 
-      # 最后，计算新的count值
+      # Finally, calculate the new count value
       if (is.function(feature.change.func)) {
         df <- df %>% dplyr::mutate(new_count = feature.change.func(count_ts, count_t0))
       } else if (feature.change.func == "log fold change") {
@@ -359,7 +359,7 @@ generate_taxa_change_scatterplot_pair <-
           scale_shape_manual(values = c(21, 22, 24, 25)) +
           scale_fill_manual(values = colors) +
           ylab(ylab_label) +
-          #scale_linetype_manual(values = c("solid", "dashed")) + # 设置曲线类型
+          #scale_linetype_manual(values = c("solid", "dashed")) + # Set the line type
           scale_color_manual(values = colors, guide = guide_legend(override.aes = list(size = 0))) +
           theme_to_use +
           theme(

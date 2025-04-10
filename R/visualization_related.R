@@ -323,7 +323,7 @@ is_categorical <- function(x) {
     return(TRUE)
   } else if (is.numeric(x) &&
              length(unique(x)) < 10) {
-    # 这里的10你可以根据需要调整
+    # You can adjust this threshold of 10 according to your needs
     return(TRUE)
   } else {
     return(FALSE)
