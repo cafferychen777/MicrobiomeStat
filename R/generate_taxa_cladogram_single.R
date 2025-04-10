@@ -259,9 +259,18 @@ generate_taxa_cladogram_single <- function(
 
   # Main processing
   # Prepare feature annotations for tree construction
-  fix_link_frame <- link_frame
-  fix_link_frame[[min_label]] <- stringr::str_replace_all(fix_link_frame[[min_label]], pattern = " |\\(|\\)", replacement = "_")
-  fix_link_frame[[min_label]] <- stringr::str_replace_all(fix_link_frame[[min_label]], pattern = "\\.", replacement = "")
+  fix_link_frame <- link_frame %>%
+    dplyr::mutate(
+      !!rlang::sym(min_label) := stringr::str_replace_all(
+        !!rlang::sym(min_label), 
+        pattern = " |\\(|\\)", 
+        replacement = "_"
+      ) %>%
+      stringr::str_replace_all(
+        pattern = "\\." , 
+        replacement = ""
+      )
+    )
 
   # Check and use existing tree if available, otherwise build from taxonomy
   if (!is.null(data.obj$tree)) {
