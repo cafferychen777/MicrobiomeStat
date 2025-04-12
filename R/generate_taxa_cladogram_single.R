@@ -262,46 +262,55 @@ generate_taxa_cladogram_single <- function(
       process_fn(data_frame)
     }
   }
-  
+
+  # Function to get the appropriate phylogenetic tree
   get_phylogenetic_tree <- function(data.obj, fix_link_frame, min_label, level_seq, verbose = TRUE) {
-    # Check if tree exists in data object
-    if (is.null(data.obj$tree)) {
-      if (verbose) message("No tree found in data object. Building taxonomy-based tree.")
-      return(build_taxonomy_tree(fix_link_frame, level_seq))
-    }
-    
-    # Tree exists, check if it's valid
-    tree <- data.obj$tree
-    if (!inherits(tree, "phylo")) {
-      if (verbose) message("Tree in data object is not a valid phylogenetic tree. Building taxonomy-based tree.")
-      return(build_taxonomy_tree(fix_link_frame, level_seq))
-    }
-    
-    # Check for matching tips
-    common_tips <- intersect(tree$tip.label, fix_link_frame[[min_label]])
-    total_tips <- length(tree$tip.label)
-    total_features <- length(unique(fix_link_frame[[min_label]]))
-    match_percent_tree <- round(length(common_tips) / total_tips * 100, 1)
-    match_percent_features <- round(length(common_tips) / total_features * 100, 1)
-    
-    if (length(common_tips) > 0) {
-      if (verbose) {
-        message(sprintf("Using phylogenetic tree from data object:"))
-        message(sprintf("- Matched %d of %d tree tips (%.1f%%)", 
-                       length(common_tips), total_tips, match_percent_tree))
-        message(sprintf("- Matched %d of %d features (%.1f%%)", 
-                       length(common_tips), total_features, match_percent_features))
+    # Check if a tree is available in the data object
+    if (!is.null(data.obj$tree)) {
+      if (verbose) message("Found tree in data object. Checking compatibility...")
+      tree <- data.obj$tree
+      
+      # Check if the tree is already in phylo format
+      if (inherits(tree, "phylo")) {
+        # Get the leaf node names from the tree
+        tree_tips <- tree$tip.label
+        # Get the feature names from the processed taxonomy
+        feature_names <- fix_link_frame[[min_label]]
+        
+        # Find matching nodes between tree and features
+        matching_nodes <- intersect(tree_tips, feature_names)
+        matching_count <- length(matching_nodes)
+        
+        # Calculate match percentages
+        tree_match_percent <- round(matching_count / length(tree_tips) * 100, 2)
+        feature_match_percent <- round(matching_count / length(feature_names) * 100, 2)
+        
+        if (verbose) {
+          message(sprintf("Tree has %d leaf nodes, %d match with features (%.2f%%)", 
+                         length(tree_tips), matching_count, tree_match_percent))
+          message(sprintf("Data has %d features, %d match with tree (%.2f%%)", 
+                         length(feature_names), matching_count, feature_match_percent))
+        }
+        
+        # If there are matching nodes, use the tree from the data object
+        if (matching_count > 0) {
+          if (verbose) message("Using phylogenetic tree from data object.")
+          # Keep only the tips that match with features
+          tree <- ape::keep.tip(tree, matching_nodes)
+          return(tree)
+        } else {
+          if (verbose) message("No matching nodes found between tree and features.")
+        }
+      } else {
+        if (verbose) message("Tree in data object is not in phylo format.")
       }
-      return(ape::keep.tip(tree, common_tips))
-    } else {
+      
       if (verbose) {
-        message("No matching tips found between phylogenetic tree and features.")
-        message(sprintf("- Tree has %d tips, features has %d unique values", 
-                       total_tips, total_features))
         message("Using taxonomy-based tree instead.")
       }
       return(build_taxonomy_tree(taxonomy_annotation, taxonomic_hierarchy))
     }
+    return(build_taxonomy_tree(taxonomy_annotation, taxonomic_hierarchy))
   }
   
   # Function to build phylogenetic tree from feature annotations
@@ -316,13 +325,57 @@ generate_taxa_cladogram_single <- function(
     }
     # Generate phylogenetic tree
     phylogenetic_tree <- ape::as.phylo(frm, data = taxonomy_annotation, collapse = FALSE)
-    return(phylogenetic_tree)
+    
+    # Check if tidytree is available
+    if (requireNamespace("tidytree", quietly = TRUE)) {
+      # Convert phylo object to tibble
+      tree_tibble <- tidytree::as_tibble(phylogenetic_tree)
+      
+      # Check if the tibble contains the necessary columns
+      if (!all(c("parent", "node") %in% colnames(tree_tibble))) {
+        # If parent column is missing, add it
+        if (!("parent" %in% colnames(tree_tibble))) {
+          # Create parent column based on tree structure
+          # For root node, parent is NA
+          # For other nodes, parent is the node number of their parent
+          tree_tibble$parent <- NA
+          # Fill parent column using edge matrix
+          if (!is.null(phylogenetic_tree$edge)) {
+            edge_df <- as.data.frame(phylogenetic_tree$edge)
+            colnames(edge_df) <- c("parent", "node")
+            
+            # Find parent for each node
+            for (i in seq_len(nrow(edge_df))) {
+              node_idx <- which(tree_tibble$node == edge_df$node[i])
+              if (length(node_idx) > 0) {
+                tree_tibble$parent[node_idx] <- edge_df$parent[i]
+              }
+            }
+          }
+        }
+        
+        # If node column is missing, add it
+        if (!("node" %in% colnames(tree_tibble))) {
+          # Create node numbers
+          tree_tibble$node <- seq_len(nrow(tree_tibble))
+        }
+      }
+      
+      # Convert processed tibble back to treedata object
+      tree_data <- tidytree::as.treedata(tree_tibble)
+      
+      # Return phylo object
+      return(tree_data@phylo)
+    } else {
+      # If tidytree is not available, return the original phylo object
+      return(phylogenetic_tree)
+    }
   }
 
   # Function to filter results based on statistical significance
-  filter_by_significance <- function(inputframe_linked, taxonomic_hierarchy, feature.mt.method) {
+  filter_by_significance <- function(inputframe_linked, taxonomic_hierarchy, feature.mt.method, finest_taxonomic_level, cutoff_value = cutoff) {
     # Define significance thresholds
-    significance_thresholds <- setNames(rep(cutoff, length(taxonomic_hierarchy)), taxonomic_hierarchy)
+    significance_thresholds <- setNames(rep(cutoff_value, length(taxonomic_hierarchy)), taxonomic_hierarchy)
     for (i in seq_along(taxonomic_hierarchy)) {
       level_i <- rev(taxonomic_hierarchy)[[i]]
       if (level_i %in% names(significance_thresholds)) {
@@ -330,20 +383,20 @@ generate_taxa_cladogram_single <- function(
         # Apply cutoff based on the multiple testing method
         if (feature.mt.method == "none") {
           # Use raw p-values if no multiple testing correction
-          inputframe_linked$Coefficient[inputframe_linked$taxonomic_level == level_i & inputframe_linked$P.Value > tmp_cut_off] <- 0
+          inputframe_linked$Coefficient[inputframe_linked$.data$taxonomic_level == level_i & inputframe_linked$P.Value > tmp_cut_off] <- 0
         } else if (feature.mt.method == "fdr") {
           # Use FDR-adjusted p-values for multiple testing correction
-          inputframe_linked$Coefficient[inputframe_linked$taxonomic_level == level_i & inputframe_linked$Adjusted.P.Value > tmp_cut_off] <- 0
+          inputframe_linked$Coefficient[inputframe_linked$.data$taxonomic_level == level_i & inputframe_linked$Adjusted.P.Value > tmp_cut_off] <- 0
         }
       }
       # Propagate filtering to higher taxonomic levels
       if (level_i != finest_taxonomic_level) {
         lower_i <- rev(taxonomic_hierarchy)[[i-1]]
         keep_level_i <- inputframe_linked %>%
-          dplyr::filter(taxonomic_level == {{lower_i}} & Coefficient != 0) %>%
-          pull(level_i) %>%
+          dplyr::filter(.data$taxonomic_level == {{lower_i}} & .data$Coefficient != 0) %>%
+          dplyr::pull(level_i) %>%
           unique()
-        inputframe_linked$Coefficient[inputframe_linked$taxonomic_level == level_i & (!inputframe_linked[[level_i]] %in% keep_level_i)] <- 0
+        inputframe_linked$Coefficient[inputframe_linked$.data$taxonomic_level == level_i & (!inputframe_linked[[level_i]] %in% keep_level_i)] <- 0
       }
     }
     inputframe_linked
@@ -372,10 +425,10 @@ generate_taxa_cladogram_single <- function(
       taxonomic_level = factor(taxonomic_level, levels = taxonomic_hierarchy)
     )
   # Apply statistical filtering
-  merged_test_data <- filter_by_significance(merged_test_data, taxonomic_hierarchy, feature.mt.method)
+  merged_test_data <- filter_by_significance(merged_test_data, taxonomic_hierarchy, feature.mt.method, finest_taxonomic_level, cutoff)
 
   # Subset data for the chosen color grouping level
-  level_specific_data <- dplyr::filter(merged_test_data, taxonomic_level == color.group.level)
+  level_specific_data <- dplyr::filter(merged_test_data, .data$taxonomic_level == color.group.level)
 
   # Process "Unclassified" labels in the main dataframe
   merged_test_data <- process_unclassified_labels(merged_test_data, "taxonomic_level", use_grouping = TRUE)
@@ -391,6 +444,14 @@ generate_taxa_cladogram_single <- function(
   # Group tree nodes by taxonomic level for coloring
   split_group <- split(level_specific_data$Variable, f = level_specific_data[[color.group.level]])
   annotated_tree <- ggtree::groupOTU(phylogenetic_tree, .node = split_group, group_name = color.group.level)
+  
+  # Ensure tree is in the correct format for ggtree
+  if (requireNamespace("tidytree", quietly = TRUE)) {
+    # Convert to treedata format if not already
+    if (!inherits(annotated_tree, "treedata")) {
+      annotated_tree <- tidytree::as.treedata(annotated_tree)
+    }
+  }
 
   # Generate plot
   # Define custom color palette if not provided
@@ -470,39 +531,39 @@ generate_taxa_cladogram_single <- function(
       ggtreeExtra::geom_fruit(
         data = comparison_data,
         geom = "geom_tile",  # Use a string, not a function object or unevaluated symbol
-        mapping = aes(y = Variable, x = taxonomic_level, fill = Coefficient),
+        mapping = ggplot2::aes(y = Variable, x = taxonomic_level, fill = Coefficient),
         offset = 0.03,
         size = 0.02,
         color = "black"
       ) +
-      ggtree::geom_tiplab(aes(color = .data[[color.group.level]]), offset = calculated_offset, align = TRUE,
+      ggtree::geom_tiplab(ggplot2::aes(color = .data[[color.group.level]]), offset = calculated_offset, align = TRUE,
                           linetype = "blank", size = 2, show.legend = FALSE) +
-      scale_fill_gradient2(low = "#0571b0", high = "#ca0020") +
-      geom_text(mapping = aes(label = "",
+      ggplot2::scale_fill_gradient2(low = "#0571b0", high = "#ca0020") +
+      ggplot2::geom_text(mapping = ggplot2::aes(label = "",
                               color = .data[[color.group.level]]),
-                key_glyph = draw_key_rect) +
-      theme(
+                key_glyph = ggplot2::draw_key_rect) +
+      ggplot2::theme(
         legend.position = "bottom",
         legend.box = "vertical",
-        legend.text = element_text(size = 6),
-        legend.title = element_text(size = 8)
+        legend.text = ggplot2::element_text(size = 6),
+        legend.title = ggplot2::element_text(size = 8)
       ) +
-      scale_color_manual(values = unique(palette)[seq_along(unique(comparison_data[[color.group.level]]))]) +
-      guides(
-        fill = guide_colorbar(title = "Coefficient", barwidth = 10, barheight = 0.5),
-        color = guide_legend(
+      ggplot2::scale_color_manual(values = unique(palette)[seq_along(unique(comparison_data[[color.group.level]]))]) +
+      ggplot2::guides(
+        fill = ggplot2::guide_colorbar(title = "Coefficient", barwidth = 10, barheight = 0.5),
+        color = ggplot2::guide_legend(
           title = color.group.level,
           override.aes = list(size = 2),
           byrow = TRUE,
-          keywidth = unit(0.5, "lines"),
-          keyheight = unit(0.5, "lines")
+          keywidth = ggplot2::unit(0.5, "lines"),
+          keyheight = ggplot2::unit(0.5, "lines")
         )
       )
 
     # Save as PDF if requested
     if (pdf) {
       filename <- paste0("taxa_cladogram_single_", gsub(" ", "_", comparison), ".pdf")
-      ggsave(filename = filename, plot = p, width = pdf.width, height = pdf.height)
+      ggplot2::ggsave(filename = filename, plot = p, width = pdf.width, height = pdf.height)
     }
 
     # Add the plot to the list
