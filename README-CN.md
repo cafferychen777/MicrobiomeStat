@@ -1,9 +1,8 @@
-MicrobiomeStat: 支持R中的纵向微生物组分析
-================
-
-<p align="center" style="margin:0; padding:0;">
-<img src="man/figures/logo.png" alt="MicrobiomeStat Logo" width="400" style="margin:0; padding:0;"/>
-</p>
+<div align="center" style="margin:20px 0;">
+<img src="man/figures/logo.png" alt="MicrobiomeStat Logo" width="200" style="margin:10px 0;"/>
+<h1>MicrobiomeStat</h1>
+<h3>支持R中的纵向微生物组分析</h3>
+</div>
 <!-- badges: start -->
 
 [![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/MicrobiomeStat)](https://cran.r-project.org/package=MicrobiomeStat)

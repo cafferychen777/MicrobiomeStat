@@ -1,9 +1,8 @@
-MicrobiomeStat: Apoyo al análisis longitudinal del microbioma en R
-================
-
-<p align="center" style="margin:0; padding:0;">
-<img src="man/figures/logo.png" alt="Logo de MicrobiomeStat" width="400" style="margin:0; padding:0;"/>
-</p>
+<div align="center" style="margin:20px 0;">
+<img src="man/figures/logo.png" alt="Logo de MicrobiomeStat" width="200" style="margin:10px 0;"/>
+<h1>MicrobiomeStat</h1>
+<h3>Apoyo al análisis longitudinal del microbioma en R</h3>
+</div>
 <!-- badges: start -->
 
 [![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/MicrobiomeStat)](https://cran.r-project.org/package=MicrobiomeStat)
