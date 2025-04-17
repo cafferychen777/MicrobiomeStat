@@ -1,6 +1,5 @@
 <div align="center" style="margin:20px 0;">
 <img src="man/figures/logo.png" alt="Logo de MicrobiomeStat" width="200" style="margin:10px 0;"/>
-<h1>MicrobiomeStat</h1>
 <h3>Apoyo al análisis longitudinal del microbioma en R</h3>
 </div>
 <!-- badges: start -->
