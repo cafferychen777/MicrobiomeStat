@@ -1,9 +1,9 @@
 MicrobiomeStat: Supporting Longitudinal Microbiome Analysis in R
 ================
 
-<p align="center" style="margin:0; padding:0;">
-<img src="man/figures/logo.png" alt="MicrobiomeStat Logo" width="400" style="margin:0; padding:0;"/>
-</p>
+<div align="center" style="margin:20px 0;">
+<img src="man/figures/logo.png" alt="MicrobiomeStat Logo" width="250" style="margin:10px 0;"/>
+</div>
 
 🌟 **If you find `MicrobiomeStat` helpful, please consider giving us a
 star on GitHub!** Your support greatly motivates us to improve and
