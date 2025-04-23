@@ -16,12 +16,27 @@
 ^revdep$
 ^\.travis\.yml$
 ^codecov\.yml$
+
 # Documentation related
 ^docs$
+^docs/.*$
+^docs/reference/.*$
 ^docs/reference/.*\.pdf$
+^docs/reference/.*\.png$
+^docs/reference/.*\.html$
+^inst/doc$
+^inst/doc/.*$
 ^inst/doc/.*\.pdf$
 ^vignettes/.*\.pdf$
 ^vignettes/.*_files$
 ^vignettes/.*_cache$
 ^man/figures/.*\.pdf$
 ^emails$
+
+# Temporary files
+^.*\.Rcheck$
+^.*\.tar\.gz$
+
+# Build artifacts
+^MicrobiomeStat\.Rcheck$
+^MicrobiomeStat_.*\.tar\.gz$

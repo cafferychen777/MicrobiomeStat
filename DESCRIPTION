@@ -52,6 +52,9 @@ Suggests:
 Config/testthat/edition: 3
 Config/build/clean-inst-doc: TRUE
 Config/build/clean-docs-in-inst: TRUE
+BuildVignettes: false
+BuildManual: false
+VignetteBuilder: knitr
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
