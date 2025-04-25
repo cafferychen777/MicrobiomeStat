@@ -36,6 +36,20 @@ title="Repobeats analytics image" alt="Alt" />
 
 # News
 
+🌟 **Also Check Out: `mLLMCelltype`**
+
+We're excited to introduce `mLLMCelltype`, our innovative framework for **single-cell RNA sequencing data annotation**. This iterative multi-LLM consensus framework leverages the collective intelligence of multiple large language models (including GPT-4o/4.1, Claude-3.7/3.5, Gemini-2.0, Grok-3, and others) to significantly improve cell type annotation accuracy while providing transparent uncertainty quantification.
+
+`mLLMCelltype` addresses critical challenges in scRNA-seq analysis through its unique architecture:
+
+- **Multi-LLM Consensus**: Overcomes single-model limitations by harnessing diverse LLMs' collective intelligence
+- **Structured Deliberation**: Enables models to share reasoning, evaluate evidence, and refine annotations through collaborative discussion
+- **Transparent Uncertainty Metrics**: Provides quantitative measures to identify ambiguous cell populations requiring expert review
+- **Hallucination Reduction**: Suppresses inaccurate predictions through cross-model critical evaluation
+- **No Reference Dataset Required**: Performs accurate annotation without pre-training or reference data
+
+For researchers working with single-cell data, `mLLMCelltype` offers a powerful new approach to cell type annotation. Learn more about its capabilities and methodology on GitHub: [mLLMCelltype Repository](https://github.com/cafferychen777/mLLMCelltype).
+
 📢 **Update** (January 8th): Enhancement in Color Palette Functionality
 
 We are excited to announce a significant update to our color palette
