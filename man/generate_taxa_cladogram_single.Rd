@@ -6,7 +6,7 @@
 \usage{
 generate_taxa_cladogram_single(
   data.obj,
-  test.list,
+  test.list = NULL,
   group.var = NULL,
   feature.level,
   feature.mt.method = "none",
@@ -15,11 +15,17 @@ generate_taxa_cladogram_single(
   palette = NULL,
   pdf = FALSE,
   pdf.width = 10,
-  pdf.height = 10
+  pdf.height = 10,
+  time.var = NULL,
+  t.level = NULL,
+  adj.vars = NULL,
+  prev.filter = 0.1,
+  abund.filter = 1e-04,
+  feature.dat.type = "count"
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which includes components like feature.tab, feature.ann, meta.dat, etc.}
+\item{data.obj}{A MicrobiomeStat data object}
 
 \item{test.list}{A list of test results. If NULL, it will be generated using generate_taxa_test_single.}
 
@@ -40,9 +46,45 @@ generate_taxa_cladogram_single(
 \item{pdf.width}{The width of the PDF file if saved.}
 
 \item{pdf.height}{The height of the PDF file if saved.}
+
+\item{time.var}{Character string specifying the column name in metadata containing time variable. Used when test.list is NULL.}
+
+\item{t.level}{Character string specifying the time level/value to subset data to. Used when test.list is NULL.}
+
+\item{adj.vars}{Character vector specifying column names in metadata containing covariates. Used when test.list is NULL.}
+
+\item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering taxa. Used when test.list is NULL.}
+
+\item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering taxa. Used when test.list is NULL.}
+
+\item{feature.dat.type}{The type of the feature data, which determines data handling. Should be one of "count", "proportion", or "other". For CLR-transformed data, use "other". Used when test.list is NULL.}
+
+\item{fix_link_frame}{Processed feature annotation data frame}
+
+\item{min_label}{The most specific taxonomic level}
+
+\item{level_seq}{Vector of taxonomic levels in order}
+
+\item{verbose}{Logical, whether to print detailed messages}
+
+\item{data_frame}{A data frame containing taxonomic data}
+
+\item{group_col}{Column name containing taxonomic level information}
+
+\item{target_col}{Column name containing labels to process (default: "Variable")}
+
+\item{use_grouping}{Logical, whether to group by group_col before processing (default: TRUE)}
 }
 \value{
 A ggplot object representing the circular heatmap with phylogenetic tree.
+
+A phylogenetic tree object
+Process Unclassified taxonomic labels
+
+This function processes "Unclassified" labels in a data frame, ensuring they contain
+taxonomic level information by appending the taxonomic level and a unique identifier.
+
+A data frame with processed "Unclassified" labels
 }
 \description{
 This function generates a circular cladogram with an integrated heatmap for taxonomic data.
@@ -120,4 +162,4 @@ plot.list <- generate_taxa_cladogram_single(
   color.group.level = "Family"
 )
 }
-}
+
