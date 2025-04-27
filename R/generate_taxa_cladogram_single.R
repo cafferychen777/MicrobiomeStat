@@ -7,6 +7,7 @@
 #' @importFrom rlang expr eval_tidy
 #' @importFrom ggplot2 aes scale_fill_gradient2 geom_text element_text guide_colorbar unit scale_color_manual guides
 #' @importFrom tidytree as_tibble as.treedata
+#' @importFrom dplyr filter mutate group_by ungroup
 #'
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which includes components like feature.tab, feature.ann, meta.dat, etc.
 #' @param test.list A list of test results. If NULL, it will be generated using generate_taxa_test_single.

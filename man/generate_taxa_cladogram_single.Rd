@@ -140,12 +140,4 @@ plot.list <- generate_taxa_cladogram_single(
   color.group.level = "Family"
 )
 }
-Get appropriate phylogenetic tree for cladogram
 
-This function determines the appropriate phylogenetic tree to use for the cladogram.
-It first checks if a valid tree exists in the data object, and if so, ensures the
-tree tips match the feature names. If no valid tree is found or no matching tips
-are found, it builds a taxonomy-based tree.
-
-
-}
