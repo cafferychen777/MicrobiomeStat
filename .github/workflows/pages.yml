@@ -29,11 +29,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       
-      # Manual R setup
-      - name: Setup R
+      # Setup R using r-lib/actions/setup-r
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+          
+      # Install system dependencies
+      - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y r-base r-base-dev
           sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev pandoc pandoc-citeproc
           sudo apt-get install -y libfontconfig1-dev libfreetype6-dev
           echo 'options(repos = c(CRAN = "https://cloud.r-project.org"))' > ~/.Rprofile
