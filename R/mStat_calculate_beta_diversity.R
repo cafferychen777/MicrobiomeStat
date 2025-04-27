@@ -50,7 +50,46 @@ mStat_calculate_beta_diversity <- function(data.obj,
   if (is.null(dist.name)){
     return()
   }
-
+  
+  # Define valid distance metrics with their correct capitalization
+  valid_metrics <- c('BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS')
+  
+  # Create a case-insensitive mapping for validation
+  valid_metrics_lower <- tolower(valid_metrics)
+  names(valid_metrics_lower) <- valid_metrics
+  
+  # Check for invalid or incorrectly capitalized distance metrics
+  invalid_metrics <- c()
+  corrected_dist_name <- c()
+  
+  for (metric in dist.name) {
+    metric_lower <- tolower(metric)
+    if (metric_lower %in% tolower(valid_metrics)) {
+      # Find the correct capitalization
+      correct_metric <- valid_metrics[which(tolower(valid_metrics) == metric_lower)]
+      
+      # If the metric is not correctly capitalized, add it to the list for warning
+      if (metric != correct_metric) {
+        invalid_metrics <- c(invalid_metrics, metric)
+        message(paste0("Warning: '", metric, "' is not correctly capitalized. Using '", correct_metric, "' instead."))
+      }
+      
+      # Add the correctly capitalized metric to the new list
+      corrected_dist_name <- c(corrected_dist_name, correct_metric)
+    } else {
+      # If the metric is not valid, warn and skip it
+      warning(paste0("Invalid distance metric: '", metric, "'. Valid options are: ", paste(valid_metrics, collapse=", ")))
+    }
+  }
+  
+  # If no valid metrics remain after correction, stop execution
+  if (length(corrected_dist_name) == 0) {
+    stop("No valid distance metrics provided. Please use one or more of: ", paste(valid_metrics, collapse=", "))
+  }
+  
+  # Replace the original dist.name with the corrected version
+  dist.name <- corrected_dist_name
+  
   # Extract the OTU table from the data object
   otu_tab <- data.obj$feature.tab
 
