@@ -1,11 +1,12 @@
 #' Generate a Circular Cladogram with Heatmap for Taxa
 #'
 #' This function generates a circular cladogram with an integrated heatmap for taxonomic data.
+#' It visualizes the phylogenetic relationships between different taxa and their abundances or other
+#' coefficients across different taxonomic levels using a tree-like structure (cladogram).
 #' 
 #' @importFrom rlang expr eval_tidy
 #' @importFrom ggplot2 aes scale_fill_gradient2 geom_text element_text guide_colorbar unit scale_color_manual guides
-#' It visualizes the phylogenetic relationships between different taxa and their abundances or other
-#' coefficients across different taxonomic levels using a tree-like structure (cladogram).
+#' @importFrom tidytree as_tibble as.treedata
 #'
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which includes components like feature.tab, feature.ann, meta.dat, etc.
 #' @param test.list A list of test results. If NULL, it will be generated using generate_taxa_test_single.
