@@ -34,7 +34,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y r-base r-base-dev
-          sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev
+          sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev pandoc pandoc-citeproc
           echo 'options(repos = c(CRAN = "https://cloud.r-project.org"))' > ~/.Rprofile
       
       # Install R packages
@@ -47,6 +47,9 @@ jobs:
       # Build pkgdown site
       - name: Build site
         run: |
+          if (file.exists("man/figures/logo.png")) {
+            pkgdown::build_favicons(overwrite = TRUE)
+          }
           pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
           touch docs/.nojekyll
         shell: Rscript {0}

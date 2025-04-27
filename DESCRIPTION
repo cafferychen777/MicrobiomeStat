@@ -14,6 +14,7 @@ Author: Xianyang Zhang [aut],
   Caffery(Chen) Yang [aut]
 Maintainer: Jun Chen <chen.jun2@mayo.edu>
 Description: A comprehensive toolkit for advanced, longitudinal microbiome and multi-omics data analysis. Specializing in in-depth longitudinal microbiome analysis for precise data interpretation across time. Generate professional analysis reports with just a click through the One Click feature. Delivers robust solutions for diverse analytic scenarios and effortless handling of multi-omics data, amplifying research efficiency. The user-friendly design, diverse features, and practical use cases assist researchers in navigating microbiome data complexities, delivering meaningful insights for longitudinal studies.
+URL: https://cafferychen777.github.io/MicrobiomeStat, https://github.com/cafferychen777/MicrobiomeStat
 BugReports: https://github.com/cafferychen777/MicrobiomeStat/issues
 Depends: 
     R (>= 3.5.0),
@@ -37,7 +38,8 @@ Imports:
     rmarkdown,
     knitr,
     pander,
-    tinytex
+    tinytex,
+    tidytree
 Suggests:
     ggrepel,
     parallel,
