@@ -220,24 +220,25 @@ generate_taxa_cladogram_single <- function(
   #' tree tips match the feature names. If no valid tree is found or no matching tips
   #' are found, it builds a taxonomy-based tree.
   #'
-  #' @param data.obj A MicrobiomeStat data object
-  #' @param fix_link_frame Processed feature annotation data frame
-  #' @param min_label The most specific taxonomic level
-  #' @param level_seq Vector of taxonomic levels in order
-  #' @param verbose Logical, whether to print detailed messages
+  # Internal function parameters:
+  # @param data.obj A MicrobiomeStat data object
+  # @param fix_link_frame Processed feature annotation data frame
+  # @param min_label The most specific taxonomic level
+  # @param level_seq Vector of taxonomic levels in order
+  # @param verbose Logical, whether to print detailed messages
   #'
   #' @return A phylogenetic tree object
-  #' Process Unclassified taxonomic labels
-  #'
-  #' This function processes "Unclassified" labels in a data frame, ensuring they contain
-  #' taxonomic level information by appending the taxonomic level and a unique identifier.
-  #'
-  #' @param data_frame A data frame containing taxonomic data
-  #' @param group_col Column name containing taxonomic level information
-  #' @param target_col Column name containing labels to process (default: "Variable")
-  #' @param use_grouping Logical, whether to group by group_col before processing (default: TRUE)
-  #'
-  #' @return A data frame with processed "Unclassified" labels
+  # Process Unclassified taxonomic labels
+  #
+  # This function processes "Unclassified" labels in a data frame, ensuring they contain
+  # taxonomic level information by appending the taxonomic level and a unique identifier.
+  #
+  # @param data_frame A data frame containing taxonomic data
+  # @param group_col Column name containing taxonomic level information
+  # @param target_col Column name containing labels to process (default: "Variable")
+  # @param use_grouping Logical, whether to group by group_col before processing (default: TRUE)
+  #
+  # @return A data frame with processed "Unclassified" labels
   process_unclassified_labels <- function(data_frame, group_col, target_col = "Variable", use_grouping = TRUE) {
     # Convert column names to symbols for non-standard evaluation
     group_sym <- rlang::sym(group_col)
@@ -519,19 +520,20 @@ generate_taxa_cladogram_single <- function(
       stop("Package 'ggplot2' is required but not installed.")
     }
     
-    # Ensure geom_tile function is available in the global environment
-    # ggtreeExtra::geom_fruit needs to find this function in the global environment
-    if (!exists("geom_tile", envir = .GlobalEnv)) {
-      assign("geom_tile", ggplot2::geom_tile, envir = .GlobalEnv)
-    }
+    # Note: We previously assigned geom_tile to the global environment, which is not recommended.
+    # Instead, we'll use the fully qualified function name in ggtreeExtra::geom_fruit
+    # This avoids R CMD check NOTEs about assignments to the global environment
     
     # Create the circular cladogram plot
+    # Create a local version of geom_tile for ggtreeExtra to use
+    # This avoids polluting the global environment
+    local_geom_tile <- ggplot2::geom_tile
+    
     p <- ggtree::ggtree(annotated_tree, layout = "circular", open.angle = 5) +
-      # Use the string "geom_tile" as the value for the geom parameter
-      # This complies with the requirements of the ggtreeExtra::geom_fruit function
+      # Use the local geom_tile function
       ggtreeExtra::geom_fruit(
         data = comparison_data,
-        geom = "geom_tile",  # Use a string, not a function object or unevaluated symbol
+        geom = local_geom_tile,  # Use the local function instead of a string
         mapping = ggplot2::aes(y = Variable, x = taxonomic_level, fill = Coefficient),
         offset = 0.03,
         size = 0.02,
