@@ -25,7 +25,7 @@ generate_taxa_cladogram_single(
 )
 }
 \arguments{
-\item{data.obj}{A MicrobiomeStat data object}
+\item{data.obj}{A list object in a format specific to MicrobiomeStat, which includes components like feature.tab, feature.ann, meta.dat, etc.}
 
 \item{test.list}{A list of test results. If NULL, it will be generated using generate_taxa_test_single.}
 
@@ -58,33 +58,11 @@ generate_taxa_cladogram_single(
 \item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering taxa. Used when test.list is NULL.}
 
 \item{feature.dat.type}{The type of the feature data, which determines data handling. Should be one of "count", "proportion", or "other". For CLR-transformed data, use "other". Used when test.list is NULL.}
-
-\item{fix_link_frame}{Processed feature annotation data frame}
-
-\item{min_label}{The most specific taxonomic level}
-
-\item{level_seq}{Vector of taxonomic levels in order}
-
-\item{verbose}{Logical, whether to print detailed messages}
-
-\item{data_frame}{A data frame containing taxonomic data}
-
-\item{group_col}{Column name containing taxonomic level information}
-
-\item{target_col}{Column name containing labels to process (default: "Variable")}
-
-\item{use_grouping}{Logical, whether to group by group_col before processing (default: TRUE)}
 }
 \value{
 A ggplot object representing the circular heatmap with phylogenetic tree.
 
 A phylogenetic tree object
-Process Unclassified taxonomic labels
-
-This function processes "Unclassified" labels in a data frame, ensuring they contain
-taxonomic level information by appending the taxonomic level and a unique identifier.
-
-A data frame with processed "Unclassified" labels
 }
 \description{
 This function generates a circular cladogram with an integrated heatmap for taxonomic data.
@@ -162,4 +140,12 @@ plot.list <- generate_taxa_cladogram_single(
   color.group.level = "Family"
 )
 }
+Get appropriate phylogenetic tree for cladogram
 
+This function determines the appropriate phylogenetic tree to use for the cladogram.
+It first checks if a valid tree exists in the data object, and if so, ensures the
+tree tips match the feature names. If no valid tree is found or no matching tips
+are found, it builds a taxonomy-based tree.
+
+
+}

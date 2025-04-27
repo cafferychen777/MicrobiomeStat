@@ -40,3 +40,6 @@
 # Build artifacts
 ^MicrobiomeStat\.Rcheck$
 ^MicrobiomeStat_.*\.tar\.gz$
+
+# GitHub Pages
+^\.nojekyll$
