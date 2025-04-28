@@ -126,6 +126,14 @@ mStat_calculate_beta_diversity <- function(data.obj,
       stop("Phylogenetic tree is required for UniFrac, GUniFrac and WUniFrac calculations.")
     }
     
+    # Check if the tree is binary and convert if necessary
+    if (!ape::is.binary(phy_tree)) {
+      message("Converting multifurcating tree to binary tree for UniFrac calculations...")
+      phy_tree <- ape::multi2di(phy_tree)
+      # Update the tree in the data object
+      data.obj$tree <- phy_tree
+    }
+    
     # Determine which alpha values to use based on the requested UniFrac variants
     alpha_values <- c()
     if ('UniFrac' %in% dist.name) {
