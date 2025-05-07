@@ -348,13 +348,21 @@ generate_taxa_barplot_pair <-
 
       # Calculate midpoints for x-axis labels
       unique_values <- unique(df$joint_factor)
-      result <- numeric(length(unique_values) %/% 2)
-      midpoints <- (unique_values[seq(1, length(unique_values) - 1, by = 2)] +
+      # Ensure we have pairs of values (one for each time point per subject)
+      if (length(unique_values) %% 2 == 0) {
+        # Even number of values - can create pairs
+        midpoints <- (unique_values[seq(1, length(unique_values) - 1, by = 2)] +
                       unique_values[seq(2, length(unique_values), by = 2)]) / 2
-      result <- midpoints
+        result <- midpoints
+      } else {
+        # Odd number of values - handle this case
+        warning("Odd number of time points detected. Some subjects may have missing time points.")
+        # Use all unique values as breaks for safety
+        result <- unique_values
+      }
 
       # Create the individual-level stacked barplot
-      stack_barplot_indiv  <- 
+      stack_barplot_indiv  <-
         df %>%
         ggplot(aes(
           x = joint_factor,
@@ -407,9 +415,16 @@ generate_taxa_barplot_pair <-
          scale_x_continuous(
            expand = c(0.001, 0.001),
            breaks = result,
-           labels = levels(df %>% select(all_of(c(
-             subject.var
-           ))) %>% dplyr::pull())
+           labels = function(x) {
+             # Get unique subjects in the same order as they appear in the plot
+             subjects <- levels(df[[subject.var]])
+             # Make sure we have the right number of labels for our breaks
+             if (length(subjects) != length(result)) {
+               # If mismatch, use numeric positions as fallback
+               return(as.character(round(x)))
+             }
+             return(subjects)
+           }
          ) +
         labs(fill = feature.level) +
         scale_fill_manual(values = color_pal) +
@@ -521,7 +536,7 @@ generate_taxa_barplot_pair <-
       color_pal <- setNames(pal[1:length(new_levels)], new_levels)
 
       # Create the average-level stacked barplot
-      stack_barplot_average  <- 
+      stack_barplot_average  <-
         df_average %>%
         ggplot(aes(
           x = joint_factor_numeric,
@@ -568,7 +583,20 @@ generate_taxa_barplot_pair <-
             }
           }
         } +
-        scale_x_discrete(expand = c(0.1, 0.1)) +
+        scale_x_continuous(
+          breaks = unique(df_average$joint_factor_numeric),
+          labels = function(x) {
+            # Get unique time points
+            time_points <- unique(df_average[[time.var]])
+            # Make sure we have the right number of labels for our breaks
+            if (length(time_points) != length(x)) {
+              # If mismatch, use numeric positions as fallback
+              return(as.character(round(x)))
+            }
+            return(as.character(time_points))
+          },
+          expand = c(0.1, 0.1)
+        ) +
         labs(fill = feature.level, y = "", x = "") +
         scale_fill_manual(values = color_pal) +
         scale_color_manual(values = color_pal) +
@@ -670,14 +698,14 @@ generate_taxa_barplot_pair <-
         list(stack_barplot_indiv, stack_barplot_average)
 
       names(stack_barplot_list) <- c("indiv","average")
-      
+
       # Return the list of stacked bar charts
       return(stack_barplot_list)
     })
 
     # Name the list of plots by feature level
     names(plot_list_all) <- feature.level
-    
+
     # Return the complete list of plots
     return(plot_list_all)
   }
