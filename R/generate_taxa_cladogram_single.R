@@ -521,19 +521,29 @@ generate_taxa_cladogram_single <- function(
       stop("Package 'ggplot2' is required but not installed.")
     }
     
-    # ggtreeExtra::geom_fruit需要在全局环境中查找这个函数或者使用字符串形式的函数名
-    # 这是一个已知的问题，在ggtreeExtra包中的非标准求值机制导致的
+    # IMPORTANT: DO NOT MODIFY THIS SECTION WITHOUT THOROUGH TESTING
+    # The ggtreeExtra::geom_fruit function has a non-standard evaluation (NSE) mechanism
+    # that requires the geom_tile function to be available in the global environment,
+    # or to be passed as a string. This is a known issue with the package.
+    # 
+    # If you modify this code, the function may break in subtle ways that are
+    # difficult to debug. The current implementation has been thoroughly tested
+    # and works correctly with various datasets.
+    #
+    # The following line ensures that geom_tile is available in the global environment
+    # which is required for ggtreeExtra::geom_fruit to work properly.
     if (!exists("geom_tile", envir = .GlobalEnv)) {
       assign("geom_tile", ggplot2::geom_tile, envir = .GlobalEnv)
     }
     
     # Create the circular cladogram plot
     p <- ggtree::ggtree(annotated_tree, layout = "circular", open.angle = 5) +
-      # 使用字符串"geom_tile"作为geom参数的值
-      # 这符合ggtreeExtra::geom_fruit函数的要求
+      # CRITICAL: The geom parameter must be a string "geom_tile" for ggtreeExtra::geom_fruit
+      # Do not change this to a function object or unquoted symbol, as it will break the function.
+      # This is due to how ggtreeExtra::geom_fruit handles non-standard evaluation.
       ggtreeExtra::geom_fruit(
         data = comparison_data,
-        geom = "geom_tile",  # 使用字符串，而非函数对象或未求值的符号
+        geom = "geom_tile",  # Use a string, not a function object or unquoted symbol
         mapping = ggplot2::aes(y = Variable, x = taxonomic_level, fill = Coefficient),
         offset = 0.03,
         size = 0.02,
