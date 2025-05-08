@@ -521,20 +521,19 @@ generate_taxa_cladogram_single <- function(
       stop("Package 'ggplot2' is required but not installed.")
     }
     
-    # Note: We previously assigned geom_tile to the global environment, which is not recommended.
-    # Instead, we'll use the fully qualified function name in ggtreeExtra::geom_fruit
-    # This avoids R CMD check NOTEs about assignments to the global environment
+    # ggtreeExtra::geom_fruit需要在全局环境中查找这个函数或者使用字符串形式的函数名
+    # 这是一个已知的问题，在ggtreeExtra包中的非标准求值机制导致的
+    if (!exists("geom_tile", envir = .GlobalEnv)) {
+      assign("geom_tile", ggplot2::geom_tile, envir = .GlobalEnv)
+    }
     
     # Create the circular cladogram plot
-    # Create a local version of geom_tile for ggtreeExtra to use
-    # This avoids polluting the global environment
-    local_geom_tile <- ggplot2::geom_tile
-    
     p <- ggtree::ggtree(annotated_tree, layout = "circular", open.angle = 5) +
-      # Use the local geom_tile function
+      # 使用字符串"geom_tile"作为geom参数的值
+      # 这符合ggtreeExtra::geom_fruit函数的要求
       ggtreeExtra::geom_fruit(
         data = comparison_data,
-        geom = local_geom_tile,  # Use the local function instead of a string
+        geom = "geom_tile",  # 使用字符串，而非函数对象或未求值的符号
         mapping = ggplot2::aes(y = Variable, x = taxonomic_level, fill = Coefficient),
         offset = 0.03,
         size = 0.02,

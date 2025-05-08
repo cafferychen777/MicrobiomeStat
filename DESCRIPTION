@@ -1,7 +1,7 @@
 Package: MicrobiomeStat
 Type: Package
 Title: Comprehensive Statistical and Visualization Methods for Microbiome and Multi-Omics Data
-Version: 1.3.0
+Version: 1.3.1
 Authors@R: c(
               person("Xianyang", "Zhang", role = "aut", email = "zhangxiany@stat.tamu.edu"),
               person("Jun", "Chen", role = c("aut", "cre"),
