@@ -439,6 +439,14 @@ generate_taxa_cladogram_single <- function(
   # Process "Unclassified" labels in the sub-dataframe
   level_specific_data <- process_unclassified_labels(level_specific_data, "taxonomic_level", use_grouping = FALSE)
 
+    #<<<<<<<<<<<<<<<<<<<<<<<< START: MODIFICATION TO FIX COUNT ISSUE >>>>>>>>>>>>>>>>>>>>>
+  if (!is.null(phylogenetic_tree) && !is.null(phylogenetic_tree$tip.label)){
+      original_tip_labels <- phylogenetic_tree$tip.label
+      modified_tip_labels <- stringr::str_replace_all(original_tip_labels, pattern = "\\.", replacement = "")
+      modified_tip_labels <- stringr::str_replace_all(modified_tip_labels, pattern = " |\\(|\\)", replacement = "_")
+      phylogenetic_tree$tip.label <- modified_tip_labels
+  }
+  #<<<<<<<<<<<<<<<<<<<<<<<< END: MODIFICATION TO FIX COUNT ISSUE >>>>>>>>>>>>>>>>>>>>>
   # Ensure tree labels match data labels
   matching_labels <- intersect(phylogenetic_tree$tip.label, level_specific_data$Variable)
   phylogenetic_tree <- ape::keep.tip(phylogenetic_tree, matching_labels)
