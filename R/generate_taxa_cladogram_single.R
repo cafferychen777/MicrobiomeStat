@@ -1,33 +1,112 @@
-#' Generate a Circular Cladogram with Heatmap for Taxa
 #'
 #' This function generates a circular cladogram with an integrated heatmap for taxonomic data.
 #' It visualizes the phylogenetic relationships between different taxa and their abundances or other
-#' coefficients across different taxonomic levels using a tree-like structure (cladogram).
-#' 
-#' @importFrom rlang expr eval_tidy
-#' @importFrom ggplot2 aes scale_fill_gradient2 geom_text element_text guide_colorbar unit scale_color_manual guides
+#' coefficients (e.g., from differential abundance testing) across different taxonomic levels
+#' using a tree-like structure (cladogram). The heatmap is overlaid on the branches/tips of the cladogram.
+#'
+#' @section Details:
+#'
+#' **Taxonomic Name Processing:**
+#' Internally, the function standardizes taxonomic names for plotting and matching with the phylogenetic tree.
+#' This involves:
+#' \itemize{
+#'   \item Replacing spaces, parentheses `()` with underscores `_`.
+#'   \item Removing periods `.`.
+#' }
+#' This means that taxon names displayed on the plot might differ slightly from their original representation
+#' in `data.obj$feature.ann`. This processing is crucial for matching taxa from the `test.list` with the
+#' tips of the phylogenetic tree, especially if the tree is built from taxonomic information.
+#' "Unclassified" labels are also processed to ensure uniqueness by appending the taxonomic level and a
+#' unique identifier (e.g., "Unclassified_Genus_1").
+#'
+#' **Phylogenetic Tree:**
+#' The function attempts to use a phylogenetic tree in the following order of preference:
+#' \enumerate{
+#'   \item If `data.obj$tree` exists and is a valid `phylo` object with tip labels matching the
+#'         taxa at the `finest_taxonomic_level` (after name processing), this tree is used and
+#'         pruned to matching tips.
+#'   \item If no suitable tree is found in `data.obj$tree`, a taxonomic tree is constructed
+#'         using `ape::as.phylo` based on the hierarchy specified in `feature.level` from
+#'         `data.obj$feature.ann`. The tips of this tree will correspond to the taxa at the
+#'         `finest_taxonomic_level`.
+#' }
+#'
+#' **Significance Filtering:**
+#' Taxa are filtered based on the `cutoff` value. If `feature.mt.method` is "none",
+#' the raw P.Value is used. Otherwise, the Adjusted.P.Value is used. Coefficients of taxa
+#' not meeting the significance cutoff are set to 0 for the heatmap display. This filtering
+#' can propagate up the taxonomic tree: if all children of a higher-level taxon are non-significant,
+#' that higher-level taxon might also be rendered as non-significant.
+#'
+#' **`ggtreeExtra::geom_fruit` and `geom_tile`:**
+#' This function uses `ggtreeExtra::geom_fruit` to draw the heatmap. Due to non-standard
+#' evaluation (NSE) within `ggtreeExtra`, the `geom` parameter is explicitly passed as the
+#' string `"geom_tile"`, and `ggplot2::geom_tile` is temporarily assigned to the global environment
+#' if not present, to ensure correct rendering. This is a workaround for a known behavior in `ggtreeExtra`.
+#'
+#' @importFrom rlang expr eval_tidy sym
+#' @importFrom ggplot2 aes scale_fill_gradient2 geom_text element_text guide_colorbar unit scale_color_manual guides theme geom_tile ggsave draw_key_rect
 #' @importFrom tidytree as_tibble as.treedata
-#' @importFrom dplyr filter mutate group_by ungroup
+#' @importFrom dplyr filter mutate group_by ungroup left_join bind_rows pull case_when row_number
+#' @importFrom ggtree ggtree groupOTU geom_tiplab
+#' @importFrom ggtreeExtra geom_fruit
+#' @importFrom ape as.phylo keep.tip
+#' @importFrom stringr str_replace_all
+#' @importFrom stats as.formula p.adjust setNames
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which includes components like feature.tab, feature.ann, meta.dat, etc.
-#' @param test.list A list of test results. If NULL, it will be generated using generate_taxa_test_single.
-#' @param group.var The name of the grouping variable in meta.dat.
-#' @param feature.level A character vector specifying taxonomic levels to be analyzed.
-#' @param feature.mt.method Multiple testing method for features, "none" (default), "fdr", or other methods supported by p.adjust.
-#' @param cutoff The p-value cutoff for significance.
-#' @param color.group.level The taxonomic level used to color-code the branches of the cladogram.
-#' @param palette An optional vector of colors to be used for the plot. If NULL, a default color palette will be used.
-#' @param pdf Boolean indicating whether to save the plot as a PDF.
-#' @param pdf.width The width of the PDF file if saved.
-#' @param pdf.height The height of the PDF file if saved.
-#' @param time.var Character string specifying the column name in metadata containing time variable. Used when test.list is NULL.
-#' @param t.level Character string specifying the time level/value to subset data to. Used when test.list is NULL.
-#' @param adj.vars Character vector specifying column names in metadata containing covariates. Used when test.list is NULL.
-#' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering taxa. Used when test.list is NULL.
-#' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering taxa. Used when test.list is NULL.
-#' @param feature.dat.type The type of the feature data, which determines data handling. Should be one of "count", "proportion", or "other". For CLR-transformed data, use "other". Used when test.list is NULL.
+#' @param data.obj A list object in a format specific to MicrobiomeStat, which includes components
+#'   like `feature.tab` (feature abundance table), `feature.ann` (feature annotation table,
+#'   containing taxonomic assignments), `meta.dat` (metadata table), and optionally `tree`
+#'   (a phylogenetic tree).
+#' @param test.list A list of data frames, where each data frame contains test results
+#'   (e.g., coefficients, P-values) for taxa at a specific taxonomic level.
+#'   Each element of the list should be named by the taxonomic level (e.g., "Phylum", "Genus"),
+#'   and within each level, there can be sub-lists for different comparisons (e.g., "groupA_vs_groupB").
+#'   If `NULL`, test results will be generated internally using `generate_taxa_test_single`
+#'   (requires `group.var`, `time.var`, etc., to be set appropriately).
+#' @param group.var The name of the grouping variable in `meta.dat` used for comparisons.
+#'   This is essential if `test.list` is `NULL`, and also used for naming output files/plots if multiple comparisons exist.
+#' @param feature.level A character vector specifying the taxonomic levels to be included in the
+#'   analysis and displayed on the heatmap. The order matters: from coarser (e.g., "Phylum")
+#'   to finer (e.g., "Species"). The last element is considered the `finest_taxonomic_level`
+#'   and will typically correspond to the tips of the cladogram if a taxonomic tree is built.
+#' @param feature.mt.method Character string specifying the multiple testing correction method
+#'   to apply to P-values. Options include "fdr" (False Discovery Rate), "bonferroni", "holm",
+#'   "hochberg", "hommel", "BH", "BY", or "none" (default, no correction).
+#'   Used for filtering significant features if `test.list` is generated internally or for applying the `cutoff`.
+#' @param cutoff Numeric. The significance cutoff (e.g., P-value or adjusted P-value threshold).
+#'   Taxa with P-values (or adjusted P-values, depending on `feature.mt.method`) greater
+#'   than this cutoff will have their coefficients set to 0 in the heatmap, effectively
+#'   marking them as non-significant. Default is 1 (no filtering by significance).
+#' @param color.group.level Character string. The taxonomic level used to color-code the
+#'   branches and tip labels of the cladogram. This level must be one of the levels present in `feature.level`.
+#'   If `NULL` or not specified, it defaults to the first (coarsest) level in `feature.level`.
+#' @param palette An optional character vector of hex color codes to be used for coloring the
+#'   groups defined by `color.group.level`. If `NULL`, a default color palette will be used.
+#' @param pdf Logical. If `TRUE`, the generated plot(s) will be saved as PDF files.
+#'   File names will be based on the comparison groups. Default is `FALSE`.
+#' @param pdf.width Numeric. The width of the PDF file in inches, if `pdf = TRUE`. Default is 10.
+#' @param pdf.height Numeric. The height of the PDF file in inches, if `pdf = TRUE`. Default is 10.
+#' @param time.var Character string specifying the column name in `meta.dat` that contains the
+#'   time variable. Used only if `test.list` is `NULL` and `generate_taxa_test_single` is called.
+#' @param t.level Character string specifying a particular time point or level of the `time.var`
+#'   to subset the data for analysis. Used only if `test.list` is `NULL`. If `NULL`, data across all time points is used.
+#' @param adj.vars A character vector specifying column names in `meta.dat` to be used as
+#'   adjustment variables (covariates) in the statistical model. Used only if `test.list` is `NULL`.
+#' @param prev.filter Numeric. The minimum prevalence threshold (proportion of samples) for a taxon
+#'   to be included in the analysis. Taxa below this prevalence will be filtered out.
+#'   Used only if `test.list` is `NULL`. Default is 0.1 (10% prevalence).
+#' @param abund.filter Numeric. The minimum mean abundance threshold (e.g., mean relative abundance)
+#'   for a taxon to be included. Taxa with mean abundance below this threshold will be filtered out.
+#'   Used only if `test.list` is `NULL`. Default is 0.0001 (0.01%).
+#' @param feature.dat.type Character string. The type of data in `feature.tab`.
+#'   Should be one of "count", "proportion", or "other". This affects how data is handled,
+#'   especially for filtering and transformations if `test.list` is `NULL`.
+#'   For CLR-transformed data, use "other". Default is "count".
 #'
-#' @return A ggplot object representing the circular heatmap with phylogenetic tree.
+#' @return A list of `ggplot` objects. Each element in the list corresponds to a comparison group
+#'   (derived from `test.list` or `group.var`) and contains the circular cladogram with its heatmap.
+#'   If there's only one comparison, the list will contain a single `ggplot` object.
 #'
 #' @export
 #'

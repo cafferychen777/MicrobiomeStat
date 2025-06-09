@@ -1,3 +1,104 @@
+#' Helper function to perform linear model analysis for "other" data type
+#'
+#' @param feature.dat Feature data matrix
+#' @param meta.dat Metadata data frame
+#' @param formula Formula string for the model
+#' @param group.var Group variable name
+#' @return List with analysis results
+#' @noRd
+perform_lm_analysis <- function(feature.dat, meta.dat, formula, group.var) {
+  # Get reference level
+  reference_level <- levels(as.factor(meta.dat[, group.var]))[1]
+
+  # Initialize results list
+  results <- list()
+
+  # Get group levels (excluding reference)
+  group_levels <- levels(as.factor(meta.dat[, group.var]))
+  comparison_levels <- group_levels[group_levels != reference_level]
+
+  # Perform linear regression for each feature
+  feature_results <- list()
+
+  for (i in 1:nrow(feature.dat)) {
+    feature_name <- rownames(feature.dat)[i]
+    feature_values <- as.numeric(feature.dat[i, ])
+
+    # Create data frame for regression
+    reg_data <- data.frame(
+      y = feature_values,
+      meta.dat
+    )
+
+    # Fit linear model
+    lm_formula <- as.formula(paste("y ~", formula))
+    tryCatch({
+      lm_fit <- lm(lm_formula, data = reg_data)
+      lm_summary <- summary(lm_fit)
+
+      # Extract coefficients for group variable
+      coef_table <- lm_summary$coefficients
+      group_coefs <- coef_table[grep(paste0("^", group.var), rownames(coef_table)), , drop = FALSE]
+
+      if (nrow(group_coefs) > 0) {
+        for (j in 1:nrow(group_coefs)) {
+          coef_name <- rownames(group_coefs)[j]
+          group_value <- gsub(paste0("^", group.var), "", coef_name)
+
+          if (!group_value %in% names(feature_results)) {
+            feature_results[[group_value]] <- data.frame(
+              feature = character(),
+              log2FoldChange = numeric(),
+              lfcSE = numeric(),
+              pvalue = numeric(),
+              stringsAsFactors = FALSE
+            )
+          }
+
+          feature_results[[group_value]] <- rbind(
+            feature_results[[group_value]],
+            data.frame(
+              feature = feature_name,
+              log2FoldChange = group_coefs[j, "Estimate"],
+              lfcSE = group_coefs[j, "Std. Error"],
+              pvalue = group_coefs[j, "Pr(>|t|)"],
+              stringsAsFactors = FALSE
+            )
+          )
+        }
+      }
+    }, error = function(e) {
+      # Skip features that cause errors
+      warning(paste("Error fitting model for feature", feature_name, ":", e$message))
+    })
+  }
+
+  # Format results to match linda output structure
+  output <- list()
+  for (group_level in names(feature_results)) {
+    df <- feature_results[[group_level]]
+    if (nrow(df) > 0) {
+      # Add multiple testing correction
+      df$padj <- p.adjust(df$pvalue, method = "BH")
+      df$reject <- df$padj <= 0.05
+      df$baseMean <- NA  # Not applicable for linear models
+      df$stat <- df$log2FoldChange / df$lfcSE
+      df$df <- nrow(meta.dat) - length(all.vars(as.formula(paste("~", formula)))) - 1
+
+      # Set rownames
+      rownames(df) <- df$feature
+      df$feature <- NULL
+
+      # Reorder columns to match linda output
+      df <- df[, c("baseMean", "log2FoldChange", "lfcSE", "stat", "pvalue", "padj", "reject", "df")]
+
+      output[[paste0(group.var, group_level, ":")]] <- df
+    }
+  }
+
+  return(list(output = output))
+}
+
 #' Conduct Differential Abundance Testing Using LinDA Method in MicrobiomeStat Package
 #'
 #' This function applies a differential abundance analysis using LinDA on a data set. The function filters taxa based on prevalence and abundance, then it aggregates and applies the LinDA method. Finally, it creates a report of significant taxa with relevant statistics.
@@ -118,6 +219,29 @@ generate_taxa_test_single <- function(data.obj,
     abund.filter <- 0
   }
 
+  # For "other" data type, check if data contains negative values
+  # If so, adjust abundance filter to handle negative values appropriately
+  if (feature.dat.type == "other") {
+    # Check if any feature table contains negative values
+    has_negative <- FALSE
+    if (!is.null(data.obj$feature.tab)) {
+      has_negative <- any(data.obj$feature.tab < 0, na.rm = TRUE)
+    }
+    if (!has_negative && !is.null(data.obj$feature.agg.list)) {
+      for (agg_table in data.obj$feature.agg.list) {
+        if (any(agg_table < 0, na.rm = TRUE)) {
+          has_negative <- TRUE
+          break
+        }
+      }
+    }
+
+    if (has_negative) {
+      message("Note: Negative values detected in 'other' data type. Abundance filtering is disabled to preserve all features.")
+      abund.filter <- -Inf  # Set to negative infinity to include all features regardless of abundance
+    }
+  }
+
   # Normalize the data if it's in count format
   if (feature.dat.type == "count") {
     message(
@@ -169,20 +293,38 @@ generate_taxa_test_single <- function(data.obj,
       names(meta_tab) <- allvars
     }
 
-    # Perform LinDA (Linear models for Differential Abundance) analysis
-    linda.obj <- linda(
-      feature.dat = otu_tax_agg_filter,
-      meta.dat = meta_tab,
-      formula = paste("~", formula),
-      feature.dat.type = "proportion",
-      prev.filter = prev.filter,
-      mean.abund.filter = abund.filter,
-      ...
-    )
+    # Choose analysis method based on feature data type
+    if (feature.dat.type == "other") {
+      # Use linear models for "other" data type (e.g., log-transformed data)
+      lm.results <- perform_lm_analysis(
+        feature.dat = otu_tax_agg_filter,
+        meta.dat = meta_tab,
+        formula = formula,
+        group.var = group.var
+      )
+    } else {
+      # Perform LinDA (Linear models for Differential Abundance) analysis
+      linda.obj <- linda(
+        feature.dat = otu_tax_agg_filter,
+        meta.dat = meta_tab,
+        formula = paste("~", formula),
+        feature.dat.type = "proportion",
+        prev.filter = prev.filter,
+        mean.abund.filter = abund.filter,
+        ...
+      )
+    }
 
     # Determine the reference level for the group variable
     if (!is.null(group.var)) {
       reference_level <- levels(as.factor(meta_tab[, group.var]))[1]
+    }
+
+    # Set the analysis object based on the method used
+    if (feature.dat.type == "other") {
+      analysis.obj <- lm.results
+    } else {
+      analysis.obj <- linda.obj
     }
 
     # Calculate mean abundance and prevalence for each feature
@@ -193,7 +335,9 @@ generate_taxa_test_single <- function(data.obj,
       as.data.frame() %>%
       dplyr::group_by(Var1) %>%
       dplyr::summarise(avg_abundance = mean(Freq),
-                       prevalence = sum(Freq > 0) / dplyr::n()) %>% column_to_rownames("Var1") %>%
+                       prevalence = sum(Freq != 0) / dplyr::n(),
+                       .groups = "drop") %>%
+      column_to_rownames("Var1") %>%
       rownames_to_column(feature.level)
 
     # Function to extract relevant data frames from LinDA output
@@ -223,9 +367,9 @@ generate_taxa_test_single <- function(data.obj,
         return(result_list)
       }
 
-    # Extract relevant data frames from LinDA output
+    # Extract relevant data frames from analysis output
     sub_test.list <-
-      extract_data_frames(linda_object = linda.obj, group_var = group.var)
+      extract_data_frames(linda_object = analysis.obj, group_var = group.var)
 
     # Process each data frame in the list
     sub_test.list <- lapply(sub_test.list, function(df) {

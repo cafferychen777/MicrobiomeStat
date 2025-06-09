@@ -290,6 +290,29 @@ generate_taxa_heatmap_single <- function(data.obj,
     abund.filter <- 0
   }
 
+  # For "other" data type, check if data contains negative values
+  # If so, adjust abundance filter to handle negative values appropriately
+  if (feature.dat.type == "other") {
+    # Check if any feature table contains negative values
+    has_negative <- FALSE
+    if (!is.null(data.obj$feature.tab)) {
+      has_negative <- any(data.obj$feature.tab < 0, na.rm = TRUE)
+    }
+    if (!has_negative && !is.null(data.obj$feature.agg.list)) {
+      for (agg_table in data.obj$feature.agg.list) {
+        if (any(agg_table < 0, na.rm = TRUE)) {
+          has_negative <- TRUE
+          break
+        }
+      }
+    }
+
+    if (has_negative) {
+      message("Note: Negative values detected in 'other' data type. Abundance filtering is disabled to preserve all features.")
+      abund.filter <- -Inf  # Set to negative infinity to include all features regardless of abundance
+    }
+  }
+
   # Normalize count data if necessary
   if (feature.dat.type == "count"){
     message(

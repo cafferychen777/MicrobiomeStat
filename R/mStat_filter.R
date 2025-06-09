@@ -8,7 +8,7 @@
 #' retained. Prevalence is calculated as the proportion of samples where the
 #' taxon is present.
 #' @param abund.filter Numeric, the minimum average abundance threshold for a taxon
-#' to be retained.
+#' to be retained. For data with negative values, set to -Inf to disable abundance filtering.
 #'
 #' @return A matrix with taxa filtered based on the specified thresholds.
 #'
@@ -56,18 +56,26 @@ mStat_filter <- function(x, prev.filter, abund.filter){
       # This metric helps identify consistently abundant taxa
       avg_abundance = mean(Freq),
       # Calculate the prevalence (proportion of samples where the taxon is present)
-      # Prevalence is a key metric in microbiome studies, indicating how widespread a taxon is
-      prevalence = sum(Freq > 0) / dplyr::n()
+      # For data with negative values, prevalence is calculated as proportion of non-zero values
+      # This handles both positive and negative abundances appropriately
+      prevalence = sum(Freq != 0) / dplyr::n(),
+      .groups = "drop"
     ) %>%
     # Apply the filtering criteria
     # This step removes taxa that don't meet the specified thresholds, reducing data dimensionality
-    dplyr::filter(prevalence >= prev.filter, avg_abundance >= abund.filter) %>%
+    # Special handling for negative infinity abundance filter (disables abundance filtering)
+    dplyr::filter(prevalence >= prev.filter,
+                  if (is.infinite(abund.filter) && abund.filter < 0) {
+                    TRUE
+                  } else {
+                    avg_abundance >= abund.filter
+                  }) %>%
     # Extract the names of the taxa that pass the filters
     dplyr::pull("Var1")
 
   # Subset the original matrix to include only the filtered taxa
   # This creates a new matrix with reduced dimensions, focusing on the most relevant taxa
-  filtered_x <- x[filtered_taxa,]
+  filtered_x <- x[filtered_taxa, ]
 
   # Return the filtered matrix
   # The resulting matrix contains only taxa that meet both prevalence and abundance criteria
