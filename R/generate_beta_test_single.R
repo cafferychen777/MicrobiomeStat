@@ -122,7 +122,7 @@ generate_beta_test_single <- function(data.obj,
   # This step ensures we have the necessary distance matrices for the analysis
   if (is.null(dist.obj)) {
     # If time variable and level are provided, subset the data to that specific time point
-    if (!is.null(time.var) & !is.null(t.level)) {
+    if (!is.null(time.var) && !is.null(t.level)) {
       condition <- paste(time.var, "== '", t.level, "'", sep = "")
       data.obj <- mStat_subset_data(data.obj, condition = condition)
     }
@@ -131,11 +131,20 @@ generate_beta_test_single <- function(data.obj,
   } else {
     # If distance object is provided, use it but ensure it matches the current data
     message("Using provided dist.obj...")
-    if (!is.null(time.var) & !is.null(t.level)) {
+    if (!is.null(time.var) && !is.null(t.level)) {
       condition <- paste(time.var, "== '", t.level, "'", sep = "")
       data.obj <- mStat_subset_data(data.obj, condition = condition)
     }
     dist.obj <- mStat_subset_dist(dist.obj, rownames(data.obj$meta.dat))
+    # Check if all requested distances are available before filtering
+    available_dists <- names(dist.obj)
+    missing_dists <- setdiff(dist.name, available_dists)
+    if (length(missing_dists) > 0) {
+      stop(paste("The following distances are not available in dist.obj:", 
+                 paste(missing_dists, collapse = ", ")))
+    }
+    # Filter dist.obj to only include the distances specified in dist.name
+    dist.obj <- dist.obj[dist.name]
   }
 
   # Prepare for PERMANOVA analysis
@@ -170,14 +179,18 @@ generate_beta_test_single <- function(data.obj,
 
   # Convert each aov.tab result to tibble and store them in the list
   # These tables contain detailed ANOVA-like results for each distance metric
+  # Use names from dist.obj to ensure correct mapping
+  dist_names_used <- names(dist.obj)
   for (i in seq_along(result$aov.tab.list)) {
-    permanova.results$aov.tab[[dist.name[i]]] <- result$aov.tab.list[[i]] %>%
+    permanova.results$aov.tab[[dist_names_used[i]]] <-
+      result$aov.tab.list[[i]] %>%
       as_tibble(rownames = "Variable") %>%
       dplyr::mutate(
         Variable = gsub("data.obj\\$meta.dat\\[\\[\"", "", Variable),
         Variable = gsub("\"\\]\\]", "", Variable),
-        Variable = ifelse(Variable == paste0("data.obj$meta.dat[[group.var]]"), group.var, Variable),
-        Distance = dist.name[i]
+        Variable = ifelse(Variable == paste0("data.obj$meta.dat[[group.var]]"),
+                          group.var, Variable),
+        Distance = dist_names_used[i]
       ) %>%
       dplyr::rename(
         `DF` = Df,
@@ -191,20 +204,21 @@ generate_beta_test_single <- function(data.obj,
 
   # Format p.tab for better readability
   # This step cleans up the variable names and rounds numeric values
-  p.tab <- permanova.results$p.tab %>%
+  p_tab <- permanova.results$p.tab %>%
     dplyr::mutate(
       Term = gsub("data.obj\\$meta.dat\\[\\[\"", "", Term),
       Term = gsub("\"\\]\\]", "", Term),
-      dplyr::across(where(is.numeric), ~ round(., 3))  # round all numeric values to 3 decimal places
+      dplyr::across(where(is.numeric), ~ round(., 3))
     )
 
   # Format aov.tab for better readability
   # This step combines results from all distance metrics and formats the output
-  aov.tab <- dplyr::bind_rows(permanova.results$aov.tab) %>%
-    dplyr::mutate(dplyr::across(where(is.numeric), ~ ifelse(is.na(.), "NA", round(., 3))))  # round all numeric values to 3 decimal places, replace NA with "NA"
+  aov_tab <- dplyr::bind_rows(permanova.results$aov.tab) %>%
+    dplyr::mutate(dplyr::across(where(is.numeric),
+                                ~ ifelse(is.na(.), "NA", round(., 3))))
 
-  aov.tab <- aov.tab %>% dplyr::select(Distance, everything())
+  aov_tab <- aov_tab %>% dplyr::select(Distance, everything())
 
   # Return the formatted results
-  return(list("p.tab" = p.tab, "aov.tab" = aov.tab))
+  return(list("p.tab" = p_tab, "aov.tab" = aov_tab))
 }
