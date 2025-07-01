@@ -306,15 +306,26 @@ generate_taxa_barplot_single <-
     }
 
     # Normalize data if necessary
-    if (feature.dat.type == "count"){
+    # Note: For barplot with position="fill", normalization is not required
+    # as ggplot2 automatically converts to proportions. We skip normalization
+    # for "count" data to preserve pre-computed feature.agg.list and improve
+    # performance.
+    if (feature.dat.type == "count") {
       message(
-        "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
+        "Your data is in raw count format. For barplot visualization, ",
+        "normalization is not required as ggplot2's position='fill' will ",
+        "automatically convert to proportions."
       )
+      # Skip normalization to preserve feature.agg.list
+    } else if (feature.dat.type == "proportion") {
       data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
-    } else if (feature.dat.type == "proportion"){
-      data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
-    } else if (feature.dat.type == "other"){
-      message("The 'other' type is suitable for situations where the user has analyzed the data using a method not provided in 'mStat_normalize_data' method, and the 'areaplot' is only applicable to raw data that has not undergone any processing or proportion data that adds up to 1. If you believe your data falls into these two categories, please modify 'feature.dat.type'.")
+    } else if (feature.dat.type == "other") {
+      message("The 'other' type is suitable for situations where the user has ",
+              "analyzed the data using a method not provided in ",
+              "'mStat_normalize_data' method, and the 'barplot' is only ",
+              "applicable to raw data that has not undergone any processing ",
+              "or proportion data that adds up to 1. If you believe your data ",
+              "falls into these two categories, please modify 'feature.dat.type'.")
     }
 
     # Process each feature level
@@ -409,7 +420,8 @@ generate_taxa_barplot_single <-
         dplyr::ungroup()
 
       # Set up the color palette
-      color_pal <- setNames(pal, as.matrix(unique(df %>% select(!!sym(feature.level)))))
+      unique_features <- unique(df[[feature.level]])
+      color_pal <- setNames(pal[seq_along(unique_features)], unique_features)
 
       # Define bar width and spacing
       bar_width <- 0.6

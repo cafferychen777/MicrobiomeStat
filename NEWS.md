@@ -1,3 +1,39 @@
+# MicrobiomeStat 1.4.0
+
+## Major Improvements
+
+### Enhanced Normalization Handling in Visualization and Analysis Functions
+* **Optimized normalization strategy for barplot visualization**:
+  - Removed unnecessary TSS normalization in `generate_taxa_barplot_single` for count data
+  - ggplot2's `position="fill"` automatically handles proportion conversion for barplots
+  - Preserves pre-computed `feature.agg.list` to avoid re-aggregation with fake `feature.ann`
+  - Improved performance by eliminating redundant normalization steps
+  - Added informative messages about normalization handling
+
+* **Fixed normalization issues in differential abundance testing**:
+  - Removed redundant pre-normalization in `generate_taxa_test_single` for count data
+  - LinDA function handles normalization internally based on `feature.dat.type` parameter
+  - Fixed hardcoded `feature.dat.type = "proportion"` in LinDA calls - now passes user-specified type
+  - Preserves pre-computed `feature.agg.list` when using fake `feature.ann` scenarios
+  - Ensures appropriate zero-value handling based on actual data type
+
+### Technical Enhancements
+* **Improved parameter validation**:
+  - Added `match.arg()` validation for `feature.dat.type` parameter
+  - Better error handling and user feedback
+
+* **Enhanced compatibility with fake feature annotation scenarios**:
+  - Functions now work correctly when using placeholder `feature.ann` with pre-computed `feature.agg.list`
+  - Prevents incorrect re-aggregation that could lead to wrong analysis results
+  - Maintains data integrity across different usage patterns
+
+### Bug Fixes
+* **Fixed color mapping issues in barplot visualization**:
+  - Improved color palette assignment for better ggplot2 compatibility
+  - Reduced warning messages about color scale mismatches
+
+---
+
 # MicrobiomeStat 1.3.9
 
 ## Bug Fixes

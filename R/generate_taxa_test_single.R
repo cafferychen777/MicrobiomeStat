@@ -187,6 +187,9 @@ generate_taxa_test_single <- function(data.obj,
                                       feature.level,
                                       feature.dat.type = c("count", "proportion", "other"),
                                       ...) {
+  # Match the feature data type argument
+  feature.dat.type <- match.arg(feature.dat.type)
+
   # Validate the input data object
   mStat_validate_data(data.obj)
 
@@ -242,14 +245,13 @@ generate_taxa_test_single <- function(data.obj,
     }
   }
 
-  # Normalize the data if it's in count format
+  # Note: Normalization is handled internally by the LinDA function
+  # We skip pre-normalization to preserve pre-computed feature.agg.list
   if (feature.dat.type == "count") {
     message(
-      "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
+      "Your data is in raw count format. Normalization will be handled ",
+      "internally by the LinDA analysis function."
     )
-    # Apply Total Sum Scaling (TSS) normalization
-    data.obj <-
-      mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
   }
 
   # Perform differential abundance testing for each specified taxonomic level
@@ -308,7 +310,7 @@ generate_taxa_test_single <- function(data.obj,
         feature.dat = otu_tax_agg_filter,
         meta.dat = meta_tab,
         formula = paste("~", formula),
-        feature.dat.type = "proportion",
+        feature.dat.type = feature.dat.type,
         prev.filter = prev.filter,
         mean.abund.filter = abund.filter,
         ...
