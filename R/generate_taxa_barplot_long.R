@@ -277,7 +277,7 @@ generate_taxa_barplot_long <-
 
     # Note: For barplot with position="fill", normalization is not required
     # as ggplot2 automatically converts to proportions. We skip normalization
-    # for "count" data to preserve pre-computed feature.agg.list and improve
+    # for all data types to preserve pre-computed feature.agg.list and improve
     # performance.
     if (feature.dat.type == "count") {
       message(
@@ -287,7 +287,12 @@ generate_taxa_barplot_long <-
       )
       # Skip normalization to preserve feature.agg.list
     } else if (feature.dat.type == "proportion") {
-      data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
+      message(
+        "Your data is in proportion format. For barplot visualization, ",
+        "additional normalization is not required as ggplot2's position='fill' ",
+        "will automatically handle the proportions."
+      )
+      # Skip normalization to preserve feature.agg.list
     } else if (feature.dat.type == "other") {
       message("The 'other' type is suitable for situations where the user has ",
               "analyzed the data using a method not provided in ",
