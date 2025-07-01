@@ -1,3 +1,30 @@
+# MicrobiomeStat 1.4.1
+
+## Additional Improvements
+
+### Complete Normalization Optimization for Barplot Functions
+* **Extended normalization skip to proportion data type**:
+  - All barplot functions (single, pair, long) now skip normalization for proportion data
+  - ggplot2's `position="fill"` handles proportion conversion automatically
+  - Eliminates redundant TSS normalization for proportion data
+  - Preserves pre-computed `feature.agg.list` for all data types
+  - Improved user messaging for proportion data type
+
+### Consistent Behavior Across All Barplot Functions
+* **Unified normalization strategy**:
+  - `count` data: Skip normalization, let ggplot2 handle conversion
+  - `proportion` data: Skip additional normalization, already in proportion format
+  - `other` data: Skip normalization, user-processed data
+  - All functions now have identical normalization handling logic
+
+### Performance and Compatibility Enhancements
+* **Optimal performance**: Eliminated all unnecessary normalization steps in barplot functions
+* **Enhanced fake feature.ann compatibility**: All barplot functions work seamlessly with placeholder annotations
+* **Data integrity**: Consistent preservation of pre-computed aggregations across all functions
+* **Better user experience**: Clear, informative messages for all data types
+
+---
+
 # MicrobiomeStat 1.4.0
 
 ## Major Improvements
