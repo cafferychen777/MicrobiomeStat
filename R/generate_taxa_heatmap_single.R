@@ -414,16 +414,31 @@ generate_taxa_heatmap_single <- function(data.obj,
 
     # Prepare annotation colors
     if (!is.null(strata.var) & !is.null(group.var)){
-      group_levels <- annotation_col %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
+      # Check if variables are already factors to preserve their order
+      if (is.factor(annotation_col[[group.var]])) {
+        group_levels <- levels(annotation_col[[group.var]])
+      } else {
+        group_levels <- annotation_col %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
+      }
       group_colors <- setNames(color_vector[1:length(group_levels)], group_levels)
-      strata_levels <- annotation_col %>% dplyr::select(all_of(c(strata.var))) %>% distinct() %>% pull()
+      
+      if (is.factor(annotation_col[[strata.var]])) {
+        strata_levels <- levels(annotation_col[[strata.var]])
+      } else {
+        strata_levels <- annotation_col %>% dplyr::select(all_of(c(strata.var))) %>% distinct() %>% pull()
+      }
       strata_colors <- setNames(rev(color_vector)[1:length(strata_levels)], strata_levels)
       annotation_colors_list <- setNames(
         list(group_colors, strata_colors),
         c(group.var, strata.var)
       )
     } else if (!is.null(group.var)){
-      group_levels <- annotation_col %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
+      # Check if variable is already a factor to preserve its order
+      if (is.factor(annotation_col[[group.var]])) {
+        group_levels <- levels(annotation_col[[group.var]])
+      } else {
+        group_levels <- annotation_col %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
+      }
       group_colors <- setNames(color_vector[1:length(group_levels)], group_levels)
       annotation_colors_list <- setNames(
         list(group_colors),

@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(chmod:*)",
+      "mcp__ide__executeCode",
+      "Bash(R:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(mkdir:*)",
+      "Bash(ls:*)",
+      "Bash(for pdf in COMPARISON_*.pdf)",
+      "Bash(do convert -density 150 \"$pdf\" \"$pdf%.pdf.png\")",
+      "Bash(done)",
+      "Bash(rm:*)",
+      "Bash(mv:*)"
+    ],
+    "deny": []
+  }
+}

@@ -30,6 +30,7 @@
 #' @param adj.vars A character vector of variable names to be used for adjustment.
 #' @param dist.name A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').
 #' @param base.size Numeric. Base size for plot elements. Default is 16.
+#' @param point.size Numeric. The size of the points in the scatter plot. Default is 4.
 #' @param theme.choice
 #' Plot theme choice. Specifies the visual style of the plot. Can be one of the following pre-defined themes:
 #'   - "prism": Utilizes the ggprism::theme_prism() function from the ggprism package, offering a polished and visually appealing style.
@@ -102,6 +103,7 @@
 #'   adj.vars = "sex",
 #'   dist.name = c("BC"),
 #'   base.size = 20,
+#'   point.size = 4,
 #'   theme.choice = "bw",
 #'   custom.theme = NULL,
 #'   palette = NULL,
@@ -126,6 +128,7 @@
 #'   adj.vars = "sample_body_site",
 #'   dist.name = c("BC", 'Jaccard'),
 #'   base.size = 20,
+#'   point.size = 4,
 #'   theme.choice = "bw",
 #'   custom.theme = NULL,
 #'   palette = NULL,
@@ -148,6 +151,7 @@ generate_beta_ordination_single <-
            dist.name = c('BC', 'Jaccard'),
            pc.obj = NULL,
            base.size = 16,
+           point.size = 4,
            theme.choice = "bw",
            custom.theme = NULL,
            palette = NULL,
@@ -273,10 +277,10 @@ generate_beta_ordination_single <-
 
       # Create the main scatter plot
       p <- ggplot2::ggplot(df, ggplot2::aes(PC1, PC2)) +
-        ggplot2::geom_point(size = 10, aes_function, show.legend = T) +
+        ggplot2::geom_point(size = point.size, aes_function, show.legend = T) +
         ggplot2::labs(
-          x = ifelse(!is.null(pc.obj[[dist.name]]$eig),paste0("Axis 1 (", round(pc.obj[[dist.name]]$eig[1]/sum(pc.obj[["BC"]]$eig)*100,2),"%)"),"Axis 1"),
-          y = ifelse(!is.null(pc.obj[[dist.name]]$eig),paste0("Axis 2 (", round(pc.obj[[dist.name]]$eig[2]/sum(pc.obj[["BC"]]$eig)*100,2),"%)"),"Axis 2")
+          x = ifelse(!is.null(pc.obj[[dist.name]]$eig),paste0("Axis 1 (", round(pc.obj[[dist.name]]$eig[1]/sum(pc.obj[[dist.name]]$eig)*100,2),"%)"),"Axis 1"),
+          y = ifelse(!is.null(pc.obj[[dist.name]]$eig),paste0("Axis 2 (", round(pc.obj[[dist.name]]$eig[2]/sum(pc.obj[[dist.name]]$eig)*100,2),"%)"),"Axis 2")
         ) +
         # Add 95% confidence ellipses for each group
         ggplot2::stat_ellipse(ggplot2::aes(color = !!sym(group.var)),fill="white",geom = "polygon",

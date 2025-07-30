@@ -330,14 +330,25 @@ generate_taxa_heatmap_long <- function(data.obj,
 
     # Define colors for group and strata variables
     color_vector <- mStat_get_palette(palette)
-    group_levels <-
-      annotation_col_sorted %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
+    
+    # Check if group.var is already a factor to preserve its order
+    if (is.factor(annotation_col_sorted[[group.var]])) {
+      group_levels <- levels(annotation_col_sorted[[group.var]])
+    } else {
+      group_levels <-
+        annotation_col_sorted %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
+    }
     group_colors <-
       setNames(color_vector[1:length(group_levels)], group_levels)
 
     if (!is.null(strata.var)){
-      strata_levels <-
-        annotation_col_sorted %>% dplyr::select(all_of(c(strata.var))) %>% distinct() %>% pull()
+      # Check if strata.var is already a factor to preserve its order
+      if (is.factor(annotation_col_sorted[[strata.var]])) {
+        strata_levels <- levels(annotation_col_sorted[[strata.var]])
+      } else {
+        strata_levels <-
+          annotation_col_sorted %>% dplyr::select(all_of(c(strata.var))) %>% distinct() %>% pull()
+      }
       strata_colors <-
         setNames(rev(color_vector)[1:length(strata_levels)], strata_levels)
     }

@@ -11,7 +11,10 @@
 #' @param group.var Optional string specifying the variable for groups.
 #' @param strata.var Optional string specifying the variable for strata.
 #' @param feature.level A string specifying the taxonomic level to plot.
-#' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+#' @param features.plot A character vector or named list specifying which feature IDs (e.g. OTU IDs) to plot.
+#' If a character vector, the same features will be plotted for all taxonomic levels.
+#' If a named list, each element should correspond to a taxonomic level in `feature.level`,
+#' with the value being a character vector of feature IDs for that level.
 #' Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.
 #' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
 #' Should be one of:
@@ -125,7 +128,7 @@
 #'   group.var = "group",
 #'   strata.var = "sex",
 #'   feature.level = c("Family"),
-#'   features.plot = NULL,
+#'   features.plot = list(Family = c("Bacteroidaceae", "Lachnospiraceae")),
 #'   feature.dat.type = "count",
 #'   top.k.plot = NULL,
 #'   top.k.func = NULL,
@@ -219,6 +222,29 @@ generate_taxa_indiv_boxplot_single <-
       abund.filter <- 0
     }
 
+    # For "other" data type, check if data contains negative values
+    # If so, adjust abundance filter to handle negative values appropriately
+    if (feature.dat.type == "other") {
+      # Check if any feature table contains negative values
+      has_negative <- FALSE
+      if (!is.null(data.obj$feature.tab)) {
+        has_negative <- any(data.obj$feature.tab < 0, na.rm = TRUE)
+      }
+      if (!has_negative && !is.null(data.obj$feature.agg.list)) {
+        for (agg_table in data.obj$feature.agg.list) {
+          if (any(agg_table < 0, na.rm = TRUE)) {
+            has_negative <- TRUE
+            break
+          }
+        }
+      }
+
+      if (has_negative) {
+        message("Note: Negative values detected in 'other' data type. Abundance filtering is disabled to preserve all features.")
+        abund.filter <- -Inf  # Set to negative infinity to include all features regardless of abundance
+      }
+    }
+
     # Normalize count data if necessary
     if (feature.dat.type == "count"){
       message(
@@ -249,10 +275,26 @@ generate_taxa_indiv_boxplot_single <-
                      abund.filter = abund.filter) %>%
         rownames_to_column(feature.level)
 
-      # Select top k features if specified
-      if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
+      # Determine features to plot for this specific taxonomic level
+      current_features_plot <- NULL
+
+      # Handle features.plot parameter (support both vector and list formats)
+      if (!is.null(features.plot)) {
+        if (is.list(features.plot)) {
+          # If features.plot is a list, extract features for current level
+          if (feature.level %in% names(features.plot)) {
+            current_features_plot <- features.plot[[feature.level]]
+          }
+        } else {
+          # If features.plot is a vector, use it for all levels (backward compatibility)
+          current_features_plot <- features.plot
+        }
+      }
+
+      # Select top k features if no specific features are provided
+      if (is.null(current_features_plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
         computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
-        features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
+        current_features_plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
       }
 
       # Reshape the data for plotting
@@ -309,14 +351,47 @@ generate_taxa_indiv_boxplot_single <-
       n_subjects <- length(unique(otu_tax_agg_merged[[subject.var]]))
 
       # Filter taxa levels if specified
-      if (!is.null(features.plot)){
-        taxa.levels <- taxa.levels[taxa.levels %in% features.plot]
+      if (!is.null(current_features_plot)){
+        taxa.levels <- taxa.levels[taxa.levels %in% current_features_plot]
+      }
+
+      # Determine the appropriate Y-axis label for "other" data type
+      # Check the overall aggregated data for negative values, not individual taxa
+      if (feature.dat.type == "other") {
+        overall_data_range <- range(otu_tax_agg_merged$value, na.rm = TRUE)
+        overall_has_negative <- any(otu_tax_agg_merged$value < 0, na.rm = TRUE)
+
+        # Intelligent label inference based on overall data characteristics
+        if (overall_has_negative && overall_data_range[1] > -15 && overall_data_range[2] < 15) {
+          global_y_label <- "Log-transformed Abundance"
+        } else if (overall_has_negative) {
+          global_y_label <- "Transformed Abundance"
+        } else if (all(otu_tax_agg_merged$value >= 0 &
+                       otu_tax_agg_merged$value <= 1, na.rm = TRUE)) {
+          global_y_label <- "Normalized Abundance (0-1)"
+        } else {
+          global_y_label <- "Abundance"
+        }
       }
 
       # Generate individual plots for each taxon
       plot_list <- lapply(taxa.levels, function(tax) {
 
         sub_otu_tax_agg_merged <- otu_tax_agg_merged %>% filter(!!sym(feature.level) == tax)
+
+        # Remove outliers from the data before plotting
+        sub_otu_tax_agg_merged <- sub_otu_tax_agg_merged %>%
+          dplyr::group_by(!!sym(group.var)) %>%
+          dplyr::mutate(
+            Q1 = quantile(value, 0.25, na.rm = TRUE),
+            Q3 = quantile(value, 0.75, na.rm = TRUE),
+            IQR = Q3 - Q1,
+            lower_fence = Q1 - 1.5 * IQR,
+            upper_fence = Q3 + 1.5 * IQR
+          ) %>%
+          dplyr::filter(value >= lower_fence & value <= upper_fence) %>%
+          dplyr::select(-Q1, -Q3, -IQR, -lower_fence, -upper_fence) %>%
+          dplyr::ungroup()
 
         # Create the boxplot
         boxplot <-
@@ -329,27 +404,27 @@ generate_taxa_indiv_boxplot_single <-
           ) +
           geom_boxplot(
             position = position_dodge(width = 0.8),
-            width = 0.3,
+            width = 0.3
           ) +
           geom_jitter(
             width = 0.35,
             alpha = 0.6,
             size = 2,
-            aes(color = !!sym(group.var)),
-            shape = 21,
-            stroke = 0.5
+            aes(color = !!sym(group.var))
           ) +
           scale_fill_manual(values = col) +
+          scale_color_manual(values = col) +
           {
             if (feature.dat.type == "other"){
               labs(
-                y = "Abundance",
+                x = group.var,
+                y = global_y_label,  # Use the globally determined label
                 title = tax
               )
             } else {
               labs(
-                x = time.var,
-                y = paste("Relative Abundance(", transform, ")"),
+                x = group.var,  # Fixed: add X-axis label for consistency
+                y = paste("Relative Abundance (", transform, ")", sep = ""),
                 title = tax
               )
             }

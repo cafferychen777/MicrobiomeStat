@@ -55,3 +55,6 @@ check/
 **/._.DS_Store
 Thumbs.db
 .directory
+
+# Simulation files
+simulation_files/

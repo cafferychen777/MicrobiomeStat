@@ -234,18 +234,45 @@ generate_alpha_boxplot_single <- function (data.obj,
   # Create a plot for each alpha diversity index
   plot_list <- lapply(alpha.name, function(index) {
     # Define aesthetic mapping based on grouping variable
-    aes_function <- if (!is.null(group.var)) {
-      aes(
-        x = !!sym(group.var),
-        y = !!sym(index),
-        fill = !!sym(group.var)
-      )
+    # 修改：确保 y 变量是从 alpha_df 中的列访问，而不是直接使用变量名
+    if (index %in% colnames(alpha_df)) {
+      aes_function <- if (!is.null(group.var)) {
+        aes(
+          x = !!sym(group.var),
+          y = !!sym(index),
+          fill = !!sym(group.var)
+        )
+      } else {
+        aes(
+          x = !!sym(group.var),
+          y = !!sym(index),
+          fill = !!sym(time.var)
+        )
+      }
     } else {
-      aes(
-        x = !!sym(group.var),
-        y = !!sym(index),
-        fill = !!sym(time.var)
-      )
+      # 如果列名不存在，尝试从 alpha.obj 中获取数据
+      if (index %in% names(alpha.obj)) {
+        # 将 alpha.obj 中的数据添加到 alpha_df
+        alpha_df[[index]] <- alpha.obj[[index]][[index]][match(alpha_df$sample, rownames(alpha.obj[[index]]))]
+        
+        aes_function <- if (!is.null(group.var)) {
+          aes(
+            x = !!sym(group.var),
+            y = !!sym(index),
+            fill = !!sym(group.var)
+          )
+        } else {
+          aes(
+            x = !!sym(group.var),
+            y = !!sym(index),
+            fill = !!sym(time.var)
+          )
+        }
+      } else {
+        # 如果在 alpha.obj 中也找不到，返回 NULL
+        message(paste("Index", index, "not found in alpha.obj or alpha_df"))
+        return(NULL)
+      }
     }
 
     # Adjust for covariates if specified

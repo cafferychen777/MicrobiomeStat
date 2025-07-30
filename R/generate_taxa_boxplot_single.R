@@ -80,6 +80,8 @@
 #'                is not provided or an unrecognized palette name is given, a default color
 #'                palette will be used. Ensure the number of colors in the palette is at
 #'                least as large as the number of groups being plotted.
+#' @param point.alpha Numeric value between 0 and 1 specifying the transparency of the jitter points. 
+#'                    Default is 0.6. Lower values make points more transparent, higher values more opaque.
 #' @param pdf A logical value indicating whether to save the plot as a PDF. Default is TRUE.
 #' @param file.ann A string for additional annotation to the file name. Default is NULL.
 #' @param pdf.wid A numeric value specifying the width of the PDF file. Default is 11.
@@ -114,6 +116,7 @@
 #'   theme.choice = "classic",
 #'   custom.theme = NULL,
 #'   palette = NULL,
+#'   point.alpha = 0.6,
 #'   pdf = TRUE,
 #'   file.ann = NULL,
 #'   pdf.wid = 11,
@@ -136,6 +139,7 @@
 #'   theme.choice = "classic",
 #'   custom.theme = NULL,
 #'   palette = NULL,
+#'   point.alpha = 0.6,
 #'   pdf = TRUE,
 #'   file.ann = NULL,
 #'   pdf.wid = 11,
@@ -158,6 +162,7 @@
 #'   theme.choice = "classic",
 #'   custom.theme = NULL,
 #'   palette = NULL,
+#'   point.alpha = 0.6,
 #'   pdf = TRUE,
 #'   file.ann = NULL,
 #'   pdf.wid = 11,
@@ -234,6 +239,7 @@ generate_taxa_boxplot_single <-
            theme.choice = "bw",
            custom.theme = NULL,
            palette = NULL,
+           point.alpha = 0.6,
            pdf = TRUE,
            file.ann = NULL,
            pdf.wid = 11,
@@ -418,22 +424,26 @@ generate_taxa_boxplot_single <-
       boxplot <-
         ggplot(sub_otu_tax_agg_merged %>% filter(!!sym(feature.level) %in% features.plot),
                aes_function) +
-        #geom_violin(trim = FALSE, alpha = 0.8) +
+        # Add error bars
         stat_boxplot(
           geom = "errorbar",
           position = position_dodge(width = 0.8),
           width = 0.2
         ) +
+        # Add boxplots without outliers
         geom_boxplot(
           position = position_dodge(width = 0.8),
           width = 0.2,
-          #fill = "white"
+          outlier.shape = NA,  # Hide outliers since we show all points
+          alpha = 0.8  # Make boxplot slightly transparent so points are visible
         ) +
+        # Draw jitter points last so they appear on top of boxplots
         geom_jitter(
-          aes(color = !!sym(group.var)),
+          aes(fill = !!sym(group.var)),  # Need fill aesthetic for dodging
           position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.8),
-          alpha = 0.6,
-          size = 1
+          alpha = point.alpha,
+          size = 2,
+          color = "gray30"
         ) +
         scale_fill_manual(values = col) +
         {
@@ -450,12 +460,12 @@ generate_taxa_boxplot_single <-
           strip.text.x = element_text(size = base.size, color = "black"),
           strip.text.y = element_text(size = base.size, color = "black"),
           axis.text = element_text(color = "black"),
-          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1, size = (base.size -
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = (base.size -
                                                                                    2)),
           axis.text.y = element_text(color = "black", size = (base.size -
                                                                 2)),
           axis.title.x = element_blank(),
-          axis.title.y = element_blank(),
+          axis.title.y = element_text(size = base.size),
           axis.ticks.x = element_blank(),
           plot.margin = unit(c(0.3, 0.3, 0.3, 0.3), units = "cm"),
           legend.text = ggplot2::element_text(size = 16),

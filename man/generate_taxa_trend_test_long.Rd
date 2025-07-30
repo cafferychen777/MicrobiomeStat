@@ -42,7 +42,7 @@ Abundance refers to counts or proportions depending on \code{feature.dat.type}.}
 This helps the function to determine if normalization is required. 
 - "count": Raw count data that will be automatically normalized using TSS.
 - "proportion": Pre-normalized data (e.g., relative abundance).
-- "other": Custom pre-processed data (e.g., CLR-transformed) that should not undergo further normalization. Use with caution; requires appropriate pre-processing for compositional data analysis.
+- "other": Custom pre-processed data. Use with caution; requires appropriate pre-processing for compositional data analysis.
 Default is "count".}
 
 \item{...}{Additional arguments to cater to any specialized requirements. For now, these are placeholder and not used.}

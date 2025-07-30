@@ -117,9 +117,16 @@ generate_alpha_per_time_dotplot_long <- function(data.obj,
   # This step ensures that the time variable is properly formatted for longitudinal analysis.
   data.obj <- mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
 
-  # Extract unique time levels from the processed data.
-  # These levels will be used to order the x-axis in the final plot.
-  time_levels <- unique(data.obj$meta.dat[[time.var]])
+  # FIXED: Extract time levels from test.list to ensure consistency
+  # This ensures time_levels match the actual time points in test.list
+  time_levels <- names(test.list)
+  
+  # Convert to numeric and sort to ensure proper ordering, then back to character
+  if (all(grepl("^\\d+(\\.\\d+)?$", time_levels))) {
+    time_levels <- as.character(sort(as.numeric(time_levels)))
+  } else {
+    time_levels <- sort(time_levels)
+  }
 
   # Select the appropriate theme based on user input or default to "bw".
   # This allows for flexible customization of the plot's appearance.
@@ -142,11 +149,19 @@ generate_alpha_per_time_dotplot_long <- function(data.obj,
           return(time_point_data[[group_name]])
       })
 
-      # Remove any NULL entries from the list.
-      data_list <- Filter(Negate(is.null), data_list)
-
-      # Combine data from all time points into a single data frame.
-      merged_data <- dplyr::bind_rows(data_list, .id = time.var)
+      # FIXED: Record valid time point names before filtering
+      # This preserves the correct mapping to actual time points
+      valid_time_names <- names(data_list)[!sapply(data_list, is.null)]
+      data_list <- data_list[!sapply(data_list, is.null)]
+      
+      # FIXED: Manually add time point column instead of relying on .id
+      # This ensures correct time point labels instead of sequential indices
+      merged_data_list <- mapply(function(data, time_name) {
+        data[[time.var]] <- time_name
+        return(data)
+      }, data_list, valid_time_names, SIMPLIFY = FALSE)
+      
+      merged_data <- dplyr::bind_rows(merged_data_list)
       return(merged_data)
     }
 

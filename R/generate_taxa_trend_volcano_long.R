@@ -125,9 +125,11 @@ generate_taxa_trend_volcano_long <-
               geom_hline(aes(yintercept = -log10(feature.sig.level)), linetype = "dashed", linewidth = 1.5, color = "grey") +
               ggrepel::geom_text_repel(
                 aes(label = ifelse(get(p_val_var) < feature.sig.level, as.character(Variable), '')),
+                color = "black",
                 size = 3.5,
                 box.padding = 0.35,
-                point.padding = 0.5
+                point.padding = 0.5,
+                show.legend = FALSE
               ) +
               scale_shape_manual(values = c(16, 17)) +
               labs(title = group.level, x = "Coefficient", y = "-log10(p-value)", color = "Prevalence", size = "Mean Abundance") +
@@ -182,9 +184,11 @@ generate_taxa_trend_volcano_long <-
             geom_hline(aes(yintercept = -log10(feature.sig.level)), linetype = "dashed", linewidth = 1.5, color = "grey") +
             ggrepel::geom_text_repel(
               aes(label = ifelse(get(p_val_var) < feature.sig.level, as.character(Variable), '')),
+              color = "black",
               size = 3.5,
               box.padding = 0.35,
-              point.padding = 0.5
+              point.padding = 0.5,
+              show.legend = FALSE
             ) +
             scale_shape_manual(values = c(16, 17)) +
             labs(x = "Coefficient", y = "-log10(p-value)", color = "Mean Prevalence", size = "Mean Abundance") +

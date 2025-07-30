@@ -444,7 +444,7 @@ generate_taxa_barplot_pair <-
         scale_fill_manual(values = color_pal) +
         scale_color_manual(values = color_pal) +
         theme_to_use +
-        theme(strip.background = element_rect(fill="white",color="black"),
+        theme(strip.background = element_rect(fill="white"),
               panel.spacing = unit(0,"lines"),
               strip.text.x = element_text(size= base.size,color="black"),
               axis.text.y=element_text(size= base.size,color="black"),
@@ -616,7 +616,7 @@ generate_taxa_barplot_pair <-
         scale_color_manual(values = color_pal) +
         theme_to_use +
         theme(
-          strip.background = element_rect(fill = "white", color = "black"),
+          strip.background = element_rect(fill = "white"),
           panel.spacing = unit(0, "lines"),
           strip.text.x = element_text(size = base.size, color = "black"),
           axis.text.y = element_text(size = base.size, color = "black"),

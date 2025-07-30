@@ -492,8 +492,18 @@ generate_taxa_change_heatmap_long <- function(data.obj,
     # Set up annotation colors
     if (!is.null(strata.var) & !is.null(group.var)){
       # Get unique levels for group and strata variables
-      group_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
-      strata_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(strata.var))) %>% distinct() %>% pull()
+      # Check if variables are already factors to preserve their order
+      if (is.factor(annotation_col_sorted[[group.var]])) {
+        group_levels <- levels(annotation_col_sorted[[group.var]])
+      } else {
+        group_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
+      }
+      
+      if (is.factor(annotation_col_sorted[[strata.var]])) {
+        strata_levels <- levels(annotation_col_sorted[[strata.var]])
+      } else {
+        strata_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(strata.var))) %>% distinct() %>% pull()
+      }
 
       # Assign colors to group and strata levels
       group_colors <- setNames(color_vector[1:length(group_levels)], group_levels)
@@ -506,7 +516,12 @@ generate_taxa_change_heatmap_long <- function(data.obj,
       )
     } else if (!is.null(group.var) & group.var != "ALL"){
       # Get unique levels for group variable
-      group_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
+      # Check if variable is already a factor to preserve its order
+      if (is.factor(annotation_col_sorted[[group.var]])) {
+        group_levels <- levels(annotation_col_sorted[[group.var]])
+      } else {
+        group_levels <- annotation_col_sorted %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
+      }
       
       # Assign colors to group levels
       group_colors <- setNames(color_vector[1:length(group_levels)], group_levels)
