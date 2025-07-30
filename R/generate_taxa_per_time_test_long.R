@@ -313,6 +313,10 @@ generate_taxa_per_time_test_long <-
       })
     })
 
+    # FIXED: Record which time points have valid results BEFORE filtering
+    # This preserves the correct mapping to time.levels indices
+    valid_time_indices <- which(!sapply(test.list, is.null))
+    
     # Remove NULL entries from the list (time points that were skipped)
     test.list <- Filter(Negate(is.null), test.list)
     
@@ -321,11 +325,8 @@ generate_taxa_per_time_test_long <-
       stop("No time points could be analyzed. Check if you have enough observations per subject at each time point.")
     }
     
-    # Create a mapping to track which time points have valid test results
-    # This is more robust than using pattern matching with grepl()
-    valid_time_indices <- which(!sapply(test.list, is.null))
-    
-    # Only use time levels that correspond to valid test results
+    # FIXED: Use the indices recorded from the original list to assign correct time point names
+    # This ensures that the names correspond to the actual time points that were analyzed
     if (length(valid_time_indices) > 0) {
       names(test.list) <- time.levels[valid_time_indices]
     }
