@@ -227,17 +227,42 @@ generate_taxa_per_time_dotplot_long <- function(data.obj,
       }
 
       # Create the dot plot
-      dotplot <- ggplot(data_for_plot, aes(x = !!sym(time.var), y = Variable, size = Coefficient)) +
-        geom_point(aes(color = !!sym(p_val_var)), alpha = 0.6, shape = 19) +
-        geom_text(aes(label = Significance_Label), vjust = 0.8, show.legend = FALSE, color = "white") +
-        scale_color_gradientn(colors = rev(c("white", "#92c5de", "#0571b0", "#f4a582", "#ca0020"))) +
-        labs(title = group.names,
-             x = time.var,
-             y = feature.level,
-             size = "Coefficient",
-             color = p_val_var) +
-        scale_radius(range = c(0, 10)) +
-        theme_to_use +
+      # Check if time variable contains only numeric values
+      if (all(grepl("^\\d+(\\.\\d+)?$", time_levels))) {
+        # Convert to numeric for proper spacing
+        data_for_plot[[paste0(time.var, "_numeric")]] <- as.numeric(as.character(data_for_plot[[time.var]]))
+        
+        # Create plot with numeric x-axis
+        dotplot <- ggplot(data_for_plot, aes(x = !!sym(paste0(time.var, "_numeric")), 
+                                             y = Variable, size = Coefficient)) +
+          geom_point(aes(color = !!sym(p_val_var)), alpha = 0.6, shape = 19) +
+          geom_text(aes(label = Significance_Label), vjust = 0.8, show.legend = FALSE, color = "white") +
+          scale_color_gradientn(colors = rev(c("white", "#92c5de", "#0571b0", "#f4a582", "#ca0020"))) +
+          scale_x_continuous(breaks = as.numeric(time_levels), labels = time_levels) +
+          labs(title = group.names,
+               x = time.var,
+               y = feature.level,
+               size = "Coefficient",
+               color = p_val_var) +
+          scale_radius(range = c(0, 10)) +
+          theme_to_use
+      } else {
+        # Keep current factor-based approach for non-numeric time values
+        dotplot <- ggplot(data_for_plot, aes(x = !!sym(time.var), y = Variable, size = Coefficient)) +
+          geom_point(aes(color = !!sym(p_val_var)), alpha = 0.6, shape = 19) +
+          geom_text(aes(label = Significance_Label), vjust = 0.8, show.legend = FALSE, color = "white") +
+          scale_color_gradientn(colors = rev(c("white", "#92c5de", "#0571b0", "#f4a582", "#ca0020"))) +
+          labs(title = group.names,
+               x = time.var,
+               y = feature.level,
+               size = "Coefficient",
+               color = p_val_var) +
+          scale_radius(range = c(0, 10)) +
+          theme_to_use
+      }
+      
+      # Apply common theme settings to the plot
+      dotplot <- dotplot +
         theme(
           axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = base.size),
           strip.text.x = element_blank(),

@@ -200,23 +200,55 @@ generate_beta_per_time_dotplot_long <- function(data.obj,
     data_for_plot$Significance_Label <- ifelse(data_for_plot[[p_val_var]] < 0.05, "*", "")
 
     # Create the dot plot using ggplot2
-    dotplot <- ggplot(data_for_plot, aes(x = !!sym(time.var), y = Term, size = Estimate)) +
-      # Add points, colored by p-value
-      geom_point(aes(color = !!sym(p_val_var)), alpha = 0.6, shape = 19) +
-      # Add significance labels
-      geom_text(aes(label = Significance_Label), vjust = 0.8, show.legend = FALSE, color = "white") +
-      # Set color scale for p-values
-      scale_color_gradientn(colors = col) +
-      # Set plot labels
-      labs(title = group.names,
-           x = time.var,
-           y = "Term",
-           size = "Coefficient",
-           color = p_val_var) +
-      # Set size scale for estimates
-      scale_radius(range = c(0, 10)) +
-      # Apply the chosen theme
-      theme_to_use +
+    # Check if time variable contains only numeric values
+    if (all(grepl("^\\d+(\\.\\d+)?$", time_levels))) {
+      # Convert to numeric for proper spacing
+      data_for_plot[[paste0(time.var, "_numeric")]] <- as.numeric(as.character(data_for_plot[[time.var]]))
+      
+      # Create plot with numeric x-axis
+      dotplot <- ggplot(data_for_plot, aes(x = !!sym(paste0(time.var, "_numeric")), 
+                                           y = Term, size = Estimate)) +
+        # Add points, colored by p-value
+        geom_point(aes(color = !!sym(p_val_var)), alpha = 0.6, shape = 19) +
+        # Add significance labels
+        geom_text(aes(label = Significance_Label), vjust = 0.8, show.legend = FALSE, color = "white") +
+        # Set color scale for p-values
+        scale_color_gradientn(colors = col) +
+        # Set numeric x-axis with proper breaks and labels
+        scale_x_continuous(breaks = as.numeric(time_levels), labels = time_levels) +
+        # Set plot labels
+        labs(title = group.names,
+             x = time.var,
+             y = "Term",
+             size = "Coefficient",
+             color = p_val_var) +
+        # Set size scale for estimates
+        scale_radius(range = c(0, 10)) +
+        # Apply the chosen theme
+        theme_to_use
+    } else {
+      # Keep current factor-based approach for non-numeric time values
+      dotplot <- ggplot(data_for_plot, aes(x = !!sym(time.var), y = Term, size = Estimate)) +
+        # Add points, colored by p-value
+        geom_point(aes(color = !!sym(p_val_var)), alpha = 0.6, shape = 19) +
+        # Add significance labels
+        geom_text(aes(label = Significance_Label), vjust = 0.8, show.legend = FALSE, color = "white") +
+        # Set color scale for p-values
+        scale_color_gradientn(colors = col) +
+        # Set plot labels
+        labs(title = group.names,
+             x = time.var,
+             y = "Term",
+             size = "Coefficient",
+             color = p_val_var) +
+        # Set size scale for estimates
+        scale_radius(range = c(0, 10)) +
+        # Apply the chosen theme
+        theme_to_use
+    }
+    
+    # Apply common theme settings to the plot
+    dotplot <- dotplot +
       # Customize theme elements
       theme(
         axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = base.size),
