@@ -167,11 +167,31 @@ generate_beta_change_test_pair <-
       # Join with metadata
       long.df <- long.df %>% dplyr::left_join(meta_tab %>% dplyr::select(-any_of(c(time.var, "sample"))) %>% dplyr::distinct(), by = subject.var)
 
+      # CRITICAL FIX: Check group levels AFTER data processing and BEFORE fitting model
+      predictors <- c(time_varying_info$time_varying_vars, group.var)
+      predictors <- predictors[!is.null(predictors)]
+      
+      # Check if group variable still has multiple levels after filtering
+      if (!is.null(group.var) && group.var %in% names(long.df)) {
+        remaining_group_levels <- unique(long.df[[group.var]])
+        remaining_group_levels <- remaining_group_levels[!is.na(remaining_group_levels)]
+        
+        if (length(remaining_group_levels) < 2) {
+          warning("After data filtering, group variable '", group.var, "' has only ", 
+                  length(remaining_group_levels), " level(s): ", 
+                  paste(remaining_group_levels, collapse = ", "), 
+                  ". Removing from model and proceeding with coefficient estimates only.")
+          # Remove group variable from predictors
+          predictors <- predictors[predictors != group.var]
+        }
+      }
+      
       # Create formula for linear model
-      formula <-
-        stats::as.formula(paste0("distance", "~", paste(c(
-          time_varying_info$time_varying_vars, group.var
-        ), collapse = "+")))
+      if (length(predictors) > 0) {
+        formula <- stats::as.formula(paste0("distance", "~", paste(predictors, collapse = "+")))
+      } else {
+        formula <- stats::as.formula("distance ~ 1")  # Intercept-only model
+      }
 
       # Fit linear model
       lm.model <- lm(formula, data = long.df)
@@ -191,9 +211,10 @@ generate_beta_change_test_pair <-
                 P.Value = `Pr(>|t|)`) %>%
         as_tibble()
 
-      # Perform ANOVA if group variable has multiple levels
-      if (length(unique(meta_tab[[group.var]])) > 1) {
-        # Conduct ANOVA
+      # CRITICAL FIX: Only perform ANOVA if group variable is in the final model
+      # Check if group variable is actually included in the fitted model
+      if (!is.null(group.var) && group.var %in% attr(lm.model$terms, "term.labels")) {
+        # Group variable is in the model, safe to perform ANOVA
         anova <- anova(lm.model)
         # Create ANOVA table
         anova.tab <- anova %>%
