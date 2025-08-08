@@ -1,9 +1,10 @@
 #' Calculate alpha diversity indices
 #'
-#' This function calculates several alpha diversity indices (Shannon, Simpson, Observed Species, Chao1, ACE, and Pielou) using the vegan package. The function takes an OTU table (x) as input and returns a list containing the requested alpha diversity indices.
+#' This function calculates several alpha diversity indices (Shannon, Simpson, Observed Species, Chao1, ACE, Pielou, and Faith's PD) using the vegan and picante packages. The function takes an OTU table (x) as input and returns a list containing the requested alpha diversity indices.
 #' @name mStat_calculate_alpha_diversity
 #' @param x OTU table with taxa in rows and samples in columns.
-#' @param alpha.name character vector containing the names of alpha diversity indices to calculate. Possible values are: "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".
+#' @param alpha.name character vector containing the names of alpha diversity indices to calculate. Possible values are: "shannon", "simpson", "observed_species", "chao1", "ace", "pielou", and "faith_pd".
+#' @param tree Phylogenetic tree object of class "phylo". Required for Faith's phylogenetic diversity ("faith_pd") calculation.
 #' @return A list containing the requested alpha diversity indices.
 #' @examples
 #' \dontrun{
@@ -14,14 +15,19 @@
 #'
 #' # Calculate alpha diversity indices
 #' alpha.obj <- mStat_calculate_alpha_diversity(x = otu.tab, alpha.name =
-#' c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou"))
+#' c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou", "faith_pd"), tree = tree)
 #' }
 #' @export
-mStat_calculate_alpha_diversity <- function(x, alpha.name) {
+mStat_calculate_alpha_diversity <- function(x, alpha.name, tree = NULL) {
 
   # Check if alpha.name is NULL and return early if so
   if (is.null(alpha.name)){
     return()
+  }
+  
+  # Check if Faith's PD is requested but tree is missing
+  if ("faith_pd" %in% alpha.name && is.null(tree)) {
+    stop("Phylogenetic tree is required for Faith's phylogenetic diversity calculation. Please provide a tree object.")
   }
 
   # Check if the data has been rarefied by comparing the column sums
@@ -52,7 +58,16 @@ mStat_calculate_alpha_diversity <- function(x, alpha.name) {
                      # ACE: Abundance-based Coverage Estimator of species richness
                      ace = vegan::estimateR(x_transpose)[4, ],
                      # Pielou's evenness: Shannon diversity divided by log of species richness
-                     pielou = vegan::diversity(x_transpose, index = "shannon") / log(vegan::specnumber(x_transpose), exp(1))
+                     pielou = vegan::diversity(x_transpose, index = "shannon") / log(vegan::specnumber(x_transpose), exp(1)),
+                     # Faith's phylogenetic diversity: sum of phylogenetic branch lengths
+                     faith_pd = {
+                       if (!requireNamespace("picante", quietly = TRUE)) {
+                         stop("Package 'picante' is required for Faith's phylogenetic diversity calculation. Please install it using: install.packages('picante')")
+                       }
+                       # Calculate Faith's PD using picante package
+                       pd_result <- picante::pd(x_transpose, tree, include.root = TRUE)
+                       pd_result$PD
+                     }
     )
 
     # Create a tibble with the diversity index and sample names

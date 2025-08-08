@@ -15,7 +15,7 @@
 #' @param time.var Character, column name in metadata containing time variable, e.g. "week". Required.
 #' @param change.base The base level for calculating changes in paired data.
 #' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
-#' @param alpha.name Names of alpha diversity indices to include in the analysis.
+#' @param alpha.name Names of alpha diversity indices to include in the analysis. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", "pielou", and "faith_pd".
 #' @param alpha.change.func Function or method for calculating change in alpha diversity
 #'   between two timepoints. This allows flexible options to quantify change:
 #'
@@ -517,7 +517,13 @@ if (!all(unique_levels %in% names(data.obj$feature.agg.list))) {
   cat(sprintf('After rarefaction, %d samples remain in the analysis. ', remaining_samples))
 
 if (is.null(alpha.obj)){
-  alpha.obj <- mStat_calculate_alpha_diversity(x = rarefy.data.obj$feature.tab, alpha.name = alpha.name)
+  # Extract tree if faith_pd is requested
+  tree <- NULL
+  if ('faith_pd' %in% alpha.name) {
+    tree <- rarefy.data.obj$tree
+  }
+  
+  alpha.obj <- mStat_calculate_alpha_diversity(x = rarefy.data.obj$feature.tab, alpha.name = alpha.name, tree = tree)
   cat('alpha.obj is calculated based on the rarefied data.obj. ')
 }
 

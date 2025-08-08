@@ -65,7 +65,7 @@ extract_coef <- function(model) {
 #' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
 #' @param alpha.name A character vector with the names of alpha diversity
 #' indices to compute. Options include: "shannon", "simpson",
-#' "observed_species", "chao1", "ace", and "pielou".
+#' "observed_species", "chao1", "ace", "pielou", and "faith_pd".
 #' @param depth An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
 #' If NULL, no rarefaction is performed.
 #' @param group.var A string representing the group variable's name in the
@@ -169,8 +169,15 @@ generate_alpha_test_pair <-
         data.obj <- mStat_rarefy_data(data.obj, depth = depth)
       }
       otu_tab <- data.obj$feature.tab
+      
+      # Extract tree if faith_pd is requested
+      tree <- NULL
+      if ("faith_pd" %in% alpha.name) {
+        tree <- data.obj$tree
+      }
+      
       alpha.obj <-
-        mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name)
+        mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name, tree = tree)
     } else {
       # Verify that all requested alpha diversity indices are available
       if (!all(alpha.name %in% unlist(lapply(alpha.obj, function(x)

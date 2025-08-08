@@ -24,7 +24,7 @@ If NULL (the default), alpha diversity will be calculated from the data.obj usin
 `mStat_calculate_alpha_diversity`.}
 
 \item{alpha.name}{A string with the name of the alpha diversity index to compute.
-Options could include: "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".}
+Options could include: "shannon", "simpson", "observed_species", "chao1", "ace", "pielou", and "faith_pd".}
 
 \item{depth}{An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
 If NULL, no rarefaction is performed.}

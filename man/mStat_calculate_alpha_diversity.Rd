@@ -4,18 +4,20 @@
 \alias{mStat_calculate_alpha_diversity}
 \title{Calculate alpha diversity indices}
 \usage{
-mStat_calculate_alpha_diversity(x, alpha.name)
+mStat_calculate_alpha_diversity(x, alpha.name, tree = NULL)
 }
 \arguments{
 \item{x}{OTU table with taxa in rows and samples in columns.}
 
-\item{alpha.name}{character vector containing the names of alpha diversity indices to calculate. Possible values are: "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".}
+\item{alpha.name}{character vector containing the names of alpha diversity indices to calculate. Possible values are: "shannon", "simpson", "observed_species", "chao1", "ace", "pielou", and "faith_pd".}
+
+\item{tree}{Phylogenetic tree object of class "phylo". Required for Faith's phylogenetic diversity ("faith_pd") calculation.}
 }
 \value{
 A list containing the requested alpha diversity indices.
 }
 \description{
-This function calculates several alpha diversity indices (Shannon, Simpson, Observed Species, Chao1, ACE, and Pielou) using the vegan package. The function takes an OTU table (x) as input and returns a list containing the requested alpha diversity indices.
+This function calculates several alpha diversity indices (Shannon, Simpson, Observed Species, Chao1, ACE, Pielou, and Faith's PD) using the vegan and picante packages. The function takes an OTU table (x) as input and returns a list containing the requested alpha diversity indices.
 }
 \examples{
 \dontrun{
@@ -26,6 +28,6 @@ colnames(otu.tab) <- paste0("Sample_", 1:10)
 
 # Calculate alpha diversity indices
 alpha.obj <- mStat_calculate_alpha_diversity(x = otu.tab, alpha.name =
-c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou"))
+c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou", "faith_pd"), tree = tree)
 }
 }

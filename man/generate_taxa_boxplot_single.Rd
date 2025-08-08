@@ -23,6 +23,7 @@ generate_taxa_boxplot_single(
   theme.choice = "bw",
   custom.theme = NULL,
   palette = NULL,
+  point.alpha = 0.6,
   pdf = TRUE,
   file.ann = NULL,
   pdf.wid = 11,
@@ -124,6 +125,9 @@ is not provided or an unrecognized palette name is given, a default color
 palette will be used. Ensure the number of colors in the palette is at
 least as large as the number of groups being plotted.}
 
+\item{point.alpha}{Numeric value between 0 and 1 specifying the transparency of the jitter points. 
+Default is 0.6. Lower values make points more transparent, higher values more opaque.}
+
 \item{pdf}{A logical value indicating whether to save the plot as a PDF. Default is TRUE.}
 
 \item{file.ann}{A string for additional annotation to the file name. Default is NULL.}
@@ -168,6 +172,7 @@ generate_taxa_boxplot_single(
   theme.choice = "classic",
   custom.theme = NULL,
   palette = NULL,
+  point.alpha = 0.6,
   pdf = TRUE,
   file.ann = NULL,
   pdf.wid = 11,
@@ -190,6 +195,7 @@ generate_taxa_boxplot_single(
   theme.choice = "classic",
   custom.theme = NULL,
   palette = NULL,
+  point.alpha = 0.6,
   pdf = TRUE,
   file.ann = NULL,
   pdf.wid = 11,
@@ -212,6 +218,7 @@ generate_taxa_boxplot_single(
   theme.choice = "classic",
   custom.theme = NULL,
   palette = NULL,
+  point.alpha = 0.6,
   pdf = TRUE,
   file.ann = NULL,
   pdf.wid = 11,

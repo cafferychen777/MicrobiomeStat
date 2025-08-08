@@ -23,7 +23,7 @@ generate_alpha_test_pair(
 
 \item{alpha.name}{A character vector with the names of alpha diversity
 indices to compute. Options include: "shannon", "simpson",
-"observed_species", "chao1", "ace", and "pielou".}
+"observed_species", "chao1", "ace", "pielou", and "faith_pd".}
 
 \item{depth}{An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
 If NULL, no rarefaction is performed.}

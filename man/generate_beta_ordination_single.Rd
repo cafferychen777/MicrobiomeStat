@@ -16,6 +16,7 @@ generate_beta_ordination_single(
   dist.name = c("BC", "Jaccard"),
   pc.obj = NULL,
   base.size = 16,
+  point.size = 4,
   theme.choice = "bw",
   custom.theme = NULL,
   palette = NULL,
@@ -63,6 +64,8 @@ will be automatically performed using metric multidimensional scaling (MDS) via
 See \code{\link[MicrobiomeStat]{mStat_calculate_PC}} function for details on output format.}
 
 \item{base.size}{Numeric. Base size for plot elements. Default is 16.}
+
+\item{point.size}{Numeric. The size of the points in the scatter plot. Default is 4.}
 
 \item{theme.choice}{Plot theme choice. Specifies the visual style of the plot. Can be one of the following pre-defined themes:
   - "prism": Utilizes the ggprism::theme_prism() function from the ggprism package, offering a polished and visually appealing style.
@@ -144,6 +147,7 @@ generate_beta_ordination_single(
   adj.vars = "sex",
   dist.name = c("BC"),
   base.size = 20,
+  point.size = 4,
   theme.choice = "bw",
   custom.theme = NULL,
   palette = NULL,
@@ -168,6 +172,7 @@ generate_beta_ordination_single(
   adj.vars = "sample_body_site",
   dist.name = c("BC", 'Jaccard'),
   base.size = 20,
+  point.size = 4,
   theme.choice = "bw",
   custom.theme = NULL,
   palette = NULL,

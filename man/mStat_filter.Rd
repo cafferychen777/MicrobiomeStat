@@ -14,7 +14,7 @@ retained. Prevalence is calculated as the proportion of samples where the
 taxon is present.}
 
 \item{abund.filter}{Numeric, the minimum average abundance threshold for a taxon
-to be retained.}
+to be retained. For data with negative values, set to -Inf to disable abundance filtering.}
 }
 \value{
 A matrix with taxa filtered based on the specified thresholds.

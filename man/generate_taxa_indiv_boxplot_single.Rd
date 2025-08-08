@@ -46,7 +46,10 @@ if a time variable is provided. Default NULL does not subset data.}
 
 \item{feature.level}{A string specifying the taxonomic level to plot.}
 
-\item{features.plot}{A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
+\item{features.plot}{A character vector or named list specifying which feature IDs (e.g. OTU IDs) to plot.
+If a character vector, the same features will be plotted for all taxonomic levels.
+If a named list, each element should correspond to a taxonomic level in `feature.level`,
+with the value being a character vector of feature IDs for that level.
 Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.}
 
 \item{feature.dat.type}{The type of the feature data, which determines how the data is handled in downstream analyses.
@@ -179,7 +182,7 @@ generate_taxa_indiv_boxplot_single(
   group.var = "group",
   strata.var = "sex",
   feature.level = c("Family"),
-  features.plot = NULL,
+  features.plot = list(Family = c("Bacteroidaceae", "Lachnospiraceae")),
   feature.dat.type = "count",
   top.k.plot = NULL,
   top.k.func = NULL,

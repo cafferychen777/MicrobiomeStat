@@ -64,7 +64,7 @@ mStat_generate_report_pair(
 
 \item{alpha.obj}{An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.}
 
-\item{alpha.name}{Names of alpha diversity indices to include in the analysis.}
+\item{alpha.name}{Names of alpha diversity indices to include in the analysis. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", "pielou", and "faith_pd".}
 
 \item{alpha.change.func}{Function or method for calculating change in alpha diversity
   between two timepoints. This allows flexible options to quantify change:

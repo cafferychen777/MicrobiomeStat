@@ -14,7 +14,7 @@
 #'
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package.
 #' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
-#' @param alpha.name The alpha diversity index to be analyzed. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".
+#' @param alpha.name The alpha diversity index to be analyzed. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", "pielou", and "faith_pd".
 #' @param depth An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
 #' If NULL, no rarefaction is performed.
 #' @param time.var Character string specifying the column name in metadata containing time values for each sample. Required to identify pairs of time points to calculate changes between.
@@ -159,7 +159,14 @@ generate_alpha_change_per_time_test_long <-
         data.obj <- mStat_rarefy_data(data.obj, depth = depth)
       }
       otu_tab <- data.obj$feature.tab
-      alpha.obj <- mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name)
+      
+      # Extract tree if faith_pd is requested
+      tree <- NULL
+      if ("faith_pd" %in% alpha.name) {
+        tree <- data.obj$tree
+      }
+      
+      alpha.obj <- mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name, tree = tree)
     } else {
       # Verify that all alpha.name are present in alpha.obj
       if (!all(alpha.name %in% unlist(lapply(alpha.obj, function(x)

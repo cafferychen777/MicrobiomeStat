@@ -19,7 +19,7 @@
 #' If NULL (the default), alpha diversity will be calculated from the data.obj using
 #' `mStat_calculate_alpha_diversity`.
 #' @param alpha.name A string with the name of the alpha diversity index to compute.
-#' Options could include: "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".
+#' Options could include: "shannon", "simpson", "observed_species", "chao1", "ace", "pielou", and "faith_pd".
 #' @param depth An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
 #' If NULL, no rarefaction is performed.
 #' @param time.var A string representing the time variable's name in the
@@ -81,8 +81,15 @@ generate_alpha_volatility_test_long <- function(data.obj,
       data.obj <- mStat_rarefy_data(data.obj, depth = depth)
     }
     otu_tab <- data.obj$feature.tab
+    
+    # Extract tree if faith_pd is requested
+    tree <- NULL
+    if ("faith_pd" %in% alpha.name) {
+      tree <- data.obj$tree
+    }
+    
     alpha.obj <-
-      mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name)
+      mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name, tree = tree)
   } else {
     # Verify that all requested alpha diversity indices are available
     if (!all(alpha.name %in% unlist(lapply(alpha.obj, function(x)

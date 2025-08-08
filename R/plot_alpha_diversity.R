@@ -6,7 +6,7 @@
 #'
 #' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
 #' @param meta.dat A data frame containing metadata for the samples.
-#' @param measure The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".
+#' @param measure The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", "pielou", and "faith_pd".
 #' @param group.var Character string specifying the grouping variable in meta.dat.
 #' @param strata.var Character string specifying the stratification variable in meta.dat.
 #' @param subject.var Character string specifying the subject variable in meta.dat.

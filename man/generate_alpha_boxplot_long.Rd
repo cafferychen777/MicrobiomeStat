@@ -32,7 +32,7 @@ generate_alpha_boxplot_long(
 
 \item{alpha.obj}{An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.}
 
-\item{alpha.name}{The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".}
+\item{alpha.name}{The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", "pielou", and "faith_pd".}
 
 \item{depth}{An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
 If NULL, no rarefaction is performed.}

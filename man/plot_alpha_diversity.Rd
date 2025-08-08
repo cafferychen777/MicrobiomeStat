@@ -25,7 +25,7 @@ plot_alpha_diversity(
 
 \item{meta.dat}{A data frame containing metadata for the samples.}
 
-\item{measure}{The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".}
+\item{measure}{The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", "pielou", and "faith_pd".}
 
 \item{group.var}{Character string specifying the grouping variable in meta.dat.}
 

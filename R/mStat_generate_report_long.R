@@ -13,7 +13,7 @@
 #' @param t0.level Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.
 #' @param ts.levels Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.
 #' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
-#' @param alpha.name The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".
+#' @param alpha.name The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", "pielou", and "faith_pd".
 #' @param depth An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
 #' If NULL, no rarefaction is performed.
 #' @param dist.obj Distance matrix between samples, usually calculated using
@@ -548,7 +548,13 @@ if (is.null(depth)){
   cat(sprintf('After rarefaction, %d samples remain in the analysis. ', remaining_samples))
 
 if (is.null(alpha.obj)){
-  alpha.obj <- mStat_calculate_alpha_diversity(x = rarefy.data.obj$feature.tab, alpha.name = alpha.name)
+  # Extract tree if faith_pd is requested
+  tree <- NULL
+  if ('faith_pd' %in% alpha.name) {
+    tree <- rarefy.data.obj$tree
+  }
+  
+  alpha.obj <- mStat_calculate_alpha_diversity(x = rarefy.data.obj$feature.tab, alpha.name = alpha.name, tree = tree)
   cat('alpha.obj is calculated based on the rarefied data.obj. ')
 }
 
