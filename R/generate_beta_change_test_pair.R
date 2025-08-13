@@ -92,7 +92,7 @@ generate_beta_change_test_pair <-
            time.var = NULL,
            subject.var,
            group.var,
-           adj.vars,
+           adj.vars = NULL,
            change.base = NULL,
            dist.name = c('BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS')) {
 
@@ -107,13 +107,25 @@ generate_beta_change_test_pair <-
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
       # Extract relevant metadata
-      meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var,group.var,time.var, adj.vars))) %>% rownames_to_column("sample")
+      meta_vars <- c(subject.var, group.var, time.var)
+      if (!is.null(adj.vars)) {
+        meta_vars <- c(meta_vars, adj.vars)
+      }
+      meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(meta_vars)) %>% rownames_to_column("sample")
     } else {
       # Extract metadata from data.obj or dist.obj
       if (!is.null(data.obj)){
-        meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var,group.var,time.var, adj.vars))) %>% rownames_to_column("sample")
+        meta_vars <- c(subject.var, group.var, time.var)
+        if (!is.null(adj.vars)) {
+          meta_vars <- c(meta_vars, adj.vars)
+        }
+        meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(meta_vars)) %>% rownames_to_column("sample")
       } else {
-        meta_tab <- attr(dist.obj[[dist.name[1]]], "labels")  %>% dplyr::select(all_of(c(subject.var,group.var,time.var,adj.vars))) %>% rownames_to_column("sample")
+        meta_vars <- c(subject.var, group.var, time.var)
+        if (!is.null(adj.vars)) {
+          meta_vars <- c(meta_vars, adj.vars)
+        }
+        meta_tab <- attr(dist.obj[[dist.name[1]]], "labels")  %>% dplyr::select(all_of(meta_vars)) %>% rownames_to_column("sample")
       }
     }
 
