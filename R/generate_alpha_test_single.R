@@ -68,7 +68,7 @@ generate_alpha_test_single <-
            time.var = NULL,
            t.level = NULL,
            group.var,
-           adj.vars) {
+           adj.vars = NULL) {
 
     if (is.null(alpha.name)){
       return()
@@ -123,10 +123,12 @@ generate_alpha_test_single <-
         )
 
       # Create a formula for lm
+      formula_vars <- group.var
+      if (!is.null(adj.vars)) {
+        formula_vars <- c(adj.vars, group.var)
+      }
       formula <-
-        as.formula(paste0(names(merged_df)[2], "~", paste(c(
-          adj.vars, group.var
-        ), collapse = "+")))
+        as.formula(paste0(names(merged_df)[2], "~", paste(formula_vars, collapse = "+")))
 
       # Run lm and create a coefficient table
       lm.model <- lm(formula, data = merged_df)
