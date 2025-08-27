@@ -338,7 +338,7 @@ developments, and enhancements in `MicrobiomeStat`. Be part of vibrant
 discussions, ask questions, share insights, and avail support from peers
 and experts alike:
 
-[Join the MicrobiomeStat Discord Server!](https://discord.com/invite/BfNvTJAt)
+[Join the MicrobiomeStat Discord Server!](https://discord.gg/U6vNamyk)
 
 In our Discord server, an automated bot keeps you informed about every
 package and tutorial update, ensuring you never miss out on new
