@@ -11,7 +11,7 @@ and calculation of distances at a specific time point."><meta property="og:image
 
     <a class="navbar-brand me-2" href="../index.html">MicrobiomeStat</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -20,7 +20,8 @@ and calculation of distances at a specific time point."><meta property="og:image
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-      </ul><ul class="navbar-nav"><li class="nav-item"><a class="external-link nav-link" href="https://github.com/cafferychen777/MicrobiomeStat"><span class="fa fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
+      </ul><ul class="navbar-nav"><li class="nav-item"><a class="external-link nav-link" href="https://github.com/cafferychen777/MicrobiomeStat" aria-label="GitHub repository"><span class="fa fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -53,6 +54,7 @@ and calculation of distances at a specific time point.</p>
 <span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BC"</span>, <span class="st">"Jaccard"</span><span class="op">)</span>,</span>
 <span>  pc.obj <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  base.size <span class="op">=</span> <span class="fl">16</span>,</span>
+<span>  point.size <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span>
 <span>  custom.theme <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  palette <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -131,6 +133,10 @@ will be automatically performed using metric multidimensional scaling (MDS) via
 
 <dt id="arg-base-size">base.size<a class="anchor" aria-label="anchor" href="#arg-base-size"></a></dt>
 <dd><p>Numeric. Base size for plot elements. Default is 16.</p></dd>
+
+
+<dt id="arg-point-size">point.size<a class="anchor" aria-label="anchor" href="#arg-point-size"></a></dt>
+<dd><p>Numeric. The size of the points in the scatter plot. Default is 4.</p></dd>
 
 
 <dt id="arg-theme-choice">theme.choice<a class="anchor" aria-label="anchor" href="#arg-theme-choice"></a></dt>
@@ -233,6 +239,7 @@ least as large as the number of groups being plotted.</p></dd>
 <span class="r-in"><span>  adj.vars <span class="op">=</span> <span class="st">"sex"</span>,</span></span>
 <span class="r-in"><span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BC"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">20</span>,</span></span>
+<span class="r-in"><span>  point.size <span class="op">=</span> <span class="fl">4</span>,</span></span>
 <span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
 <span class="r-in"><span>  custom.theme <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  palette <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
@@ -257,6 +264,7 @@ least as large as the number of groups being plotted.</p></dd>
 <span class="r-in"><span>  adj.vars <span class="op">=</span> <span class="st">"sample_body_site"</span>,</span></span>
 <span class="r-in"><span>  dist.name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BC"</span>, <span class="st">'Jaccard'</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  base.size <span class="op">=</span> <span class="fl">20</span>,</span></span>
+<span class="r-in"><span>  point.size <span class="op">=</span> <span class="fl">4</span>,</span></span>
 <span class="r-in"><span>  theme.choice <span class="op">=</span> <span class="st">"bw"</span>,</span></span>
 <span class="r-in"><span>  custom.theme <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>  palette <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
@@ -277,7 +285,7 @@ least as large as the number of groups being plotted.</p></dd>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer></div>

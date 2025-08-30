@@ -11,7 +11,7 @@ It takes a data object as input and returns a list of association tests for each
 
     <a class="navbar-brand me-2" href="../index.html">MicrobiomeStat</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -20,7 +20,8 @@ It takes a data object as input and returns a list of association tests for each
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-      </ul><ul class="navbar-nav"><li class="nav-item"><a class="external-link nav-link" href="https://github.com/cafferychen777/MicrobiomeStat"><span class="fa fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
+      </ul><ul class="navbar-nav"><li class="nav-item"><a class="external-link nav-link" href="https://github.com/cafferychen777/MicrobiomeStat" aria-label="GitHub repository"><span class="fa fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -49,7 +50,7 @@ It takes a data object as input and returns a list of association tests for each
 <span>  time.var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  t.level <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">group.var</span>,</span>
-<span>  <span class="va">adj.vars</span></span>
+<span>  adj.vars <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -67,7 +68,7 @@ It takes a data object as input and returns a list of association tests for each
 
 <dt id="arg-alpha-name">alpha.name<a class="anchor" aria-label="anchor" href="#arg-alpha-name"></a></dt>
 <dd><p>character vector containing the names of alpha diversity indices to calculate.
-Possible values are: "shannon", "simpson", "observed_species", "chao1", "ace", and "pielou".</p></dd>
+Possible values are: "shannon", "simpson", "observed_species", "chao1", "ace", "pielou", and "faith_pd".</p></dd>
 
 
 <dt id="arg-depth">depth<a class="anchor" aria-label="anchor" href="#arg-depth"></a></dt>
@@ -150,7 +151,7 @@ for in the linear models.</p></dd>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer></div>
