@@ -98,8 +98,6 @@ For CLR-transformed data, use "other". Default is "count".}
 A list of `ggplot` objects. Each element in the list corresponds to a comparison group
   (derived from `test.list` or `group.var`) and contains the circular cladogram with its heatmap.
   If there's only one comparison, the list will contain a single `ggplot` object.
-
-A phylogenetic tree object
 }
 \description{
 This function generates a circular cladogram with an integrated heatmap for taxonomic data.
@@ -220,12 +218,4 @@ plot.list <- generate_taxa_cladogram_single(
   color.group.level = "Family"
 )
 }
-Get appropriate phylogenetic tree for cladogram
-
-This function determines the appropriate phylogenetic tree to use for the cladogram.
-It first checks if a valid tree exists in the data object, and if so, ensures the
-tree tips match the feature names. If no valid tree is found or no matching tips
-are found, it builds a taxonomy-based tree.
-
-
 }

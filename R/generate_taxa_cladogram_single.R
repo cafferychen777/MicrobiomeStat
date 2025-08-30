@@ -293,32 +293,34 @@ generate_taxa_cladogram_single <- function(
     return(result)
   }
 
-  #' Get appropriate phylogenetic tree for cladogram
-  #'
-  #' This function determines the appropriate phylogenetic tree to use for the cladogram.
-  #' It first checks if a valid tree exists in the data object, and if so, ensures the
-  #' tree tips match the feature names. If no valid tree is found or no matching tips
-  #' are found, it builds a taxonomy-based tree.
-  #'
+  # Get appropriate phylogenetic tree for cladogram
+  #
+  # This function determines the appropriate phylogenetic tree to use for the cladogram.
+  # It first checks if a valid tree exists in the data object, and if so, ensures the
+  # tree tips match the feature names. If no valid tree is found or no matching tips
+  # are found, it builds a taxonomy-based tree.
+  #
   # Internal function parameters:
   # @param data.obj A MicrobiomeStat data object
   # @param fix_link_frame Processed feature annotation data frame
   # @param min_label The most specific taxonomic level
   # @param level_seq Vector of taxonomic levels in order
   # @param verbose Logical, whether to print detailed messages
-  #'
-  #' @return A phylogenetic tree object
+  #
+  # Return: A phylogenetic tree object
+
   # Process Unclassified taxonomic labels
   #
   # This function processes "Unclassified" labels in a data frame, ensuring they contain
   # taxonomic level information by appending the taxonomic level and a unique identifier.
   #
-  # @param data_frame A data frame containing taxonomic data
-  # @param group_col Column name containing taxonomic level information
-  # @param target_col Column name containing labels to process (default: "Variable")
-  # @param use_grouping Logical, whether to group by group_col before processing (default: TRUE)
+  # Parameters:
+  # data_frame A data frame containing taxonomic data
+  # group_col Column name containing taxonomic level information
+  # target_col Column name containing labels to process (default: "Variable")
+  # use_grouping Logical, whether to group by group_col before processing (default: TRUE)
   #
-  # @return A data frame with processed "Unclassified" labels
+  # Return: A data frame with processed "Unclassified" labels
   process_unclassified_labels <- function(data_frame, group_col, target_col = "Variable", use_grouping = TRUE) {
     # Convert column names to symbols for non-standard evaluation
     group_sym <- rlang::sym(group_col)
