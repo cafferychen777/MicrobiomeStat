@@ -57,6 +57,18 @@ jobs:
 
       - name: Build site
         run: |
+          # Create pkgdown directory if it doesn't exist
+          dir.create("pkgdown", showWarnings = FALSE)
+          
+          # Copy custom CSS and JS files if they exist
+          if (file.exists("inst/pkgdown/extra.css")) {
+            file.copy("inst/pkgdown/extra.css", "pkgdown/extra.css", overwrite = TRUE)
+          }
+          if (file.exists("inst/pkgdown/extra.js")) {
+            file.copy("inst/pkgdown/extra.js", "pkgdown/extra.js", overwrite = TRUE)
+          }
+          
+          # Build the site
           pkgdown::build_site_github_pages(new_process = FALSE, install = TRUE)
         shell: Rscript {0}
 

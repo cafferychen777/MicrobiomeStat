@@ -1,19 +1,5 @@
-<div align="center" style="margin:20px 0;">
-<img src="man/figures/logo.png" alt="MicrobiomeStat Logo" width="200" style="margin:10px 0;"/>
-<h3>Supporting Longitudinal Microbiome Analysis in R</h3>
-</div>
-
-🌟 **If you find `MicrobiomeStat` helpful, please consider giving us a
-star on GitHub!** Your support greatly motivates us to improve and
-maintain this project. 🌟
-
-<!-- badges: start -->
-
-[![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/MicrobiomeStat)](https://cran.r-project.org/package=MicrobiomeStat)
-[![Downloads](https://cranlogs.r-pkg.org/badges/grand-total/MicrobiomeStat)](https://cran.r-project.org/package=MicrobiomeStat)
-[![License: GPL
-v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-<!-- badges: end -->
+<!-- pkgdown homepage start -->
+<!-- pkgdown homepage end -->
 
 [EN](README.md) \| [CN](README-CN.md) \| [ES](README-ES.md)
 
@@ -26,13 +12,6 @@ with just a single click. This tool aims to support researchers through
 their extensive biological inquiries over time, with a spirit of
 gratitude towards the community’s existing resources and a collaborative
 ethos for furthering microbiome research.
-
-<figure>
-<img
-src="https://repobeats.axiom.co/api/embed/6466765a763c06a17b91f0a2d456855888d71573.svg"
-title="Repobeats analytics image" alt="Alt" />
-<figcaption aria-hidden="true">Alt</figcaption>
-</figure>
 
 ## News
 

@@ -1,0 +1,207 @@
+---
+title: "Getting Started with MicrobiomeStat"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting Started with MicrobiomeStat}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE  # Don't evaluate code chunks
+)
+```
+
+## Introduction
+
+MicrobiomeStat is a comprehensive R package designed for advanced longitudinal microbiome and multi-omics data analysis. It provides a complete toolkit for:
+
+- **Cross-sectional studies**: Single time point analysis
+- **Paired samples**: Before-after comparisons
+- **Longitudinal studies**: Multiple time points tracking
+
+## Installation
+
+You can install MicrobiomeStat from CRAN:
+
+```{r}
+install.packages("MicrobiomeStat")
+```
+
+Or get the development version from GitHub:
+
+```{r}
+# install.packages("devtools")
+devtools::install_github("cafferychen777/MicrobiomeStat")
+```
+
+## Quick Start
+
+```{r}
+library(MicrobiomeStat)
+```
+
+### Loading Data
+
+MicrobiomeStat uses a standardized data structure called `data.obj`:
+
+```{r}
+# Load example dataset
+data(peerj32.obj)
+
+# View data structure
+names(peerj32.obj)
+# [1] "feature.tab" "feature.ann" "meta.dat" "tree"
+```
+
+### Basic Analysis Workflow
+
+#### 1. Alpha Diversity Analysis
+
+```{r}
+# Calculate alpha diversity
+alpha.obj <- mStat_calculate_alpha_diversity(
+  peerj32.obj$feature.tab,
+  alpha.name = c("shannon", "observed_species")
+)
+
+# Visualize alpha diversity
+generate_alpha_boxplot_single(
+  data.obj = peerj32.obj,
+  alpha.obj = alpha.obj,
+  alpha.name = "shannon",
+  subject.var = "subject",
+  time.var = "time",
+  t.level = "2",
+  group.var = "group",
+  strata.var = "sex"
+)
+```
+
+#### 2. Beta Diversity Analysis
+
+```{r}
+# Calculate beta diversity
+beta.obj <- mStat_calculate_beta_diversity(
+  data.obj = peerj32.obj,
+  dist.name = c("BC", "Jaccard")
+)
+
+# Visualize beta diversity using PCoA
+generate_beta_ordination_single(
+  data.obj = peerj32.obj,
+  dist.obj = beta.obj,
+  pc.obj = NULL,
+  subject.var = "subject",
+  time.var = "time",
+  t.level = "2",
+  group.var = "group",
+  strata.var = "sex",
+  dist.name = "BC"
+)
+```
+
+### Data Import from Other Formats
+
+MicrobiomeStat can import data from various microbiome analysis platforms:
+
+```{r}
+# From phyloseq
+# data.obj <- mStat_convert_phyloseq_to_data_obj(phyloseq.obj)
+
+# From QIIME2
+# data.obj <- mStat_import_qiime2_as_data_obj(
+#   otu.qza = "table.qza",
+#   taxa.qza = "taxonomy.qza",
+#   sam.tab = "metadata.txt"
+# )
+
+# From DADA2
+# data.obj <- mStat_import_dada2_as_data_obj(
+#   seq.tab = seqtab,
+#   tax.tab = taxtab,
+#   sam.tab = metadata
+# )
+```
+
+## Key Features
+
+### 1. Comprehensive Statistical Methods
+
+- **LinDA**: Linear models for differential abundance analysis
+- **Mixed-effects models**: For longitudinal data
+- **Trend analysis**: Temporal patterns identification
+- **Volatility analysis**: Stability measurements
+
+### 2. Beautiful Visualizations
+
+All plotting functions in MicrobiomeStat are designed to produce publication-ready figures:
+
+```{r}
+# Taxa barplot
+generate_taxa_barplot_single(
+  data.obj = peerj32.obj,
+  subject.var = "subject",
+  time.var = "time",
+  group.var = "group",
+  strata.var = "sex",
+  feature.level = "Phylum",
+  feature.dat.type = "count",
+  feature.number = 8,
+  t.level = "2"
+)
+```
+
+### 3. Automated Report Generation
+
+Generate comprehensive analysis reports with a single function:
+
+```{r}
+# For cross-sectional studies
+mStat_generate_report_single(
+  data.obj = your_data,
+  subject.var = "subject",
+  group.var = "treatment",
+  t.level = "baseline",
+  feature.dat.type = "count",
+  output.file = "analysis_report"
+)
+
+# For longitudinal studies  
+mStat_generate_report_long(
+  data.obj = your_data,
+  subject.var = "subject",
+  time.var = "time",
+  t0.level = "0",
+  ts.levels = c("1", "2", "3"),
+  group.var = "treatment",
+  feature.dat.type = "count",
+  output.file = "longitudinal_report"
+)
+```
+
+## Learning Resources
+
+- **Comprehensive Tutorial**: Visit [www.microbiomestat.wiki](https://www.microbiomestat.wiki)
+- **GitHub Repository**: [github.com/cafferychen777/MicrobiomeStat](https://github.com/cafferychen777/MicrobiomeStat)
+- **Discord Community**: [Join our Discord](https://discord.gg/U6vNamyk)
+
+## Next Steps
+
+For more detailed tutorials, please check:
+
+- Cross-sectional analysis workflows
+- Longitudinal data analysis
+- Multi-omics integration
+- Advanced visualization customization
+
+## Citation
+
+If you use MicrobiomeStat in your research, please cite:
+
+```{r}
+citation("MicrobiomeStat")
+```

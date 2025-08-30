@@ -1,143 +1,176 @@
 # Website URL
 url: https://cafferychen777.github.io/MicrobiomeStat/
 
-# Website title
+# Website title and description
 title: MicrobiomeStat
+description: Comprehensive Statistical and Visualization Methods for Microbiome and Multi-Omics Data
 
-# Use Bootstrap version 5
+# Enhanced template configuration
 template:
   bootstrap: 5
-  params:
-    search: true  # 启用基本搜索功能
-    bootswatch: flatly  # 使用 flatly 主题
+  bootswatch: cosmo  # Modern theme
+  bslib:
+    primary: "#2E7D32"      # Deep green for biology theme
+    secondary: "#558B2F"    # Light green
+    success: "#4CAF50"      
+    info: "#00ACC1"         # Cyan for information
+    warning: "#FFB300"      
+    danger: "#E53935"       
+    base_font: {google: "Inter"}
+    code_font: {google: "JetBrains Mono"}
+  includes:
+    in_header: |
+      <link rel="stylesheet" href="extra.css">
+      <link rel="stylesheet" href="../extra.css">
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    after_body: |
+      <script src="extra.js"></script>
+      <script src="../extra.js"></script>
 
-# Navigation bar settings
+# Enhanced navigation bar
 navbar:
   type: default
-  right:
-    - icon: fa-github fa-lg
+  structure:
+    left: [reference, articles, news]
+    right: [search, github, twitter, discord]
+  
+  components:
+    reference:
+      text: "Functions"
+      icon: fa-code
+      href: reference/index.html
+    
+    articles:
+      text: "Tutorials"
+      icon: fa-book
+      menu:
+        - text: "Getting Started"
+          href: articles/MicrobiomeStat.html
+        - text: "-------"
+        - text: "Analysis Workflows"
+        - text: "Longitudinal Analysis"
+          href: articles/longitudinal-analysis.html
+    
+    news:
+      text: "News"
+      icon: fa-newspaper
+      href: news/index.html
+    
+    github:
+      icon: fa-github fa-lg
       href: https://github.com/cafferychen777/MicrobiomeStat
-      aria-label: GitHub repository
+      aria-label: GitHub
+    
+    twitter:
+      icon: fa-twitter fa-lg
+      href: https://twitter.com/cafferychen777
+      aria-label: Twitter
+    
+    discord:
+      icon: fa-discord fa-lg
+      href: https://discord.gg/U6vNamyk
+      aria-label: Discord
 
-# Reference page settings
+# Enhanced home page
+home:
+  title: MicrobiomeStat
+  description: |
+    **Comprehensive R package for advanced longitudinal microbiome and multi-omics data analysis**
+    
+    MicrobiomeStat provides a complete toolkit for microbiome data analysis, supporting cross-sectional, 
+    paired sample, and longitudinal study designs with beautiful visualizations and automated reporting.
+  
+  strip_header: false
+  
+  links:
+  - text: Get Started
+    href: https://www.microbiomestat.wiki
+    icon: fa-rocket
+  - text: Browse Functions
+    href: reference/index.html
+    icon: fa-code
+  - text: View Tutorials
+    href: https://www.microbiomestat.wiki
+    icon: fa-graduation-cap
+
+# Enhanced reference page with better organization
 reference:
-  - title: "Alpha Diversity"
+  - title: "📊 Alpha Diversity Analysis"
+    desc: "Functions for analyzing within-sample diversity"
     contents:
       - plot_alpha_diversity
-      - generate_alpha_boxplot_single
-      - generate_alpha_boxplot_long
-      - generate_alpha_per_time_dotplot_long
-      - generate_alpha_spaghettiplot_long
-      - generate_alpha_change_boxplot_pair
-      - generate_alpha_change_test_pair
-      - generate_alpha_change_per_time_test_long
-      - generate_alpha_test_pair
-      - generate_alpha_per_time_test_long
-      - generate_alpha_test_single
-      - generate_alpha_trend_test_long
-      - generate_alpha_volatility_test_long
+      - starts_with("generate_alpha")
+      - mStat_calculate_alpha_diversity
       - mStat_calculate_adjusted_alpha_diversity
       - is_rarefied
-
-  - title: "Beta Diversity"
+  
+  - title: "🌐 Beta Diversity Analysis"
+    desc: "Functions for analyzing between-sample diversity"
     contents:
       - plot_beta_diversity
-      - generate_beta_change_boxplot_pair
-      - generate_beta_change_boxplot_long
-      - generate_beta_change_spaghettiplot_long
-      - generate_beta_ordination_long
-      - generate_beta_ordination_pair
-      - generate_beta_ordination_single
-      - generate_beta_pc_change_boxplot_pair
-      - generate_beta_change_test_pair
-      - generate_beta_change_per_time_test_long
-      - generate_beta_per_time_dotplot_long
-      - generate_beta_pc_boxplot_long
-      - generate_beta_pc_spaghettiplot_long
-      - generate_beta_pc_trend_test_long
-      - generate_beta_pc_volatility_test_long
-      - generate_beta_test_single
-      - generate_beta_trend_test_long
-      - generate_beta_volatility_test_long
+      - starts_with("generate_beta")
+      - mStat_calculate_beta_diversity
       - mStat_calculate_adjusted_distance
       - mStat_calculate_PC
-
-  - title: "Feature-level Analysis"
+      - starts_with("mStat_subset")
+  
+  - title: "🦠 Taxonomic Analysis"
+    desc: "Functions for taxonomic composition and differential abundance"
     contents:
       - plot_feature_diversity
-      - generate_taxa_cladogram_single
-      - generate_taxa_barplot_pair
-      - generate_taxa_barplot_single
-      - generate_taxa_boxplot_long
-      - generate_taxa_boxplot_single
-      - generate_taxa_change_dotplot_pair
-      - generate_taxa_change_heatmap_long
-      - generate_taxa_change_heatmap_pair
-      - generate_taxa_change_scatterplot_pair
-      - generate_taxa_dotplot_pair
-      - generate_taxa_dotplot_single
-      - generate_taxa_heatmap_long
-      - generate_taxa_heatmap_pair
-      - generate_taxa_heatmap_single
-      - generate_taxa_areaplot_long
-      - generate_taxa_barplot_long
-      - generate_taxa_per_time_dotplot_long
-      - generate_taxa_change_boxplot_pair
-      - generate_taxa_change_test_pair
-      - generate_taxa_change_per_time_test_long
-      - generate_taxa_indiv_boxplot_long
-      - generate_taxa_indiv_boxplot_single
-      - generate_taxa_indiv_change_boxplot_pair
-      - generate_taxa_indiv_change_scatterplot_pair
-      - generate_taxa_indiv_spaghettiplot_long
-      - generate_taxa_spaghettiplot_long
-      - generate_taxa_test_pair
-      - generate_taxa_per_time_test_long
-      - generate_taxa_test_single
-      - generate_taxa_volcano_single
-      - generate_taxa_ma_plot_single
-      - generate_taxa_association_test_long
-      - generate_taxa_trend_test_long
-      - generate_taxa_trend_volcano_long
-      - generate_taxa_volatility_test_long
-      - generate_taxa_volatility_volcano_long
+      - starts_with("generate_taxa")
       - mStat_aggregate_by_taxonomy
       - mStat_aggregate_by_taxonomy2
-
-  - title: "Data Management"
+      - mStat_aggregate_data
+      - build_mStat_tax_table
+  
+  - title: "📈 Statistical Testing"
+    desc: "Core statistical methods including LinDA"
     contents:
-      - mStat_subset_alpha
-      - mStat_subset_dist
-      - mStat_subset_PC
-      - mStat_summarize_data_obj
-      - mStat_process_time_variable
-      - mStat_convert_DESeqDataSet_to_data_obj
-      - mStat_convert_DGEList_to_data_obj
-      - mStat_convert_MRExperiment_to_data_obj
-      - mStat_convert_MultiAssayExperiment_to_data_obj
-      - mStat_convert_phyloseq_to_data_obj
-      - mStat_convert_SummarizedExperiment_to_data_obj
-      - mStat_import_biom_as_data_obj
-      - mStat_import_dada2_as_data_obj
-      - mStat_import_mothur_as_data_obj
-      - mStat_import_qiime2_as_data_obj
+      - linda
+      - linda.plot
+  
+  - title: "📁 Data Import & Conversion"
+    desc: "Import data from various microbiome analysis platforms"
+    contents:
+      - starts_with("mStat_import")
+      - starts_with("mStat_convert")
+  
+  - title: "🔧 Data Processing"
+    desc: "Data manipulation and preprocessing utilities"
+    contents:
       - mStat_normalize_data
       - mStat_rarefy_data
       - mStat_filter
-      - mStat_remove_feature
       - mStat_subset_data
+      - mStat_remove_feature
+      - mStat_validate_data
       - mStat_update_meta_data
       - mStat_update_sample_name
-      - mStat_validate_data
+      - mStat_combine_data
+      - mStat_process_time_variable
       - mStat_identify_time_varying_vars
-
-  - title: "Reports"
+      - mStat_summarize_data_obj
+  
+  - title: "📝 Automated Reports"
+    desc: "Generate comprehensive analysis reports"
     contents:
-      - mStat_generate_report_long
-      - mStat_generate_report_pair
       - mStat_generate_report_single
-
-  - title: "Data Sets"
+      - mStat_generate_report_pair
+      - mStat_generate_report_long
+  
+  - title: "🎨 Visualization Utilities"
+    desc: "Helper functions for customizing plots"
+    contents:
+      - mStat_get_palette
+      - mStat_get_theme
+      - is_categorical
+      - is_continuous_numeric
+  
+  - title: "📚 Example Datasets"
+    desc: "Built-in datasets for testing and learning"
     contents:
       - ecam.obj
       - peerj32.obj
@@ -145,17 +178,14 @@ reference:
       - subset_T2D.obj
       - subset_pairs.obj
 
-  - title: "Miscellaneous"
-    contents:
-      - mStat_get_palette
-      - mStat_get_theme
-      - is_categorical
-      - is_continuous_numeric
-      - linda.plot
-      - build_mStat_tax_table
-      - mStat_aggregate_data
-      - linda
-      - mStat_calculate_alpha_diversity
-      - mStat_calculate_beta_diversity
-      - mStat_combine_data
+# Footer customization
+footer:
+  structure:
+    left: developed_by
+    right: built_with
 
+# Development mode settings
+development:
+  mode: auto
+  version_label: default
+  version_tooltip: "Development version"

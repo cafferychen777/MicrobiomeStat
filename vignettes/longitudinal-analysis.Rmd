@@ -1,0 +1,303 @@
+---
+title: "Longitudinal Microbiome Analysis"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Longitudinal Microbiome Analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 7,
+  fig.height = 5,
+  eval = FALSE  # Don't execute code chunks
+)
+```
+
+## Introduction
+
+Longitudinal microbiome studies track microbial communities over time, providing insights into temporal dynamics, stability, and responses to interventions. MicrobiomeStat offers comprehensive tools specifically designed for longitudinal data analysis.
+
+## Setup
+
+```{r setup}
+library(MicrobiomeStat)
+library(ggplot2)
+```
+
+## Example Dataset
+
+We'll use the ECAM dataset, which tracks infant microbiome development:
+
+```{r data}
+data(ecam.obj)
+
+# Examine the data structure
+cat("Number of samples:", ncol(ecam.obj$feature.tab), "\n")
+cat("Number of features:", nrow(ecam.obj$feature.tab), "\n")
+cat("Time points:", unique(ecam.obj$meta.dat$month_num), "\n")
+```
+
+## Longitudinal Alpha Diversity Analysis
+
+### Visualization Across Time
+
+```{r alpha-viz}
+# Calculate alpha diversity
+alpha.obj <- mStat_calculate_alpha_diversity(
+  ecam.obj$feature.tab,
+  alpha.name = c("shannon", "observed_species", "simpson")
+)
+
+# Spaghetti plot showing individual trajectories
+generate_alpha_spaghettiplot_long(
+  data.obj = ecam.obj,
+  alpha.obj = alpha.obj,
+  alpha.name = "shannon",
+  subject.var = "subject.id",
+  time.var = "month_num",
+  t0.level = "0",
+  ts.levels = c("0", "1", "2", "3", "4", "5", "6"),
+  group.var = "delivery",
+  strata.var = "diet"
+)
+```
+
+### Trend Analysis
+
+Test for temporal trends in alpha diversity:
+
+```{r alpha-trend}
+# Test for linear trends over time
+trend.test <- generate_alpha_trend_test_long(
+  alpha.obj = alpha.obj,
+  meta.dat = ecam.obj$meta.dat,
+  alpha.name = c("shannon", "observed_species"),
+  subject.var = "subject.id",
+  time.var = "month_num",
+  group.var = "delivery"
+)
+
+# View results
+print(trend.test$shannon)
+```
+
+### Volatility Analysis
+
+Assess the stability of alpha diversity over time:
+
+```{r alpha-volatility}
+# Calculate volatility (variability between consecutive time points)
+volatility.test <- generate_alpha_volatility_test_long(
+  alpha.obj = alpha.obj,
+  meta.dat = ecam.obj$meta.dat,
+  alpha.name = "shannon",
+  subject.var = "subject.id",
+  time.var = "month_num",
+  group.var = "delivery"
+)
+
+print(volatility.test$shannon)
+```
+
+## Longitudinal Beta Diversity Analysis
+
+### Temporal Changes in Community Structure
+
+```{r beta-viz}
+# Calculate beta diversity
+dist.obj <- mStat_calculate_beta_diversity(
+  data.obj = ecam.obj,
+  dist.name = c("BC", "Jaccard")
+)
+
+# Visualize temporal patterns
+generate_beta_ordination_long(
+  data.obj = ecam.obj,
+  dist.obj = dist.obj,
+  pc.obj = NULL,
+  subject.var = "subject.id",
+  time.var = "month_num",
+  t0.level = "0",
+  ts.levels = c("0", "1", "2", "3", "4", "5", "6"),
+  group.var = "delivery",
+  strata.var = "diet",
+  dist.name = "BC"
+)
+```
+
+### Change Analysis
+
+Analyze changes in beta diversity from baseline:
+
+```{r beta-change}
+# PC-based change analysis
+pc.obj <- mStat_calculate_PC(
+  dist.obj = dist.obj,
+  method = "mds",
+  k = 2,
+  dist.name = "BC"
+)
+
+generate_beta_pc_change_boxplot_pair(
+  pc.obj = pc.obj,
+  meta.dat = ecam.obj$meta.dat,
+  subject.var = "subject.id",
+  time.var = "month_num",
+  group.var = "delivery",
+  change.base = "0",
+  dist.name = "BC",
+  pc.ind = 1
+)
+```
+
+## Taxonomic Composition Over Time
+
+### Area Plots
+
+```{r taxa-area}
+# Generate area plot showing composition changes
+generate_taxa_areaplot_long(
+  data.obj = ecam.obj,
+  subject.var = "subject.id",
+  time.var = "month_num",
+  t0.level = "0",
+  ts.levels = c("0", "1", "2", "3", "4", "5", "6"),
+  group.var = "delivery",
+  strata.var = "diet",
+  feature.level = "Phylum",
+  feature.number = 8
+)
+```
+
+### Heatmap Visualization
+
+```{r taxa-heatmap}
+# Create heatmap of abundant taxa
+generate_taxa_heatmap_long(
+  data.obj = ecam.obj,
+  subject.var = "subject.id",
+  time.var = "month_num",
+  t0.level = "0",
+  ts.levels = c("0", "1", "2", "3", "4", "5", "6"),
+  group.var = "delivery",
+  strata.var = "diet",
+  feature.level = "Family",
+  feature.number = 20,
+  feature.mt.method = "mean",
+  feature.mt.cutoff = 0.001
+)
+```
+
+## Differential Abundance Testing
+
+### LinDA for Longitudinal Data
+
+```{r linda}
+# Aggregate to genus level
+genus.obj <- mStat_aggregate_by_taxonomy(
+  ecam.obj,
+  feature.level = "Genus"
+)
+
+# Perform differential abundance testing
+da.test <- generate_taxa_test_single(
+  data.obj = genus.obj,
+  group.var = "delivery",
+  adj.vars = "diet",
+  feature.level = "Genus",
+  feature.mt.method = "mean",
+  feature.mt.cutoff = 0.001
+)
+
+# Visualize results with volcano plot
+generate_taxa_volcano_single(
+  data.obj = genus.obj,
+  group.var = "delivery",
+  test.list = da.test,
+  feature.level = "Genus"
+)
+```
+
+### Temporal Association Testing
+
+```{r temporal-association}
+# Test associations with time
+assoc.test <- generate_taxa_association_test_long(
+  data.obj = ecam.obj,
+  subject.var = "subject.id",
+  time.var = "month_num",
+  feature.level = "Family",
+  feature.mt.method = "mean",
+  feature.mt.cutoff = 0.001
+)
+
+# View top associations
+head(assoc.test$Family, 10)
+```
+
+## Automated Reporting
+
+Generate a comprehensive longitudinal analysis report:
+
+```{r report, eval=FALSE}
+mStat_generate_report_long(
+  data.obj = ecam.obj,
+  subject.var = "subject.id",
+  time.var = "month_num",
+  t0.level = "0",
+  ts.levels = c("1", "2", "3", "4", "5", "6"),
+  group.var = "delivery",
+  strata.var = "diet",
+  feature.dat.type = "count",
+  output.file = "ECAM_longitudinal_report"
+)
+```
+
+## Advanced Topics
+
+### Handling Missing Data
+
+MicrobiomeStat automatically handles missing time points in longitudinal data:
+
+```{r missing}
+# Check for missing data patterns
+time.summary <- table(ecam.obj$meta.dat$subject.id, 
+                      ecam.obj$meta.dat$month_num)
+cat("Subjects with complete data:", 
+    sum(rowSums(time.summary > 0) == length(unique(ecam.obj$meta.dat$month_num))))
+```
+
+### Time-Varying Covariates
+
+Identify and adjust for time-varying covariates:
+
+```{r time-varying}
+# Identify time-varying variables
+time.varying <- mStat_identify_time_varying_vars(
+  meta.dat = ecam.obj$meta.dat,
+  subject.var = "subject.id",
+  time.var = "month_num"
+)
+
+print(time.varying)
+```
+
+## Best Practices
+
+1. **Always specify subject identifier**: Use `subject.var` to properly account for repeated measures
+2. **Check data quality**: Ensure consistent sampling across time points when possible
+3. **Consider rarefaction**: For fair diversity comparisons across samples
+4. **Multiple testing correction**: Applied automatically in differential abundance testing
+5. **Validate findings**: Use both visualization and statistical testing
+
+## Session Info
+
+```{r session}
+sessionInfo()
+```
