@@ -47,6 +47,9 @@ check/
 .project
 *~
 
+# Claude Code configuration
+CLAUDE.md
+
 # OS specific
 .DS_Store
 **/.DS_Store
