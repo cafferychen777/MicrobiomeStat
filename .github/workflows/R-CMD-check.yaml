@@ -58,8 +58,9 @@ jobs:
           echo '_R_CHECK_FORCE_SUGGESTS_=false' > ~/.Renviron
           echo 'NOT_CRAN=true' >> ~/.Renviron
           
-          # Install dependencies directly without using pak
-          Rscript -e 'install.packages(c("remotes", "rcmdcheck"))'
+          # Install BiocManager and dependencies
+          Rscript -e 'install.packages(c("BiocManager", "remotes", "rcmdcheck"))'
+          Rscript -e 'BiocManager::install(c("ggtree", "ggtreeExtra", "tidytree", "GUniFrac", "Biostrings", "biomformat"), ask = FALSE, update = FALSE)'
           Rscript -e 'remotes::install_deps(dependencies = c("Depends", "Imports", "LinkingTo"))'
           
       - name: Create dummy rhdf5filters package (Unix/macOS)
