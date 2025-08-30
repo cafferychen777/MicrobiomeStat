@@ -2,6 +2,7 @@
 ^renv\.lock$
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^\.Rproj\.user/.*$
 ^\.github$
 ^README-CN\.Rmd$
 ^README-CN\.md$
@@ -36,10 +37,17 @@
 # Temporary files
 ^.*\.Rcheck$
 ^.*\.tar\.gz$
+^\.DS_Store$
+^\.RData$
+^\.Rhistory$
+^\.Rprofile$
+^R/\.Rhistory$
 
 # Build artifacts
 ^MicrobiomeStat\.Rcheck$
 ^MicrobiomeStat_.*\.tar\.gz$
+^\.\.Rcheck$
+^\.\.Rcheck/.*$
 
 # GitHub Pages
 ^\.nojekyll$
@@ -47,3 +55,9 @@
 # IDE and editor files
 ^\.claude$
 ^\.claude/.*$
+
+# renv files (already covered above but being explicit)
+^renv/\.gitignore$
+
+# Test and development files
+^NewInterface_Comprehensive_Test_Report\.md$
