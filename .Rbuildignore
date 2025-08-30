@@ -43,3 +43,7 @@
 
 # GitHub Pages
 ^\.nojekyll$
+
+# IDE and editor files
+^\.claude$
+^\.claude/.*$

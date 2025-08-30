@@ -51,7 +51,7 @@ mStat_user_friendly_error <- function(error_msg, function_name = "", param_name 
   # Build friendly error message
   if (!is.null(matched_pattern)) {
     friendly_msg <- sprintf(
-      "\n🚨 %sError: %s\n💡 Suggested solution: %s\n📍 Function: %s\n🔧 Original error: %s",
+      "\n[ERROR] %sError: %s\n[SUGGESTION] Suggested solution: %s\n[FUNCTION] Function: %s\n[DETAILS] Original error: %s",
       ifelse(function_name != "", paste0("[", function_name, "] "), ""),
       matched_pattern$message,
       matched_pattern$suggestion,
@@ -61,7 +61,7 @@ mStat_user_friendly_error <- function(error_msg, function_name = "", param_name 
   } else {
     # Generic friendly message
     friendly_msg <- sprintf(
-      "\n🚨 %sExecution error\n💡 Suggestion: Please check if input parameters are correct\n📍 Function: %s\n🔧 Detailed error: %s",
+      "\n[ERROR] %sExecution error\n[SUGGESTION] Suggestion: Please check if input parameters are correct\n[FUNCTION] Function: %s\n[DETAILS] Detailed error: %s",
       ifelse(function_name != "", paste0("[", function_name, "] "), ""),
       function_name,
       substr(error_msg, 1, 150)
@@ -168,7 +168,7 @@ mStat_validate_parameters <- function(data.obj, subject.var = NULL, time.var = N
   }
   
   if (length(warnings) > 0) {
-    result$warning_message <- paste("⚠️  Warning:", paste(warnings, collapse = "\n⚠️  Warning: "))
+    result$warning_message <- paste("[WARNING] Warning:", paste(warnings, collapse = "\n[WARNING] Warning: "))
   }
   
   return(result)
@@ -187,8 +187,8 @@ mStat_progress_indicator <- function(current_step, total_steps, step_name = "", 
   filled_length <- round((progress_pct / 100) * bar_length)
   bar <- paste0(
     "[", 
-    paste(rep("█", filled_length), collapse = ""),
-    paste(rep("░", bar_length - filled_length), collapse = ""),
+    paste(rep("=", filled_length), collapse = ""),
+    paste(rep("-", bar_length - filled_length), collapse = ""),
     "]"
   )
   
@@ -214,7 +214,7 @@ mStat_progress_indicator <- function(current_step, total_steps, step_name = "", 
   
   # Add newline when complete
   if (current_step == total_steps) {
-    cat("\n✅ Processing complete!\n")
+    cat("\n[COMPLETE] Processing complete!\n")
   }
   
   flush.console()  # Ensure immediate output
@@ -239,7 +239,7 @@ mStat_safe_execute <- function(expr, function_name = "", operation_name = "",
     )
     stop(friendly_error, call. = FALSE)
   }, warning = function(w) {
-    cat("⚠️  Warning [", function_name, "]:", as.character(w), "\n")
+    cat("[WARNING] Warning [", function_name, "]:", as.character(w), "\n")
     invokeRestart("muffleWarning")
   })
 }
@@ -272,8 +272,8 @@ mStat_check_data_quality <- function(data.obj, function_name = "") {
   }
   
   if (length(issues) > 0) {
-    warning_msg <- paste("📊 Data quality notice [", function_name, "]:\n", 
-                         paste("  • ", issues, collapse = "\n"), "\n")
+    warning_msg <- paste("[DATA QUALITY] Data quality notice [", function_name, "]:\n",
+                         paste("  * ", issues, collapse = "\n"), "\n")
     cat(warning_msg)
   }
   
