@@ -78,18 +78,11 @@ to subset the data for analysis. Used only if `test.list` is `NULL`. If `NULL`, 
 \item{adj.vars}{A character vector specifying column names in `meta.dat` to be used as
 adjustment variables (covariates) in the statistical model. Used only if `test.list` is `NULL`.}
 
-\item{prev.filter}{Numeric. The minimum prevalence threshold (proportion of samples) for a taxon
-to be included in the analysis. Taxa below this prevalence will be filtered out.
-Used only if `test.list` is `NULL`. Default is 0.1 (10% prevalence).}
+\item{prev.filter}{Numeric. Minimum prevalence threshold for taxa inclusion. Default is 0.1.}
 
-\item{abund.filter}{Numeric. The minimum mean abundance threshold (e.g., mean relative abundance)
-for a taxon to be included. Taxa with mean abundance below this threshold will be filtered out.
-Used only if `test.list` is `NULL`. Default is 0.0001 (0.01%).}
+\item{abund.filter}{Numeric. Minimum abundance threshold for taxa inclusion. Default is 0.0001.}
 
-\item{feature.dat.type}{Character string. The type of data in `feature.tab`.
-Should be one of "count", "proportion", or "other". This affects how data is handled,
-especially for filtering and transformations if `test.list` is `NULL`.
-For CLR-transformed data, use "other". Default is "count".}
+\item{feature.dat.type}{Character. Type of data in feature.tab ("count", "proportion", or "other"). Default is "count".}
 }
 \value{
 A list of `ggplot` objects. Each element in the list corresponds to a comparison group
