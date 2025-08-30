@@ -95,6 +95,7 @@ reference:
       - generate_taxa_per_time_test_long
       - generate_taxa_test_single
       - generate_taxa_volcano_single
+      - generate_taxa_ma_plot_single
       - generate_taxa_association_test_long
       - generate_taxa_trend_test_long
       - generate_taxa_trend_volcano_long
@@ -152,7 +153,7 @@ reference:
       - is_continuous_numeric
       - linda.plot
       - build_mStat_tax_table
-      - aggregate_data
+      - mStat_aggregate_data
       - linda
       - mStat_calculate_alpha_diversity
       - mStat_calculate_beta_diversity
