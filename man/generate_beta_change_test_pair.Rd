@@ -10,7 +10,7 @@ generate_beta_change_test_pair(
   time.var = NULL,
   subject.var,
   group.var,
-  adj.vars,
+  adj.vars = NULL,
   change.base = NULL,
   dist.name = c("BC", "Jaccard", "UniFrac", "GUniFrac", "WUniFrac", "JS")
 )

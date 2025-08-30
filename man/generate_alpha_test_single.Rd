@@ -12,7 +12,7 @@ generate_alpha_test_single(
   time.var = NULL,
   t.level = NULL,
   group.var,
-  adj.vars
+  adj.vars = NULL
 )
 }
 \arguments{

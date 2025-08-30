@@ -14,22 +14,22 @@
 <link rel="apple-touch-icon" type="image/png" sizes="60x60" href="apple-touch-icon-60x60.png">
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
-<link href="deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Comprehensive Statistical and Visualization Methods for Microbiome and Multi-Omics Data">
-<meta name="description" content="MicrobiomeStat is a dedicated R package designed for advanced, longitudinal microbiome and multi-omics data analysis. It stands out with a special focus on in-depth longitudinal microbiome analysis, ensuring precise and detailed data interpretation across time. Generate professional microbiome analysis reports with just a click through the MicrobiomeStat One Click feature. This package guarantees robust solutions for diverse analytic scenarios and effortless handling of multi-omics data, amplifying the efficiency and scope of research. The user-friendly design, diverse features, and practical use cases of MicrobiomeStat assist researchers in navigating the complexities of microbiome data, delivering meaningful insights for longitudinal studies.">
-<meta property="og:description" content="MicrobiomeStat is a dedicated R package designed for advanced, longitudinal microbiome and multi-omics data analysis. It stands out with a special focus on in-depth longitudinal microbiome analysis, ensuring precise and detailed data interpretation across time. Generate professional microbiome analysis reports with just a click through the MicrobiomeStat One Click feature. This package guarantees robust solutions for diverse analytic scenarios and effortless handling of multi-omics data, amplifying the efficiency and scope of research. The user-friendly design, diverse features, and practical use cases of MicrobiomeStat assist researchers in navigating the complexities of microbiome data, delivering meaningful insights for longitudinal studies.">
+<meta name="description" content="A comprehensive toolkit for advanced, longitudinal microbiome and multi-omics data analysis. Specializing in in-depth longitudinal microbiome analysis for precise data interpretation across time. Generate professional analysis reports with just a click through the One Click feature. Delivers robust solutions for diverse analytic scenarios and effortless handling of multi-omics data, amplifying research efficiency. The user-friendly design, diverse features, and practical use cases assist researchers in navigating microbiome data complexities, delivering meaningful insights for longitudinal studies.">
+<meta property="og:description" content="A comprehensive toolkit for advanced, longitudinal microbiome and multi-omics data analysis. Specializing in in-depth longitudinal microbiome analysis for precise data interpretation across time. Generate professional analysis reports with just a click through the One Click feature. Delivers robust solutions for diverse analytic scenarios and effortless handling of multi-omics data, amplifying research efficiency. The user-friendly design, diverse features, and practical use cases assist researchers in navigating microbiome data complexities, delivering meaningful insights for longitudinal studies.">
 <meta property="og:image" content="https://cafferychen777.github.io/MicrobiomeStat/logo.png">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="default" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top bg-primary" data-bs-theme="default" aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="index.html">MicrobiomeStat</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,9 +39,10 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/cafferychen777/MicrobiomeStat"><span class="fa fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/cafferychen777/MicrobiomeStat" aria-label="GitHub repository"><span class="fa fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -49,22 +50,39 @@
   </div>
 </nav><div class="container template-home">
 <div class="row">
-  <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header">
-<img src="logo.png" class="logo" alt=""><h1 id="microbiomestat-supporting-longitudinal-microbiome-analysis-in-r">MicrobiomeStat: Supporting Longitudinal Microbiome Analysis in R<a class="anchor" aria-label="anchor" href="#microbiomestat-supporting-longitudinal-microbiome-analysis-in-r"></a>
-</h1>
+  <main id="main" class="col-md-9"><div align="center" style="margin:20px 0;">
+<img src="reference/figures/logo.png" alt="MicrobiomeStat Logo" width="200" style="margin:10px 0;"><h3>
+Supporting Longitudinal Microbiome Analysis in R
+</h3>
 </div>
-<p align="center" style="margin:0; padding:0;">
-<img src="reference/figures/logo.png" alt="MicrobiomeStat Logo" width="400" style="margin:0; padding:0;"></p>
 <p>🌟 <strong>If you find <code>MicrobiomeStat</code> helpful, please consider giving us a star on GitHub!</strong> Your support greatly motivates us to improve and maintain this project. 🌟</p>
 <!-- badges: start -->
 
 <p><a href="README.html">EN</a> | <a href="README-CN.html">CN</a> | <a href="README-ES.html">ES</a></p>
 <p>The MicrobiomeStat package is a dedicated R tool for exploring <em>longitudinal microbiome data</em>. It also accommodates multi-omics data and cross-sectional studies, valuing the collective efforts within the community. One of its standout features is the ability to generate comprehensive microbiome analysis reports, spanning dozens of pages, with just a single click. This tool aims to support researchers through their extensive biological inquiries over time, with a spirit of gratitude towards the community’s existing resources and a collaborative ethos for furthering microbiome research.</p>
-</div>
-<div class="section level1">
-<h1 id="news">News<a class="anchor" aria-label="anchor" href="#news"></a>
+<figure><img src="https://repobeats.axiom.co/api/embed/6466765a763c06a17b91f0a2d456855888d71573.svg" title="Repobeats analytics image" alt="Alt"><figcaption aria-hidden="true">
+Alt
+</figcaption></figure><div class="section level1">
+<div class="page-header">
+<img src="logo.png" class="logo" alt=""><h1 id="news">News<a class="anchor" aria-label="anchor" href="#news"></a>
 </h1>
+</div>
+<p>🌟 <strong>Also Check Out: <code>mLLMCelltype</code></strong></p>
+<p>We’re excited to introduce <code>mLLMCelltype</code>, our innovative framework for <strong>single-cell RNA sequencing data annotation</strong>. This iterative multi-LLM consensus framework leverages the collective intelligence of multiple large language models (including GPT-4o/4.1, Claude-3.7/3.5, Gemini-2.0, Grok-3, and others) to significantly improve cell type annotation accuracy while providing transparent uncertainty quantification.</p>
+<p><code>mLLMCelltype</code> addresses critical challenges in scRNA-seq analysis through its unique architecture:</p>
+<ul>
+<li>
+<strong>Multi-LLM Consensus</strong>: Overcomes single-model limitations by harnessing diverse LLMs’ collective intelligence</li>
+<li>
+<strong>Structured Deliberation</strong>: Enables models to share reasoning, evaluate evidence, and refine annotations through collaborative discussion</li>
+<li>
+<strong>Transparent Uncertainty Metrics</strong>: Provides quantitative measures to identify ambiguous cell populations requiring expert review</li>
+<li>
+<strong>Hallucination Reduction</strong>: Suppresses inaccurate predictions through cross-model critical evaluation</li>
+<li>
+<strong>No Reference Dataset Required</strong>: Performs accurate annotation without pre-training or reference data</li>
+</ul>
+<p>For researchers working with single-cell data, <code>mLLMCelltype</code> offers a powerful new approach to cell type annotation. Learn more about its capabilities and methodology on GitHub: <a href="https://github.com/cafferychen777/mLLMCelltype" class="external-link">mLLMCelltype Repository</a>.</p>
 <p>📢 <strong>Update</strong> (January 8th): Enhancement in Color Palette Functionality</p>
 <p>We are excited to announce a significant update to our color palette management in the majority of our functions. Users can now directly use predefined palette names such as “lancet”, “nejm”, among others, as values for the <code>palette</code> parameter. This update is part of our ongoing effort to enhance user experience and provide more intuitive and flexible options for data visualization.</p>
 <p>Key highlights of this update: - Integration of the <code>mStat_get_palette</code> function across various functions in our package. - Allows users to easily specify color palettes by name, such as “lancet”, “nejm”, “npg”, “aaas”, “jama”, “jco”, and “ucscgb”. - Ensures backward compatibility and introduces a more user-friendly approach to selecting color schemes for visualizations. - Aims to enhance the visual appeal and interpretability of plots and heatmaps generated using our package.</p>
@@ -79,14 +97,21 @@
 <div class="section level2">
 <h2 id="general-citation-for-microbiomestat">General Citation for MicrobiomeStat<a class="anchor" aria-label="anchor" href="#general-citation-for-microbiomestat"></a>
 </h2>
-<p>If you are using features beyond the <code>linda</code> and <code>linda.plot</code> functions, please cite as follows, until a preprint version is published:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="sc">@</span>Manual{,</span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>  title <span class="ot">=</span> {MicrobiomeStat<span class="sc">:</span> Comprehensive Statistical and Visualization Methods <span class="cf">for</span> Microbiome and Multi<span class="sc">-</span>Omics Data},</span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>  author <span class="ot">=</span> {Xianyang Zhang and Jun Chen and <span class="fu">Caffery</span>(Chen) Yang},</span>
-<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>  year <span class="ot">=</span> {<span class="dv">2023</span>},</span>
-<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>  note <span class="ot">=</span> {R package version <span class="dv">1</span>.<span class="fl">1.1</span>},</span>
-<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>  url <span class="ot">=</span> {https<span class="sc">:</span><span class="er">//</span>www.microbiomestat.wiki},</span>
-<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>}</span></code></pre></div>
+<p>If you are using features beyond the <code>linda</code> and <code>linda.plot</code> functions, please cite as follows:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="sc">@</span>software{yang_2025_14881492,</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>  author       <span class="ot">=</span> {Yang, Chen and</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>                  Chen, Jun and</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>                  Zhang, Xianyang and</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>                  Zhou, Huijuan},</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>  title        <span class="ot">=</span> {Comprehensive Statistical and Visualization</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>                   Methods <span class="cf">for</span> Microbiome and Multi<span class="sc">-</span>Omics Data</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>                  },</span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>  month        <span class="ot">=</span> feb,</span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>  year         <span class="ot">=</span> <span class="dv">2025</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>  publisher    <span class="ot">=</span> {Zenodo},</span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>  doi          <span class="ot">=</span> {<span class="fl">10.5281</span><span class="sc">/</span>zenodo<span class="fl">.14881492</span>},</span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>  url          <span class="ot">=</span> {https<span class="sc">:</span><span class="er">//</span>doi.org<span class="sc">/</span><span class="fl">10.5281</span><span class="sc">/</span>zenodo<span class="fl">.14881492</span>},</span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a>}</span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="citation-for-specialized-microbiomestat-functions">Citation for Specialized <code>MicrobiomeStat</code> Functions<a class="anchor" aria-label="anchor" href="#citation-for-specialized-microbiomestat-functions"></a>
@@ -233,7 +258,7 @@
 <h3 id="user-support">User Support<a class="anchor" aria-label="anchor" href="#user-support"></a>
 </h3>
 <p><code>MicrobiomeStat</code> is designed with users in mind. Comprehensive <a href="https://www.microbiomestat.wiki/" class="external-link">documentation and tutorials</a> are available to assist both novice and experienced researchers. Before posting a question or issue, we encourage users to <a href="https://github.com/cafferychen777/MicrobiomeStat/issues?q=is%3Aissue+is%3Aclosed" class="external-link">check previous questions and issues</a> to see if the topic has already been addressed.</p>
-<p>In case you have specific comments or questions about a particular function’s documentation and you find that the RStudio’s search box leads to a 404 error, you can directly access the function’s documentation at <a href="https://cafferychen777.github.io/MicrobiomeStat/reference/index.html" class="uri">https://cafferychen777.github.io/MicrobiomeStat/reference/index.html</a>.</p>
+<p>In case you have specific comments or questions about a particular function’s documentation and you find that the RStudio’s search box leads to a 404 error, you can directly access the function’s documentation at <a href="https://cafferyang.com/MicrobiomeStat/reference/index.html" class="external-link uri">https://cafferyang.com/MicrobiomeStat/reference/index.html</a>.</p>
 <p>If your question or issue has not been previously addressed, feel free to <a href="https://github.com/cafferychen777/MicrobiomeStat/issues" class="external-link">open a new issue on GitHub</a>. We are here to help you navigate any challenges you may encounter.</p>
 </div>
 <div class="section level3">
@@ -253,8 +278,8 @@
 <p><code>MicrobiomeStat</code> aims to serve as a dependable and efficient resource for microbiome data analysis. We extend an invitation to those who value open-source collaboration to join our community and contribute to its ongoing development.</p>
 <table class="table">
 <colgroup>
-<col width="16%">
-<col width="83%">
+<col width="50%">
+<col width="50%">
 </colgroup>
 <thead><tr class="header">
 <th>Feature</th>
@@ -311,8 +336,8 @@
 <p>For assistance or inquiries, feel free to reach out to:</p>
 <table class="table">
 <colgroup>
-<col width="72%">
-<col width="27%">
+<col width="50%">
+<col width="50%">
 </colgroup>
 <thead><tr class="header">
 <th>Name</th>
@@ -324,8 +349,8 @@
 <td><a href="mailto:Chen.Jun2@mayo.edu" class="email">Chen.Jun2@mayo.edu</a></td>
 </tr>
 <tr class="even">
-<td><a href="https://cafferyyang.owlstown.net/" class="external-link">Chen Yang</a></td>
-<td><a href="mailto:cafferychen7850@gmail.com" class="email">cafferychen7850@gmail.com</a></td>
+<td><a href="https://github.com/cafferychen777" class="external-link">Chen Yang</a></td>
+<td><a href="mailto:cafferychen777@tamu.edu" class="email">cafferychen777@tamu.edu</a></td>
 </tr>
 </tbody>
 </table>
@@ -334,7 +359,7 @@
 <h2 id="engage-in-our-discord-community">Engage in Our Discord Community<a class="anchor" aria-label="anchor" href="#engage-in-our-discord-community"></a>
 </h2>
 <p>Join our Discord community to stay on top of the latest updates, developments, and enhancements in <code>MicrobiomeStat</code>. Be part of vibrant discussions, ask questions, share insights, and avail support from peers and experts alike:</p>
-<p><a href="https://discord.gg/BfNvTJAt" class="external-link">Join the MicrobiomeStat Discord Server!</a></p>
+<p><a href="https://discord.gg/U6vNamyk" class="external-link">Join the MicrobiomeStat Discord Server!</a></p>
 <p>In our Discord server, an automated bot keeps you informed about every package and tutorial update, ensuring you never miss out on new features, improvements, and learning materials. Our active community thrives on collaboration, feedback, and continuous learning, making it an invaluable space for both novice and experienced researchers navigating the world of microbiome data analysis. Stay connected, stay informed, and let’s advance the field of microbiome data analysis together!</p>
 </div>
 <div class="section level2">
@@ -403,7 +428,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
     </footer>
