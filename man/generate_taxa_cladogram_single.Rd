@@ -2,10 +2,7 @@
 % Please edit documentation in R/generate_taxa_cladogram_single.R
 \name{generate_taxa_cladogram_single}
 \alias{generate_taxa_cladogram_single}
-\title{This function generates a circular cladogram with an integrated heatmap for taxonomic data.
-It visualizes the phylogenetic relationships between different taxa and their abundances or other
-coefficients (e.g., from differential abundance testing) across different taxonomic levels
-using a tree-like structure (cladogram). The heatmap is overlaid on the branches/tips of the cladogram.}
+\title{Generate Circular Cladogram with Heatmap for Taxonomic Data}
 \usage{
 generate_taxa_cladogram_single(
   data.obj,

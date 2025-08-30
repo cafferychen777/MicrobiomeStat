@@ -1,5 +1,6 @@
+#' @title Generate Circular Cladogram with Heatmap for Taxonomic Data
 #'
-#' This function generates a circular cladogram with an integrated heatmap for taxonomic data.
+#' @description This function generates a circular cladogram with an integrated heatmap for taxonomic data.
 #' It visualizes the phylogenetic relationships between different taxa and their abundances or other
 #' coefficients (e.g., from differential abundance testing) across different taxonomic levels
 #' using a tree-like structure (cladogram). The heatmap is overlaid on the branches/tips of the cladogram.
