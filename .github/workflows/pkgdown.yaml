@@ -35,12 +35,21 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libharfbuzz-dev libfribidi-dev
+          sudo apt-get install -y \
+            libharfbuzz-dev \
+            libfribidi-dev \
+            build-essential \
+            gfortran \
+            libc6-dev \
+            gcc-multilib \
+            g++-multilib
 
       - uses: r-lib/actions/setup-r-dependencies@v2
-        with: 
+        with:
           extra-packages: any::pkgdown, local::.
           needs: website
+        env:
+          RSPM: https://packagemanager.rstudio.com/cran/__linux__/noble/latest
 
       - name: Build site
         run: |
