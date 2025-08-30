@@ -34,7 +34,7 @@ title="Repobeats analytics image" alt="Alt" />
 <figcaption aria-hidden="true">Alt</figcaption>
 </figure>
 
-# News
+## News
 
 🌟 **Also Check Out: `mLLMCelltype`**
 
