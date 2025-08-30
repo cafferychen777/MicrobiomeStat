@@ -20,7 +20,7 @@ Depends:
     R (>= 3.5.0),
     rlang, 
     tibble
-Imports: 
+Imports:
     ggplot2,
     matrixStats,
     lmerTest,
@@ -39,7 +39,9 @@ Imports:
     knitr,
     pander,
     tinytex,
-    tidytree
+    tidytree,
+    ggtree,
+    ggtreeExtra
 Suggests:
     ggrepel,
     parallel,
@@ -48,8 +50,6 @@ Suggests:
     yaml,
     biomformat,
     Biostrings,
-    ggtree,
-    ggtreeExtra,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Config/build/clean-inst-doc: TRUE
