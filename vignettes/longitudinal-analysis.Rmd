@@ -62,7 +62,7 @@ generate_alpha_spaghettiplot_long(
   subject.var = "subject.id",
   time.var = "month_num",
   t0.level = "0",
-  ts.levels = c("0", "1", "2", "3", "4", "5", "6"),
+  ts.levels = c("1", "2", "3", "4", "5", "6"),
   group.var = "delivery",
   strata.var = "diet"
 )
@@ -124,7 +124,7 @@ generate_beta_ordination_long(
   subject.var = "subject.id",
   time.var = "month_num",
   t0.level = "0",
-  ts.levels = c("0", "1", "2", "3", "4", "5", "6"),
+  ts.levels = c("1", "2", "3", "4", "5", "6"),
   group.var = "delivery",
   strata.var = "diet",
   dist.name = "BC"
@@ -167,7 +167,7 @@ generate_taxa_areaplot_long(
   subject.var = "subject.id",
   time.var = "month_num",
   t0.level = "0",
-  ts.levels = c("0", "1", "2", "3", "4", "5", "6"),
+  ts.levels = c("1", "2", "3", "4", "5", "6"),
   group.var = "delivery",
   strata.var = "diet",
   feature.level = "Phylum",
@@ -184,7 +184,7 @@ generate_taxa_heatmap_long(
   subject.var = "subject.id",
   time.var = "month_num",
   t0.level = "0",
-  ts.levels = c("0", "1", "2", "3", "4", "5", "6"),
+  ts.levels = c("1", "2", "3", "4", "5", "6"),
   group.var = "delivery",
   strata.var = "diet",
   feature.level = "Family",

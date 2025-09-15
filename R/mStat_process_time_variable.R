@@ -37,7 +37,8 @@ mStat_process_time_variable <-
     # This allows for flexible handling of time points, accommodating different study designs.
     levels <- if (!is.null(t0.level) && !is.null(ts.levels)) {
       # If both baseline and follow-up time points are specified, use them as levels.
-      c(t0.level, ts.levels)
+      # Remove duplicates to avoid "factor level [x] is duplicated" error
+      unique(c(t0.level, ts.levels))
     } else if (!is.null(t0.level) && is.null(ts.levels)) {
       # If only baseline is specified, use it as the first level and include all other time points.
       unique_vals <- as.character(unique_vals)
@@ -62,7 +63,11 @@ mStat_process_time_variable <-
         } else if (is.numeric(time.var_val)) {
           # For numeric variables, convert to factor if specific levels are provided.
           if (!is.null(t0.level) && !is.null(ts.levels)) {
-            factor(time.var_val, levels = levels)
+            # Convert levels to numeric to match the data type, then back to character for factor levels
+            numeric_levels <- as.numeric(levels)
+            # Sort numeric levels to ensure proper ordering
+            numeric_levels <- sort(numeric_levels)
+            factor(time.var_val, levels = as.character(numeric_levels))
           } else {
             time.var_val
           }

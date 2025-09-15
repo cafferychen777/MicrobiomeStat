@@ -27,13 +27,13 @@ MicrobiomeStat is a comprehensive R package designed for advanced longitudinal m
 
 You can install MicrobiomeStat from CRAN:
 
-```{r}
+```{r, eval=FALSE}
 install.packages("MicrobiomeStat")
 ```
 
 Or get the development version from GitHub:
 
-```{r}
+```{r, eval=FALSE}
 # install.packages("devtools")
 devtools::install_github("cafferychen777/MicrobiomeStat")
 ```

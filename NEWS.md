@@ -10,6 +10,14 @@
   - Added comprehensive test coverage for Jensen-Shannon divergence with various edge cases
   - Enhanced error handling and user warnings for invalid distance calculations
 
+### Fixed vignette execution errors
+* **Resolved vignette build failures in R CMD check**:
+  - Fixed duplicate factor level error in `mStat_process_time_variable()` function
+  - Added proper handling of duplicate values in `t0.level` and `ts.levels` parameters
+  - Improved type conversion for numeric time variables with character level specifications
+  - Fixed CRAN mirror issues in vignette installation examples by adding `eval=FALSE`
+  - Updated longitudinal analysis vignette examples to use correct parameter combinations
+
 ## Additional Improvements
 
 ### Complete Normalization Optimization for Barplot Functions
