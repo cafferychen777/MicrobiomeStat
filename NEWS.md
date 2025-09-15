@@ -1,5 +1,15 @@
 # MicrobiomeStat 1.4.1
 
+## Bug Fixes
+
+### Fixed Jensen-Shannon divergence calculation with TSS normalization
+* **Resolved Issue #45: NA values in Jensen-Shannon divergence after TSS normalization**:
+  - Fixed Kullback-Leibler divergence function to properly handle zero values in probability distributions
+  - Added validation to ensure both distributions have positive values before log calculation
+  - Implemented safety checks to prevent NA/infinite values in distance matrices
+  - Added comprehensive test coverage for Jensen-Shannon divergence with various edge cases
+  - Enhanced error handling and user warnings for invalid distance calculations
+
 ## Additional Improvements
 
 ### Complete Normalization Optimization for Barplot Functions

@@ -180,8 +180,12 @@ mStat_calculate_beta_diversity <- function(data.obj,
     # Define Kullback-Leibler divergence (KLD) function
     # KLD measures how one probability distribution diverges from a second, expected probability distribution
     KLD <- function(p, q) {
-      non_zero <- p > 0
-      sum(p[non_zero] * log(p[non_zero] / q[non_zero]))
+      # Only include positions where both p and q are positive to avoid log(x/0) = Inf
+      valid_idx <- (p > 0) & (q > 0)
+      if (sum(valid_idx) == 0) {
+        return(0)  # If no valid positions, return 0
+      }
+      sum(p[valid_idx] * log(p[valid_idx] / q[valid_idx]))
     }
 
     # Define Jensen-Shannon divergence (JSD) function
@@ -197,14 +201,25 @@ mStat_calculate_beta_diversity <- function(data.obj,
 
     for (i in 1:(num_samples - 1)) {
       for (j in (i + 1):num_samples) {
-        jsd_matrix[i, j] <- JSD(otu_tab_norm[, i], otu_tab_norm[, j])
-        jsd_matrix[j, i] <- jsd_matrix[i, j]  # JSD is symmetric
+        jsd_value <- JSD(otu_tab_norm[, i], otu_tab_norm[, j])
+        # Check for invalid values and handle them
+        if (is.na(jsd_value) || is.infinite(jsd_value)) {
+          warning(paste("Invalid JSD value between samples", i, "and", j, ". Setting to 0."))
+          jsd_value <- 0
+        }
+        jsd_matrix[i, j] <- jsd_value
+        jsd_matrix[j, i] <- jsd_value  # JSD is symmetric
       }
     }
 
     # Assign row and column names to the JSD matrix
     rownames(jsd_matrix) <- colnames(otu_tab)
     colnames(jsd_matrix) <- colnames(otu_tab)
+
+    # Check for any remaining NA or infinite values in the matrix
+    if (any(is.na(jsd_matrix)) || any(is.infinite(jsd_matrix))) {
+      warning("Jensen-Shannon divergence matrix contains NA or infinite values. This may cause issues in downstream analyses.")
+    }
 
     # Convert the JSD matrix to a dist object
     jsd_dist <- as.dist(jsd_matrix)
