@@ -159,7 +159,7 @@ generate_taxa_barplot_single(
 
 Generate comprehensive analysis reports with a single function:
 
-```{r}
+```{r, eval=FALSE}
 # For cross-sectional studies
 mStat_generate_report_single(
   data.obj = your_data,
@@ -170,7 +170,7 @@ mStat_generate_report_single(
   output.file = "analysis_report"
 )
 
-# For longitudinal studies  
+# For longitudinal studies
 mStat_generate_report_long(
   data.obj = your_data,
   subject.var = "subject",

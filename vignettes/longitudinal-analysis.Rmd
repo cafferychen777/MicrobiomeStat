@@ -75,8 +75,8 @@ Test for temporal trends in alpha diversity:
 ```{r alpha-trend}
 # Test for linear trends over time
 trend.test <- generate_alpha_trend_test_long(
+  data.obj = ecam.obj,
   alpha.obj = alpha.obj,
-  meta.dat = ecam.obj$meta.dat,
   alpha.name = c("shannon", "observed_species"),
   subject.var = "subject.id",
   time.var = "month_num",
