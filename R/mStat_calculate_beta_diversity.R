@@ -174,15 +174,45 @@ mStat_calculate_beta_diversity <- function(data.obj,
   if ('JS' %in% dist.name) {
     message("Calculating Jensen-Shannon divergence...")
 
+    # Check for samples with zero total counts before normalization
+    sample_sums <- colSums(otu_tab, na.rm = TRUE)
+    zero_samples <- which(sample_sums == 0)
+    
+    if (length(zero_samples) > 0) {
+      warning(paste("Found", length(zero_samples), "samples with zero total counts.",
+                    "These samples will be handled by adding a small pseudocount (1e-10)."))
+      # Add small pseudocount to avoid division by zero
+      otu_tab[, zero_samples] <- otu_tab[, zero_samples] + 1e-10
+      sample_sums[zero_samples] <- colSums(otu_tab[, zero_samples, drop = FALSE])
+    }
+
     # Normalize OTU table to relative abundances
-    otu_tab_norm <- sweep(otu_tab, 2, colSums(otu_tab), FUN = "/")
+    otu_tab_norm <- sweep(otu_tab, 2, sample_sums, FUN = "/")
+    
+    # Replace any remaining NaN/Inf values with 0
+    if (any(is.nan(otu_tab_norm)) || any(is.infinite(otu_tab_norm))) {
+      warning("NaN or Inf values detected after normalization. Setting to 0.")
+      otu_tab_norm[is.nan(otu_tab_norm) | is.infinite(otu_tab_norm)] <- 0
+    }
 
     # Define Kullback-Leibler divergence (KLD) function
     # KLD measures how one probability distribution diverges from a second, expected probability distribution
     KLD <- function(p, q) {
+      # Check for NA/NaN values and handle them gracefully
+      if (any(is.na(p)) || any(is.na(q)) || any(is.nan(p)) || any(is.nan(q))) {
+        # Replace NA/NaN with 0 for calculation purposes
+        p[is.na(p) | is.nan(p)] <- 0
+        q[is.na(q) | is.nan(q)] <- 0
+      }
+      
       # Only include positions where both p and q are positive to avoid log(x/0) = Inf
       valid_idx <- (p > 0) & (q > 0)
-      if (sum(valid_idx) == 0) {
+      
+      # Extra safety: ensure valid_idx doesn't contain NA
+      valid_idx[is.na(valid_idx)] <- FALSE
+      
+      # Use na.rm = TRUE for robustness
+      if (sum(valid_idx, na.rm = TRUE) == 0) {
         return(0)  # If no valid positions, return 0
       }
       sum(p[valid_idx] * log(p[valid_idx] / q[valid_idx]))

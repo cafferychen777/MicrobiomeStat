@@ -132,7 +132,15 @@ mStat_normalize_data <-
     } else if (method == "TSS") {
       # Total Sum Scaling
       # This method converts counts to relative abundances
-      scale_factor <- colSums(otu_tab)
+      scale_factor <- colSums(otu_tab, na.rm = TRUE)
+      
+      # Check for zero-sum samples and handle them gracefully
+      zero_samples <- which(scale_factor == 0)
+      if (length(zero_samples) > 0) {
+        warning(paste("Found", length(zero_samples), "samples with zero total counts.",
+                      "Setting scale factor to 1 for these samples to avoid division by zero."))
+        scale_factor[zero_samples] <- 1
+      }
     } else if (method == "GMPR") {
       # Geometric Mean of Pairwise Ratios
       # This method is robust to compositional effects and uneven sequencing depth
@@ -159,8 +167,15 @@ mStat_normalize_data <-
 
     if (method %in% c("TSS", "GMPR", "CSS", "DESeq", "TMM")) {
       # Normalize the data
-      data.obj.norm <-
-        update_data_obj_count(data.obj, as.matrix(sweep(otu_tab, 2, scale_factor, "/")))
+      normalized_tab <- as.matrix(sweep(otu_tab, 2, scale_factor, "/"))
+      
+      # Check for and handle NaN/Inf values that may result from division
+      if (any(is.nan(normalized_tab)) || any(is.infinite(normalized_tab))) {
+        warning("NaN or Inf values detected after normalization. Setting these values to 0.")
+        normalized_tab[is.nan(normalized_tab) | is.infinite(normalized_tab)] <- 0
+      }
+      
+      data.obj.norm <- update_data_obj_count(data.obj, normalized_tab)
     } else {
       data.obj.norm <-
         update_data_obj_count(data.obj, as.matrix(rarefied_otu_tab))
