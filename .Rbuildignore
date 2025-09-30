@@ -28,6 +28,8 @@
 ^inst/doc$
 ^inst/doc/.*$
 ^inst/doc/.*\.pdf$
+^vignettes$
+^vignettes/.*$
 ^vignettes/.*\.pdf$
 ^vignettes/.*_files$
 ^vignettes/.*_cache$
