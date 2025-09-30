@@ -2446,17 +2446,24 @@ generate_featuretest_volcano <- function(
     )
   } else {
     # Trend or volatility volcano (longitudinal)
+    # Create dummy data.obj required by generate_taxa_trend_volcano_long
+    dummy_data.obj <- list(
+      meta.dat = data.frame(
+        dummy_var = rep("group1", 10),
+        row.names = paste0("sample", 1:10)
+      )
+    )
+
     result <- generate_taxa_trend_volcano_long(
-      test.result.list = test.result.list,
+      data.obj = dummy_data.obj,
+      group.var = NULL,
+      time.var = NULL,
+      test.list = test.result.list,
       feature.mt.method = feature.mt.method,
       feature.sig.level = feature.sig.level,
-      features.highlight = features.highlight,
-      base.size = base.size,
-      theme.choice = theme.choice,
-      custom.theme = custom.theme,
+      features.plot = features.highlight,
       palette = palette,
-      pdf = FALSE,
-      ...
+      pdf = FALSE
     )
   }
   
