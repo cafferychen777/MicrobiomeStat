@@ -94,8 +94,8 @@ Assess the stability of alpha diversity over time:
 ```{r alpha-volatility}
 # Calculate volatility (variability between consecutive time points)
 volatility.test <- generate_alpha_volatility_test_long(
+  data.obj = ecam.obj,
   alpha.obj = alpha.obj,
-  meta.dat = ecam.obj$meta.dat,
   alpha.name = "shannon",
   subject.var = "subject.id",
   time.var = "month_num",
@@ -145,8 +145,8 @@ pc.obj <- mStat_calculate_PC(
 )
 
 generate_beta_pc_change_boxplot_pair(
+  data.obj = ecam.obj,
   pc.obj = pc.obj,
-  meta.dat = ecam.obj$meta.dat,
   subject.var = "subject.id",
   time.var = "month_num",
   group.var = "delivery",
