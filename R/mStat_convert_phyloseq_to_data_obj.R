@@ -24,7 +24,11 @@
 #' }
 #'
 #' @details
-#' This function checks each component (OTU table, sample data, taxonomy table, and phylogenetic tree) of the phyloseq object for null values. If a component is not null, it is converted to the appropriate format and added to the MicrobiomeStat data object. The OTU and taxonomy tables are converted to matrices, while the sample data is converted to a data frame. The phylogenetic tree is checked if it is rooted, and if not, it is rooted by midpointing. Tips not present in the OTU table are dropped from the tree. This ensures the output data object is consistent and ready for further microbiome statistical analysis.
+#' This function checks each component (OTU table, sample data, taxonomy table, and phylogenetic tree) of the phyloseq object for null values. If a component is not null, it is converted to the appropriate format and added to the MicrobiomeStat data object. The OTU and taxonomy tables are converted to matrices, while the sample data is converted to a data frame.
+#'
+#' The function automatically handles the OTU table orientation by checking the \code{taxa_are_rows} slot of the phyloseq object. If \code{taxa_are_rows} is FALSE (i.e., samples are rows and taxa are columns in the phyloseq object), the OTU table will be automatically transposed to ensure that the resulting feature table has taxa as rows and samples as columns, which is the required format for MicrobiomeStat functions.
+#'
+#' The phylogenetic tree is checked if it is rooted, and if not, it is rooted by midpointing. Tips not present in the OTU table are dropped from the tree. This ensures the output data object is consistent and ready for further microbiome statistical analysis.
 #'
 #' @author Jun Chen
 #' @references McMurdie PJ, Holmes S. phyloseq: An R Package for Reproducible Interactive Analysis and Graphics of Microbiome Census Data. PLoS ONE. 2013;8(4):e61217.
@@ -40,9 +44,19 @@ mStat_convert_phyloseq_to_data_obj <- function (phylo.obj) {
   if (!is.null(phylo.obj@otu_table)) {
     # Convert the OTU table to a matrix format
     # This step ensures compatibility with downstream analyses and improves computational efficiency
-    data.obj$feature.tab <- phylo.obj@otu_table %>%
+    otu_matrix <- phylo.obj@otu_table %>%
       as.data.frame() %>%
       as.matrix()
+
+    # Check if taxa are rows in the phyloseq object
+    # If taxa_are_rows is FALSE (samples as rows), transpose the matrix
+    # This ensures the feature table always has taxa as rows and samples as columns
+    if (!phylo.obj@otu_table@taxa_are_rows) {
+      message("Note: taxa_are_rows is FALSE in the phyloseq object. Transposing OTU table to ensure taxa as rows...")
+      otu_matrix <- t(otu_matrix)
+    }
+
+    data.obj$feature.tab <- otu_matrix
 
     # Remove features (rows) with zero counts across all samples
     # This step is crucial for reducing sparsity in the data, which can improve statistical power and reduce computational burden in subsequent analyses

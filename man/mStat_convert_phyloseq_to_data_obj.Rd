@@ -22,7 +22,11 @@ A MicrobiomeStat data object (a list) containing the following elements:
 This function is a part of the MicrobiomeStat package. It takes a phyloseq object, extracts relevant information and repackages it in the MicrobiomeStat's data object format. This enables easy use of phyloseq data with MicrobiomeStat's analysis functions.
 }
 \details{
-This function checks each component (OTU table, sample data, taxonomy table, and phylogenetic tree) of the phyloseq object for null values. If a component is not null, it is converted to the appropriate format and added to the MicrobiomeStat data object. The OTU and taxonomy tables are converted to matrices, while the sample data is converted to a data frame. The phylogenetic tree is checked if it is rooted, and if not, it is rooted by midpointing. Tips not present in the OTU table are dropped from the tree. This ensures the output data object is consistent and ready for further microbiome statistical analysis.
+This function checks each component (OTU table, sample data, taxonomy table, and phylogenetic tree) of the phyloseq object for null values. If a component is not null, it is converted to the appropriate format and added to the MicrobiomeStat data object. The OTU and taxonomy tables are converted to matrices, while the sample data is converted to a data frame.
+
+The function automatically handles the OTU table orientation by checking the \code{taxa_are_rows} slot of the phyloseq object. If \code{taxa_are_rows} is FALSE (i.e., samples are rows and taxa are columns in the phyloseq object), the OTU table will be automatically transposed to ensure that the resulting feature table has taxa as rows and samples as columns, which is the required format for MicrobiomeStat functions.
+
+The phylogenetic tree is checked if it is rooted, and if not, it is rooted by midpointing. Tips not present in the OTU table are dropped from the tree. This ensures the output data object is consistent and ready for further microbiome statistical analysis.
 }
 \examples{
 \dontrun{
