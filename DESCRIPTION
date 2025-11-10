@@ -39,9 +39,7 @@ Imports:
     knitr,
     pander,
     tinytex,
-    tidytree,
-    ggtree,
-    ggtreeExtra
+    tidytree
 Suggests:
     ggrepel,
     parallel,
@@ -51,11 +49,14 @@ Suggests:
     biomformat,
     Biostrings,
     picante,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    ggtree,
+    ggtreeExtra
+VignetteBuilder: knitr
 Config/testthat/edition: 3
 Config/build/clean-inst-doc: TRUE
 Config/build/clean-docs-in-inst: TRUE
-BuildVignettes: false
+BuildVignettes: true
 BuildManual: false
 License: GPL-3
 Encoding: UTF-8

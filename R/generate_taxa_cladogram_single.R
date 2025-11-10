@@ -49,8 +49,6 @@
 #' @importFrom ggplot2 aes scale_fill_gradient2 geom_text element_text guide_colorbar unit scale_color_manual guides theme geom_tile ggsave draw_key_rect
 #' @importFrom tidytree as_tibble as.treedata
 #' @importFrom dplyr filter mutate group_by ungroup left_join bind_rows pull case_when row_number
-#' @importFrom ggtree ggtree groupOTU geom_tiplab
-#' @importFrom ggtreeExtra geom_fruit
 #' @importFrom ape as.phylo keep.tip
 #' @importFrom stringr str_replace_all
 #' @importFrom stats as.formula p.adjust setNames
