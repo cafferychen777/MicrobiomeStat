@@ -1,3 +1,29 @@
+# MicrobiomeStat 1.4.2
+
+## Critical Bug Fixes
+
+### Fixed time-point specific pseudocount bias in taxa change analysis
+* **BREAKING CHANGE: Fixed systematic bias in `generate_taxa_change_test_pair()`**:
+  - Changed from per-(sample×timepoint) to per-taxon pseudocount calculation
+  - Ensures the same pseudocount is used for each taxon at both time points
+  - Eliminates systematic bias in log fold change calculations for sparse taxa
+  - Zero→zero transitions now correctly show change ≈ 0 instead of spurious non-zero changes
+  - Achieves consistency with visualization functions (fixed in v1.4.3)
+  - **Users who previously used this function should re-run their analyses**
+  - Results may differ, especially for sparse taxa with many zero values
+  - Based on comprehensive 400-simulation statistical study comparing strategies
+  - See `R/generate_taxa_change_test_pair.R:188-213` for implementation details
+
+### Impact and Validation
+* **Statistical rigor improvements**:
+  - Unbiased log fold change estimates for paired sample comparisons
+  - Valid statistical inference for differential abundance testing
+  - Package-wide unified pseudocount strategy (per-taxon across all samples and time points)
+  - Validated through 7 comprehensive test suites with perfect reproducibility
+  - Coefficient magnitudes and p-value distributions confirmed as reasonable
+
+---
+
 # MicrobiomeStat 1.4.1
 
 ## Bug Fixes
