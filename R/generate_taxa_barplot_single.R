@@ -358,8 +358,10 @@ generate_taxa_barplot_single <-
         as.data.frame() %>%
         rownames_to_column(feature.level)
 
-      # Normalize the data
-      otu_tab_norm <- apply(t(otu_tax_agg %>% select(-one_of(feature.level))), 1, function(x) x)
+      # Transpose the data
+      otu_tab_counts <- apply(t(otu_tax_agg %>% select(-one_of(feature.level))), 1, function(x) x)
+      # Actually normalize to proportions for each sample (account for sequencing depth)
+      otu_tab_norm <- sweep(otu_tab_counts, 2, colSums(otu_tab_counts), "/")
       rownames(otu_tab_norm) <- as.matrix(otu_tax_agg[, feature.level])
 
       # Sort the metadata to match the feature table

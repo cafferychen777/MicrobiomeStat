@@ -308,9 +308,10 @@ generate_taxa_areaplot_long <-
         as.data.frame() %>%
         rownames_to_column(feature.level)
 
-      # Normalize the feature table
-      otu_tab_norm <- apply(t(otu_tax_agg %>% select(-all_of(feature.level))), 1, function(x) x)
-
+      # Transpose the data
+      otu_tab_counts <- apply(t(otu_tax_agg %>% select(-all_of(feature.level))), 1, function(x) x)
+      # Actually normalize to proportions for each sample (account for sequencing depth)
+      otu_tab_norm <- sweep(otu_tab_counts, 2, colSums(otu_tab_counts), "/")
       rownames(otu_tab_norm) <- as.matrix(otu_tax_agg[, feature.level])
 
       meta_tab_sorted <- meta_tab[colnames(otu_tab_norm), ]
