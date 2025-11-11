@@ -187,19 +187,30 @@ generate_taxa_change_test_pair <-
 
       # Perform data imputation and winsorization for count or proportion data
       if (feature.dat.type %in% c("count", "proportion")) {
-        # Calculate half of the minimum non-zero value for each sample
-        half_nonzero_min <- apply(otu_tax_agg_filter[, -1], 2, function(x) min(x[x > 0]) / 2)
+        # Calculate half of the minimum non-zero value for each taxon across all samples and time points
+        # This ensures the same pseudocount is used for each taxon at both time points,
+        # eliminating time-point specific bias in log fold change calculations
+        half_nonzero_min <- apply(otu_tax_agg_filter[, -1], 1, function(x) {
+          nonzero_values <- x[x > 0]
+          if (length(nonzero_values) > 0) {
+            min(nonzero_values) / 2
+          } else {
+            1e-10  # Fallback for taxa with all zeros
+          }
+        })
 
         # Create a logical matrix identifying zero values
         zero_matrix <- otu_tax_agg_filter[, -1] == 0
 
-        # Create a matrix of imputation values
-        half_nonzero_min_matrix <- matrix(half_nonzero_min, nrow = nrow(zero_matrix), ncol = ncol(zero_matrix), byrow = TRUE)
+        # Create a matrix of imputation values (per-taxon pseudocount applied across all samples)
+        half_nonzero_min_matrix <- matrix(half_nonzero_min, nrow = nrow(zero_matrix),
+                                          ncol = ncol(zero_matrix), byrow = FALSE)
 
         # Impute zero values with half of the minimum non-zero value
         otu_tax_agg_filter[, -1][zero_matrix] <- half_nonzero_min_matrix[zero_matrix]
 
-        message("Imputation was performed using half the minimum nonzero proportion for each taxon across all time points.")
+        message("Zero-handling: Per-taxon half-minimum pseudocount calculated across ALL samples and time points combined. ",
+                "This ensures unbiased change calculations by using the same pseudocount at both time points.")
 
         # Apply winsorization to limit extreme values
         otu_tax_agg_filter[, -1] <- apply(otu_tax_agg_filter[, -1], 2, function(x) {
