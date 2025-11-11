@@ -25,7 +25,9 @@ is_count_data <- function(data_mat) {
 #' - "Rarefy": Rarefaction normalization only.
 #' - "TSS": Total Sum Scaling normalization only.
 #' - "GMPR": Geometric Mean of Pairwise Ratios normalization method.
-#' - "CSS": Cumulative Sum Scaling normalization method.
+#' - "CSS": Cumulative Sum Scaling normalization method (Paulson et al. 2013). Requires metagenomeSeq package.
+#'   CSS normalizes by the cumulative sum of counts up to a data-driven quantile threshold,
+#'   making it robust to high-abundance taxa and varying library sizes.
 #' - "DESeq": Normalization using the DESeq method for RNA-seq data.
 #' - "TMM": Normalization using the Trimmed Mean of M-values (TMM) method from the edgeR package.
 #' @param depth An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.
@@ -146,11 +148,34 @@ mStat_normalize_data <-
       # This method is robust to compositional effects and uneven sequencing depth
       scale_factor <- GUniFrac::GMPR(otu_tab)
     } else if (method == "CSS") {
-      # Cumulative Sum Scaling
-      # This method is useful for data with varying sequencing depth
-      scale_factor <- apply(otu_tab, 2, function(x) {
-        sum(x) / median(x[x > 0])
-      })
+      # Cumulative Sum Scaling (Paulson et al. 2013, Nature Methods)
+      # CSS normalizes by the cumulative sum up to a data-driven quantile
+      # This approach is robust to high-abundance taxa and varying library sizes
+
+      # Check for metagenomeSeq package
+      if (!requireNamespace("metagenomeSeq", quietly = TRUE)) {
+        stop(
+          "Package 'metagenomeSeq' required for CSS normalization.\n",
+          "Install with: BiocManager::install('metagenomeSeq')"
+        )
+      }
+
+      # Convert to MRexperiment object (required format for metagenomeSeq)
+      mr_obj <- metagenomeSeq::newMRexperiment(counts = as.matrix(otu_tab))
+
+      # Calculate optimal quantile threshold using data-driven approach
+      # cumNormStatFast determines the quantile where features stabilize
+      p <- metagenomeSeq::cumNormStatFast(mr_obj)
+
+      # Calculate CSS normalization factors
+      # Returns cumulative sum up to quantile p for each sample as a data.frame
+      css_factors_df <- metagenomeSeq::calcNormFactors(mr_obj, p = p)
+
+      # Extract normalization factors as a vector
+      scale_factor <- css_factors_df$normFactors
+      names(scale_factor) <- rownames(css_factors_df)
+
+      message(paste0("CSS normalization using quantile threshold p = ", round(p, 3)))
     } else if (method == "DESeq") {
       # DESeq normalization
       # This method is particularly useful for RNA-seq data from microbiome studies
@@ -158,9 +183,19 @@ mStat_normalize_data <-
         sum(x) / exp(mean(log(x[x > 0])))
       })
     } else if (method == "TMM") {
-      # TMM normalization
+      # TMM normalization (Trimmed Mean of M-values)
       # This method is robust to compositional effects and uneven sequencing depth
-      scale_factor <- calcNormFactors(otu_tab, method = "TMM")
+
+      # Check for edgeR package
+      if (!requireNamespace("edgeR", quietly = TRUE)) {
+        stop(
+          "Package 'edgeR' required for TMM normalization.\n",
+          "Install with: BiocManager::install('edgeR')"
+        )
+      }
+
+      # Calculate TMM normalization factors
+      scale_factor <- edgeR::calcNormFactors(otu_tab, method = "TMM")
     } else {
       stop("Invalid normalization method.")
     }

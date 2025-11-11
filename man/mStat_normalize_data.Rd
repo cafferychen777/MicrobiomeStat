@@ -18,7 +18,9 @@ mStat_normalize_data(
 - "Rarefy": Rarefaction normalization only.
 - "TSS": Total Sum Scaling normalization only.
 - "GMPR": Geometric Mean of Pairwise Ratios normalization method.
-- "CSS": Cumulative Sum Scaling normalization method.
+- "CSS": Cumulative Sum Scaling normalization method (Paulson et al. 2013). Requires metagenomeSeq package.
+  CSS normalizes by the cumulative sum of counts up to a data-driven quantile threshold,
+  making it robust to high-abundance taxa and varying library sizes.
 - "DESeq": Normalization using the DESeq method for RNA-seq data.
 - "TMM": Normalization using the Trimmed Mean of M-values (TMM) method from the edgeR package.}
 

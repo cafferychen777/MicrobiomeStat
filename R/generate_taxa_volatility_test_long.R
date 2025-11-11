@@ -193,8 +193,11 @@ generate_taxa_volatility_test_long <- function(data.obj,
     # Impute zeros and apply CLR transformation
     otu_tax_agg_imputed_temp <- apply(otu_tax_agg, 1, impute_zeros_rowwise)
     otu_tax_agg_imputed <- t(otu_tax_agg_imputed_temp)
-    otu_tax_agg_clr <- apply(otu_tax_agg_imputed, 1, clr_transform)
-    otu_tax_agg_clr <- t(otu_tax_agg_clr)
+
+    # Apply CLR transformation per SAMPLE (column-wise)
+    # CLR must be applied within each sample, not across samples for each taxon
+    # Each sample's CLR values should sum to 0 (compositional data property)
+    otu_tax_agg_clr <- apply(otu_tax_agg_imputed, 2, clr_transform)
 
     # Convert to long format and apply filters
     otu_tax_agg_clr_long <- otu_tax_agg_clr %>%
