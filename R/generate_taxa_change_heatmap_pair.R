@@ -15,7 +15,7 @@
 #'
 #' - A custom function: If you provide a user-defined function, it should take two numeric arguments corresponding to the values at the two time points (`value_time_1` and `value_time_2`) and return the computed change. This custom function will be applied directly.
 #'
-#' - "log fold change": Computes the log2 fold change between the two time points. For zero values, imputation is performed using half of the minimum nonzero value for each feature level at the respective time point before taking the logarithm.
+#' - "log fold change": Computes the log2 fold change between the two time points. For zero values, imputation is performed using half of the minimum nonzero value for each feature across BOTH time points combined. The same pseudocount is used at both time points to ensure unbiased log fold change calculations. This prevents spurious changes for features with zero abundance at both time points.
 #'
 #' - "relative change": Computes the relative change as `(value_time_2 - value_time_1) / (value_time_2 + value_time_1)`. If both time points have a value of 0, the change is defined as 0.
 #'
@@ -317,38 +317,41 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
         combined_data %>% dplyr::mutate(value_diff = feature.change.func(value_time_2, value_time_1))
     } else if (feature.change.func == "log fold change") {
       # For log fold change, handle zero values by imputation
-      half_nonzero_min_time_2 <- combined_data %>%
-        filter(value_time_2 > 0) %>%
+      # CRITICAL FIX: Calculate pseudocount across BOTH time points combined
+      # Using different pseudocounts at each time point introduces systematic bias
+      # See: TIME_POINT_PSEUDOCOUNT_BUG_ANALYSIS.md for details
+      half_nonzero_min <- combined_data %>%
         dplyr::group_by(!!sym(feature.level)) %>%
-        dplyr::summarize(half_nonzero_min = min(value_time_2) / 2,
-                         .groups = "drop")
-      half_nonzero_min_time_1 <- combined_data %>%
-        filter(value_time_1 > 0) %>%
-        dplyr::group_by(!!sym(feature.level)) %>%
-        dplyr::summarize(half_nonzero_min = min(value_time_1) / 2,
-                         .groups = "drop")
+        dplyr::summarize(
+          half_nonzero_min = {
+            # Combine non-zero values from BOTH time points
+            all_values <- c(value_time_1[value_time_1 > 0],
+                            value_time_2[value_time_2 > 0])
+            if (length(all_values) > 0) {
+              min(all_values) / 2
+            } else {
+              1e-10  # Fallback for all-zero taxa (rare after filtering)
+            }
+          },
+          .groups = "drop"
+        )
 
-      combined_data <-
-        dplyr::left_join(
-          combined_data,
-          half_nonzero_min_time_2,
-          by = feature.level,
-          suffix = c("_time_1", "_time_2")
-        )
-      combined_data <-
-        dplyr::left_join(
-          combined_data,
-          half_nonzero_min_time_1,
-          by = feature.level,
-          suffix = c("_time_1", "_time_2")
-        )
-      combined_data$value_time_2[combined_data$value_time_2 == 0] <-
-        combined_data$half_nonzero_min_time_2[combined_data$value_time_2 == 0]
+      # Join the single pseudocount to the data
+      combined_data <- dplyr::left_join(
+        combined_data,
+        half_nonzero_min,
+        by = feature.level
+      )
+
+      # Use the SAME pseudocount for BOTH time points to ensure unbiased LFC
       combined_data$value_time_1[combined_data$value_time_1 == 0] <-
-        combined_data$half_nonzero_min_time_1[combined_data$value_time_1 == 0]
+        combined_data$half_nonzero_min[combined_data$value_time_1 == 0]
+      combined_data$value_time_2[combined_data$value_time_2 == 0] <-
+        combined_data$half_nonzero_min[combined_data$value_time_2 == 0]
 
       message(
-        "Imputation was performed using half the minimum nonzero proportion for each taxon at different time points."
+        "Zero-handling: Per-taxon half-minimum pseudocount across BOTH time points.\n",
+        "  This ensures unbiased log fold change calculations."
       )
 
       combined_data <-

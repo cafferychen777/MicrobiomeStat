@@ -48,7 +48,7 @@ this parameter has no effect.}
 The following options are supported:
 
 - "relative change": Computes the relative change as (time_2 - time_1) / (time_2 + time_1). If both values are zero, the result is zero.
-- "log fold change": Computes the log2 fold change between time points. Zero values are imputed as half the minimum nonzero value of the respective feature at the given time point before taking the logarithm.
+- "log fold change": Computes the log2 fold change between time points. Zero values are imputed as half the minimum nonzero value of the respective feature across BOTH time points combined. The same pseudocount is used at both time points to ensure unbiased log fold change calculations.
 - "absolute change": Computes the absolute difference between time points.
 - A custom function: The provided function should take two numeric vectors as input (values at time 1 and time 2) and return a numeric vector of differences. Users should ensure that their function handles zero values appropriately.
 

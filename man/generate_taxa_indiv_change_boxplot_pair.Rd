@@ -48,7 +48,7 @@ The following options are available:
 
 - "absolute change": Computes the difference between the abundance values at the two time points (`value_time_2` and `value_time_1`).
 
-- "log fold change": Computes the log2 fold change between the two time points. For zero abundances, imputation is performed using half of the minimum nonzero value for each feature level at the respective time point before taking the logarithm.
+- "log fold change": Computes the log2 fold change between the two time points. For zero abundances, imputation is performed using half of the minimum nonzero value for each feature across BOTH time points combined. The same pseudocount is used at both time points to ensure unbiased log fold change calculations.
 
 - "relative change": Computes the relative change as `(value_time_2 - value_time_1) / (value_time_2 + value_time_1)`. If both time points have an abundance of 0, the change is defined as 0.
 

@@ -15,7 +15,7 @@
 #'
 #' - "absolute change": Computes the difference between the counts at the two time points (`count_ts` and `count_t0`). This is the default behavior if no value or an unrecognized value is provided.
 #'
-#' - "log fold change": Computes the log2 fold change between the two time points. For zero counts, imputation is performed using half of the minimum nonzero count for each taxa level at the respective time point before taking the logarithm.
+#' - "log fold change": Computes the log2 fold change between the two time points. For zero counts, imputation is performed using half of the minimum nonzero count for each taxa across BOTH time points combined. The same pseudocount is used at both time points to ensure unbiased log fold change calculations.
 #'
 #' - "relative change": Computes the relative change as `(count_ts - count_t0) / (count_ts + count_t0)`. If both time points have a count of 0, the change is defined as 0.
 #'
@@ -284,24 +284,29 @@ generate_taxa_change_scatterplot_pair <-
       if (is.function(feature.change.func)) {
         df <- df %>% dplyr::mutate(new_count = feature.change.func(count_ts, count_t0))
       } else if (feature.change.func == "log fold change") {
-        half_nonzero_min_time_2 <- df %>%
-          filter(count_ts > 0) %>%
+        # CRITICAL FIX: Calculate pseudocount across BOTH time points combined
+        # Using different pseudocounts at each time point introduces systematic bias
+        half_nonzero_min <- df %>%
           dplyr::group_by(!!sym(feature.level)) %>%
-          dplyr::summarize(half_nonzero_min = min(count_ts) / 2,
-                    .groups = "drop")
-        half_nonzero_min_time_1 <- df %>%
-          filter(count_t0 > 0) %>%
-          dplyr::group_by(!!sym(feature.level)) %>%
-          dplyr::summarize(half_nonzero_min = min(count_t0) / 2,
-                    .groups = "drop")
+          dplyr::summarize(
+            half_nonzero_min = {
+              all_values <- c(count_t0[count_t0 > 0],
+                              count_ts[count_ts > 0])
+              if (length(all_values) > 0) {
+                min(all_values) / 2
+              } else {
+                1e-10
+              }
+            },
+            .groups = "drop"
+          )
 
-        df <- dplyr::left_join(df, half_nonzero_min_time_2, by = feature.level, suffix = c("_t0", "_ts"))
-        df <- dplyr::left_join(df, half_nonzero_min_time_1, by = feature.level, suffix = c("_t0", "_ts"))
-        df$count_ts[df$count_ts == 0] <- df$half_nonzero_min_ts[df$count_ts == 0]
-        df$count_t0[df$count_t0 == 0] <- df$half_nonzero_min_t0[df$count_t0 == 0]
+        df <- dplyr::left_join(df, half_nonzero_min, by = feature.level)
+        df$count_t0[df$count_t0 == 0] <- df$half_nonzero_min[df$count_t0 == 0]
+        df$count_ts[df$count_ts == 0] <- df$half_nonzero_min[df$count_ts == 0]
 
-        # Add a message to inform users that an imputation operation was performed.
-        message("Imputation was performed using half the minimum nonzero count for each taxa at different time points.")
+        message("Zero-handling: Per-taxon half-minimum pseudocount across BOTH time points.\n",
+                "  This ensures unbiased log fold change calculations.")
 
         df <- df %>% dplyr::mutate(new_count = log2(count_ts) - log2(count_t0))
       } else if (feature.change.func == "relative change"){

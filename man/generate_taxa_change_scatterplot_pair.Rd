@@ -48,7 +48,7 @@ The following options are supported:
 
 - "absolute change": Computes the difference between the counts at the two time points (`count_ts` and `count_t0`). This is the default behavior if no value or an unrecognized value is provided.
 
-- "log fold change": Computes the log2 fold change between the two time points. For zero counts, imputation is performed using half of the minimum nonzero count for each taxa level at the respective time point before taking the logarithm.
+- "log fold change": Computes the log2 fold change between the two time points. For zero counts, imputation is performed using half of the minimum nonzero count for each taxa across BOTH time points combined. The same pseudocount is used at both time points to ensure unbiased log fold change calculations.
 
 - "relative change": Computes the relative change as `(count_ts - count_t0) / (count_ts + count_t0)`. If both time points have a count of 0, the change is defined as 0.
 

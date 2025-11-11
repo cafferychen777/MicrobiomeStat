@@ -14,7 +14,7 @@
 #' The following options are supported:
 #'
 #' - "relative change": Computes the relative change as (time_2 - time_1) / (time_2 + time_1). If both values are zero, the result is zero.
-#' - "log fold change": Computes the log2 fold change between time points. Zero values are imputed as half the minimum nonzero value of the respective feature at the given time point before taking the logarithm.
+#' - "log fold change": Computes the log2 fold change between time points. Zero values are imputed as half the minimum nonzero value of the respective feature across BOTH time points combined. The same pseudocount is used at both time points to ensure unbiased log fold change calculations.
 #' - "absolute change": Computes the absolute difference between time points.
 #' - A custom function: The provided function should take two numeric vectors as input (values at time 1 and time 2) and return a numeric vector of differences. Users should ensure that their function handles zero values appropriately.
 #'
@@ -319,45 +319,39 @@ generate_taxa_change_boxplot_pair <-
         combined_data <-
           combined_data %>% dplyr::mutate(value_diff = feature.change.func(value_time_2, value_time_1))
       } else if (feature.change.func == "log fold change") {
-        # Calculate half the minimum non-zero value for each time point
-        half_nonzero_min_time_2 <- combined_data %>%
-          filter(value_time_2 > 0) %>%
+        # CRITICAL FIX: Calculate pseudocount across BOTH time points combined
+        # Using different pseudocounts at each time point introduces systematic bias
+        half_nonzero_min <- combined_data %>%
           dplyr::group_by(!!sym(feature.level)) %>%
-          dplyr::summarize(half_nonzero_min = min(value_time_2) / 2,
-                    .groups = "drop")
-        half_nonzero_min_time_1 <- combined_data %>%
-          filter(value_time_1 > 0) %>%
-          dplyr::group_by(!!sym(feature.level)) %>%
-          dplyr::summarize(half_nonzero_min = min(value_time_1) / 2,
-                    .groups = "drop")
-
-        # Join the half minimum values to the combined data
-        combined_data <-
-          dplyr::left_join(
-            combined_data,
-            half_nonzero_min_time_2,
-            by = feature.level,
-            suffix = c("_time_1", "_time_2")
+          dplyr::summarize(
+            half_nonzero_min = {
+              all_values <- c(value_time_1[value_time_1 > 0],
+                              value_time_2[value_time_2 > 0])
+              if (length(all_values) > 0) {
+                min(all_values) / 2
+              } else {
+                1e-10
+              }
+            },
+            .groups = "drop"
           )
 
-        combined_data <-
-          dplyr::left_join(
-            combined_data,
-            half_nonzero_min_time_1,
-            by = feature.level,
-            suffix = c("_time_1", "_time_2")
-          )
+        # Join the single pseudocount to the data
+        combined_data <- dplyr::left_join(
+          combined_data,
+          half_nonzero_min,
+          by = feature.level
+        )
 
-        # Impute zero values with half the minimum non-zero value
-        combined_data$value_time_2[combined_data$value_time_2 == 0] <-
-          combined_data$half_nonzero_min_time_2[combined_data$value_time_2 == 0]
-
+        # Use the SAME pseudocount for BOTH time points
         combined_data$value_time_1[combined_data$value_time_1 == 0] <-
-          combined_data$half_nonzero_min_time_1[combined_data$value_time_1 == 0]
+          combined_data$half_nonzero_min[combined_data$value_time_1 == 0]
+        combined_data$value_time_2[combined_data$value_time_2 == 0] <-
+          combined_data$half_nonzero_min[combined_data$value_time_2 == 0]
 
-        # Inform users about the imputation
         message(
-          "Imputation was performed using half the minimum nonzero proportion for each taxon at different time points."
+          "Zero-handling: Per-taxon half-minimum pseudocount across BOTH time points.\n",
+          "  This ensures unbiased log fold change calculations."
         )
 
         # Calculate log fold change
