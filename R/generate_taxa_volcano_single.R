@@ -71,10 +71,6 @@ generate_taxa_volcano_single <-
            pdf.wid = 7,
            pdf.hei = 5) {
 
-    # Extract relevant metadata and add sample names as a column
-    meta_tab <- data.obj$meta.dat %>%
-      dplyr::select(all_of(c(group.var))) %>% rownames_to_column("sample")
-
     # Get the color palette for the plot
     color_palette <- mStat_get_palette(palette)
 
@@ -90,13 +86,6 @@ generate_taxa_volcano_single <-
     # Generate plots for each feature level
     plot.list <- lapply(feature.level, function(feature.level) {
       sub_test.list <- test.list[[feature.level]]
-
-      # Extract group levels from metadata
-      group_level <-
-        meta_tab %>% select(all_of(c(group.var))) %>% pull() %>% as.factor() %>% levels
-
-      # Set the reference level as the first group level
-      reference_level <- group_level[1]
 
       # Generate volcano plots for each group comparison
       sub_plot.list <-

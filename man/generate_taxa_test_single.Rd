@@ -26,8 +26,16 @@ Used to subset data to a single timepoint if provided. Default NULL does not sub
 \item{t.level}{Character string specifying the time level/value to subset data to,
 if a time variable is provided. Default NULL does not subset data.}
 
-\item{group.var}{Character string specifying the column name in metadata containing grouping
-categories. This will be used as the predictor in differential abundance testing.}
+\item{group.var}{Character string specifying the column name in metadata containing the predictor
+variable for differential abundance testing. Can be either:
+\itemize{
+  \item Categorical (factor or character): Performs pairwise comparisons against
+        the reference level (first level). Each non-reference level gets a separate
+        comparison (e.g., "Treatment vs Control (Reference)").
+  \item Continuous (numeric or integer): Tests for linear association between the
+        variable and abundance. Output shows a single coefficient representing the
+        slope (e.g., effect per unit increase).
+}}
 
 \item{adj.vars}{Character vector specifying column names in metadata containing covariates.
 These will be used for adjustment in differential abundance testing.}
@@ -49,38 +57,105 @@ is also NULL.}
 
 \item{feature.dat.type}{The type of the feature data, which determines how the data is handled in downstream analyses.
 Should be one of:
-- "count": Raw count data, will be normalized by the function.
-- "proportion": Data that has already been normalized to proportions/percentages.
-- "other": Custom abundance data that has unknown scaling. No normalization applied.
+\itemize{
+  \item "count": Raw count data. Uses LinDA method with internal normalization and zero-handling
+                 (pseudo-count or imputation).
+  \item "proportion": Proportional data (e.g., relative abundances). Uses LinDA method with
+                      appropriate zero-handling for compositional data.
+  \item "other": Pre-transformed or custom data (e.g., log-transformed, CLR-transformed).
+                 Uses standard linear regression models without compositional adjustments.
+}
 The choice affects preprocessing steps as well as plot axis labels.
 Default is "count", which assumes raw OTU table input.}
 
-\item{...}{Additional arguments to be passed to the ZicoSeq function.}
+\item{...}{Additional arguments to be passed to the linda function.}
 }
 \value{
-A list of tibble(s) containing information about significant taxa, including R.Squared, F.Statistic, Estimate, P.Value, Adjusted.P.Value, Mean.Proportion, Mean.Prevalence, SD.Abundance and SD.Prevalence.
+A nested list structure where:
+\itemize{
+  \item First level: Named by \code{feature.level} (e.g., "Phylum", "Genus")
+  \item Second level: Named by comparisons
+        \itemize{
+          \item For categorical \code{group.var}: One element per non-reference level,
+                named as "Level vs Reference (Reference)" (e.g., "Treatment vs Control (Reference)")
+          \item For continuous \code{group.var}: One element named by the variable name (e.g., "age")
+        }
+  \item Each element is a data.frame with the following columns:
+        \itemize{
+          \item \code{Variable}: Feature/taxon name
+          \item \code{Coefficient}: Log2 fold change (for categorical) or slope coefficient (for continuous)
+          \item \code{SE}: Standard error of the coefficient
+          \item \code{P.Value}: Raw p-value from the statistical test
+          \item \code{Adjusted.P.Value}: FDR-adjusted p-value using Benjamini-Hochberg method
+          \item \code{Mean.Abundance}: Mean abundance of the feature across all samples
+          \item \code{Prevalence}: Proportion of samples where the feature is present (non-zero)
+        }
+}
 }
 \description{
-This function applies a differential abundance analysis using LinDA on a data set. The function filters taxa based on prevalence and abundance, then it aggregates and applies the LinDA method. Finally, it creates a report of significant taxa with relevant statistics.
+This function applies differential abundance analysis on microbiome data using the LinDA method
+(for count/proportion data) or standard linear models (for other data types). It automatically
+detects whether the predictor variable is categorical or continuous and applies appropriate
+statistical models.
 }
 \details{
-This function facilitates differential abundance analysis utilizing the LinDA method:
+## Statistical Methods
 
-1. If a specific time variable and level are provided, the data is subsetted accordingly.
+The function automatically selects the appropriate statistical method based on \code{feature.dat.type}:
 
-2. Extracts OTU table and sample metadata.
+**For "count" or "proportion" data:**
+Uses LinDA (Linear models for Differential Abundance), which:
+\itemize{
+  \item Handles compositional nature of microbiome data
+  \item Performs internal normalization (no pre-normalization needed)
+  \item Handles zero-inflation via pseudo-count or imputation
+  \item Corrects bias from centered log-ratio transformation
+}
 
-3. If the feature data type is of "count", it normalizes the data using the "TSS" transformation.
+**For "other" data:**
+Uses standard linear regression models, suitable for:
+\itemize{
+  \item Pre-transformed data (e.g., log-transformed, CLR-transformed)
+  \item Data where compositional adjustments are not needed
+}
 
-4. If the feature level is not "original", it aggregates the OTU table to the taxonomic levels specified by \code{feature.level}.
+## Variable Type Handling
 
-5. Executes the LinDA method on the aggregated or original table considering the grouping and adjustment variables.
+The function automatically detects the type of \code{group.var}:
 
-6. Extracts significant taxa's statistics into results tables, which include coefficients, standard errors, p-values, adjusted p-values, average abundances, and prevalence.
+**Categorical variables (factor or character):**
+\itemize{
+  \item Uses dummy coding with k-1 coefficients for k levels
+  \item First level (alphabetically) becomes the reference
+  \item Each coefficient compares a level to the reference
+  \item Example: For treatment groups A, B, C, output includes "B vs A (Reference)" and "C vs A (Reference)"
+}
 
-7. Returns a list of result tables where each element corresponds to a particular taxonomic level.
+**Continuous variables (numeric or integer):**
+\itemize{
+  \item Uses single slope coefficient
+  \item Tests for linear association with abundance
+  \item Coefficient represents effect per unit increase
+  \item Example: For age, coefficient shows abundance change per year
+}
 
-In essence, the function streamlines preprocessing, executes LinDA-based differential abundance testing, and assembles tables with pertinent results for significant taxa. It also supports adjusting for covariates and allows taxonomic aggregation at diverse levels for customized analyses.
+## Analysis Workflow
+
+1. **Data Subsetting**: If \code{time.var} and \code{t.level} provided, subsets to that timepoint
+
+2. **Feature Aggregation**: Aggregates features to specified taxonomic level if not "original"
+
+3. **Filtering**: Applies prevalence and abundance filters
+
+4. **Statistical Testing**: Runs LinDA or linear models depending on \code{feature.dat.type}
+
+5. **Results Compilation**: Extracts coefficients, standard errors, p-values, and calculates
+   FDR-adjusted p-values using Benjamini-Hochberg method
+
+6. **Metadata Addition**: Adds mean abundance and prevalence for each feature
+
+The function supports covariate adjustment via \code{adj.vars} and allows taxonomic
+aggregation at multiple levels for customized analyses.
 }
 \examples{
 \dontrun{
