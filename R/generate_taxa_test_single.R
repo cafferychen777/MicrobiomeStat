@@ -7,15 +7,23 @@
 #' @return List with analysis results
 #' @noRd
 perform_lm_analysis <- function(feature.dat, meta.dat, formula, group.var) {
-  # Get reference level
-  reference_level <- levels(as.factor(meta.dat[, group.var]))[1]
+  # Check if group.var is categorical (factor or character)
+  is_categorical <- is.factor(meta.dat[, group.var]) || is.character(meta.dat[, group.var])
+
+  # Get reference level only if categorical
+  if (is_categorical) {
+    reference_level <- levels(as.factor(meta.dat[, group.var]))[1]
+    # Get group levels (excluding reference)
+    group_levels <- levels(as.factor(meta.dat[, group.var]))
+    comparison_levels <- group_levels[group_levels != reference_level]
+  } else {
+    # For continuous variables, no reference level needed
+    reference_level <- NULL
+    comparison_levels <- NULL
+  }
 
   # Initialize results list
   results <- list()
-
-  # Get group levels (excluding reference)
-  group_levels <- levels(as.factor(meta.dat[, group.var]))
-  comparison_levels <- group_levels[group_levels != reference_level]
 
   # Perform linear regression for each feature
   feature_results <- list()
@@ -43,7 +51,14 @@ perform_lm_analysis <- function(feature.dat, meta.dat, formula, group.var) {
       if (nrow(group_coefs) > 0) {
         for (j in 1:nrow(group_coefs)) {
           coef_name <- rownames(group_coefs)[j]
-          group_value <- gsub(paste0("^", group.var), "", coef_name)
+
+          if (is_categorical) {
+            # For categorical variables, extract group value from coefficient name
+            group_value <- gsub(paste0("^", group.var), "", coef_name)
+          } else {
+            # For continuous variables, use the variable name itself
+            group_value <- group.var
+          }
 
           if (!group_value %in% names(feature_results)) {
             feature_results[[group_value]] <- data.frame(
@@ -92,7 +107,13 @@ perform_lm_analysis <- function(feature.dat, meta.dat, formula, group.var) {
       # Reorder columns to match linda output
       df <- df[, c("baseMean", "log2FoldChange", "lfcSE", "stat", "pvalue", "padj", "reject", "df")]
 
-      output[[paste0(group.var, group_level, ":")]] <- df
+      # Format output name based on variable type
+      if (is_categorical) {
+        output[[paste0(group.var, group_level, ":")]] <- df
+      } else {
+        # For continuous variables, use variable name only
+        output[[paste0(group.var, ":")]] <- df
+      }
     }
   }
 
@@ -101,15 +122,26 @@ perform_lm_analysis <- function(feature.dat, meta.dat, formula, group.var) {
 
 #' Conduct Differential Abundance Testing Using LinDA Method in MicrobiomeStat Package
 #'
-#' This function applies a differential abundance analysis using LinDA on a data set. The function filters taxa based on prevalence and abundance, then it aggregates and applies the LinDA method. Finally, it creates a report of significant taxa with relevant statistics.
+#' This function applies differential abundance analysis on microbiome data using the LinDA method
+#' (for count/proportion data) or standard linear models (for other data types). It automatically
+#' detects whether the predictor variable is categorical or continuous and applies appropriate
+#' statistical models.
 #'
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
 #' @param time.var Character string specifying the column name in metadata containing time variable.
 #'                Used to subset data to a single timepoint if provided. Default NULL does not subset.
 #' @param t.level Character string specifying the time level/value to subset data to,
 #' if a time variable is provided. Default NULL does not subset data.
-#' @param group.var Character string specifying the column name in metadata containing grouping
-#'                 categories. This will be used as the predictor in differential abundance testing.
+#' @param group.var Character string specifying the column name in metadata containing the predictor
+#'                 variable for differential abundance testing. Can be either:
+#'                 \itemize{
+#'                   \item Categorical (factor or character): Performs pairwise comparisons against
+#'                         the reference level (first level). Each non-reference level gets a separate
+#'                         comparison (e.g., "Treatment vs Control (Reference)").
+#'                   \item Continuous (numeric or integer): Tests for linear association between the
+#'                         variable and abundance. Output shows a single coefficient representing the
+#'                         slope (e.g., effect per unit increase).
+#'                 }
 #' @param adj.vars Character vector specifying column names in metadata containing covariates.
 #'                These will be used for adjustment in differential abundance testing.
 #' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
@@ -126,33 +158,97 @@ perform_lm_analysis <- function(feature.dat, meta.dat, formula, group.var) {
 #' is also NULL.
 #' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
 #' Should be one of:
-#' - "count": Raw count data, will be normalized by the function.
-#' - "proportion": Data that has already been normalized to proportions/percentages.
-#' - "other": Custom abundance data that has unknown scaling. No normalization applied.
+#' \itemize{
+#'   \item "count": Raw count data. Uses LinDA method with internal normalization and zero-handling
+#'                  (pseudo-count or imputation).
+#'   \item "proportion": Proportional data (e.g., relative abundances). Uses LinDA method with
+#'                       appropriate zero-handling for compositional data.
+#'   \item "other": Pre-transformed or custom data (e.g., log-transformed, CLR-transformed).
+#'                  Uses standard linear regression models without compositional adjustments.
+#' }
 #' The choice affects preprocessing steps as well as plot axis labels.
 #' Default is "count", which assumes raw OTU table input.
-#' @param ... Additional arguments to be passed to the ZicoSeq function.
+#' @param ... Additional arguments to be passed to the linda function.
 #'
-#' @return A list of tibble(s) containing information about significant taxa, including R.Squared, F.Statistic, Estimate, P.Value, Adjusted.P.Value, Mean.Proportion, Mean.Prevalence, SD.Abundance and SD.Prevalence.
+#' @return A nested list structure where:
+#' \itemize{
+#'   \item First level: Named by \code{feature.level} (e.g., "Phylum", "Genus")
+#'   \item Second level: Named by comparisons
+#'         \itemize{
+#'           \item For categorical \code{group.var}: One element per non-reference level,
+#'                 named as "Level vs Reference (Reference)" (e.g., "Treatment vs Control (Reference)")
+#'           \item For continuous \code{group.var}: One element named by the variable name (e.g., "age")
+#'         }
+#'   \item Each element is a data.frame with the following columns:
+#'         \itemize{
+#'           \item \code{Variable}: Feature/taxon name
+#'           \item \code{Coefficient}: Log2 fold change (for categorical) or slope coefficient (for continuous)
+#'           \item \code{SE}: Standard error of the coefficient
+#'           \item \code{P.Value}: Raw p-value from the statistical test
+#'           \item \code{Adjusted.P.Value}: FDR-adjusted p-value using Benjamini-Hochberg method
+#'           \item \code{Mean.Abundance}: Mean abundance of the feature across all samples
+#'           \item \code{Prevalence}: Proportion of samples where the feature is present (non-zero)
+#'         }
+#' }
 #'
 #' @details
-#' This function facilitates differential abundance analysis utilizing the LinDA method:
+#' ## Statistical Methods
 #'
-#' 1. If a specific time variable and level are provided, the data is subsetted accordingly.
+#' The function automatically selects the appropriate statistical method based on \code{feature.dat.type}:
 #'
-#' 2. Extracts OTU table and sample metadata.
+#' **For "count" or "proportion" data:**
+#' Uses LinDA (Linear models for Differential Abundance), which:
+#' \itemize{
+#'   \item Handles compositional nature of microbiome data
+#'   \item Performs internal normalization (no pre-normalization needed)
+#'   \item Handles zero-inflation via pseudo-count or imputation
+#'   \item Corrects bias from centered log-ratio transformation
+#' }
 #'
-#' 3. If the feature data type is of "count", it normalizes the data using the "TSS" transformation.
+#' **For "other" data:**
+#' Uses standard linear regression models, suitable for:
+#' \itemize{
+#'   \item Pre-transformed data (e.g., log-transformed, CLR-transformed)
+#'   \item Data where compositional adjustments are not needed
+#' }
 #'
-#' 4. If the feature level is not "original", it aggregates the OTU table to the taxonomic levels specified by \code{feature.level}.
+#' ## Variable Type Handling
 #'
-#' 5. Executes the LinDA method on the aggregated or original table considering the grouping and adjustment variables.
+#' The function automatically detects the type of \code{group.var}:
 #'
-#' 6. Extracts significant taxa's statistics into results tables, which include coefficients, standard errors, p-values, adjusted p-values, average abundances, and prevalence.
+#' **Categorical variables (factor or character):**
+#' \itemize{
+#'   \item Uses dummy coding with k-1 coefficients for k levels
+#'   \item First level (alphabetically) becomes the reference
+#'   \item Each coefficient compares a level to the reference
+#'   \item Example: For treatment groups A, B, C, output includes "B vs A (Reference)" and "C vs A (Reference)"
+#' }
 #'
-#' 7. Returns a list of result tables where each element corresponds to a particular taxonomic level.
+#' **Continuous variables (numeric or integer):**
+#' \itemize{
+#'   \item Uses single slope coefficient
+#'   \item Tests for linear association with abundance
+#'   \item Coefficient represents effect per unit increase
+#'   \item Example: For age, coefficient shows abundance change per year
+#' }
 #'
-#' In essence, the function streamlines preprocessing, executes LinDA-based differential abundance testing, and assembles tables with pertinent results for significant taxa. It also supports adjusting for covariates and allows taxonomic aggregation at diverse levels for customized analyses.
+#' ## Analysis Workflow
+#'
+#' 1. **Data Subsetting**: If \code{time.var} and \code{t.level} provided, subsets to that timepoint
+#'
+#' 2. **Feature Aggregation**: Aggregates features to specified taxonomic level if not "original"
+#'
+#' 3. **Filtering**: Applies prevalence and abundance filters
+#'
+#' 4. **Statistical Testing**: Runs LinDA or linear models depending on \code{feature.dat.type}
+#'
+#' 5. **Results Compilation**: Extracts coefficients, standard errors, p-values, and calculates
+#'    FDR-adjusted p-values using Benjamini-Hochberg method
+#'
+#' 6. **Metadata Addition**: Adds mean abundance and prevalence for each feature
+#'
+#' The function supports covariate adjustment via \code{adj.vars} and allows taxonomic
+#' aggregation at multiple levels for customized analyses.
 #'
 #' @examples
 #' \dontrun{
@@ -317,9 +413,15 @@ generate_taxa_test_single <- function(data.obj,
       )
     }
 
-    # Determine the reference level for the group variable
+    # Determine the reference level for the group variable (only for categorical variables)
     if (!is.null(group.var)) {
-      reference_level <- levels(as.factor(meta_tab[, group.var]))[1]
+      if (is.factor(meta_tab[, group.var]) || is.character(meta_tab[, group.var])) {
+        # Only get reference level for categorical variables
+        reference_level <- levels(as.factor(meta_tab[, group.var]))[1]
+      } else {
+        # For continuous variables, no reference level
+        reference_level <- NULL
+      }
     }
 
     # Set the analysis object based on the method used
@@ -344,7 +446,7 @@ generate_taxa_test_single <- function(data.obj,
 
     # Function to extract relevant data frames from LinDA output
     extract_data_frames <-
-      function(linda_object, group_var = NULL) {
+      function(linda_object, group_var = NULL, reference_level = NULL) {
         result_list <- list()
 
         # Find data frames related to the group variable
@@ -362,8 +464,14 @@ generate_taxa_test_single <- function(data.obj,
                  x = group_value)
 
           # Store the data frame with a descriptive name
-          result_list[[paste0(group_value, " vs ", reference_level, " (Reference)")]] <-
-            linda_object$output[[df_name]]
+          if (!is.null(reference_level) && reference_level != "") {
+            # For categorical variables, show comparison vs reference
+            result_list[[paste0(group_value, " vs ", reference_level, " (Reference)")]] <-
+              linda_object$output[[df_name]]
+          } else {
+            # For continuous variables, just use the variable name
+            result_list[[group_var]] <- linda_object$output[[df_name]]
+          }
         }
 
         return(result_list)
@@ -371,7 +479,7 @@ generate_taxa_test_single <- function(data.obj,
 
     # Extract relevant data frames from analysis output
     sub_test.list <-
-      extract_data_frames(linda_object = analysis.obj, group_var = group.var)
+      extract_data_frames(linda_object = analysis.obj, group_var = group.var, reference_level = reference_level)
 
     # Process each data frame in the list
     sub_test.list <- lapply(sub_test.list, function(df) {
