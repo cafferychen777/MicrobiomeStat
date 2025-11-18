@@ -31,7 +31,11 @@ generate_taxa_change_per_time_test_long(
 
 \item{ts.levels}{Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.}
 
-\item{group.var}{Optional; a string specifying the group variable in meta.dat for between-group comparisons.}
+\item{group.var}{Optional; a string specifying the group variable in meta.dat for
+between-group comparisons of change scores. This variable is ALWAYS
+treated as categorical (factor) by the underlying `generate_taxa_change_test_pair`
+function, regardless of input type. The first level (alphabetically)
+is used as the reference group.}
 
 \item{adj.vars}{Optional; a vector of strings representing covariates in meta.dat for adjustment in the analysis.}
 
@@ -50,7 +54,16 @@ the change from baseline value. This allows flexible options:
 If none of the above options are matched, an error will be thrown indicating
 the acceptable options or prompting the user to provide a custom function.}
 
-\item{feature.dat.type}{Character; "count" or "proportion", indicating the type of feature data.}
+\item{feature.dat.type}{Character; the type of feature data, passed to
+                        \code{generate_taxa_change_test_pair}. Should be one of:
+\itemize{
+  \item "count": Raw count data. Will be TSS-normalized, zero-imputed using global
+                 half-minimum pseudocount, then analyzed with standard lm()
+  \item "proportion": Pre-normalized proportional data. Will be zero-imputed using
+                      global half-minimum pseudocount, then analyzed with standard lm()
+  \item "other": Pre-transformed data. Analyzed with standard lm() without normalization
+}
+Default is "count". All processing is done by \code{generate_taxa_change_test_pair}.}
 
 \item{prev.filter}{Numeric; a minimum prevalence threshold for taxa inclusion in the analysis.}
 
@@ -59,7 +72,27 @@ the acceptable options or prompting the user to provide a custom function.}
 \item{...}{Additional arguments passed to other methods.}
 }
 \value{
-A nested list structure. The top level of the list corresponds to different time points, and each element contains a list of dataframes for each taxonomic level. Each dataframe provides statistical analysis results for taxa at that level and time point.
+A nested list structure where:
+\itemize{
+  \item First level: Named by follow-up time points (\code{ts.levels})
+  \item Second level: Named by \code{feature.level} (e.g., "Phylum", "Genus")
+  \item Third level: Named by tested comparisons between groups
+        (e.g., "Level vs Reference (Reference)")
+  \item Each final element is a data.frame with the following columns:
+        \itemize{
+          \item \code{Variable}: Feature/taxon name
+          \item \code{Coefficient}: Effect size of the change from baseline
+                (interpretation depends on \code{feature.change.func})
+          \item \code{SE}: Standard error of the coefficient from the linear model
+          \item \code{P.Value}: Raw p-value from standard linear model (lm)
+          \item \code{Adjusted.P.Value}: FDR-adjusted p-value (Benjamini-Hochberg)
+          \item \code{Mean.Abundance}: Mean abundance across all samples
+          \item \code{Prevalence}: Proportion of samples where feature is present
+        }
+}
+
+This function is a wrapper that calls \code{generate_taxa_change_test_pair} separately
+for each follow-up time point, analyzing changes from baseline at each time point.
 
 This function is especially useful for longitudinal microbiome studies, facilitating the exploration of temporal patterns in microbial communities. By analyzing different time points against a baseline, it helps to uncover significant temporal shifts in the abundance of various taxa.
 

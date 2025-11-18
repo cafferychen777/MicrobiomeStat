@@ -25,8 +25,10 @@
 #'                    unique subject IDs. Required to calculate volatility within subjects
 #'                    over time.
 #' @param group.var Character string specifying the column name in metadata containing
-#'                 grouping categories. Volatility will be compared between groups using
-#'                 linear models. Required.
+#'                 grouping categories. This variable is ALWAYS treated as categorical
+#'                 (factor), regardless of input type. If you provide a numeric or integer
+#'                 variable, it will be automatically converted to a factor (Line 129).
+#'                 Volatility will be compared between groups using linear models. Required.
 #' @param adj.vars Character vector specifying column names in metadata containing covariates
 #'                to adjust for in linear models. Optional, can be NULL.
 #' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
@@ -45,7 +47,25 @@
 #'                 proportion data will be CLR transformed before volatility calculation.
 #'                 Default "CLR".
 #' @param ... Additional arguments passed to other methods.
-#' @return A list of test results. The results are returned in a tidy dataframe format, including coefficients, standard errors, statistics, and p-values from linear models and ANOVA tests.
+#' @return A nested list structure where:
+#' \itemize{
+#'   \item First level: Named by \code{feature.level} (e.g., "Phylum", "Genus")
+#'   \item Second level: Named by tested comparisons between groups
+#'         (e.g., "Level vs Reference (Reference)")
+#'   \item Each element is a data.frame with the following columns:
+#'         \itemize{
+#'           \item \code{Variable}: Feature/taxon name
+#'           \item \code{Coefficient}: Effect size for volatility differences between groups
+#'           \item \code{SE}: Standard error of the coefficient from the linear model
+#'           \item \code{P.Value}: Raw p-value from standard linear model (lm)
+#'           \item \code{Adjusted.P.Value}: FDR-adjusted p-value (Benjamini-Hochberg)
+#'           \item \code{Mean.Abundance}: Mean abundance across all samples
+#'           \item \code{Prevalence}: Proportion of samples where feature is present (non-zero)
+#'         }
+#' }
+#'
+#' This function analyzes VOLATILITY (variability over time) using standard linear models,
+#' NOT LinDA. Volatility is calculated as mean absolute differences between consecutive time points.
 #'
 #' @examples
 #' \dontrun{

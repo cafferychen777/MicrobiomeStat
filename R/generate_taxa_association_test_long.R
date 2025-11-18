@@ -4,7 +4,13 @@
 #'
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
 #' @param subject.var A character string that indicates the column name in the metadata which uniquely identifies each subject or sample.
-#' @param group.var A character string specifying the grouping variable column in the metadata. This variable differentiates between different experimental or observational groups.
+#' @param group.var A character string specifying the grouping variable column in the metadata.
+#'                  Can be either:
+#'                  \itemize{
+#'                    \item Categorical (factor or character): Creates pairwise comparisons between groups
+#'                    \item Continuous (numeric or integer): Tests for linear association
+#'                  }
+#'                  This variable differentiates between different experimental or observational groups.
 #' @param adj.vars A vector of character strings. Each string should denote a column name in the metadata that will serve as a covariate in the analysis. These variables might account for potential confounding influences. Default is NULL.
 #' @param feature.level A character string indicating the taxonomic resolution for analysis (e.g., "Phylum", "Class"). This choice will determine the granularity of the analysis.
 #' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
@@ -15,7 +21,15 @@
 #' taxa before analysis. Taxa with mean abundance below this value will be removed.
 #' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
 #' Default 0 removes no taxa by abundance filtering.
-#' @param feature.dat.type A character string, either "count" or "proportion", indicating the nature of the data in the `data.obj`. This helps the function to determine if normalization is required. Default is "count".
+#' @param feature.dat.type The type of the feature data, which determines how the data is handled.
+#' Should be one of:
+#' \itemize{
+#'   \item "count": Raw count data. This function will first apply TSS (Total Sum Scaling) normalization,
+#'         then LinDA performs zero-handling using half-minimum approach for statistical testing
+#'   \item "proportion": Pre-normalized proportional data. LinDA performs zero-handling using
+#'                       half-minimum approach without additional normalization
+#' }
+#' Default is "count".
 #' @param ... Additional arguments to cater to any specialized requirements. For now, these are placeholder and not used.
 #' @details
 #' Based on whether group.var and adj.vars are NULL, the formula tests:
@@ -41,8 +55,26 @@
 #'
 #' When group.var and adj.vars are NULL, the intercept is tested without adjusting for any covariates.
 #'
-#' @return
-#' A list of dataframes, with each dataframe representing a specific taxonomic level (as specified in `feature.level`). These dataframes contain essential statistics, including taxa changes, p-values, and other metrics derived from the linear model.
+#' @return A nested list structure where:
+#' \itemize{
+#'   \item First level: Named by \code{feature.level} (e.g., "Phylum", "Genus")
+#'   \item Second level: Named by tested comparisons between groups
+#'         (e.g., "Level vs Reference (Reference)" for categorical variables,
+#'         or variable name for continuous variables)
+#'   \item Each element is a data.frame with the following columns:
+#'         \itemize{
+#'           \item \code{Variable}: Feature/taxon name
+#'           \item \code{Coefficient}: Log2 fold change (categorical) or slope (continuous)
+#'           \item \code{SE}: Standard error of the coefficient
+#'           \item \code{P.Value}: Raw p-value from LinDA's statistical test
+#'           \item \code{Adjusted.P.Value}: FDR-adjusted p-value (Benjamini-Hochberg)
+#'           \item \code{Mean.Abundance}: Mean abundance across all samples
+#'           \item \code{Prevalence}: Proportion of samples where feature is present (non-zero)
+#'         }
+#' }
+#'
+#' Analysis uses LinDA mixed-effects models to test associations between taxa abundances
+#' and the grouping variable, accounting for subject-level random effects.
 #'
 #' @examples
 #' \dontrun{

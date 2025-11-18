@@ -6,11 +6,24 @@
 #' @param subject.var A string specifying the column name in meta.dat that uniquely identifies each subject.
 #' @param time.var Optional; a string representing the time variable in the meta.dat. If provided, enables longitudinal analysis.
 #' @param group.var Optional; a string specifying the group variable in meta.dat for between-group comparisons.
+#'                  Can be either:
+#'                  \itemize{
+#'                    \item Categorical (factor or character): Creates pairwise comparisons between groups
+#'                    \item Continuous (numeric or integer): Tests for linear association
+#'                  }
 #' @param adj.vars Optional; a vector of strings representing covariates in meta.dat for adjustment in the analysis.
 #' @param feature.level A string or vector of strings indicating the taxonomic level(s) for analysis (e.g., "Phylum", "Class").
 #' @param prev.filter Numeric; a minimum prevalence threshold for taxa inclusion in the analysis.
 #' @param abund.filter Numeric; a minimum abundance threshold for taxa inclusion in the analysis.
-#' @param feature.dat.type Character; "count" or "proportion", indicating the type of feature data.
+#' @param feature.dat.type The type of the feature data, which determines how the data is handled.
+#' Should be one of:
+#' \itemize{
+#'   \item "count": Raw count data. This function will first apply TSS (Total Sum Scaling) normalization,
+#'         then LinDA performs zero-handling using half-minimum approach for statistical testing
+#'   \item "proportion": Pre-normalized proportional data. LinDA performs zero-handling using
+#'                       half-minimum approach without additional normalization
+#' }
+#' Default is "count".
 #' @param ... Additional arguments passed to other methods.
 #' @details
 #' The function integrates various data manipulations, normalization procedures, and statistical tests to assess the significance of taxa changes over time or between groups. It allows for the adjustment of covariates and handles both count and proportion data types.
@@ -19,8 +32,26 @@
 #'
 #' Importantly, the function conducts differential abundance analysis separately for each time point in the longitudinal data. This approach allows for the identification of taxa that show significant changes at specific time points, providing insights into the dynamics of the microbiome over time.
 #'
-#' @return
-#' A nested list structure. The top level of the list corresponds to different time points, and each element contains a list of dataframes for each taxonomic level. Each dataframe provides statistical analysis results for taxa at that level and time point.
+#' @return A nested list structure where:
+#' \itemize{
+#'   \item First level: Named by time points (\code{time.var} levels)
+#'   \item Second level: Named by \code{feature.level} (e.g., "Phylum", "Genus")
+#'   \item Third level: Named by tested comparisons between groups
+#'         (e.g., "Level vs Reference (Reference)" for categorical variables,
+#'         or variable name for continuous variables)
+#'   \item Each final element is a data.frame with the following columns:
+#'         \itemize{
+#'           \item \code{Variable}: Feature/taxon name
+#'           \item \code{Coefficient}: Log2 fold change (categorical) or slope (continuous)
+#'           \item \code{SE}: Standard error of the coefficient
+#'           \item \code{P.Value}: Raw p-value from LinDA's statistical test
+#'           \item \code{Adjusted.P.Value}: FDR-adjusted p-value (Benjamini-Hochberg)
+#'           \item \code{Mean.Abundance}: Mean abundance across all samples at that time point
+#'           \item \code{Prevalence}: Proportion of samples where feature is present (non-zero)
+#'         }
+#' }
+#'
+#' Analysis is performed separately for each time point using LinDA mixed-effects models.
 #'
 #' @examples
 #' \dontrun{

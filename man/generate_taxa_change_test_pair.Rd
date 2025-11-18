@@ -26,7 +26,11 @@ generate_taxa_change_test_pair(
 
 \item{time.var}{The name of the time variable column in the metadata (optional).}
 
-\item{group.var}{The name of the grouping variable column for linear modeling in the metadata.}
+\item{group.var}{The name of the grouping variable column in metadata for comparing
+change scores between groups. This variable is ALWAYS treated as categorical
+(factor), regardless of the input type. If you provide a numeric or integer
+variable, it will be automatically converted to a factor (Line 124).
+The first level (alphabetically) is used as the reference group for comparisons.}
 
 \item{adj.vars}{Names of additional variables to be used as covariates in the analysis.}
 
@@ -57,13 +61,26 @@ Prevalence is calculated as the proportion of samples where the taxon is present
 taxa before analysis. Taxa with mean abundance below this value will be removed.
 Abundance refers to counts or proportions depending on \code{feature.dat.type}.}
 
-\item{feature.dat.type}{The type of the feature data, which determines how the data is handled in downstream analyses.
+\item{feature.dat.type}{The type of the feature data, which determines preprocessing steps.
 Should be one of:
-- "count": Raw count data, will be normalized by the function.
-- "proportion": Data that has already been normalized to proportions/percentages.
-- "other": Custom abundance data that has unknown scaling. No normalization applied.
-The choice affects preprocessing steps as well as plot axis labels.
-Default is "count", which assumes raw OTU table input.}
+\itemize{
+  \item "count": Raw count data. This function will:
+        \itemize{
+          \item Apply TSS (Total Sum Scaling) normalization
+          \item Perform zero-imputation using global half-minimum pseudocount
+                (calculated as half of the minimum non-zero value for each taxon
+                across ALL samples and time points combined, ensuring unbiased change calculations)
+          \item Use standard linear models (lm) for statistical testing of change scores
+        }
+  \item "proportion": Pre-normalized proportional data. This function will:
+        \itemize{
+          \item Perform zero-imputation using global half-minimum pseudocount
+          \item Use standard linear models (lm) for statistical testing of change scores
+        }
+  \item "other": Pre-transformed data (e.g., CLR). Uses standard linear models without
+                 normalization or zero-imputation. Only winsorization is applied.
+}
+Default is "count". NOTE: This function uses standard lm() models, NOT LinDA.}
 
 \item{winsor.qt}{A numeric value between 0 and 1, specifying the quantile for winsorization (default: 0.97).
 Winsorization is a data preprocessing method used to limit extreme values or outliers in the data.
@@ -75,7 +92,32 @@ and values above the upper quantile will be replaced with the upper quantile.
 This helps to reduce the impact of extreme values or outliers on subsequent analyses.}
 }
 \value{
-A named list where each element corresponds to a feature level and contains a dataframe with the calculated taxa changes, their corresponding p-values, and other statistics from the linear model.
+A nested list structure where:
+\itemize{
+  \item First level: Named by \code{feature.level} (e.g., "Phylum", "Genus")
+  \item Second level: Named by tested comparisons between groups
+        \itemize{
+          \item Elements named as "Level vs Reference (Reference)"
+          \item If \code{group.var} has >2 levels, includes ANOVA results
+        }
+  \item Each element is a data.frame with the following columns:
+        \itemize{
+          \item \code{Variable}: Feature/taxon name
+          \item \code{Coefficient}: Effect size of the change between time points
+                (interpretation depends on \code{feature.change.func}:
+                for "log fold change", represents difference in log2 abundances;
+                for "relative change", represents relative difference;
+                for "absolute change", represents absolute difference)
+          \item \code{SE}: Standard error of the coefficient from the linear model
+          \item \code{P.Value}: Raw p-value from standard linear model (lm)
+          \item \code{Adjusted.P.Value}: FDR-adjusted p-value using Benjamini-Hochberg method
+          \item \code{Mean.Abundance}: Mean abundance of the feature across all samples
+          \item \code{Prevalence}: Proportion of samples where the feature is present (non-zero)
+        }
+}
+
+This function analyzes CHANGE SCORES (differences between two time points) rather than
+raw abundances, using standard linear models rather than LinDA mixed-effects models.
 }
 \description{
 This function calculates taxa abundance changes between two time points and performs differential abundance analysis between groups using linear models or ANOVA.

@@ -24,7 +24,13 @@ generate_taxa_trend_test_long(
 
 \item{time.var}{A character string representing the time variable column in the metadata. Time points should be numeric. If not, the function will convert it to numeric. Default is NULL.}
 
-\item{group.var}{A character string specifying the grouping variable column in the metadata. This variable differentiates between different experimental or observational groups.}
+\item{group.var}{A character string specifying the grouping variable column in the metadata.
+Can be either:
+\itemize{
+  \item Categorical (factor or character): Tests group differences and group × time interaction
+  \item Continuous (numeric or integer): Tests linear association with time
+}
+This variable differentiates between different experimental or observational groups.}
 
 \item{adj.vars}{A vector of character strings. Each string should denote a column name in the metadata that will serve as a covariate in the analysis. These variables might account for potential confounding influences. Default is NULL.}
 
@@ -38,17 +44,44 @@ Prevalence is calculated as the proportion of samples where the taxon is present
 taxa before analysis. Taxa with mean abundance below this value will be removed.
 Abundance refers to counts or proportions depending on \code{feature.dat.type}.}
 
-\item{feature.dat.type}{A character string, either "count", "proportion", or "other", indicating the nature of the data in the `data.obj`. 
-This helps the function to determine if normalization is required. 
-- "count": Raw count data that will be automatically normalized using TSS.
-- "proportion": Pre-normalized data (e.g., relative abundance).
-- "other": Custom pre-processed data. Use with caution; requires appropriate pre-processing for compositional data analysis.
+\item{feature.dat.type}{The type of the feature data, which determines how the data is handled.
+Should be one of:
+\itemize{
+  \item "count": Raw count data. This function will first apply TSS (Total Sum Scaling) normalization,
+        then LinDA performs zero-handling using half-minimum approach for statistical testing
+  \item "proportion": Pre-normalized proportional data (e.g., relative abundances).
+        LinDA performs zero-handling using half-minimum approach without additional normalization
+  \item "other": Pre-transformed data (e.g., CLR, log-transformed).
+        Uses standard linear mixed models without normalization or zero-handling
+}
 Default is "count".}
 
 \item{...}{Additional arguments to cater to any specialized requirements. For now, these are placeholder and not used.}
 }
 \value{
-A list of dataframes, with each dataframe representing a specific taxonomic level (as specified in `feature.level`). These dataframes contain essential statistics, including taxa changes, p-values, and other metrics derived from the linear model.
+A nested list structure where:
+\itemize{
+  \item First level: Named by \code{feature.level} (e.g., "Phylum", "Genus")
+  \item Second level: Named by tested effects (e.g., "time", "group:time interaction")
+        \itemize{
+          \item For categorical \code{group.var}: Separate elements for each non-reference level
+                (e.g., "Treatment vs Control (Reference)")
+          \item For continuous \code{group.var}: Single element named by the variable
+          \item Time effects and interactions are also included depending on the model
+        }
+  \item Each element is a data.frame with the following columns:
+        \itemize{
+          \item \code{Variable}: Feature/taxon name
+          \item \code{Coefficient}: Effect size. For time effects, represents change per unit time.
+                For group effects, represents log2 fold change. For interactions, represents
+                difference in trends between groups
+          \item \code{SE}: Standard error of the coefficient
+          \item \code{P.Value}: Raw p-value from the statistical test (mixed-effects model or LinDA)
+          \item \code{Adjusted.P.Value}: FDR-adjusted p-value using Benjamini-Hochberg method
+          \item \code{Mean.Abundance}: Mean abundance of the feature across all samples
+          \item \code{Prevalence}: Proportion of samples where the feature is present (non-zero)
+        }
+}
 }
 \description{
 This function is designed to conduct a longitudinal trend test on microbiome data. The primary aim is to discern how the abundance of various microbial taxa changes over time and/or in response to different experimental or observational groups. The function delivers robust statistical insights that enable researchers to draw meaningful conclusions about the dynamics of microbial populations.

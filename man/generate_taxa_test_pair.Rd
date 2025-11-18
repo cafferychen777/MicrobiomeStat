@@ -30,7 +30,13 @@ If provided, the specified level will be used as the reference category in
 the model. Default is NULL, which means the first level of the factor will
 be used.}
 
-\item{group.var}{A string that specifies the name of the grouping variable column in the metadata for linear modelling.}
+\item{group.var}{A string specifying the column name in metadata containing the grouping
+variable for differential abundance testing. Can be either:
+\itemize{
+  \item Categorical (factor or character): Creates pairwise comparisons between groups
+  \item Continuous (numeric or integer): Tests for linear association
+}
+When combined with time.var, tests group × time interaction effects.}
 
 \item{adj.vars}{A vector of strings that specify the names of additional variables to be used as covariates in the analysis.}
 
@@ -51,18 +57,42 @@ taxa before analysis. Taxa with mean abundance below this value will be removed.
 Abundance refers to counts or proportions depending on \code{feature.dat.type}.
 Default 0 removes no taxa by abundance filtering.}
 
-\item{feature.dat.type}{The type of the feature data, which determines how the data is handled in downstream analyses.
+\item{feature.dat.type}{The type of the feature data, which determines how the data is handled.
 Should be one of:
-- "count": Raw count data, will be normalized by the function.
-- "proportion": Data that has already been normalized to proportions/percentages.
-- "other": Custom abundance data that has unknown scaling. No normalization applied.
-The choice affects preprocessing steps as well as plot axis labels.
-Default is "count", which assumes raw OTU table input.}
+\itemize{
+  \item "count": Raw count data. This function will first apply TSS (Total Sum Scaling) normalization,
+        then LinDA performs zero-handling using half-minimum approach for statistical testing
+  \item "proportion": Pre-normalized proportional data (e.g., relative abundances).
+        LinDA performs zero-handling using half-minimum approach without additional normalization
+  \item "other": Pre-transformed data (e.g., CLR, log-transformed).
+        Uses standard linear mixed models without normalization or zero-handling
+}
+Default is "count".}
 
 \item{...}{Additional parameters to be passed to the linda function.}
 }
 \value{
-A named list containing data frames summarizing taxon test results for each taxonomic level.
+A nested list structure where:
+\itemize{
+  \item First level: Named by \code{feature.level} (e.g., "Phylum", "Genus")
+  \item Second level: Named by tested comparisons and effects
+        \itemize{
+          \item For categorical \code{group.var}: Elements named as
+                "Level vs Reference (Reference) [Main Effect]" or "[Interaction]"
+          \item For continuous \code{group.var}: Element named by the variable
+          \item When \code{time.var} is provided: Both main effects and interaction effects
+        }
+  \item Each element is a data.frame with the following columns:
+        \itemize{
+          \item \code{Variable}: Feature/taxon name
+          \item \code{Coefficient}: Log2 fold change for the comparison or time effect
+          \item \code{SE}: Standard error of the coefficient
+          \item \code{P.Value}: Raw p-value from LinDA's statistical test
+          \item \code{Adjusted.P.Value}: FDR-adjusted p-value using Benjamini-Hochberg method
+          \item \code{Mean.Abundance}: Mean abundance of the feature across all samples
+          \item \code{Prevalence}: Proportion of samples where the feature is present (non-zero)
+        }
+}
 }
 \description{
 This function, `generate_taxa_test_pair`, is designed for analysis in microbiome studies.
@@ -72,9 +102,10 @@ and applies the linda method to fit linear mixed effects models. These models ar
 taxon changes across different groups over time, taking into account various covariates.
 }
 \details{
-Each list element corresponds to a taxonomic level specified in `feature.level`.
-The data frame contains columns for taxon name, log2 fold change, p-values, adjusted p-values,
-mean abundance, mean prevalence, and the output element from `linda` where the taxon was found significant.
+This function performs paired/longitudinal differential abundance analysis.
+Each list element corresponds to a taxonomic level specified in \code{feature.level}.
+The function uses linear mixed-effects models via LinDA to account for subject-level
+correlations in paired or longitudinal data.
 }
 \examples{
 \dontrun{

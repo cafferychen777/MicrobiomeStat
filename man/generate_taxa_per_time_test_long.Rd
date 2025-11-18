@@ -24,7 +24,12 @@ generate_taxa_per_time_test_long(
 
 \item{time.var}{Optional; a string representing the time variable in the meta.dat. If provided, enables longitudinal analysis.}
 
-\item{group.var}{Optional; a string specifying the group variable in meta.dat for between-group comparisons.}
+\item{group.var}{Optional; a string specifying the group variable in meta.dat for between-group comparisons.
+Can be either:
+\itemize{
+  \item Categorical (factor or character): Creates pairwise comparisons between groups
+  \item Continuous (numeric or integer): Tests for linear association
+}}
 
 \item{adj.vars}{Optional; a vector of strings representing covariates in meta.dat for adjustment in the analysis.}
 
@@ -34,12 +39,39 @@ generate_taxa_per_time_test_long(
 
 \item{abund.filter}{Numeric; a minimum abundance threshold for taxa inclusion in the analysis.}
 
-\item{feature.dat.type}{Character; "count" or "proportion", indicating the type of feature data.}
+\item{feature.dat.type}{The type of the feature data, which determines how the data is handled.
+Should be one of:
+\itemize{
+  \item "count": Raw count data. This function will first apply TSS (Total Sum Scaling) normalization,
+        then LinDA performs zero-handling using half-minimum approach for statistical testing
+  \item "proportion": Pre-normalized proportional data. LinDA performs zero-handling using
+                      half-minimum approach without additional normalization
+}
+Default is "count".}
 
 \item{...}{Additional arguments passed to other methods.}
 }
 \value{
-A nested list structure. The top level of the list corresponds to different time points, and each element contains a list of dataframes for each taxonomic level. Each dataframe provides statistical analysis results for taxa at that level and time point.
+A nested list structure where:
+\itemize{
+  \item First level: Named by time points (\code{time.var} levels)
+  \item Second level: Named by \code{feature.level} (e.g., "Phylum", "Genus")
+  \item Third level: Named by tested comparisons between groups
+        (e.g., "Level vs Reference (Reference)" for categorical variables,
+        or variable name for continuous variables)
+  \item Each final element is a data.frame with the following columns:
+        \itemize{
+          \item \code{Variable}: Feature/taxon name
+          \item \code{Coefficient}: Log2 fold change (categorical) or slope (continuous)
+          \item \code{SE}: Standard error of the coefficient
+          \item \code{P.Value}: Raw p-value from LinDA's statistical test
+          \item \code{Adjusted.P.Value}: FDR-adjusted p-value (Benjamini-Hochberg)
+          \item \code{Mean.Abundance}: Mean abundance across all samples at that time point
+          \item \code{Prevalence}: Proportion of samples where feature is present (non-zero)
+        }
+}
+
+Analysis is performed separately for each time point using LinDA mixed-effects models.
 }
 \description{
 This function performs differential abundance testing across multiple time points in longitudinal microbiome data. It is tailored to analyze how the abundance of microbial taxa varies over time, within different groups or under various conditions.
