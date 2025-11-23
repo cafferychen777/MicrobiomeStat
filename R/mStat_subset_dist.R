@@ -69,7 +69,7 @@ mStat_subset_dist <- function (dist.obj, samIDs) {
 
   # If samIDs is logical or numeric, convert it to character form of sample IDs
   if (is.logical(samIDs) | is.numeric(samIDs)) {
-    samIDs <- rownames(dist.obj[[1]])[samIDs]
+    samIDs <- rownames(as.matrix(dist.obj[[1]]))[samIDs]
   }
 
   # Apply the subsetting to each distance matrix in the list
