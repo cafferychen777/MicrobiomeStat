@@ -1,0 +1,24 @@
+{
+  "simulation_params": {
+    "n_subjects_per_group": 50,
+    "n_timepoints": 5,
+    "n_features": 100,
+    "n_signal_features": 10,
+    "signal_strength": 2.0
+  },
+  "performance": {
+    "simple": {
+      "true_positives": 10,
+      "false_positives": 15,
+      "sensitivity": 1.0,
+      "fdr": 0.6
+    },
+    "trajectory": {
+      "true_positives": 10,
+      "false_positives": 3,
+      "sensitivity": 1.0,
+      "fdr": 0.23076923076923078
+    }
+  },
+  "power_improvement_pct": 0.0
+}
