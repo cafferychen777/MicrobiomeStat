@@ -1,0 +1,78 @@
+═══════════════════════════════════════════════════════════════════════════
+                   LinDA v2 Validation - Quick Reference
+═══════════════════════════════════════════════════════════════════════════
+
+EXPERIMENTS COMPLETED: 4
+  • Exp 1A: Trajectory Permutation Test (Python)     ✓ SUCCESS
+  • Exp 1B: Trajectory Spline LMM (R)                ✗ FAILED
+  • Exp 2:  Phylogenetic Smoothing (R, λ=0.5)        ⚠ MIXED
+  • Exp 3:  Timepoint Sensitivity (Python)           ✓ SUCCESS
+  • Exp 4:  Lambda Optimization (R)                  ✓ SUCCESS
+
+───────────────────────────────────────────────────────────────────────────
+KEY METRICS
+───────────────────────────────────────────────────────────────────────────
+
+Trajectory-Aware Testing (Permutation Approach):
+  • Works with: 3-20 timepoints
+  • Average FDR reduction: 64.1%
+  • Statistical power: 100% (maintained)
+  • Best case: 7 timepoints → 73% FDR improvement
+  • Implementation: Non-parametric, robust, simple
+
+Phylogenetic Smoothing (Optimized):
+  • Optimal lambda: 0.15-0.20 (NOT 0.5!)
+  • Signal-dependent:
+    - Weak (d=0.2):    λ=0.15, 60% sensitivity, 0% FDR
+    - Moderate (d=0.5): λ=0.15, 100% sensitivity, 10% FDR
+    - Strong (d=0.8):   λ=0.30, 100% sensitivity, 0% FDR
+
+───────────────────────────────────────────────────────────────────────────
+RECOMMENDATIONS
+───────────────────────────────────────────────────────────────────────────
+
+IMPLEMENT:
+  ✓ Permutation-based trajectory test (core feature)
+  ✓ Phylogenetic smoothing with λ=0.15-0.20 (optional)
+
+AVOID:
+  ✗ Spline LMM for studies with <10 timepoints
+
+DEFAULT SETTINGS:
+  • Trajectory testing: ENABLED (works universally)
+  • Phylogenetic smoothing: DISABLED (user-activated)
+  • Lambda default: 0.15-0.20
+
+───────────────────────────────────────────────────────────────────────────
+TIMELINE TO PUBLICATION
+───────────────────────────────────────────────────────────────────────────
+
+  Phase 1: Implementation (3 weeks)
+  Phase 2: Phylo smoothing (3 weeks)
+  Phase 3: Validation (4 weeks)
+  Phase 4: Manuscript (4 weeks)
+  ─────────────────────────────────
+  Total: ~14 weeks (3.5 months)
+
+───────────────────────────────────────────────────────────────────────────
+FILE LOCATIONS
+───────────────────────────────────────────────────────────────────────────
+
+Detailed Reports:
+  • pilot_experiments/results/COMPREHENSIVE_VALIDATION_SUMMARY.txt
+  • pilot_experiments/results/FINAL_VALIDATION_REPORT.txt
+
+Raw Data:
+  • pilot_experiments/results/03_timepoint_sensitivity.csv
+  • pilot_experiments/results/04_lambda_optimization_results.csv
+  • pilot_experiments/results/04_optimal_lambda_recommendations.csv
+
+Visualizations:
+  • pilot_experiments/results/03_timepoint_sensitivity_analysis.pdf
+  • pilot_experiments/results/04_lambda_optimization_comprehensive.pdf
+
+Code:
+  • pilot_experiments/03_timepoint_sensitivity_analysis.py
+  • pilot_experiments/04_lambda_optimization_analysis.R
+
+═══════════════════════════════════════════════════════════════════════════
