@@ -24,7 +24,7 @@ suppressPackageStartupMessages({
   library(ggplot2)
   library(dplyr)
   library(tidyr)
-  library(ggtree)
+  # library(ggtree)  # Skip ggtree - Bioconductor package, not critical for core analysis
   library(patchwork)
 })
 
@@ -90,26 +90,27 @@ cat("  Signal clade ASVs:", paste(signal_asv_names, collapse = ", "), "\n")
 cat("  Clade node:", signal_clade$node, "\n\n")
 
 # Visualize tree with signal clade highlighted
-tree_data <- as_tibble(tree)
-tree_data$is_signal <- tree_data$label %in% signal_asv_names
-
-p_tree <- ggtree(tree, layout = "circular") +
-  geom_tippoint(aes(color = label %in% signal_asv_names), size = 3) +
-  scale_color_manual(
-    values = c("TRUE" = "#e74c3c", "FALSE" = "#95a5a6"),
-    labels = c("TRUE" = "Signal Clade", "FALSE" = "Background"),
-    name = "ASV Type"
-  ) +
-  theme(
-    legend.position = "right",
-    plot.title = element_text(face = "bold", hjust = 0.5)
-  ) +
-  ggtitle("Phylogenetic Tree with Signal Clade Highlighted")
+# NOTE: ggtree visualization skipped (requires Bioconductor package)
+# tree_data <- as_tibble(tree)
+# tree_data$is_signal <- tree_data$label %in% signal_asv_names
+#
+# p_tree <- ggtree(tree, layout = "circular") +
+#   geom_tippoint(aes(color = label %in% signal_asv_names), size = 3) +
+#   scale_color_manual(
+#     values = c("TRUE" = "#e74c3c", "FALSE" = "#95a5a6"),
+#     labels = c("TRUE" = "Signal Clade", "FALSE" = "Background"),
+#     name = "ASV Type"
+#   ) +
+#   theme(
+#     legend.position = "right",
+#     plot.title = element_text(face = "bold", hjust = 0.5)
+#   ) +
+#   ggtitle("Phylogenetic Tree with Signal Clade Highlighted")
 
 dir.create("pilot_experiments/results", recursive = TRUE, showWarnings = FALSE)
-ggsave("pilot_experiments/results/02a_phylo_tree_signal_clade.pdf",
-       p_tree, width = 10, height = 10)
-cat("✓ Saved phylogenetic tree plot\n\n")
+# ggsave("pilot_experiments/results/02a_phylo_tree_signal_clade.pdf",
+#        p_tree, width = 10, height = 10)
+cat("✓ Skipped phylogenetic tree plot (ggtree not available)\n\n")
 
 # ==============================================================================
 # 3. Compute Tree-based Distance and Laplacian Matrix
@@ -431,29 +432,30 @@ cat("✓ Saved p-value scatter plot\n\n")
 # ==============================================================================
 
 # Create tree visualization with Z-score changes
-tree_plot_data <- data.frame(
-  label = tree$tip.label,
-  Z_Change = results_df$Z_Change,
-  Is_Signal = results_df$TrueSignal
-)
+# NOTE: ggtree visualization skipped (requires Bioconductor package)
+# tree_plot_data <- data.frame(
+#   label = tree$tip.label,
+#   Z_Change = results_df$Z_Change,
+#   Is_Signal = results_df$TrueSignal
+# )
+#
+# p_tree_effect <- ggtree(tree, layout = "rectangular") +
+#   geom_tippoint(aes(color = tree_plot_data$Z_Change), size = 4) +
+#   scale_color_gradient2(
+#     low = "#3498db", mid = "gray90", high = "#e74c3c",
+#     midpoint = 0,
+#     name = "Z-score\nChange"
+#   ) +
+#   theme_tree2() +
+#   theme(
+#     legend.position = "right",
+#     plot.title = element_text(face = "bold", hjust = 0.5)
+#   ) +
+#   ggtitle("Phylogenetic Smoothing Effect Across Tree")
 
-p_tree_effect <- ggtree(tree, layout = "rectangular") +
-  geom_tippoint(aes(color = tree_plot_data$Z_Change), size = 4) +
-  scale_color_gradient2(
-    low = "#3498db", mid = "gray90", high = "#e74c3c",
-    midpoint = 0,
-    name = "Z-score\nChange"
-  ) +
-  theme_tree2() +
-  theme(
-    legend.position = "right",
-    plot.title = element_text(face = "bold", hjust = 0.5)
-  ) +
-  ggtitle("Phylogenetic Smoothing Effect Across Tree")
-
-ggsave("pilot_experiments/results/02d_tree_smoothing_effect.pdf",
-       p_tree_effect, width = 12, height = 10)
-cat("✓ Saved tree smoothing effect plot\n\n")
+# ggsave("pilot_experiments/results/02d_tree_smoothing_effect.pdf",
+#        p_tree_effect, width = 12, height = 10)
+cat("✓ Skipped tree smoothing effect plot (ggtree not available)\n\n")
 
 # ==============================================================================
 # 11. Lambda Tuning: Sensitivity Analysis
