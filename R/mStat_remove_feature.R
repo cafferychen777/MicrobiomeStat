@@ -64,12 +64,15 @@ mStat_remove_feature <- function (data.obj, featureIDs, feature.level = NULL) {
     return()
   }
 
+  # Save the initial number of features before filtering
+  initial_features <- nrow(data.obj$feature.tab)
+
   # Use the tidyverse function 'filter' to subset the data
   data.obj$feature.tab <- dplyr::filter(data.obj$feature.tab %>% as.data.frame(), !(data.obj$feature.ann[, feature.level] %in% featureIDs))
   data.obj$feature.ann <- dplyr::filter(data.obj$feature.ann %>% as.data.frame(), !(data.obj$feature.ann[, feature.level] %in% featureIDs))
 
-  # Message about removed features
-  removed_features <- length(featureIDs) - nrow(data.obj$feature.tab)
+  # Message about removed features (correct calculation)
+  removed_features <- initial_features - nrow(data.obj$feature.tab)
   message(paste(removed_features, "features were removed from the", feature.level, "level. The remaining number of features is", nrow(data.obj$feature.tab), "."))
 
   # Check if the feature.agg.list exists in data.obj

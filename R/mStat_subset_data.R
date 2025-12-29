@@ -115,7 +115,7 @@ mStat_subset_data <- function (data.obj, samIDs = NULL, condition = NULL) {
     # Extract sample subset from feature table
     data.obj$feature.tab <- data.obj$feature.tab %>%
       as.data.frame() %>%
-      dplyr::select(one_of(samIDs)) %>%
+      dplyr::select(all_of(samIDs)) %>%
       dplyr::filter(rowSums(data.obj$feature.tab) != 0) %>%
       as.matrix()
 
@@ -137,7 +137,7 @@ mStat_subset_data <- function (data.obj, samIDs = NULL, condition = NULL) {
   if (!is.null(data.obj$feature.agg.list)) {
     data.obj$feature.agg.list <- lapply(data.obj$feature.agg.list, function(x) {
       x %>% as.data.frame() %>%
-        dplyr::select(one_of(samIDs)) %>%
+        dplyr::select(all_of(samIDs)) %>%
         dplyr::filter(rowSums(x) != 0) %>%
         as.matrix()
     })
