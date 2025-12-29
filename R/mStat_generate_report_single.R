@@ -394,17 +394,10 @@ mStat_generate_report_single <- function(data.obj,
   pdf <- output.format == "pdf"
 
   # Ensure output.file has the correct extension
-  if (output.format == "pdf" && !grepl("\\.pdf$", output.file, ignore.case = TRUE)) {
-    output.file <- paste0(output.file, ".pdf")
-  } else if (output.format == "html" && !grepl("\\.html$", output.file, ignore.case = TRUE)) {
-    output.file <- paste0(output.file, ".html")
-  }
+  output.file <- ensure_file_extension(output.file, output.format)
 
-  if (pdf) {
-    result.output <- "asis"
-  } else {
-    result.output <- "markup"
-  }
+  # Set result output mode based on format
+  result.output <- get_result_output_mode(pdf)
 
   # Adjust the YAML front matter based on output.format
   if (output.format == "pdf") {
