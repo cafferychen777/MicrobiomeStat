@@ -1,3 +1,40 @@
+#' Get Sample IDs Matching Specific Metadata Values
+#'
+#' This helper function filters the metadata by a specified variable and values,
+#' returning the matching sample IDs. It simplifies the common pattern of
+#' subsetting data by time points or other categorical variables.
+#'
+#' @param data.obj A MicrobiomeStat data object containing meta.dat.
+#' @param var Character. The metadata variable name to filter by.
+#' @param values Vector. Values to match in the variable.
+#'
+#' @return Character vector of matching sample IDs.
+#'
+#' @details
+#' If either `var` or `values` is NULL, returns all sample IDs from meta.dat.
+#' This function is used internally by various analysis functions to subset
+#' samples by time points or other grouping variables.
+#'
+#' @examples
+#' \dontrun{
+#' # Get samples from specific time points
+#' sample_ids <- get_sample_ids(data.obj, "time", c("T1", "T2"))
+#'
+#' # Get samples from a specific group
+#' sample_ids <- get_sample_ids(data.obj, "treatment", "Control")
+#' }
+#' @noRd
+get_sample_ids <- function(data.obj, var, values) {
+  if (is.null(var) || is.null(values)) {
+    return(rownames(data.obj$meta.dat))
+  }
+  rownames(
+    data.obj$meta.dat %>%
+      dplyr::filter(!!rlang::sym(var) %in% values)
+  )
+}
+
+
 #' @title Subset Data Object by Sample IDs in MicrobiomeStat
 #'
 #' @description

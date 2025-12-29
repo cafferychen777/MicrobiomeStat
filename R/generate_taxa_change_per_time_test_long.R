@@ -190,7 +190,7 @@ generate_taxa_change_per_time_test_long <-
     # Perform the longitudinal analysis for each follow-up time point
     test_list <- lapply(ts.levels, function(ts.level){
         # Subset the data to include only the baseline and current follow-up time point
-        subset.ids <- rownames(data.obj$meta.dat %>% filter(!!sym(time.var) %in% c(t0.level, ts.level)))
+        subset.ids <- get_sample_ids(data.obj, time.var, c(t0.level, ts.level))
         subset_data.obj <- mStat_subset_data(data.obj, samIDs = subset.ids)
 
         # Perform the pairwise analysis between baseline and current follow-up time point

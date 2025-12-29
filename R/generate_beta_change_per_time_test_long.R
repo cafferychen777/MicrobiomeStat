@@ -181,8 +181,7 @@ generate_beta_change_per_time_test_long <-
     # Perform beta diversity change tests for each follow-up time point
     test.list <- lapply(ts.levels, function(ts.level){
       # Subset the data for the specific time level
-      subset.ids <- rownames(data.obj$meta.dat %>%
-                               filter(!!sym(time.var) %in% c(t0.level, ts.level)))
+      subset.ids <- get_sample_ids(data.obj, time.var, c(t0.level, ts.level))
 
       # Create subsets of data and distance objects
       subset_data.obj <- mStat_subset_data(data.obj, samIDs = subset.ids)

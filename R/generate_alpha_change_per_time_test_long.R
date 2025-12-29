@@ -209,7 +209,7 @@ generate_alpha_change_per_time_test_long <-
     # Generate tests
     test.list <- lapply(ts.levels, function(ts.level) {
 
-      subset.ids <- rownames(data.obj$meta.dat %>% filter(!!sym(time.var) %in% c(t0.level, ts.level)))
+      subset.ids <- get_sample_ids(data.obj, time.var, c(t0.level, ts.level))
 
       subset_data.obj <- mStat_subset_data(data.obj, samIDs = subset.ids)
 

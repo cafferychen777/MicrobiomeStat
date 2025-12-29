@@ -75,9 +75,7 @@ generate_alpha_test_single <-
     }
 
     if (!is.null(time.var) & !is.null(t.level)) {
-      subset.ids <- rownames(data.obj$meta.dat %>%
-                               filter(!!sym(time.var) %in% c(t.level)))
-
+      subset.ids <- get_sample_ids(data.obj, time.var, t.level)
       subset_data.obj <- mStat_subset_data(data.obj, samIDs = subset.ids)
     }
 

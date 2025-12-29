@@ -194,9 +194,7 @@ generate_taxa_per_time_test_long <-
     test.list <- lapply(time.levels, function(t.level){
       tryCatch({
         # Subset data for the current time point
-        subset.ids <- rownames(data.obj$meta.dat %>%
-                                 filter(!!sym(time.var) %in% c(t.level)))
-        
+        subset.ids <- get_sample_ids(data.obj, time.var, t.level)
         subset_data.obj <- mStat_subset_data(data.obj, samIDs = subset.ids)
         
         # Extract relevant metadata for the current subset

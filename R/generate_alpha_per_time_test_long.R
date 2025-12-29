@@ -189,9 +189,7 @@ generate_alpha_per_time_test_long <- function(data.obj,
   test.list <- lapply(time.levels, function(t.level){
     # Subset the data for the specific time level.
     # This allows for time-specific analysis of alpha diversity.
-    subset.ids <- rownames(data.obj$meta.dat %>%
-                             filter(!!sym(time.var) %in% c(t.level)))
-
+    subset.ids <- get_sample_ids(data.obj, time.var, t.level)
     subset_data.obj <- mStat_subset_data(data.obj, samIDs = subset.ids)
 
     # Subset the alpha diversity object to match the subsetted data.
