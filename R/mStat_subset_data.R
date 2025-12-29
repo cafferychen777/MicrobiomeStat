@@ -96,7 +96,7 @@ mStat_subset_data <- function (data.obj, samIDs = NULL, condition = NULL) {
     message("Data has been subsetted based on the provided condition.")
   } else {
     # If samIDs is logical or numeric, convert it to character form of sample IDs
-    if (is.logical(samIDs) | is.numeric(samIDs)) {
+    if (is.logical(samIDs) || is.numeric(samIDs)) {
       samIDs <- rownames(data.obj$meta.dat)[samIDs]
     }
     message("Data has been subsetted based on the provided samIDs.")
@@ -113,10 +113,11 @@ mStat_subset_data <- function (data.obj, samIDs = NULL, condition = NULL) {
   # If feature table exists, extract subset of feature table that matches samIDs
   if (!is.null(data.obj$feature.tab)) {
     # Extract sample subset from feature table
+    # Use {} block to correctly reference the subsetted data's rowSums
     data.obj$feature.tab <- data.obj$feature.tab %>%
       as.data.frame() %>%
       dplyr::select(all_of(samIDs)) %>%
-      dplyr::filter(rowSums(data.obj$feature.tab) != 0) %>%
+      { .[rowSums(.) != 0, , drop = FALSE] } %>%
       as.matrix()
 
     message("Updated feature table to match the subsetted data.")
@@ -138,7 +139,7 @@ mStat_subset_data <- function (data.obj, samIDs = NULL, condition = NULL) {
     data.obj$feature.agg.list <- lapply(data.obj$feature.agg.list, function(x) {
       x %>% as.data.frame() %>%
         dplyr::select(all_of(samIDs)) %>%
-        dplyr::filter(rowSums(x) != 0) %>%
+        { .[rowSums(.) != 0, , drop = FALSE] } %>%
         as.matrix()
     })
 

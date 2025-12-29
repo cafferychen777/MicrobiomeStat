@@ -34,7 +34,7 @@
 #' @export
 mStat_subset_alpha <- function(alpha.obj, samIDs) {
   # If samIDs is logical or numeric, convert it to character form of sample IDs
-  if (is.logical(samIDs) | is.numeric(samIDs)) {
+  if (is.logical(samIDs) || is.numeric(samIDs)) {
     samIDs <- colnames(alpha.obj[[1]])[samIDs]
   }
 

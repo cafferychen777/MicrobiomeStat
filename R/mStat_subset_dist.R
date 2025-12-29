@@ -75,7 +75,7 @@ mStat_subset_dist <- function (dist.obj, samIDs) {
   }
 
   # If samIDs is logical or numeric, convert it to character form of sample IDs
-  if (is.logical(samIDs) | is.numeric(samIDs)) {
+  if (is.logical(samIDs) || is.numeric(samIDs)) {
     # Verify first element exists before accessing
     if (is.null(dist.obj[[1]])) {
       warning("First element of dist.obj is NULL, returning NULL")

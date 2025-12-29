@@ -35,7 +35,7 @@
 mStat_subset_PC <- function (pc.obj, samIDs) {
 
   # If samIDs is logical or numeric, convert it to character form of sample IDs
-  if (is.logical(samIDs) | is.numeric(samIDs)) {
+  if (is.logical(samIDs) || is.numeric(samIDs)) {
     samIDs <- rownames(pc.obj[[1]])[samIDs]
   }
 
