@@ -101,8 +101,8 @@ mStat_normalize_data <-
       } else if (depth > min(colSums(otu_tab))) {
         stop("Depth is greater than the smallest total count across samples.")
       }
-      rarefy_depth <- ifelse(is.null(depth), min(colSums(otu_tab)), depth)
-      
+      rarefy_depth <- depth
+
       # Check if data is already in relative abundance format
       if (all(round(colSums(otu_tab),5) == 1)){
         rarefied_otu_tab <- as.matrix(otu_tab)
@@ -121,7 +121,7 @@ mStat_normalize_data <-
       } else if (depth > min(colSums(otu_tab))) {
         stop("Depth is greater than the smallest total count across samples.")
       }
-      rarefy_depth <- ifelse(is.null(depth), min(colSums(otu_tab)), depth)
+      rarefy_depth <- depth
       
       # Check if data is already in relative abundance format
       if (all(round(colSums(otu_tab),5) == 1)){
