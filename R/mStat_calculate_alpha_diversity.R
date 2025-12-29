@@ -58,7 +58,16 @@ mStat_calculate_alpha_diversity <- function(x, alpha.name, tree = NULL) {
                      # ACE: Abundance-based Coverage Estimator of species richness
                      ace = vegan::estimateR(x_transpose)[4, ],
                      # Pielou's evenness: Shannon diversity divided by log of species richness
-                     pielou = vegan::diversity(x_transpose, index = "shannon") / log(vegan::specnumber(x_transpose), exp(1)),
+                     # Handle edge cases: when specnumber <= 1, log is 0 or undefined
+                     pielou = {
+                       shannon <- vegan::diversity(x_transpose, index = "shannon")
+                       spec_num <- vegan::specnumber(x_transpose)
+                       log_spec <- log(spec_num, exp(1))
+                       # Set pielou to NA when species count <= 1 (undefined evenness)
+                       pielou_val <- shannon / log_spec
+                       pielou_val[spec_num <= 1] <- NA_real_
+                       pielou_val
+                     },
                      # Faith's phylogenetic diversity: sum of phylogenetic branch lengths
                      faith_pd = {
                        if (!requireNamespace("picante", quietly = TRUE)) {

@@ -189,6 +189,22 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
   Z <- as.data.frame(Z[keep.sam, ])
   names(Z) <- allvars
 
+  # Remove samples with zero total counts BEFORE computing proportions
+  # This prevents division by zero in the next step
+  col_sums <- colSums(Y)
+  if (any(col_sums == 0)) {
+    zero_samples <- which(col_sums == 0)
+    if (verbose) {
+      message(
+        length(zero_samples), " samples with zero total counts removed before filtering!\n"
+      )
+    }
+    Y <- Y[, col_sums > 0, drop = FALSE]
+    Z <- as.data.frame(Z[col_sums > 0, , drop = FALSE])
+    names(Z) <- allvars
+    keep.sam <- keep.sam[col_sums > 0]
+  }
+
   # Filter features based on prevalence, mean abundance, and maximum abundance
   temp <- t(t(Y) / colSums(Y))
 

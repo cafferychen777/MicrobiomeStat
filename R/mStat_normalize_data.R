@@ -180,8 +180,21 @@ mStat_normalize_data <-
       # DESeq normalization
       # This method is particularly useful for RNA-seq data from microbiome studies
       scale_factor <- apply(otu_tab, 2, function(x) {
-        sum(x) / exp(mean(log(x[x > 0])))
+        positive_vals <- x[x > 0]
+        # Handle edge case: if no positive values, return NA
+        if (length(positive_vals) == 0) {
+          return(NA_real_)
+        }
+        sum(x) / exp(mean(log(positive_vals)))
       })
+      # Warn about samples with NA scale factors (all zeros)
+      if (any(is.na(scale_factor))) {
+        n_na <- sum(is.na(scale_factor))
+        warning(
+          n_na, " sample(s) have all zero counts and cannot be normalized with DESeq method. ",
+          "These samples will have NA scale factors."
+        )
+      }
     } else if (method == "TMM") {
       # TMM normalization (Trimmed Mean of M-values)
       # This method is robust to compositional effects and uneven sequencing depth

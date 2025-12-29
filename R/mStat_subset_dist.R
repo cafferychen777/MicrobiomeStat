@@ -67,8 +67,20 @@ is.na.null <- function (x) {
 #' @export
 mStat_subset_dist <- function (dist.obj, samIDs) {
 
+  # Check if dist.obj is NULL or empty
+
+  if (is.null(dist.obj) || length(dist.obj) == 0) {
+    warning("dist.obj is NULL or empty, returning NULL")
+    return(NULL)
+  }
+
   # If samIDs is logical or numeric, convert it to character form of sample IDs
   if (is.logical(samIDs) | is.numeric(samIDs)) {
+    # Verify first element exists before accessing
+    if (is.null(dist.obj[[1]])) {
+      warning("First element of dist.obj is NULL, returning NULL")
+      return(NULL)
+    }
     samIDs <- rownames(as.matrix(dist.obj[[1]]))[samIDs]
   }
 
