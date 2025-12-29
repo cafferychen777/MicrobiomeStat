@@ -93,44 +93,34 @@ mStat_normalize_data <-
     # Different normalization methods are applied based on the selected method
     # Each method addresses different aspects of microbiome data variability
 
-    if (method == "Rarefy-TSS") {
-      # Rarefaction followed by Total Sum Scaling
-      # This method first standardizes sampling depth, then converts to relative abundance
+    if (method %in% c("Rarefy-TSS", "Rarefy")) {
+      # Rarefaction-based normalization methods
+      # - Rarefy: Standardizes sampling depth across all samples
+      # - Rarefy-TSS: Rarefaction followed by Total Sum Scaling (converts to relative abundance)
+
+      # Validate and determine rarefaction depth
+      min_depth <- min(colSums(otu_tab))
+
       if (is.null(depth)) {
-        depth <- min(colSums(otu_tab))
-      } else if (depth > min(colSums(otu_tab))) {
+        depth <- min_depth
+      } else if (depth > min_depth) {
         stop("Depth is greater than the smallest total count across samples.")
       }
-      rarefy_depth <- depth
 
       # Check if data is already in relative abundance format
-      if (all(round(colSums(otu_tab),5) == 1)){
+      if (all(round(colSums(otu_tab), 5) == 1)) {
         rarefied_otu_tab <- as.matrix(otu_tab)
       } else {
         # Perform rarefaction using vegan package
-        rarefied_otu_tab <- t(vegan::rrarefy(t(otu_tab), sample = rarefy_depth))
+        rarefied_otu_tab <- t(vegan::rrarefy(t(otu_tab), sample = depth))
       }
-      # Convert to relative abundance
-      rarefied_otu_tab <- rarefied_otu_tab / rarefy_depth
-      scale_factor <- rarefy_depth
-    } else if (method == "Rarefy") {
-      # Rarefaction only
-      # This method standardizes sampling depth across all samples
-      if (is.null(depth)) {
-        depth <- min(colSums(otu_tab))
-      } else if (depth > min(colSums(otu_tab))) {
-        stop("Depth is greater than the smallest total count across samples.")
+
+      # Apply TSS normalization (convert to relative abundance) for Rarefy-TSS only
+      if (method == "Rarefy-TSS") {
+        rarefied_otu_tab <- rarefied_otu_tab / depth
       }
-      rarefy_depth <- depth
-      
-      # Check if data is already in relative abundance format
-      if (all(round(colSums(otu_tab),5) == 1)){
-        rarefied_otu_tab <- as.matrix(otu_tab)
-      } else {
-        # Perform rarefaction using vegan package
-        rarefied_otu_tab <- t(vegan::rrarefy(t(otu_tab), sample = rarefy_depth))
-      }
-      scale_factor <- rarefy_depth
+
+      scale_factor <- depth
     } else if (method == "TSS") {
       # Total Sum Scaling
       # This method converts counts to relative abundances
