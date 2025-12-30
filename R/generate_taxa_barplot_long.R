@@ -317,10 +317,9 @@ generate_taxa_barplot_long <-
         otu_tax_agg <- data.obj$feature.tab
       }
 
-      # Subset and normalize features if specified
+      # Subset features if specified
       if (!is.null(features.plot)){
         otu_tax_agg <- otu_tax_agg[na.omit(features.plot),]
-        otu_tax_agg <- apply(otu_tax_agg, 2, function(x) x / sum(x))
       }
 
       # Prepare the feature table for analysis

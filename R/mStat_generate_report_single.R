@@ -381,12 +381,7 @@ mStat_generate_report_single <- function(data.obj,
   feature.mt.method <- match.arg(feature.mt.method)
 
   # Calculate sample count for determining plot width
-  # For single time point analysis, time.var may be NULL
-  if (!is.null(time.var) && time.var %in% names(data.obj$meta.dat)) {
-    sample_count <- length(unique(data.obj$meta.dat[[time.var]])) * length(unique(data.obj$meta.dat[[group.var]]))
-  } else {
-    sample_count <- length(unique(data.obj$meta.dat[[group.var]]))
-  }
+  sample_count <- calc_sample_count(data.obj$meta.dat, time.var, group.var)
   has_many_samples <- sample_count > 8
 
   if (has_many_samples) {

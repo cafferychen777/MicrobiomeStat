@@ -440,14 +440,14 @@ generate_beta_ordination_long <-
           x = ifelse(
             !is.null(pc.obj[[dist.name]]$eig),
             paste0("Axis 1 (", round(
-              pc.obj[[dist.name]]$eig[1] / sum(pc.obj[["BC"]]$eig) * 100, 2
+              pc.obj[[dist.name]]$eig[1] / sum(pc.obj[[dist.name]]$eig) * 100, 2
             ), "%)"),
             "Axis 1"
           ),
           y = ifelse(
             !is.null(pc.obj[[dist.name]]$eig),
             paste0("Axis 2 (", round(
-              pc.obj[[dist.name]]$eig[2] / sum(pc.obj[["BC"]]$eig) * 100, 2
+              pc.obj[[dist.name]]$eig[2] / sum(pc.obj[[dist.name]]$eig) * 100, 2
             ), "%)"),
             "Axis 2"
           )

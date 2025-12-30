@@ -134,6 +134,40 @@ save_plots_pdf <- function(plots, file_path, width = 11, height = 8.5) {
   invisible(file_path)
 }
 
+#' Select Metadata Variables Safely
+#'
+#' Selects variables from metadata, filtering out NULL variable names.
+#' This is useful when optional parameters like time.var may be NULL.
+#'
+#' @param meta.dat The metadata data frame
+#' @param ... Variable names (can include NULL values which will be filtered out)
+#' @return Data frame with selected columns
+#' @noRd
+select_meta_vars <- function(meta.dat, ...) {
+ vars <- c(...)
+ vars <- vars[!sapply(vars, is.null)]
+ meta.dat %>% as.data.frame() %>% dplyr::select(dplyr::all_of(vars))
+}
+
+#' Calculate Sample Count for Plot Width
+#'
+#' Calculates the sample count for determining plot width.
+#' Handles NULL time.var for single time point analysis.
+#'
+#' @param meta.dat The metadata data frame
+#' @param time.var Time variable name (can be NULL)
+#' @param group.var Group variable name
+#' @return Integer count of unique combinations
+#' @noRd
+calc_sample_count <- function(meta.dat, time.var, group.var) {
+ group_count <- length(unique(meta.dat[[group.var]]))
+ if (!is.null(time.var) && time.var %in% names(meta.dat)) {
+   time_count <- length(unique(meta.dat[[time.var]]))
+   return(time_count * group_count)
+ }
+ group_count
+}
+
 #' Build PDF Filename for Report Plots
 #'
 #' Constructs a standardized PDF filename based on analysis parameters.
