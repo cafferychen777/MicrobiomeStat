@@ -21,7 +21,7 @@
 #' for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
 #' is also NULL.
 #' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
-#' Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.
+#' Default is NULL, in which case the top `feature.number` features by mean abundance will be displayed.
 #' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
 #' Should be one of:
 #' - "count": Raw count data, will be normalized by the function.
