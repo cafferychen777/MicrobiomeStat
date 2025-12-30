@@ -23,7 +23,12 @@ linda2(
   alpha = 0.05,
   n.cores = 1,
   verbose = TRUE,
-  weights = NULL
+  weights = NULL,
+  tree = NULL,
+  tree.smooth = FALSE,
+  tree.lambda = 0.1,
+  tree.k = 5,
+  tree.meff.exponent = 2.2
 )
 }
 \arguments{
@@ -86,6 +91,25 @@ Common weight choices:
   \item Weights are normalized to sum to the number of samples
   \item The interaction between weighting and bias correction is not fully validated
 }}
+
+\item{tree}{A phylo object (from ape package) representing the phylogenetic tree.
+If provided and \code{tree.smooth = TRUE}, tree-guided smoothing will be applied
+to boost statistical power. Default is NULL (no tree smoothing).}
+
+\item{tree.smooth}{Logical; if TRUE and a tree is provided, apply phylogenetic
+smoothing to the test statistics. This borrows strength from evolutionarily
+related taxa to improve power. Default is FALSE.}
+
+\item{tree.lambda}{Numeric; smoothing strength parameter for tree-guided smoothing.
+Larger values = more smoothing. Recommended range: 0.05-0.2. Default is 0.1.}
+
+\item{tree.k}{Integer; number of nearest neighbors for local smoothing.
+Using fewer neighbors prevents signal leakage. Default is 5.}
+
+\item{tree.meff.exponent}{Numeric; exponent for M_eff correction.
+This corrects for correlation-induced p-value inflation.
+- For N <= 100 samples/group: use 2.2 (default)
+- For N > 100 samples/group: consider using 3.5 or switch to p.adj.method="BY"}
 }
 \value{
 A list with the elements

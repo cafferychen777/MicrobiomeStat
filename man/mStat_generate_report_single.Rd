@@ -10,7 +10,6 @@ mStat_generate_report_single(
   vis.adj.vars = NULL,
   test.adj.vars = NULL,
   strata.var = NULL,
-  subject.var,
   time.var = NULL,
   t.level = NULL,
   alpha.obj = NULL,
@@ -54,8 +53,6 @@ mStat_generate_report_single(
 \item{test.adj.vars}{Character vector, names of columns in the metadata containing covariates to be adjusted for in statistical tests and models, such as linear mixed effects models for longitudinal data analysis. This allows the user to account for the effects of additional variables in assessing the effects of primary variables of interest such as time and groups. Default is NULL, which indicates no covariates are adjusted for in statistical testing.}
 
 \item{strata.var}{Variable to stratify the analysis by (optional).}
-
-\item{subject.var}{Variable name used for subject identification.}
 
 \item{time.var}{Variable name used for time points.}
 
@@ -226,7 +223,6 @@ mStat_generate_report_single(
   group.var = "group",
   vis.adj.vars = NULL,
   test.adj.vars = NULL,
-  subject.var = "subject",
   time.var = "time",
   alpha.name = c("shannon", "observed_species"),
   depth = NULL,
@@ -251,7 +247,6 @@ mStat_generate_report_single(
   group.var = "group",
   vis.adj.vars = NULL,
   test.adj.vars = NULL,
-  subject.var = "subject",
   time.var = "time",
   alpha.name = c("shannon", "observed_species"),
   depth = NULL,
@@ -277,7 +272,6 @@ mStat_generate_report_single(
   group.var = "subject_race",
   vis.adj.vars = "sample_body_site",
   test.adj.vars = "sample_body_site",
-  subject.var = "subject_id",
   time.var = "visit_number_num",
   alpha.name = c("shannon", "observed_species"),
   depth = 2000,
@@ -301,7 +295,6 @@ mStat_generate_report_single(
   group.var = "subject_race",
   vis.adj.vars = "sample_body_site",
   test.adj.vars = "sample_body_site",
-  subject.var = "subject_id",
   time.var = "visit_number_num",
   alpha.name = c("shannon", "observed_species"),
   depth = 2000,
@@ -326,7 +319,6 @@ mStat_generate_report_single(
   group.var = "subject_race",
   vis.adj.vars = "sample_body_site",
   test.adj.vars = "sample_body_site",
-  subject.var = "subject_id",
   time.var = "visit_number_num",
   alpha.name = c("shannon", "observed_species"),
   depth = 2000,
@@ -350,7 +342,6 @@ mStat_generate_report_single(
   group.var = "subject_race",
   vis.adj.vars = "sample_body_site",
   test.adj.vars = "sample_body_site",
-  subject.var = "subject_id",
   time.var = "visit_number_num",
   alpha.name = c("shannon", "observed_species"),
   depth = 2000,
@@ -375,7 +366,6 @@ mStat_generate_report_single(
   group.var = "delivery",
   vis.adj.vars = "diet",
   test.adj.vars = "diet",
-  subject.var = "subject.id",
   time.var = "month_num",
   alpha.name = c("shannon", "observed_species"),
   depth = NULL,
@@ -399,7 +389,6 @@ mStat_generate_report_single(
   group.var = "delivery",
   vis.adj.vars = "diet",
   test.adj.vars = "diet",
-  subject.var = "subject.id",
   time.var = "month_num",
   alpha.name = c("shannon", "observed_species"),
   depth = NULL,

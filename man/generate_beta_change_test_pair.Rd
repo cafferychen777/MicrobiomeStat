@@ -7,8 +7,8 @@
 generate_beta_change_test_pair(
   data.obj,
   dist.obj = NULL,
-  time.var = NULL,
   subject.var,
+  time.var = NULL,
   group.var,
   adj.vars = NULL,
   change.base = NULL,
@@ -23,13 +23,13 @@ generate_beta_change_test_pair(
 If NULL, beta diversity will be automatically computed from \code{data.obj}
 using \code{mStat_calculate_beta_diversity}.}
 
-\item{time.var}{The name of the column in metadata containing the time variable.
-This should be a column with time points for each sample. Required
-to identify pairs of samples for the same subject across time.}
-
 \item{subject.var}{The name of the column in metadata containing the subject IDs.
 This should uniquely identify each subject in the study. Required
 to identify samples that belong to the same subject.}
+
+\item{time.var}{The name of the column in metadata containing the time variable.
+This should be a column with time points for each sample. Required
+to identify pairs of samples for the same subject across time.}
 
 \item{group.var}{The name of the column in metadata containing the grouping variable
 to use in linear modeling. This grouping variable will be used as a
@@ -77,8 +77,8 @@ data(peerj32.obj)
 generate_beta_change_test_pair(
   data.obj = peerj32.obj,
   dist.obj = NULL,
-  time.var = "time",
   subject.var = "subject",
+  time.var = "time",
   group.var = "group",
   adj.vars = NULL,
   change.base = "1",
@@ -87,8 +87,8 @@ generate_beta_change_test_pair(
 generate_beta_change_test_pair(
   data.obj = peerj32.obj,
   dist.obj = NULL,
-  time.var = "time",
   subject.var = "subject",
+  time.var = "time",
   group.var = "group",
   adj.vars = "sex",
   change.base = "1",
@@ -99,8 +99,8 @@ data("subset_pairs.obj")
 generate_beta_change_test_pair(
   data.obj = subset_pairs.obj,
   dist.obj = NULL,
-  time.var = "Antibiotic",
   subject.var = "MouseID",
+  time.var = "Antibiotic",
   group.var = "Sex",
   adj.vars = NULL,
   change.base = "Baseline",

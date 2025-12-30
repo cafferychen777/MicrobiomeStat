@@ -9,8 +9,8 @@ generate_alpha_test_pair(
   alpha.obj = NULL,
   alpha.name = NULL,
   depth = NULL,
-  time.var,
   subject.var,
+  time.var,
   group.var,
   adj.vars = NULL,
   change.base = NULL
@@ -28,10 +28,10 @@ indices to compute. Options include: "shannon", "simpson",
 \item{depth}{An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
 If NULL, no rarefaction is performed.}
 
+\item{subject.var}{A string specifying the subject variable column in the metadata.}
+
 \item{time.var}{A string representing the time variable's name in the
 metadata. The default is NULL.}
-
-\item{subject.var}{A string specifying the subject variable column in the metadata.}
 
 \item{group.var}{A string representing the group variable's name in the
 metadata.}
@@ -68,18 +68,18 @@ data(peerj32.obj)
 generate_alpha_test_pair(
 data.obj = peerj32.obj,
 alpha.obj = NULL,
-time.var = "time",
 alpha.name = c("shannon", "simpson", "ace"),
 subject.var = "subject",
+time.var = "time",
 group.var = NULL
 )
 
 generate_alpha_test_pair(
 data.obj = peerj32.obj,
 alpha.obj = NULL,
-time.var = "time",
 alpha.name = c("shannon", "simpson", "ace"),
 subject.var = "subject",
+time.var = "time",
 group.var = NULL,
 change.base = "2"
 )
@@ -87,18 +87,18 @@ change.base = "2"
 generate_alpha_test_pair(
 data.obj = peerj32.obj,
 alpha.obj = NULL,
-time.var = "time",
 alpha.name = c("shannon", "simpson", "ace"),
 subject.var = "subject",
+time.var = "time",
 group.var = "group"
 )
 
 generate_alpha_test_pair(
 data.obj = peerj32.obj,
 alpha.obj = NULL,
-time.var = "time",
 alpha.name = c("shannon", "simpson", "ace"),
 subject.var = "subject",
+time.var = "time",
 group.var = "group",
 adj.vars = "sex"
 )
@@ -107,17 +107,17 @@ data("subset_pairs.obj")
 generate_alpha_test_pair(
 data.obj = subset_pairs.obj,
 alpha.obj = NULL,
-time.var = "Antibiotic",
 alpha.name = c("shannon", "simpson", "ace"),
 subject.var = "MouseID",
+time.var = "Antibiotic",
 group.var = "Sex"
 )
 generate_alpha_test_pair(
 data.obj = subset_pairs.obj,
 alpha.obj = NULL,
-time.var = "Antibiotic",
 alpha.name = c("shannon", "simpson", "ace"),
 subject.var = "MouseID",
+time.var = "Antibiotic",
 group.var = "Sex",
 change.base = "Week 2"
 )

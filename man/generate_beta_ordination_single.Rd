@@ -6,7 +6,6 @@
 \usage{
 generate_beta_ordination_single(
   data.obj,
-  subject.var,
   time.var = NULL,
   t.level = NULL,
   group.var = NULL,
@@ -29,8 +28,6 @@ generate_beta_ordination_single(
 }
 \arguments{
 \item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
-
-\item{subject.var}{String. Variable to be used as subject.}
 
 \item{time.var}{String. Variable to be used for time. Default is NULL.}
 
@@ -139,7 +136,6 @@ generate_beta_ordination_single(
   data.obj = peerj32.obj,
   dist.obj = NULL,
   pc.obj = NULL,
-  subject.var = "subject",
   time.var = "time",
   t.level = "2",
   group.var = "group",
@@ -164,7 +160,6 @@ generate_beta_ordination_single(
   data.obj = subset_T2D.obj,
   dist.obj = dist.obj,
   pc.obj = pc.obj,
-  subject.var = "subject_id",
   time.var = "visit_number_num",
   t.level = NULL,
   group.var = "subject_race",

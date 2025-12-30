@@ -9,7 +9,6 @@ generate_alpha_boxplot_single(
   alpha.obj = NULL,
   alpha.name = c("shannon", "observed_species"),
   depth = NULL,
-  subject.var = NULL,
   time.var = NULL,
   t.level = NULL,
   group.var = NULL,
@@ -35,8 +34,6 @@ generate_alpha_boxplot_single(
 
 \item{depth}{An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
 If NULL, no rarefaction is performed.}
-
-\item{subject.var}{The variable in the metadata table that represents the subject.}
 
 \item{time.var}{The variable in the metadata table that represents the time.}
 
@@ -121,7 +118,6 @@ generate_alpha_boxplot_single(
   data.obj     = peerj32.obj,
   alpha.obj    = NULL,
   alpha.name   = c("simpson"),
-  subject.var  = "subject",
   time.var     = "time",
   t.level      = "2",
   group.var    = "group",
@@ -141,7 +137,6 @@ generate_alpha_boxplot_single(
   data.obj     = peerj32.obj,
   alpha.obj    = alpha.obj,
   alpha.name   = c("simpson"),
-  subject.var  = "subject",
   time.var     = "time",
   t.level      = "2",
   group.var    = "group",
@@ -164,7 +159,6 @@ generate_alpha_boxplot_single(
   data.obj     = subset_T2D.obj,
   alpha.obj    = NULL,
   alpha.name   = c("shannon"),
-  subject.var  = "subject_id",
   time.var     = "visit_number",
   t.level      = "   3",
   group.var    = "subject_race",
@@ -191,7 +185,6 @@ generate_alpha_boxplot_single(
   data.obj     = peerj32.obj,
   alpha.obj    = NULL,
   alpha.name   = c("simpson"),
-  subject.var  = "subject",
   time.var     = "time",
   t.level      = "2",
   group.var    = "group",

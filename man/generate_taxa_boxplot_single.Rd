@@ -6,7 +6,6 @@
 \usage{
 generate_taxa_boxplot_single(
   data.obj,
-  subject.var,
   time.var = NULL,
   t.level = NULL,
   group.var = NULL,
@@ -33,8 +32,6 @@ generate_taxa_boxplot_single(
 }
 \arguments{
 \item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
-
-\item{subject.var}{A string specifying the variable for subjects.}
 
 \item{time.var}{A string specifying the variable for time. If NULL, the function assumes that data for a single time point is provided.}
 
@@ -157,7 +154,6 @@ The function also has options to customize the size, theme, and color palette of
 data(ecam.obj)
 generate_taxa_boxplot_single(
   data.obj = ecam.obj,
-  subject.var = "studyid",
   time.var = "month",
   t.level = "1",
   group.var = "diet",
@@ -180,7 +176,6 @@ generate_taxa_boxplot_single(
 )
 generate_taxa_boxplot_single(
   data.obj = ecam.obj,
-  subject.var = "studyid",
   time.var = "month",
   t.level = "1",
   group.var = "diet",
@@ -203,7 +198,6 @@ generate_taxa_boxplot_single(
 )
 generate_taxa_boxplot_single(
   data.obj = ecam.obj,
-  subject.var = "studyid",
   time.var = "month",
   t.level = "1",
   group.var = NULL,
@@ -227,7 +221,6 @@ generate_taxa_boxplot_single(
 data(peerj32.obj)
 generate_taxa_boxplot_single(
   data.obj = peerj32.obj,
-  subject.var = "subject",
   time.var = "time",
   t.level = "1",
   group.var = "group",
@@ -252,7 +245,6 @@ generate_taxa_boxplot_single(
 data(peerj32.obj)
 generate_taxa_boxplot_single(
   data.obj = peerj32.obj,
-  subject.var = "subject",
   time.var = "time",
   t.level = "1",
   group.var = "group",

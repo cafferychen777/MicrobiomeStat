@@ -58,7 +58,7 @@ Default is "count", which assumes raw OTU table input.}
 \item{feature.number}{A numeric value indicating the number of top abundant features to retain in the plot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.}
 
 \item{features.plot}{A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
-Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.}
+Default is NULL, in which case the top `feature.number` features by mean abundance will be displayed.}
 
 \item{t0.level}{Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.}
 

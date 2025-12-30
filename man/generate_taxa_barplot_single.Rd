@@ -6,7 +6,6 @@
 \usage{
 generate_taxa_barplot_single(
   data.obj,
-  subject.var = NULL,
   time.var = NULL,
   t.level = NULL,
   group.var = NULL,
@@ -28,9 +27,6 @@ generate_taxa_barplot_single(
 }
 \arguments{
 \item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
-
-\item{subject.var}{Character string specifying the column name in metadata containing
-unique subject IDs. Required to connect samples from the same subject.}
 
 \item{time.var}{Character string specifying the column name in metadata containing the
 time variable. Required to order and connect samples over time.}
@@ -60,7 +56,7 @@ The choice affects preprocessing steps as well as plot axis labels.
 Default is "count", which assumes raw OTU table input.}
 
 \item{features.plot}{A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
-Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.}
+Default is NULL, in which case the top `feature.number` features by mean abundance will be displayed.}
 
 \item{feature.number}{A numeric value indicating the number of top abundant features to retain in the plot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.}
 
@@ -127,7 +123,6 @@ The function also has options to customize the size, theme, and color palette of
 data(peerj32.obj)
 generate_taxa_barplot_single(
   data.obj = peerj32.obj,
-  subject.var = "subject",
   time.var = NULL,
   t.level = NULL,
   group.var = "group",
@@ -146,7 +141,6 @@ generate_taxa_barplot_single(
 )
 generate_taxa_barplot_single(
   data.obj = peerj32.obj,
-  subject.var = "subject",
   time.var = NULL,
   t.level = NULL,
   group.var = "group",
@@ -167,7 +161,6 @@ generate_taxa_barplot_single(
 data("subset_T2D.obj")
 generate_taxa_barplot_single(
   data.obj = subset_T2D.obj,
-  subject.var = "subject_id",
   time.var = "visit_number_num",
   t.level = 1,
   group.var = "subject_race",
@@ -186,7 +179,6 @@ generate_taxa_barplot_single(
 )
 generate_taxa_barplot_single(
   data.obj = subset_T2D.obj,
-  subject.var = "subject_id",
   time.var = "visit_number_num",
   t.level = 1,
   group.var = "subject_race",
