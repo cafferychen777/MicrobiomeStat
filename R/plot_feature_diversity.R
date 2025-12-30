@@ -93,6 +93,9 @@
 #' plot.type = "barplot"
 #' )
 #'
+#' # Get valid Phylum values (excluding empty strings and NAs)
+#' valid_phyla <- unique(ecam.obj$feature.ann[,"Phylum"])
+#' valid_phyla <- valid_phyla[!valid_phyla %in% c("__", "") & !is.na(valid_phyla)]
 #' plot_feature_diversity(
 #' data.obj = ecam.obj,
 #' group.var = "antiexposedall",
@@ -102,7 +105,7 @@
 #' is.plot.change = TRUE,
 #' feature.level = c("Phylum"),
 #' feature.dat.type = "proportion",
-#' features.plot = ecam.obj$feature.ann[,"Phylum"][1:3],
+#' features.plot = valid_phyla[1:3],
 #' prop.to.lump = 0.0001,
 #' top.k.plot = NULL,
 #' top.k.func = NULL,
