@@ -207,6 +207,12 @@ generate_taxa_cladogram_single <- function(
   # Ensure required namespaces are available
   requireNamespace("ggplot2", quietly = TRUE)
 
+  # Compatibility fix for ggplot2 >= 4.0.0 which no longer exports is.waive()
+  # ggtree depends on this function internally, so we need to provide it
+  if (!exists("is.waive", envir = .GlobalEnv)) {
+    assign("is.waive", function(x) inherits(x, "waiver"), envir = .GlobalEnv)
+  }
+
   # Check group.var parameter
   if (is.null(group.var)) {
     stop("'group.var' must be provided")

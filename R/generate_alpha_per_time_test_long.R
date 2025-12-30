@@ -168,8 +168,11 @@ generate_alpha_per_time_test_long <- function(data.obj,
   if (is.null(t0.level)) {
     if (is.numeric(meta_tab[, time.var])) {
       t0.level <- sort(unique(meta_tab[, time.var]))[1]
-    } else {
+    } else if (is.factor(meta_tab[, time.var])) {
       t0.level <- levels(meta_tab[, time.var])[1]
+    } else {
+      # For character type, use sort(unique()) like numeric
+      t0.level <- sort(unique(meta_tab[, time.var]))[1]
     }
   }
 
@@ -177,8 +180,11 @@ generate_alpha_per_time_test_long <- function(data.obj,
   if (is.null(ts.levels)) {
     if (is.numeric(meta_tab[, time.var])) {
       ts.levels <- sort(unique(meta_tab[, time.var]))[-1]
-    } else {
+    } else if (is.factor(meta_tab[, time.var])) {
       ts.levels <- levels(meta_tab[, time.var])[-1]
+    } else {
+      # For character type, use sort(unique()) like numeric
+      ts.levels <- sort(unique(meta_tab[, time.var]))[-1]
     }
   }
 

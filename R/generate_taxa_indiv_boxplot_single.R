@@ -198,8 +198,10 @@ generate_taxa_indiv_boxplot_single <-
       data.obj <- mStat_subset_data(data.obj, condition = condition)
     }
 
-    # Select relevant variables from metadata
-    meta_tab <- data.obj$meta.dat %>% as.data.frame() %>% select(all_of(c(subject.var,group.var,time.var,strata.var)))
+    # Select relevant variables from metadata (filter out NULL vars)
+    vars_to_select <- c(subject.var, group.var, time.var, strata.var)
+    vars_to_select <- vars_to_select[!sapply(vars_to_select, is.null)]
+    meta_tab <- data.obj$meta.dat %>% as.data.frame() %>% select(all_of(vars_to_select))
 
     # Define aesthetic function for plotting
     # This function determines how the data will be mapped to visual properties in the plot
@@ -340,7 +342,12 @@ generate_taxa_indiv_boxplot_single <-
       }
 
       # Determine if there are many samples
-      manysample <- length(unique(data.obj$meta.dat[[time.var]]))*length(unique(data.obj$meta.dat[[group.var]])) > 8
+      # time.var may be NULL for single time point analysis
+      if (!is.null(time.var) && time.var %in% names(data.obj$meta.dat)) {
+        manysample <- length(unique(data.obj$meta.dat[[time.var]])) * length(unique(data.obj$meta.dat[[group.var]])) > 8
+      } else {
+        manysample <- length(unique(data.obj$meta.dat[[group.var]])) > 8
+      }
       wds <- if(manysample) 7 else 3
 
       # Get unique taxa levels

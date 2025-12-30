@@ -6,7 +6,13 @@
 #' to 2 years of age, identifying associations between the microbiome and
 #' antibiotic exposure, delivery mode, and diet.
 #'
-#' ecam.obj is a MicrobiomeStat Data Object.
+#' ecam.obj is a MicrobiomeStat Data Object containing:
+#' \itemize{
+#'   \item feature.tab: A matrix of **proportion data** (relative abundances, not raw counts).
+#'         Each column sums to 1. When using analysis functions, set \code{feature.dat.type = "proportion"}.
+#'   \item meta.dat: Sample metadata data frame.
+#'   \item feature.ann: Taxonomic annotation data frame.
+#' }
 #'
 #' The meta.dat component of ecam.obj is a data frame with 875 observations
 #' and 14 variables:
