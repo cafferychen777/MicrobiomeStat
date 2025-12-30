@@ -163,6 +163,12 @@ generate_beta_test_single <- function(data.obj,
 
   formula <- as.formula(formula_str)
 
+  # Ensure .Random.seed exists (PermanovaG2 requires it)
+  # This initializes the RNG state if it hasn't been used yet
+  if (!exists(".Random.seed", envir = globalenv())) {
+    set.seed(NULL)  # Initialize RNG with system seed
+  }
+
   # Run PermanovaG2 for all distance matrices
   # PERMANOVA is a non-parametric multivariate statistical test used to assess the significance of compositional differences among groups
   message("Running PermanovaG2 for all distances...")

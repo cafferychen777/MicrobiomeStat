@@ -21,7 +21,6 @@
 #'   \item{Other metadata}{like method, dist.name, etc.}
 #' }
 #' See \code{\link[MicrobiomeStat]{mStat_calculate_PC}} function for details on output format.
-#' @param subject.var String. Variable to be used as subject.
 #' @param time.var String. Variable to be used for time. Default is NULL.
 #' @param t.level Character string specifying the time level/value to subset data to,
 #' if a time variable is provided. Default NULL does not subset data.
@@ -95,7 +94,6 @@
 #'   data.obj = peerj32.obj,
 #'   dist.obj = NULL,
 #'   pc.obj = NULL,
-#'   subject.var = "subject",
 #'   time.var = "time",
 #'   t.level = "2",
 #'   group.var = "group",
@@ -120,7 +118,6 @@
 #'   data.obj = subset_T2D.obj,
 #'   dist.obj = dist.obj,
 #'   pc.obj = pc.obj,
-#'   subject.var = "subject_id",
 #'   time.var = "visit_number_num",
 #'   t.level = NULL,
 #'   group.var = "subject_race",
@@ -141,7 +138,6 @@
 #' @export
 generate_beta_ordination_single <-
   function(data.obj,
-           subject.var,
            time.var = NULL,
            t.level = NULL,
            group.var = NULL,
@@ -174,12 +170,12 @@ generate_beta_ordination_single <-
           # Subset data to specific time point if t.level is provided
           condition <- paste(time.var, "== '", t.level, "'", sep = "")
           data.obj <- mStat_subset_data(data.obj, condition = condition)
-          meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var,group.var,strata.var,time.var)))
+          meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(group.var,strata.var,time.var)))
           dist.obj <-
             mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
         } else {
           # If no specific time point is provided, use all time points but warn if multiple exist
-          meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var,group.var,strata.var,time.var)))
+          meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(group.var,strata.var,time.var)))
           if (length(levels(as.factor(meta_tab[,time.var]))) != 1){
             message("Multiple time points detected in your dataset. It is recommended to either set t.level or utilize functions for longitudinal data analysis.")
           }
@@ -188,7 +184,7 @@ generate_beta_ordination_single <-
         }
       } else {
         # If no time variable is provided, proceed with all data
-        meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var,group.var,strata.var,time.var)))
+        meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(group.var,strata.var,time.var)))
         dist.obj <-
           mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
       }
@@ -203,19 +199,19 @@ generate_beta_ordination_single <-
           if (!is.null(t.level)){
             condition <- paste(time.var, "== '", t.level, "'", sep = "")
             data.obj <- mStat_subset_data(data.obj, condition = condition)
-            meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var,group.var,strata.var,time.var)))
+            meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(group.var,strata.var,time.var)))
           } else {
-            meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var,group.var,strata.var,time.var)))
+            meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(group.var,strata.var,time.var)))
             if (length(levels(as.factor(meta_tab[,time.var]))) != 1){
               message("Multiple time points detected in your dataset. It is recommended to either set t.level or utilize functions for longitudinal data analysis.")
             }
           }
         } else {
-          meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var,group.var,strata.var,time.var)))
+          meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(group.var,strata.var,time.var)))
         }
       }
       if (!is.null(attr(dist.obj[[dist.name[1]]], "labels"))){
-        meta_tab <- attr(dist.obj[[dist.name[1]]], "labels")  %>% dplyr::select(all_of(c(subject.var,group.var,strata.var,time.var)))
+        meta_tab <- attr(dist.obj[[dist.name[1]]], "labels")  %>% dplyr::select(all_of(c(group.var,strata.var,time.var)))
       }
     }
 
@@ -263,7 +259,7 @@ generate_beta_ordination_single <-
         as.data.frame() %>%
         rownames_to_column("sample") %>%
         dplyr::left_join(meta_tab %>%
-                           dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var))) %>%
+                           dplyr::select(all_of(c(time.var, group.var, strata.var))) %>%
                            rownames_to_column("sample"), by = "sample")
 
       # Filter out NA values in time variable if it exists
@@ -362,17 +358,10 @@ generate_beta_ordination_single <-
 
       # Save the plot as a PDF file if requested
       if (pdf) {
-        pdf_name <- paste0(
-          "beta_ordination_single_",
-          "subject_",
-          subject.var,
-          "_",
-          "time_",
-          time.var,
-          "_",
-          "dist.name_",
-          dist.name
-        )
+        pdf_name <- paste0("beta_ordination_single_", "dist.name_", dist.name)
+        if (!is.null(time.var)) {
+          pdf_name <- paste0(pdf_name, "_", "time_", time.var)
+        }
         if (!is.null(group.var)) {
           pdf_name <- paste0(pdf_name, "_", "group_", group.var)
         }

@@ -23,12 +23,12 @@
 #' @param alpha.name The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", "pielou", and "faith_pd". Previously named as `alpha.index`.
 #' @param depth An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
 #' If NULL, no rarefaction is performed.
-#' @param time.var Character string specifying the column name in metadata containing
-#'                time values for each sample. Required to identify pairs of time
-#'                points to calculate changes between.
 #' @param subject.var Character string specifying the column name in metadata containing
 #'                    unique subject IDs. Required to pair samples from the same subject
 #'                    across time points.
+#' @param time.var Character string specifying the column name in metadata containing
+#'                time values for each sample. Required to identify pairs of time
+#'                points to calculate changes between.
 #' @param group.var Character string specifying the column name in metadata containing
 #'                 grouping categories. Used as a predictor in the models to test for
 #'                 differences in changes between groups. Optional, can be NULL.
@@ -83,9 +83,9 @@
 #' generate_alpha_change_test_pair(
 #'   data.obj = peerj32.obj,
 #'   alpha.obj = NULL,
-#'   time.var = "time",
 #'   alpha.name = c("shannon"),
 #'   subject.var = "subject",
+#'   time.var = "time",
 #'   group.var = "sex",
 #'   adj.vars = NULL,
 #'   change.base = "2",
@@ -100,9 +100,9 @@
 #' generate_alpha_change_test_pair(
 #'   data.obj = peerj32.obj,
 #'   alpha.obj = NULL,
-#'   time.var = "Day",
 #'   alpha.name = c("shannon"),
 #'   subject.var = "subject",
+#'   time.var = "Day",
 #'   group.var = "sex",
 #'   adj.vars = c("group"),
 #'   change.base = "2",
@@ -115,9 +115,9 @@
 #' generate_alpha_change_test_pair(
 #'   data.obj = subset_pairs.obj,
 #'   alpha.obj = NULL,
-#'   time.var = "Antibiotic",
 #'   alpha.name = c("shannon"),
 #'   subject.var = "MouseID",
+#'   time.var = "Antibiotic",
 #'   group.var = "Sex",
 #'   adj.vars = NULL,
 #'   change.base = "Baseline",
@@ -131,8 +131,8 @@ generate_alpha_change_test_pair <-
            alpha.obj = NULL,
            alpha.name = NULL,
            depth = NULL,
-           time.var,
            subject.var,
+           time.var,
            group.var,
            adj.vars = NULL,
            change.base,

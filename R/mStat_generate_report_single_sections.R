@@ -53,15 +53,12 @@ custom_vis.adj.vars_status <- ifelse(is.null(vis.adj.vars), 'NULL', toString(vis
 
 custom_strata_status <- ifelse(is.null(strata.var), 'NULL', toString(strata.var))
 
-custom_subject_status <- ifelse(is.null(subject.var), 'NULL', subject.var)
-
 params_data <- data.frame(Parameter = c('data.obj',
                                         'feature.dat.type',
                                         'group.var',
                                         'test.adj.vars',
                                         'vis.adj.vars',
                                         'strata.var',
-                                        'subject.var',
                                         'time.var',
                                         't.level',
                                         'alpha.obj',
@@ -95,7 +92,6 @@ params_data <- data.frame(Parameter = c('data.obj',
                                         custom_test.adj.vars_status,
                                         custom_vis.adj.vars_status,
                                         custom_strata_status,
-                                        custom_subject_status,
                                         custom_time.var_status,
                                         custom_t.level_status,
                                         deparse(substitute(alpha.obj)),
@@ -214,7 +210,6 @@ if (feature.analysis.rarafy) {
 
 ```{r taxa-barplot-generation, message=FALSE, fig.align='center', fig.width = 20, fig.height = 8, warning = FALSE}
 taxa_barplot_results <- generate_taxa_barplot_single(data.obj = data.obj,
-                                                     subject.var = subject.var,
                                                      time.var = time.var,
                                                      t.level = t.level,
                                                      group.var = group.var,
@@ -250,9 +245,8 @@ indiv_list
 
 ```{r taxa-dotplot-generation, message=FALSE, result = result.output, fig.align='center', fig.width = 20, fig.height = 8, warning = FALSE}
 taxa_dotplot_results <- generate_taxa_dotplot_single(data.obj = data.obj,
-                                                     subject.var = subject.var,
                                                      time.var = time.var,
-                                                     t0.level = t.level,
+                                                     t.level = t.level,
                                                      group.var = group.var,
                                                      strata.var = strata.var,
                                                      feature.level = vis.feature.level,
@@ -277,7 +271,6 @@ taxa_dotplot_results
 
 ```{r taxa-heatmap-generation, message=FALSE, fig.align='center', fig.width = 15, fig.height = 8, warning = FALSE}
 taxa_heatmap_results <- generate_taxa_heatmap_single(data.obj = data.obj,
-                                                     subject.var = subject.var,
                                                      time.var = time.var,
                                                      t.level = t.level,
                                                      group.var = group.var,
@@ -323,7 +316,6 @@ alpha_boxplot_results <- generate_alpha_boxplot_single(data.obj = data.obj,
                                                        alpha.obj = alpha.obj,
                                                        alpha.name = alpha.name,
                                                        depth = depth,
-                                                       subject.var = subject.var,
                                                        time.var = time.var,
                                                        t.level = t.level,
                                                        group.var = group.var,
@@ -444,7 +436,6 @@ generate_single_report_section_beta <- function() {
 
 ```{r beta-ordination-generation, message=FALSE, fig.align='center', warning = FALSE, fig.width = 10, fig.height = 8, result = result.output}
 beta_ordination_results <- generate_beta_ordination_single(data.obj = data.obj,
-                                                           subject.var = subject.var,
                                                            time.var = time.var,
                                                            t.level = t.level,
                                                            group.var = group.var,
@@ -466,7 +457,6 @@ beta_ordination_results
 if (!is.null(strata.var)){
   beta_ordination_stratified_results <- generate_beta_ordination_single(
                                                            data.obj = data.obj,
-                                                           subject.var = subject.var,
                                                            time.var = time.var,
                                                            t.level = t.level,
                                                            group.var = group.var,
@@ -757,7 +747,6 @@ significant_vars <- as.vector(significant_vars)
 if (length(significant_vars) != 0) {
   taxa_indiv_boxplot_results_sig_features <- generate_taxa_indiv_boxplot_single(
     data.obj = data.obj,
-    subject.var = subject.var,
     time.var = time.var,
     t.level = t.level,
     group.var = group.var,
@@ -797,7 +786,6 @@ if (!dir.exists(output_dir)) {
 
 taxa_indiv_boxplot_results <- generate_taxa_indiv_boxplot_single(
                                    data.obj = data.obj,
-                                   subject.var = subject.var,
                                    time.var = time.var,
                                    t.level = t.level,
                                    group.var = group.var,
@@ -822,9 +810,6 @@ taxa_indiv_boxplot_results <- generate_taxa_indiv_boxplot_single(
 for (feature_level in names(taxa_indiv_boxplot_results)) {
   pdf_name <- paste0(
     'taxa_indiv_boxplot_single',
-    '_',
-    'subject_',
-    subject.var,
     '_',
     'time_',
     time.var,

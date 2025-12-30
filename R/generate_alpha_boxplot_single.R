@@ -7,7 +7,6 @@
 #' @param alpha.name The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", "pielou", and "faith_pd".
 #' @param depth An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
 #' If NULL, no rarefaction is performed.
-#' @param subject.var The variable in the metadata table that represents the subject.
 #' @param time.var The variable in the metadata table that represents the time.
 #' @param t.level Character string specifying the time level/value to subset data to,
 #' if a time variable is provided. Default NULL does not subset data.
@@ -76,7 +75,6 @@
 #'   data.obj     = peerj32.obj,
 #'   alpha.obj    = NULL,
 #'   alpha.name   = c("simpson"),
-#'   subject.var  = "subject",
 #'   time.var     = "time",
 #'   t.level      = "2",
 #'   group.var    = "group",
@@ -96,7 +94,6 @@
 #'   data.obj     = peerj32.obj,
 #'   alpha.obj    = alpha.obj,
 #'   alpha.name   = c("simpson"),
-#'   subject.var  = "subject",
 #'   time.var     = "time",
 #'   t.level      = "2",
 #'   group.var    = "group",
@@ -119,7 +116,6 @@
 #'   data.obj     = subset_T2D.obj,
 #'   alpha.obj    = NULL,
 #'   alpha.name   = c("shannon"),
-#'   subject.var  = "subject_id",
 #'   time.var     = "visit_number",
 #'   t.level      = "   3",
 #'   group.var    = "subject_race",
@@ -146,7 +142,6 @@
 #'   data.obj     = peerj32.obj,
 #'   alpha.obj    = NULL,
 #'   alpha.name   = c("simpson"),
-#'   subject.var  = "subject",
 #'   time.var     = "time",
 #'   t.level      = "2",
 #'   group.var    = "group",
@@ -167,7 +162,6 @@ generate_alpha_boxplot_single <- function (data.obj,
                                            alpha.name = c("shannon",
                                                           "observed_species"),
                                            depth = NULL,
-                                           subject.var = NULL,
                                            time.var = NULL,
                                            t.level = NULL,
                                            group.var = NULL,

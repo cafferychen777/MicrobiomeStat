@@ -4,7 +4,6 @@
 #' It provides options for grouping and stratifying data, and selecting the top k features based on a user-defined function.
 #'
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param subject.var A string specifying the variable for subjects.
 #' @param time.var A string specifying the variable for time. If NULL, the function assumes that data for a single time point is provided.
 #' @param t.level Character string specifying the time level/value to subset data to,
 #' if a time variable is provided. Default NULL does not subset data.
@@ -101,7 +100,6 @@
 #' data(ecam.obj)
 #' generate_taxa_boxplot_single(
 #'   data.obj = ecam.obj,
-#'   subject.var = "studyid",
 #'   time.var = "month",
 #'   t.level = "1",
 #'   group.var = "diet",
@@ -124,7 +122,6 @@
 #' )
 #' generate_taxa_boxplot_single(
 #'   data.obj = ecam.obj,
-#'   subject.var = "studyid",
 #'   time.var = "month",
 #'   t.level = "1",
 #'   group.var = "diet",
@@ -147,7 +144,6 @@
 #' )
 #' generate_taxa_boxplot_single(
 #'   data.obj = ecam.obj,
-#'   subject.var = "studyid",
 #'   time.var = "month",
 #'   t.level = "1",
 #'   group.var = NULL,
@@ -171,7 +167,6 @@
 #' data(peerj32.obj)
 #' generate_taxa_boxplot_single(
 #'   data.obj = peerj32.obj,
-#'   subject.var = "subject",
 #'   time.var = "time",
 #'   t.level = "1",
 #'   group.var = "group",
@@ -196,7 +191,6 @@
 #' data(peerj32.obj)
 #' generate_taxa_boxplot_single(
 #'   data.obj = peerj32.obj,
-#'   subject.var = "subject",
 #'   time.var = "time",
 #'   t.level = "1",
 #'   group.var = "group",
@@ -222,7 +216,6 @@
 #' @export
 generate_taxa_boxplot_single <-
   function(data.obj,
-           subject.var,
            time.var = NULL,
            t.level = NULL,
            group.var = NULL,
@@ -262,11 +255,9 @@ generate_taxa_boxplot_single <-
         !is.character(strata.var))
       stop("`strata.var` should be a character string or NULL.")
 
-    # If subject variable is not provided, create a default one
-    if (is.null(subject.var)){
-      data.obj$meta.dat$subject.id <- rownames(data.obj$meta.dat)
-      subject.var <- "subject.id"
-    }
+    # Create a subject identifier from sample names (rownames)
+    data.obj$meta.dat$subject.id <- rownames(data.obj$meta.dat)
+    subject.var <- "subject.id"
 
     # Subset data if time variable and level are provided
     if (!is.null(time.var) & !is.null(t.level)) {
@@ -511,9 +502,6 @@ generate_taxa_boxplot_single <-
     if (pdf) {
       pdf_name <- paste0(
         "taxa_boxplot_single",
-        "_",
-        "subject_",
-        subject.var,
         "_",
         "feature_level_",
         feature.level,

@@ -4,7 +4,6 @@
 #' It provides options for grouping and stratifying data, and selecting the top k features based on a user-defined function.
 #'
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param subject.var A string indicating the variable for subject identifiers.
 #' @param time.var A string indicating the variable for time points. If NULL, the function assumes that data for a single time point is provided.
 #' @param t.level Character string specifying the time level/value to subset data to,
 #' if a time variable is provided. Default NULL does not subset data.
@@ -100,7 +99,6 @@
 #' data(ecam.obj)
 #' generate_taxa_indiv_boxplot_single(
 #'   data.obj = ecam.obj,
-#'   subject.var = "studyid",
 #'   time.var = "month",
 #'   t.level = NULL,
 #'   group.var = "antiexposedall",
@@ -122,7 +120,6 @@
 #' data(peerj32.obj)
 #' generate_taxa_indiv_boxplot_single(
 #'   data.obj = peerj32.obj,
-#'   subject.var = "subject",
 #'   time.var = "time",
 #'   t.level = "1",
 #'   group.var = "group",
@@ -148,8 +145,7 @@
 #' @export
 generate_taxa_indiv_boxplot_single <-
   function(data.obj,
-           subject.var,
-           time.var,
+           time.var = NULL,
            t.level = NULL,
            group.var = NULL,
            strata.var = NULL,
@@ -178,12 +174,6 @@ generate_taxa_indiv_boxplot_single <-
     # Validate the input data object
     mStat_validate_data(data.obj)
 
-    # If subject variable is not provided, create a default one
-    if (is.null(subject.var)){
-      data.obj$meta.dat$subject.id <- rownames(data.obj$meta.dat)
-      subject.var <- "subject.id"
-    }
-
     # Check if input variables are properly specified
     if (!is.null(group.var) &&
         !is.character(group.var))
@@ -199,7 +189,7 @@ generate_taxa_indiv_boxplot_single <-
     }
 
     # Select relevant variables from metadata (filter out NULL vars)
-    meta_tab <- select_meta_vars(data.obj$meta.dat, subject.var, group.var, time.var, strata.var)
+    meta_tab <- select_meta_vars(data.obj$meta.dat, group.var, time.var, strata.var)
 
     # Define aesthetic function for plotting
     # This function determines how the data will be mapped to visual properties in the plot
@@ -307,7 +297,6 @@ generate_taxa_indiv_boxplot_single <-
         dplyr::left_join(otu_tax_agg_numeric, meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
         select(one_of(c("sample",
                         feature.level,
-                        subject.var,
                         time.var,
                         group.var,
                         strata.var,
@@ -347,8 +336,8 @@ generate_taxa_indiv_boxplot_single <-
       taxa.levels <-
         otu_tax_agg_merged %>% select(feature.level) %>% dplyr::distinct() %>% dplyr::pull()
 
-      # Count number of subjects
-      n_subjects <- length(unique(otu_tax_agg_merged[[subject.var]]))
+      # Count number of samples
+      n_subjects <- length(unique(otu_tax_agg_merged[["sample"]]))
 
       # Filter taxa levels if specified
       if (!is.null(current_features_plot)){
@@ -480,9 +469,6 @@ generate_taxa_indiv_boxplot_single <-
       if (pdf) {
         pdf_name <- paste0(
           "taxa_indiv_boxplot_single",
-          "_",
-          "subject_",
-          subject.var,
           "_",
           "feature_level_",
           feature.level,

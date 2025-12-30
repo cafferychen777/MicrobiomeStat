@@ -5,7 +5,6 @@
 #' using the “pheatmap” package. It can also save the resulting heatmap as a PDF file.
 #'
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param subject.var The name of the subject variable in the samples
 #' @param time.var The name of the time variable in the samples
 #' @param t.level Character string specifying the time level/value to subset data to,
 #' if a time variable is provided. Default NULL does not subset data.
@@ -78,7 +77,6 @@
 #' data(peerj32.obj)
 #' generate_taxa_heatmap_single(
 #'   data.obj = peerj32.obj,
-#'   subject.var = "subject",
 #'   time.var = "time",
 #'   t.level = "1",
 #'   group.var = "group",
@@ -101,7 +99,6 @@
 #' data(peerj32.obj)
 #' generate_taxa_heatmap_single(
 #'   data.obj = peerj32.obj,
-#'   subject.var = "subject",
 #'   time.var = "time",
 #'   t.level = "1",
 #'   group.var = "group",
@@ -124,7 +121,6 @@
 #' )
 #' generate_taxa_heatmap_single(
 #'   data.obj = peerj32.obj,
-#'   subject.var = "subject",
 #'   time.var = "time",
 #'   t.level = "1",
 #'   group.var = "group",
@@ -146,7 +142,6 @@
 #' )
 #' generate_taxa_heatmap_single(
 #'   data.obj = peerj32.obj,
-#'   subject.var = "subject",
 #'   time.var = "time",
 #'   t.level = "1",
 #'   group.var = NULL,
@@ -170,7 +165,6 @@
 #' data(ecam.obj)
 #' generate_taxa_heatmap_single(
 #'   data.obj = ecam.obj,
-#'   subject.var = "subject.id",
 #'   time.var = "month",
 #'   t.level = "0",
 #'   group.var = "antiexposedall",
@@ -192,7 +186,6 @@
 #' )
 #' generate_taxa_heatmap_single(
 #'   data.obj = ecam.obj,
-#'   subject.var = "subject.id",
 #'   time.var = "month",
 #'   t.level = "0",
 #'   group.var = "antiexposedall",
@@ -217,7 +210,6 @@
 #'
 #' @seealso \code{\link{pheatmap}}
 generate_taxa_heatmap_single <- function(data.obj,
-                                         subject.var,
                                          time.var = NULL,
                                          t.level = NULL,
                                          group.var = NULL,
@@ -245,12 +237,6 @@ generate_taxa_heatmap_single <- function(data.obj,
   # Match the feature data type argument
   feature.dat.type <- match.arg(feature.dat.type)
 
-  # If subject variable is not provided, create a default one
-  if (is.null(subject.var)){
-    data.obj$meta.dat$subject.id <- rownames(data.obj$meta.dat)
-    subject.var <- "subject.id"
-  }
-
   # Subset the data if time variable and level are provided
   if (!is.null(time.var)) {
     if (!is.null(t.level)) {
@@ -261,7 +247,7 @@ generate_taxa_heatmap_single <- function(data.obj,
 
   # Select relevant variables from metadata
   meta_tab <- data.obj$meta.dat %>% select(all_of(
-    c(subject.var, time.var, group.var, strata.var, other.vars)))
+    c(time.var, group.var, strata.var, other.vars)))
 
   # Define color palette for the heatmap
   col <- c("white", "#92c5de", "#0571b0", "#f4a582", "#ca0020")
@@ -471,21 +457,6 @@ generate_taxa_heatmap_single <- function(data.obj,
       pdf_name <- paste0(
         "taxa_heatmap_single",
         "_",
-        "subject_",
-        subject.var,
-        "_",
-        "time_",
-        time.var,
-        "_",
-        "t_level_",
-        t.level,
-        "_",
-        "group_",
-        group.var,
-        "_",
-        "strata_",
-        strata.var,
-        "_",
         "feature_level_",
         feature.level,
         "_",
@@ -495,6 +466,18 @@ generate_taxa_heatmap_single <- function(data.obj,
         "abund_filter_",
         abund.filter
       )
+      if (!is.null(time.var)) {
+        pdf_name <- paste0(pdf_name, "_", "time_", time.var)
+      }
+      if (!is.null(t.level)) {
+        pdf_name <- paste0(pdf_name, "_", "t_level_", t.level)
+      }
+      if (!is.null(group.var)) {
+        pdf_name <- paste0(pdf_name, "_", "group_", group.var)
+      }
+      if (!is.null(strata.var)) {
+        pdf_name <- paste0(pdf_name, "_", "strata_", strata.var)
+      }
       if (!is.null(file.ann)) {
         pdf_name <- paste0(pdf_name, "_", file.ann)
       }

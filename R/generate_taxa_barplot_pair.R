@@ -224,9 +224,9 @@ generate_taxa_barplot_pair <-
         otu_tax_agg <- data.obj$feature.tab
       }
 
-      # Filter features if specified
+      # Filter features if specified (using %in% for robustness against NA or non-existent features)
       if (!is.null(features.plot)){
-        otu_tax_agg <- otu_tax_agg[na.omit(features.plot),]
+        otu_tax_agg <- otu_tax_agg[rownames(otu_tax_agg) %in% features.plot,]
       }
 
       # Prepare the feature table for plotting

@@ -68,11 +68,11 @@ extract_coef <- function(model) {
 #' "observed_species", "chao1", "ace", "pielou", and "faith_pd".
 #' @param depth An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
 #' If NULL, no rarefaction is performed.
-#' @param group.var A string representing the group variable's name in the
-#' metadata.
+#' @param subject.var A string specifying the subject variable column in the metadata.
 #' @param time.var A string representing the time variable's name in the
 #' metadata. The default is NULL.
-#' @param subject.var A string specifying the subject variable column in the metadata.
+#' @param group.var A string representing the group variable's name in the
+#' metadata.
 #' @param adj.vars A character vector with the names of adjustment variables in
 #' the metadata.
 #' @param change.base A value indicating the base level for the time variable.
@@ -87,18 +87,18 @@ extract_coef <- function(model) {
 #' generate_alpha_test_pair(
 #' data.obj = peerj32.obj,
 #' alpha.obj = NULL,
-#' time.var = "time",
 #' alpha.name = c("shannon", "simpson", "ace"),
 #' subject.var = "subject",
+#' time.var = "time",
 #' group.var = NULL
 #' )
 #'
 #' generate_alpha_test_pair(
 #' data.obj = peerj32.obj,
 #' alpha.obj = NULL,
-#' time.var = "time",
 #' alpha.name = c("shannon", "simpson", "ace"),
 #' subject.var = "subject",
+#' time.var = "time",
 #' group.var = NULL,
 #' change.base = "2"
 #' )
@@ -106,18 +106,18 @@ extract_coef <- function(model) {
 #' generate_alpha_test_pair(
 #' data.obj = peerj32.obj,
 #' alpha.obj = NULL,
-#' time.var = "time",
 #' alpha.name = c("shannon", "simpson", "ace"),
 #' subject.var = "subject",
+#' time.var = "time",
 #' group.var = "group"
 #' )
 #'
 #' generate_alpha_test_pair(
 #' data.obj = peerj32.obj,
 #' alpha.obj = NULL,
-#' time.var = "time",
 #' alpha.name = c("shannon", "simpson", "ace"),
 #' subject.var = "subject",
+#' time.var = "time",
 #' group.var = "group",
 #' adj.vars = "sex"
 #' )
@@ -126,17 +126,17 @@ extract_coef <- function(model) {
 #' generate_alpha_test_pair(
 #' data.obj = subset_pairs.obj,
 #' alpha.obj = NULL,
-#' time.var = "Antibiotic",
 #' alpha.name = c("shannon", "simpson", "ace"),
 #' subject.var = "MouseID",
+#' time.var = "Antibiotic",
 #' group.var = "Sex"
 #' )
 #' generate_alpha_test_pair(
 #' data.obj = subset_pairs.obj,
 #' alpha.obj = NULL,
-#' time.var = "Antibiotic",
 #' alpha.name = c("shannon", "simpson", "ace"),
 #' subject.var = "MouseID",
+#' time.var = "Antibiotic",
 #' group.var = "Sex",
 #' change.base = "Week 2"
 #' )
@@ -146,8 +146,8 @@ generate_alpha_test_pair <-
            alpha.obj = NULL,
            alpha.name = NULL,
            depth = NULL,
-           time.var,
            subject.var,
+           time.var,
            group.var,
            adj.vars = NULL,
            change.base = NULL) {

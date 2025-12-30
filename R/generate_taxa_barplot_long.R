@@ -317,9 +317,9 @@ generate_taxa_barplot_long <-
         otu_tax_agg <- data.obj$feature.tab
       }
 
-      # Subset features if specified
+      # Subset features if specified (using %in% for robustness against NA or non-existent features)
       if (!is.null(features.plot)){
-        otu_tax_agg <- otu_tax_agg[na.omit(features.plot),]
+        otu_tax_agg <- otu_tax_agg[rownames(otu_tax_agg) %in% features.plot,]
       }
 
       # Prepare the feature table for analysis

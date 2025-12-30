@@ -4,8 +4,6 @@
 #' It provides options for grouping and stratifying data, and generates both individual and average barplots.
 #'
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param subject.var Character string specifying the column name in metadata containing
-#'                    unique subject IDs. Required to connect samples from the same subject.
 #' @param time.var Character string specifying the column name in metadata containing the
 #'                time variable. Required to order and connect samples over time.
 #' @param t.level Character string specifying the time level/value to subset data to,
@@ -81,7 +79,6 @@
 #' data(peerj32.obj)
 #' generate_taxa_barplot_single(
 #'   data.obj = peerj32.obj,
-#'   subject.var = "subject",
 #'   time.var = NULL,
 #'   t.level = NULL,
 #'   group.var = "group",
@@ -100,7 +97,6 @@
 #' )
 #' generate_taxa_barplot_single(
 #'   data.obj = peerj32.obj,
-#'   subject.var = "subject",
 #'   time.var = NULL,
 #'   t.level = NULL,
 #'   group.var = "group",
@@ -121,7 +117,6 @@
 #' data("subset_T2D.obj")
 #' generate_taxa_barplot_single(
 #'   data.obj = subset_T2D.obj,
-#'   subject.var = "subject_id",
 #'   time.var = "visit_number_num",
 #'   t.level = 1,
 #'   group.var = "subject_race",
@@ -140,7 +135,6 @@
 #' )
 #' generate_taxa_barplot_single(
 #'   data.obj = subset_T2D.obj,
-#'   subject.var = "subject_id",
 #'   time.var = "visit_number_num",
 #'   t.level = 1,
 #'   group.var = "subject_race",
@@ -215,7 +209,6 @@
 #' @export
 generate_taxa_barplot_single <-
   function(data.obj,
-           subject.var = NULL,
            time.var = NULL,
            t.level = NULL,
            group.var = NULL,
@@ -240,11 +233,9 @@ generate_taxa_barplot_single <-
     # Validate the input data object
     mStat_validate_data(data.obj)
 
-    # If subject variable is not provided, create a default one
-    if (is.null(subject.var)){
-      data.obj$meta.dat$subject.id <- rownames(data.obj$meta.dat)
-      subject.var <- "subject.id"
-    }
+    # Create a subject identifier from sample names (rownames)
+    data.obj$meta.dat$subject.id <- rownames(data.obj$meta.dat)
+    subject.var <- "subject.id"
 
     # Handle time variable and subset data if necessary
     if (!is.null(time.var)){
@@ -348,9 +339,9 @@ generate_taxa_barplot_single <-
         otu_tax_agg <- data.obj$feature.tab
       }
 
-      # Filter features if specified
+      # Filter features if specified (using %in% for robustness against NA or non-existent features)
       if (!is.null(features.plot)){
-        otu_tax_agg <- otu_tax_agg[features.plot,]
+        otu_tax_agg <- otu_tax_agg[rownames(otu_tax_agg) %in% features.plot,]
       }
 
       # Prepare the feature table for plotting

@@ -5,7 +5,6 @@
 #' interactively or saved as a PDF file.
 #'
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param subject.var A character string defining subject variable in meta_tab
 #' @param time.var A character string defining time variable in meta_tab
 #' @param t.level Character string specifying the time level/value to subset data to,
 #' if a time variable is provided. Default NULL does not subset data.
@@ -96,7 +95,6 @@
 #' # Call the function
 #' generate_taxa_dotplot_single(
 #'   data.obj = peerj32.obj,
-#'   subject.var = "subject",
 #'   time.var = "time",
 #'   t.level = "1",
 #'   group.var = "group",
@@ -119,7 +117,6 @@
 #' }
 #' @export
 generate_taxa_dotplot_single <- function(data.obj,
-                                       subject.var,
                                        time.var = NULL,
                                        t.level = NULL,
                                        group.var = NULL,
@@ -157,7 +154,7 @@ generate_taxa_dotplot_single <- function(data.obj,
 
   # Extract relevant variables from the metadata
   meta_tab <- data.obj$meta.dat %>% select(all_of(
-    c(subject.var, time.var, group.var, strata.var)))
+    c(time.var, group.var, strata.var)))
 
   # If no group variable is provided, create a dummy "ALL" group
   if (is.null(group.var)) {
@@ -325,12 +322,6 @@ generate_taxa_dotplot_single <- function(data.obj,
       dotplot <- as.ggplot(dotplot)
       pdf_name <- paste0(
         "taxa_dotplot_single",
-        "_",
-        "subject_",
-        subject.var,
-        "_",
-        "time_",
-        time.var,
         "_",
         "feature_level_",
         feature.level,
