@@ -200,15 +200,35 @@ generate_alpha_boxplot_single <- function (data.obj,
 
     # Extract feature table and calculate alpha diversity
     otu_tab <- data.obj$feature.tab
-    
+
     # Extract tree if faith_pd is requested
     tree <- NULL
     if ("faith_pd" %in% alpha.name) {
       tree <- data.obj$tree
     }
-    
+
     alpha.obj <-
       mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name, tree = tree)
+  } else {
+    # Validate that all requested alpha.name are present in alpha.obj
+    available_indices <- names(alpha.obj)
+    missing_indices <- alpha.name[!alpha.name %in% available_indices]
+
+    if (length(missing_indices) > 0) {
+      stop(
+        "The following alpha diversity indices are not available in alpha.obj: ",
+        paste(missing_indices, collapse = ", "),
+        ". Available indices: ",
+        paste(available_indices, collapse = ", "),
+        call. = FALSE
+      )
+    }
+
+    # Subset data to specific time point if specified
+    if (!is.null(time.var) & !is.null(t.level)){
+      condition <- paste(time.var, "== '", t.level, "'", sep = "")
+      data.obj <- mStat_subset_data(data.obj, condition = condition)
+    }
   }
 
   # Extract metadata
@@ -234,47 +254,14 @@ generate_alpha_boxplot_single <- function (data.obj,
 
   # Create a plot for each alpha diversity index
   plot_list <- lapply(alpha.name, function(index) {
-    # Define aesthetic mapping based on grouping variable
-    # Modification: Ensure that the y variable is accessed from the column in alpha_df, rather than using the variable name directly.
-    if (index %in% colnames(alpha_df)) {
-      aes_function <- if (!is.null(group.var)) {
-        aes(
-          x = !!sym(group.var),
-          y = !!sym(index),
-          fill = !!sym(group.var)
-        )
-      } else {
-        aes(
-          x = !!sym(group.var),
-          y = !!sym(index),
-          fill = !!sym(time.var)
-        )
-      }
-    } else {
-      # 如果列名不存在，尝试从 alpha.obj 中获取数据
-      if (index %in% names(alpha.obj)) {
-        # 将 alpha.obj 中的数据添加到 alpha_df
-        alpha_df[[index]] <- alpha.obj[[index]][[index]][match(alpha_df$sample, rownames(alpha.obj[[index]]))]
-        
-        aes_function <- if (!is.null(group.var)) {
-          aes(
-            x = !!sym(group.var),
-            y = !!sym(index),
-            fill = !!sym(group.var)
-          )
-        } else {
-          aes(
-            x = !!sym(group.var),
-            y = !!sym(index),
-            fill = !!sym(time.var)
-          )
-        }
-      } else {
-        # 如果在 alpha.obj 中也找不到，返回 NULL
-        message(paste("Index", index, "not found in alpha.obj or alpha_df"))
-        return(NULL)
-      }
-    }
+    # Define aesthetic mapping
+    # Note: group.var is guaranteed to be non-NULL (set to "ALL" if not provided)
+    # Note: index is guaranteed to exist in alpha_df (validated earlier)
+    aes_function <- aes(
+      x = !!sym(group.var),
+      y = !!sym(index),
+      fill = !!sym(group.var)
+    )
 
     # Adjust for covariates if specified
     if (!is.null(adj.vars)) {
