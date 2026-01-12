@@ -9,6 +9,7 @@ generate_taxa_trend_test_long(
   subject.var,
   time.var = NULL,
   group.var = NULL,
+  ref.level = NULL,
   adj.vars = NULL,
   feature.level,
   prev.filter = 0,
@@ -31,6 +32,13 @@ Can be either:
   \item Continuous (numeric or integer): Tests linear association with time
 }
 This variable differentiates between different experimental or observational groups.}
+
+\item{ref.level}{Character string specifying the reference level for the group variable.
+This parameter is used when \code{group.var} is categorical (factor or character)
+to specify which group should be used as the reference for comparisons.
+All other groups will be compared against this reference level.
+If NULL (default), the first level alphabetically is used as the reference.
+This parameter is ignored when \code{group.var} is continuous.}
 
 \item{adj.vars}{A vector of character strings. Each string should denote a column name in the metadata that will serve as a covariate in the analysis. These variables might account for potential confounding influences. Default is NULL.}
 

@@ -8,8 +8,9 @@ generate_taxa_test_pair(
   data.obj,
   subject.var,
   time.var = NULL,
-  change.base,
-  group.var,
+  change.base = NULL,
+  group.var = NULL,
+  ref.level = NULL,
   adj.vars = NULL,
   feature.level,
   prev.filter = 0,
@@ -37,6 +38,13 @@ variable for differential abundance testing. Can be either:
   \item Continuous (numeric or integer): Tests for linear association
 }
 When combined with time.var, tests group × time interaction effects.}
+
+\item{ref.level}{Character string specifying the reference level for the group variable.
+This parameter is used when \code{group.var} is categorical (factor or character)
+to specify which group should be used as the reference for comparisons.
+All other groups will be compared against this reference level.
+If NULL (default), the first level alphabetically is used as the reference.
+This parameter is ignored when \code{group.var} is continuous.}
 
 \item{adj.vars}{A vector of strings that specify the names of additional variables to be used as covariates in the analysis.}
 

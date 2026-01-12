@@ -142,6 +142,12 @@ perform_lm_analysis <- function(feature.dat, meta.dat, formula, group.var) {
 #'                         variable and abundance. Output shows a single coefficient representing the
 #'                         slope (e.g., effect per unit increase).
 #'                 }
+#' @param ref.level Character string specifying the reference level for the group variable.
+#'                 This parameter is used when \code{group.var} is categorical (factor or character)
+#'                 to specify which group should be used as the reference for comparisons.
+#'                 All other groups will be compared against this reference level.
+#'                 If NULL (default), the first level alphabetically is used as the reference.
+#'                 This parameter is ignored when \code{group.var} is continuous.
 #' @param adj.vars Character vector specifying column names in metadata containing covariates.
 #'                These will be used for adjustment in differential abundance testing.
 #' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
@@ -277,6 +283,7 @@ generate_taxa_test_single <- function(data.obj,
                                       time.var = NULL,
                                       t.level = NULL,
                                       group.var,
+                                      ref.level = NULL,
                                       adj.vars = NULL,
                                       prev.filter = 0,
                                       abund.filter = 0,
@@ -302,6 +309,38 @@ generate_taxa_test_single <- function(data.obj,
   # Extract relevant variables from the metadata
   meta_tab <-
     data.obj$meta.dat %>% select(all_of(c(time.var, group.var, adj.vars)))
+
+  # Set reference level for group variable if it is categorical
+  if (is.factor(meta_tab[[group.var]]) || is.character(meta_tab[[group.var]])) {
+    # Convert to factor if character
+    meta_tab[[group.var]] <- as.factor(meta_tab[[group.var]])
+
+    # Get available levels
+    available_levels <- levels(meta_tab[[group.var]])
+
+    # Validate and set reference level
+    if (!is.null(ref.level)) {
+      if (!(ref.level %in% available_levels)) {
+        stop(
+          "ref.level '", ref.level, "' not found in group.var '", group.var, "'. ",
+          "Available levels: ", paste(available_levels, collapse = ", ")
+        )
+      }
+      meta_tab[[group.var]] <- relevel(meta_tab[[group.var]], ref = ref.level)
+      message("Reference level for '", group.var, "': ", ref.level)
+    } else {
+      message(
+        "Reference level for '", group.var, "': ", available_levels[1],
+        " (alphabetically first)"
+      )
+    }
+  } else if (!is.null(ref.level)) {
+    # Warn if ref.level is specified for non-categorical variable
+    warning(
+      "ref.level is ignored because group.var '", group.var,
+      "' is not categorical (factor or character)."
+    )
+  }
 
   # Construct the formula for the linear model
   formula <- group.var

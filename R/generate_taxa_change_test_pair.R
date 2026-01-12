@@ -8,8 +8,13 @@
 #' @param group.var The name of the grouping variable column in metadata for comparing
 #'                  change scores between groups. This variable is ALWAYS treated as categorical
 #'                  (factor), regardless of the input type. If you provide a numeric or integer
-#'                  variable, it will be automatically converted to a factor (Line 124).
-#'                  The first level (alphabetically) is used as the reference group for comparisons.
+#'                  variable, it will be automatically converted to a factor.
+#'                  By default, the first level (alphabetically) is used as the reference group
+#'                  for comparisons. Use \code{ref.level} to specify a different reference.
+#' @param ref.level Character string specifying the reference level for the group variable.
+#'                 This parameter specifies which group should be used as the reference for comparisons.
+#'                 All other groups will be compared against this reference level.
+#'                 If NULL (default), the first level alphabetically is used as the reference.
 #' @param adj.vars Names of additional variables to be used as covariates in the analysis.
 #' @param change.base The baseline time point for detecting changes in taxa. If NULL, the first unique value from the time.var column will be used (optional).
 #' @param feature.change.func Specifies the method or function used to compute the change between two time points. Options include:
@@ -128,8 +133,9 @@ generate_taxa_change_test_pair <-
            subject.var,
            time.var = NULL,
            group.var = NULL,
+           ref.level = NULL,
            adj.vars = NULL,
-           change.base,
+           change.base = NULL,
            feature.change.func = "relative change",
            feature.level,
            prev.filter = 0.1,
@@ -147,6 +153,32 @@ generate_taxa_change_test_pair <-
       data.obj$meta.dat %>% select(all_of(c(
         time.var, group.var, adj.vars, subject.var
       )))
+
+    # Set reference level for group variable
+    if (!is.null(group.var)) {
+      # Convert to factor (this function always treats group.var as categorical)
+      meta_tab[[group.var]] <- as.factor(meta_tab[[group.var]])
+
+      # Get available levels
+      available_levels <- levels(meta_tab[[group.var]])
+
+      # Validate and set reference level
+      if (!is.null(ref.level)) {
+        if (!(ref.level %in% available_levels)) {
+          stop(
+            "ref.level '", ref.level, "' not found in group.var '", group.var, "'. ",
+            "Available levels: ", paste(available_levels, collapse = ", ")
+          )
+        }
+        meta_tab[[group.var]] <- relevel(meta_tab[[group.var]], ref = ref.level)
+        message("Reference level for '", group.var, "': ", ref.level)
+      } else {
+        message(
+          "Reference level for '", group.var, "': ", available_levels[1],
+          " (alphabetically first)"
+        )
+      }
+    }
 
     # Check for time-varying covariates
     if (!is.null(adj.vars)){

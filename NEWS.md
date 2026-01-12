@@ -1,3 +1,30 @@
+# MicrobiomeStat 1.4.4
+
+## New Features
+
+* Added `ref.level` parameter to differential abundance testing functions for specifying reference group:
+  - `generate_taxa_test_single()`: Single time point differential abundance testing
+  - `generate_taxa_test_pair()`: Paired/longitudinal differential abundance testing
+  - `generate_taxa_trend_test_long()`: Longitudinal trend testing
+  - `generate_taxa_change_test_pair()`: Change score analysis between time points
+
+* The `ref.level` parameter allows users to specify which group level should be used as the reference for comparisons, instead of relying on alphabetical ordering (first level alphabetically). This provides more flexibility and control over the statistical comparisons.
+
+* Example usage:
+  ```r
+  # Set "Control" as reference instead of alphabetically first group
+
+  test.list <- generate_taxa_test_single(
+    data.obj = data.obj,
+    group.var = "treatment",
+    ref.level = "Control",  # New parameter
+    feature.level = c("Genus"),
+    ...
+  )
+  ```
+
+---
+
 # MicrobiomeStat 1.4.3
 
 ## Bug Fixes

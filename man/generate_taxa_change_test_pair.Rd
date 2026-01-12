@@ -9,8 +9,9 @@ generate_taxa_change_test_pair(
   subject.var,
   time.var = NULL,
   group.var = NULL,
+  ref.level = NULL,
   adj.vars = NULL,
-  change.base,
+  change.base = NULL,
   feature.change.func = "relative change",
   feature.level,
   prev.filter = 0.1,
@@ -29,8 +30,14 @@ generate_taxa_change_test_pair(
 \item{group.var}{The name of the grouping variable column in metadata for comparing
 change scores between groups. This variable is ALWAYS treated as categorical
 (factor), regardless of the input type. If you provide a numeric or integer
-variable, it will be automatically converted to a factor (Line 124).
-The first level (alphabetically) is used as the reference group for comparisons.}
+variable, it will be automatically converted to a factor.
+By default, the first level (alphabetically) is used as the reference group
+for comparisons. Use \code{ref.level} to specify a different reference.}
+
+\item{ref.level}{Character string specifying the reference level for the group variable.
+This parameter specifies which group should be used as the reference for comparisons.
+All other groups will be compared against this reference level.
+If NULL (default), the first level alphabetically is used as the reference.}
 
 \item{adj.vars}{Names of additional variables to be used as covariates in the analysis.}
 

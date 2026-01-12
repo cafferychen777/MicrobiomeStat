@@ -9,6 +9,7 @@ generate_taxa_test_single(
   time.var = NULL,
   t.level = NULL,
   group.var,
+  ref.level = NULL,
   adj.vars = NULL,
   prev.filter = 0,
   abund.filter = 0,
@@ -36,6 +37,13 @@ variable for differential abundance testing. Can be either:
         variable and abundance. Output shows a single coefficient representing the
         slope (e.g., effect per unit increase).
 }}
+
+\item{ref.level}{Character string specifying the reference level for the group variable.
+This parameter is used when \code{group.var} is categorical (factor or character)
+to specify which group should be used as the reference for comparisons.
+All other groups will be compared against this reference level.
+If NULL (default), the first level alphabetically is used as the reference.
+This parameter is ignored when \code{group.var} is continuous.}
 
 \item{adj.vars}{Character vector specifying column names in metadata containing covariates.
 These will be used for adjustment in differential abundance testing.}

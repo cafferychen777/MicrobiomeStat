@@ -20,6 +20,12 @@
 #'                    \item Continuous (numeric or integer): Tests for linear association
 #'                  }
 #'                  When combined with time.var, tests group × time interaction effects.
+#' @param ref.level Character string specifying the reference level for the group variable.
+#'                 This parameter is used when \code{group.var} is categorical (factor or character)
+#'                 to specify which group should be used as the reference for comparisons.
+#'                 All other groups will be compared against this reference level.
+#'                 If NULL (default), the first level alphabetically is used as the reference.
+#'                 This parameter is ignored when \code{group.var} is continuous.
 #' @param adj.vars A vector of strings that specify the names of additional variables to be used as covariates in the analysis.
 #' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
 #' taxa before analysis. Taxa with prevalence below this value will be removed.
@@ -125,8 +131,9 @@ generate_taxa_test_pair <-
   function(data.obj,
            subject.var,
            time.var = NULL,
-           change.base,
-           group.var,
+           change.base = NULL,
+           group.var = NULL,
+           ref.level = NULL,
            adj.vars = NULL,
            feature.level,
            prev.filter = 0,
@@ -144,6 +151,40 @@ generate_taxa_test_pair <-
       data.obj$meta.dat %>% select(all_of(c(
         time.var, group.var, adj.vars, subject.var
       )))
+
+    # Set reference level for group variable if it is categorical
+    if (!is.null(group.var)) {
+      if (is.factor(meta_tab[[group.var]]) || is.character(meta_tab[[group.var]])) {
+        # Convert to factor if character
+        meta_tab[[group.var]] <- as.factor(meta_tab[[group.var]])
+
+        # Get available levels
+        available_levels <- levels(meta_tab[[group.var]])
+
+        # Validate and set reference level
+        if (!is.null(ref.level)) {
+          if (!(ref.level %in% available_levels)) {
+            stop(
+              "ref.level '", ref.level, "' not found in group.var '", group.var, "'. ",
+              "Available levels: ", paste(available_levels, collapse = ", ")
+            )
+          }
+          meta_tab[[group.var]] <- relevel(meta_tab[[group.var]], ref = ref.level)
+          message("Reference level for '", group.var, "': ", ref.level)
+        } else {
+          message(
+            "Reference level for '", group.var, "': ", available_levels[1],
+            " (alphabetically first)"
+          )
+        }
+      } else if (!is.null(ref.level)) {
+        # Warn if ref.level is specified for non-categorical variable
+        warning(
+          "ref.level is ignored because group.var '", group.var,
+          "' is not categorical (factor or character)."
+        )
+      }
+    }
 
     # Function to generate the formula for the linear mixed model
     # This function constructs the fixed and random effects based on the provided variables
