@@ -234,7 +234,7 @@ taxa_heatmap_pair_results <- generate_taxa_heatmap_pair(
 
 ```
 
-```{r taxa-heatmap-pair-avergae-print, echo=FALSE, message=FALSE, results=result.output, fig.align='center', fig.width = 20, fig.height = 12, warning = FALSE}
+```{r taxa-heatmap-pair-average-print, echo=FALSE, message=FALSE, results=result.output, fig.align='center', fig.width = 20, fig.height = 12, warning = FALSE}
 cat('The following plots display the average proportions for each time point, group, and stratum. \\n\\n')
 
 indiv_list <- lapply(taxa_heatmap_pair_results, function(x) x$indiv)
@@ -272,7 +272,7 @@ taxa_barplot_pair_results <- generate_taxa_barplot_pair(
 )
 ```
 
-```{r taxa-barplot-pair-avergae-print, echo=FALSE, message=FALSE, results=result.output, fig.align='center', fig.width = 25, fig.height = 20, warning = FALSE}
+```{r taxa-barplot-pair-average-print, echo=FALSE, message=FALSE, results=result.output, fig.align='center', fig.width = 25, fig.height = 20, warning = FALSE}
 cat('The following plots display the average proportions for each time point, group, and stratum. \\n\\n')
 
 indiv_list <- lapply(taxa_barplot_pair_results, function(x) x$indiv)
@@ -313,7 +313,7 @@ taxa_dotplot_results <- generate_taxa_dotplot_pair(
                                               pdf.hei = pdf.hei)
 ```
 
-```{r taxa-dotplot-pair-avergae-print, echo=FALSE, message=FALSE, results=result.output, fig.align='center', fig.width = 25, fig.height = 12}
+```{r taxa-dotplot-pair-average-print, echo=FALSE, message=FALSE, results=result.output, fig.align='center', fig.width = 25, fig.height = 12}
 cat('The following plots display the average proportions for each time point, group, and stratum. \\n\\n')
 taxa_dotplot_results
 ```

@@ -274,7 +274,7 @@ generate_taxa_change_boxplot_pair <-
 
       # Reshape data for plotting
       otu_tax_agg_numeric <- otu_tax_agg %>%
-        tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
+        tidyr::gather(key = "sample", value = "value", -all_of(feature.level)) %>%
         dplyr::mutate(value = as.numeric(value))
 
       # Merge OTU data with metadata

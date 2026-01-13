@@ -267,7 +267,7 @@ taxa_heatmap_long_results <- generate_taxa_heatmap_long(
 )
 ```
 
-```{r taxa-heatmap-longitudinal-avergae-print, echo=FALSE, message=FALSE, results=result.output, fig.align=\'center\', fig.width = 20, fig.height = 12, warning = FALSE}
+```{r taxa-heatmap-longitudinal-average-print, echo=FALSE, message=FALSE, results=result.output, fig.align=\'center\', fig.width = 20, fig.height = 12, warning = FALSE}
 cat(\'The following plots display the average proportions for each time point, group, and stratum. \\n\\n\')
 
 indiv_list <- lapply(taxa_heatmap_long_results, function(x) x$indiv)

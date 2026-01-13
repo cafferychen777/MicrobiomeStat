@@ -1,47 +1,27 @@
 winsor.fun <- function(Y, quan, feature.dat.type) {
-  # If feature.dat.type is "count"
-  if (feature.dat.type == "count") {
-    # Calculate column sums of matrix Y
-    N <- colSums(Y)
+  # Apply Winsorization based on data type
+  # Using switch for mutually exclusive conditions
+  switch(feature.dat.type,
+    count = {
+      # For count data: normalize, winsorize, then scale back
+      N <- colSums(Y)
+      P <- t(t(Y) / N)
+      cut <- apply(P, 1, quantile, quan)
+      Cut <- matrix(rep(cut, ncol(Y)), nrow(Y))
+      ind <- P > Cut
+      P[ind] <- Cut[ind]
+      Y <- round(t(t(P) * N))
+    },
+    proportion = {
+      # For proportion data: winsorize directly
+      cut <- apply(Y, 1, quantile, quan)
+      Cut <- matrix(rep(cut, ncol(Y)), nrow(Y))
+      ind <- Y > Cut
+      Y[ind] <- Cut[ind]
+    }
+    # For "other": no winsorization needed, Y unchanged
+  )
 
-    # Normalize Y by dividing each column by its sum
-    # Transpose twice to maintain original dimensions
-    P <- t(t(Y) / N)
-
-    # Compute quantiles for each row of P
-    cut <- apply(P, 1, quantile, quan)
-
-    # Replicate cut vector to create a matrix with same dimensions as Y
-    Cut <- matrix(rep(cut, ncol(Y)), nrow(Y))
-
-    # Create a logical matrix ind
-    # TRUE where P > Cut, FALSE otherwise
-    ind <- P > Cut
-
-    # Winsorize: replace values in P exceeding Cut with corresponding Cut values
-    P[ind] <- Cut[ind]
-
-    # Scale back to original magnitude and round to integers
-    Y <- round(t(t(P) * N))
-  }
-
-  # If feature.dat.type is "proportion"
-  if (feature.dat.type == "proportion") {
-    # Compute quantiles for each row of Y
-    cut <- apply(Y, 1, quantile, quan)
-
-    # Replicate cut vector to create a matrix with same dimensions as Y
-    Cut <- matrix(rep(cut, ncol(Y)), nrow(Y))
-
-    # Create a logical matrix ind
-    # TRUE where Y > Cut, FALSE otherwise
-    ind <- Y > Cut
-
-    # Winsorize: replace values in Y exceeding Cut with corresponding Cut values
-    Y[ind] <- Cut[ind]
-  }
-
-  # Return the Winsorized matrix
   return(Y)
 }
 
@@ -283,7 +263,8 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
     samp.name <- rownames(meta.dat)[keep.sam]
   }
 
-  # Handle zeros in the data
+  # Handle zeros in the data based on feature.dat.type
+  # Note: "count" and "proportion" are mutually exclusive; "other" requires no zero handling
   if (feature.dat.type == "count") {
     if (any(Y == 0)) {
       N <- colSums(Y)
@@ -319,9 +300,7 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
         Y <- Y + pseudo.cnt
       }
     }
-  }
-
-  if (feature.dat.type == "proportion") {
+  } else if (feature.dat.type == "proportion") {
     if (any(Y == 0)) {
       # Apply half-minimum approach for zero values in proportion data
       Y <- t(apply(Y, 1, function(x) {
@@ -332,6 +311,7 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
       rownames(Y) <- taxa.name
     }
   }
+  # For "other": no zero handling needed (data is pre-processed)
 
   # Perform centered log-ratio (CLR) transformation
   logY <- log2(Y)

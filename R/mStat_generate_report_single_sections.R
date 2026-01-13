@@ -227,7 +227,7 @@ taxa_barplot_results <- generate_taxa_barplot_single(data.obj = data.obj,
                                                      pdf.hei = pdf.hei)
 ```
 
-```{r taxa-barplot-avergae-print, echo=FALSE, message=FALSE, result = result.output, fig.align='center', fig.width = 25, fig.height = 15, warning = FALSE}
+```{r taxa-barplot-average-print, echo=FALSE, message=FALSE, result = result.output, fig.align='center', fig.width = 25, fig.height = 15, warning = FALSE}
 cat('The following plots display the average proportions for each group, and stratum. \\n\\n')
 indiv_list <- lapply(taxa_barplot_results, function(x) x$indiv)
 

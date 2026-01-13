@@ -186,7 +186,7 @@ generate_beta_pc_trend_test_long <- function(data.obj = NULL,
       as_tibble() %>%
       tidyr::gather(key = "PC",
                     value = "value",
-                    -one_of(subject.var, group.var, time.var))
+                    -all_of(subject.var, group.var, time.var))
 
     # Perform trend test for each principal component
     sub_test.list <- lapply(unique(df$PC), function(pc.index) {

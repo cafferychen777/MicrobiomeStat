@@ -143,7 +143,7 @@ generate_beta_pc_volatility_test_long <- function(data.obj,
       as_tibble() %>%
       tidyr::gather(key = "PC",
                     value = "value",
-                    -one_of(subject.var, group.var, time.var))
+                    -all_of(subject.var, group.var, time.var))
 
     # Perform volatility test for each principal component
     sub_test.list <- lapply(unique(df$PC), function(pc.index) {

@@ -271,7 +271,7 @@ generate_beta_pc_change_boxplot_pair <-
         as_tibble() %>%
         tidyr::gather(
           key = "PC",
-          value = "value",-one_of(subject.var, group.var, time.var, strata.var)
+          value = "value",-all_of(subject.var, group.var, time.var, strata.var)
         )
 
       # Split the data by time points

@@ -127,7 +127,7 @@ detect_study_design <- function(data.obj,
 
 #' Resolve Theme Parameters
 #'
-#' Converts theme specification to individual parameters expected by底层 functions.
+#' Converts theme specification to individual parameters expected by underlying functions.
 #'
 #' @param theme Theme specification. Can be:
 #'   - Character: preset theme name ("bw", "classic", "minimal", etc.)
@@ -408,7 +408,7 @@ get_function_registry <- function() {
 
 #' Route to Appropriate Function
 #'
-#' Determines the correct底层 function based on category, plot type, and study design.
+#' Determines the correct underlying function based on category, plot type, and study design.
 #'
 #' @param category Analysis category: "taxa", "alpha", "beta", "taxa_test", "beta_test", "alpha_test"
 #' @param plot_type Type of visualization or test
@@ -472,7 +472,7 @@ route_function <- function(category, plot_type, design, is_change = FALSE) {
 
 #' Validate Input Parameters
 #'
-#' Performs comprehensive validation of input parameters before routing to底层 functions.
+#' Performs comprehensive validation of input parameters before routing to underlying functions.
 #'
 #' @param data.obj MicrobiomeStat data object
 #' @param category Analysis category

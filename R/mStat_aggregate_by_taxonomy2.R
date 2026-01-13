@@ -93,7 +93,7 @@ mStat_aggregate_by_taxonomy2 <-
     # 4. Reshape back to wide format
     # 5. Replace NA values with "Unclassified" for better interpretability
     otu_tax_agg <- otu_tax %>%
-      tidyr::gather(key = "sample", value = "value",-one_of(feature.level)) %>%
+      tidyr::gather(key = "sample", value = "value", -all_of(feature.level)) %>%
       dplyr::group_by_at(vars(sample,!!sym(feature.level))) %>%
       dplyr::summarise(value = sum(value)) %>%
       tidyr::spread(key = "sample", value = "value") %>%

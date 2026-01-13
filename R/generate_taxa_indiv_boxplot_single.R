@@ -183,7 +183,7 @@ generate_taxa_indiv_boxplot_single <-
       stop("`strata.var` should be a character string or NULL.")
 
     # Subset the data if time variable and level are provided
-    if (!is.null(time.var) &!is.null(t.level)) {
+    if (!is.null(time.var) & !is.null(t.level)) {
       condition <- paste(time.var, "== '", t.level, "'", sep = "")
       data.obj <- mStat_subset_data(data.obj, condition = condition)
     }
@@ -289,13 +289,13 @@ generate_taxa_indiv_boxplot_single <-
 
       # Reshape the data for plotting
       otu_tax_agg_numeric <- otu_tax_agg %>%
-        tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
+        tidyr::gather(key = "sample", value = "value", -all_of(feature.level)) %>%
         dplyr::mutate(value = as.numeric(value))
 
       # Merge feature data with metadata
       otu_tax_agg_merged <-
         dplyr::left_join(otu_tax_agg_numeric, meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
-        select(one_of(c("sample",
+        select(all_of(c("sample",
                         feature.level,
                         time.var,
                         group.var,

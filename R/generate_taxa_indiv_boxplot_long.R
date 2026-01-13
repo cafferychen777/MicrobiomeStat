@@ -272,13 +272,13 @@ generate_taxa_indiv_boxplot_long <-
 
       # Reshape the data for plotting
       otu_tax_agg_numeric <- otu_tax_agg %>%
-        tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
+        tidyr::gather(key = "sample", value = "value", -all_of(feature.level)) %>%
         dplyr::mutate(value = as.numeric(value))
 
       # Merge feature data with metadata
       otu_tax_agg_merged <-
         dplyr::left_join(otu_tax_agg_numeric, meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
-        select(one_of(c("sample",
+        select(all_of(c("sample",
                         feature.level,
                         subject.var,
                         time.var,

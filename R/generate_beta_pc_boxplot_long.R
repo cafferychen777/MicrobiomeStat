@@ -287,7 +287,7 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
       tidyr::gather(
         key = "PC",
         value = "value",
-        -one_of(subject.var, group.var, time.var, strata.var)
+        -all_of(subject.var, group.var, time.var, strata.var)
       )
 
     # Count unique subjects and time points

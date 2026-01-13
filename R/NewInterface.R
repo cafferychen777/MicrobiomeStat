@@ -2,7 +2,7 @@
 #' @description Simplified, unified API for microbiome data analysis.
 #'
 #' This module provides 6 core functions that automatically route to the
-#' appropriate底层 functions based on study design and parameters:
+#' appropriate underlying functions based on study design and parameters:
 #'
 #' - `plot_taxa()`: Visualize taxonomic composition and abundance
 #' - `plot_alpha()`: Visualize alpha diversity metrics

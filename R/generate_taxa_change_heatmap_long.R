@@ -299,7 +299,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
 
     # Calculate mean values for each combination of feature, group, and time
     df_mean_value <- otu_tax_agg %>%
-      tidyr::gather(key = "sample", value = "value",-one_of(feature.level)) %>%
+      tidyr::gather(key = "sample", value = "value",-all_of(feature.level)) %>%
       dplyr::left_join(meta_tab %>%
                   rownames_to_column("sample"), "sample") %>%
       dplyr::group_by(!!sym(feature.level),!!sym(group.var),!!sym(time.var)) %>%

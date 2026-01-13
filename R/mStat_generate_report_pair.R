@@ -334,7 +334,7 @@ mStat_generate_report_pair <- function(data.obj,
                                        output.file,
                                        output.format = c("pdf", "html")) {
 
-  # 使用 pander 包来确保它被实际使用
+  # Use pander package to ensure it is actually loaded
   pander::pander(list("MicrobiomeStat Report Generation", Sys.time(), "Parameters", paste("Output Format:", output.format)))
   
   # Ensure output.format is either "pdf" or "html"

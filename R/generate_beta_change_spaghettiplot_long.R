@@ -260,9 +260,9 @@ generate_beta_change_spaghettiplot_long <-
         dplyr::rename(!!sym(subject.var) := !!sym(paste0(subject.var, ".subject")), !!sym(time.var) := !!sym(paste0(time.var, ".subject")))
 
       # Add group and strata information to the long-format data
-      if (!is.null(strata.var)&!is.null(group.var)){
+      if (!is.null(strata.var) & !is.null(group.var)) {
         long.df <- long.df %>% dplyr::left_join(meta_tab %>% dplyr::select(-all_of("sample")) %>% dplyr::distinct(),by = c(subject.var,time.var))
-      } else if (is.null(strata.var)&!is.null(group.var)){
+      } else if (is.null(strata.var) & !is.null(group.var)) {
         long.df <- long.df %>% dplyr::left_join(meta_tab %>% dplyr::select(-all_of("sample")) %>% dplyr::distinct(),by = c(subject.var,time.var))
       } else {
         long.df <- long.df

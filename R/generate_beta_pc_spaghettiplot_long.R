@@ -301,7 +301,7 @@ generate_beta_pc_spaghettiplot_long <- function(data.obj = NULL,
       tidyr::gather(
         key = "PC",
         value = "value",
-        -one_of(subject.var, group.var, time.var, strata.var)
+        -all_of(subject.var, group.var, time.var, strata.var)
       )
 
     # If no group variable is provided, create a dummy group

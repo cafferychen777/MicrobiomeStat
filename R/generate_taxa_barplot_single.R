@@ -243,11 +243,11 @@ generate_taxa_barplot_single <-
         # Subset data to specific time point if t.level is provided
         condition <- paste(time.var, "== '", t.level, "'", sep = "")
         data.obj <- mStat_subset_data(data.obj, condition = condition)
-        meta_tab <- data.obj$meta.dat %>% select(one_of(
+        meta_tab <- data.obj$meta.dat %>% select(all_of(
           c(subject.var, time.var, group.var, strata.var)))
       } else {
         # Use all time points, but warn if multiple time points are detected
-        meta_tab <- data.obj$meta.dat %>% select(one_of(
+        meta_tab <- data.obj$meta.dat %>% select(all_of(
           c(subject.var, time.var, group.var, strata.var)))
         if (length(levels(as.factor(meta_tab[,time.var]))) != 1){
           message("Multiple time points detected in your dataset. It is recommended to either set t.level or utilize functions for longitudinal data analysis.")
@@ -255,7 +255,7 @@ generate_taxa_barplot_single <-
       }
     } else {
       # If no time variable is provided, create a dummy one
-      meta_tab <- data.obj$meta.dat %>% select(one_of(
+      meta_tab <- data.obj$meta.dat %>% select(all_of(
         c(subject.var, group.var, strata.var)))
       meta_tab$ALL2 <- "ALL"
       time.var = "ALL2"
@@ -350,7 +350,7 @@ generate_taxa_barplot_single <-
         rownames_to_column(feature.level)
 
       # Transpose the data
-      otu_tab_counts <- apply(t(otu_tax_agg %>% select(-one_of(feature.level))), 1, function(x) x)
+      otu_tab_counts <- apply(t(otu_tax_agg %>% select(-all_of(feature.level))), 1, function(x) x)
       # Actually normalize to proportions for each sample (account for sequencing depth)
       otu_tab_norm <- sweep(otu_tab_counts, 2, colSums(otu_tab_counts), "/")
       rownames(otu_tab_norm) <- as.matrix(otu_tax_agg[, feature.level])
@@ -645,7 +645,7 @@ generate_taxa_barplot_single <-
         if (!is.null(file.ann)) {
           pdf_name <- paste0(pdf_name, "_", file.ann)
         }
-        pdf_name <- paste0(pdf_name,"_avergae", ".pdf")
+        pdf_name <- paste0(pdf_name,"_average", ".pdf")
         ggsave(filename = pdf_name, plot = stack_barplot_average, width = pdf.wid, height = pdf.hei)
       }
 

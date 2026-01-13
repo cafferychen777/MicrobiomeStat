@@ -538,7 +538,7 @@ generate_taxa_barplot_long <-
         if (!is.null(file.ann)) {
           pdf_name <- paste0(pdf_name, "_", file.ann)
         }
-        pdf_name <- paste0(pdf_name,"_avergae", ".pdf")
+        pdf_name <- paste0(pdf_name,"_average", ".pdf")
         ggsave(filename = pdf_name, plot = stack_barplot_average, width = pdf.wid, height = pdf.hei)
       }
 

@@ -260,7 +260,7 @@ generate_taxa_spaghettiplot_long <-
 
       # Reshape data from wide to long format
       df <- otu_tax_agg_numeric %>%
-        tidyr::gather(key = "sample", value = "count", -one_of(feature.level)) %>%
+        tidyr::gather(key = "sample", value = "count", -all_of(feature.level)) %>%
         dplyr::left_join(meta_tab %>% rownames_to_column(var = "sample"), by = "sample")
 
       # Create a dummy group if group variable is not specified
