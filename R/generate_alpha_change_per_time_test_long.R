@@ -1,34 +1,16 @@
-#' Compare alpha diversity between time points
+#' @title Alpha Diversity Change Test Per Time Point (Longitudinal)
 #'
-#' This function performs paired tests to compare alpha diversity metrics
-#' between two time points in a microbiome dataset.
+#' @description Performs paired tests comparing alpha diversity changes between
+#'   baseline and each follow-up time point in longitudinal data.
 #'
-#' The function calculates alpha diversity at each time point and then compares
-#' these values to assess changes over time. It supports various methods for
-#' calculating the change in alpha diversity, including log fold change.
+#' @inheritParams mStat_data_obj_doc
+#' @inheritParams mStat_test_params_doc
 #'
-#' Users can specify a number of parameters, including the alpha diversity
-#' metric to be analyzed, the depth for rarefaction, and covariates for adjustment.
-#' The function is flexible and can accommodate different data structures and
-#' analysis requirements.
+#' @param alpha.change.func Function or method for calculating change in alpha diversity
+#'   between two timepoints. Options include 'log fold change', 'absolute change',
+#'   or a custom function.
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package.
-#' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
-#' @param alpha.name The alpha diversity index to be analyzed. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", "pielou", and "faith_pd".
-#' @param depth An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
-#' If NULL, no rarefaction is performed.
-#' @param time.var Character string specifying the column name in metadata containing time values for each sample. Required to identify pairs of time points to calculate changes between.
-#' @param t0.level The baseline time point against which changes are measured.
-#' @param ts.levels An array of time points to compare against the baseline.
-#' @param subject.var Character string specifying the column name in metadata containing unique subject IDs. Required to pair samples from the same subject across time points.
-#' @param group.var Character string specifying the column name in metadata containing grouping categories. Used as a predictor in the models to test for differences in changes between groups. Optional, can be NULL.
-#' @param adj.vars Character vector specifying column names in metadata containing covariates to adjust for in the linear models. Optional, can be left NULL if no adjustment is needed.
-#' @param alpha.change.func Function or method for calculating change in alpha diversity between two timepoints. Supports custom functions or predefined methods like 'log fold change'.
 #' @return A list of tables, one for each alpha diversity metric, summarizing the results of the statistical tests.
-#'
-#' @details
-#' The function calculates alpha diversity for each time point and then compares
-#' these values to assess changes. The comparison can be done using different methods, such as log fold change. The function is designed to be flexible and can handle various data structures and analysis requirements.
 #'
 #' @examples
 #' \dontrun{

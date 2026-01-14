@@ -1,71 +1,16 @@
-#' Compute taxa changes and analyze differential abundance
+#' @title Taxa Change Test for Paired Data
 #'
-#' This function calculates taxa abundance changes between two time points and performs differential abundance analysis between groups using linear models or ANOVA.
+#' @description Computes taxa abundance changes between two time points and tests for
+#' differential change between groups using linear models (lm) or ANOVA.
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param subject.var The name of the subject variable column in the metadata.
-#' @param time.var The name of the time variable column in the metadata (optional).
-#' @param group.var The name of the grouping variable column in metadata for comparing
-#'                  change scores between groups. This variable is ALWAYS treated as categorical
-#'                  (factor), regardless of the input type. If you provide a numeric or integer
-#'                  variable, it will be automatically converted to a factor.
-#'                  By default, the first level (alphabetically) is used as the reference group
-#'                  for comparisons. Use \code{ref.level} to specify a different reference.
-#' @param ref.level Character string specifying the reference level for the group variable.
-#'                 This parameter specifies which group should be used as the reference for comparisons.
-#'                 All other groups will be compared against this reference level.
-#'                 If NULL (default), the first level alphabetically is used as the reference.
-#' @param adj.vars Names of additional variables to be used as covariates in the analysis.
-#' @param change.base The baseline time point for detecting changes in taxa. If NULL, the first unique value from the time.var column will be used (optional).
-#' @param feature.change.func Specifies the method or function used to compute the change between two time points. Options include:
-#'
-#' - "absolute change" (default): Computes the absolute difference between the values at the two time points (`value_time_2` and `value_time_1`).
-#'
-#' - "log fold change": Computes the log2 fold change between the two time points. For zero values, imputation is performed using half of the minimum nonzero value for each feature level at the respective time point before taking the logarithm.
-#'
-#' - "relative change": Computes the relative change as `(value_time_2 - value_time_1) / (value_time_2 + value_time_1)`. If both time points have a value of 0, the change is defined as 0.
-#'
-#' - A custom function: If a user-defined function is provided, it should take two numeric vectors as input corresponding to the values at the two time points (`value_time_1` and `value_time_2`) and return a numeric vector of the computed change. This custom function will be applied directly to calculate the difference.
-#' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
-#' to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
-#' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
-#' column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
-#' for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
-#' is also NULL.
-#' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
-#' taxa before analysis. Taxa with prevalence below this value will be removed.
-#' Prevalence is calculated as the proportion of samples where the taxon is present.
-#' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering
-#' taxa before analysis. Taxa with mean abundance below this value will be removed.
-#' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
-#' @param feature.dat.type The type of the feature data, which determines preprocessing steps.
-#' Should be one of:
-#' \itemize{
-#'   \item "count": Raw count data. This function will:
-#'         \itemize{
-#'           \item Apply TSS (Total Sum Scaling) normalization
-#'           \item Perform zero-imputation using global half-minimum pseudocount
-#'                 (calculated as half of the minimum non-zero value for each taxon
-#'                 across ALL samples and time points combined, ensuring unbiased change calculations)
-#'           \item Use standard linear models (lm) for statistical testing of change scores
-#'         }
-#'   \item "proportion": Pre-normalized proportional data. This function will:
-#'         \itemize{
-#'           \item Perform zero-imputation using global half-minimum pseudocount
-#'           \item Use standard linear models (lm) for statistical testing of change scores
-#'         }
-#'   \item "other": Pre-transformed data (e.g., CLR). Uses standard linear models without
-#'                  normalization or zero-imputation. Only winsorization is applied.
-#' }
-#' Default is "count". NOTE: This function uses standard lm() models, NOT LinDA.
-#' @param winsor.qt A numeric value between 0 and 1, specifying the quantile for winsorization (default: 0.97).
-#'   Winsorization is a data preprocessing method used to limit extreme values or outliers in the data.
-#'   The `winsor.qt` parameter determines the upper and lower quantiles for winsorization.
-#'   For example, if `winsor.qt` is set to 0.97, the lower quantile will be (1 - 0.97) / 2 = 0.015,
-#'   and the upper quantile will be 1 - (1 - 0.97) / 2 = 0.985.
-#'   Values below the lower quantile will be replaced with the lower quantile,
-#'   and values above the upper quantile will be replaced with the upper quantile.
-#'   This helps to reduce the impact of extreme values or outliers on subsequent analyses.
+#' @inheritParams mStat_data_obj_doc
+#' @param change.base Character or numeric specifying the baseline time point.
+#'   If NULL, uses the first unique value from time.var.
+#' @param feature.change.func Method for calculating change: "relative change",
+#'   "log fold change", "absolute change", or a custom function.
+#' @param ref.level Character specifying the reference level for group comparisons.
+#'   If NULL, uses the first level alphabetically.
+#' @param winsor.qt Numeric (0-1) specifying the quantile for winsorization. Default 0.97.
 #'
 #' @examples
 #' \dontrun{

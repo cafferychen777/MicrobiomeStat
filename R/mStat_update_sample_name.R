@@ -1,18 +1,11 @@
-#' @title Update Sample Names in MicrobiomeStat Data Object
+#' Update Sample Names in Data Object
 #'
-#' @description
-#' This function is part of the MicrobiomeStat package. It updates the sample names
-#' in a given data object. The data object should contain three components:
-#' a metadata table (`meta.dat`), a feature aggregation list (`feature.agg.list`),
-#' and a feature table (`feature.tab`).
+#' Renames samples across all components of a MicrobiomeStat data object.
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' `meta.dat`, `feature.agg.list`, and `feature.tab` components.
-#' @param new.name A character vector containing the new sample names.
-#' The length of new.name should match the number of rows in `meta.dat`, and there should be no duplicates.
+#' @inheritParams mStat_data_obj_doc
+#' @param new.name Character vector of new sample names (must match number of samples, no duplicates).
 #'
-#' @return A data object with updated sample names. The object is similar to the input object,
-#' but the sample names in `meta.dat`, `feature.agg.list`, and `feature.tab` are updated to `new.name`.
+#' @return A MicrobiomeStat data object with updated sample names.
 #'
 #' @examples
 #' \dontrun{

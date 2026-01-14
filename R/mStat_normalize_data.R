@@ -17,22 +17,22 @@ is_count_data <- function(data_mat) {
 
 #' Normalize a MicrobiomeStat Data Object
 #'
-#' This function is part of the MicrobiomeStat package. It normalizes a data object based on the chosen method.
-#' @name mStat_normalize_data
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param method A string. The normalization method to be applied. It must be one of the following: "Rarefy-TSS", "Rarefy", "TSS", "GMPR", "CSS", "DESeq", "TMM". The default is "Rarefy-TSS".
-#' - "Rarefy-TSS": Rarefaction followed by Total Sum Scaling normalization.
-#' - "Rarefy": Rarefaction normalization only.
-#' - "TSS": Total Sum Scaling normalization only.
-#' - "GMPR": Geometric Mean of Pairwise Ratios normalization method.
-#' - "CSS": Cumulative Sum Scaling normalization method (Paulson et al. 2013). Requires metagenomeSeq package.
-#'   CSS normalizes by the cumulative sum of counts up to a data-driven quantile threshold,
-#'   making it robust to high-abundance taxa and varying library sizes.
-#' - "DESeq": Normalization using the DESeq method for RNA-seq data.
-#' - "TMM": Normalization using the Trimmed Mean of M-values (TMM) method from the edgeR package.
-#' @param depth An integer. The sequencing depth to be used for the "Rarefy" and "Rarefy-TSS" methods. If NULL, the smallest total count dplyr::across samples is used as the rarefaction depth.
+#' Normalizes feature abundance data using various methods.
 #'
-#' @return A list. The normalized data object and the scale factor used for normalization.
+#' @inheritParams mStat_data_obj_doc
+#' @inheritParams mStat_test_params_doc
+#' @param method Normalization method. One of:
+#'   \itemize{
+#'     \item "Rarefy-TSS": Rarefaction + Total Sum Scaling (default)
+#'     \item "Rarefy": Rarefaction only
+#'     \item "TSS": Total Sum Scaling only
+#'     \item "GMPR": Geometric Mean of Pairwise Ratios
+#'     \item "CSS": Cumulative Sum Scaling (requires metagenomeSeq)
+#'     \item "DESeq": DESeq normalization
+#'     \item "TMM": Trimmed Mean of M-values (requires edgeR)
+#'   }
+#'
+#' @return A list with normalized data object and scale factors.
 #'
 #' @examples
 #' \dontrun{

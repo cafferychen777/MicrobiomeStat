@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_beta_change_per_time_test_long.R
 \name{generate_beta_change_per_time_test_long}
 \alias{generate_beta_change_per_time_test_long}
-\title{Generate Beta Change Tests for Longitudinal Data}
+\title{Beta Diversity Change Tests Per Time Point}
 \usage{
 generate_beta_change_per_time_test_long(
   data.obj = NULL,
@@ -18,47 +18,62 @@ generate_beta_change_per_time_test_long(
 )
 }
 \arguments{
-\item{data.obj}{A list object formatted specifically for MicrobiomeStat, potentially
-including components like feature.tab (matrix), feature.ann (matrix),
-meta.dat (data.frame), tree, and feature.agg.list (list). This object can
-be derived from various formats using MicrobiomeStat functions such as
-'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj',
-'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj',
-'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj',
-'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'.}
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
+\itemize{
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
+}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{dist.obj}{A distance matrix between samples, typically generated using
-\code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}}. If NULL,
-the function will compute beta diversity from \code{data.obj}.}
+\item{dist.obj}{A list of pre-calculated distance matrices. If NULL and
+distances are needed, they will be calculated automatically.
+List names should match dist.name (e.g., "BC" for Bray-Curtis).
+See \code{\link{mStat_calculate_beta_diversity}}.}
 
-\item{time.var}{A character string identifying the column in metadata that contains
-time information. This column should list time points for each sample,
-necessary for ordering and linking samples over time for the same subject.}
+\item{time.var}{Character string specifying the column name in meta.dat
+containing the time variable. Required for longitudinal and paired analyses.
+Should be a factor or character with meaningful time point labels.}
 
-\item{t0.level}{A baseline time point for longitudinal analysis, specified as a character
-or numeric value, e.g., "week_0" or 0.}
+\item{t0.level}{Character or numeric value specifying the baseline time
+point for longitudinal or paired analyses. Should match a value in the
+time.var column.}
 
-\item{ts.levels}{A vector of character strings indicating follow-up time points, such as
-c("week_4", "week_8").}
+\item{ts.levels}{Character vector specifying the follow-up time points for
+longitudinal or paired analyses. Should match values in the time.var column.}
 
-\item{subject.var}{The name of the column in metadata containing the subject IDs.
-This should uniquely identify each subject in the study. Required
-to identify samples that belong to the same subject.}
+\item{subject.var}{Character string specifying the column name in meta.dat
+that uniquely identifies each subject or sample unit. Required for
+longitudinal and paired designs to track repeated measurements.}
 
-\item{group.var}{A character string naming the column in metadata that contains the
-grouping variable, which can be used for color mapping in plots.
-Optional; can be NULL.}
+\item{group.var}{Character string specifying the column name in meta.dat
+containing the grouping variable (e.g., treatment, condition, phenotype).
+Used for between-group comparisons.}
 
-\item{adj.vars}{A vector of character strings naming columns in metadata to include as
-covariates for adjusting the distance matrix before ordination.
-Can be empty or NULL if no adjustment is needed.}
+\item{adj.vars}{Character vector specifying column names in meta.dat to be
+used as covariates for adjustment in statistical models. These variables
+will be included as fixed effects.}
 
-\item{dist.name}{A vector of character strings specifying which beta diversity indices to
-calculate. Supported indices include "BC" (Bray-Curtis), "Jaccard",
-"UniFrac" (unweighted), "GUniFrac" (generalized UniFrac), "WUniFrac"
-(weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a specified
-index is not present in dist.obj, it will be computed internally.
-An error is returned if an unsupported index is specified.}
+\item{dist.name}{Character vector specifying which distance metrics to use.
+Options depend on available methods:
+\itemize{
+  \item "BC": Bray-Curtis dissimilarity
+  \item "Jaccard": Jaccard distance
+  \item "UniFrac": Unweighted UniFrac (requires tree)
+  \item "GUniFrac": Generalized UniFrac (requires tree)
+  \item "WUniFrac": Weighted UniFrac (requires tree)
+  \item "JS": Jensen-Shannon divergence
+}}
 
 \item{...}{Additional arguments passed to underlying functions.}
 }
@@ -66,9 +81,7 @@ An error is returned if an unsupported index is specified.}
 A list of test results, structured to facilitate further analysis and visualization.
 }
 \description{
-This function is designed to perform beta change tests on longitudinal microbiome data.
-It integrates multiple components of the MicrobiomeStat package to process and analyze
-the data, focusing on beta diversity changes over time within subjects.
+Performs beta diversity change tests at each time point relative to baseline.
 }
 \examples{
 \dontrun{

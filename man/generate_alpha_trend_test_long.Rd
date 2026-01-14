@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_alpha_trend_test_long.R
 \name{generate_alpha_trend_test_long}
 \alias{generate_alpha_trend_test_long}
-\title{Longitudinal Alpha Diversity Trend Test in MicrobiomeStat}
+\title{Alpha Diversity Trend Test (Longitudinal)}
 \usage{
 generate_alpha_trend_test_long(
   data.obj,
@@ -16,40 +16,67 @@ generate_alpha_trend_test_long(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
+\itemize{
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
+}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{alpha.obj}{An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.}
+\item{alpha.obj}{A list containing pre-calculated alpha diversity indices.
+If NULL and alpha diversity is needed, it will be calculated automatically.
+Names should match the alpha.name parameter (e.g., "shannon", "simpson").
+See \code{\link{mStat_calculate_alpha_diversity}}.}
 
-\item{alpha.name}{A string with the name of the alpha diversity index to compute.
-Options could include: "shannon", "simpson", "observed_species", "chao1", "ace", "pielou", and "faith_pd".}
+\item{alpha.name}{Character vector specifying which alpha diversity indices
+to analyze. Options include:
+\itemize{
+  \item "shannon": Shannon diversity index
+  \item "simpson": Simpson diversity index
+  \item "observed_species": Observed species richness
+  \item "chao1": Chao1 richness estimator
+  \item "ace": ACE richness estimator
+  \item "pielou": Pielou's evenness
+}}
 
-\item{depth}{An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
-If NULL, no rarefaction is performed.}
+\item{depth}{Numeric value or NULL. Rarefaction depth for diversity
+calculations. If NULL, uses minimum sample depth or no rarefaction.}
 
-\item{time.var}{Character string specifying the column name in metadata containing the
-numeric time variable.}
+\item{time.var}{Character string specifying the column name in meta.dat
+containing the time variable. Required for longitudinal and paired analyses.
+Should be a factor or character with meaningful time point labels.}
 
-\item{subject.var}{Character string specifying the column name in metadata containing
-unique subject IDs.}
+\item{subject.var}{Character string specifying the column name in meta.dat
+that uniquely identifies each subject or sample unit. Required for
+longitudinal and paired designs to track repeated measurements.}
 
-\item{group.var}{Character string specifying the column name in metadata containing grouping
-categories.}
+\item{group.var}{Character string specifying the column name in meta.dat
+containing the grouping variable (e.g., treatment, condition, phenotype).
+Used for between-group comparisons.}
 
-\item{adj.vars}{Character vector specifying column names in metadata containing covariates
-to adjust for.}
+\item{adj.vars}{Character vector specifying column names in meta.dat to be
+used as covariates for adjustment in statistical models. These variables
+will be included as fixed effects.}
 }
 \value{
 A list object containing the results of the trend test for each alpha
-diversity index specified in `alpha.name`. Each element of the list contains a
-summary table of the trend test results for a specific alpha diversity index.
+  diversity index specified in `alpha.name`. Each element of the list contains a
+  summary table of the trend test results for a specific alpha diversity index.
 }
 \description{
-This function `generate_alpha_trend_test_long`, part of the MicrobiomeStat
-package, performs a trend test on longitudinal alpha diversity data using
-a linear mixed-effects model. The model is used to test the association
-between alpha diversity and a numeric time variable, while adjusting for
-potential confounding variables. It accepts alpha diversity data and other
-related parameters to conduct the test.
+Tests for temporal trends in alpha diversity using linear
+  mixed-effects models with a numeric time variable.
 }
 \examples{
 \dontrun{

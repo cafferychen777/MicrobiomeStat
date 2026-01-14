@@ -1,60 +1,18 @@
-#' @title Generate Taxonomic Heatmap Long
+#' @title Generate Taxa Heatmap for Longitudinal Data
 #'
-#' @description This function performs hierarchical clustering on microbiome data based on grouping
-#' variables and strata variables in sample metadata and generates stacked heatmaps
-#' using the “pheatmap” package. It can also save the resulting heatmap as a PDF file.
+#' @description Generates hierarchical clustered heatmaps for longitudinal microbiome data
+#' using the pheatmap package, with options for group and strata annotations.
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list).
-#' @param subject.var A character string specifying the subject variable in the metadata.
-#' @param time.var A character string specifying the time variable in the metadata.
-#' @param t0.level Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.
-#' @param ts.levels Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.
-#' @param group.var A character string specifying the grouping variable in the metadata. Default is NULL.
-#' @param strata.var A character string specifying the stratification variable in the metadata. Default is NULL.
-#' @param feature.level A character vector specifying the taxa level(s) to include in the analysis. Default is c('Phylum', 'Family', 'Genus').
-#' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
-#' Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.
-#' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
-#' Should be one of:
-#' - "count": Raw count data, will be normalized by the function.
-#' - "proportion": Data that has already been normalized to proportions/percentages.
-#' - "other": Custom abundance data that has unknown scaling. No normalization applied.
-#' The choice affects preprocessing steps as well as plot axis labels.
-#' Default is "count", which assumes raw count input.
-#' @param top.k.plot A numeric value specifying the number of top taxa to be plotted if features.plot is NULL. If NULL (default), all taxa will be plotted.
-#' @param top.k.func A function to compute the top k taxa if features.plot is NULL. If NULL (default), the mean function will be used.
-#' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
-#' taxa before analysis. Taxa with prevalence below this value will be removed.
-#' Prevalence is calculated as the proportion of samples where the taxon is present.
-#' Default 0 removes no taxa by prevalence filtering.
-#' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering
-#' taxa before analysis. Taxa with mean abundance below this value will be removed.
-#' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
-#' Default 0 removes no taxa by abundance filtering.
-#' @param base.size Base font size for the generated plots.
-#' @param palette The color palette to be used for annotating the plots.
-#'                This parameter can be specified in several ways:
-#'                - As a character string representing a predefined palette name.
-#'                  Available predefined palettes include 'npg', 'aaas', 'nejm',
-#'                  'lancet', 'jama', 'jco', and 'ucscgb'.
-#'                - As a vector of color codes in a format accepted by ggplot2
-#'                  (e.g., hexadecimal color codes).
-#'                The function uses `mStat_get_palette` to retrieve or generate
-#'                the color palette. If `palette` is NULL or an unrecognized string,
-#'                a default color palette will be used. The colors are applied to
-#'                the specified grouping variables (`group.var`, `strata.var`) in the
-#'                heatmap, ensuring each level of these variables is associated with a
-#'                unique color. If both `group.var` and `strata.var` are specified,
-#'                the function assigns colors to `group.var` from the start of the
-#'                palette and to `strata.var` from the end, ensuring distinct color
-#'                representations for each annotation layer.
-#' @param cluster.rows A logical variable indicating if rows should be clustered. Default is TRUE.
-#' @param cluster.cols A logical variable indicating if columns should be clustered. Default is FALSE.
-#' @param pdf A logical value. If TRUE (default), saves the plot as a PDF file. If FALSE, the plot will be displayed interactively without creating a PDF.
-#' @param file.ann (Optional) A character string specifying a file annotation to include in the generated PDF file's name.
-#' @param pdf.wid Width of the PDF plots.
-#' @param pdf.hei Height of the PDF plots.
-#' @param ... Additional parameters to be passed to the pheatmap() function from the “pheatmap” package.
+#' @inheritParams mStat_data_obj_doc
+#' @inheritParams mStat_plot_params_doc
+#'
+#' @param features.plot A character vector specifying which feature IDs to plot.
+#'   Default is NULL, in which case features are selected based on `top.k.plot` and `top.k.func`.
+#' @param top.k.plot Integer specifying number of top k features to plot. Default is NULL.
+#' @param top.k.func Function to compute the top k taxa. Default is NULL (uses mean).
+#' @param cluster.rows Logical indicating if rows should be clustered. Default is TRUE.
+#' @param cluster.cols Logical indicating if columns should be clustered. Default is FALSE.
+#' @param ... Additional parameters to be passed to the pheatmap() function.
 #'
 #' @return An object of class pheatmap, the generated heatmap plot
 #'

@@ -1,78 +1,18 @@
-#' Generate Stacked Taxa Barplots for Single or Longitudinal Data
+#' Generate Taxa Barplots for Single Time Point
 #'
-#' This function generates stacked barplots to visualize the taxonomic composition of samples for single or longitudinal data.
-#' It provides options for grouping and stratifying data, and generates both individual and average barplots.
+#' Creates stacked barplots showing taxonomic composition at a single time point.
+#' Generates both individual sample and group-averaged views.
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param time.var Character string specifying the column name in metadata containing the
-#'                time variable. Required to order and connect samples over time.
-#' @param t.level Character string specifying the time level/value to subset data to,
-#' if a time variable is provided. Default NULL does not subset data.
-#' @param group.var Character string specifying the column name in metadata containing grouping
-#'                 categories. Used for coloring lines in the plot. Optional, can be NULL.
-#' @param strata.var Character string specifying the column name in metadata containing stratification
-#'                  categories. Used for nested faceting in the plots. Optional, can be NULL.
-#' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
-#' to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
-#' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
-#' column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
-#' for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
-#' is also NULL.
-#' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
-#' Default is NULL, in which case the top `feature.number` features by mean abundance will be displayed.
-#' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
-#' Should be one of:
-#' - "count": Raw count data, will be normalized by the function.
-#' - "proportion": Data that has already been normalized to proportions/percentages.
-#' - "other": Custom abundance data that has unknown scaling. No normalization applied.
-#' The choice affects preprocessing steps as well as plot axis labels.
-#' Default is "count", which assumes raw count input.
-#' @param feature.number A numeric value indicating the number of top abundant features to retain in the plot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.
-#' @param base.size A numeric value indicating the base font size for the plot.
-#' @param theme.choice
-#' Plot theme choice. Specifies the visual style of the plot. Can be one of the following pre-defined themes:
-#'   - "prism": Utilizes the ggprism::theme_prism() function from the ggprism package, offering a polished and visually appealing style.
-#'   - "classic": Applies theme_classic() from ggplot2, providing a clean and traditional look with minimal styling.
-#'   - "gray": Uses theme_gray() from ggplot2, which offers a simple and modern look with a light gray background.
-#'   - "bw": Employs theme_bw() from ggplot2, creating a classic black and white plot, ideal for formal publications and situations where color is best minimized.
-#'   - "light": Implements theme_light() from ggplot2, featuring a light theme with subtle grey lines and axes, suitable for a fresh, modern look.
-#'   - "dark": Uses theme_dark() from ggplot2, offering a dark background, ideal for presentations or situations where a high-contrast theme is desired.
-#'   - "minimal": Applies theme_minimal() from ggplot2, providing a minimalist theme with the least amount of background annotations and colors.
-#'   - "void": Employs theme_void() from ggplot2, creating a blank canvas with no axes, gridlines, or background, ideal for custom, creative plots.
-#' Each theme option adjusts various elements like background color, grid lines, and font styles to match the specified aesthetic.
-#' Default is "bw", offering a universally compatible black and white theme suitable for a wide range of applications.
-#' @param custom.theme
-#' A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. Custom themes are useful for creating publication-ready figures with specific formatting requirements.
+#' @inheritParams mStat_data_obj_doc
+#' @inheritParams mStat_plot_params_doc
+#' @param t.level Character string specifying the time level to subset data to.
+#'   Default NULL uses all data.
+#' @param features.plot Character vector of specific feature IDs to plot.
+#'   If NULL, top features by mean abundance are displayed.
+#' @param feature.number Integer specifying number of top features to display.
+#'   Lower-ranked features are grouped into "Other". Default is 20.
 #'
-#' To use a custom theme, create a theme object with ggplot2::theme(), including any desired customizations. Common customizations for publication-ready figures might include adjusting text size for readability, altering line sizes for clarity, and repositioning or formatting the legend. For example:
-#'
-#' ```r
-#' my_theme <- ggplot2::theme(
-#'   axis.title = ggplot2::element_text(size=14, face="bold"),        # Bold axis titles with larger font
-#'   axis.text = ggplot2::element_text(size=12),                      # Slightly larger axis text
-#'   legend.position = "top",                                         # Move legend to the top
-#'   legend.background = ggplot2::element_rect(fill="lightgray"),     # Light gray background for legend
-#'   panel.background = ggplot2::element_rect(fill="white", colour="black"), # White panel background with black border
-#'   panel.grid.major = ggplot2::element_line(colour = "grey90"),     # Lighter color for major grid lines
-#'   panel.grid.minor = ggplot2::element_blank(),                     # Remove minor grid lines
-#'   plot.title = ggplot2::element_text(size=16, hjust=0.5)           # Centered plot title with larger font
-#' )
-#' ```
-#'
-#' Then pass `my_theme` to `custom.theme`. If `custom.theme` is NULL (the default), the theme is determined by `theme.choice`. This flexibility allows for both easy theme selection for general use and detailed customization for specific presentation or publication needs.
-#' @param palette A character vector specifying the color palette. Default is NULL.
-#' @param pdf A logical value indicating whether to save the plot as a PDF. Default is TRUE.
-#' @param file.ann A string for additional annotation to the file name. Default is NULL.
-#' @param pdf.wid A numeric value specifying the width of the PDF file. Default is 11.
-#' @param pdf.hei A numeric value specifying the height of the PDF file. Default is 8.5.
-#' @param ... Additional arguments to be passed to the function.
-#'
-#' @return A list of ggplot objects of the taxa barplots.
-#' @details
-#' This function generates a stacked barplot of taxa proportions for longitudinal data.
-#' The barplot can be stratified by a group variable and/or other variables.
-#' It also allows for different taxonomic levels to be used and a specific number of features to be included in the plot.
-#' The function also has options to customize the size, theme, and color palette of the plot, and to save the plot as a PDF.
+#' @return A list of ggplot objects containing individual and average barplots.
 #'
 #' @examples
 #' \dontrun{

@@ -1,25 +1,16 @@
-#' Generate Volcano Plots for Taxa Differential Test for a Single Time Point
+#' Generate Volcano Plots for Single Time Point Taxa Test
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param group.var The grouping variable tested, found in metadata.
-#' @param test.list The list of test results returned by generate_taxa_trend_test_long.
-#' @param feature.sig.level The significance level cutoff for highlighting taxa.
-#' @param feature.mt.method Multiple testing correction method, "fdr" or "none".
-#' @param features.plot A character vector of taxa to be plotted. If NULL, all taxa will be plotted.
-#' @param palette An optional parameter specifying the color palette to be used for the plot.
-#'                It can be either a character string specifying the name of a predefined
-#'                palette or a vector of color codes in a format accepted by ggplot2
-#'                (e.g., hexadecimal color codes). Available predefined palettes include
-#'                'npg', 'aaas', 'nejm', 'lancet', 'jama', 'jco', and 'ucscgb', inspired
-#'                by various scientific publications and the `ggsci` package. If `palette`
-#'                is not provided or an unrecognized palette name is given, a default color
-#'                palette will be used. Ensure the number of colors in the palette is at
-#'                least as large as the number of groups being plotted.
-#' @param pdf Boolean; whether to save the plot as a PDF file.
-#' @param pdf.wid Numeric; width of the saved PDF file.
-#' @param pdf.hei Numeric; height of the saved PDF file.
+#' Creates volcano plots visualizing differential abundance test results.
 #'
-#' @return A list of ggplot objects of volcano plots for each taxonomic level
+#' @inheritParams mStat_data_obj_doc
+#' @inheritParams mStat_plot_params_doc
+#'
+#' @param test.list List of test results from generate_taxa_test_single.
+#' @param feature.sig.level Numeric; significance level cutoff for highlighting taxa.
+#' @param feature.mt.method Character; multiple testing method ("fdr" or "none").
+#' @param features.plot Character vector of taxa to plot. If NULL, plots all.
+#'
+#' @return A list of ggplot objects of volcano plots for each taxonomic level.
 #'
 #' @examples
 #' \dontrun{

@@ -19,44 +19,61 @@ generate_taxa_trend_volcano_long(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list).}
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
+\itemize{
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
+}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{group.var}{The grouping variable tested, found in metadata.}
+\item{group.var}{Character string specifying the column name in meta.dat
+containing the grouping variable (e.g., treatment, condition, phenotype).
+Used for between-group comparisons.}
 
-\item{time.var}{The time variable used in the analysis.}
+\item{time.var}{Character string specifying the column name in meta.dat
+containing the time variable. Required for longitudinal and paired analyses.
+Should be a factor or character with meaningful time point labels.}
 
-\item{test.list}{The list of test results returned by generate_taxa_trend_test_long.}
+\item{test.list}{List of test results from generate_taxa_trend_test_long.}
 
-\item{feature.sig.level}{The significance level cutoff for highlighting taxa.}
+\item{feature.sig.level}{Numeric; significance level cutoff for highlighting taxa.}
 
-\item{feature.mt.method}{Multiple testing correction method, "fdr" or "none".}
+\item{feature.mt.method}{Character; multiple testing method ("fdr" or "none").}
 
-\item{features.plot}{An optional parameter specifying the features to be plotted. If provided, only these features will be plotted.}
+\item{features.plot}{Character vector of features to plot. If NULL, plots all.}
 
-\item{palette}{An optional parameter specifying the color palette to be used for the plot.
-It can be either a character string specifying the name of a predefined
-palette or a vector of color codes in a format accepted by ggplot2
-(e.g., hexadecimal color codes). Available predefined palettes include
-'npg', 'aaas', 'nejm', 'lancet', 'jama', 'jco', and 'ucscgb', inspired
-by various scientific publications and the `ggsci` package. If `palette`
-is not provided or an unrecognized palette name is given, a default color
-palette will be used. Ensure the number of colors in the palette is at
-least as large as the number of groups being plotted.}
+\item{palette}{Character vector of colors or a named palette for the plot.
+If NULL, uses default MicrobiomeStat color scheme. Can be:
+\itemize{
+  \item A vector of color codes (e.g., c("#E41A1C", "#377EB8"))
+  \item A palette name recognized by the plotting function
+}}
 
-\item{pdf}{Boolean; whether to save the plot as a PDF file.}
+\item{pdf}{Logical. If TRUE, saves the plot(s) to PDF file(s) in the
+current working directory. Default is TRUE.}
 
-\item{pdf.wid}{Numeric; width of the saved PDF file.}
+\item{pdf.wid}{Numeric value specifying the width of PDF output in inches.
+Default is typically 11.}
 
-\item{pdf.hei}{Numeric; height of the saved PDF file.}
+\item{pdf.hei}{Numeric value specifying the height of PDF output in inches.
+Default is typically 8.5.}
 }
 \value{
 A list of ggplot objects of volcano plots for each taxonomic level.
 }
 \description{
-Generate Volcano Plots for Longitudinal Taxa Trend Test
-}
-\details{
-The function generates volcano plots for each taxonomic level based on the test results. It visualizes the longitudinal trends of taxa abundance over time and highlights statistically significant changes.
+Creates volcano plots visualizing longitudinal taxa trends and significance.
 }
 \examples{
 \dontrun{

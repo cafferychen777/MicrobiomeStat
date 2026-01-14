@@ -1,11 +1,11 @@
-#' @title Update the count table in a MicrobiomeStat data object
+#' Update Count Table in Data Object
 #'
-#' @description This function updates the count table within a MicrobiomeStat data object based on the provided new count table. It checks for the presence of a count table within the data object using a list of pre-defined primary and possible names. If a count table is identified, it is updated with the provided new count table. If multiple potential count tables are detected, a warning message is generated and the first one is updated.
+#' Internal function to replace the count table in a MicrobiomeStat data object.
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param new_count_table A matrix or data.frame representing the new count table, which will replace the existing count table in the data.obj. It must have row and column names.
+#' @inheritParams mStat_data_obj_doc
+#' @param new_count_table Matrix/data.frame with new count data (must have row and column names).
 #'
-#' @return A MicrobiomeStat data object with the updated count table. If no count table is detected within the data object, the function returns the original data object without any modification, and a message is printed.
+#' @return A MicrobiomeStat data object with updated count table.
 #'
 #' @keywords internal
 #' @noRd

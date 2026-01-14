@@ -2,22 +2,37 @@
 % Please edit documentation in R/mStat_rarefy_data.R
 \name{mStat_rarefy_data}
 \alias{mStat_rarefy_data}
-\title{Rarefy data to a specified sampling depth}
+\title{Rarefy Data to Specified Sampling Depth}
 \usage{
 mStat_rarefy_data(data.obj, depth = NULL)
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
+\itemize{
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
+}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{depth}{Depth at which to rarefy; if not provided, defaults to the smallest column sum.}
+\item{depth}{Numeric value or NULL. Rarefaction depth for diversity
+calculations. If NULL, uses minimum sample depth or no rarefaction.}
 }
 \value{
-The input object with the rarefied OTU table added.
+A MicrobiomeStat data object with rarefied feature table.
 }
 \description{
-This function takes an input object containing an OTU table and optionally a specified rarefaction depth.
-If no depth is specified, the smallest column sum is chosen as the depth.
-It rarefies the data to the specified depth and returns the object with the rarefied OTU table.
+Subsamples feature counts to equalize sequencing depth across samples.
 }
 \examples{
 \dontrun{

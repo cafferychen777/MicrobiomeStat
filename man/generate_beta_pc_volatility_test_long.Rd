@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_beta_pc_volatility_test_long.R
 \name{generate_beta_pc_volatility_test_long}
 \alias{generate_beta_pc_volatility_test_long}
-\title{Generate Beta PC Volatility Test in Long Format}
+\title{Volatility Test on Principal Coordinates for Longitudinal Data}
 \usage{
 generate_beta_pc_volatility_test_long(
   data.obj,
@@ -18,55 +18,69 @@ generate_beta_pc_volatility_test_long(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, containing components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). If dist.obj is provided, data.obj is not required.}
-
-\item{dist.obj}{Distance matrix between samples, usually calculated using
-\code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
-If NULL, beta diversity will be automatically computed from \code{data.obj}
-using \code{mStat_calculate_beta_diversity}.}
-
-\item{pc.obj}{A list containing the results of dimension reduction/Principal Component Analysis.
-This should be the output from functions like \code{\link[MicrobiomeStat]{mStat_calculate_PC}},
-containing the PC coordinates and other metadata. If NULL (default), dimension reduction
-will be automatically performed using metric multidimensional scaling (MDS) via
-\code{\link[MicrobiomeStat]{mStat_calculate_PC}}. The pc.obj list structure should contain:
-\describe{
-  \item{points}{A matrix with samples as rows and PCs as columns containing the coordinates.}
-  \item{eig}{Eigenvalues for each PC dimension.}
-  \item{vectors}{Loadings vectors for features onto each PC.}
-  \item{Other metadata}{like method, dist.name, etc.}
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
+\itemize{
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
 }
-See \code{\link[MicrobiomeStat]{mStat_calculate_PC}} function for details on output format.}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{pc.ind}{Numeric vector indicating which principal coordinate (PC) axes to use for
-volatility test, e.g. c(1,2) for PC1 and PC2. Defaults to c(1,2).}
+\item{dist.obj}{A list of pre-calculated distance matrices. If NULL and
+distances are needed, they will be calculated automatically.
+List names should match dist.name (e.g., "BC" for Bray-Curtis).
+See \code{\link{mStat_calculate_beta_diversity}}.}
 
-\item{subject.var}{Character string specifying the column in metadata containing unique
-subject IDs. This should uniquely identify each subject in the study.
-Required to compute volatility within subjects.}
+\item{pc.obj}{A list containing dimension reduction results from
+\code{\link{mStat_calculate_PC}}. If NULL, PCoA is performed automatically.}
 
-\item{time.var}{Character string specifying the column in metadata containing the time variable.
-This should be numeric with successive time points for each subject. Required to
-compute volatility over time.}
+\item{pc.ind}{Numeric vector specifying which PC axes to test. Default c(1, 2).}
 
-\item{group.var}{(Optional) Character string specifying the column in metadata containing a grouping
-variable. This grouping variable will be used to test for differences in volatility
-between groups. Can be left NULL.}
+\item{subject.var}{Character string specifying the column name in meta.dat
+that uniquely identifies each subject or sample unit. Required for
+longitudinal and paired designs to track repeated measurements.}
 
-\item{adj.vars}{(Optional) Character vector specifying columns in metadata containing variables to
-adjust for in the volatility models. Can be left NULL.}
+\item{time.var}{Character string specifying the column name in meta.dat
+containing the time variable. Required for longitudinal and paired analyses.
+Should be a factor or character with meaningful time point labels.}
 
-\item{dist.name}{A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').}
+\item{group.var}{Character string specifying the column name in meta.dat
+containing the grouping variable (e.g., treatment, condition, phenotype).
+Used for between-group comparisons.}
 
-\item{...}{(Optional) Additional arguments to pass to internal functions.}
+\item{adj.vars}{Character vector specifying column names in meta.dat to be
+used as covariates for adjustment in statistical models. These variables
+will be included as fixed effects.}
+
+\item{dist.name}{Character vector specifying which distance metrics to use.
+Options depend on available methods:
+\itemize{
+  \item "BC": Bray-Curtis dissimilarity
+  \item "Jaccard": Jaccard distance
+  \item "UniFrac": Unweighted UniFrac (requires tree)
+  \item "GUniFrac": Generalized UniFrac (requires tree)
+  \item "WUniFrac": Weighted UniFrac (requires tree)
+  \item "JS": Jensen-Shannon divergence
+}}
+
+\item{...}{Additional arguments passed to internal functions.}
 }
 \value{
 A list of results for each distance measure and selected Principal Coordinate, including coefficients from the mixed-effects models.
 }
 \description{
-This function computes the volatility test for principal coordinates (PC)
-of beta diversity. It allows for a variety of distance measures and optional
-adjustments. The function relies on a numeric time variable.
+Tests association between PC coordinate volatility and group variable
+for longitudinal microbiome data.
 }
 \examples{
 \dontrun{

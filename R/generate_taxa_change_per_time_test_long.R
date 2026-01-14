@@ -1,47 +1,13 @@
-#' Longitudinal Taxa Test in Microbiome Data
+#' Longitudinal Change-From-Baseline Taxa Test
 #'
-#' This function performs a comprehensive analysis of microbiome data, focusing on the longitudinal trends of various taxa. It is specifically designed to work with data where the primary interest is to understand how the abundance of microbial taxa changes over time, across different groups, or under different conditions.
+#' Analyzes taxa abundance changes from baseline at each follow-up time point,
+#' testing for group differences in change scores using linear models.
 #'
-#' Utilizing a standard linear model approach, the function is adept at identifying significant temporal variations in taxa abundance. It provides a robust framework for comparing microbial communities at different time points, thereby offering valuable insights into the dynamics of these communities over extended periods.
+#' @inheritParams mStat_data_obj_doc
 #'
-#' The function's ability to handle both count and proportion data types, along with its features for adjusting covariates, makes it a versatile tool for microbiome research. It is particularly beneficial for studies investigating the effects of treatments, environmental changes, or other interventions on the microbiome's composition and behavior over time.
-#'
-#' @param data.obj A MicrobiomeStat data object containing microbiome data and metadata.
-#' @param subject.var A string specifying the column name in meta.dat that uniquely identifies each subject.
-#' @param time.var Optional; a string representing the time variable in the meta.dat. If provided, enables longitudinal analysis.
-#' @param t0.level Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.
-#' @param ts.levels Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.
-#' @param group.var Optional; a string specifying the group variable in meta.dat for
-#'                  between-group comparisons of change scores. This variable is ALWAYS
-#'                  treated as categorical (factor) by the underlying `generate_taxa_change_test_pair`
-#'                  function, regardless of input type. The first level (alphabetically)
-#'                  is used as the reference group.
-#' @param adj.vars Optional; a vector of strings representing covariates in meta.dat for adjustment in the analysis.
-#' @param feature.level A string or vector of strings indicating the taxonomic level(s) for analysis (e.g., "Phylum", "Class").
-#' @param prev.filter Numeric; a minimum prevalence threshold for taxa inclusion in the analysis.
-#' @param abund.filter Numeric; a minimum abundance threshold for taxa inclusion in the analysis.
-#' @param feature.dat.type Character; the type of feature data, passed to
-#'                         \code{generate_taxa_change_test_pair}. Should be one of:
-#' \itemize{
-#'   \item "count": Raw count data. Will be TSS-normalized, zero-imputed using global
-#'                  half-minimum pseudocount, then analyzed with standard lm()
-#'   \item "proportion": Pre-normalized proportional data. Will be zero-imputed using
-#'                       global half-minimum pseudocount, then analyzed with standard lm()
-#'   \item "other": Pre-transformed data. Analyzed with standard lm() without normalization
-#' }
-#' Default is "count". All processing is done by \code{generate_taxa_change_test_pair}.
-#' @param feature.change.func A function or character string specifying how to calculate
-#' the change from baseline value. This allows flexible options:
-#' - If a function is provided, it will be applied to each row to calculate change.
-#'   The function should take 2 arguments: value at timepoint t and value at baseline t0.
-#' - If a character string is provided, following options are supported:
-#'   - 'relative change': (value_t - value_t0) / (value_t + value_t0)
-#'   - 'absolute change': value_t - value_t0
-#'   - 'log fold change': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
-#' - Default is 'relative change'.
-#'
-#' If none of the above options are matched, an error will be thrown indicating
-#' the acceptable options or prompting the user to provide a custom function.
+#' @param feature.change.func Function or character specifying change calculation method:
+#'   "relative change", "absolute change", "log fold change", or custom function.
+#'   Default is "relative change".
 #' @param ... Additional arguments passed to other methods.
 #' @details
 #' The function integrates various data manipulations, normalization procedures, and statistical tests to assess the significance of taxa changes over time or between groups. It allows for the adjustment of covariates and is capable of handling both count and proportion data types.

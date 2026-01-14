@@ -1,98 +1,20 @@
-#' Generate Single Time Point Taxa Boxplots
+#' Generate Taxa Boxplots for Single Time Point
 #'
-#' This function generates boxplots to visualize the taxonomic composition of samples for a single time point in a longitudinal study.
-#' It provides options for grouping and stratifying data, and selecting the top k features based on a user-defined function.
+#' Creates boxplots showing taxa abundance distributions at a single time point.
+#' Supports grouping, stratification, and various transformations.
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param time.var A string specifying the variable for time. If NULL, the function assumes that data for a single time point is provided.
-#' @param t.level Character string specifying the time level/value to subset data to,
-#' if a time variable is provided. Default NULL does not subset data.
-#' @param group.var Optional string specifying the variable for groups.
-#' @param strata.var Optional string specifying the variable for strata.
-#' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
-#' to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
-#' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
-#' column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
-#' for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
-#' is also NULL.
-#' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
-#' Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.
-#' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
-#' Should be one of:
-#' - "count": Raw count data, will be normalized by the function.
-#' - "proportion": Data that has already been normalized to proportions/percentages.
-#' - "other": Custom abundance data that has unknown scaling. No normalization applied.
-#' The choice affects preprocessing steps as well as plot axis labels.
-#' Default is "count", which assumes raw count input.
-#' @param top.k.plot An integer specifying the top k features to plot based on the function specified in `top.k.func`.
-#' @param top.k.func A function to determine the top k features to plot.
-#' @param transform A string indicating the transformation to apply to the data before plotting. Options are:
-#' - "identity": No transformation (default)
-#' - "sqrt": Square root transformation
-#' - "log": Logarithmic transformation. Zeros are replaced with half of the minimum non-zero value for each taxon before log transformation.
-#' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
-#' taxa before analysis. Taxa with prevalence below this value will be removed.
-#' Prevalence is calculated as the proportion of samples where the taxon is present.
-#' Default 0 removes no taxa by prevalence filtering.
-#' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering
-#' taxa before analysis. Taxa with mean abundance below this value will be removed.
-#' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
-#' Default 0 removes no taxa by abundance filtering.
-#' @param base.size A numeric value specifying the base font size for the plot.
-#' @param theme.choice
-#' Plot theme choice. Specifies the visual style of the plot. Can be one of the following pre-defined themes:
-#'   - "prism": Utilizes the ggprism::theme_prism() function from the ggprism package, offering a polished and visually appealing style.
-#'   - "classic": Applies theme_classic() from ggplot2, providing a clean and traditional look with minimal styling.
-#'   - "gray": Uses theme_gray() from ggplot2, which offers a simple and modern look with a light gray background.
-#'   - "bw": Employs theme_bw() from ggplot2, creating a classic black and white plot, ideal for formal publications and situations where color is best minimized.
-#'   - "light": Implements theme_light() from ggplot2, featuring a light theme with subtle grey lines and axes, suitable for a fresh, modern look.
-#'   - "dark": Uses theme_dark() from ggplot2, offering a dark background, ideal for presentations or situations where a high-contrast theme is desired.
-#'   - "minimal": Applies theme_minimal() from ggplot2, providing a minimalist theme with the least amount of background annotations and colors.
-#'   - "void": Employs theme_void() from ggplot2, creating a blank canvas with no axes, gridlines, or background, ideal for custom, creative plots.
-#' Each theme option adjusts various elements like background color, grid lines, and font styles to match the specified aesthetic.
-#' Default is "bw", offering a universally compatible black and white theme suitable for a wide range of applications.
-#' @param custom.theme
-#' A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. Custom themes are useful for creating publication-ready figures with specific formatting requirements.
+#' @inheritParams mStat_data_obj_doc
+#' @inheritParams mStat_plot_params_doc
+#' @param t.level Character string specifying the time level to subset data to.
+#'   Default NULL uses all data.
+#' @param features.plot Character vector of specific feature IDs to plot.
+#'   If NULL, features are selected based on top.k.plot and top.k.func.
+#' @param top.k.plot Integer specifying number of top features to plot.
+#' @param top.k.func Function for selecting top features (e.g., "mean", "sd").
+#' @param transform Transformation to apply: "identity", "sqrt", or "log".
+#' @param point.alpha Numeric value (0-1) for jitter point transparency. Default 0.6.
 #'
-#' To use a custom theme, create a theme object with ggplot2::theme(), including any desired customizations. Common customizations for publication-ready figures might include adjusting text size for readability, altering line sizes for clarity, and repositioning or formatting the legend. For example:
-#'
-#' ```r
-#' my_theme <- ggplot2::theme(
-#'   axis.title = ggplot2::element_text(size=14, face="bold"),        # Bold axis titles with larger font
-#'   axis.text = ggplot2::element_text(size=12),                      # Slightly larger axis text
-#'   legend.position = "top",                                         # Move legend to the top
-#'   legend.background = ggplot2::element_rect(fill="lightgray"),     # Light gray background for legend
-#'   panel.background = ggplot2::element_rect(fill="white", colour="black"), # White panel background with black border
-#'   panel.grid.major = ggplot2::element_line(colour = "grey90"),     # Lighter color for major grid lines
-#'   panel.grid.minor = ggplot2::element_blank(),                     # Remove minor grid lines
-#'   plot.title = ggplot2::element_text(size=16, hjust=0.5)           # Centered plot title with larger font
-#' )
-#' ```
-#'
-#' Then pass `my_theme` to `custom.theme`. If `custom.theme` is NULL (the default), the theme is determined by `theme.choice`. This flexibility allows for both easy theme selection for general use and detailed customization for specific presentation or publication needs.
-#' @param palette An optional parameter specifying the color palette to be used for the plot.
-#'                It can be either a character string specifying the name of a predefined
-#'                palette or a vector of color codes in a format accepted by ggplot2
-#'                (e.g., hexadecimal color codes). Available predefined palettes include
-#'                'npg', 'aaas', 'nejm', 'lancet', 'jama', 'jco', and 'ucscgb', inspired
-#'                by various scientific publications and the `ggsci` package. If `palette`
-#'                is not provided or an unrecognized palette name is given, a default color
-#'                palette will be used. Ensure the number of colors in the palette is at
-#'                least as large as the number of groups being plotted.
-#' @param point.alpha Numeric value between 0 and 1 specifying the transparency of the jitter points. 
-#'                    Default is 0.6. Lower values make points more transparent, higher values more opaque.
-#' @param pdf A logical value indicating whether to save the plot as a PDF. Default is TRUE.
-#' @param file.ann A string for additional annotation to the file name. Default is NULL.
-#' @param pdf.wid A numeric value specifying the width of the PDF file. Default is 11.
-#' @param pdf.hei A numeric value specifying the height of the PDF file. Default is 8.5.
-#' @param ... Additional arguments to be passed to the function.
-#'
-#' @return A list of ggplot objects, one for each taxonomic level.
-#' @details
-#' This function generates a boxplot of taxa abundances for a single time point in a longitudinal study.
-#' The boxplot can be stratified by a group variable and/or other variables.
-#' It also allows for different taxonomic levels to be used and a specific number of features to be included in the plot.
-#' The function also has options to customize the size, theme, and color palette of the plot, and to save the plot as a PDF.
+#' @return A list of ggplot objects for each taxonomic level.
 #'
 #' @examples
 #' \dontrun{

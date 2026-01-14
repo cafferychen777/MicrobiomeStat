@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_beta_trend_test_long.R
 \name{generate_beta_trend_test_long}
 \alias{generate_beta_trend_test_long}
-\title{Generate Beta Diversity Trend Test for Longitudinal Data}
+\title{Beta Diversity Trend Test for Longitudinal Data}
 \usage{
 generate_beta_trend_test_long(
   data.obj,
@@ -16,30 +16,63 @@ generate_beta_trend_test_long(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
+\itemize{
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
+}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{dist.obj}{Distance matrix between samples, usually calculated using
-\code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
-If NULL, beta diversity will be automatically computed from \code{data.obj}
-using \code{mStat_calculate_beta_diversity}.}
+\item{dist.obj}{A list of pre-calculated distance matrices. If NULL and
+distances are needed, they will be calculated automatically.
+List names should match dist.name (e.g., "BC" for Bray-Curtis).
+See \code{\link{mStat_calculate_beta_diversity}}.}
 
-\item{subject.var}{The variable name in metadata that represents the subject identifiers. Should match the subject identifiers used when calculating distance matrix.}
+\item{subject.var}{Character string specifying the column name in meta.dat
+that uniquely identifies each subject or sample unit. Required for
+longitudinal and paired designs to track repeated measurements.}
 
-\item{time.var}{The variable name in metadata that represents the time points. Should be a numeric vector coded as continuous values. The function will try to coerce to numeric if needed.}
+\item{time.var}{Character string specifying the column name in meta.dat
+containing the time variable. Required for longitudinal and paired analyses.
+Should be a factor or character with meaningful time point labels.}
 
-\item{group.var}{(Optional) The variable name in metadata that represents the grouping factor of interest. Default is NULL.}
+\item{group.var}{Character string specifying the column name in meta.dat
+containing the grouping variable (e.g., treatment, condition, phenotype).
+Used for between-group comparisons.}
 
-\item{adj.vars}{(Optional) A character vector of variable names in metadata to be used for adjustment in the model. Default is NULL.}
+\item{adj.vars}{Character vector specifying column names in meta.dat to be
+used as covariates for adjustment in statistical models. These variables
+will be included as fixed effects.}
 
-\item{dist.name}{A character vector specifying which beta diversity indices to calculate. Default is "BC" (Bray-Curtis). Supported indices include "BC", "Jaccard", "UniFrac", "GUniFrac", "WUniFrac", and "JS".}
+\item{dist.name}{Character vector specifying which distance metrics to use.
+Options depend on available methods:
+\itemize{
+  \item "BC": Bray-Curtis dissimilarity
+  \item "Jaccard": Jaccard distance
+  \item "UniFrac": Unweighted UniFrac (requires tree)
+  \item "GUniFrac": Generalized UniFrac (requires tree)
+  \item "WUniFrac": Weighted UniFrac (requires tree)
+  \item "JS": Jensen-Shannon divergence
+}}
 
-\item{...}{(Optional) Additional arguments to pass to internal functions.}
+\item{...}{Additional arguments passed to internal functions.}
 }
 \value{
 A list containing the result of the trend test for each specified beta diversity index. The result includes a tibble with the coefficients extracted from the mixed-effects model fitted for each distance.
 }
 \description{
-The function `generate_beta_trend_test_long` performs a linear mixed effects model to test the longitudinal trend in beta diversity. It models the distance matrix as the response, with time as a fixed effect and subject as a random effect. An optional grouping variable can be included as an interaction with time. Covariates for adjustment can also be added to the model. The time variable should be numeric, and the function coerces it as needed. The linear mixed model is fitted using lmer, and the estimated coefficients are extracted and returned, representing the trends over time and differences between groups.
+Performs linear mixed effects models to test longitudinal trends in beta diversity.
 }
 \details{
 The function starts by validating the input data, followed by processing the time variable and calculating the beta diversity if necessary. Adjustments are made based on the provided adjusting variables, and the mixed-effects model is fitted to the long-format data. The coefficients of the model are extracted and returned for each beta diversity index specified.

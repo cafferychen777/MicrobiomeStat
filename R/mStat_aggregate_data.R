@@ -1,17 +1,16 @@
-#' @title Aggregate Data Function
-#' @description This function aggregates data by a specified subject and optional strata.
-#' It provides flexible strategies for handling metadata conflicts in replicates.
-#' @name mStat_aggregate_data
-#' @param data.obj A list object in a format specific to MicrobiomeStat...
-#' @param subject.var A character specifying the name of the subject variable.
-#' @param strata.var A character specifying the name of the strata variable. If NULL, no stratification is performed.
-#' @param meta.handle.conflict A character string specifying how to handle conflicting metadata in replicates.
-#'   Options are:
-#'   - `"first"` (default): Use the metadata from the first record encountered for each group. Issues a warning about conflicts.
-#'   - `"stop"`: Stop execution with an error if any metadata conflict is found.
-#'   - `"summarise"`: For numeric variables, compute the mean. For non-numeric (character/factor) variables, if they are inconsistent, stop with an error. Issues a warning for summarized numeric variables.
+#' Aggregate Data by Subject
 #'
-#' @return A new list object with aggregated data.
+#' Aggregates feature counts and metadata by subject and optional strata.
+#'
+#' @inheritParams mStat_data_obj_doc
+#' @param meta.handle.conflict Character string specifying how to handle metadata conflicts:
+#'   \itemize{
+#'     \item "first": Use first record (default)
+#'     \item "stop": Error on conflicts
+#'     \item "summarise": Mean for numeric, first for character/factor
+#'   }
+#'
+#' @return A MicrobiomeStat data object with aggregated data.
 #'
 #'
 #' @examples

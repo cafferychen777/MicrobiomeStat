@@ -1,21 +1,11 @@
-#' Longitudinal Alpha Diversity Test in Microbiome Data
+#' @title Alpha Diversity Test Per Time Point (Longitudinal)
 #'
-#' This function performs alpha diversity testing at multiple time points in longitudinal microbiome data.
-#' It applies linear model analyses to assess the diversity of microbial communities over time within different groups or under various conditions.
+#' @description Performs alpha diversity testing at each time point in longitudinal
+#'   data using linear models to compare groups.
 #'
-#' @param data.obj A MicrobiomeStat data object containing microbiome data and metadata.
-#' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
-#' @param alpha.name character vector containing the names of alpha diversity indices to calculate.
-#'                Possible values are: "shannon", "simpson", "observed_species", "chao1", "ace", "pielou", and "faith_pd".
-#' @param depth An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
-#' If NULL, no rarefaction is performed.
-#' @param time.var A string representing the time variable in the meta.dat.
-#' @param t0.level A baseline time point for longitudinal analysis, specified as a character
-#'                 or numeric value, e.g., "week_0" or 0.
-#' @param ts.levels A vector of character strings indicating follow-up time points, such as
-#'                  c("week_4", "week_8").
-#' @param group.var Optional; a string specifying the group variable in meta.dat for between-group comparisons.
-#' @param adj.vars Optional; a vector of strings representing covariates in meta.dat for adjustment in the analysis.
+#' @inheritParams mStat_data_obj_doc
+#' @inheritParams mStat_test_params_doc
+#'
 #' @return A list where each element corresponds to a different time point and contains the results of alpha diversity tests for that time point.
 #' @examples
 #' \dontrun{

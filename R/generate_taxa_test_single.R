@@ -120,61 +120,19 @@ perform_lm_analysis <- function(feature.dat, meta.dat, formula, group.var) {
   return(list(output = output))
 }
 
-#' Conduct Differential Abundance Testing Using LinDA Method in MicrobiomeStat Package
+#' Differential Abundance Testing for Single Time Point
 #'
-#' This function applies differential abundance analysis on microbiome data using the LinDA method
-#' (for count/proportion data) or standard linear models (for other data types). It automatically
-#' detects whether the predictor variable is categorical or continuous and applies appropriate
-#' statistical models.
+#' Performs differential abundance analysis using LinDA (for count/proportion data)
+#' or standard linear models (for other data types). Automatically detects whether
+#' the predictor is categorical or continuous.
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param time.var Character string specifying the column name in metadata containing time variable.
-#'                Used to subset data to a single timepoint if provided. Default NULL does not subset.
-#' @param t.level Character string specifying the time level/value to subset data to,
-#' if a time variable is provided. Default NULL does not subset data.
-#' @param group.var Character string specifying the column name in metadata containing the predictor
-#'                 variable for differential abundance testing. Can be either:
-#'                 \itemize{
-#'                   \item Categorical (factor or character): Performs pairwise comparisons against
-#'                         the reference level (first level). Each non-reference level gets a separate
-#'                         comparison (e.g., "Treatment vs Control (Reference)").
-#'                   \item Continuous (numeric or integer): Tests for linear association between the
-#'                         variable and abundance. Output shows a single coefficient representing the
-#'                         slope (e.g., effect per unit increase).
-#'                 }
-#' @param ref.level Character string specifying the reference level for the group variable.
-#'                 This parameter is used when \code{group.var} is categorical (factor or character)
-#'                 to specify which group should be used as the reference for comparisons.
-#'                 All other groups will be compared against this reference level.
-#'                 If NULL (default), the first level alphabetically is used as the reference.
-#'                 This parameter is ignored when \code{group.var} is continuous.
-#' @param adj.vars Character vector specifying column names in metadata containing covariates.
-#'                These will be used for adjustment in differential abundance testing.
-#' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
-#' taxa before analysis. Taxa with prevalence below this value will be removed.
-#' Prevalence is calculated as the proportion of samples where the taxon is present.
-#' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering
-#' taxa before analysis. Taxa with mean abundance below this value will be removed.
-#' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
-#' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
-#' to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
-#' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
-#' column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
-#' for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
-#' is also NULL.
-#' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
-#' Should be one of:
-#' \itemize{
-#'   \item "count": Raw count data. Uses LinDA method with internal normalization and zero-handling
-#'                  (pseudo-count or imputation).
-#'   \item "proportion": Proportional data (e.g., relative abundances). Uses LinDA method with
-#'                       appropriate zero-handling for compositional data.
-#'   \item "other": Pre-transformed or custom data (e.g., log-transformed, CLR-transformed).
-#'                  Uses standard linear regression models without compositional adjustments.
-#' }
-#' The choice affects preprocessing steps as well as plot axis labels.
-#' Default is "count", which assumes raw count input.
-#' @param ... Additional arguments to be passed to the linda function.
+#' @inheritParams mStat_data_obj_doc
+#'
+#' @param t.level Character string specifying the time level/value to subset data to.
+#'   Default NULL does not subset data.
+#' @param ref.level Character string specifying the reference level for categorical group.var.
+#'   If NULL, the first level alphabetically is used. Ignored for continuous variables.
+#' @param ... Additional arguments passed to the linda function.
 #'
 #' @return A nested list structure where:
 #' \itemize{

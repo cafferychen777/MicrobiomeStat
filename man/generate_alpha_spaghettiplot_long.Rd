@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_alpha_spaghettiplot_long.R
 \name{generate_alpha_spaghettiplot_long}
 \alias{generate_alpha_spaghettiplot_long}
-\title{Generate an alpha diversity line plot for longitudinal data}
+\title{Generate Alpha Diversity Spaghetti Plot (Longitudinal)}
 \usage{
 generate_alpha_spaghettiplot_long(
   data.obj,
@@ -28,79 +28,106 @@ generate_alpha_spaghettiplot_long(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
+\itemize{
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
+}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{alpha.obj}{An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.}
+\item{alpha.obj}{A list containing pre-calculated alpha diversity indices.
+If NULL and alpha diversity is needed, it will be calculated automatically.
+Names should match the alpha.name parameter (e.g., "shannon", "simpson").
+See \code{\link{mStat_calculate_alpha_diversity}}.}
 
-\item{alpha.name}{The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", "pielou", and "faith_pd". Previously named as `alpha.index`.}
+\item{alpha.name}{Character vector specifying which alpha diversity indices
+to analyze. Options include:
+\itemize{
+  \item "shannon": Shannon diversity index
+  \item "simpson": Simpson diversity index
+  \item "observed_species": Observed species richness
+  \item "chao1": Chao1 richness estimator
+  \item "ace": ACE richness estimator
+  \item "pielou": Pielou's evenness
+}}
 
-\item{depth}{An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
-If NULL, no rarefaction is performed.}
+\item{depth}{Numeric value or NULL. Rarefaction depth for diversity
+calculations. If NULL, uses minimum sample depth or no rarefaction.}
 
-\item{subject.var}{The name of the subject variable.}
+\item{subject.var}{Character string specifying the column name in meta.dat
+that uniquely identifies each subject or sample unit. Required for
+longitudinal and paired designs to track repeated measurements.}
 
-\item{time.var}{The name of the time variable.}
+\item{time.var}{Character string specifying the column name in meta.dat
+containing the time variable. Required for longitudinal and paired analyses.
+Should be a factor or character with meaningful time point labels.}
 
-\item{t0.level}{Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.}
+\item{t0.level}{Character or numeric value specifying the baseline time
+point for longitudinal or paired analyses. Should match a value in the
+time.var column.}
 
-\item{ts.levels}{Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.}
+\item{ts.levels}{Character vector specifying the follow-up time points for
+longitudinal or paired analyses. Should match values in the time.var column.}
 
-\item{group.var}{The name of the group variable.}
+\item{group.var}{Character string specifying the column name in meta.dat
+containing the grouping variable (e.g., treatment, condition, phenotype).
+Used for between-group comparisons.}
 
-\item{strata.var}{The name of the strata variable (default is NULL).}
+\item{strata.var}{Character string specifying the column name in meta.dat
+for stratification. When provided, analyses and visualizations will be
+performed separately within each stratum (e.g., by site, batch, or sex).}
 
-\item{adj.vars}{A character vector of variable names to be used for adjustment.}
+\item{adj.vars}{Character vector specifying column names in meta.dat to be
+used as covariates for adjustment in statistical models. These variables
+will be included as fixed effects.}
 
-\item{base.size}{The base font size for the plot.}
+\item{base.size}{Numeric value specifying the base font size for plot text
+elements. Default is typically 16.}
 
-\item{palette}{An optional parameter specifying the color palette to be used for the plot.
-It can be either a character string specifying the name of a predefined
-palette or a vector of color codes in a format accepted by ggplot2
-(e.g., hexadecimal color codes). Available predefined palettes include
-'npg', 'aaas', 'nejm', 'lancet', 'jama', 'jco', and 'ucscgb', inspired
-by various scientific publications and the `ggsci` package. If `palette`
-is not provided or an unrecognized palette name is given, a default color
-palette will be used. Ensure the number of colors in the palette is at
-least as large as the number of groups being plotted.}
+\item{palette}{Character vector of colors or a named palette for the plot.
+If NULL, uses default MicrobiomeStat color scheme. Can be:
+\itemize{
+  \item A vector of color codes (e.g., c("#E41A1C", "#377EB8"))
+  \item A palette name recognized by the plotting function
+}}
 
-\item{theme.choice}{Plot theme choice. Specifies the visual style of the plot. Can be one of the following pre-defined themes:
-  - "prism": Utilizes the ggprism::theme_prism() function from the ggprism package, offering a polished and visually appealing style.
-  - "classic": Applies theme_classic() from ggplot2, providing a clean and traditional look with minimal styling.
-  - "gray": Uses theme_gray() from ggplot2, which offers a simple and modern look with a light gray background.
-  - "bw": Employs theme_bw() from ggplot2, creating a classic black and white plot, ideal for formal publications and situations where color is best minimized.
-  - "light": Implements theme_light() from ggplot2, featuring a light theme with subtle grey lines and axes, suitable for a fresh, modern look.
-  - "dark": Uses theme_dark() from ggplot2, offering a dark background, ideal for presentations or situations where a high-contrast theme is desired.
-  - "minimal": Applies theme_minimal() from ggplot2, providing a minimalist theme with the least amount of background annotations and colors.
-  - "void": Employs theme_void() from ggplot2, creating a blank canvas with no axes, gridlines, or background, ideal for custom, creative plots.
-Each theme option adjusts various elements like background color, grid lines, and font styles to match the specified aesthetic.
-Default is "bw", offering a universally compatible black and white theme suitable for a wide range of applications.}
+\item{theme.choice}{Character string specifying the ggplot2 theme to use.
+Options include:
+\itemize{
+  \item "bw": Black and white theme (theme_bw)
+  \item "classic": Classic theme (theme_classic)
+  \item "minimal": Minimal theme (theme_minimal)
+  \item "prism": GraphPad Prism-like theme
+  \item "nature": Nature journal style
+  \item "light": Light theme (theme_light)
+}
+Can also use a custom ggplot2 theme object via custom.theme.}
 
-\item{custom.theme}{A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. Custom themes are useful for creating publication-ready figures with specific formatting requirements.
+\item{custom.theme}{A custom ggplot2 theme object to override theme.choice.
+Should be created using ggplot2::theme() or a complete theme function.}
 
-To use a custom theme, create a theme object with ggplot2::theme(), including any desired customizations. Common customizations for publication-ready figures might include adjusting text size for readability, altering line sizes for clarity, and repositioning or formatting the legend. For example:
+\item{pdf}{Logical. If TRUE, saves the plot(s) to PDF file(s) in the
+current working directory. Default is TRUE.}
 
-```r
-my_theme <- ggplot2::theme(
-  axis.title = ggplot2::element_text(size=14, face="bold"),        # Bold axis titles with larger font
-  axis.text = ggplot2::element_text(size=12),                      # Slightly larger axis text
-  legend.position = "top",                                         # Move legend to the top
-  legend.background = ggplot2::element_rect(fill="lightgray"),     # Light gray background for legend
-  panel.background = ggplot2::element_rect(fill="white", colour="black"), # White panel background with black border
-  panel.grid.major = ggplot2::element_line(colour = "grey90"),     # Lighter color for major grid lines
-  panel.grid.minor = ggplot2::element_blank(),                     # Remove minor grid lines
-  plot.title = ggplot2::element_text(size=16, hjust=0.5)           # Centered plot title with larger font
-)
-```
+\item{file.ann}{Character string for additional annotation to append to
+output filenames. Useful for distinguishing multiple outputs.}
 
-Then pass `my_theme` to `custom.theme`. If `custom.theme` is NULL (the default), the theme is determined by `theme.choice`. This flexibility allows for both easy theme selection for general use and detailed customization for specific presentation or publication needs.}
+\item{pdf.wid}{Numeric value specifying the width of PDF output in inches.
+Default is typically 11.}
 
-\item{pdf}{Logical, whether to save the plot as a PDF (default is TRUE).}
-
-\item{file.ann}{The annotation to be added to the PDF file name (default is NULL).}
-
-\item{pdf.wid}{The width of the output PDF file. Default is 11.}
-
-\item{pdf.hei}{The height of the output PDF file. Default is 8.5.}
+\item{pdf.hei}{Numeric value specifying the height of PDF output in inches.
+Default is typically 8.5.}
 
 \item{...}{Additional arguments passed to ggplot().}
 }
@@ -108,8 +135,8 @@ Then pass `my_theme` to `custom.theme`. If `custom.theme` is NULL (the default),
 A ggplot object of the alpha diversity line plot.
 }
 \description{
-This function creates a ggplot object of alpha diversity (e.g., Shannon index) line plot for longitudinal data,
-showing individual subject trajectories and the mean trajectory for each group.
+Generates spaghetti plots showing individual subject trajectories
+  and group mean trajectories for alpha diversity over time.
 }
 \examples{
 \dontrun{

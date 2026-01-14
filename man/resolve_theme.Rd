@@ -15,6 +15,6 @@ resolve_theme(theme = NULL)
 List with base.size, theme.choice, custom.theme, palette
 }
 \description{
-Converts theme specification to individual parameters expected by底层 functions.
+Converts theme specification to individual parameters expected by underlying functions.
 }
 \keyword{internal}

@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_beta_change_test_pair.R
 \name{generate_beta_change_test_pair}
 \alias{generate_beta_change_test_pair}
-\title{Compute and analyze changes in beta diversity}
+\title{Test Beta Diversity Change Between Time Points}
 \usage{
 generate_beta_change_test_pair(
   data.obj,
@@ -16,34 +16,58 @@ generate_beta_change_test_pair(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
+\itemize{
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
+}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{dist.obj}{Distance matrix between samples, usually calculated using
-\code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
-If NULL, beta diversity will be automatically computed from \code{data.obj}
-using \code{mStat_calculate_beta_diversity}.}
+\item{dist.obj}{A list of pre-calculated distance matrices. If NULL and
+distances are needed, they will be calculated automatically.
+List names should match dist.name (e.g., "BC" for Bray-Curtis).
+See \code{\link{mStat_calculate_beta_diversity}}.}
 
-\item{subject.var}{The name of the column in metadata containing the subject IDs.
-This should uniquely identify each subject in the study. Required
-to identify samples that belong to the same subject.}
+\item{subject.var}{Character string specifying the column name in meta.dat
+that uniquely identifies each subject or sample unit. Required for
+longitudinal and paired designs to track repeated measurements.}
 
-\item{time.var}{The name of the column in metadata containing the time variable.
-This should be a column with time points for each sample. Required
-to identify pairs of samples for the same subject across time.}
+\item{time.var}{Character string specifying the column name in meta.dat
+containing the time variable. Required for longitudinal and paired analyses.
+Should be a factor or character with meaningful time point labels.}
 
-\item{group.var}{The name of the column in metadata containing the grouping variable
-to use in linear modeling. This grouping variable will be used as a
-predictor in the linear models for beta diversity change. Optional.}
+\item{group.var}{Character string specifying the column name in meta.dat
+containing the grouping variable (e.g., treatment, condition, phenotype).
+Used for between-group comparisons.}
 
-\item{adj.vars}{Vector of names of additional variables in metadata to be included
-as covariates in the linear models. Can be empty.}
+\item{adj.vars}{Character vector specifying column names in meta.dat to be
+used as covariates for adjustment in statistical models. These variables
+will be included as fixed effects.}
 
-\item{change.base}{The baseline time point value in the time variable to be used
-as the reference for calculating beta diversity change. Required
-if time.var contains multiple time points. If NULL, the first
-time point will be used as change.base automatically.}
+\item{change.base}{Character or numeric specifying the baseline time point.
+If NULL, uses the first time point.}
 
-\item{dist.name}{A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned.}
+\item{dist.name}{Character vector specifying which distance metrics to use.
+Options depend on available methods:
+\itemize{
+  \item "BC": Bray-Curtis dissimilarity
+  \item "Jaccard": Jaccard distance
+  \item "UniFrac": Unweighted UniFrac (requires tree)
+  \item "GUniFrac": Generalized UniFrac (requires tree)
+  \item "WUniFrac": Weighted UniFrac (requires tree)
+  \item "JS": Jensen-Shannon divergence
+}}
 }
 \value{
 A named list containing linear modeling results for each beta diversity metric.
@@ -55,16 +79,8 @@ Column names include:
 Term, Estimate, Std.Error, Statistic, P.Value
 }
 \description{
-This function calculates beta diversity measures between time points,
-performs linear modeling, and generates results.
-}
-\details{
-For each subject, it calculates the change in beta diversity between
-baseline time point and later time point. This within-subject change
-is used as the outcome in linear models.
-
-Adjustment for covariates is supported. Both ANOVA and coefficient
-tables are provided if a grouping variable is specified.
+Tests within-subject beta diversity changes between two time points using
+linear models. Supports group comparisons and covariate adjustment.
 }
 \examples{
 \dontrun{

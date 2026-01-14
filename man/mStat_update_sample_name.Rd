@@ -2,26 +2,36 @@
 % Please edit documentation in R/mStat_update_sample_name.R
 \name{mStat_update_sample_name}
 \alias{mStat_update_sample_name}
-\title{Update Sample Names in MicrobiomeStat Data Object}
+\title{Update Sample Names in Data Object}
 \usage{
 mStat_update_sample_name(data.obj, new.name)
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-`meta.dat`, `feature.agg.list`, and `feature.tab` components.}
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
+\itemize{
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
+}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{new.name}{A character vector containing the new sample names.
-The length of new.name should match the number of rows in `meta.dat`, and there should be no duplicates.}
+\item{new.name}{Character vector of new sample names (must match number of samples, no duplicates).}
 }
 \value{
-A data object with updated sample names. The object is similar to the input object,
-but the sample names in `meta.dat`, `feature.agg.list`, and `feature.tab` are updated to `new.name`.
+A MicrobiomeStat data object with updated sample names.
 }
 \description{
-This function is part of the MicrobiomeStat package. It updates the sample names
-in a given data object. The data object should contain three components:
-a metadata table (`meta.dat`), a feature aggregation list (`feature.agg.list`),
-and a feature table (`feature.tab`).
+Renames samples across all components of a MicrobiomeStat data object.
 }
 \examples{
 \dontrun{

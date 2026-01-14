@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_taxa_test_pair.R
 \name{generate_taxa_test_pair}
 \alias{generate_taxa_test_pair}
-\title{Generate Taxa Test Pair}
+\title{Paired/Longitudinal Taxa Differential Abundance Test}
 \usage{
 generate_taxa_test_pair(
   data.obj,
@@ -20,64 +20,67 @@ generate_taxa_test_pair(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
-
-\item{subject.var}{A string that specifies the name of the subject variable column in the metadata.}
-
-\item{time.var}{A string that specifies the name of the time variable column in the metadata. If not provided, it's NULL by default.}
-
-\item{change.base}{A value indicating the base level for the time variable.
-If provided, the specified level will be used as the reference category in
-the model. Default is NULL, which means the first level of the factor will
-be used.}
-
-\item{group.var}{A string specifying the column name in metadata containing the grouping
-variable for differential abundance testing. Can be either:
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
 \itemize{
-  \item Categorical (factor or character): Creates pairwise comparisons between groups
-  \item Continuous (numeric or integer): Tests for linear association
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
 }
-When combined with time.var, tests group × time interaction effects.}
-
-\item{ref.level}{Character string specifying the reference level for the group variable.
-This parameter is used when \code{group.var} is categorical (factor or character)
-to specify which group should be used as the reference for comparisons.
-All other groups will be compared against this reference level.
-If NULL (default), the first level alphabetically is used as the reference.
-This parameter is ignored when \code{group.var} is continuous.}
-
-\item{adj.vars}{A vector of strings that specify the names of additional variables to be used as covariates in the analysis.}
-
-\item{feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
-to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
-annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
-column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
-for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
-is also NULL.}
-
-\item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
-taxa before analysis. Taxa with prevalence below this value will be removed.
-Prevalence is calculated as the proportion of samples where the taxon is present.
-Default 0 removes no taxa by prevalence filtering.}
-
-\item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering
-taxa before analysis. Taxa with mean abundance below this value will be removed.
-Abundance refers to counts or proportions depending on \code{feature.dat.type}.
-Default 0 removes no taxa by abundance filtering.}
-
-\item{feature.dat.type}{The type of the feature data, which determines how the data is handled.
-Should be one of:
+Optional components include:
 \itemize{
-  \item "count": Raw count data. This function will first apply TSS (Total Sum Scaling) normalization,
-        then LinDA performs zero-handling using half-minimum approach for statistical testing
-  \item "proportion": Pre-normalized proportional data (e.g., relative abundances).
-        LinDA performs zero-handling using half-minimum approach without additional normalization
-  \item "other": Pre-transformed data (e.g., CLR, log-transformed).
-        Uses standard linear mixed models without normalization or zero-handling
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
 }
-Default is "count".}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{...}{Additional parameters to be passed to the linda function.}
+\item{subject.var}{Character string specifying the column name in meta.dat
+that uniquely identifies each subject or sample unit. Required for
+longitudinal and paired designs to track repeated measurements.}
+
+\item{time.var}{Character string specifying the column name in meta.dat
+containing the time variable. Required for longitudinal and paired analyses.
+Should be a factor or character with meaningful time point labels.}
+
+\item{change.base}{Value indicating the base/reference level for the time variable.
+If NULL, the first level is used.}
+
+\item{group.var}{Character string specifying the column name in meta.dat
+containing the grouping variable (e.g., treatment, condition, phenotype).
+Used for between-group comparisons.}
+
+\item{ref.level}{Character string specifying the reference level for categorical group.var.
+If NULL, the first level alphabetically is used. Ignored for continuous variables.}
+
+\item{adj.vars}{Character vector specifying column names in meta.dat to be
+used as covariates for adjustment in statistical models. These variables
+will be included as fixed effects.}
+
+\item{feature.level}{Character vector specifying the taxonomic or annotation
+level(s) for analysis. Should match column names in feature.ann, such as
+"Phylum", "Family", "Genus", etc. Use "original" to analyze at the
+original feature level without aggregation.}
+
+\item{prev.filter}{Numeric value between 0 and 1. Features with prevalence
+(proportion of non-zero samples) below this threshold will be excluded
+from analysis. Default is usually 0 (no filtering).}
+
+\item{abund.filter}{Numeric value. Features with mean abundance below this
+threshold will be excluded from analysis. Default is usually 0 (no filtering).}
+
+\item{feature.dat.type}{Character string specifying the data type of
+feature.tab. One of:
+\itemize{
+  \item "count": Raw count data (will be normalized)
+  \item "proportion": Relative abundance data (should sum to 1 per sample)
+  \item "other": Pre-transformed data (no transformation applied)
+}}
+
+\item{...}{Additional parameters passed to the linda function.}
 }
 \value{
 A nested list structure where:
@@ -103,11 +106,8 @@ A nested list structure where:
 }
 }
 \description{
-This function, `generate_taxa_test_pair`, is designed for analysis in microbiome studies.
-It takes a MicrobiomeStat data object as input and performs several key steps in the analysis of microbiome data.
-The function filters taxa based on prevalence and abundance thresholds, aggregates taxon abundances by sample,
-and applies the linda method to fit linear mixed effects models. These models are used to identify significant
-taxon changes across different groups over time, taking into account various covariates.
+Performs differential abundance analysis for paired or longitudinal data using
+linear mixed-effects models via LinDA, accounting for subject-level correlations.
 }
 \details{
 This function performs paired/longitudinal differential abundance analysis.

@@ -2,7 +2,7 @@
 % Please edit documentation in R/mStat_calculate_beta_diversity.R
 \name{mStat_calculate_beta_diversity}
 \alias{mStat_calculate_beta_diversity}
-\title{Calculate various beta diversity indices}
+\title{Calculate Beta Diversity Indices}
 \usage{
 mStat_calculate_beta_diversity(
   data.obj,
@@ -10,19 +10,40 @@ mStat_calculate_beta_diversity(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
+\itemize{
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
+}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{dist.name}{A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned.
-"BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac),
-"WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence).}
+\item{dist.name}{Character vector specifying which distance metrics to use.
+Options depend on available methods:
+\itemize{
+  \item "BC": Bray-Curtis dissimilarity
+  \item "Jaccard": Jaccard distance
+  \item "UniFrac": Unweighted UniFrac (requires tree)
+  \item "GUniFrac": Generalized UniFrac (requires tree)
+  \item "WUniFrac": Weighted UniFrac (requires tree)
+  \item "JS": Jensen-Shannon divergence
+}}
 }
 \value{
-A list containing the calculated beta diversity indices. The indices are named with the abbreviation.
+A named list of distance matrices (class "dist").
 }
 \description{
-This function calculates a variety of beta diversity indices based on the input data, such as
-Bray-Curtis (BC), Jaccard, unweighted UniFrac (UniFrac), generalized UniFrac (GUniFrac),
-weighted UniFrac (WUniFrac), and Jensen-Shannon divergence (JS).
+Calculates various beta diversity distance matrices from feature abundance data.
 }
 \examples{
 \dontrun{

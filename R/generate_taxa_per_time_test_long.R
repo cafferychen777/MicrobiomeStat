@@ -1,29 +1,10 @@
-#' Longitudinal Differential Abundance Test in Microbiome Data
+#' Longitudinal Per-Time-Point Differential Abundance Test
 #'
-#' This function performs differential abundance testing across multiple time points in longitudinal microbiome data. It is tailored to analyze how the abundance of microbial taxa varies over time, within different groups or under various conditions.
+#' Performs differential abundance testing at each time point separately in
+#' longitudinal microbiome data using LinDA mixed-effects models.
 #'
-#' @param data.obj A MicrobiomeStat data object containing microbiome data and metadata.
-#' @param subject.var A string specifying the column name in meta.dat that uniquely identifies each subject.
-#' @param time.var Optional; a string representing the time variable in the meta.dat. If provided, enables longitudinal analysis.
-#' @param group.var Optional; a string specifying the group variable in meta.dat for between-group comparisons.
-#'                  Can be either:
-#'                  \itemize{
-#'                    \item Categorical (factor or character): Creates pairwise comparisons between groups
-#'                    \item Continuous (numeric or integer): Tests for linear association
-#'                  }
-#' @param adj.vars Optional; a vector of strings representing covariates in meta.dat for adjustment in the analysis.
-#' @param feature.level A string or vector of strings indicating the taxonomic level(s) for analysis (e.g., "Phylum", "Class").
-#' @param prev.filter Numeric; a minimum prevalence threshold for taxa inclusion in the analysis.
-#' @param abund.filter Numeric; a minimum abundance threshold for taxa inclusion in the analysis.
-#' @param feature.dat.type The type of the feature data, which determines how the data is handled.
-#' Should be one of:
-#' \itemize{
-#'   \item "count": Raw count data. This function will first apply TSS (Total Sum Scaling) normalization,
-#'         then LinDA performs zero-handling using half-minimum approach for statistical testing
-#'   \item "proportion": Pre-normalized proportional data. LinDA performs zero-handling using
-#'                       half-minimum approach without additional normalization
-#' }
-#' Default is "count".
+#' @inheritParams mStat_data_obj_doc
+#'
 #' @param ... Additional arguments passed to other methods.
 #' @details
 #' The function integrates various data manipulations, normalization procedures, and statistical tests to assess the significance of taxa changes over time or between groups. It allows for the adjustment of covariates and handles both count and proportion data types.

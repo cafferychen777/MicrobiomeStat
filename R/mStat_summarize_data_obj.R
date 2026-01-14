@@ -1,39 +1,12 @@
 #' Summarize a MicrobiomeStat Data Object
 #'
-#' This function takes a MicrobiomeStat data object and provides a comprehensive summary of the key components, including feature abundance matrix (feature.tab), sample metadata (meta.dat), and feature annotations (feature.ann). It also checks for optional components like time variable and phylogenetic tree.
+#' Provides a comprehensive summary of a MicrobiomeStat data object including
+#' feature statistics, metadata overview, and optional time-series visualization.
 #'
-#' The summary aims to give an overview of the input microbiome data object before conducting statistical analysis, allowing users to better understand the basic properties of their data.
+#' @inheritParams mStat_data_obj_doc
+#' @inheritParams mStat_plot_params_doc
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param time.var A column name in meta.dat representing the time variable. Optional.
-#' @param group.var A column name in meta.dat representing the grouping variable. Optional.
-#' @param palette An optional parameter specifying the color palette to be used for the plot.
-#'                It can be either a character string specifying the name of a predefined
-#'                palette or a vector of color codes in a format accepted by ggplot2
-#'                (e.g., hexadecimal color codes). Available predefined palettes include
-#'                'npg', 'aaas', 'nejm', 'lancet', 'jama', 'jco', and 'ucscgb', inspired
-#'                by various scientific publications and the `ggsci` package. If `palette`
-#'                is not provided or an unrecognized palette name is given, a default color
-#'                palette will be used. Ensure the number of colors in the palette is at
-#'                least as large as the number of groups being plotted.
-#'
-#' @return A tibble containing detailed summaries of:
-#' \enumerate{
-#'   \item \strong{feature.tab}: Number of features, number of samples, matrix sparsity, singleton features.
-#'
-#'   \item \strong{meta.dat}: Number of samples, number of metadata fields, missing data, sample distribution over time (if time.var provided).
-#'
-#'   \item \strong{feature.ann}: Number of features, number of annotation fields, proportion NA for each annotation.
-#'
-#'   \item \strong{tree}: Whether phylogenetic tree exists.
-#' }
-#'
-#' @details
-#' This function checks if each key component of the MicrobiomeStat object exists, and provides a detailed summary if present.
-#'
-#' For feature.tab, it summarizes number of features, samples, sparsity, and singleton features. For meta.dat, it summarizes sample size, metadata fields, missing values, and temporal distribution (if time variable given). For feature.ann, it summarizes number of features, annotations, and missing values per annotation. It also checks for a phylogenetic tree.
-#'
-#' If time variable is provided, temporal distribution of samples is visualized using ggplot2 histograms. If group variable is also provided, histograms are grouped by the grouping variable and colored based on the palette.
+#' @return A tibble containing summary statistics for features, samples, annotations, and tree.
 #'
 #' @examples
 #' \dontrun{

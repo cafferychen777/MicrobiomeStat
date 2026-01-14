@@ -1,76 +1,14 @@
-#' Generate taxa area plots over time
+#' Generate Taxa Area Plots for Longitudinal Data
 #'
-#' This function generates taxa area plots for a given data object. The plots will show the relative abundance of
-#' different taxa over time. Raw count data will be automatically normalized using rarefaction and total sum scaling (TSS).
-#' The function also supports the generation of plots for grouped data and stratified data.
+#' Creates stacked area plots showing relative abundance of taxa over time.
+#' Supports grouping and stratification for comparative visualization.
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param subject.var Character string specifying the column name in metadata containing
-#'                    unique subject IDs. Required to connect samples from the same subject.
-#' @param time.var Character string specifying the column name in metadata containing the
-#'                time variable. Required to order and connect samples over time.
-#' @param group.var Character string specifying the column name in metadata containing grouping
-#'                 categories. Used for coloring lines in the plot. Optional, can be NULL.
-#' @param strata.var Character string specifying the column name in metadata containing stratification
-#'                  categories. Used for nested faceting in the plots. Optional, can be NULL.
-#' @param feature.level Character vector specifying taxonomic level(s) to use for plotting,
-#'                     e.g. c("Phylum", "Genus"). The special value "original" can also be provided,
-#'                     which will use the original taxon identifiers. Multiple levels can be specified
-#'                     and data will be plotted separately for each. **Cannot be NULL, as NULL value
-#'                     will lead to errors.** Default is "original".
-#' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
-#' Default is NULL, in which case the top `feature.number` features by mean abundance will be displayed.
-#' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
-#' Should be one of:
-#' - "count": Raw count data, will be normalized by the function.
-#' - "proportion": Data that has already been normalized to proportions/percentages.
-#' - "other": Custom abundance data that has unknown scaling. No normalization applied.
-#' The choice affects preprocessing steps as well as plot axis labels.
-#' Default is "count", which assumes raw count input.
-#' @param feature.number A numeric value indicating the number of top abundant features to retain in the plot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.
-#' @param t0.level Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.
-#' @param ts.levels Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.
-#' @param base.size The base size for the ggplot2 theme. Default is 10.
-#' @param theme.choice
-#' Plot theme choice. Specifies the visual style of the plot. Can be one of the following pre-defined themes:
-#'   - "prism": Utilizes the ggprism::theme_prism() function from the ggprism package, offering a polished and visually appealing style.
-#'   - "classic": Applies theme_classic() from ggplot2, providing a clean and traditional look with minimal styling.
-#'   - "gray": Uses theme_gray() from ggplot2, which offers a simple and modern look with a light gray background.
-#'   - "bw": Employs theme_bw() from ggplot2, creating a classic black and white plot, ideal for formal publications and situations where color is best minimized.
-#'   - "light": Implements theme_light() from ggplot2, featuring a light theme with subtle grey lines and axes, suitable for a fresh, modern look.
-#'   - "dark": Uses theme_dark() from ggplot2, offering a dark background, ideal for presentations or situations where a high-contrast theme is desired.
-#'   - "minimal": Applies theme_minimal() from ggplot2, providing a minimalist theme with the least amount of background annotations and colors.
-#'   - "void": Employs theme_void() from ggplot2, creating a blank canvas with no axes, gridlines, or background, ideal for custom, creative plots.
-#' Each theme option adjusts various elements like background color, grid lines, and font styles to match the specified aesthetic.
-#' Default is "bw", offering a universally compatible black and white theme suitable for a wide range of applications.
-#' @param custom.theme
-#' A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. Custom themes are useful for creating publication-ready figures with specific formatting requirements.
-#'
-#' To use a custom theme, create a theme object with ggplot2::theme(), including any desired customizations. Common customizations for publication-ready figures might include adjusting text size for readability, altering line sizes for clarity, and repositioning or formatting the legend. For example:
-#'
-#' ```r
-#' my_theme <- ggplot2::theme(
-#'   axis.title = ggplot2::element_text(size=14, face="bold"),        # Bold axis titles with larger font
-#'   axis.text = ggplot2::element_text(size=12),                      # Slightly larger axis text
-#'   legend.position = "top",                                         # Move legend to the top
-#'   legend.background = ggplot2::element_rect(fill="lightgray"),     # Light gray background for legend
-#'   panel.background = ggplot2::element_rect(fill="white", colour="black"), # White panel background with black border
-#'   panel.grid.major = ggplot2::element_line(colour = "grey90"),     # Lighter color for major grid lines
-#'   panel.grid.minor = ggplot2::element_blank(),                     # Remove minor grid lines
-#'   plot.title = ggplot2::element_text(size=16, hjust=0.5)           # Centered plot title with larger font
-#' )
-#' ```
-#'
-#' Then pass `my_theme` to `custom.theme`. If `custom.theme` is NULL (the default), the theme is determined by `theme.choice`. This flexibility allows for both easy theme selection for general use and detailed customization for specific presentation or publication needs.
-#' @param palette Character vector specifying colors to use for mapping features to color aesthetic.
-#'               Should be same length as number of features. If NULL, default palette will be used.
-#'               Colors will be mapped to features based on order of features. This parameter
-#'               does not represent groups, it is only used for feature colors.
-#' @param pdf Logical indicating if the plot should be saved as a PDF. Default is TRUE.
-#' @param file.ann Optional, a file annotation. Default is NULL.
-#' @param pdf.wid Width of the output PDF. Default is 11.
-#' @param pdf.hei Height of the output PDF. Default is 8.5.
-#' @param ... Additional arguments to pass to the function.
+#' @inheritParams mStat_data_obj_doc
+#' @inheritParams mStat_plot_params_doc
+#' @param features.plot Character vector of specific feature IDs to plot.
+#'   If NULL, top features by mean abundance are displayed.
+#' @param feature.number Integer specifying number of top features to display.
+#'   Lower-ranked features are grouped into "Other". Default is 20.
 #'
 #' @return A list of ggplot objects, each representing a taxa area plot for the specified feature level.
 #'

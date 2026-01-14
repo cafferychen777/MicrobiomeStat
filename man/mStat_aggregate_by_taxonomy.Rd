@@ -2,41 +2,58 @@
 % Please edit documentation in R/mStat_aggregate_by_taxonomy.R
 \name{mStat_aggregate_by_taxonomy}
 \alias{mStat_aggregate_by_taxonomy}
-\title{Aggregate OTU Table by Taxonomy Level}
+\title{Aggregate Feature Table by Taxonomy Level}
 \usage{
 mStat_aggregate_by_taxonomy(data.obj, feature.level = NULL)
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
+\item{data.obj}{A MicrobiomeStat data object (list) containing at minimum:
+\itemize{
+  \item \code{feature.tab}: Feature table (matrix) with taxa as rows
+  \item \code{feature.ann}: Taxonomy annotation (matrix/data.frame)
+}}
 
-\item{feature.level}{A character vector that specifies the taxonomy levels to aggregate by.}
+\item{feature.level}{Character vector specifying one or more taxonomy levels
+to aggregate by (e.g., c("Phylum", "Family", "Genus")).}
 }
 \value{
-A list that is the modified version of the input data object. It includes the original data object and an additional element, 'feature.agg.list',
-which is a list of aggregated OTU tables for each specified taxonomy level.
+The input data.obj with an added/updated `feature.agg.list` component
+  containing aggregated feature tables for each specified taxonomy level.
 }
 \description{
-This function, part of the MicrobiomeStat package, aggregates an OTU table by a specified taxonomy level.
-It checks for the consistency of row names between the OTU table and the taxonomy table and stops execution if any mismatches are found.
+Aggregates a feature table within a MicrobiomeStat data object by one or more
+specified taxonomy levels. The aggregated tables are stored in the
+`feature.agg.list` component of the data object.
 }
 \details{
-The function first checks for the consistency of row names between the OTU table and the taxonomy table. If any mismatches are found,
-it displays a message and stops execution. If the row names are consistent, it merges the OTU table with the taxonomy table and aggregates
-the OTU table by the specified taxonomy level. The aggregation is done by summing the values for each sample at each taxonomy level.
-The aggregated OTU tables are added to the data object as a list named 'feature.agg.list'.
+This function is the primary interface for taxonomy aggregation in MicrobiomeStat.
+It supports aggregating to multiple taxonomy levels in a single call, storing
+results in a named list for easy access.
+
+The aggregation uses an inner join between feature.tab and feature.ann,
+meaning only features present in both tables will be included in the output.
+A message is displayed if any features are excluded due to mismatches.
 }
 \examples{
 \dontrun{
-# Load required libraries
 library(vegan)
 data(peerj32.obj)
 
-# Specify the taxonomy level
-feature.level <- c("Phylum", "Family")
+# Aggregate by multiple taxonomy levels
+peerj32.obj <- mStat_aggregate_by_taxonomy(
+  peerj32.obj,
+  feature.level = c("Phylum", "Family", "Genus")
+)
 
-# Aggregate data object by taxonomy level
-peerj32.obj <- mStat_aggregate_by_taxonomy(peerj32.obj, feature.level)
+# Access aggregated tables
+phylum_table <- peerj32.obj$feature.agg.list$Phylum
+family_table <- peerj32.obj$feature.agg.list$Family
 }
+
+}
+\seealso{
+\code{\link{mStat_aggregate_by_taxonomy2}} for a lower-level interface
+  that works directly with matrices.
 }
 \author{
 Caffery(Chen) YANG

@@ -1,21 +1,12 @@
-#' Calculate Beta Diversity Indices and Perform PERMANOVA Tests
+#' PERMANOVA Test for Beta Diversity
 #'
-#' This function computes a range of beta diversity indices for a microbiome dataset and evaluates them using
-#' PERMANOVA tests. The goal is to assess the effect of a specific grouping variable along with potential covariates
-#' on beta diversity. The function outputs the PERMANOVA results for the selected beta diversity indices.
+#' Performs PERMANOVA tests on beta diversity for cross-sectional microbiome data.
 #'
 #' @name generate_beta_test_single
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param dist.obj Distance matrix between samples, usually calculated using
-#' \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
-#' If NULL, beta diversity will be automatically computed from \code{data.obj}
-#' using \code{mStat_calculate_beta_diversity}.
-#' @param time.var The column name in metadata containing the time variable for subsetting data before analysis. Default is NULL.
-#' @param t.level Character string specifying the time level/value to subset data to,
-#' if a time variable is provided. Default NULL does not subset data.
-#' @param group.var The column name in metadata containing the grouping variable of interest for PERMANOVA test.
-#' @param adj.vars Character vector of column names in metadata to be included as covariates in PERMANOVA test. Default is NULL.
-#' @param dist.name A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').
+#' @inheritParams mStat_data_obj_doc
+#' @inheritParams mStat_test_params_doc
+#' @param t.level Character string specifying the time level to subset to.
+#'   If NULL, uses all data.
 #' @examples
 #' \dontrun{
 #'

@@ -12,21 +12,21 @@ mStat_convert_phyloseq_to_data_obj(phylo.obj)
 \value{
 A MicrobiomeStat data object (a list) containing the following elements:
 \itemize{
-  \item feature.tab: A matrix of the feature table (OTU table). Rows with a sum of zero are removed, so only the features present in the samples are included.
+  \item feature.tab: A matrix of the feature table. Rows with a sum of zero are removed, so only the features present in the samples are included.
   \item meta.dat: A data frame of the sample data. This contains the metadata for each of the samples.
   \item feature.ann: A matrix of the feature annotation table (taxonomy table). Only the rows that exist in the feature table are included.
-  \item tree: A phylogenetic tree. The tree is rooted by midpointing if it is not already rooted. Tips not present in the OTU table are dropped.
+  \item tree: A phylogenetic tree. The tree is rooted by midpointing if it is not already rooted. Tips not present in the feature table are dropped.
 }
 }
 \description{
 This function is a part of the MicrobiomeStat package. It takes a phyloseq object, extracts relevant information and repackages it in the MicrobiomeStat's data object format. This enables easy use of phyloseq data with MicrobiomeStat's analysis functions.
 }
 \details{
-This function checks each component (OTU table, sample data, taxonomy table, and phylogenetic tree) of the phyloseq object for null values. If a component is not null, it is converted to the appropriate format and added to the MicrobiomeStat data object. The OTU and taxonomy tables are converted to matrices, while the sample data is converted to a data frame.
+This function checks each component (feature table, sample data, taxonomy table, and phylogenetic tree) of the phyloseq object for null values. If a component is not null, it is converted to the appropriate format and added to the MicrobiomeStat data object. The feature and taxonomy tables are converted to matrices, while the sample data is converted to a data frame.
 
-The function automatically handles the OTU table orientation by checking the \code{taxa_are_rows} slot of the phyloseq object. If \code{taxa_are_rows} is FALSE (i.e., samples are rows and taxa are columns in the phyloseq object), the OTU table will be automatically transposed to ensure that the resulting feature table has taxa as rows and samples as columns, which is the required format for MicrobiomeStat functions.
+The function automatically handles the feature table orientation by checking the \code{taxa_are_rows} slot of the phyloseq object. If \code{taxa_are_rows} is FALSE (i.e., samples are rows and taxa are columns in the phyloseq object), the feature table will be automatically transposed to ensure that the resulting feature table has taxa as rows and samples as columns, which is the required format for MicrobiomeStat functions.
 
-The phylogenetic tree is checked if it is rooted, and if not, it is rooted by midpointing. Tips not present in the OTU table are dropped from the tree. This ensures the output data object is consistent and ready for further microbiome statistical analysis.
+The phylogenetic tree is checked if it is rooted, and if not, it is rooted by midpointing. Tips not present in the feature table are dropped from the tree. This ensures the output data object is consistent and ready for further microbiome statistical analysis.
 }
 \examples{
 \dontrun{

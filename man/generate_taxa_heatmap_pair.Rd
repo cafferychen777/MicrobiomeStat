@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_taxa_heatmap_pair.R
 \name{generate_taxa_heatmap_pair}
 \alias{generate_taxa_heatmap_pair}
-\title{Generate Taxonomic Heatmap Pair}
+\title{Generate Taxa Heatmap for Paired Samples}
 \usage{
 generate_taxa_heatmap_pair(
   data.obj,
@@ -29,91 +29,101 @@ generate_taxa_heatmap_pair(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
+\itemize{
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
+}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{subject.var}{A character string specifying the subject variable in the metadata.}
+\item{subject.var}{Character string specifying the column name in meta.dat
+that uniquely identifies each subject or sample unit. Required for
+longitudinal and paired designs to track repeated measurements.}
 
-\item{time.var}{A character string specifying the time variable in the metadata.}
+\item{time.var}{Character string specifying the column name in meta.dat
+containing the time variable. Required for longitudinal and paired analyses.
+Should be a factor or character with meaningful time point labels.}
 
-\item{group.var}{A character string specifying the grouping variable in the metadata. Default is NULL.}
+\item{group.var}{Character string specifying the column name in meta.dat
+containing the grouping variable (e.g., treatment, condition, phenotype).
+Used for between-group comparisons.}
 
-\item{strata.var}{A character string specifying the stratification variable in the metadata. Default is NULL.}
+\item{strata.var}{Character string specifying the column name in meta.dat
+for stratification. When provided, analyses and visualizations will be
+performed separately within each stratum (e.g., by site, batch, or sex).}
 
-\item{feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
-to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
-annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
-column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
-for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
-is also NULL.}
+\item{feature.level}{Character vector specifying the taxonomic or annotation
+level(s) for analysis. Should match column names in feature.ann, such as
+"Phylum", "Family", "Genus", etc. Use "original" to analyze at the
+original feature level without aggregation.}
 
-\item{feature.dat.type}{The type of the feature data, which determines how the data is handled in downstream analyses.
-Should be one of:
-- "count": Raw count data, will be normalized by the function.
-- "proportion": Data that has already been normalized to proportions/percentages.
-- "other": Custom abundance data that has unknown scaling. No normalization applied.
-The choice affects preprocessing steps as well as plot axis labels.
-Default is "count", which assumes raw OTU table input.}
+\item{feature.dat.type}{Character string specifying the data type of
+feature.tab. One of:
+\itemize{
+  \item "count": Raw count data (will be normalized)
+  \item "proportion": Relative abundance data (should sum to 1 per sample)
+  \item "other": Pre-transformed data (no transformation applied)
+}}
 
-\item{features.plot}{A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
-Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.}
+\item{features.plot}{A character vector specifying which feature IDs to plot.
+Default is NULL, in which case features are selected based on `top.k.plot` and `top.k.func`.}
 
-\item{top.k.plot}{Integer specifying number of top k features to plot, when `features.plot` is NULL.
-Default is NULL, in which case all features passing filters will be plotted.}
+\item{top.k.plot}{Integer specifying number of top k features to plot. Default is NULL.}
 
-\item{top.k.func}{Function to use for selecting top k features, when `features.plot` is NULL.
-Options include inbuilt functions like "mean", "sd", or a custom function. Default is NULL, in which
-case features will be selected by abundance.}
+\item{top.k.func}{Function to use for selecting top k features (e.g., "mean", "sd"). Default is NULL.}
 
-\item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
-taxa before analysis. Taxa with prevalence below this value will be removed.
-Prevalence is calculated as the proportion of samples where the taxon is present.
-Default 0 removes no taxa by prevalence filtering.}
+\item{prev.filter}{Numeric value between 0 and 1. Features with prevalence
+(proportion of non-zero samples) below this threshold will be excluded
+from analysis. Default is usually 0 (no filtering).}
 
-\item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering
-taxa before analysis. Taxa with mean abundance below this value will be removed.
-Abundance refers to counts or proportions depending on \code{feature.dat.type}.
-Default 0 removes no taxa by abundance filtering.}
+\item{abund.filter}{Numeric value. Features with mean abundance below this
+threshold will be excluded from analysis. Default is usually 0 (no filtering).}
 
-\item{base.size}{Base font size for the generated plots.}
+\item{base.size}{Numeric value specifying the base font size for plot text
+elements. Default is typically 16.}
 
-\item{palette}{The color palette to be used for annotating the plots.
-This parameter can be specified in several ways:
-- As a character string representing a predefined palette name.
-  Available predefined palettes include 'npg', 'aaas', 'nejm',
-  'lancet', 'jama', 'jco', and 'ucscgb'.
-- As a vector of color codes in a format accepted by ggplot2
-  (e.g., hexadecimal color codes).
-The function uses `mStat_get_palette` to retrieve or generate
-the color palette. If `palette` is NULL or an unrecognized string,
-a default color palette will be used. The colors are applied to
-the specified grouping variables (`group.var`, `strata.var`) in the
-heatmap, ensuring each level of these variables is associated with a
-unique color. If both `group.var` and `strata.var` are specified,
-the function assigns colors to `group.var` from the start of the
-palette and to `strata.var` from the end, ensuring distinct color
-representations for each annotation layer.}
+\item{palette}{Character vector of colors or a named palette for the plot.
+If NULL, uses default MicrobiomeStat color scheme. Can be:
+\itemize{
+  \item A vector of color codes (e.g., c("#E41A1C", "#377EB8"))
+  \item A palette name recognized by the plotting function
+}}
 
-\item{cluster.rows}{A logical variable indicating if rows should be clustered. Default is TRUE.}
+\item{cluster.rows}{Logical indicating if rows should be clustered. Default is TRUE.}
 
-\item{cluster.cols}{A logical variable indicating if columns should be clustered. Default is FALSE.}
+\item{cluster.cols}{Logical indicating if columns should be clustered. Default is FALSE.}
 
-\item{pdf}{A logical value. If TRUE (default), saves the plot as a PDF file. If FALSE, the plot will be displayed interactively without creating a PDF.}
+\item{pdf}{Logical. If TRUE, saves the plot(s) to PDF file(s) in the
+current working directory. Default is TRUE.}
 
-\item{file.ann}{(Optional) A character string specifying a file annotation to include in the generated PDF file's name.}
+\item{file.ann}{Character string for additional annotation to append to
+output filenames. Useful for distinguishing multiple outputs.}
 
-\item{pdf.wid}{Width of the PDF plots.}
+\item{pdf.wid}{Numeric value specifying the width of PDF output in inches.
+Default is typically 11.}
 
-\item{pdf.hei}{Height of the PDF plots.}
+\item{pdf.hei}{Numeric value specifying the height of PDF output in inches.
+Default is typically 8.5.}
 
-\item{...}{Additional parameters to be passed to the pheatmap() function from the “pheatmap::pheatmap” package.}
+\item{...}{Additional parameters to be passed to the pheatmap() function.}
 }
 \value{
 An object of class pheatmap, the generated heatmap plot
 }
 \description{
-This function performs hierarchical clustering on microbiome data based on grouping
-variables and strata variables in sample metadata and generates stacked heatmaps
-using the “pheatmap” package. It can also save the resulting heatmap as a PDF file.
+Generates hierarchical clustered heatmaps for paired microbiome data
+using the pheatmap package, with options for group and strata annotations.
 }
 \examples{
 \dontrun{

@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_alpha_per_time_test_long.R
 \name{generate_alpha_per_time_test_long}
 \alias{generate_alpha_per_time_test_long}
-\title{Longitudinal Alpha Diversity Test in Microbiome Data}
+\title{Alpha Diversity Test Per Time Point (Longitudinal)}
 \usage{
 generate_alpha_per_time_test_long(
   data.obj,
@@ -17,34 +17,68 @@ generate_alpha_per_time_test_long(
 )
 }
 \arguments{
-\item{data.obj}{A MicrobiomeStat data object containing microbiome data and metadata.}
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
+\itemize{
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
+}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{alpha.obj}{An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.}
+\item{alpha.obj}{A list containing pre-calculated alpha diversity indices.
+If NULL and alpha diversity is needed, it will be calculated automatically.
+Names should match the alpha.name parameter (e.g., "shannon", "simpson").
+See \code{\link{mStat_calculate_alpha_diversity}}.}
 
-\item{alpha.name}{character vector containing the names of alpha diversity indices to calculate.
-Possible values are: "shannon", "simpson", "observed_species", "chao1", "ace", "pielou", and "faith_pd".}
+\item{alpha.name}{Character vector specifying which alpha diversity indices
+to analyze. Options include:
+\itemize{
+  \item "shannon": Shannon diversity index
+  \item "simpson": Simpson diversity index
+  \item "observed_species": Observed species richness
+  \item "chao1": Chao1 richness estimator
+  \item "ace": ACE richness estimator
+  \item "pielou": Pielou's evenness
+}}
 
-\item{depth}{An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
-If NULL, no rarefaction is performed.}
+\item{depth}{Numeric value or NULL. Rarefaction depth for diversity
+calculations. If NULL, uses minimum sample depth or no rarefaction.}
 
-\item{time.var}{A string representing the time variable in the meta.dat.}
+\item{time.var}{Character string specifying the column name in meta.dat
+containing the time variable. Required for longitudinal and paired analyses.
+Should be a factor or character with meaningful time point labels.}
 
-\item{t0.level}{A baseline time point for longitudinal analysis, specified as a character
-or numeric value, e.g., "week_0" or 0.}
+\item{t0.level}{Character or numeric value specifying the baseline time
+point for longitudinal or paired analyses. Should match a value in the
+time.var column.}
 
-\item{ts.levels}{A vector of character strings indicating follow-up time points, such as
-c("week_4", "week_8").}
+\item{ts.levels}{Character vector specifying the follow-up time points for
+longitudinal or paired analyses. Should match values in the time.var column.}
 
-\item{group.var}{Optional; a string specifying the group variable in meta.dat for between-group comparisons.}
+\item{group.var}{Character string specifying the column name in meta.dat
+containing the grouping variable (e.g., treatment, condition, phenotype).
+Used for between-group comparisons.}
 
-\item{adj.vars}{Optional; a vector of strings representing covariates in meta.dat for adjustment in the analysis.}
+\item{adj.vars}{Character vector specifying column names in meta.dat to be
+used as covariates for adjustment in statistical models. These variables
+will be included as fixed effects.}
 }
 \value{
 A list where each element corresponds to a different time point and contains the results of alpha diversity tests for that time point.
 }
 \description{
-This function performs alpha diversity testing at multiple time points in longitudinal microbiome data.
-It applies linear model analyses to assess the diversity of microbial communities over time within different groups or under various conditions.
+Performs alpha diversity testing at each time point in longitudinal
+  data using linear models to compare groups.
 }
 \examples{
 \dontrun{

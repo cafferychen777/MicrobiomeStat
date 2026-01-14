@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_taxa_change_heatmap_pair.R
 \name{generate_taxa_change_heatmap_pair}
 \alias{generate_taxa_change_heatmap_pair}
-\title{Generate Taxa Change Heatmap Pair}
+\title{Generate Taxa Change Heatmap for Paired Data}
 \usage{
 generate_taxa_change_heatmap_pair(
   data.obj,
@@ -31,106 +31,105 @@ generate_taxa_change_heatmap_pair(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
+\itemize{
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
+}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{subject.var}{A character string specifying the subject variable in the metadata.}
+\item{subject.var}{Character string specifying the column name in meta.dat
+that uniquely identifies each subject or sample unit. Required for
+longitudinal and paired designs to track repeated measurements.}
 
-\item{time.var}{A character string specifying the time variable in the metadata.}
+\item{time.var}{Character string specifying the column name in meta.dat
+containing the time variable. Required for longitudinal and paired analyses.
+Should be a factor or character with meaningful time point labels.}
 
-\item{group.var}{A character string specifying the grouping variable in the metadata. Default is NULL.}
+\item{group.var}{Character string specifying the column name in meta.dat
+containing the grouping variable (e.g., treatment, condition, phenotype).
+Used for between-group comparisons.}
 
-\item{strata.var}{A character string specifying the stratification variable in the metadata. Default is NULL.}
+\item{strata.var}{Character string specifying the column name in meta.dat
+for stratification. When provided, analyses and visualizations will be
+performed separately within each stratum (e.g., by site, batch, or sex).}
 
-\item{change.base}{A numeric value specifying the baseline time point for computing change. This should match one of the time points in the time variable. Default is 1, which assumes the first time point is the baseline.}
+\item{change.base}{Character or numeric specifying the baseline time point.}
 
-\item{feature.change.func}{Specifies the method or function to compute the change between two time points.
-The following options are available:
+\item{feature.change.func}{Method for calculating change: "relative change",
+"log fold change", "absolute change", or a custom function.}
 
-- A custom function: If you provide a user-defined function, it should take two numeric arguments corresponding to the values at the two time points (`value_time_1` and `value_time_2`) and return the computed change. This custom function will be applied directly.
+\item{feature.level}{Character vector specifying the taxonomic or annotation
+level(s) for analysis. Should match column names in feature.ann, such as
+"Phylum", "Family", "Genus", etc. Use "original" to analyze at the
+original feature level without aggregation.}
 
-- "log fold change": Computes the log2 fold change between the two time points. For zero values, imputation is performed using half of the minimum nonzero value for each feature across BOTH time points combined. The same pseudocount is used at both time points to ensure unbiased log fold change calculations. This prevents spurious changes for features with zero abundance at both time points.
+\item{feature.dat.type}{Character string specifying the data type of
+feature.tab. One of:
+\itemize{
+  \item "count": Raw count data (will be normalized)
+  \item "proportion": Relative abundance data (should sum to 1 per sample)
+  \item "other": Pre-transformed data (no transformation applied)
+}}
 
-- "relative change": Computes the relative change as `(value_time_2 - value_time_1) / (value_time_2 + value_time_1)`. If both time points have a value of 0, the change is defined as 0.
+\item{features.plot}{Character vector of specific feature IDs to plot.}
 
-- "absolute change": Computes the difference between the values at the two time points.
+\item{top.k.plot}{Integer specifying number of top features to plot.}
 
-- Any other value (or if the parameter is omitted): By default, the function computes the absolute change as described above.}
+\item{top.k.func}{Function for selecting top features (e.g., "mean", "sd").}
 
-\item{feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
-to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
-annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
-column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
-for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
-is also NULL.}
+\item{prev.filter}{Numeric value between 0 and 1. Features with prevalence
+(proportion of non-zero samples) below this threshold will be excluded
+from analysis. Default is usually 0 (no filtering).}
 
-\item{feature.dat.type}{The type of the feature data, which determines how the data is handled in downstream analyses.
-Should be one of:
-- "count": Raw count data, will be normalized by the function.
-- "proportion": Data that has already been normalized to proportions/percentages.
-- "other": Custom abundance data that has unknown scaling. No normalization applied.
-The choice affects preprocessing steps as well as plot axis labels.
-Default is "count", which assumes raw OTU table input.}
+\item{abund.filter}{Numeric value. Features with mean abundance below this
+threshold will be excluded from analysis. Default is usually 0 (no filtering).}
 
-\item{features.plot}{A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
-Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.}
+\item{base.size}{Numeric value specifying the base font size for plot text
+elements. Default is typically 16.}
 
-\item{top.k.plot}{Integer specifying number of top k features to plot, when `features.plot` is NULL.
-Default is NULL, which case all features passing filters will be plotted.}
+\item{palette}{Character vector of colors or a named palette for the plot.
+If NULL, uses default MicrobiomeStat color scheme. Can be:
+\itemize{
+  \item A vector of color codes (e.g., c("#E41A1C", "#377EB8"))
+  \item A palette name recognized by the plotting function
+}}
 
-\item{top.k.func}{Function to use for selecting top k features, when `features.plot` is NULL.
-Options include inbuilt functions like "mean", "sd", or a custom function. Default is NULL, in which
-case features will be selected by abundance.}
+\item{cluster.rows}{Logical, whether to cluster rows. Default TRUE.}
 
-\item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
-taxa before analysis. Taxa with prevalence below this value will be removed.
-Prevalence is calculated as the proportion of samples where the taxon is present.
-Default 0 removes no taxa by prevalence filtering.}
+\item{cluster.cols}{Logical, whether to cluster columns. Default NULL.}
 
-\item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering
-taxa before analysis. Taxa with mean abundance below this value will be removed.
-Abundance refers to counts or proportions depending on \code{feature.dat.type}.
-Default 0 removes no taxa by abundance filtering.}
+\item{pdf}{Logical. If TRUE, saves the plot(s) to PDF file(s) in the
+current working directory. Default is TRUE.}
 
-\item{base.size}{Base font size for the generated plots.}
+\item{file.ann}{Character string for additional annotation to append to
+output filenames. Useful for distinguishing multiple outputs.}
 
-\item{palette}{Specifies the color palette to be used for annotating groups and strata in the heatmap.
-The parameter can be provided in several ways:
-- As a character string denoting a predefined palette name.
-  Available predefined palettes include 'npg', 'aaas', 'nejm',
-  'lancet', 'jama', 'jco', and 'ucscgb', sourced from the `mStat_get_palette` function.
-- As a vector of color codes in a format accepted by ggplot2
-  (e.g., hexadecimal color codes).
-If `palette` is NULL or an unrecognized string, a default color palette will be used.
-The function assigns colors from this palette to the unique levels of
-`group.var` and, if provided, `strata.var`. When both `group.var` and
-`strata.var` are present, `group.var` levels are colored using the
-beginning of the palette, while `strata.var` levels are colored using
-the reversed palette, ensuring a distinct color representation for each.
-If only `group.var` is provided, its levels are assigned colors from the
-palette sequentially. If neither `group.var` nor `strata.var` is provided,
-no annotation colors are applied.}
+\item{pdf.wid}{Numeric value specifying the width of PDF output in inches.
+Default is typically 11.}
 
-\item{cluster.rows}{A logical variable indicating if rows should be clustered. Default is TRUE.}
+\item{pdf.hei}{Numeric value specifying the height of PDF output in inches.
+Default is typically 8.5.}
 
-\item{cluster.cols}{A logical variable indicating if columns should be clustered. Default is NULL.}
-
-\item{pdf}{If TRUE, save the plot as a PDF file (default: TRUE)}
-
-\item{file.ann}{(Optional) A character string specifying a file annotation to include in the generated PDF file's name.}
-
-\item{pdf.wid}{Width of the PDF plots.}
-
-\item{pdf.hei}{Height of the PDF plots.}
-
-\item{...}{Additional parameters to be passed to pheatmap function}
+\item{...}{Additional arguments passed to underlying functions.}
 }
 \value{
-If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the pheatmap::pheatmap plot. If `pdf` is set to FALSE, the function will return the pheatmap plot without creating a PDF file.
+A list containing individual and average heatmap objects.
 }
 \description{
-This function generates a heatmap showing the pairwise changes in relative abundances of taxa between different time points.
-The data used in this visualization will be first filtered based on prevalence and abundance thresholds.
-The plot can either be displayed interactively or saved as a PDF file.
+Creates heatmaps showing taxa abundance changes between paired time points.
+Generates both individual and group-averaged views using pheatmap.
 }
 \examples{
 \dontrun{

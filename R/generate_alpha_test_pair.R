@@ -1,12 +1,12 @@
-#' Check if the data has been rarefied
+#' Check if Data has been Rarefied
 #'
-#' This function checks if the data has been rarefied by inspecting if the sum
-#' of each column (which represents each sample in the feature table) is equal.
+#' Checks if the data has been rarefied by inspecting if all samples have
+#' equal total counts.
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
+#' @inheritParams mStat_data_obj_doc
 #'
-#' @return A boolean value indicating whether the data is rarefied. It returns
-#'   TRUE if the data is rarefied, FALSE otherwise.
+#' @return Logical. TRUE if data is rarefied (all samples have equal counts),
+#'   FALSE otherwise.
 #'
 #' @examples
 #' # Assuming peerj32.obj is a data object with OTU and metadata tables
@@ -46,41 +46,19 @@ extract_coef <- function(model) {
   return(coef_tab)
 }
 
-#' Alpha Diversity Association Test
+#' @title Alpha Diversity Association Test (Paired)
 #'
-#' This function implements an association test for multiple alpha diversity
-#' measures. The test is based on a mixed-effects model fitted by the `lmer`
-#' function from the `lmerTest` package. The function accepts a data object as
-#' input and returns a list of tests, one for each alpha diversity index.
+#' @description Tests associations between alpha diversity and time/group variables
+#'   using mixed-effects models for paired/longitudinal designs.
 #'
-#' The mixed-effects model includes the time variable, group variable, and any
-#' additional adjustment variables as fixed effects, and the subject variable as
-#' a random effect.
+#' @inheritParams mStat_data_obj_doc
+#' @inheritParams mStat_test_params_doc
 #'
-#' The output is a list of coefficient tables, one for each alpha diversity
-#' index. Each table includes the term, estimate, standard error, t value, and
-#' p-value for each fixed effect in the model.
-#'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
-#' @param alpha.name A character vector with the names of alpha diversity
-#' indices to compute. Options include: "shannon", "simpson",
-#' "observed_species", "chao1", "ace", "pielou", and "faith_pd".
-#' @param depth An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
-#' If NULL, no rarefaction is performed.
-#' @param subject.var A string specifying the subject variable column in the metadata.
-#' @param time.var A string representing the time variable's name in the
-#' metadata. The default is NULL.
-#' @param group.var A string representing the group variable's name in the
-#' metadata.
-#' @param adj.vars A character vector with the names of adjustment variables in
-#' the metadata.
 #' @param change.base A value indicating the base level for the time variable.
-#' If provided, the specified level will be used as the reference category in
-#' the model. Default is NULL, which means the first level of the factor will
-#' be used.
-#' @return A list containing the association tests for each alpha diversity
-#' index.
+#'   If provided, the specified level will be used as the reference category in
+#'   the model. Default is NULL (first level used).
+#'
+#' @return A list containing the association tests for each alpha diversity index.
 #'
 #' @examples
 #' data(peerj32.obj)

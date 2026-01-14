@@ -33,6 +33,6 @@ validate_inputs(
 List with is_valid (logical), errors (character vector), warnings (character vector)
 }
 \description{
-Performs comprehensive validation of input parameters before routing to底层 functions.
+Performs comprehensive validation of input parameters before routing to underlying functions.
 }
 \keyword{internal}

@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_taxa_per_time_dotplot_long.R
 \name{generate_taxa_per_time_dotplot_long}
 \alias{generate_taxa_per_time_dotplot_long}
-\title{Longitudinal Taxa Dot Plot for Microbiome Data}
+\title{Longitudinal Taxa Dot Plot}
 \usage{
 generate_taxa_per_time_dotplot_long(
   data.obj,
@@ -26,79 +26,94 @@ generate_taxa_per_time_dotplot_long(
 )
 }
 \arguments{
-\item{data.obj}{A MicrobiomeStat data object containing microbiome data and metadata.}
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
+\itemize{
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
+}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{test.list}{A list of test results from `generate_taxa_per_time_test_long` function, representing the statistical analysis of taxa over time.}
+\item{test.list}{List of test results from generate_taxa_per_time_test_long.}
 
-\item{group.var}{A string specifying the group variable in meta.dat for between-group comparisons in the dot plot.}
+\item{group.var}{Character string specifying the column name in meta.dat
+containing the grouping variable (e.g., treatment, condition, phenotype).
+Used for between-group comparisons.}
 
-\item{time.var}{A string representing the time variable in the meta.dat. This variable is used for x-axis in the dot plot.}
+\item{time.var}{Character string specifying the column name in meta.dat
+containing the time variable. Required for longitudinal and paired analyses.
+Should be a factor or character with meaningful time point labels.}
 
-\item{t0.level}{Optional; a baseline time level for time series analysis.}
+\item{t0.level}{Character or numeric value specifying the baseline time
+point for longitudinal or paired analyses. Should match a value in the
+time.var column.}
 
-\item{ts.levels}{Optional; time series levels for analysis.}
+\item{ts.levels}{Character vector specifying the follow-up time points for
+longitudinal or paired analyses. Should match values in the time.var column.}
 
-\item{feature.level}{A string or vector of strings indicating the taxonomic level(s) for analysis (e.g., "Phylum", "Class") and for displaying in the dot plot.}
+\item{feature.level}{Character vector specifying the taxonomic or annotation
+level(s) for analysis. Should match column names in feature.ann, such as
+"Phylum", "Family", "Genus", etc. Use "original" to analyze at the
+original feature level without aggregation.}
 
-\item{feature.mt.method}{Multiple testing correction method, "fdr" or "none"}
+\item{feature.mt.method}{Character; multiple testing method ("fdr" or "none").}
 
-\item{feature.sig.level}{The significance level cutoff for highlighting taxa}
+\item{feature.sig.level}{Numeric; significance level cutoff for highlighting taxa.}
 
-\item{features.plot}{Optional; a vector of feature names to be plotted. If provided, overrides the significant feature filter.}
+\item{features.plot}{Character vector of features to plot. Overrides filter_significant.}
 
-\item{filter_significant}{Boolean; whether to filter and display only significant features. Default is TRUE.}
+\item{filter_significant}{Logical; whether to show only significant features. Default TRUE.}
 
-\item{base.size}{Numeric; base font size for text elements in the plot. Default is 16.}
+\item{base.size}{Numeric value specifying the base font size for plot text
+elements. Default is typically 16.}
 
-\item{theme.choice}{Plot theme choice. Specifies the visual style of the plot. Can be one of the following pre-defined themes:
-  - "prism": Utilizes the ggprism::theme_prism() function from the ggprism package, offering a polished and visually appealing style.
-  - "classic": Applies theme_classic() from ggplot2, providing a clean and traditional look with minimal styling.
-  - "gray": Uses theme_gray() from ggplot2, which offers a simple and modern look with a light gray background.
-  - "bw": Employs theme_bw() from ggplot2, creating a classic black and white plot, ideal for formal publications and situations where color is best minimized.
-  - "light": Implements theme_light() from ggplot2, featuring a light theme with subtle grey lines and axes, suitable for a fresh, modern look.
-  - "dark": Uses theme_dark() from ggplot2, offering a dark background, ideal for presentations or situations where a high-contrast theme is desired.
-  - "minimal": Applies theme_minimal() from ggplot2, providing a minimalist theme with the least amount of background annotations and colors.
-  - "void": Employs theme_void() from ggplot2, creating a blank canvas with no axes, gridlines, or background, ideal for custom, creative plots.
-Each theme option adjusts various elements like background color, grid lines, and font styles to match the specified aesthetic.
-Default is "bw", offering a universally compatible black and white theme suitable for a wide range of applications.}
+\item{theme.choice}{Character string specifying the ggplot2 theme to use.
+Options include:
+\itemize{
+  \item "bw": Black and white theme (theme_bw)
+  \item "classic": Classic theme (theme_classic)
+  \item "minimal": Minimal theme (theme_minimal)
+  \item "prism": GraphPad Prism-like theme
+  \item "nature": Nature journal style
+  \item "light": Light theme (theme_light)
+}
+Can also use a custom ggplot2 theme object via custom.theme.}
 
-\item{custom.theme}{A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. Custom themes are useful for creating publication-ready figures with specific formatting requirements.
+\item{custom.theme}{A custom ggplot2 theme object to override theme.choice.
+Should be created using ggplot2::theme() or a complete theme function.}
 
-To use a custom theme, create a theme object with ggplot2::theme(), including any desired customizations. Common customizations for publication-ready figures might include adjusting text size for readability, altering line sizes for clarity, and repositioning or formatting the legend. For example:
+\item{palette}{Character vector of colors or a named palette for the plot.
+If NULL, uses default MicrobiomeStat color scheme. Can be:
+\itemize{
+  \item A vector of color codes (e.g., c("#E41A1C", "#377EB8"))
+  \item A palette name recognized by the plotting function
+}}
 
-```r
-my_theme <- ggplot2::theme(
-  axis.title = ggplot2::element_text(size=14, face="bold"),        # Bold axis titles with larger font
-  axis.text = ggplot2::element_text(size=12),                      # Slightly larger axis text
-  legend.position = "top",                                         # Move legend to the top
-  legend.background = ggplot2::element_rect(fill="lightgray"),     # Light gray background for legend
-  panel.background = ggplot2::element_rect(fill="white", colour="black"), # White panel background with black border
-  panel.grid.major = ggplot2::element_line(colour = "grey90"),     # Lighter color for major grid lines
-  panel.grid.minor = ggplot2::element_blank(),                     # Remove minor grid lines
-  plot.title = ggplot2::element_text(size=16, hjust=0.5)           # Centered plot title with larger font
-)
-```
+\item{pdf}{Logical. If TRUE, saves the plot(s) to PDF file(s) in the
+current working directory. Default is TRUE.}
 
-Then pass `my_theme` to `custom.theme`. If `custom.theme` is NULL (the default), the theme is determined by `theme.choice`. This flexibility allows for both easy theme selection for general use and detailed customization for specific presentation or publication needs.}
+\item{pdf.wid}{Numeric value specifying the width of PDF output in inches.
+Default is typically 11.}
 
-\item{palette}{Optional; a vector of colors for the gradient scale. If provided, it overrides the default color scale.}
-
-\item{pdf}{Boolean; whether to save the plot as a PDF file.}
-
-\item{pdf.wid}{Numeric; width of the saved PDF file.}
-
-\item{pdf.hei}{Numeric; height of the saved PDF file.}
+\item{pdf.hei}{Numeric value specifying the height of PDF output in inches.
+Default is typically 8.5.}
 }
 \value{
-A list of ggplot objects, each representing a dot plot for a specific taxonomic level and group. The plots can be further customized or directly rendered.
+A list of ggplot objects for each taxonomic level and group.
 }
 \description{
-This function generates dot plots for visualizing the results of longitudinal taxa tests in microbiome data. It focuses on displaying how the abundance and significance of microbial taxa change over time across different groups.
-}
-\details{
-The function uses ggplot2 to create dot plots, with options for customizing themes and aesthetics. It visualizes the significance and magnitude of changes in microbial taxa, indicated by color and size of the dots. The function allows for detailed customization of plot features, including base font size and theme choice.
-
-The function prepares data by merging and transforming the results from `generate_taxa_per_time_test_long` to fit the plotting structure. It handles the display of statistical significance using color coding and sizes dots based on the coefficient value from the statistical test.
+Generates dot plots visualizing longitudinal taxa test results, showing abundance
+and significance changes over time across groups.
 }
 \examples{
 \dontrun{

@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_taxa_trend_test_long.R
 \name{generate_taxa_trend_test_long}
 \alias{generate_taxa_trend_test_long}
-\title{Longitudinal Taxa Trend Test Generation}
+\title{Longitudinal Taxa Trend Test}
 \usage{
 generate_taxa_trend_test_long(
   data.obj,
@@ -19,52 +19,64 @@ generate_taxa_trend_test_long(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
-
-\item{subject.var}{A character string that indicates the column name in the metadata which uniquely identifies each subject or sample.}
-
-\item{time.var}{A character string representing the time variable column in the metadata. Time points should be numeric. If not, the function will convert it to numeric. Default is NULL.}
-
-\item{group.var}{A character string specifying the grouping variable column in the metadata.
-Can be either:
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
 \itemize{
-  \item Categorical (factor or character): Tests group differences and group × time interaction
-  \item Continuous (numeric or integer): Tests linear association with time
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
 }
-This variable differentiates between different experimental or observational groups.}
-
-\item{ref.level}{Character string specifying the reference level for the group variable.
-This parameter is used when \code{group.var} is categorical (factor or character)
-to specify which group should be used as the reference for comparisons.
-All other groups will be compared against this reference level.
-If NULL (default), the first level alphabetically is used as the reference.
-This parameter is ignored when \code{group.var} is continuous.}
-
-\item{adj.vars}{A vector of character strings. Each string should denote a column name in the metadata that will serve as a covariate in the analysis. These variables might account for potential confounding influences. Default is NULL.}
-
-\item{feature.level}{A character string indicating the taxonomic resolution for analysis (e.g., "Phylum", "Class"). This choice will determine the granularity of the analysis.}
-
-\item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
-taxa before analysis. Taxa with prevalence below this value will be removed.
-Prevalence is calculated as the proportion of samples where the taxon is present.}
-
-\item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering
-taxa before analysis. Taxa with mean abundance below this value will be removed.
-Abundance refers to counts or proportions depending on \code{feature.dat.type}.}
-
-\item{feature.dat.type}{The type of the feature data, which determines how the data is handled.
-Should be one of:
+Optional components include:
 \itemize{
-  \item "count": Raw count data. This function will first apply TSS (Total Sum Scaling) normalization,
-        then LinDA performs zero-handling using half-minimum approach for statistical testing
-  \item "proportion": Pre-normalized proportional data (e.g., relative abundances).
-        LinDA performs zero-handling using half-minimum approach without additional normalization
-  \item "other": Pre-transformed data (e.g., CLR, log-transformed).
-        Uses standard linear mixed models without normalization or zero-handling
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
 }
-Default is "count".}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{...}{Additional arguments to cater to any specialized requirements. For now, these are placeholder and not used.}
+\item{subject.var}{Character string specifying the column name in meta.dat
+that uniquely identifies each subject or sample unit. Required for
+longitudinal and paired designs to track repeated measurements.}
+
+\item{time.var}{Character string specifying the column name in meta.dat
+containing the time variable. Required for longitudinal and paired analyses.
+Should be a factor or character with meaningful time point labels.}
+
+\item{group.var}{Character string specifying the column name in meta.dat
+containing the grouping variable (e.g., treatment, condition, phenotype).
+Used for between-group comparisons.}
+
+\item{ref.level}{Character string specifying the reference level for categorical group.var.
+If NULL, the first level alphabetically is used. Ignored for continuous variables.}
+
+\item{adj.vars}{Character vector specifying column names in meta.dat to be
+used as covariates for adjustment in statistical models. These variables
+will be included as fixed effects.}
+
+\item{feature.level}{Character vector specifying the taxonomic or annotation
+level(s) for analysis. Should match column names in feature.ann, such as
+"Phylum", "Family", "Genus", etc. Use "original" to analyze at the
+original feature level without aggregation.}
+
+\item{prev.filter}{Numeric value between 0 and 1. Features with prevalence
+(proportion of non-zero samples) below this threshold will be excluded
+from analysis. Default is usually 0 (no filtering).}
+
+\item{abund.filter}{Numeric value. Features with mean abundance below this
+threshold will be excluded from analysis. Default is usually 0 (no filtering).}
+
+\item{feature.dat.type}{Character string specifying the data type of
+feature.tab. One of:
+\itemize{
+  \item "count": Raw count data (will be normalized)
+  \item "proportion": Relative abundance data (should sum to 1 per sample)
+  \item "other": Pre-transformed data (no transformation applied)
+}}
+
+\item{...}{Additional arguments passed to downstream functions.}
 }
 \value{
 A nested list structure where:
@@ -92,7 +104,8 @@ A nested list structure where:
 }
 }
 \description{
-This function is designed to conduct a longitudinal trend test on microbiome data. The primary aim is to discern how the abundance of various microbial taxa changes over time and/or in response to different experimental or observational groups. The function delivers robust statistical insights that enable researchers to draw meaningful conclusions about the dynamics of microbial populations.
+Conducts longitudinal trend tests to analyze how microbial taxa abundance changes
+over time and across groups using linear mixed-effects models.
 }
 \details{
 Based on whether group.var, adj.vars, and time.var are NULL, the formula tests:

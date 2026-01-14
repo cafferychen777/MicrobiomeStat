@@ -2,7 +2,7 @@
 % Please edit documentation in R/mStat_generate_report_single.R
 \name{mStat_generate_report_single}
 \alias{mStat_generate_report_single}
-\title{Generate a report for microbial ecology analysis of cross-sectional, longitudinal or paired data at a single time point}
+\title{Generate Single Time Point Microbiome Analysis Report}
 \usage{
 mStat_generate_report_single(
   data.obj,
@@ -44,162 +44,152 @@ mStat_generate_report_single(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
-
-\item{group.var}{Variable name used for grouping samples.}
-
-\item{vis.adj.vars}{Character vector, names of columns in the metadata containing covariates to visualize in plots, in addition to the primary variables of interest such as groups. For example, if sex is provided in vis.adj.vars, plots will display facets or colors for different sex groups. This allows visualization of effects across multiple covariates. Default is NULL, which indicates only the primary variables of interest will be visualized without additional covariates.}
-
-\item{test.adj.vars}{Character vector, names of columns in the metadata containing covariates to be adjusted for in statistical tests and models, such as linear mixed effects models for longitudinal data analysis. This allows the user to account for the effects of additional variables in assessing the effects of primary variables of interest such as time and groups. Default is NULL, which indicates no covariates are adjusted for in statistical testing.}
-
-\item{strata.var}{Variable to stratify the analysis by (optional).}
-
-\item{time.var}{Variable name used for time points.}
-
-\item{t.level}{Character string specifying the time level/value to subset data to,
-if a time variable is provided. Default NULL does not subset data.}
-
-\item{alpha.obj}{An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.}
-
-\item{alpha.name}{The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", "pielou", and "faith_pd".}
-
-\item{depth}{An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
-If NULL, no rarefaction is performed.}
-
-\item{dist.obj}{Distance matrix between samples, usually calculated using
-\code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
-If NULL, beta diversity will be automatically computed from \code{data.obj}
-using \code{mStat_calculate_beta_diversity}.}
-
-\item{dist.name}{A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned. Default is c('BC', 'Jaccard').}
-
-\item{pc.obj}{A list containing the results of dimension reduction/Principal Component Analysis.
-This should be the output from functions like \code{\link[MicrobiomeStat]{mStat_calculate_PC}},
-containing the PC coordinates and other metadata. If NULL (default), dimension reduction
-will be automatically performed using metric multidimensional scaling (MDS) via
-\code{\link[MicrobiomeStat]{mStat_calculate_PC}}. The pc.obj list structure should contain:
-\describe{
-  \item{points}{A matrix with samples as rows and PCs as columns containing the coordinates.}
-  \item{eig}{Eigenvalues for each PC dimension.}
-  \item{vectors}{Loadings vectors for features onto each PC.}
-  \item{Other metadata}{like method, dist.name, etc.}
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
+\itemize{
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
 }
-See \code{\link[MicrobiomeStat]{mStat_calculate_PC}} function for details on output format.}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
-taxa before analysis. Taxa with prevalence below this value will be removed.
-Prevalence is calculated as the proportion of samples where the taxon is present.
-Default 0 removes no taxa by prevalence filtering.}
+\item{group.var}{Character string specifying the column name in meta.dat
+containing the grouping variable (e.g., treatment, condition, phenotype).
+Used for between-group comparisons.}
 
-\item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering
-taxa before analysis. Taxa with mean abundance below this value will be removed.
-Abundance refers to counts or proportions depending on \code{feature.dat.type}.
-Default 0 removes no taxa by abundance filtering.}
+\item{vis.adj.vars}{Character vector of covariate names to visualize in plots.}
 
-\item{bar.area.feature.no}{A numeric value indicating the number of top abundant features to retain in both barplot and areaplot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.}
+\item{test.adj.vars}{Character vector of covariate names for statistical adjustment.}
 
-\item{heatmap.feature.no}{A numeric value indicating the number of top abundant features to retain in the heatmap. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.}
+\item{strata.var}{Character string specifying the column name in meta.dat
+for stratification. When provided, analyses and visualizations will be
+performed separately within each stratum (e.g., by site, batch, or sex).}
 
-\item{dotplot.feature.no}{A numeric value indicating the number of top abundant features to retain in the dotplot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 40.}
+\item{time.var}{Character string specifying the column name in meta.dat
+containing the time variable. Required for longitudinal and paired analyses.
+Should be a factor or character with meaningful time point labels.}
 
-\item{vis.feature.level}{A character vector specifying one or more column names in the feature annotation
-matrix (feature.ann) of data.obj to use for visualization and plotting. This can be a taxonomic level
-like "Phylum" or "Genus" for microbiome data, a cell type identifier such as "CellType" for single-cell
-data, or a pathway level such as "Pathway_L1", "Pathway_L2", or "Pathway_L3" for KEGG data. Multiple columns
-can be provided, and data will be plotted separately for each column. If you want to avoid aggregation,
-you can set it to "original", and no aggregation will be performed.}
+\item{t.level}{Time point to subset data to (if time.var provided). Default NULL uses all data.}
 
-\item{test.feature.level}{A character vector specifying one or more column names in the feature annotation
-matrix (feature.ann) of data.obj to use for testing or analytical purposes. This can be a taxonomic level
-like "Phylum" or "Genus" for microbiome data, a cell type identifier such as "CellType" for single-cell
-data, or a pathway level such as "Pathway_L1", "Pathway_L2", or "Pathway_L3" for KEGG data. Multiple columns
-can be provided, and data will be analyzed separately for each column. If you want to avoid aggregation,
-you can set it to "original", and no aggregation will be performed.}
+\item{alpha.obj}{A list containing pre-calculated alpha diversity indices.
+If NULL and alpha diversity is needed, it will be calculated automatically.
+Names should match the alpha.name parameter (e.g., "shannon", "simpson").
+See \code{\link{mStat_calculate_alpha_diversity}}.}
 
-\item{feature.dat.type}{The type of the feature data, which determines how the data is handled in downstream analyses.
-Should be one of:
-- "count": Raw count data, will be normalized by the function.
-- "proportion": Data that has already been normalized to proportions/percentages.
-- "other": Custom abundance data that has unknown scaling. No normalization applied.
-The choice affects preprocessing steps as well as plot axis labels.
-Default is "count", which assumes raw OTU table input.}
+\item{alpha.name}{Character vector specifying which alpha diversity indices
+to analyze. Options include:
+\itemize{
+  \item "shannon": Shannon diversity index
+  \item "simpson": Simpson diversity index
+  \item "observed_species": Observed species richness
+  \item "chao1": Chao1 richness estimator
+  \item "ace": ACE richness estimator
+  \item "pielou": Pielou's evenness
+}}
 
-\item{feature.analysis.rarafy}{Logical, indicating whether to rarefy the data at the feature-level for analysis.
-If TRUE, the feature data will be rarefied before analysis. Default is TRUE.}
+\item{depth}{Numeric value or NULL. Rarefaction depth for diversity
+calculations. If NULL, uses minimum sample depth or no rarefaction.}
 
-\item{feature.mt.method}{A character specifying the multiple testing method for features. This is
-specifically used for volcano plot visualization. The options are "fdr" for false discovery rate or
-"none" for no multiple testing correction. The default is "fdr".}
+\item{dist.obj}{A list of pre-calculated distance matrices. If NULL and
+distances are needed, they will be calculated automatically.
+List names should match dist.name (e.g., "BC" for Bray-Curtis).
+See \code{\link{mStat_calculate_beta_diversity}}.}
 
-\item{feature.sig.level}{A numeric value specifying the significance level cutoff for highlighting
-features in the volcano plot. The default is 0.1.}
+\item{dist.name}{Character vector specifying which distance metrics to use.
+Options depend on available methods:
+\itemize{
+  \item "BC": Bray-Curtis dissimilarity
+  \item "Jaccard": Jaccard distance
+  \item "UniFrac": Unweighted UniFrac (requires tree)
+  \item "GUniFrac": Generalized UniFrac (requires tree)
+  \item "WUniFrac": Weighted UniFrac (requires tree)
+  \item "JS": Jensen-Shannon divergence
+}}
 
-\item{feature.box.axis.transform}{A string indicating the transformation to apply to the data before plotting.
-Options are: "identity" for no transformation (default), "sqrt" for square root transformation, and "log" for
-logarithmic transformation. In the function `mStat_generate_report_single`, this parameter is only used in
-`generate_taxa_boxplot_single` and `generate_taxa_indiv_boxplot_single`. In other functions, it is also used
-solely to adjust boxplots related to feature functions.}
+\item{pc.obj}{Pre-calculated PCoA/PCA results from mStat_calculate_PC. If NULL, computed automatically.}
 
-\item{base.size}{Base font size for the generated plots.}
+\item{prev.filter}{Numeric value between 0 and 1. Features with prevalence
+(proportion of non-zero samples) below this threshold will be excluded
+from analysis. Default is usually 0 (no filtering).}
 
-\item{theme.choice}{Plot theme choice. Specifies the visual style of the plot. Can be one of the following pre-defined themes:
-  - "prism": Utilizes the ggprism::theme_prism() function from the ggprism package, offering a polished and visually appealing style.
-  - "classic": Applies theme_classic() from ggplot2, providing a clean and traditional look with minimal styling.
-  - "gray": Uses theme_gray() from ggplot2, which offers a simple and modern look with a light gray background.
-  - "bw": Employs theme_bw() from ggplot2, creating a classic black and white plot, ideal for formal publications and situations where color is best minimized.
-  - "light": Implements theme_light() from ggplot2, featuring a light theme with subtle grey lines and axes, suitable for a fresh, modern look.
-  - "dark": Uses theme_dark() from ggplot2, offering a dark background, ideal for presentations or situations where a high-contrast theme is desired.
-  - "minimal": Applies theme_minimal() from ggplot2, providing a minimalist theme with the least amount of background annotations and colors.
-  - "void": Employs theme_void() from ggplot2, creating a blank canvas with no axes, gridlines, or background, ideal for custom, creative plots.
-Each theme option adjusts various elements like background color, grid lines, and font styles to match the specified aesthetic.
-Default is "bw", offering a universally compatible black and white theme suitable for a wide range of applications.}
+\item{abund.filter}{Numeric value. Features with mean abundance below this
+threshold will be excluded from analysis. Default is usually 0 (no filtering).}
 
-\item{custom.theme}{A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. Custom themes are useful for creating publication-ready figures with specific formatting requirements.
+\item{bar.area.feature.no}{Number of top features to show in bar/area plots (default 40).}
 
-To use a custom theme, create a theme object with ggplot2::theme(), including any desired customizations. Common customizations for publication-ready figures might include adjusting text size for readability, altering line sizes for clarity, and repositioning or formatting the legend. For example:
+\item{heatmap.feature.no}{Number of top features to show in heatmaps (default 40).}
 
-```r
-my_theme <- ggplot2::theme(
-  axis.title = ggplot2::element_text(size=14, face="bold"),        # Bold axis titles with larger font
-  axis.text = ggplot2::element_text(size=12),                      # Slightly larger axis text
-  legend.position = "top",                                         # Move legend to the top
-  legend.background = ggplot2::element_rect(fill="lightgray"),     # Light gray background for legend
-  panel.background = ggplot2::element_rect(fill="white", colour="black"), # White panel background with black border
-  panel.grid.major = ggplot2::element_line(colour = "grey90"),     # Lighter color for major grid lines
-  panel.grid.minor = ggplot2::element_blank(),                     # Remove minor grid lines
-  plot.title = ggplot2::element_text(size=16, hjust=0.5)           # Centered plot title with larger font
-)
-```
+\item{dotplot.feature.no}{Number of top features to show in dotplots (default 40).}
 
-Then pass `my_theme` to `custom.theme`. If `custom.theme` is NULL (the default), the theme is determined by `theme.choice`. This flexibility allows for both easy theme selection for general use and detailed customization for specific presentation or publication needs.}
+\item{vis.feature.level}{Taxonomic level(s) for visualization.}
 
-\item{palette}{An optional parameter specifying the color palette to be used for the plot.
-It can be either a character string specifying the name of a predefined
-palette or a vector of color codes in a format accepted by ggplot2
-(e.g., hexadecimal color codes). Available predefined palettes include
-'npg', 'aaas', 'nejm', 'lancet', 'jama', 'jco', and 'ucscgb', inspired
-by various scientific publications and the `ggsci` package. If `palette`
-is not provided or an unrecognized palette name is given, a default color
-palette will be used. Ensure the number of colors in the palette is at
-least as large as the number of groups being plotted.}
+\item{test.feature.level}{Taxonomic level(s) for statistical testing.}
 
-\item{pdf}{Logical indicating whether to save plots as PDF files (default: TRUE).}
+\item{feature.dat.type}{Character string specifying the data type of
+feature.tab. One of:
+\itemize{
+  \item "count": Raw count data (will be normalized)
+  \item "proportion": Relative abundance data (should sum to 1 per sample)
+  \item "other": Pre-transformed data (no transformation applied)
+}}
 
-\item{file.ann}{Annotation text for the PDF file names.}
+\item{feature.analysis.rarafy}{Logical, whether to rarefy data for feature analysis (default TRUE).}
 
-\item{pdf.wid}{Width of the PDF plots.}
+\item{feature.mt.method}{Multiple testing correction: "fdr" or "none" (default "fdr").}
 
-\item{pdf.hei}{Height of the PDF plots.}
+\item{feature.sig.level}{Significance threshold for highlighting features (default 0.1).}
 
-\item{output.file}{A character string specifying the output file name for the report. The file extension
-(.pdf or .html) will be automatically added based on the output.format if not already present.
-This parameter also determines the title of the generated report. For example, if you set it to
-"path_to_your_location/report", the title of the report will be "report".}
+\item{feature.box.axis.transform}{Y-axis transformation for boxplots: "identity", "sqrt", or "log".}
 
-\item{output.format}{A character string specifying the desired output format of the report.
-Must be either "pdf" or "html". Default is c("pdf", "html"), which will use the first value ("pdf")
-if not explicitly specified. This parameter determines whether the report will be generated as a PDF
-or HTML document.}
+\item{base.size}{Numeric value specifying the base font size for plot text
+elements. Default is typically 16.}
+
+\item{theme.choice}{Character string specifying the ggplot2 theme to use.
+Options include:
+\itemize{
+  \item "bw": Black and white theme (theme_bw)
+  \item "classic": Classic theme (theme_classic)
+  \item "minimal": Minimal theme (theme_minimal)
+  \item "prism": GraphPad Prism-like theme
+  \item "nature": Nature journal style
+  \item "light": Light theme (theme_light)
+}
+Can also use a custom ggplot2 theme object via custom.theme.}
+
+\item{custom.theme}{A custom ggplot2 theme object to override theme.choice.
+Should be created using ggplot2::theme() or a complete theme function.}
+
+\item{palette}{Character vector of colors or a named palette for the plot.
+If NULL, uses default MicrobiomeStat color scheme. Can be:
+\itemize{
+  \item A vector of color codes (e.g., c("#E41A1C", "#377EB8"))
+  \item A palette name recognized by the plotting function
+}}
+
+\item{pdf}{Logical. If TRUE, saves the plot(s) to PDF file(s) in the
+current working directory. Default is TRUE.}
+
+\item{file.ann}{Character string for additional annotation to append to
+output filenames. Useful for distinguishing multiple outputs.}
+
+\item{pdf.wid}{Numeric value specifying the width of PDF output in inches.
+Default is typically 11.}
+
+\item{pdf.hei}{Numeric value specifying the height of PDF output in inches.
+Default is typically 8.5.}
+
+\item{output.file}{Output report filename (required).}
+
+\item{output.format}{Output format: "pdf" or "html".}
 
 \item{...}{Additional arguments passed to internal functions.}
 }
@@ -207,9 +197,8 @@ or HTML document.}
 A report file containing the microbial ecology analysis results.
 }
 \description{
-This function generates a comprehensive report for microbial ecology analysis,
-including alpha diversity, beta diversity, and taxonomic feature analyses. The function is designed
-to perform analysis on cross-sectional data, a single time point from longitudinal or paired data.
+Generates a comprehensive PDF/HTML report for cross-sectional microbiome analysis
+including alpha diversity, beta diversity, and taxonomic composition.
 }
 \examples{
 \dontrun{

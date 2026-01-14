@@ -19,6 +19,6 @@ route_function(category, plot_type, design, is_change = FALSE)
 Function name as character, or NULL if not found
 }
 \description{
-Determines the correct底层 function based on category, plot type, and study design.
+Determines the correct underlying function based on category, plot type, and study design.
 }
 \keyword{internal}

@@ -1,57 +1,22 @@
-#' Visualize the relative abundance of selected taxa or functions
+#' Visualize Feature Diversity
 #'
-#' This function generates various types of plots to visualize the relative abundance
-#' of selected taxa or functions in microbiome data. It supports different visualization
-#' schemes and plot types for both cross-sectional and longitudinal data.
+#' Generates various plots to visualize relative abundance of taxa or functions
+#' for both cross-sectional and longitudinal microbiome data.
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param group.var A string indicating the variable for group identifiers. Default is NULL.
-#' @param strata.var A string indicating the variable for strata identifiers. Default is NULL.
-#' @param subject.var Character string specifying the subject variable in meta.dat
-#' @param time.var Character string specifying the time variable in meta.dat
-#' @param time.point.plot Character vector specifying time points to plot
-#' @param is.plot.change Logical, whether to plot change from baseline.
-#'   This parameter is only effective when there are multiple time points
-#'   (i.e., length(time.point.plot) > 1). If there's only one time point,
-#'   this parameter has no effect.
-#' @param feature.change.func The method or function used to calculate the change in feature abundance between time points.
-#' The following options are supported:
+#' @inheritParams mStat_data_obj_doc
+#' @param time.point.plot Character vector of time points to plot.
+#' @param is.plot.change Logical, plot change from baseline (only for multiple time points).
+#' @param feature.change.func Method for calculating change: "relative change", "log fold change", or "absolute change".
+#' @param features.plot Character vector of specific feature IDs to plot (default NULL plots all).
+#' @param prop.to.lump Numeric, features below this mean proportion are lumped into "other".
+#' @param top.k.plot Integer, number of top features to plot.
+#' @param top.k.func Function to rank features for top.k selection.
+#' @param plot.other Logical, whether to include "other" category in plots.
+#' @param renormalize Logical, renormalize after removing "other" category.
+#' @param plot.scheme Character, "combined" or "individual" plot layout.
+#' @param plot.type Character, plot type: "barplot", "dotplot", "areaplot", "heatmap", "spaghettiplot", "boxplot", or "scatterplot".
 #'
-#' - "relative change": Computes the relative change as (time_2 - time_1) / (time_2 + time_1). If both values are zero, the result is zero.
-#' - "log fold change": Computes the log2 fold change between time points. Zero values are imputed as half the minimum nonzero value of the respective feature across BOTH time points combined. The same pseudocount is used at both time points to ensure unbiased log fold change calculations.
-#' - "absolute change": Computes the absolute difference between time points.
-#' - A custom function: The provided function should take two numeric vectors as input (values at time 1 and time 2) and return a numeric vector of differences. Users should ensure that their function handles zero values appropriately.
-#'
-#' If an unrecognized value or no value is provided for `feature.change.func`, the default behavior will be to compute the absolute difference between time points.
-#' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
-#' to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
-#' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
-#' column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
-#' for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
-#' is also NULL.
-#' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
-#' Should be one of:
-#' - "count": Raw count data, will be normalized by the function.
-#' - "proportion": Data that has already been normalized to proportions/percentages.
-#' - "other": Custom abundance data that has unknown scaling. No normalization applied.
-#' The choice affects preprocessing steps as well as plot axis labels.
-#' Default is "count", which assumes raw count input.
-#' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
-#' Default is NULL.
-#' @param prop.to.lump Numeric, features with mean proportion less than this will be lumped into "other"
-#' @param top.k.plot Integer, plot top k features based on some criterion
-#' @param top.k.func Function to order the features
-#' @param plot.other Logical, whether to plot the "other" category
-#' @param renormalize Logical, whether to renormalize data after removing "other" category
-#' @param plot.scheme Character string specifying the plot scheme, one of c("combined", "individual")
-#' @param plot.type Character string specifying the plot type, one of c("barplot", "dotplot", "areaplot", "heatmap", "spaghettiplot", "boxplot", "scatterplot")
-#'
-#' @return A list of ggplot objects
-#'
-#' @details This function provides a flexible framework for visualizing microbiome data.
-#' It can handle both cross-sectional and longitudinal data, and offers various plot types
-#' including bar plots, dot plots, area plots, heatmaps, spaghetti plots, box plots, and scatter plots.
-#' The function can also visualize changes over time and supports different grouping and stratification options.
+#' @return A list of ggplot objects.
 #' @examples
 #' \donttest{
 #' data(ecam.obj)

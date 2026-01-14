@@ -1,94 +1,18 @@
-#' @title Generate Taxa Stack Dotplot Pair
+#' @title Generate Taxa Change Dotplot for Paired Data
 #'
-#' @description This function generates a stacked dotplot of specified taxa level with paired samples. The data used in this
-#' visualization will be first filtered based on prevalence and abundance thresholds. The plot can either be displayed
-#' interactively or saved as a PDF file.
+#' @description Creates stacked dotplots showing abundance and prevalence changes between
+#' paired time points. Point size represents baseline values, color represents change magnitude.
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list).
-#' @param subject.var A character string defining subject variable in meta_tab
-#' @param time.var A character string defining time variable in meta_tab
-#' @param group.var A character string defining group variable in meta_tab used for sorting and facetting
-#' @param strata.var (Optional) A character string defining strata variable in meta_tab used for sorting and facetting
-#' @param change.base A numeric value setting base for the change (usually 1)
-#' @param feature.change.func A method or function specifying how to compute the change in feature abundance or prevalence between two time points.
-#' The following options are available:
+#' @inheritParams mStat_data_obj_doc
+#' @inheritParams mStat_plot_params_doc
+#' @param change.base Character or numeric specifying the baseline time point.
+#' @param feature.change.func Method for calculating change: "relative change",
+#'   "log fold change", "absolute change", or a custom function.
+#' @param features.plot Character vector of specific feature IDs to plot.
+#' @param top.k.plot Integer specifying number of top features to plot.
+#' @param top.k.func Function for selecting top features (e.g., "mean", "sd").
 #'
-#' - A custom function: If you provide a user-defined function, it should take two numeric arguments corresponding to the values at the two time points and return the computed change. This function can be applied to compute changes both in abundance (`time1_mean_abundance` and `time2_mean_abundance`) and prevalence (`time1_prevalence` and `time2_prevalence`).
-#'
-#' - "log fold change": Computes the log2 fold change between the two time points. To handle zeros, a small offset (0.00001) is added before taking the logarithm. This method can be applied for both abundance and prevalence changes.
-#'
-#' - "relative change": Computes the relative change as `(time2_value - time1_value) / (time2_value + time1_value)`. If both time points have a value of 0, the change is defined as 0. This method can be applied for both abundance and prevalence changes.
-#'
-#' - "absolute change": Computes the difference between the values at the two time points. This method can be applied for both abundance and prevalence changes.
-#'
-#' - Any other value (or if the parameter is omitted): By default, the function will compute the absolute change as described above, regardless of whether it is abundance or prevalence data.
-#' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
-#' to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
-#' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
-#' column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
-#' for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
-#' is also NULL.
-#' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
-#' Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.
-#' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
-#' Should be one of:
-#' - "count": Raw count data, will be normalized by the function.
-#' - "proportion": Data that has already been normalized to proportions/percentages.
-#' - "other": Custom abundance data that has unknown scaling. No normalization applied.
-#' The choice affects preprocessing steps as well as plot axis labels.
-#' Default is "count", which assumes raw count input.
-#' @param top.k.plot Integer specifying number of top abundant features to plot, when `features.plot` is NULL.
-#' Default is NULL, in which case all features passing filters will be plotted.
-#' @param top.k.func Function to use for selecting top abundant features, when `features.plot` is NULL.
-#' Options include inbuilt functions like "mean", "sd", or a custom function. Default is NULL, in which
-#' case features will be selected by mean abundance.
-#' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
-#' taxa before analysis. Taxa with prevalence below this value will be removed.
-#' Prevalence is calculated as the proportion of samples where the taxon is present.
-#' Default 0 removes no taxa by prevalence filtering.
-#' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering
-#' taxa before analysis. Taxa with mean abundance below this value will be removed.
-#' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
-#' Default 0 removes no taxa by abundance filtering.
-#' @param base.size Base font size for the generated plots.
-#' @param theme.choice
-#' Plot theme choice. Specifies the visual style of the plot. Can be one of the following pre-defined themes:
-#'   - "prism": Utilizes the ggprism::theme_prism() function from the ggprism package, offering a polished and visually appealing style.
-#'   - "classic": Applies theme_classic() from ggplot2, providing a clean and traditional look with minimal styling.
-#'   - "gray": Uses theme_gray() from ggplot2, which offers a simple and modern look with a light gray background.
-#'   - "bw": Employs theme_bw() from ggplot2, creating a classic black and white plot, ideal for formal publications and situations where color is best minimized.
-#'   - "light": Implements theme_light() from ggplot2, featuring a light theme with subtle grey lines and axes, suitable for a fresh, modern look.
-#'   - "dark": Uses theme_dark() from ggplot2, offering a dark background, ideal for presentations or situations where a high-contrast theme is desired.
-#'   - "minimal": Applies theme_minimal() from ggplot2, providing a minimalist theme with the least amount of background annotations and colors.
-#'   - "void": Employs theme_void() from ggplot2, creating a blank canvas with no axes, gridlines, or background, ideal for custom, creative plots.
-#' Each theme option adjusts various elements like background color, grid lines, and font styles to match the specified aesthetic.
-#' Default is "bw", offering a universally compatible black and white theme suitable for a wide range of applications.
-#' @param custom.theme
-#' A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. Custom themes are useful for creating publication-ready figures with specific formatting requirements.
-#'
-#' To use a custom theme, create a theme object with ggplot2::theme(), including any desired customizations. Common customizations for publication-ready figures might include adjusting text size for readability, altering line sizes for clarity, and repositioning or formatting the legend. For example:
-#'
-#' ```r
-#' my_theme <- ggplot2::theme(
-#'   axis.title = ggplot2::element_text(size=14, face="bold"),        # Bold axis titles with larger font
-#'   axis.text = ggplot2::element_text(size=12),                      # Slightly larger axis text
-#'   legend.position = "top",                                         # Move legend to the top
-#'   legend.background = ggplot2::element_rect(fill="lightgray"),     # Light gray background for legend
-#'   panel.background = ggplot2::element_rect(fill="white", colour="black"), # White panel background with black border
-#'   panel.grid.major = ggplot2::element_line(colour = "grey90"),     # Lighter color for major grid lines
-#'   panel.grid.minor = ggplot2::element_blank(),                     # Remove minor grid lines
-#'   plot.title = ggplot2::element_text(size=16, hjust=0.5)           # Centered plot title with larger font
-#' )
-#' ```
-#'
-#' Then pass `my_theme` to `custom.theme`. If `custom.theme` is NULL (the default), the theme is determined by `theme.choice`. This flexibility allows for both easy theme selection for general use and detailed customization for specific presentation or publication needs.
-#' @param palette Color palette used for the plots.
-#' @param pdf If TRUE, save the plot as a PDF file (default: TRUE)
-#' @param file.ann (Optional) A character string specifying a file annotation to include in the generated PDF file's name
-#' @param pdf.wid Width of the PDF plots.
-#' @param pdf.hei Height of the PDF plots.
-#' @param ... Additional parameters to be passed
-#' @return If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the final ggplot object. If `pdf` is set to FALSE, the function will return the final ggplot object without creating a PDF file.
+#' @return A list of ggplot dotplot objects.
 #' @examples
 #' \dontrun{
 #'

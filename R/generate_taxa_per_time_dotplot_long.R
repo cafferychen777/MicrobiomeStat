@@ -1,61 +1,18 @@
-#' Longitudinal Taxa Dot Plot for Microbiome Data
+#' Longitudinal Taxa Dot Plot
 #'
-#' This function generates dot plots for visualizing the results of longitudinal taxa tests in microbiome data. It focuses on displaying how the abundance and significance of microbial taxa change over time across different groups.
+#' Generates dot plots visualizing longitudinal taxa test results, showing abundance
+#' and significance changes over time across groups.
 #'
-#' @param data.obj A MicrobiomeStat data object containing microbiome data and metadata.
-#' @param test.list A list of test results from `generate_taxa_per_time_test_long` function, representing the statistical analysis of taxa over time.
-#' @param group.var A string specifying the group variable in meta.dat for between-group comparisons in the dot plot.
-#' @param time.var A string representing the time variable in the meta.dat. This variable is used for x-axis in the dot plot.
-#' @param t0.level Optional; a baseline time level for time series analysis.
-#' @param ts.levels Optional; time series levels for analysis.
-#' @param feature.level A string or vector of strings indicating the taxonomic level(s) for analysis (e.g., "Phylum", "Class") and for displaying in the dot plot.
-#' @param feature.sig.level The significance level cutoff for highlighting taxa
-#' @param feature.mt.method Multiple testing correction method, "fdr" or "none"
-#' @param filter_significant Boolean; whether to filter and display only significant features. Default is TRUE.
-#' @param features.plot Optional; a vector of feature names to be plotted. If provided, overrides the significant feature filter.
-#' @param base.size Numeric; base font size for text elements in the plot. Default is 16.
-#' @param theme.choice
-#' Plot theme choice. Specifies the visual style of the plot. Can be one of the following pre-defined themes:
-#'   - "prism": Utilizes the ggprism::theme_prism() function from the ggprism package, offering a polished and visually appealing style.
-#'   - "classic": Applies theme_classic() from ggplot2, providing a clean and traditional look with minimal styling.
-#'   - "gray": Uses theme_gray() from ggplot2, which offers a simple and modern look with a light gray background.
-#'   - "bw": Employs theme_bw() from ggplot2, creating a classic black and white plot, ideal for formal publications and situations where color is best minimized.
-#'   - "light": Implements theme_light() from ggplot2, featuring a light theme with subtle grey lines and axes, suitable for a fresh, modern look.
-#'   - "dark": Uses theme_dark() from ggplot2, offering a dark background, ideal for presentations or situations where a high-contrast theme is desired.
-#'   - "minimal": Applies theme_minimal() from ggplot2, providing a minimalist theme with the least amount of background annotations and colors.
-#'   - "void": Employs theme_void() from ggplot2, creating a blank canvas with no axes, gridlines, or background, ideal for custom, creative plots.
-#' Each theme option adjusts various elements like background color, grid lines, and font styles to match the specified aesthetic.
-#' Default is "bw", offering a universally compatible black and white theme suitable for a wide range of applications.
-#' @param custom.theme
-#' A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. Custom themes are useful for creating publication-ready figures with specific formatting requirements.
+#' @inheritParams mStat_data_obj_doc
+#' @inheritParams mStat_plot_params_doc
 #'
-#' To use a custom theme, create a theme object with ggplot2::theme(), including any desired customizations. Common customizations for publication-ready figures might include adjusting text size for readability, altering line sizes for clarity, and repositioning or formatting the legend. For example:
+#' @param test.list List of test results from generate_taxa_per_time_test_long.
+#' @param feature.sig.level Numeric; significance level cutoff for highlighting taxa.
+#' @param feature.mt.method Character; multiple testing method ("fdr" or "none").
+#' @param filter_significant Logical; whether to show only significant features. Default TRUE.
+#' @param features.plot Character vector of features to plot. Overrides filter_significant.
 #'
-#' ```r
-#' my_theme <- ggplot2::theme(
-#'   axis.title = ggplot2::element_text(size=14, face="bold"),        # Bold axis titles with larger font
-#'   axis.text = ggplot2::element_text(size=12),                      # Slightly larger axis text
-#'   legend.position = "top",                                         # Move legend to the top
-#'   legend.background = ggplot2::element_rect(fill="lightgray"),     # Light gray background for legend
-#'   panel.background = ggplot2::element_rect(fill="white", colour="black"), # White panel background with black border
-#'   panel.grid.major = ggplot2::element_line(colour = "grey90"),     # Lighter color for major grid lines
-#'   panel.grid.minor = ggplot2::element_blank(),                     # Remove minor grid lines
-#'   plot.title = ggplot2::element_text(size=16, hjust=0.5)           # Centered plot title with larger font
-#' )
-#' ```
-#'
-#' Then pass `my_theme` to `custom.theme`. If `custom.theme` is NULL (the default), the theme is determined by `theme.choice`. This flexibility allows for both easy theme selection for general use and detailed customization for specific presentation or publication needs.
-#' @param palette Optional; a vector of colors for the gradient scale. If provided, it overrides the default color scale.
-#' @param pdf Boolean; whether to save the plot as a PDF file.
-#' @param pdf.wid Numeric; width of the saved PDF file.
-#' @param pdf.hei Numeric; height of the saved PDF file.
-#' @details
-#' The function uses ggplot2 to create dot plots, with options for customizing themes and aesthetics. It visualizes the significance and magnitude of changes in microbial taxa, indicated by color and size of the dots. The function allows for detailed customization of plot features, including base font size and theme choice.
-#'
-#' The function prepares data by merging and transforming the results from `generate_taxa_per_time_test_long` to fit the plotting structure. It handles the display of statistical significance using color coding and sizes dots based on the coefficient value from the statistical test.
-#'
-#' @return
-#' A list of ggplot objects, each representing a dot plot for a specific taxonomic level and group. The plots can be further customized or directly rendered.
+#' @return A list of ggplot objects for each taxonomic level and group.
 #'
 #' @examples
 #' \dontrun{

@@ -1,42 +1,9 @@
-#' Generate Beta Change Tests for Longitudinal Data
+#' Beta Diversity Change Tests Per Time Point
 #'
-#' This function is designed to perform beta change tests on longitudinal microbiome data.
-#' It integrates multiple components of the MicrobiomeStat package to process and analyze
-#' the data, focusing on beta diversity changes over time within subjects.
+#' Performs beta diversity change tests at each time point relative to baseline.
 #'
-#' @param data.obj A list object formatted specifically for MicrobiomeStat, potentially
-#'                 including components like feature.tab (matrix), feature.ann (matrix),
-#'                 meta.dat (data.frame), tree, and feature.agg.list (list). This object can
-#'                 be derived from various formats using MicrobiomeStat functions such as
-#'                 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj',
-#'                 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj',
-#'                 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj',
-#'                 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'.
-#' @param dist.obj A distance matrix between samples, typically generated using
-#'                 \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}}. If NULL,
-#'                 the function will compute beta diversity from \code{data.obj}.
-#' @param time.var A character string identifying the column in metadata that contains
-#'                 time information. This column should list time points for each sample,
-#'                 necessary for ordering and linking samples over time for the same subject.
-#' @param t0.level A baseline time point for longitudinal analysis, specified as a character
-#'                 or numeric value, e.g., "week_0" or 0.
-#' @param ts.levels A vector of character strings indicating follow-up time points, such as
-#'                  c("week_4", "week_8").
-#' @param subject.var The name of the column in metadata containing the subject IDs.
-#'                    This should uniquely identify each subject in the study. Required
-#'                    to identify samples that belong to the same subject.
-#' @param group.var A character string naming the column in metadata that contains the
-#'                  grouping variable, which can be used for color mapping in plots.
-#'                  Optional; can be NULL.
-#' @param adj.vars A vector of character strings naming columns in metadata to include as
-#'                 covariates for adjusting the distance matrix before ordination.
-#'                 Can be empty or NULL if no adjustment is needed.
-#' @param dist.name A vector of character strings specifying which beta diversity indices to
-#'                  calculate. Supported indices include "BC" (Bray-Curtis), "Jaccard",
-#'                  "UniFrac" (unweighted), "GUniFrac" (generalized UniFrac), "WUniFrac"
-#'                  (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a specified
-#'                  index is not present in dist.obj, it will be computed internally.
-#'                  An error is returned if an unsupported index is specified.
+#' @inheritParams mStat_data_obj_doc
+#' @inheritParams mStat_test_params_doc
 #' @param ... Additional arguments passed to underlying functions.
 #'
 #' @return A list of test results, structured to facilitate further analysis and visualization.

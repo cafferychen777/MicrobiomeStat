@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_beta_volatility_test_long.R
 \name{generate_beta_volatility_test_long}
 \alias{generate_beta_volatility_test_long}
-\title{Generate Beta Diversity Volatility Test for Longitudinal Data}
+\title{Beta Diversity Volatility Test for Longitudinal Data}
 \usage{
 generate_beta_volatility_test_long(
   data.obj,
@@ -16,26 +16,57 @@ generate_beta_volatility_test_long(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
+\itemize{
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
+}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{dist.obj}{Distance matrix between samples, usually calculated using
-\code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
-If NULL, beta diversity will be automatically computed from \code{data.obj}
-using \code{mStat_calculate_beta_diversity}.}
+\item{dist.obj}{A list of pre-calculated distance matrices. If NULL and
+distances are needed, they will be calculated automatically.
+List names should match dist.name (e.g., "BC" for Bray-Curtis).
+See \code{\link{mStat_calculate_beta_diversity}}.}
 
-\item{subject.var}{A string indicating the column name in the metadata table that represents the subject.}
+\item{subject.var}{Character string specifying the column name in meta.dat
+that uniquely identifies each subject or sample unit. Required for
+longitudinal and paired designs to track repeated measurements.}
 
-\item{time.var}{A string indicating the column name in the metadata table that represents the time.
-Ensure that it is coded as numeric.}
+\item{time.var}{Character string specifying the column name in meta.dat
+containing the time variable. Required for longitudinal and paired analyses.
+Should be a factor or character with meaningful time point labels.}
 
-\item{group.var}{(Optional) A string indicating the column name in the metadata table that represents the grouping factor.}
+\item{group.var}{Character string specifying the column name in meta.dat
+containing the grouping variable (e.g., treatment, condition, phenotype).
+Used for between-group comparisons.}
 
-\item{adj.vars}{(Optional) A character vector specifying the column names in the metadata table used for adjustment.}
+\item{adj.vars}{Character vector specifying column names in meta.dat to be
+used as covariates for adjustment in statistical models. These variables
+will be included as fixed effects.}
 
-\item{dist.name}{A character vector specifying which beta diversity indices to calculate.
-Default is "BC" (Bray-Curtis).}
+\item{dist.name}{Character vector specifying which distance metrics to use.
+Options depend on available methods:
+\itemize{
+  \item "BC": Bray-Curtis dissimilarity
+  \item "Jaccard": Jaccard distance
+  \item "UniFrac": Unweighted UniFrac (requires tree)
+  \item "GUniFrac": Generalized UniFrac (requires tree)
+  \item "WUniFrac": Weighted UniFrac (requires tree)
+  \item "JS": Jensen-Shannon divergence
+}}
 
-\item{...}{(Optional) Additional arguments to pass to internal functions.}
+\item{...}{Additional arguments passed to internal functions.}
 }
 \value{
 A list containing the result of the volatility test for each specified beta diversity index.
@@ -43,8 +74,8 @@ A list containing the result of the volatility test for each specified beta dive
   for each distance, and an ANOVA table if the group variable is multi-categorical.
 }
 \description{
-This function computes a volatility test for longitudinal data on beta diversity.
-It tests the association between beta diversity volatility and the specified group variable.
+Tests association between beta diversity volatility and group variable
+for longitudinal microbiome data.
 }
 \details{
 The function starts by validating the input data, processing the time variable, and calculating the beta diversity if necessary.

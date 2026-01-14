@@ -32,8 +32,8 @@ linda2(
 )
 }
 \arguments{
-\item{feature.dat}{A data frame or matrix representing observed OTU table. Rows represent taxa; columns represent samples.
-NAs are not expected in OTU tables so are not allowed in function linda.}
+\item{feature.dat}{A data frame or matrix representing observed feature table (e.g., OTU/ASV table). Rows represent taxa; columns represent samples.
+NAs are not expected in feature tables so are not allowed in function linda.}
 
 \item{meta.dat}{A data frame of covariates. The rows of meta.dat correspond to the columns of feature.dat.
 NAs are allowed. If there are NAs, the corresponding samples will be removed in the analysis.}
@@ -53,15 +53,15 @@ If "other", all filters (max.abund.filter, mean.abund.filter, and prev.filter) w
 
 \item{max.abund.filter}{A real value; taxa with max abundance less than max.abund.filter are excluded. Default is 0 (no taxa will be excluded).}
 
-\item{is.winsor}{Boolean. If TRUE (default), the Winsorization process will be conducted for the OTU table.}
+\item{is.winsor}{Boolean. If TRUE (default), the Winsorization process will be conducted for the feature table.}
 
-\item{outlier.pct}{A real value between 0 and 1; Winsorization cutoff (percentile) for the OTU table, e.g., 0.03. Default is NULL. If NULL, Winsorization process will not be conducted.}
+\item{outlier.pct}{A real value between 0 and 1; Winsorization cutoff (percentile) for the feature table, e.g., 0.03. Default is NULL. If NULL, Winsorization process will not be conducted.}
 
 \item{adaptive}{Boolean. Default is TRUE. If TRUE, the parameter imputation will be treated as FALSE no matter what it is actually set to be. Then the significant correlations between the sequencing depth and explanatory variables will be tested via the linear regression between the log of the sequencing depths and formula. If any p-value is smaller than or equal to corr.cut, the imputation approach will be used; otherwise, the pseudo-count approach will be used.}
 
-\item{zero.handling}{Character. Specifies the method to handle zeros in the OTU table. Options are "pseudo-count" or "imputation" (default is "pseudo-count"). If "imputation", zeros in the OTU table will be imputed using the formula in the referenced paper. If "pseudo-count", a small constant (pseudo.cnt) will be added to each value in the OTU table.}
+\item{zero.handling}{Character. Specifies the method to handle zeros in the feature table. Options are "pseudo-count" or "imputation" (default is "pseudo-count"). If "imputation", zeros in the feature table will be imputed using the formula in the referenced paper. If "pseudo-count", a small constant (pseudo.cnt) will be added to each value in the feature table.}
 
-\item{pseudo.cnt}{A positive real value. Default is 0.5. If zero.handling is set to "pseudo-count", this constant will be added to each value in the OTU table.}
+\item{pseudo.cnt}{A positive real value. Default is 0.5. If zero.handling is set to "pseudo-count", this constant will be added to each value in the feature table.}
 
 \item{corr.cut}{A real value between 0 and 1; significance level of correlations between the sequencing depth and explanatory variables. Default is 0.1.}
 
@@ -126,8 +126,8 @@ the estimated bias of the regression coefficients due to the compositional effec
 \item{output}{a list of data frames with columns 'baseMean', 'log2FoldChange', 'lfcSE', 'stat', 'pvalue', 'padj', 'reject',
  'df'; \code{names(output)} is equal to \code{variables}; the rows of the data frame corresponds to taxa.
  Note: if there are taxa being excluded due to \code{prev.cut}, the number of the rows of the output data frame
- will be not equal to the number of the rows of \code{otu.tab}. Taxa are identified by the rownames.
- If the rownames of \code{otu.tab} are NULL, then \code{1 : nrow(otu.tab)} is set as the rownames of \code{otu.tab}.
+ will be not equal to the number of the rows of \code{feature.dat}. Taxa are identified by the rownames.
+ If the rownames of \code{feature.dat} are NULL, then \code{1 : nrow(feature.dat)} is set as the rownames of \code{feature.dat}.
  \itemize{
    \item baseMean: 2 to the power of the intercept coefficients (normalized by one million)
    \item log2FoldChange: bias-corrected coefficients
@@ -140,11 +140,11 @@ the estimated bias of the regression coefficients due to the compositional effec
    fixed-effect models; estimates from R package \code{lmerTest} with Satterthwaite method of approximation for mixed-effect models.
  }
 }
-\item{otu.tab.use}{the OTU table used in the abundance analysis (the \code{otu.tab} after the preprocessing:
+\item{feature.dat.use}{the feature table used in the abundance analysis (the \code{feature.dat} after the preprocessing:
 samples that have NAs in the variables in \code{formula} or have less than \code{lib.cut} read counts are removed;
 taxa with prevalence less than \code{prev.cut} are removed and data is winsorized if \code{!is.null(winsor.quan)};
 and zeros are treated, i.e., imputed or pseudo-count added).}
-\item{meta.use}{the meta data used in the abundance analysis (only variables in \code{formula} are stored; samples that have NAs
+\item{meta.dat.use}{the meta data used in the abundance analysis (only variables in \code{formula} are stored; samples that have NAs
 or have less than \code{lib.cut} read counts are removed; numerical variables are scaled).}
 }
 \description{

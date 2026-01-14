@@ -1,80 +1,20 @@
-#' @title Generate Taxa Change Heatmap Pair
+#' @title Generate Taxa Change Heatmap for Paired Data
 #'
-#' @description This function generates a heatmap showing the pairwise changes in relative abundances of taxa between different time points.
-#' The data used in this visualization will be first filtered based on prevalence and abundance thresholds.
-#' The plot can either be displayed interactively or saved as a PDF file.
+#' @description Creates heatmaps showing taxa abundance changes between paired time points.
+#' Generates both individual and group-averaged views using pheatmap.
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param subject.var A character string specifying the subject variable in the metadata.
-#' @param time.var A character string specifying the time variable in the metadata.
-#' @param group.var A character string specifying the grouping variable in the metadata. Default is NULL.
-#' @param strata.var A character string specifying the stratification variable in the metadata. Default is NULL.
-#' @param change.base A numeric value specifying the baseline time point for computing change. This should match one of the time points in the time variable. Default is 1, which assumes the first time point is the baseline.
-#' @param feature.change.func Specifies the method or function to compute the change between two time points.
-#' The following options are available:
+#' @inheritParams mStat_data_obj_doc
+#' @inheritParams mStat_plot_params_doc
+#' @param change.base Character or numeric specifying the baseline time point.
+#' @param feature.change.func Method for calculating change: "relative change",
+#'   "log fold change", "absolute change", or a custom function.
+#' @param features.plot Character vector of specific feature IDs to plot.
+#' @param top.k.plot Integer specifying number of top features to plot.
+#' @param top.k.func Function for selecting top features (e.g., "mean", "sd").
+#' @param cluster.rows Logical, whether to cluster rows. Default TRUE.
+#' @param cluster.cols Logical, whether to cluster columns. Default NULL.
 #'
-#' - A custom function: If you provide a user-defined function, it should take two numeric arguments corresponding to the values at the two time points (`value_time_1` and `value_time_2`) and return the computed change. This custom function will be applied directly.
-#'
-#' - "log fold change": Computes the log2 fold change between the two time points. For zero values, imputation is performed using half of the minimum nonzero value for each feature across BOTH time points combined. The same pseudocount is used at both time points to ensure unbiased log fold change calculations. This prevents spurious changes for features with zero abundance at both time points.
-#'
-#' - "relative change": Computes the relative change as `(value_time_2 - value_time_1) / (value_time_2 + value_time_1)`. If both time points have a value of 0, the change is defined as 0.
-#'
-#' - "absolute change": Computes the difference between the values at the two time points.
-#'
-#' - Any other value (or if the parameter is omitted): By default, the function computes the absolute change as described above.
-#' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
-#' to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
-#' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
-#' column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
-#' for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
-#' is also NULL.
-#' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
-#' Should be one of:
-#' - "count": Raw count data, will be normalized by the function.
-#' - "proportion": Data that has already been normalized to proportions/percentages.
-#' - "other": Custom abundance data that has unknown scaling. No normalization applied.
-#' The choice affects preprocessing steps as well as plot axis labels.
-#' Default is "count", which assumes raw count input.
-#' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
-#' Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.
-#' @param top.k.plot Integer specifying number of top k features to plot, when `features.plot` is NULL.
-#' Default is NULL, which case all features passing filters will be plotted.
-#' @param top.k.func Function to use for selecting top k features, when `features.plot` is NULL.
-#' Options include inbuilt functions like "mean", "sd", or a custom function. Default is NULL, in which
-#' case features will be selected by abundance.
-#' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
-#' taxa before analysis. Taxa with prevalence below this value will be removed.
-#' Prevalence is calculated as the proportion of samples where the taxon is present.
-#' Default 0 removes no taxa by prevalence filtering.
-#' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering
-#' taxa before analysis. Taxa with mean abundance below this value will be removed.
-#' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
-#' Default 0 removes no taxa by abundance filtering.
-#' @param base.size Base font size for the generated plots.
-#' @param palette Specifies the color palette to be used for annotating groups and strata in the heatmap.
-#'                The parameter can be provided in several ways:
-#'                - As a character string denoting a predefined palette name.
-#'                  Available predefined palettes include 'npg', 'aaas', 'nejm',
-#'                  'lancet', 'jama', 'jco', and 'ucscgb', sourced from the `mStat_get_palette` function.
-#'                - As a vector of color codes in a format accepted by ggplot2
-#'                  (e.g., hexadecimal color codes).
-#'                If `palette` is NULL or an unrecognized string, a default color palette will be used.
-#'                The function assigns colors from this palette to the unique levels of
-#'                `group.var` and, if provided, `strata.var`. When both `group.var` and
-#'                `strata.var` are present, `group.var` levels are colored using the
-#'                beginning of the palette, while `strata.var` levels are colored using
-#'                the reversed palette, ensuring a distinct color representation for each.
-#'                If only `group.var` is provided, its levels are assigned colors from the
-#'                palette sequentially. If neither `group.var` nor `strata.var` is provided,
-#'                no annotation colors are applied.
-#' @param cluster.rows A logical variable indicating if rows should be clustered. Default is TRUE.
-#' @param cluster.cols A logical variable indicating if columns should be clustered. Default is NULL.
-#' @param pdf If TRUE, save the plot as a PDF file (default: TRUE)
-#' @param file.ann (Optional) A character string specifying a file annotation to include in the generated PDF file's name.
-#' @param pdf.wid Width of the PDF plots.
-#' @param pdf.hei Height of the PDF plots.
-#' @param ... Additional parameters to be passed to pheatmap function
-#' @return If the `pdf` parameter is set to TRUE, the function will save a PDF file and return the pheatmap::pheatmap plot. If `pdf` is set to FALSE, the function will return the pheatmap plot without creating a PDF file.
+#' @return A list containing individual and average heatmap objects.
 #' @examples
 #' \dontrun{
 #' # Load required libraries and example data

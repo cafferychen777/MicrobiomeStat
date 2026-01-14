@@ -2,28 +2,38 @@
 % Please edit documentation in R/mStat_subset_data.R
 \name{mStat_subset_data}
 \alias{mStat_subset_data}
-\title{Subset Data Object by Sample IDs in MicrobiomeStat}
+\title{Subset Data Object by Sample IDs}
 \usage{
 mStat_subset_data(data.obj, samIDs = NULL, condition = NULL)
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-table (`feature.tab`), feature names, a full feature name list, and a feature aggregation list
-(`feature.agg.list`).}
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
+\itemize{
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
+}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{samIDs}{A vector of sample IDs to subset by. This can be a logical vector, a numeric
-vector, or a character vector of sample IDs.}
+\item{samIDs}{Character/numeric/logical vector of sample IDs to keep.}
 
-\item{condition}{A logical expression string describing rows to keep. This allows subsetting samples based on metadata, similarly to dplyr::filter. Only one of 'samIDs' and 'condition' should be provided.}
+\item{condition}{Character string with logical expression for filtering (e.g., "group == 'A'").}
 }
 \value{
-A list that is the modified version of the input data object. It includes the subsetted
-metadata, feature table, feature names, full feature name list, and feature aggregation list.
+A MicrobiomeStat data object with subsetted samples.
 }
 \description{
-This function is part of the MicrobiomeStat package. It subsets a multi-omics data object by
-a specified set of sample IDs. It checks for the presence of various data components in the
-data object and subsets them if they exist.
+Subsets a MicrobiomeStat data object by sample IDs or metadata condition.
 }
 \details{
 The function first checks if samIDs is logical or numeric, and if so, converts it to a

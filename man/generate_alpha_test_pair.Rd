@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_alpha_test_pair.R
 \name{generate_alpha_test_pair}
 \alias{generate_alpha_test_pair}
-\title{Alpha Diversity Association Test}
+\title{Alpha Diversity Association Test (Paired)}
 \usage{
 generate_alpha_test_pair(
   data.obj,
@@ -17,51 +17,69 @@ generate_alpha_test_pair(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
+\itemize{
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
+}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{alpha.obj}{An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.}
+\item{alpha.obj}{A list containing pre-calculated alpha diversity indices.
+If NULL and alpha diversity is needed, it will be calculated automatically.
+Names should match the alpha.name parameter (e.g., "shannon", "simpson").
+See \code{\link{mStat_calculate_alpha_diversity}}.}
 
-\item{alpha.name}{A character vector with the names of alpha diversity
-indices to compute. Options include: "shannon", "simpson",
-"observed_species", "chao1", "ace", "pielou", and "faith_pd".}
+\item{alpha.name}{Character vector specifying which alpha diversity indices
+to analyze. Options include:
+\itemize{
+  \item "shannon": Shannon diversity index
+  \item "simpson": Simpson diversity index
+  \item "observed_species": Observed species richness
+  \item "chao1": Chao1 richness estimator
+  \item "ace": ACE richness estimator
+  \item "pielou": Pielou's evenness
+}}
 
-\item{depth}{An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
-If NULL, no rarefaction is performed.}
+\item{depth}{Numeric value or NULL. Rarefaction depth for diversity
+calculations. If NULL, uses minimum sample depth or no rarefaction.}
 
-\item{subject.var}{A string specifying the subject variable column in the metadata.}
+\item{subject.var}{Character string specifying the column name in meta.dat
+that uniquely identifies each subject or sample unit. Required for
+longitudinal and paired designs to track repeated measurements.}
 
-\item{time.var}{A string representing the time variable's name in the
-metadata. The default is NULL.}
+\item{time.var}{Character string specifying the column name in meta.dat
+containing the time variable. Required for longitudinal and paired analyses.
+Should be a factor or character with meaningful time point labels.}
 
-\item{group.var}{A string representing the group variable's name in the
-metadata.}
+\item{group.var}{Character string specifying the column name in meta.dat
+containing the grouping variable (e.g., treatment, condition, phenotype).
+Used for between-group comparisons.}
 
-\item{adj.vars}{A character vector with the names of adjustment variables in
-the metadata.}
+\item{adj.vars}{Character vector specifying column names in meta.dat to be
+used as covariates for adjustment in statistical models. These variables
+will be included as fixed effects.}
 
 \item{change.base}{A value indicating the base level for the time variable.
 If provided, the specified level will be used as the reference category in
-the model. Default is NULL, which means the first level of the factor will
-be used.}
+the model. Default is NULL (first level used).}
 }
 \value{
-A list containing the association tests for each alpha diversity
-index.
+A list containing the association tests for each alpha diversity index.
 }
 \description{
-This function implements an association test for multiple alpha diversity
-measures. The test is based on a mixed-effects model fitted by the `lmer`
-function from the `lmerTest` package. The function accepts a data object as
-input and returns a list of tests, one for each alpha diversity index.
-}
-\details{
-The mixed-effects model includes the time variable, group variable, and any
-additional adjustment variables as fixed effects, and the subject variable as
-a random effect.
-
-The output is a list of coefficient tables, one for each alpha diversity
-index. Each table includes the term, estimate, standard error, t value, and
-p-value for each fixed effect in the model.
+Tests associations between alpha diversity and time/group variables
+  using mixed-effects models for paired/longitudinal designs.
 }
 \examples{
 data(peerj32.obj)

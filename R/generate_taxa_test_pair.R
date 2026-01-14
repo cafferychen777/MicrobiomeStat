@@ -1,58 +1,15 @@
-#' Generate Taxa Test Pair
+#' Paired/Longitudinal Taxa Differential Abundance Test
 #'
-#' This function, `generate_taxa_test_pair`, is designed for analysis in microbiome studies.
-#' It takes a MicrobiomeStat data object as input and performs several key steps in the analysis of microbiome data.
-#' The function filters taxa based on prevalence and abundance thresholds, aggregates taxon abundances by sample,
-#' and applies the linda method to fit linear mixed effects models. These models are used to identify significant
-#' taxon changes across different groups over time, taking into account various covariates.
+#' Performs differential abundance analysis for paired or longitudinal data using
+#' linear mixed-effects models via LinDA, accounting for subject-level correlations.
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param subject.var A string that specifies the name of the subject variable column in the metadata.
-#' @param time.var A string that specifies the name of the time variable column in the metadata. If not provided, it's NULL by default.
-#' @param change.base A value indicating the base level for the time variable.
-#' If provided, the specified level will be used as the reference category in
-#' the model. Default is NULL, which means the first level of the factor will
-#' be used.
-#' @param group.var A string specifying the column name in metadata containing the grouping
-#'                  variable for differential abundance testing. Can be either:
-#'                  \itemize{
-#'                    \item Categorical (factor or character): Creates pairwise comparisons between groups
-#'                    \item Continuous (numeric or integer): Tests for linear association
-#'                  }
-#'                  When combined with time.var, tests group × time interaction effects.
-#' @param ref.level Character string specifying the reference level for the group variable.
-#'                 This parameter is used when \code{group.var} is categorical (factor or character)
-#'                 to specify which group should be used as the reference for comparisons.
-#'                 All other groups will be compared against this reference level.
-#'                 If NULL (default), the first level alphabetically is used as the reference.
-#'                 This parameter is ignored when \code{group.var} is continuous.
-#' @param adj.vars A vector of strings that specify the names of additional variables to be used as covariates in the analysis.
-#' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
-#' taxa before analysis. Taxa with prevalence below this value will be removed.
-#' Prevalence is calculated as the proportion of samples where the taxon is present.
-#' Default 0 removes no taxa by prevalence filtering.
-#' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering
-#' taxa before analysis. Taxa with mean abundance below this value will be removed.
-#' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
-#' Default 0 removes no taxa by abundance filtering.
-#' @param feature.level The column name in the feature annotation matrix (feature.ann) of data.obj
-#' to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
-#' annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
-#' column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
-#' for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
-#' is also NULL.
-#' @param feature.dat.type The type of the feature data, which determines how the data is handled.
-#' Should be one of:
-#' \itemize{
-#'   \item "count": Raw count data. This function will first apply TSS (Total Sum Scaling) normalization,
-#'         then LinDA performs zero-handling using half-minimum approach for statistical testing
-#'   \item "proportion": Pre-normalized proportional data (e.g., relative abundances).
-#'         LinDA performs zero-handling using half-minimum approach without additional normalization
-#'   \item "other": Pre-transformed data (e.g., CLR, log-transformed).
-#'         Uses standard linear mixed models without normalization or zero-handling
-#' }
-#' Default is "count".
-#' @param ... Additional parameters to be passed to the linda function.
+#' @inheritParams mStat_data_obj_doc
+#'
+#' @param change.base Value indicating the base/reference level for the time variable.
+#'   If NULL, the first level is used.
+#' @param ref.level Character string specifying the reference level for categorical group.var.
+#'   If NULL, the first level alphabetically is used. Ignored for continuous variables.
+#' @param ... Additional parameters passed to the linda function.
 #'
 #' @examples
 #' \dontrun{

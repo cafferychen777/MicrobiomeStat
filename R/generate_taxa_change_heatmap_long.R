@@ -1,85 +1,21 @@
-#' @title Generate Taxonomic Change Heatmap Long
+#' @title Generate Taxonomic Change Heatmap for Longitudinal Data
 #'
-#' @description This function performs hierarchical clustering on microbiome data based on grouping
-#' variables and strata variables in sample metadata and generates stacked heatmaps
-#' using the “pheatmap” package. It can also save the resulting heatmap as a PDF file.
+#' @description Creates heatmaps showing taxa abundance changes from baseline across
+#' multiple time points. Uses pheatmap with hierarchical clustering and group annotations.
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list).
-#' @param subject.var A character string specifying the subject variable in the metadata.
-#' @param time.var A character string specifying the time variable in the metadata.
-#' @param t0.level Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.
-#' @param ts.levels Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.
-#' @param group.var A character string specifying the grouping variable in the metadata. Default is NULL.
-#' @param strata.var (Optional) A character string specifying the stratification variable in the metadata. Default is NULL.
-#' @param feature.level A character string defining the taxonomic level to analyze ('Phylum', 'Family', or 'Genus').
-#' @param feature.change.func A function or character string specifying how to calculate
-#' the change from baseline value. This allows flexible options:
-#' - If a function is provided, it will be applied to each row to calculate change.
-#'   The function should take 2 arguments: value at timepoint t and value at baseline t0.
-#' - If a character string is provided, following options are supported:
-#'   - 'relative change': (value_t - value_t0) / (value_t + value_t0)
-#'   - 'absolute change': value_t - value_t0
-#'   - 'log fold change': log2(value_t + 1e-5) - log2(value_t0 + 1e-5)
-#' - Default is 'relative change'.
+#' @inheritParams mStat_data_obj_doc
+#' @inheritParams mStat_plot_params_doc
+#' @param feature.change.func Method for calculating change: "relative change",
+#'   "log fold change", "absolute change", or a custom function.
+#' @param features.plot Character vector of specific feature IDs to plot.
+#' @param top.k.plot Integer specifying number of top features to plot.
+#' @param top.k.func Function for selecting top features (e.g., "mean", "sd").
+#' @param cluster.rows Logical, whether to cluster rows. Default TRUE.
+#' @param cluster.cols Logical, whether to cluster columns. Default FALSE.
 #'
-#' If none of the above options are matched, an error will be thrown indicating
-#' the acceptable options or prompting the user to provide a custom function.
-#' @details This parameter is used to compute the change columns from baseline
-#'   (specified by t0.level) for each taxon. The change values are calculated
-#'   for each timepoint and appended as new columns in the data frame before
-#'   plotting heatmap. This allows flexibly customizing how change is quantified.
-#' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
-#' Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.
-#' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
-#' Should be one of:
-#' - "count": Raw count data, will be normalized by the function.
-#' - "proportion": Data that has already been normalized to proportions/percentages.
-#' - "other": Custom abundance data that has unknown scaling. No normalization applied.
-#' The choice affects preprocessing steps as well as plot axis labels.
-#' Default is "count", which assumes raw count input.
-#' @param top.k.plot A numeric value specifying the number of top taxa to be plotted if features.plot is NULL. If NULL (default), all taxa will be plotted.
-#' @param top.k.func A function to compute the top k taxa if features.plot is NULL. If NULL (default), the mean function will be used.
-#' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
-#' taxa before analysis. Taxa with prevalence below this value will be removed.
-#' Prevalence is calculated as the proportion of samples where the taxon is present.
-#' Default 0 removes no taxa by prevalence filtering.
-#' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering
-#' taxa before analysis. Taxa with mean abundance below this value will be removed.
-#' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
-#' Default 0 removes no taxa by abundance filtering.
-#' @param base.size Base font size for the generated plots.
-#' @param palette Specifies the color palette to be used for annotating groups and strata in the heatmap.
-#'                The parameter can be provided in several ways:
-#'                - As a character string denoting a predefined palette name.
-#'                  Available predefined palettes include 'npg', 'aaas', 'nejm',
-#'                  'lancet', 'jama', 'jco', and 'ucscgb', sourced from the `mStat_get_palette` function.
-#'                - As a vector of color codes in a format accepted by ggplot2
-#'                  (e.g., hexadecimal color codes).
-#'                If `palette` is NULL or an unrecognized string, a default color palette will be used.
-#'                The function assigns colors from this palette to the unique levels of
-#'                `group.var` and, if provided, `strata.var`. When both `group.var` and
-#'                `strata.var` are present, `group.var` levels are colored using the
-#'                beginning of the palette, while `strata.var` levels are colored using
-#'                the reversed palette, ensuring a distinct color representation for each.
-#'                If only `group.var` is provided, its levels are assigned colors from the
-#'                palette sequentially. If neither `group.var` nor `strata.var` is provided,
-#'                no annotation colors are applied.
-#' @param cluster.rows A logical variable indicating if rows should be clustered. Default is TRUE.
-#' @param cluster.cols A logical variable indicating if columns should be clustered. Default is FALSE.
-#' @param pdf If TRUE, save the plot as a PDF file (default: TRUE)
-#' @param file.ann (Optional) A character string specifying a file annotation to include in the generated PDF file's name.
-#' @param pdf.wid Width of the PDF plots.
-#' @param pdf.hei Height of the PDF plots.
-#' @param ... Additional arguments passed to pheatmap.
-#' @return A list of ggplot heatmap objects, one for each taxonomic level.
+#' @return A list of ggplot heatmap objects.
 #'
-#' @details This function generates a separate heatmap for each taxonomic level specified,
-#'   with rows clustered and layers arranged by groups over timepoints.
-#'   It automatically rarefies raw count data using Rarefy-TSS normalization in MicrobiomeStat.
-#'   Annotation columns are generated and ordered properly for visually stacking the layers.
-#'   Colormaps are also generated for group and strata variables.
-#'
-#' @seealso \code{\link{pheatmap}} for heatmap, \code{\link{mStat_normalize_data}} for data normalization.
+#' @seealso \code{\link{pheatmap}}, \code{\link{mStat_normalize_data}}
 #'
 #' @examples
 #' \dontrun{

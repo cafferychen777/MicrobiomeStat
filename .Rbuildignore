@@ -63,3 +63,55 @@
 
 # Test and development files
 ^NewInterface_Comprehensive_Test_Report\.md$
+^test_.*\.R$
+^check_.*\.R$
+^demo_.*\.R$
+^verify_.*\.R$
+^inspect_.*\.R$
+^simulation_files$
+^simulation_files/.*$
+
+# Documentation files (keep only NEWS.md)
+^.*_SUMMARY\.md$
+^.*_REPORT\.md$
+^.*_EXPLANATION\.md$
+^.*_OPTIONS\.md$
+^RELEASE_NOTES.*\.md$
+^ORDINAL_VARIABLE.*\.md$
+^ROXYGEN_.*\.md$
+^NAMING_.*\.md$
+^VOLCANO_.*\.md$
+^旧版本.*\.md$
+^给老板.*\.md$
+^验证结果.*\.md$
+^发布说明.*\.md$
+
+# Generated plots and outputs
+^volcano_.*\.pdf$
+^volcano_.*\.png$
+^Figure_.*\.png$
+^.*_diagnostic\.png$
+^tests/testthat/Rplots\.pdf$
+^.*\.pdf$
+^Rplots\.pdf$
+
+# Python files and cache
+^.*\.py$
+^__pycache__$
+^__pycache__/.*$
+
+# Test/experiment data and files
+^dev$
+^dev/.*$
+^experiments$
+^experiments/.*$
+^data/ecam_full$
+^data/ecam_full/.*$
+^data/yassour2018_.*\.rds$
+^.*\.json$
+^detailed_comparison_report\.txt$
+^CRITICAL_ISSUES_SUMMARY\.md$
+^TUTORIAL_API_COMPARISON_REPORT\.md$
+
+# CLAUDE instructions
+^CLAUDE\.md$

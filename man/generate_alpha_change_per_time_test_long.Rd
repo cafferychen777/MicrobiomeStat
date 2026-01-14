@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_alpha_change_per_time_test_long.R
 \name{generate_alpha_change_per_time_test_long}
 \alias{generate_alpha_change_per_time_test_long}
-\title{Compare alpha diversity between time points}
+\title{Alpha Diversity Change Test Per Time Point (Longitudinal)}
 \usage{
 generate_alpha_change_per_time_test_long(
   data.obj,
@@ -19,49 +19,76 @@ generate_alpha_change_per_time_test_long(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package.}
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
+\itemize{
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
+}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{alpha.obj}{An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.}
+\item{alpha.obj}{A list containing pre-calculated alpha diversity indices.
+If NULL and alpha diversity is needed, it will be calculated automatically.
+Names should match the alpha.name parameter (e.g., "shannon", "simpson").
+See \code{\link{mStat_calculate_alpha_diversity}}.}
 
-\item{alpha.name}{The alpha diversity index to be analyzed. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", "pielou", and "faith_pd".}
+\item{alpha.name}{Character vector specifying which alpha diversity indices
+to analyze. Options include:
+\itemize{
+  \item "shannon": Shannon diversity index
+  \item "simpson": Simpson diversity index
+  \item "observed_species": Observed species richness
+  \item "chao1": Chao1 richness estimator
+  \item "ace": ACE richness estimator
+  \item "pielou": Pielou's evenness
+}}
 
-\item{depth}{An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
-If NULL, no rarefaction is performed.}
+\item{depth}{Numeric value or NULL. Rarefaction depth for diversity
+calculations. If NULL, uses minimum sample depth or no rarefaction.}
 
-\item{time.var}{Character string specifying the column name in metadata containing time values for each sample. Required to identify pairs of time points to calculate changes between.}
+\item{time.var}{Character string specifying the column name in meta.dat
+containing the time variable. Required for longitudinal and paired analyses.
+Should be a factor or character with meaningful time point labels.}
 
-\item{t0.level}{The baseline time point against which changes are measured.}
+\item{t0.level}{Character or numeric value specifying the baseline time
+point for longitudinal or paired analyses. Should match a value in the
+time.var column.}
 
-\item{ts.levels}{An array of time points to compare against the baseline.}
+\item{ts.levels}{Character vector specifying the follow-up time points for
+longitudinal or paired analyses. Should match values in the time.var column.}
 
-\item{subject.var}{Character string specifying the column name in metadata containing unique subject IDs. Required to pair samples from the same subject across time points.}
+\item{subject.var}{Character string specifying the column name in meta.dat
+that uniquely identifies each subject or sample unit. Required for
+longitudinal and paired designs to track repeated measurements.}
 
-\item{group.var}{Character string specifying the column name in metadata containing grouping categories. Used as a predictor in the models to test for differences in changes between groups. Optional, can be NULL.}
+\item{group.var}{Character string specifying the column name in meta.dat
+containing the grouping variable (e.g., treatment, condition, phenotype).
+Used for between-group comparisons.}
 
-\item{adj.vars}{Character vector specifying column names in metadata containing covariates to adjust for in the linear models. Optional, can be left NULL if no adjustment is needed.}
+\item{adj.vars}{Character vector specifying column names in meta.dat to be
+used as covariates for adjustment in statistical models. These variables
+will be included as fixed effects.}
 
-\item{alpha.change.func}{Function or method for calculating change in alpha diversity between two timepoints. Supports custom functions or predefined methods like 'log fold change'.}
+\item{alpha.change.func}{Function or method for calculating change in alpha diversity
+between two timepoints. Options include 'log fold change', 'absolute change',
+or a custom function.}
 }
 \value{
 A list of tables, one for each alpha diversity metric, summarizing the results of the statistical tests.
 }
 \description{
-This function performs paired tests to compare alpha diversity metrics
-between two time points in a microbiome dataset.
-}
-\details{
-The function calculates alpha diversity at each time point and then compares
-these values to assess changes over time. It supports various methods for
-calculating the change in alpha diversity, including log fold change.
-
-Users can specify a number of parameters, including the alpha diversity
-metric to be analyzed, the depth for rarefaction, and covariates for adjustment.
-The function is flexible and can accommodate different data structures and
-analysis requirements.
-
-
-The function calculates alpha diversity for each time point and then compares
-these values to assess changes. The comparison can be done using different methods, such as log fold change. The function is designed to be flexible and can handle various data structures and analysis requirements.
+Performs paired tests comparing alpha diversity changes between
+  baseline and each follow-up time point in longitudinal data.
 }
 \examples{
 \dontrun{

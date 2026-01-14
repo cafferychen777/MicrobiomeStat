@@ -29,32 +29,17 @@ construct_formula <- function(index, group.var, time.var, subject.var, adj.vars)
   return(as.formula(formula_str))
 }
 
-#' Longitudinal Alpha Diversity Trend Test in MicrobiomeStat
+#' @title Alpha Diversity Trend Test (Longitudinal)
 #'
-#' This function `generate_alpha_trend_test_long`, part of the MicrobiomeStat
-#' package, performs a trend test on longitudinal alpha diversity data using
-#' a linear mixed-effects model. The model is used to test the association
-#' between alpha diversity and a numeric time variable, while adjusting for
-#' potential confounding variables. It accepts alpha diversity data and other
-#' related parameters to conduct the test.
+#' @description Tests for temporal trends in alpha diversity using linear
+#'   mixed-effects models with a numeric time variable.
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
-#' @param alpha.name A string with the name of the alpha diversity index to compute.
-#' Options could include: "shannon", "simpson", "observed_species", "chao1", "ace", "pielou", and "faith_pd".
-#' @param depth An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
-#' If NULL, no rarefaction is performed.
-#' @param time.var Character string specifying the column name in metadata containing the
-#'                numeric time variable.
-#' @param subject.var Character string specifying the column name in metadata containing
-#'                    unique subject IDs.
-#' @param group.var Character string specifying the column name in metadata containing grouping
-#'                 categories.
-#' @param adj.vars Character vector specifying column names in metadata containing covariates
-#'                to adjust for.
+#' @inheritParams mStat_data_obj_doc
+#' @inheritParams mStat_test_params_doc
+#'
 #' @return A list object containing the results of the trend test for each alpha
-#' diversity index specified in `alpha.name`. Each element of the list contains a
-#' summary table of the trend test results for a specific alpha diversity index.
+#'   diversity index specified in `alpha.name`. Each element of the list contains a
+#'   summary table of the trend test results for a specific alpha diversity index.
 #'
 #' @examples
 #' \dontrun{

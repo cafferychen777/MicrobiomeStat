@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_taxa_per_time_test_long.R
 \name{generate_taxa_per_time_test_long}
 \alias{generate_taxa_per_time_test_long}
-\title{Longitudinal Differential Abundance Test in Microbiome Data}
+\title{Longitudinal Per-Time-Point Differential Abundance Test}
 \usage{
 generate_taxa_per_time_test_long(
   data.obj,
@@ -18,36 +18,59 @@ generate_taxa_per_time_test_long(
 )
 }
 \arguments{
-\item{data.obj}{A MicrobiomeStat data object containing microbiome data and metadata.}
-
-\item{subject.var}{A string specifying the column name in meta.dat that uniquely identifies each subject.}
-
-\item{time.var}{Optional; a string representing the time variable in the meta.dat. If provided, enables longitudinal analysis.}
-
-\item{group.var}{Optional; a string specifying the group variable in meta.dat for between-group comparisons.
-Can be either:
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
 \itemize{
-  \item Categorical (factor or character): Creates pairwise comparisons between groups
-  \item Continuous (numeric or integer): Tests for linear association
-}}
-
-\item{adj.vars}{Optional; a vector of strings representing covariates in meta.dat for adjustment in the analysis.}
-
-\item{feature.level}{A string or vector of strings indicating the taxonomic level(s) for analysis (e.g., "Phylum", "Class").}
-
-\item{prev.filter}{Numeric; a minimum prevalence threshold for taxa inclusion in the analysis.}
-
-\item{abund.filter}{Numeric; a minimum abundance threshold for taxa inclusion in the analysis.}
-
-\item{feature.dat.type}{The type of the feature data, which determines how the data is handled.
-Should be one of:
-\itemize{
-  \item "count": Raw count data. This function will first apply TSS (Total Sum Scaling) normalization,
-        then LinDA performs zero-handling using half-minimum approach for statistical testing
-  \item "proportion": Pre-normalized proportional data. LinDA performs zero-handling using
-                      half-minimum approach without additional normalization
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
 }
-Default is "count".}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
+
+\item{subject.var}{Character string specifying the column name in meta.dat
+that uniquely identifies each subject or sample unit. Required for
+longitudinal and paired designs to track repeated measurements.}
+
+\item{time.var}{Character string specifying the column name in meta.dat
+containing the time variable. Required for longitudinal and paired analyses.
+Should be a factor or character with meaningful time point labels.}
+
+\item{group.var}{Character string specifying the column name in meta.dat
+containing the grouping variable (e.g., treatment, condition, phenotype).
+Used for between-group comparisons.}
+
+\item{adj.vars}{Character vector specifying column names in meta.dat to be
+used as covariates for adjustment in statistical models. These variables
+will be included as fixed effects.}
+
+\item{feature.level}{Character vector specifying the taxonomic or annotation
+level(s) for analysis. Should match column names in feature.ann, such as
+"Phylum", "Family", "Genus", etc. Use "original" to analyze at the
+original feature level without aggregation.}
+
+\item{prev.filter}{Numeric value between 0 and 1. Features with prevalence
+(proportion of non-zero samples) below this threshold will be excluded
+from analysis. Default is usually 0 (no filtering).}
+
+\item{abund.filter}{Numeric value. Features with mean abundance below this
+threshold will be excluded from analysis. Default is usually 0 (no filtering).}
+
+\item{feature.dat.type}{Character string specifying the data type of
+feature.tab. One of:
+\itemize{
+  \item "count": Raw count data (will be normalized)
+  \item "proportion": Relative abundance data (should sum to 1 per sample)
+  \item "other": Pre-transformed data (no transformation applied)
+}}
 
 \item{...}{Additional arguments passed to other methods.}
 }
@@ -74,7 +97,8 @@ A nested list structure where:
 Analysis is performed separately for each time point using LinDA mixed-effects models.
 }
 \description{
-This function performs differential abundance testing across multiple time points in longitudinal microbiome data. It is tailored to analyze how the abundance of microbial taxa varies over time, within different groups or under various conditions.
+Performs differential abundance testing at each time point separately in
+longitudinal microbiome data using LinDA mixed-effects models.
 }
 \details{
 The function integrates various data manipulations, normalization procedures, and statistical tests to assess the significance of taxa changes over time or between groups. It allows for the adjustment of covariates and handles both count and proportion data types.

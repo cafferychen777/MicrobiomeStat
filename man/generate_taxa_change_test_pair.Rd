@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_taxa_change_test_pair.R
 \name{generate_taxa_change_test_pair}
 \alias{generate_taxa_change_test_pair}
-\title{Compute taxa changes and analyze differential abundance}
+\title{Taxa Change Test for Paired Data}
 \usage{
 generate_taxa_change_test_pair(
   data.obj,
@@ -21,82 +21,70 @@ generate_taxa_change_test_pair(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
-
-\item{subject.var}{The name of the subject variable column in the metadata.}
-
-\item{time.var}{The name of the time variable column in the metadata (optional).}
-
-\item{group.var}{The name of the grouping variable column in metadata for comparing
-change scores between groups. This variable is ALWAYS treated as categorical
-(factor), regardless of the input type. If you provide a numeric or integer
-variable, it will be automatically converted to a factor.
-By default, the first level (alphabetically) is used as the reference group
-for comparisons. Use \code{ref.level} to specify a different reference.}
-
-\item{ref.level}{Character string specifying the reference level for the group variable.
-This parameter specifies which group should be used as the reference for comparisons.
-All other groups will be compared against this reference level.
-If NULL (default), the first level alphabetically is used as the reference.}
-
-\item{adj.vars}{Names of additional variables to be used as covariates in the analysis.}
-
-\item{change.base}{The baseline time point for detecting changes in taxa. If NULL, the first unique value from the time.var column will be used (optional).}
-
-\item{feature.change.func}{Specifies the method or function used to compute the change between two time points. Options include:
-
-- "absolute change" (default): Computes the absolute difference between the values at the two time points (`value_time_2` and `value_time_1`).
-
-- "log fold change": Computes the log2 fold change between the two time points. For zero values, imputation is performed using half of the minimum nonzero value for each feature level at the respective time point before taking the logarithm.
-
-- "relative change": Computes the relative change as `(value_time_2 - value_time_1) / (value_time_2 + value_time_1)`. If both time points have a value of 0, the change is defined as 0.
-
-- A custom function: If a user-defined function is provided, it should take two numeric vectors as input corresponding to the values at the two time points (`value_time_1` and `value_time_2`) and return a numeric vector of the computed change. This custom function will be applied directly to calculate the difference.}
-
-\item{feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
-to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
-annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
-column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
-for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
-is also NULL.}
-
-\item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
-taxa before analysis. Taxa with prevalence below this value will be removed.
-Prevalence is calculated as the proportion of samples where the taxon is present.}
-
-\item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering
-taxa before analysis. Taxa with mean abundance below this value will be removed.
-Abundance refers to counts or proportions depending on \code{feature.dat.type}.}
-
-\item{feature.dat.type}{The type of the feature data, which determines preprocessing steps.
-Should be one of:
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
 \itemize{
-  \item "count": Raw count data. This function will:
-        \itemize{
-          \item Apply TSS (Total Sum Scaling) normalization
-          \item Perform zero-imputation using global half-minimum pseudocount
-                (calculated as half of the minimum non-zero value for each taxon
-                across ALL samples and time points combined, ensuring unbiased change calculations)
-          \item Use standard linear models (lm) for statistical testing of change scores
-        }
-  \item "proportion": Pre-normalized proportional data. This function will:
-        \itemize{
-          \item Perform zero-imputation using global half-minimum pseudocount
-          \item Use standard linear models (lm) for statistical testing of change scores
-        }
-  \item "other": Pre-transformed data (e.g., CLR). Uses standard linear models without
-                 normalization or zero-imputation. Only winsorization is applied.
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
 }
-Default is "count". NOTE: This function uses standard lm() models, NOT LinDA.}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{winsor.qt}{A numeric value between 0 and 1, specifying the quantile for winsorization (default: 0.97).
-Winsorization is a data preprocessing method used to limit extreme values or outliers in the data.
-The `winsor.qt` parameter determines the upper and lower quantiles for winsorization.
-For example, if `winsor.qt` is set to 0.97, the lower quantile will be (1 - 0.97) / 2 = 0.015,
-and the upper quantile will be 1 - (1 - 0.97) / 2 = 0.985.
-Values below the lower quantile will be replaced with the lower quantile,
-and values above the upper quantile will be replaced with the upper quantile.
-This helps to reduce the impact of extreme values or outliers on subsequent analyses.}
+\item{subject.var}{Character string specifying the column name in meta.dat
+that uniquely identifies each subject or sample unit. Required for
+longitudinal and paired designs to track repeated measurements.}
+
+\item{time.var}{Character string specifying the column name in meta.dat
+containing the time variable. Required for longitudinal and paired analyses.
+Should be a factor or character with meaningful time point labels.}
+
+\item{group.var}{Character string specifying the column name in meta.dat
+containing the grouping variable (e.g., treatment, condition, phenotype).
+Used for between-group comparisons.}
+
+\item{ref.level}{Character specifying the reference level for group comparisons.
+If NULL, uses the first level alphabetically.}
+
+\item{adj.vars}{Character vector specifying column names in meta.dat to be
+used as covariates for adjustment in statistical models. These variables
+will be included as fixed effects.}
+
+\item{change.base}{Character or numeric specifying the baseline time point.
+If NULL, uses the first unique value from time.var.}
+
+\item{feature.change.func}{Method for calculating change: "relative change",
+"log fold change", "absolute change", or a custom function.}
+
+\item{feature.level}{Character vector specifying the taxonomic or annotation
+level(s) for analysis. Should match column names in feature.ann, such as
+"Phylum", "Family", "Genus", etc. Use "original" to analyze at the
+original feature level without aggregation.}
+
+\item{prev.filter}{Numeric value between 0 and 1. Features with prevalence
+(proportion of non-zero samples) below this threshold will be excluded
+from analysis. Default is usually 0 (no filtering).}
+
+\item{abund.filter}{Numeric value. Features with mean abundance below this
+threshold will be excluded from analysis. Default is usually 0 (no filtering).}
+
+\item{feature.dat.type}{Character string specifying the data type of
+feature.tab. One of:
+\itemize{
+  \item "count": Raw count data (will be normalized)
+  \item "proportion": Relative abundance data (should sum to 1 per sample)
+  \item "other": Pre-transformed data (no transformation applied)
+}}
+
+\item{winsor.qt}{Numeric (0-1) specifying the quantile for winsorization. Default 0.97.}
 }
 \value{
 A nested list structure where:
@@ -127,7 +115,8 @@ This function analyzes CHANGE SCORES (differences between two time points) rathe
 raw abundances, using standard linear models rather than LinDA mixed-effects models.
 }
 \description{
-This function calculates taxa abundance changes between two time points and performs differential abundance analysis between groups using linear models or ANOVA.
+Computes taxa abundance changes between two time points and tests for
+differential change between groups using linear models (lm) or ANOVA.
 }
 \examples{
 \dontrun{

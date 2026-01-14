@@ -35,21 +35,15 @@ get_sample_ids <- function(data.obj, var, values) {
 }
 
 
-#' @title Subset Data Object by Sample IDs in MicrobiomeStat
+#' Subset Data Object by Sample IDs
 #'
-#' @description
-#' This function is part of the MicrobiomeStat package. It subsets a multi-omics data object by
-#' a specified set of sample IDs. It checks for the presence of various data components in the
-#' data object and subsets them if they exist.
+#' Subsets a MicrobiomeStat data object by sample IDs or metadata condition.
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' table (`feature.tab`), feature names, a full feature name list, and a feature aggregation list
-#' (`feature.agg.list`).
-#' @param samIDs A vector of sample IDs to subset by. This can be a logical vector, a numeric
-#' vector, or a character vector of sample IDs.
-#' @param condition A logical expression string describing rows to keep. This allows subsetting samples based on metadata, similarly to dplyr::filter. Only one of 'samIDs' and 'condition' should be provided.
-#' @return A list that is the modified version of the input data object. It includes the subsetted
-#' metadata, feature table, feature names, full feature name list, and feature aggregation list.
+#' @inheritParams mStat_data_obj_doc
+#' @param samIDs Character/numeric/logical vector of sample IDs to keep.
+#' @param condition Character string with logical expression for filtering (e.g., "group == 'A'").
+#'
+#' @return A MicrobiomeStat data object with subsetted samples.
 #'
 #' @examples
 #' \dontrun{

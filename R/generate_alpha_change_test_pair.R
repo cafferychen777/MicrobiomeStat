@@ -1,78 +1,21 @@
-#' Compare alpha diversity between time points
+#' @title Alpha Diversity Change Test (Paired)
 #'
-#' This function performs paired tests to compare alpha diversity metrics
-#' between two time points in a microbiome dataset.
+#' @description Performs paired tests comparing alpha diversity changes between
+#'   two time points, using linear models with optional group comparisons and
+#'   covariate adjustment.
 #'
-#' For each alpha diversity metric, the difference between the two time points
-#' is calculated for each subject. The difference is used as the response
-#' variable in a linear model, with grouping and adjustment variables as
-#' predictors.
+#' @inheritParams mStat_data_obj_doc
+#' @inheritParams mStat_test_params_doc
 #'
-#' The linear model coefficients are extracted into a results table. If the
-#' grouping variable has multiple levels, ANOVA is performed to test for overall
-#' significance.
-#'
-#' Options are provided to customize the alpha diversity difference calculation
-#' (e.g. log-fold change) and adjust for covariates.
-#'
-#' In summary, this provides a flexible paired test for analyzing changes in
-#' alpha diversity over time, accounting for groups and covariates.
-#'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
-#' @param alpha.name The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", "pielou", and "faith_pd". Previously named as `alpha.index`.
-#' @param depth An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
-#' If NULL, no rarefaction is performed.
-#' @param subject.var Character string specifying the column name in metadata containing
-#'                    unique subject IDs. Required to pair samples from the same subject
-#'                    across time points.
-#' @param time.var Character string specifying the column name in metadata containing
-#'                time values for each sample. Required to identify pairs of time
-#'                points to calculate changes between.
-#' @param group.var Character string specifying the column name in metadata containing
-#'                 grouping categories. Used as a predictor in the models to test for
-#'                 differences in changes between groups. Optional, can be NULL.
-#' @param adj.vars Character vector specifying column names in metadata containing
-#'                covariates to adjust for in the linear models. Optional, can be
-#'                left NULL if no adjustment is needed.
-#' @param change.base The name of the baseline time point for calculating changes in alpha diversity. If NULL, the first unique time point in the data will be used.
+#' @param change.base The baseline time point for calculating changes. If NULL,
+#'   the first unique time point in the data will be used.
 #' @param alpha.change.func Function or method for calculating change in alpha diversity
-#'   between two timepoints. This allows flexible options to quantify change:
+#'   between two timepoints. Options include 'log fold change', 'absolute change',
+#'   or a custom function taking two arguments (t, t0).
 #'
-#'   - If a function is provided: The function will be applied to compare alpha diversity
-#'     at timepoint t vs baseline t0. The function should take two arguments
-#'     representing the alpha diversity values at t and t0. For instance, a custom function to
-#'     calculate the percentage change might look like:
-#'     \preformatted{
-#'       percentage_change <- function(t, t0) {
-#'         return ((t - t0) / t0) * 100
-#'       }
-#'     }
-#'     You can then pass this function as the value for `alpha.change.func`.
-#'
-#'   - If a string is provided, the following options are supported:
-#'     - 'log fold change': Calculates the log2 fold change of alpha diversity at t compared to t0.
-#'     - 'absolute change': Calculates the absolute difference in alpha diversity at t compared to t0.
-#'     - Any other value: A warning will be given that the provided method is not recognized,
-#'       and the default method ('absolute change') will be used.
-#'
-#'   - Default behavior (if no recognized string or function is provided) is to compute the absolute difference between t and t0.
 #' @return A list of tables, one for each alpha diversity metric, summarizing the results of the statistical tests.
 #' Each table contains the following columns: Term (the name of the variable in the model), Estimate (the estimated coefficient),
 #' Std.Error (the standard error of the coefficient), Statistic (the t or F statistic), P.Value (the p-value of the test).
-#'
-#' @details
-#' This function performs the following statistical tests:
-#'
-#' - For each alpha diversity metric, a linear model is fitted with the difference in alpha diversity between two time points as the response, and the grouping variable and any adjustment variables as predictors.
-#' The linear model coefficients are extracted and formatted into a results table.
-#'
-#' - If the grouping variable has more than 2 levels, ANOVA is performed on the linear model to obtain the overall significance of the grouping variable.
-#' The ANOVA results are also formatted into the results table.
-#'
-#' So in summary, the function provides a paired test for the change in alpha diversity between two time points,
-#' with options to adjust for covariates and test for differences between groups. The output contains coefficient tables
-#' summarizing the results of the linear models and ANOVA tests.
 #'
 #' @examples
 #' \dontrun{

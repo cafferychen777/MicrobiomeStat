@@ -7,13 +7,29 @@
 mStat_validate_data(data.obj)
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
+\itemize{
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
+}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 }
 \value{
-A list. The validated and possibly adjusted data object.
+The validated (and possibly adjusted) data object.
 }
 \description{
-This function is a part of the MicrobiomeStat package. It validates a data object, checks if it meets certain rules, and adjusts it if necessary.
+Checks data object structure and consistency, adjusting components if needed.
 }
 \details{
 The function checks if 'meta.dat' is a data frame and converts it to one if it isn't. The function then checks two rules: whether the row names of 'feature.tab' match the row names of 'feature.ann', and whether the column names of 'feature.tab' match the row names of 'meta.dat'. If either of these checks fail, the function adjusts the relevant parts of the data object to meet these rules.

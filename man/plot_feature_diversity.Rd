@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_feature_diversity.R
 \name{plot_feature_diversity}
 \alias{plot_feature_diversity}
-\title{Visualize the relative abundance of selected taxa or functions}
+\title{Visualize Feature Diversity}
 \usage{
 plot_feature_diversity(
   data.obj,
@@ -27,78 +27,81 @@ plot_feature_diversity(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
+\itemize{
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
+}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{group.var}{A string indicating the variable for group identifiers. Default is NULL.}
+\item{group.var}{Character string specifying the column name in meta.dat
+containing the grouping variable (e.g., treatment, condition, phenotype).
+Used for between-group comparisons.}
 
-\item{strata.var}{A string indicating the variable for strata identifiers. Default is NULL.}
+\item{strata.var}{Character string specifying the column name in meta.dat
+for stratification. When provided, analyses and visualizations will be
+performed separately within each stratum (e.g., by site, batch, or sex).}
 
-\item{subject.var}{Character string specifying the subject variable in meta.dat}
+\item{subject.var}{Character string specifying the column name in meta.dat
+that uniquely identifies each subject or sample unit. Required for
+longitudinal and paired designs to track repeated measurements.}
 
-\item{time.var}{Character string specifying the time variable in meta.dat}
+\item{time.var}{Character string specifying the column name in meta.dat
+containing the time variable. Required for longitudinal and paired analyses.
+Should be a factor or character with meaningful time point labels.}
 
-\item{time.point.plot}{Character vector specifying time points to plot}
+\item{time.point.plot}{Character vector of time points to plot.}
 
-\item{is.plot.change}{Logical, whether to plot change from baseline.
-This parameter is only effective when there are multiple time points
-(i.e., length(time.point.plot) > 1). If there's only one time point,
-this parameter has no effect.}
+\item{is.plot.change}{Logical, plot change from baseline (only for multiple time points).}
 
-\item{feature.change.func}{The method or function used to calculate the change in feature abundance between time points.
-The following options are supported:
+\item{feature.change.func}{Method for calculating change: "relative change", "log fold change", or "absolute change".}
 
-- "relative change": Computes the relative change as (time_2 - time_1) / (time_2 + time_1). If both values are zero, the result is zero.
-- "log fold change": Computes the log2 fold change between time points. Zero values are imputed as half the minimum nonzero value of the respective feature across BOTH time points combined. The same pseudocount is used at both time points to ensure unbiased log fold change calculations.
-- "absolute change": Computes the absolute difference between time points.
-- A custom function: The provided function should take two numeric vectors as input (values at time 1 and time 2) and return a numeric vector of differences. Users should ensure that their function handles zero values appropriately.
+\item{feature.level}{Character vector specifying the taxonomic or annotation
+level(s) for analysis. Should match column names in feature.ann, such as
+"Phylum", "Family", "Genus", etc. Use "original" to analyze at the
+original feature level without aggregation.}
 
-If an unrecognized value or no value is provided for `feature.change.func`, the default behavior will be to compute the absolute difference between time points.}
+\item{feature.dat.type}{Character string specifying the data type of
+feature.tab. One of:
+\itemize{
+  \item "count": Raw count data (will be normalized)
+  \item "proportion": Relative abundance data (should sum to 1 per sample)
+  \item "other": Pre-transformed data (no transformation applied)
+}}
 
-\item{feature.level}{The column name in the feature annotation matrix (feature.ann) of data.obj
-to use for summarization and plotting. This can be the taxonomic level like "Phylum", or any other
-annotation columns like "Genus" or "OTU_ID". Should be a character vector specifying one or more
-column names in feature.ann. Multiple columns can be provided, and data will be plotted separately
-for each column. Default is NULL, which defaults to all columns in feature.ann if `features.plot`
-is also NULL.}
+\item{features.plot}{Character vector of specific feature IDs to plot (default NULL plots all).}
 
-\item{feature.dat.type}{The type of the feature data, which determines how the data is handled in downstream analyses.
-Should be one of:
-- "count": Raw count data, will be normalized by the function.
-- "proportion": Data that has already been normalized to proportions/percentages.
-- "other": Custom abundance data that has unknown scaling. No normalization applied.
-The choice affects preprocessing steps as well as plot axis labels.
-Default is "count", which assumes raw OTU table input.}
+\item{prop.to.lump}{Numeric, features below this mean proportion are lumped into "other".}
 
-\item{features.plot}{A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
-Default is NULL.}
+\item{top.k.plot}{Integer, number of top features to plot.}
 
-\item{prop.to.lump}{Numeric, features with mean proportion less than this will be lumped into "other"}
+\item{top.k.func}{Function to rank features for top.k selection.}
 
-\item{top.k.plot}{Integer, plot top k features based on some criterion}
+\item{plot.other}{Logical, whether to include "other" category in plots.}
 
-\item{top.k.func}{Function to order the features}
+\item{renormalize}{Logical, renormalize after removing "other" category.}
 
-\item{plot.other}{Logical, whether to plot the "other" category}
+\item{plot.scheme}{Character, "combined" or "individual" plot layout.}
 
-\item{renormalize}{Logical, whether to renormalize data after removing "other" category}
-
-\item{plot.scheme}{Character string specifying the plot scheme, one of c("combined", "individual")}
-
-\item{plot.type}{Character string specifying the plot type, one of c("barplot", "dotplot", "areaplot", "heatmap", "spaghettiplot", "boxplot", "scatterplot")}
+\item{plot.type}{Character, plot type: "barplot", "dotplot", "areaplot", "heatmap", "spaghettiplot", "boxplot", or "scatterplot".}
 }
 \value{
-A list of ggplot objects
+A list of ggplot objects.
 }
 \description{
-This function generates various types of plots to visualize the relative abundance
-of selected taxa or functions in microbiome data. It supports different visualization
-schemes and plot types for both cross-sectional and longitudinal data.
-}
-\details{
-This function provides a flexible framework for visualizing microbiome data.
-It can handle both cross-sectional and longitudinal data, and offers various plot types
-including bar plots, dot plots, area plots, heatmaps, spaghetti plots, box plots, and scatter plots.
-The function can also visualize changes over time and supports different grouping and stratification options.
+Generates various plots to visualize relative abundance of taxa or functions
+for both cross-sectional and longitudinal microbiome data.
 }
 \examples{
 \donttest{

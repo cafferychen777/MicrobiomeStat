@@ -1,77 +1,16 @@
-#' @title Generate beta diversity change spaghetti plot for longitudinal data
+#' Generate Beta Diversity Change Spaghetti Plot for Longitudinal Data
 #'
-#' @description This function generates a spaghetti plot visualizing the change in beta diversity over time for different groups and strata in longitudinal data. Optionally, a user can specify whether to save the plot as a PDF file. Change is defined as distance between samples from two time points.
+#' Creates spaghetti plots showing beta diversity changes from baseline over time.
+#' Individual subject trajectories and group means are visualized.
 #'
-#' @note This function requires subjects to have a baseline time point (specified by `t0.level`) to calculate the change in beta diversity. Subjects without a baseline time point will be excluded from the visualization.
+#' @note Subjects without a baseline time point (t0.level) will be excluded.
 #'
 #' @name generate_beta_change_spaghettiplot_long
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param dist.obj Distance matrix between samples, usually calculated using
-#' \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
-#' If NULL, beta diversity will be automatically computed from \code{data.obj}
-#' using \code{mStat_calculate_beta_diversity}.
-#' @param subject.var The variable in the metadata table that represents the subject.
-#' @param time.var The variable in the metadata table that represents the time.
-#' @param t0.level Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.
-#' @param ts.levels Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.
-#' @param group.var (Optional) The variable in the metadata table that represents the grouping factor.
-#' @param adj.vars A character vector containing the names of the columns in data.obj$meta.dat to include as covariates in the PERMANOVA analysis. If no covariates are needed, use NULL (default).
-#' @param strata.var (Optional) The variable in the metadata table that represents the stratification factor.
-#' @param dist.name A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned.
-#' @param base.size (Optional) Base font size for the plot (default is 16).
-#' @param theme.choice
-#' Plot theme choice. Specifies the visual style of the plot. Can be one of the following pre-defined themes:
-#'   - "prism": Utilizes the ggprism::theme_prism() function from the ggprism package, offering a polished and visually appealing style.
-#'   - "classic": Applies theme_classic() from ggplot2, providing a clean and traditional look with minimal styling.
-#'   - "gray": Uses theme_gray() from ggplot2, which offers a simple and modern look with a light gray background.
-#'   - "bw": Employs theme_bw() from ggplot2, creating a classic black and white plot, ideal for formal publications and situations where color is best minimized.
-#'   - "light": Implements theme_light() from ggplot2, featuring a light theme with subtle grey lines and axes, suitable for a fresh, modern look.
-#'   - "dark": Uses theme_dark() from ggplot2, offering a dark background, ideal for presentations or situations where a high-contrast theme is desired.
-#'   - "minimal": Applies theme_minimal() from ggplot2, providing a minimalist theme with the least amount of background annotations and colors.
-#'   - "void": Employs theme_void() from ggplot2, creating a blank canvas with no axes, gridlines, or background, ideal for custom, creative plots.
-#' Each theme option adjusts various elements like background color, grid lines, and font styles to match the specified aesthetic.
-#' Default is "bw", offering a universally compatible black and white theme suitable for a wide range of applications.
-#' @param custom.theme
-#' A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. Custom themes are useful for creating publication-ready figures with specific formatting requirements.
-#'
-#' To use a custom theme, create a theme object with ggplot2::theme(), including any desired customizations. Common customizations for publication-ready figures might include adjusting text size for readability, altering line sizes for clarity, and repositioning or formatting the legend. For example:
-#'
-#' ```r
-#' my_theme <- ggplot2::theme(
-#'   axis.title = ggplot2::element_text(size=14, face="bold"),        # Bold axis titles with larger font
-#'   axis.text = ggplot2::element_text(size=12),                      # Slightly larger axis text
-#'   legend.position = "top",                                         # Move legend to the top
-#'   legend.background = ggplot2::element_rect(fill="lightgray"),     # Light gray background for legend
-#'   panel.background = ggplot2::element_rect(fill="white", colour="black"), # White panel background with black border
-#'   panel.grid.major = ggplot2::element_line(colour = "grey90"),     # Lighter color for major grid lines
-#'   panel.grid.minor = ggplot2::element_blank(),                     # Remove minor grid lines
-#'   plot.title = ggplot2::element_text(size=16, hjust=0.5)           # Centered plot title with larger font
-#' )
-#' ```
-#'
-#' Then pass `my_theme` to `custom.theme`. If `custom.theme` is NULL (the default), the theme is determined by `theme.choice`. This flexibility allows for both easy theme selection for general use and detailed customization for specific presentation or publication needs.
-#' @param palette An optional parameter specifying the color palette to be used for the plot.
-#'                It can be either a character string specifying the name of a predefined
-#'                palette or a vector of color codes in a format accepted by ggplot2
-#'                (e.g., hexadecimal color codes). Available predefined palettes include
-#'                'npg', 'aaas', 'nejm', 'lancet', 'jama', 'jco', and 'ucscgb', inspired
-#'                by various scientific publications and the `ggsci` package. If `palette`
-#'                is not provided or an unrecognized palette name is given, a default color
-#'                palette will be used. Ensure the number of colors in the palette is at
-#'                least as large as the number of groups being plotted.
-#' @param pdf (Optional) A boolean indicating whether to save the output as a PDF file (default is TRUE).
-#' @param file.ann (Optional) A string for annotating the output file name.
-#' @param pdf.wid (Optional) The width of the PDF file if `pdf` is set to `TRUE` (default is 11).
-#' @param pdf.hei (Optional) The height of the PDF file if `pdf` is set to `TRUE` (default is 8.5).
-#' @param ... (Optional) Additional arguments to pass to the plotting function.
-#'
-#' @details This function calculates beta diversity distances between all
-#'   pairs of samples using the specified distance metric (dist_name).
-#'   The change in beta diversity for each subject is then defined as
-#'   the distance between the baseline sample (t0_level) and the sample
-#'   at each follow-up timepoint (ts_levels). These changes are visualized
-#'   using spaghetti lines connecting the distances over time.
+#' @inheritParams mStat_data_obj_doc
+#' @inheritParams mStat_test_params_doc
+#' @inheritParams mStat_plot_params_doc
+#' @param ... Additional arguments passed to the plotting function.
 #'
 #' @return A spaghetti plot displaying the beta diversity change over time, stratified by the specified grouping and/or strata variables (if provided). The plot will be saved as a PDF if `pdf` is set to `TRUE`.
 #'

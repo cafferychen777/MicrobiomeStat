@@ -25,64 +25,82 @@ generate_taxa_cladogram_single(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which includes components
-like `feature.tab` (feature abundance table), `feature.ann` (feature annotation table,
-containing taxonomic assignments), `meta.dat` (metadata table), and optionally `tree`
-(a phylogenetic tree).}
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
+\itemize{
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
+}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{test.list}{A list of data frames, where each data frame contains test results
-(e.g., coefficients, P-values) for taxa at a specific taxonomic level.
-Each element of the list should be named by the taxonomic level (e.g., "Phylum", "Genus"),
-and within each level, there can be sub-lists for different comparisons (e.g., "groupA_vs_groupB").
-If `NULL`, test results will be generated internally using `generate_taxa_test_single`
-(requires `group.var`, `time.var`, etc., to be set appropriately).}
+\item{test.list}{A list of data frames containing test results (coefficients, P-values)
+for taxa at each taxonomic level. If NULL, results are generated internally.}
 
-\item{group.var}{The name of the grouping variable in `meta.dat` used for comparisons.
-This is essential if `test.list` is `NULL`, and also used for naming output files/plots if multiple comparisons exist.}
+\item{group.var}{Character string specifying the column name in meta.dat
+containing the grouping variable (e.g., treatment, condition, phenotype).
+Used for between-group comparisons.}
 
-\item{feature.level}{A character vector specifying the taxonomic levels to be included in the
-analysis and displayed on the heatmap. The order matters: from coarser (e.g., "Phylum")
-to finer (e.g., "Species"). The last element is considered the `finest_taxonomic_level`
-and will typically correspond to the tips of the cladogram if a taxonomic tree is built.}
+\item{feature.level}{Character vector specifying the taxonomic or annotation
+level(s) for analysis. Should match column names in feature.ann, such as
+"Phylum", "Family", "Genus", etc. Use "original" to analyze at the
+original feature level without aggregation.}
 
-\item{feature.mt.method}{Character string specifying the multiple testing correction method
-to apply to P-values. Options include "fdr" (False Discovery Rate), "bonferroni", "holm",
-"hochberg", "hommel", "BH", "BY", or "none" (default, no correction).
-Used for filtering significant features if `test.list` is generated internally or for applying the `cutoff`.}
+\item{feature.mt.method}{Character string specifying the multiple testing correction method.
+Options: "fdr", "bonferroni", "holm", "hochberg", "hommel", "BH", "BY", or "none" (default).}
 
-\item{cutoff}{Numeric. The significance cutoff (e.g., P-value or adjusted P-value threshold).
-Taxa with P-values (or adjusted P-values, depending on `feature.mt.method`) greater
-than this cutoff will have their coefficients set to 0 in the heatmap, effectively
-marking them as non-significant. Default is 1 (no filtering by significance).}
+\item{cutoff}{Numeric. Significance threshold for filtering taxa. Default is 1 (no filtering).}
 
-\item{color.group.level}{Character string. The taxonomic level used to color-code the
-branches and tip labels of the cladogram. This level must be one of the levels present in `feature.level`.
-If `NULL` or not specified, it defaults to the first (coarsest) level in `feature.level`.}
+\item{color.group.level}{Character string. Taxonomic level for color-coding branches.
+Defaults to the first level in `feature.level`.}
 
-\item{palette}{An optional character vector of hex color codes to be used for coloring the
-groups defined by `color.group.level`. If `NULL`, a default color palette will be used.}
+\item{palette}{Character vector of colors or a named palette for the plot.
+If NULL, uses default MicrobiomeStat color scheme. Can be:
+\itemize{
+  \item A vector of color codes (e.g., c("#E41A1C", "#377EB8"))
+  \item A palette name recognized by the plotting function
+}}
 
-\item{pdf}{Logical. If `TRUE`, the generated plot(s) will be saved as PDF files.
-File names will be based on the comparison groups. Default is `FALSE`.}
+\item{pdf}{Logical. If TRUE, saves the plot(s) to PDF file(s) in the
+current working directory. Default is TRUE.}
 
-\item{pdf.width}{Numeric. The width of the PDF file in inches, if `pdf = TRUE`. Default is 10.}
+\item{pdf.width}{Numeric. PDF width in inches. Default is 10.}
 
-\item{pdf.height}{Numeric. The height of the PDF file in inches, if `pdf = TRUE`. Default is 10.}
+\item{pdf.height}{Numeric. PDF height in inches. Default is 10.}
 
-\item{time.var}{Character string specifying the column name in `meta.dat` that contains the
-time variable. Used only if `test.list` is `NULL` and `generate_taxa_test_single` is called.}
+\item{time.var}{Character string specifying the column name in meta.dat
+containing the time variable. Required for longitudinal and paired analyses.
+Should be a factor or character with meaningful time point labels.}
 
-\item{t.level}{Character string specifying a particular time point or level of the `time.var`
-to subset the data for analysis. Used only if `test.list` is `NULL`. If `NULL`, data across all time points is used.}
+\item{t.level}{Character string specifying time point to subset data. Default is NULL.}
 
-\item{adj.vars}{A character vector specifying column names in `meta.dat` to be used as
-adjustment variables (covariates) in the statistical model. Used only if `test.list` is `NULL`.}
+\item{adj.vars}{Character vector specifying column names in meta.dat to be
+used as covariates for adjustment in statistical models. These variables
+will be included as fixed effects.}
 
-\item{prev.filter}{Numeric. Minimum prevalence threshold for taxa inclusion. Default is 0.1.}
+\item{prev.filter}{Numeric value between 0 and 1. Features with prevalence
+(proportion of non-zero samples) below this threshold will be excluded
+from analysis. Default is usually 0 (no filtering).}
 
-\item{abund.filter}{Numeric. Minimum abundance threshold for taxa inclusion. Default is 0.0001.}
+\item{abund.filter}{Numeric value. Features with mean abundance below this
+threshold will be excluded from analysis. Default is usually 0 (no filtering).}
 
-\item{feature.dat.type}{Character. Type of data in feature.tab ("count", "proportion", or "other"). Default is "count".}
+\item{feature.dat.type}{Character string specifying the data type of
+feature.tab. One of:
+\itemize{
+  \item "count": Raw count data (will be normalized)
+  \item "proportion": Relative abundance data (should sum to 1 per sample)
+  \item "other": Pre-transformed data (no transformation applied)
+}}
 }
 \value{
 A list of `ggplot` objects. Each element in the list corresponds to a comparison group
@@ -90,53 +108,9 @@ A list of `ggplot` objects. Each element in the list corresponds to a comparison
   If there's only one comparison, the list will contain a single `ggplot` object.
 }
 \description{
-This function generates a circular cladogram with an integrated heatmap for taxonomic data.
-It visualizes the phylogenetic relationships between different taxa and their abundances or other
-coefficients (e.g., from differential abundance testing) across different taxonomic levels
-using a tree-like structure (cladogram). The heatmap is overlaid on the branches/tips of the cladogram.
+Generates a circular cladogram with integrated heatmap for taxonomic differential
+abundance results. Visualizes phylogenetic relationships and effect sizes across taxonomic levels.
 }
-\section{Details}{
-
-
-**Taxonomic Name Processing:**
-Internally, the function standardizes taxonomic names for plotting and matching with the phylogenetic tree.
-This involves:
-\itemize{
-  \item Replacing spaces, parentheses `()` with underscores `_`.
-  \item Removing periods `.`.
-}
-This means that taxon names displayed on the plot might differ slightly from their original representation
-in `data.obj$feature.ann`. This processing is crucial for matching taxa from the `test.list` with the
-tips of the phylogenetic tree, especially if the tree is built from taxonomic information.
-"Unclassified" labels are also processed to ensure uniqueness by appending the taxonomic level and a
-unique identifier (e.g., "Unclassified_Genus_1").
-
-**Phylogenetic Tree:**
-The function attempts to use a phylogenetic tree in the following order of preference:
-\enumerate{
-  \item If `data.obj$tree` exists and is a valid `phylo` object with tip labels matching the
-        taxa at the `finest_taxonomic_level` (after name processing), this tree is used and
-        pruned to matching tips.
-  \item If no suitable tree is found in `data.obj$tree`, a taxonomic tree is constructed
-        using `ape::as.phylo` based on the hierarchy specified in `feature.level` from
-        `data.obj$feature.ann`. The tips of this tree will correspond to the taxa at the
-        `finest_taxonomic_level`.
-}
-
-**Significance Filtering:**
-Taxa are filtered based on the `cutoff` value. If `feature.mt.method` is "none",
-the raw P.Value is used. Otherwise, the Adjusted.P.Value is used. Coefficients of taxa
-not meeting the significance cutoff are set to 0 for the heatmap display. This filtering
-can propagate up the taxonomic tree: if all children of a higher-level taxon are non-significant,
-that higher-level taxon might also be rendered as non-significant.
-
-**`ggtreeExtra::geom_fruit` and `geom_tile`:**
-This function uses `ggtreeExtra::geom_fruit` to draw the heatmap. Due to non-standard
-evaluation (NSE) within `ggtreeExtra`, the `geom` parameter is explicitly passed as the
-string `"geom_tile"`, and `ggplot2::geom_tile` is temporarily assigned to the global environment
-if not present, to ensure correct rendering. This is a workaround for a known behavior in `ggtreeExtra`.
-}
-
 \examples{
 \dontrun{
 data(subset_T2D.obj)

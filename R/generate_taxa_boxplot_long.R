@@ -1,95 +1,17 @@
 #' Generate Taxa Boxplots for Longitudinal Data
 #'
-#' This function generates boxplots to visualize the taxonomic composition of samples for longitudinal data.
-#' It also provides options for grouping and stratifying data.
+#' Creates boxplots showing taxa abundance distributions across time points.
+#' Supports grouping, stratification, and various transformations.
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param subject.var A string indicating the variable for subject identifiers.
-#' @param time.var A string indicating the variable for time points.
-#' @param t0.level Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.
-#' @param ts.levels Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.
-#' @param group.var A string indicating the variable for group identifiers. Default is NULL.
-#' @param strata.var A string indicating the variable for strata identifiers. Default is NULL.
-#' @param feature.level A string indicating the taxonomic level to plot.
-#' @param feature.dat.type The type of the feature data, which determines how the data is handled in downstream analyses.
-#' Should be one of:
-#' - "count": Raw count data, will be normalized by the function.
-#' - "proportion": Data that has already been normalized to proportions/percentages.
-#' - "other": Custom abundance data that has unknown scaling. No normalization applied.
-#' The choice affects preprocessing steps as well as plot axis labels.
-#' Default is "count", which assumes raw count input.
-#' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
-#' Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.
-#' @param top.k.plot Integer specifying number of top k features to plot, when `features.plot` is NULL.
-#' Default is NULL, in which case all features passing filters will be plotted.
-#' @param top.k.func Function to use for selecting top k features, when `features.plot` is NULL.
-#' Options include inbuilt functions like "mean", "sd", or a custom function. Default is NULL, in which
-#' case features will be selected by abundance.
-#' @param transform A string indicating the transformation to apply to the data before plotting. Options are:
-#' - "identity": No transformation (default)
-#' - "sqrt": Square root transformation
-#' - "log": Logarithmic transformation. Zeros are replaced with half of the minimum non-zero value for each taxon before log transformation.
-#' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
-#' taxa before analysis. Taxa with prevalence below this value will be removed.
-#' Prevalence is calculated as the proportion of samples where the taxon is present.
-#' Default 0 removes no taxa by prevalence filtering.
-#' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering
-#' taxa before analysis. Taxa with mean abundance below this value will be removed.
-#' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
-#' Default 0 removes no taxa by abundance filtering.
-#' @param base.size A numeric value specifying the base size of the plot. Default is 16.
-#' @param theme.choice
-#' Plot theme choice. Specifies the visual style of the plot. Can be one of the following pre-defined themes:
-#'   - "prism": Utilizes the ggprism::theme_prism() function from the ggprism package, offering a polished and visually appealing style.
-#'   - "classic": Applies theme_classic() from ggplot2, providing a clean and traditional look with minimal styling.
-#'   - "gray": Uses theme_gray() from ggplot2, which offers a simple and modern look with a light gray background.
-#'   - "bw": Employs theme_bw() from ggplot2, creating a classic black and white plot, ideal for formal publications and situations where color is best minimized.
-#'   - "light": Implements theme_light() from ggplot2, featuring a light theme with subtle grey lines and axes, suitable for a fresh, modern look.
-#'   - "dark": Uses theme_dark() from ggplot2, offering a dark background, ideal for presentations or situations where a high-contrast theme is desired.
-#'   - "minimal": Applies theme_minimal() from ggplot2, providing a minimalist theme with the least amount of background annotations and colors.
-#'   - "void": Employs theme_void() from ggplot2, creating a blank canvas with no axes, gridlines, or background, ideal for custom, creative plots.
-#' Each theme option adjusts various elements like background color, grid lines, and font styles to match the specified aesthetic.
-#' Default is "bw", offering a universally compatible black and white theme suitable for a wide range of applications.
-#' @param custom.theme
-#' A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. Custom themes are useful for creating publication-ready figures with specific formatting requirements.
-#'
-#' To use a custom theme, create a theme object with ggplot2::theme(), including any desired customizations. Common customizations for publication-ready figures might include adjusting text size for readability, altering line sizes for clarity, and repositioning or formatting the legend. For example:
-#'
-#' ```r
-#' my_theme <- ggplot2::theme(
-#'   axis.title = ggplot2::element_text(size=14, face="bold"),        # Bold axis titles with larger font
-#'   axis.text = ggplot2::element_text(size=12),                      # Slightly larger axis text
-#'   legend.position = "top",                                         # Move legend to the top
-#'   legend.background = ggplot2::element_rect(fill="lightgray"),     # Light gray background for legend
-#'   panel.background = ggplot2::element_rect(fill="white", colour="black"), # White panel background with black border
-#'   panel.grid.major = ggplot2::element_line(colour = "grey90"),     # Lighter color for major grid lines
-#'   panel.grid.minor = ggplot2::element_blank(),                     # Remove minor grid lines
-#'   plot.title = ggplot2::element_text(size=16, hjust=0.5)           # Centered plot title with larger font
-#' )
-#' ```
-#'
-#' Then pass `my_theme` to `custom.theme`. If `custom.theme` is NULL (the default), the theme is determined by `theme.choice`. This flexibility allows for both easy theme selection for general use and detailed customization for specific presentation or publication needs.
-#' @param palette An optional parameter specifying the color palette to be used for the plot.
-#'                It can be either a character string specifying the name of a predefined
-#'                palette or a vector of color codes in a format accepted by ggplot2
-#'                (e.g., hexadecimal color codes). Available predefined palettes include
-#'                'npg', 'aaas', 'nejm', 'lancet', 'jama', 'jco', and 'ucscgb', inspired
-#'                by various scientific publications and the `ggsci` package. If `palette`
-#'                is not provided or an unrecognized palette name is given, a default color
-#'                palette will be used. Ensure the number of colors in the palette is at
-#'                least as large as the number of groups being plotted.
-#' @param pdf A logical value indicating whether to save the plot as a PDF. Default is TRUE.
-#' @param file.ann A string for additional annotation to the file name. Default is NULL.
-#' @param pdf.wid A numeric value specifying the width of the PDF. Default is 11.
-#' @param pdf.hei A numeric value specifying the height of the PDF. Default is 8.5.
-#' @param ... Additional arguments to be passed to the function.
+#' @inheritParams mStat_data_obj_doc
+#' @inheritParams mStat_plot_params_doc
+#' @param features.plot Character vector of specific feature IDs to plot.
+#'   If NULL, features are selected based on top.k.plot and top.k.func.
+#' @param top.k.plot Integer specifying number of top features to plot.
+#' @param top.k.func Function for selecting top features (e.g., "mean", "sd").
+#' @param transform Transformation to apply: "identity", "sqrt", or "log".
 #'
 #' @return A list of ggplot objects for each taxonomic level.
-#' @details
-#' This function generates a boxplot of taxa abundances for longitudinal data.
-#' The boxplot can be stratified by a group variable and/or other variables.
-#' It allows for different taxonomic levels to be used and a specific number of features to be included in the plot.
-#' The function also has options to customize the size, theme, and color palette of the plot, and to save the plot as a PDF.
 #'
 #' @examples
 #' \dontrun{

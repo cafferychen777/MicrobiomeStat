@@ -1,36 +1,12 @@
-#' Compute and analyze changes in beta diversity
+#' Test Beta Diversity Change Between Time Points
 #'
-#' This function calculates beta diversity measures between time points,
-#' performs linear modeling, and generates results.
+#' Tests within-subject beta diversity changes between two time points using
+#' linear models. Supports group comparisons and covariate adjustment.
 #'
-#' For each subject, it calculates the change in beta diversity between
-#' baseline time point and later time point. This within-subject change
-#' is used as the outcome in linear models.
-#'
-#' Adjustment for covariates is supported. Both ANOVA and coefficient
-#' tables are provided if a grouping variable is specified.
-#'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param dist.obj Distance matrix between samples, usually calculated using
-#' \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
-#' If NULL, beta diversity will be automatically computed from \code{data.obj}
-#' using \code{mStat_calculate_beta_diversity}.
-#' @param subject.var The name of the column in metadata containing the subject IDs.
-#'                    This should uniquely identify each subject in the study. Required
-#'                    to identify samples that belong to the same subject.
-#' @param time.var The name of the column in metadata containing the time variable.
-#'                This should be a column with time points for each sample. Required
-#'                to identify pairs of samples for the same subject across time.
-#' @param group.var The name of the column in metadata containing the grouping variable
-#'                 to use in linear modeling. This grouping variable will be used as a
-#'                 predictor in the linear models for beta diversity change. Optional.
-#' @param adj.vars Vector of names of additional variables in metadata to be included
-#'                as covariates in the linear models. Can be empty.
-#' @param change.base The baseline time point value in the time variable to be used
-#'                   as the reference for calculating beta diversity change. Required
-#'                   if time.var contains multiple time points. If NULL, the first
-#'                   time point will be used as change.base automatically.
-#' @param dist.name A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned.
+#' @inheritParams mStat_data_obj_doc
+#' @inheritParams mStat_test_params_doc
+#' @param change.base Character or numeric specifying the baseline time point.
+#'   If NULL, uses the first time point.
 #'
 #' @examples
 #' \dontrun{

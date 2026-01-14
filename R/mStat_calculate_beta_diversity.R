@@ -1,15 +1,11 @@
-#' Calculate various beta diversity indices
+#' Calculate Beta Diversity Indices
 #'
-#' This function calculates a variety of beta diversity indices based on the input data, such as
-#' Bray-Curtis (BC), Jaccard, unweighted UniFrac (UniFrac), generalized UniFrac (GUniFrac),
-#' weighted UniFrac (WUniFrac), and Jensen-Shannon divergence (JS).
-#' @name mStat_calculate_beta_diversity
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param dist.name A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned.
-#'   "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac),
-#'   "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence).
+#' Calculates various beta diversity distance matrices from feature abundance data.
 #'
-#' @return A list containing the calculated beta diversity indices. The indices are named with the abbreviation.
+#' @inheritParams mStat_data_obj_doc
+#' @inheritParams mStat_test_params_doc
+#'
+#' @return A named list of distance matrices (class "dist").
 #'
 #' @examples
 #' \dontrun{

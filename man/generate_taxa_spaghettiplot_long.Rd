@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_taxa_spaghettiplot_long.R
 \name{generate_taxa_spaghettiplot_long}
 \alias{generate_taxa_spaghettiplot_long}
-\title{Generate longitudinal spaghettiplot plots of taxonomic composition}
+\title{Generate Longitudinal Spaghetti Plots of Taxonomic Composition}
 \usage{
 generate_taxa_spaghettiplot_long(
   data.obj,
@@ -31,119 +31,110 @@ generate_taxa_spaghettiplot_long(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
+\itemize{
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
+}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{subject.var}{A character string defining the subject variable in meta_tab.
-This should be a column that contains unique subject IDs to
-identify each sample's subject of origin. Required for plotting
-individual subject lines.}
+\item{subject.var}{Character string specifying the column name in meta.dat
+that uniquely identifies each subject or sample unit. Required for
+longitudinal and paired designs to track repeated measurements.}
 
-\item{time.var}{A character string defining the time variable in meta_tab.
-This should be a column in meta_tab that represents the time
-points for the longitudinal samples. Required to identify
-the time axis for plotting.}
+\item{time.var}{Character string specifying the column name in meta.dat
+containing the time variable. Required for longitudinal and paired analyses.
+Should be a factor or character with meaningful time point labels.}
 
-\item{t0.level}{Character or numeric, baseline time point for longitudinal analysis, e.g. "week_0" or 0. Required.}
+\item{t0.level}{Character or numeric value specifying the baseline time
+point for longitudinal or paired analyses. Should match a value in the
+time.var column.}
 
-\item{ts.levels}{Character vector, names of follow-up time points, e.g. c("week_4", "week_8"). Required.}
+\item{ts.levels}{Character vector specifying the follow-up time points for
+longitudinal or paired analyses. Should match values in the time.var column.}
 
-\item{group.var}{A character string defining the grouping variable in meta_tab.
-This variable is used for coloring lines in the plot and faceting by
-group. For example, variable could be treatment group. Optional,
-can be set to NULL.}
+\item{group.var}{Character string specifying the column name in meta.dat
+containing the grouping variable (e.g., treatment, condition, phenotype).
+Used for between-group comparisons.}
 
-\item{strata.var}{(Optional) A character string defining the stratification variable
-in meta_tab. This variable is used for nested faceting in the plot.
-For example, could be clinical strata like disease status.
-Optional, can be set to NULL. When set, plot will show nested
-facetting by strata within each feature.}
+\item{strata.var}{Character string specifying the column name in meta.dat
+for stratification. When provided, analyses and visualizations will be
+performed separately within each stratum (e.g., by site, batch, or sex).}
 
-\item{feature.level}{The column name(s) in the feature annotation matrix (feature.ann) of data.obj
-to use for summarization and plotting. Can be taxonomic levels like "Phylum",
-"Genus", or any other annotation columns like "OTU_ID". Should be a character
-vector specifying one or more column names in feature.ann. The special value
-"original" can also be provided, which will use the original row names from
-feature.ann. Multiple columns can be provided, and data will be plotted
-separately for each column. **\bold{Cannot be NULL, as NULL value will lead to errors.}**}
+\item{feature.level}{Character vector specifying the taxonomic or annotation
+level(s) for analysis. Should match column names in feature.ann, such as
+"Phylum", "Family", "Genus", etc. Use "original" to analyze at the
+original feature level without aggregation.}
 
-\item{feature.dat.type}{The type of the feature data, which determines how the data is handled in downstream analyses.
-Should be one of:
-- "count": Raw count data, will be normalized by the function.
-- "proportion": Data that has already been normalized to proportions/percentages.
-- "other": Custom abundance data that has unknown scaling. No normalization applied.
-The choice affects preprocessing steps as well as plot axis labels.
-Default is "count", which assumes raw OTU table input.}
+\item{feature.dat.type}{Character string specifying the data type of
+feature.tab. One of:
+\itemize{
+  \item "count": Raw count data (will be normalized)
+  \item "proportion": Relative abundance data (should sum to 1 per sample)
+  \item "other": Pre-transformed data (no transformation applied)
+}}
 
-\item{features.plot}{A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
-Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.}
+\item{features.plot}{A character vector specifying which feature IDs to plot.
+Default is NULL, in which case features are selected based on `top.k.plot` and `top.k.func`.}
 
-\item{top.k.plot}{Integer specifying number of top k features to plot, when `features.plot` is NULL.
-Default is NULL, in which case all features passing filters will be plotted.}
+\item{top.k.plot}{Integer specifying number of top k features to plot. Default is NULL.}
 
-\item{top.k.func}{Function to use for selecting top k features, when `features.plot` is NULL.
-Options include inbuilt functions like "mean", "sd", or a custom function. Default is NULL, in which
-case features will be selected by abundance.}
+\item{top.k.func}{Function to use for selecting top k features (e.g., "mean", "sd"). Default is NULL.}
 
-\item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
-taxa before analysis. Taxa with prevalence below this value will be removed.
-Prevalence is calculated as the proportion of samples where the taxon is present.
-Default 0 removes no taxa by prevalence filtering.}
+\item{prev.filter}{Numeric value between 0 and 1. Features with prevalence
+(proportion of non-zero samples) below this threshold will be excluded
+from analysis. Default is usually 0 (no filtering).}
 
-\item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering
-taxa before analysis. Taxa with mean abundance below this value will be removed.
-Abundance refers to counts or proportions depending on \code{feature.dat.type}.
-Default 0 removes no taxa by abundance filtering.}
+\item{abund.filter}{Numeric value. Features with mean abundance below this
+threshold will be excluded from analysis. Default is usually 0 (no filtering).}
 
-\item{base.size}{Base font size for the generated plots.}
+\item{base.size}{Numeric value specifying the base font size for plot text
+elements. Default is typically 16.}
 
-\item{theme.choice}{Plot theme choice. Specifies the visual style of the plot. Can be one of the following pre-defined themes:
-  - "prism": Utilizes the ggprism::theme_prism() function from the ggprism package, offering a polished and visually appealing style.
-  - "classic": Applies theme_classic() from ggplot2, providing a clean and traditional look with minimal styling.
-  - "gray": Uses theme_gray() from ggplot2, which offers a simple and modern look with a light gray background.
-  - "bw": Employs theme_bw() from ggplot2, creating a classic black and white plot, ideal for formal publications and situations where color is best minimized.
-  - "light": Implements theme_light() from ggplot2, featuring a light theme with subtle grey lines and axes, suitable for a fresh, modern look.
-  - "dark": Uses theme_dark() from ggplot2, offering a dark background, ideal for presentations or situations where a high-contrast theme is desired.
-  - "minimal": Applies theme_minimal() from ggplot2, providing a minimalist theme with the least amount of background annotations and colors.
-  - "void": Employs theme_void() from ggplot2, creating a blank canvas with no axes, gridlines, or background, ideal for custom, creative plots.
-Each theme option adjusts various elements like background color, grid lines, and font styles to match the specified aesthetic.
-Default is "bw", offering a universally compatible black and white theme suitable for a wide range of applications.}
+\item{theme.choice}{Character string specifying the ggplot2 theme to use.
+Options include:
+\itemize{
+  \item "bw": Black and white theme (theme_bw)
+  \item "classic": Classic theme (theme_classic)
+  \item "minimal": Minimal theme (theme_minimal)
+  \item "prism": GraphPad Prism-like theme
+  \item "nature": Nature journal style
+  \item "light": Light theme (theme_light)
+}
+Can also use a custom ggplot2 theme object via custom.theme.}
 
-\item{custom.theme}{A custom ggplot theme provided as a ggplot2 theme object. This allows users to override the default theme and provide their own theme for plotting. Custom themes are useful for creating publication-ready figures with specific formatting requirements.
+\item{custom.theme}{A custom ggplot2 theme object to override theme.choice.
+Should be created using ggplot2::theme() or a complete theme function.}
 
-To use a custom theme, create a theme object with ggplot2::theme(), including any desired customizations. Common customizations for publication-ready figures might include adjusting text size for readability, altering line sizes for clarity, and repositioning or formatting the legend. For example:
+\item{palette}{Character vector of colors or a named palette for the plot.
+If NULL, uses default MicrobiomeStat color scheme. Can be:
+\itemize{
+  \item A vector of color codes (e.g., c("#E41A1C", "#377EB8"))
+  \item A palette name recognized by the plotting function
+}}
 
-```r
-my_theme <- ggplot2::theme(
-  axis.title = ggplot2::element_text(size=14, face="bold"),        # Bold axis titles with larger font
-  axis.text = ggplot2::element_text(size=12),                      # Slightly larger axis text
-  legend.position = "top",                                         # Move legend to the top
-  legend.background = ggplot2::element_rect(fill="lightgray"),     # Light gray background for legend
-  panel.background = ggplot2::element_rect(fill="white", colour="black"), # White panel background with black border
-  panel.grid.major = ggplot2::element_line(colour = "grey90"),     # Lighter color for major grid lines
-  panel.grid.minor = ggplot2::element_blank(),                     # Remove minor grid lines
-  plot.title = ggplot2::element_text(size=16, hjust=0.5)           # Centered plot title with larger font
-)
-```
+\item{pdf}{Logical. If TRUE, saves the plot(s) to PDF file(s) in the
+current working directory. Default is TRUE.}
 
-Then pass `my_theme` to `custom.theme`. If `custom.theme` is NULL (the default), the theme is determined by `theme.choice`. This flexibility allows for both easy theme selection for general use and detailed customization for specific presentation or publication needs.}
+\item{file.ann}{Character string for additional annotation to append to
+output filenames. Useful for distinguishing multiple outputs.}
 
-\item{palette}{An optional parameter specifying the color palette to be used for the plot.
-It can be either a character string specifying the name of a predefined
-palette or a vector of color codes in a format accepted by ggplot2
-(e.g., hexadecimal color codes). Available predefined palettes include
-'npg', 'aaas', 'nejm', 'lancet', 'jama', 'jco', and 'ucscgb', inspired
-by various scientific publications and the `ggsci` package. If `palette`
-is not provided or an unrecognized palette name is given, a default color
-palette will be used. Ensure the number of colors in the palette is at
-least as large as the number of groups being plotted.}
+\item{pdf.wid}{Numeric value specifying the width of PDF output in inches.
+Default is typically 11.}
 
-\item{pdf}{A logical value. If TRUE (default), saves the plot as a PDF file. If FALSE, the plot will be displayed interactively without creating a PDF.}
-
-\item{file.ann}{(Optional) A character string specifying a file annotation to include in the generated PDF file's name.}
-
-\item{pdf.wid}{Width of the PDF plots.}
-
-\item{pdf.hei}{Height of the PDF plots.}
+\item{pdf.hei}{Numeric value specifying the height of PDF output in inches.
+Default is typically 8.5.}
 
 \item{...}{Additional parameters to be passed.}
 }
@@ -151,7 +142,8 @@ least as large as the number of groups being plotted.}
 A ggplot object containing the longitudinal line plot.
 }
 \description{
-This function generates a spaghettiplot plot for the taxonomic composition of microbiome data over time.
+Generates spaghetti plots showing taxonomic composition trends over time,
+with individual subject trajectories and group-level mean lines.
 }
 \examples{
 \dontrun{

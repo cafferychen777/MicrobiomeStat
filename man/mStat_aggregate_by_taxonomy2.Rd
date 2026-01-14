@@ -2,41 +2,68 @@
 % Please edit documentation in R/mStat_aggregate_by_taxonomy2.R
 \name{mStat_aggregate_by_taxonomy2}
 \alias{mStat_aggregate_by_taxonomy2}
-\title{Aggregate OTU Table by Taxonomy Level}
+\title{Aggregate Feature Table by Taxonomy Level (Low-Level Interface)}
 \usage{
 mStat_aggregate_by_taxonomy2(feature.tab, feature.ann, feature.level = NULL)
 }
 \arguments{
-\item{feature.tab}{OTU table as matrix or data.frame}
+\item{feature.tab}{Feature table (matrix or data.frame) with taxa as rows
+and samples as columns.}
 
-\item{feature.ann}{Taxonomy table as matrix or data.frame}
+\item{feature.ann}{Taxonomy annotation table (matrix or data.frame) with taxa
+as rows and taxonomy levels as columns.}
 
-\item{feature.level}{Taxonomy level to aggregate by as character vector.}
+\item{feature.level}{Character string specifying the taxonomy level to aggregate
+by. Must match a column name in feature.ann. Supports only a single level;
+for multiple levels, call this function multiple times or use
+\code{\link{mStat_aggregate_by_taxonomy}}.}
 }
 \value{
-Aggregated OTU table matrix.
+Aggregated feature table as a matrix with taxonomy groups as rows
+  and samples as columns. The original sample order is preserved.
 }
 \description{
-This function aggregates an OTU table by a specified taxonomy level.
-It checks for consistency between OTU and taxonomy tables before aggregation.
+A lower-level interface for taxonomy aggregation that works directly with
+feature and annotation matrices, without requiring a MicrobiomeStat data object.
 }
 \details{
-The function first checks that the row names of OTU and taxonomy tables match.
-If any mismatches are found, a message is displayed but the function continues.
-The OTU and taxonomy tables are joined by row names.
-The OTU table is then aggregated by summing abundance values for each sample at the specified taxonomy level.
-Rows with all zero values after aggregation are removed.
+This function provides direct access to the taxonomy aggregation algorithm
+without the data object wrapper. It is useful when:
+\itemize{
+  \item You have separate feature and annotation tables
+  \item You want to aggregate a single level without modifying a data object
+  \item You are building custom analysis pipelines
+}
+
+The function performs an inner join between feature.tab and feature.ann,
+so only features present in both tables will be included in the output.
+NA taxonomy values are replaced with "Unclassified".
 }
 \examples{
 \dontrun{
-# Load required libraries
-library(vegan)
 data(peerj32.obj)
 
-# Specify the taxonomy level
-feature.level <- c("Family")
+# Aggregate to Family level
+family_table <- mStat_aggregate_by_taxonomy2(
+  feature.tab = peerj32.obj$feature.tab,
+  feature.ann = peerj32.obj$feature.ann,
+  feature.level = "Family"
+)
 
-# Aggregate data object by taxonomy level
-mStat_aggregate_by_taxonomy2(peerj32.obj$feature.tab, peerj32.obj$feature.ann, feature.level)
+# Aggregate to multiple levels separately
+phylum_table <- mStat_aggregate_by_taxonomy2(
+  peerj32.obj$feature.tab, peerj32.obj$feature.ann, "Phylum"
+)
+genus_table <- mStat_aggregate_by_taxonomy2(
+  peerj32.obj$feature.tab, peerj32.obj$feature.ann, "Genus"
+)
 }
+
+}
+\seealso{
+\code{\link{mStat_aggregate_by_taxonomy}} for the higher-level interface
+  that works with MicrobiomeStat data objects and supports multiple levels.
+}
+\author{
+Caffery(Chen) YANG
 }

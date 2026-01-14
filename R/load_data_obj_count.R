@@ -1,25 +1,12 @@
-#' Update Count Data in a MicrobiomeStat Data Object
+#' Load Count Data from a MicrobiomeStat Data Object
 #'
-#' This internal function updates count data in a MicrobiomeStat data object.
-#' It checks for the presence of various variable names in the data object
-#' and updates the data associated with the first match it finds.
-#' @name load_data_obj_count
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param new_count_table A new count table to replace the existing count data in the MicrobiomeStat data object.
+#' Internal function to extract the count table from a MicrobiomeStat data object.
+#' Searches for count data using various common naming conventions.
 #'
-#' @return A MicrobiomeStat data object with updated count data. If no count data is found for updating,
-#' the function returns the original data object and displays a message.
+#' @inheritParams mStat_data_obj_doc
 #'
-#' @details
-#' The function first checks for the presence of a set of primary variable names in the MicrobiomeStat data object.
-#' If it finds a match, it updates the data associated with the first match.
-#' If it doesn't find a match, it checks for the presence of a set of possible confusing variable names.
-#' If it finds multiple matches, it displays a message and updates the data associated with the first match.
-#' If it finds a single match, it updates the associated data.
-#' If it doesn't find a match, it displays a message and returns the original data object.
+#' @return The count table (matrix) if found, NULL otherwise.
 #'
-#' @author Chen Yang
-#' @seealso \code{\link[base]{intersect}}
 #' @keywords internal
 #' @noRd
 load_data_obj_count <- function(data.obj) {

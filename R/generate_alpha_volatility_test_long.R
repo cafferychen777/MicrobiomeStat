@@ -1,36 +1,14 @@
-#' Longitudinal Alpha Diversity Volatility Test in MicrobiomeStat
+#' @title Alpha Diversity Volatility Test (Longitudinal)
 #'
-#' This function, part of the MicrobiomeStat package, calculates the volatility
-#' of alpha diversity measures in longitudinal data and tests the association
-#' between the volatility and a group variable. Volatility is calculated as the mean
-#' of absolute differences between consecutive alpha diversity measures, normalized
-#' by the time difference (mean(abs(alpha_j - alpha_\{j-1\}) / (t_j - t_\{j-1\}))).
+#' @description Tests associations between alpha diversity volatility and group
+#'   variables. Volatility is the mean absolute change between consecutive time
+#'   points normalized by time difference.
 #'
-#' The function first obtains the residuals by fitting a linear model with alpha
-#' diversity as the response and adjustment variables as predictors. It then calculates
-#' volatility for each subject and tests its association with a group variable using a
-#' linear model. If the group variable specified in `group.var` has more than two levels,
-#' an ANOVA is performed to test the association between alpha diversity volatility
-#' and the group variable.
+#' @inheritParams mStat_data_obj_doc
+#' @inheritParams mStat_test_params_doc
 #'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param alpha.obj An object containing precomputed alpha diversity indices,
-#' typically calculated by the function `mStat_calculate_alpha_diversity`.
-#' If NULL (the default), alpha diversity will be calculated from the data.obj using
-#' `mStat_calculate_alpha_diversity`.
-#' @param alpha.name A string with the name of the alpha diversity index to compute.
-#' Options could include: "shannon", "simpson", "observed_species", "chao1", "ace", "pielou", and "faith_pd".
-#' @param depth An integer specifying the sequencing depth for the "Rarefy" and "Rarefy-TSS" methods.
-#' If NULL, no rarefaction is performed.
-#' @param time.var A string representing the time variable's name in the
-#' metadata. The default is NULL.
-#' @param subject.var A string indicating the variable for subject identifiers.
-#' @param group.var A string representing the group variable's name in the
-#' metadata.
-#' @param adj.vars A character vector with the names of adjustment variables in
-#' the metadata, used in fitting the linear model for residuals.
 #' @return A summary object containing the results of the linear model testing
-#' the association between alpha diversity volatility and the group variable.
+#'   the association between alpha diversity volatility and the group variable.
 #'
 #' @examples
 #' \dontrun{

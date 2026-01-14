@@ -1,51 +1,13 @@
 #' Longitudinal Taxa Abundance Volatility Test
 #'
-#' This function calculates the volatility of taxa abundances in longitudinal microbiome data.
-#' It tests for association between abundance volatility and a grouping variable.
+#' Calculates and tests taxa abundance volatility (variability over time) between groups.
+#' Volatility is the mean absolute difference between consecutive time points,
+#' normalized by time difference.
 #'
-#' Volatility is calculated as the mean absolute difference in abundance between
-#' consecutive time points, normalized by time difference:
-#'   mean(|abundance(t+1) - abundance(t)| / (time(t+1) - time(t)))
+#' @inheritParams mStat_data_obj_doc
 #'
-#' The function transforms the abundance data first before volatility calculation.
-#' Default transform is 'CLR' for count and proportion data. No transform for other types.
-#'
-#' For count data, a pseudocount of 0.5 is added before CLR transform.
-#' For proportion data, zeros are replaced with 1/2 of the minimum positive value before CLR.
-#'
-#' It then calculates volatility within each subject, and tests for association with
-#' the grouping variable using linear models. If the grouping variable has multiple levels,
-#' an ANOVA is performed.
-#'
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param time.var Character string specifying the column name in metadata containing
-#'                the numeric time variable. Should contain ordered time points for each
-#'                subject. Required to calculate volatility over time.
-#' @param subject.var Character string specifying the column name in metadata containing
-#'                    unique subject IDs. Required to calculate volatility within subjects
-#'                    over time.
-#' @param group.var Character string specifying the column name in metadata containing
-#'                 grouping categories. This variable is ALWAYS treated as categorical
-#'                 (factor), regardless of input type. If you provide a numeric or integer
-#'                 variable, it will be automatically converted to a factor (Line 129).
-#'                 Volatility will be compared between groups using linear models. Required.
-#' @param adj.vars Character vector specifying column names in metadata containing covariates
-#'                to adjust for in linear models. Optional, can be NULL.
-#' @param prev.filter Numeric value specifying the minimum prevalence threshold for filtering
-#' taxa before analysis. Taxa with prevalence below this value will be removed.
-#' Prevalence is calculated as the proportion of samples where the taxon is present.
-#' @param abund.filter Numeric value specifying the minimum abundance threshold for filtering
-#' taxa before analysis. Taxa with mean abundance below this value will be removed.
-#' Abundance refers to counts or proportions depending on \code{feature.dat.type}.
-#' @param feature.level Character vector specifying taxonomic level(s) to aggregate abundance data to
-#'                     before volatility calculation, e.g. c("Phylum", "Genus"). The special value
-#'                     "original" can also be provided, which will use the original taxon identifiers.
-#' @param feature.dat.type Character string specifying the data type of the abundance data. Should be
-#'                        one of "count", "proportion", or "other". Determines transform. This should
-#'                        match the units of data used in feature.level.
-#' @param transform Character string specifying transformation method. If "CLR", count and
-#'                 proportion data will be CLR transformed before volatility calculation.
-#'                 Default "CLR".
+#' @param transform Character; transformation method before volatility calculation.
+#'   "CLR" applies CLR transform (default). Set to other value to skip transformation.
 #' @param ... Additional arguments passed to other methods.
 #' @return A nested list structure where:
 #' \itemize{

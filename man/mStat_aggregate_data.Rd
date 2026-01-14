@@ -2,7 +2,7 @@
 % Please edit documentation in R/mStat_aggregate_data.R
 \name{mStat_aggregate_data}
 \alias{mStat_aggregate_data}
-\title{Aggregate Data Function}
+\title{Aggregate Data by Subject}
 \usage{
 mStat_aggregate_data(
   data.obj,
@@ -12,24 +12,44 @@ mStat_aggregate_data(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat...}
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
+\itemize{
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
+}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{subject.var}{A character specifying the name of the subject variable.}
+\item{subject.var}{Character string specifying the column name in meta.dat
+that uniquely identifies each subject or sample unit. Required for
+longitudinal and paired designs to track repeated measurements.}
 
-\item{strata.var}{A character specifying the name of the strata variable. If NULL, no stratification is performed.}
+\item{strata.var}{Character string specifying the column name in meta.dat
+for stratification. When provided, analyses and visualizations will be
+performed separately within each stratum (e.g., by site, batch, or sex).}
 
-\item{meta.handle.conflict}{A character string specifying how to handle conflicting metadata in replicates.
-Options are:
-- `"first"` (default): Use the metadata from the first record encountered for each group. Issues a warning about conflicts.
-- `"stop"`: Stop execution with an error if any metadata conflict is found.
-- `"summarise"`: For numeric variables, compute the mean. For non-numeric (character/factor) variables, if they are inconsistent, stop with an error. Issues a warning for summarized numeric variables.}
+\item{meta.handle.conflict}{Character string specifying how to handle metadata conflicts:
+\itemize{
+  \item "first": Use first record (default)
+  \item "stop": Error on conflicts
+  \item "summarise": Mean for numeric, first for character/factor
+}}
 }
 \value{
-A new list object with aggregated data.
+A MicrobiomeStat data object with aggregated data.
 }
 \description{
-This function aggregates data by a specified subject and optional strata.
-It provides flexible strategies for handling metadata conflicts in replicates.
+Aggregates feature counts and metadata by subject and optional strata.
 }
 \examples{
 \dontrun{

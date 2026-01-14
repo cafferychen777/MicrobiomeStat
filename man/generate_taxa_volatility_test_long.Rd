@@ -19,44 +19,62 @@ generate_taxa_volatility_test_long(
 )
 }
 \arguments{
-\item{data.obj}{A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.}
+\item{data.obj}{A MicrobiomeStat data object, which is a list containing
+at minimum the following components:
+\itemize{
+  \item \code{feature.tab}: A matrix of feature abundances (taxa/genes as
+    rows, samples as columns)
+  \item \code{meta.dat}: A data frame of sample metadata (samples as rows)
+}
+Optional components include:
+\itemize{
+  \item \code{feature.ann}: A matrix/data frame of feature annotations
+    (e.g., taxonomy)
+  \item \code{tree}: A phylogenetic tree object (class "phylo")
+  \item \code{feature.agg.list}: Pre-aggregated feature tables by taxonomy
+}
+Data objects can be created using converters like
+\code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
+\code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{time.var}{Character string specifying the column name in metadata containing
-the numeric time variable. Should contain ordered time points for each
-subject. Required to calculate volatility over time.}
+\item{time.var}{Character string specifying the column name in meta.dat
+containing the time variable. Required for longitudinal and paired analyses.
+Should be a factor or character with meaningful time point labels.}
 
-\item{subject.var}{Character string specifying the column name in metadata containing
-unique subject IDs. Required to calculate volatility within subjects
-over time.}
+\item{subject.var}{Character string specifying the column name in meta.dat
+that uniquely identifies each subject or sample unit. Required for
+longitudinal and paired designs to track repeated measurements.}
 
-\item{group.var}{Character string specifying the column name in metadata containing
-grouping categories. This variable is ALWAYS treated as categorical
-(factor), regardless of input type. If you provide a numeric or integer
-variable, it will be automatically converted to a factor (Line 129).
-Volatility will be compared between groups using linear models. Required.}
+\item{group.var}{Character string specifying the column name in meta.dat
+containing the grouping variable (e.g., treatment, condition, phenotype).
+Used for between-group comparisons.}
 
-\item{adj.vars}{Character vector specifying column names in metadata containing covariates
-to adjust for in linear models. Optional, can be NULL.}
+\item{adj.vars}{Character vector specifying column names in meta.dat to be
+used as covariates for adjustment in statistical models. These variables
+will be included as fixed effects.}
 
-\item{prev.filter}{Numeric value specifying the minimum prevalence threshold for filtering
-taxa before analysis. Taxa with prevalence below this value will be removed.
-Prevalence is calculated as the proportion of samples where the taxon is present.}
+\item{prev.filter}{Numeric value between 0 and 1. Features with prevalence
+(proportion of non-zero samples) below this threshold will be excluded
+from analysis. Default is usually 0 (no filtering).}
 
-\item{abund.filter}{Numeric value specifying the minimum abundance threshold for filtering
-taxa before analysis. Taxa with mean abundance below this value will be removed.
-Abundance refers to counts or proportions depending on \code{feature.dat.type}.}
+\item{abund.filter}{Numeric value. Features with mean abundance below this
+threshold will be excluded from analysis. Default is usually 0 (no filtering).}
 
-\item{feature.level}{Character vector specifying taxonomic level(s) to aggregate abundance data to
-before volatility calculation, e.g. c("Phylum", "Genus"). The special value
-"original" can also be provided, which will use the original taxon identifiers.}
+\item{feature.level}{Character vector specifying the taxonomic or annotation
+level(s) for analysis. Should match column names in feature.ann, such as
+"Phylum", "Family", "Genus", etc. Use "original" to analyze at the
+original feature level without aggregation.}
 
-\item{feature.dat.type}{Character string specifying the data type of the abundance data. Should be
-one of "count", "proportion", or "other". Determines transform. This should
-match the units of data used in feature.level.}
+\item{feature.dat.type}{Character string specifying the data type of
+feature.tab. One of:
+\itemize{
+  \item "count": Raw count data (will be normalized)
+  \item "proportion": Relative abundance data (should sum to 1 per sample)
+  \item "other": Pre-transformed data (no transformation applied)
+}}
 
-\item{transform}{Character string specifying transformation method. If "CLR", count and
-proportion data will be CLR transformed before volatility calculation.
-Default "CLR".}
+\item{transform}{Character; transformation method before volatility calculation.
+"CLR" applies CLR transform (default). Set to other value to skip transformation.}
 
 \item{...}{Additional arguments passed to other methods.}
 }
@@ -82,23 +100,9 @@ This function analyzes VOLATILITY (variability over time) using standard linear 
 NOT LinDA. Volatility is calculated as mean absolute differences between consecutive time points.
 }
 \description{
-This function calculates the volatility of taxa abundances in longitudinal microbiome data.
-It tests for association between abundance volatility and a grouping variable.
-}
-\details{
-Volatility is calculated as the mean absolute difference in abundance between
-consecutive time points, normalized by time difference:
-  mean(|abundance(t+1) - abundance(t)| / (time(t+1) - time(t)))
-
-The function transforms the abundance data first before volatility calculation.
-Default transform is 'CLR' for count and proportion data. No transform for other types.
-
-For count data, a pseudocount of 0.5 is added before CLR transform.
-For proportion data, zeros are replaced with 1/2 of the minimum positive value before CLR.
-
-It then calculates volatility within each subject, and tests for association with
-the grouping variable using linear models. If the grouping variable has multiple levels,
-an ANOVA is performed.
+Calculates and tests taxa abundance volatility (variability over time) between groups.
+Volatility is the mean absolute difference between consecutive time points,
+normalized by time difference.
 }
 \examples{
 \dontrun{
