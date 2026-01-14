@@ -68,7 +68,7 @@ is_count_data <- function(data_mat) {
 #'
 #' }
 #' @details
-#' The function first checks if 'data.obj' is a list. It then retrieves the OTU table and estimates the normalization/scale factor based on the chosen method. The data object is then updated with the normalized OTU table and the chosen method is added as 'norm.status'. The function returns the normalized data object and the scale factor.
+#' The function first checks if 'data.obj' is a list. It then retrieves the feature table and estimates the normalization/scale factor based on the chosen method. The data object is then updated with the normalized feature table and the chosen method is added as 'norm.status'. The function returns the normalized data object and the scale factor.
 #'
 #' @export
 mStat_normalize_data <-
@@ -82,7 +82,7 @@ mStat_normalize_data <-
     }
 
     # Extract the OTU (Operational Taxonomic Unit) table from the input data object
-    # The OTU table is the core data structure in microbiome analysis, representing taxon abundances across samples
+    # The feature table is the core data structure in microbiome analysis, representing taxon abundances across samples
     otu_tab <- as.data.frame(data.obj$feature.tab)
 
     # Validate and select the normalization method

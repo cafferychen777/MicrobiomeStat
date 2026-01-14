@@ -23,7 +23,7 @@
 #' - "proportion": Data that has already been normalized to proportions/percentages.
 #' - "other": Custom abundance data that has unknown scaling. No normalization applied.
 #' The choice affects preprocessing steps as well as plot axis labels.
-#' Default is "count", which assumes raw OTU table input.
+#' Default is "count", which assumes raw count input.
 #' @param top.k.plot An integer specifying the top k features to plot based on the function specified in `top.k.func`.
 #' @param top.k.func A function to determine the top k features to plot.
 #' @param transform A string indicating the transformation to apply to the data before plotting. Options are:
@@ -317,14 +317,14 @@ generate_taxa_boxplot_single <-
           mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
       }
 
-      # Extract aggregated OTU table
+      # Extract aggregated feature table
       if (feature.level != "original") {
         otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
       } else {
         otu_tax_agg <- data.obj$feature.tab
       }
 
-      # Filter OTU table based on prevalence and abundance
+      # Filter feature table based on prevalence and abundance
       otu_tax_agg <-  otu_tax_agg %>%
         as.data.frame() %>%
         mStat_filter(prev.filter = prev.filter,
@@ -339,7 +339,7 @@ generate_taxa_boxplot_single <-
 
       # Reshape data for plotting
       otu_tax_agg_numeric <- otu_tax_agg %>%
-        tidyr::gather(key = "sample", value = "value", -one_of(feature.level)) %>%
+        tidyr::gather(key = "sample", value = "value", -all_of(feature.level)) %>%
         dplyr::mutate(value = as.numeric(value))
 
       # Merge OTU data with metadata
@@ -347,7 +347,7 @@ generate_taxa_boxplot_single <-
         dplyr::left_join(otu_tax_agg_numeric,
                          meta_tab %>% rownames_to_column("sample"),
                          by = "sample") %>%
-        select(one_of(
+        select(all_of(
           c(
             "sample",
             feature.level,

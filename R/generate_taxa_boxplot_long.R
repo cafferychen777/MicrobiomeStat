@@ -17,7 +17,7 @@
 #' - "proportion": Data that has already been normalized to proportions/percentages.
 #' - "other": Custom abundance data that has unknown scaling. No normalization applied.
 #' The choice affects preprocessing steps as well as plot axis labels.
-#' Default is "count", which assumes raw OTU table input.
+#' Default is "count", which assumes raw count input.
 #' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
 #' Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.
 #' @param top.k.plot Integer specifying number of top k features to plot, when `features.plot` is NULL.
@@ -264,14 +264,14 @@ generate_taxa_boxplot_long <-
         data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
       }
 
-      # Extract aggregated OTU table
+      # Extract aggregated feature table
       if (feature.level != "original"){
         otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
       } else {
         otu_tax_agg <- data.obj$feature.tab
       }
 
-      # Filter OTU table based on prevalence and abundance
+      # Filter feature table based on prevalence and abundance
       otu_tax_agg <-  otu_tax_agg %>%
         as.data.frame() %>%
         mStat_filter(prev.filter = prev.filter,

@@ -54,7 +54,7 @@ mStat_update_sample_name <- function (data.obj, new.name) {
     })
   }
 
-  # Update the column names of the feature table (often referred to as the OTU table).
+  # Update the column names of the feature table.
   # The feature table contains the abundance data for each feature (e.g., OTU, ASV) across all samples.
   # Updating these names ensures consistency between the abundance data and sample identifiers.
   colnames(data.obj$feature.tab) <- new.name

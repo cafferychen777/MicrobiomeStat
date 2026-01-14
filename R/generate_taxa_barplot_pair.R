@@ -22,7 +22,7 @@
 #' - "proportion": Data that has already been normalized to proportions/percentages.
 #' - "other": Custom abundance data that has unknown scaling. No normalization applied.
 #' The choice affects preprocessing steps as well as plot axis labels.
-#' Default is "count", which assumes raw OTU table input.
+#' Default is "count", which assumes raw count input.
 #' @param feature.number A numeric value indicating the number of top abundant features to retain in the plot. Features with average relative abundance ranked below this number will be grouped into 'Other'. Default 20.
 #' @param base.size A numeric value indicating the base font size for the plot.
 #' @param theme.choice

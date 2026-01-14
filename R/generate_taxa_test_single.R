@@ -173,7 +173,7 @@ perform_lm_analysis <- function(feature.dat, meta.dat, formula, group.var) {
 #'                  Uses standard linear regression models without compositional adjustments.
 #' }
 #' The choice affects preprocessing steps as well as plot axis labels.
-#' Default is "count", which assumes raw OTU table input.
+#' Default is "count", which assumes raw count input.
 #' @param ... Additional arguments to be passed to the linda function.
 #'
 #' @return A nested list structure where:

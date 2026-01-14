@@ -23,7 +23,7 @@
 #' - "proportion": Data that has already been normalized to proportions/percentages.
 #' - "other": Custom abundance data that has unknown scaling. No normalization applied.
 #' The choice affects preprocessing steps as well as plot axis labels.
-#' Default is "count", which assumes raw OTU table input.
+#' Default is "count", which assumes raw count input.
 #' @param top.k.plot Integer specifying number of top k features to plot, when `features.plot` is NULL.
 #' Default is NULL, in which case all features passing filters will be plotted.
 #' @param top.k.func Function to use for selecting top k features, when `features.plot` is NULL.
@@ -252,7 +252,7 @@ generate_taxa_heatmap_pair <- function(data.obj,
       features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
     }
 
-    # Normalize the OTU table
+    # Normalize the feature table
     otu_tab_norm <-
       otu_tax_agg %>% column_to_rownames(var = feature.level) %>% as.matrix()
 

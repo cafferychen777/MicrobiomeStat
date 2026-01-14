@@ -9,7 +9,7 @@
 #'
 #' @return A list representing an mStat data object. The list includes the following elements:
 #'   \itemize{
-#'     \item feature.tab: A matrix that contains the biological observations (OTU table).
+#'     \item feature.tab: A matrix that contains the biological observations (feature table).
 #'     \item feature.ann: A matrix that contains parsed taxonomic annotations for each feature.
 #'     \item meta.dat: A data frame that contains metadata for each sample.
 #'     \item tree: A phylogenetic tree, if provided.

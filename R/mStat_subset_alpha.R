@@ -17,7 +17,7 @@
 #' library(MicrobiomeStat)
 #' library(vegan)
 #'
-#' # Create example OTU table
+#' # Create example feature table
 #' otu.tab <- matrix(data = rpois(100, 5), nrow = 10, ncol = 10)
 #' rownames(otu.tab) <- paste0("Taxon_", 1:10)
 #' colnames(otu.tab) <- paste0("Sample_", 1:10)

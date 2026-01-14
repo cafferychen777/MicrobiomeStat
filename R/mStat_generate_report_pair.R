@@ -99,7 +99,7 @@
 #' - "proportion": Data that has already been normalized to proportions/percentages.
 #' - "other": Custom abundance data that has unknown scaling. No normalization applied.
 #' The choice affects preprocessing steps as well as plot axis labels.
-#' Default is "count", which assumes raw OTU table input.
+#' Default is "count", which assumes raw count input.
 #' @param feature.mt.method Character, multiple testing method for features, "fdr" or "none", default is "fdr".
 #' @param feature.sig.level Numeric, significance level cutoff for highlighting features, default is 0.1.
 #' @param feature.box.axis.transform A string indicating the transformation to apply to the y-axis of the feature's boxplot visualization before plotting. Options are:

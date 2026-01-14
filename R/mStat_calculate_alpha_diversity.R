@@ -1,14 +1,14 @@
 #' Calculate alpha diversity indices
 #'
-#' This function calculates several alpha diversity indices (Shannon, Simpson, Observed Species, Chao1, ACE, Pielou, and Faith's PD) using the vegan and picante packages. The function takes an OTU table (x) as input and returns a list containing the requested alpha diversity indices.
+#' This function calculates several alpha diversity indices (Shannon, Simpson, Observed Species, Chao1, ACE, Pielou, and Faith's PD) using the vegan and picante packages. The function takes a feature table (x) as input and returns a list containing the requested alpha diversity indices.
 #' @name mStat_calculate_alpha_diversity
-#' @param x OTU table with taxa in rows and samples in columns.
+#' @param x Feature table (e.g., OTU/ASV table) with taxa in rows and samples in columns.
 #' @param alpha.name character vector containing the names of alpha diversity indices to calculate. Possible values are: "shannon", "simpson", "observed_species", "chao1", "ace", "pielou", and "faith_pd".
 #' @param tree Phylogenetic tree object of class "phylo". Required for Faith's phylogenetic diversity ("faith_pd") calculation.
 #' @return A list containing the requested alpha diversity indices.
 #' @examples
 #' \dontrun{
-#' # Create example OTU table
+#' # Create example feature table
 #' otu.tab <- matrix(data = rpois(100, 5), nrow = 10, ncol = 10)
 #' rownames(otu.tab) <- paste0("Taxon_", 1:10)
 #' colnames(otu.tab) <- paste0("Sample_", 1:10)

@@ -90,7 +90,7 @@ mStat_calculate_beta_diversity <- function(data.obj,
   # Replace the original dist.name with the corrected version
   dist.name <- corrected_dist_name
   
-  # Extract the OTU table from the data object
+  # Extract the feature table from the data object
   otu_tab <- data.obj$feature.tab
 
   # Check if the data has been rarefied by comparing the column sums
@@ -186,7 +186,7 @@ mStat_calculate_beta_diversity <- function(data.obj,
       sample_sums[zero_samples] <- colSums(otu_tab[, zero_samples, drop = FALSE])
     }
 
-    # Normalize OTU table to relative abundances
+    # Normalize feature table to relative abundances
     otu_tab_norm <- sweep(otu_tab, 2, sample_sums, FUN = "/")
     
     # Replace any remaining NaN/Inf values with 0

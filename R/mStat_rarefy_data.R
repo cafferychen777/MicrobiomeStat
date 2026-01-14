@@ -1,13 +1,13 @@
 #' Rarefy data to a specified sampling depth
 #'
-#' This function takes an input object containing an OTU table and optionally a specified rarefaction depth.
+#' This function takes an input object containing a feature table and optionally a specified rarefaction depth.
 #' If no depth is specified, the smallest column sum is chosen as the depth.
-#' It rarefies the data to the specified depth and returns the object with the rarefied OTU table.
+#' It rarefies the data to the specified depth and returns the object with the rarefied feature table.
 #' @name mStat_rarefy_data
 #' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
 #' @param depth Depth at which to rarefy; if not provided, defaults to the smallest column sum.
 #'
-#' @return The input object with the rarefied OTU table added.
+#' @return The input object with the rarefied feature table added.
 #'
 #' @examples
 #' \dontrun{
@@ -28,8 +28,8 @@ mStat_rarefy_data <- function(data.obj, depth = NULL) {
     stop("data.obj should be a list.")
   }
 
-  # Extract the OTU (Operational Taxonomic Unit) table from the input data object
-  # The OTU table is the core data structure in microbiome analysis, representing taxon abundances across samples
+  # Extract the feature table from the input data object
+  # The feature table is the core data structure in microbiome analysis, representing taxon abundances across samples
   otu_tab <- as.data.frame(data.obj$feature.tab)
 
   # Determine the rarefaction depth
@@ -57,7 +57,7 @@ mStat_rarefy_data <- function(data.obj, depth = NULL) {
     rarefied_otu_tab <- as.matrix(otu_tab)
   } else {
     # Use the vegan package to perform rarefaction
-    # This function randomly subsamples the OTU table to the specified depth
+    # This function randomly subsamples the feature table to the specified depth
     rarefied_otu_tab <- t(vegan::rrarefy(t(otu_tab), sample = depth))
   }
 
@@ -65,20 +65,20 @@ mStat_rarefy_data <- function(data.obj, depth = NULL) {
   # These features are typically rare taxa that are lost due to the subsampling process
   zero_row_indices <- which(rowSums(rarefied_otu_tab) == 0)
 
-  # Update the data object with the rarefied OTU table
+  # Update the data object with the rarefied feature table
   if(length(zero_row_indices) > 0) {
-    # Remove all-zero rows from the rarefied OTU table
+    # Remove all-zero rows from the rarefied feature table
     rarefied_otu_tab <- rarefied_otu_tab[-zero_row_indices, ]
-    # Update the data object with the filtered rarefied OTU table
+    # Update the data object with the filtered rarefied feature table
     data.obj <- update_data_obj_count(data.obj, rarefied_otu_tab)
     # Remove corresponding rows from the feature annotations if they exist
     if(!is.null(data.obj$feature.ann)) {
       data.obj$feature.ann <- data.obj$feature.ann[-zero_row_indices, ]
     }
     # Inform the user about the removed features
-    message(paste("Removed ", length(zero_row_indices), " rows from the OTU table and feature annotations due to all-zero counts after rarefaction. The removed rows are: ", paste0(zero_row_indices, collapse = ", "), "."))
+    message(paste("Removed ", length(zero_row_indices), " rows from the feature table and feature annotations due to all-zero counts after rarefaction. The removed rows are: ", paste0(zero_row_indices, collapse = ", "), "."))
   } else {
-    # If no all-zero rows were created, simply update the data object with the rarefied OTU table
+    # If no all-zero rows were created, simply update the data object with the rarefied feature table
     data.obj <- update_data_obj_count(data.obj, rarefied_otu_tab)
   }
 
@@ -98,6 +98,6 @@ mStat_rarefy_data <- function(data.obj, depth = NULL) {
     message("feature.agg.list has been updated.")
   }
 
-  # Return the updated data object with rarefied OTU table
+  # Return the updated data object with rarefied feature table
   return(data.obj)
 }

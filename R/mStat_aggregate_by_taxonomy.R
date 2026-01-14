@@ -1,106 +1,186 @@
-#' Aggregate OTU Table by Taxonomy Level
+#' @title Core Taxonomy Aggregation Function
 #'
-#' This function, part of the MicrobiomeStat package, aggregates an OTU table by a specified taxonomy level.
-#' It checks for the consistency of row names between the OTU table and the taxonomy table and stops execution if any mismatches are found.
-#' @name mStat_aggregate_by_taxonomy
-#' @param data.obj A list object in a format specific to MicrobiomeStat, which can include components such as feature.tab (matrix), feature.ann (matrix), meta.dat (data.frame), tree, and feature.agg.list (list). The data.obj can be converted from other formats using several functions from the MicrobiomeStat package, including: 'mStat_convert_DGEList_to_data_obj', 'mStat_convert_DESeqDataSet_to_data_obj', 'mStat_convert_phyloseq_to_data_obj', 'mStat_convert_SummarizedExperiment_to_data_obj', 'mStat_import_qiime2_as_data_obj', 'mStat_import_mothur_as_data_obj', 'mStat_import_dada2_as_data_obj', and 'mStat_import_biom_as_data_obj'. Alternatively, users can construct their own data.obj. Note that not all components of data.obj may be required for all functions in the MicrobiomeStat package.
-#' @param feature.level A character vector that specifies the taxonomy levels to aggregate by.
+#' @description Internal function that performs the actual aggregation of a feature
+#' table by a single taxonomy level. This is the computational core shared by all
+#' public aggregation interfaces.
 #'
-#' @return A list that is the modified version of the input data object. It includes the original data object and an additional element, 'feature.agg.list',
-#' which is a list of aggregated OTU tables for each specified taxonomy level.
+#' @param feature.tab Feature table (matrix or data.frame) with taxa as rows and samples as columns.
+#' @param feature.ann Taxonomy annotation table (matrix or data.frame) with taxa as rows.
+#' @param feature.level Single character string specifying the taxonomy level to aggregate by.
+#'
+#' @return Aggregated feature table as a matrix with taxonomy groups as rows and samples as columns.
 #'
 #' @details
-#' The function first checks for the consistency of row names between the OTU table and the taxonomy table. If any mismatches are found,
-#' it displays a message and stops execution. If the row names are consistent, it merges the OTU table with the taxonomy table and aggregates
-#' the OTU table by the specified taxonomy level. The aggregation is done by summing the values for each sample at each taxonomy level.
-#' The aggregated OTU tables are added to the data object as a list named 'feature.agg.list'.
+#' The aggregation process:
+#' 1. Validates consistency between feature and taxonomy tables
+#' 2. Joins tables by row names (inner join - only matching features retained)
+#' 3. Reshapes to long format, groups by taxonomy level, sums abundances
+#' 4. Reshapes back to wide format
+#' 5. Replaces NA taxonomy values with "Unclassified"
+#' 6. Removes zero-sum rows
 #'
-#' @author Caffery(Chen) YANG
-#' @examples
-#' \dontrun{
-#' # Load required libraries
-#' library(vegan)
-#' data(peerj32.obj)
-#'
-#' # Specify the taxonomy level
-#' feature.level <- c("Phylum", "Family")
-#'
-#' # Aggregate data object by taxonomy level
-#' peerj32.obj <- mStat_aggregate_by_taxonomy(peerj32.obj, feature.level)
-#' }
-#' @export
-mStat_aggregate_by_taxonomy <- function(data.obj, feature.level = NULL) {
-  # Validate input: ensure that a taxonomic level for aggregation is specified
-  if (is.null(feature.level)) {
-    stop("feature.level can not be NULL.")
+#' @keywords internal
+.aggregate_single_level <- function(feature.tab, feature.ann, feature.level) {
+  # Convert to data frames for consistent processing
+
+  otu_tab <- as.data.frame(feature.tab)
+  tax_tab <- as.data.frame(feature.ann)
+
+  # Preserve original sample order for consistent output
+
+  original_sample_order <- colnames(otu_tab)
+
+  # Validate that feature.level exists in taxonomy table
+
+if (!feature.level %in% colnames(tax_tab)) {
+    stop(
+      "feature.level '", feature.level, "' not found in feature.ann. ",
+      "Available levels: ", paste(colnames(tax_tab), collapse = ", ")
+    )
   }
 
-  # Extract the feature table and taxonomy table from the data object
-  otu_tab <- data.obj$feature.tab %>% as.data.frame()
-  tax_tab <- data.obj$feature.ann %>% as.data.frame()
-
-  # Check for consistency between feature and taxonomy tables
-  # This step is crucial to ensure data integrity before aggregation
+  # Check for row name consistency and report mismatches
   otu_not_in_tax <- setdiff(rownames(otu_tab), rownames(tax_tab))
   tax_not_in_otu <- setdiff(rownames(tax_tab), rownames(otu_tab))
 
-  # Notify the user of any inconsistencies in the data
-  # This helps in identifying potential issues in the input data
   if (length(otu_not_in_tax) > 0) {
     message(
-      "The following row names are in 'feature.tab' but not in 'feature.ann': ",
-      paste(otu_not_in_tax, collapse = ", ")
+      "Note: ", length(otu_not_in_tax), " features in feature.tab not found in feature.ann ",
+      "(will be excluded from aggregation)"
     )
   }
 
   if (length(tax_not_in_otu) > 0) {
     message(
-      "The following row names are in 'feature.ann' but not in 'feature.tab': ",
-      paste(tax_not_in_otu, collapse = ", ")
+      "Note: ", length(tax_not_in_otu), " features in feature.ann not found in feature.tab ",
+      "(ignored)"
     )
   }
 
-  # Preserve the original sample order for consistent output
-  original_sample_order <- colnames(otu_tab)
+  # Join feature table with taxonomy annotation
+  # Using inner_join: only features present in both tables are retained
+  # Convert taxonomy column to character to handle factor types consistently
+  tax_subset <- tax_tab %>%
+    dplyr::select(dplyr::all_of(feature.level)) %>%
+    dplyr::mutate(dplyr::across(dplyr::everything(), as.character)) %>%
+    tibble::rownames_to_column("feature_id")
 
-  # Perform aggregation for each specified taxonomic level
-  data.obj$feature.agg.list <- setNames(lapply(feature.level, function(feature.level) {
-    # Join the OTU table with the taxonomy table
-    # This step combines abundance data with taxonomic information
-    otu_tax <- otu_tab %>%
-      rownames_to_column("sample") %>%
-      dplyr::inner_join(
-        tax_tab %>% select(all_of(feature.level)) %>% rownames_to_column("sample"),
-        by = "sample"
-      ) %>%
-      column_to_rownames("sample")
+  otu_tax <- otu_tab %>%
+    tibble::rownames_to_column("feature_id") %>%
+    dplyr::inner_join(tax_subset, by = "feature_id") %>%
+    tibble::column_to_rownames("feature_id")
 
-    # Aggregate the OTU table at the specified taxonomic level
-    # This process involves several steps:
-    # 1. Reshape the data from wide to long format
-    # 2. Group by taxonomic level and sample
-    # 3. Sum the abundances within each group
-    # 4. Reshape back to wide format
-    # 5. Replace NA values with "Unclassified" for better interpretability
-    otu_tax_agg <- otu_tax %>%
-      tidyr::pivot_longer(cols = -all_of(feature.level), names_to = "sample", values_to = "value") %>%
-      dplyr::group_by_at(vars(!!sym(feature.level), sample)) %>%
-      dplyr::summarise(value = sum(value), .groups = "drop") %>%
-      tidyr::pivot_wider(names_from = sample, values_from = value, values_fill = list(value = 0)) %>%
-      dplyr::mutate(!!feature.level := tidyr::replace_na(!!sym(feature.level), "Unclassified")) %>%
-      column_to_rownames(feature.level) %>%
-      as.matrix()
+  # Aggregate by taxonomy level:
+  # 1. Reshape wide -> long
+  # 2. Group by taxonomy level and sample
+  # 3. Sum abundances within each group
+  # 4. Reshape long -> wide
+  # 5. Handle NA taxonomy values
+  otu_tax_agg <- otu_tax %>%
+    tidyr::pivot_longer(
+      cols = -dplyr::all_of(feature.level),
+      names_to = "sample",
+      values_to = "value"
+    ) %>%
+    dplyr::group_by(dplyr::across(dplyr::all_of(c(feature.level, "sample")))) %>%
+    dplyr::summarise(value = sum(value), .groups = "drop") %>%
+    tidyr::pivot_wider(
+      names_from = "sample",
+      values_from = "value",
+      values_fill = list(value = 0)
+    ) %>%
+    dplyr::mutate(
+      dplyr::across(
+        dplyr::all_of(feature.level),
+        ~ tidyr::replace_na(., "Unclassified")
+      )
+    ) %>%
+    tibble::column_to_rownames(feature.level) %>%
+    as.matrix()
 
-    # Ensure the output maintains the original sample order for consistency
-    otu_tax_agg <- otu_tax_agg[, original_sample_order]
+  # Restore original sample order
+  otu_tax_agg <- otu_tax_agg[, original_sample_order, drop = FALSE]
 
-    # Remove taxa with zero abundance across all samples
-    # This step helps in reducing the dimensionality of the data
-    otu_tax_agg <- otu_tax_agg[rowSums(otu_tax_agg) > 0, , drop = FALSE]
+  # Remove zero-abundance taxa
+  otu_tax_agg <- otu_tax_agg[rowSums(otu_tax_agg) > 0, , drop = FALSE]
 
-    return(otu_tax_agg)
-  }), feature.level)
+  return(otu_tax_agg)
+}
 
-  # Return the updated data object with the new aggregated feature list
+
+#' Aggregate Feature Table by Taxonomy Level
+#'
+#' Aggregates a feature table within a MicrobiomeStat data object by one or more
+#' specified taxonomy levels. The aggregated tables are stored in the
+#' `feature.agg.list` component of the data object.
+#'
+#' @param data.obj A MicrobiomeStat data object (list) containing at minimum:
+#'   \itemize{
+#'     \item \code{feature.tab}: Feature table (matrix) with taxa as rows
+#'     \item \code{feature.ann}: Taxonomy annotation (matrix/data.frame)
+#'   }
+#' @param feature.level Character vector specifying one or more taxonomy levels
+#'   to aggregate by (e.g., c("Phylum", "Family", "Genus")).
+#'
+#' @return The input data.obj with an added/updated `feature.agg.list` component
+#'   containing aggregated feature tables for each specified taxonomy level.
+#'
+#' @details
+#' This function is the primary interface for taxonomy aggregation in MicrobiomeStat.
+#' It supports aggregating to multiple taxonomy levels in a single call, storing
+#' results in a named list for easy access.
+#'
+#' The aggregation uses an inner join between feature.tab and feature.ann,
+#' meaning only features present in both tables will be included in the output.
+#' A message is displayed if any features are excluded due to mismatches.
+#'
+#' @author Caffery(Chen) YANG
+#'
+#' @examples
+#' \dontrun{
+#' library(vegan)
+#' data(peerj32.obj)
+#'
+#' # Aggregate by multiple taxonomy levels
+#' peerj32.obj <- mStat_aggregate_by_taxonomy(
+#'   peerj32.obj,
+#'   feature.level = c("Phylum", "Family", "Genus")
+#' )
+#'
+#' # Access aggregated tables
+#' phylum_table <- peerj32.obj$feature.agg.list$Phylum
+#' family_table <- peerj32.obj$feature.agg.list$Family
+#' }
+#'
+#' @seealso \code{\link{mStat_aggregate_by_taxonomy2}} for a lower-level interface
+#'   that works directly with matrices.
+#'
+#' @export
+mStat_aggregate_by_taxonomy <- function(data.obj, feature.level = NULL) {
+  # Validate input
+  if (is.null(feature.level)) {
+    stop("feature.level cannot be NULL. Please specify at least one taxonomy level.")
+  }
+
+  if (is.null(data.obj$feature.tab)) {
+    stop("data.obj must contain a 'feature.tab' component.")
+  }
+
+  if (is.null(data.obj$feature.ann)) {
+    stop("data.obj must contain a 'feature.ann' component.")
+  }
+
+  # Aggregate each level using the core function
+  data.obj$feature.agg.list <- stats::setNames(
+    lapply(feature.level, function(level) {
+      .aggregate_single_level(
+        feature.tab = data.obj$feature.tab,
+        feature.ann = data.obj$feature.ann,
+        feature.level = level
+      )
+    }),
+    feature.level
+  )
+
   return(data.obj)
 }

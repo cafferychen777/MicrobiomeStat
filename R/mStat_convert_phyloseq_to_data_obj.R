@@ -7,10 +7,10 @@
 #'
 #' @return A MicrobiomeStat data object (a list) containing the following elements:
 #' \itemize{
-#'   \item feature.tab: A matrix of the feature table (OTU table). Rows with a sum of zero are removed, so only the features present in the samples are included.
+#'   \item feature.tab: A matrix of the feature table. Rows with a sum of zero are removed, so only the features present in the samples are included.
 #'   \item meta.dat: A data frame of the sample data. This contains the metadata for each of the samples.
 #'   \item feature.ann: A matrix of the feature annotation table (taxonomy table). Only the rows that exist in the feature table are included.
-#'   \item tree: A phylogenetic tree. The tree is rooted by midpointing if it is not already rooted. Tips not present in the OTU table are dropped.
+#'   \item tree: A phylogenetic tree. The tree is rooted by midpointing if it is not already rooted. Tips not present in the feature table are dropped.
 #' }
 #'
 #' @examples
@@ -24,11 +24,11 @@
 #' }
 #'
 #' @details
-#' This function checks each component (OTU table, sample data, taxonomy table, and phylogenetic tree) of the phyloseq object for null values. If a component is not null, it is converted to the appropriate format and added to the MicrobiomeStat data object. The OTU and taxonomy tables are converted to matrices, while the sample data is converted to a data frame.
+#' This function checks each component (feature table, sample data, taxonomy table, and phylogenetic tree) of the phyloseq object for null values. If a component is not null, it is converted to the appropriate format and added to the MicrobiomeStat data object. The feature and taxonomy tables are converted to matrices, while the sample data is converted to a data frame.
 #'
-#' The function automatically handles the OTU table orientation by checking the \code{taxa_are_rows} slot of the phyloseq object. If \code{taxa_are_rows} is FALSE (i.e., samples are rows and taxa are columns in the phyloseq object), the OTU table will be automatically transposed to ensure that the resulting feature table has taxa as rows and samples as columns, which is the required format for MicrobiomeStat functions.
+#' The function automatically handles the feature table orientation by checking the \code{taxa_are_rows} slot of the phyloseq object. If \code{taxa_are_rows} is FALSE (i.e., samples are rows and taxa are columns in the phyloseq object), the feature table will be automatically transposed to ensure that the resulting feature table has taxa as rows and samples as columns, which is the required format for MicrobiomeStat functions.
 #'
-#' The phylogenetic tree is checked if it is rooted, and if not, it is rooted by midpointing. Tips not present in the OTU table are dropped from the tree. This ensures the output data object is consistent and ready for further microbiome statistical analysis.
+#' The phylogenetic tree is checked if it is rooted, and if not, it is rooted by midpointing. Tips not present in the feature table are dropped from the tree. This ensures the output data object is consistent and ready for further microbiome statistical analysis.
 #'
 #' @author Jun Chen
 #' @references McMurdie PJ, Holmes S. phyloseq: An R Package for Reproducible Interactive Analysis and Graphics of Microbiome Census Data. PLoS ONE. 2013;8(4):e61217.
@@ -42,7 +42,7 @@ mStat_convert_phyloseq_to_data_obj <- function (phylo.obj) {
 
   # Process the OTU (Operational Taxonomic Unit) table if it exists
   if (!is.null(phylo.obj@otu_table)) {
-    # Convert the OTU table to a matrix format
+    # Convert the feature table to a matrix format
     # This step ensures compatibility with downstream analyses and improves computational efficiency
     otu_matrix <- phylo.obj@otu_table %>%
       as.data.frame() %>%
@@ -52,7 +52,7 @@ mStat_convert_phyloseq_to_data_obj <- function (phylo.obj) {
     # If taxa_are_rows is FALSE (samples as rows), transpose the matrix
     # This ensures the feature table always has taxa as rows and samples as columns
     if (!phylo.obj@otu_table@taxa_are_rows) {
-      message("Note: taxa_are_rows is FALSE in the phyloseq object. Transposing OTU table to ensure taxa as rows...")
+      message("Note: taxa_are_rows is FALSE in the phyloseq object. Transposing feature table to ensure taxa as rows...")
       otu_matrix <- t(otu_matrix)
     }
 
@@ -83,7 +83,7 @@ mStat_convert_phyloseq_to_data_obj <- function (phylo.obj) {
       as.data.frame() %>%
       as.matrix()
 
-    # Ensure that the taxonomy table only includes features present in the OTU table
+    # Ensure that the taxonomy table only includes features present in the feature table
     # This step maintains consistency between the feature table and feature annotations
     if (exists("feature.tab", data.obj)) {
       data.obj$feature.ann <- data.obj$feature.ann[rownames(data.obj$feature.ann) %in% rownames(data.obj$feature.tab), ]
@@ -101,8 +101,8 @@ mStat_convert_phyloseq_to_data_obj <- function (phylo.obj) {
       data.obj$tree <- midpoint(data.obj$tree)
     }
     
-    # Remove tree tips (leaves) that are not present in the OTU table
-    # This step ensures that the tree and OTU table are consistent, which is crucial for phylogenetic diversity analyses
+    # Remove tree tips (leaves) that are not present in the feature table
+    # This step ensures that the tree and feature table are consistent, which is crucial for phylogenetic diversity analyses
     if (exists("feature.tab", data.obj)) {
       absent <- data.obj$tree$tip.label[!(data.obj$tree$tip.label %in% rownames(data.obj$feature.tab))]
       if (length(absent) != 0) {

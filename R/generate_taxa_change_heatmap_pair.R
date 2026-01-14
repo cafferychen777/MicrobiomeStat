@@ -34,7 +34,7 @@
 #' - "proportion": Data that has already been normalized to proportions/percentages.
 #' - "other": Custom abundance data that has unknown scaling. No normalization applied.
 #' The choice affects preprocessing steps as well as plot axis labels.
-#' Default is "count", which assumes raw OTU table input.
+#' Default is "count", which assumes raw count input.
 #' @param features.plot A character vector specifying which feature IDs (e.g. OTU IDs) to plot.
 #' Default is NULL, in which case features will be selected based on `top.k.plot` and `top.k.func`.
 #' @param top.k.plot Integer specifying number of top k features to plot, when `features.plot` is NULL.

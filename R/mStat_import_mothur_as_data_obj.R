@@ -188,12 +188,12 @@ import_mothur_otulist <- function(mothur_list_file, cutoff=NULL){
 
 #' Import Mothur Shared File (Internal)
 #'
-#' This internal function reads in a shared file created by Mothur. The output is a processed OTU table that can be used for further analysis in phyloseq.
+#' This internal function reads in a shared file created by Mothur. The output is a processed feature table that can be used for further analysis in phyloseq.
 #'
 #' @param mothur_shared_file A character string specifying the file name or path of the Mothur shared file.
 #' @param cutoff A character string specifying the cutoff value to be used. If multiple cutoff values are available in the file, the largest value will be used by default. If only one cutoff value is present, this argument is not required.
 #'
-#' @return An OTU table (as an instance of the otu_table class) with rows representing OTUs and columns representing samples. This table is ready for further analysis in phyloseq.
+#' @return A feature table (as an instance of the otu_table class) with rows representing features (OTUs) and columns representing samples. This table is ready for further analysis in phyloseq.
 #'
 #' @examples
 #' \dontrun{

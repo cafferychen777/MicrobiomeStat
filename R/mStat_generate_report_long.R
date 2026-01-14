@@ -73,7 +73,7 @@
 #' - "proportion": Data that has already been normalized to proportions/percentages.
 #' - "other": Custom abundance data that has unknown scaling. No normalization applied.
 #' The choice affects preprocessing steps as well as plot axis labels.
-#' Default is "count", which assumes raw OTU table input.
+#' Default is "count", which assumes raw count input.
 #' @param feature.analysis.rarafy Logical, indicating whether to rarefy the data at the feature-level for analysis.
 #' If TRUE, the feature data will be rarefied before analysis. Default is TRUE.
 #' @param feature.mt.method Character, multiple testing method for features, "fdr" or "none", default is "fdr".
