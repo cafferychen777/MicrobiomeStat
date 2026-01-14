@@ -16,7 +16,7 @@ generate_report_yaml_header <- function(yaml_output) {
   paste0("
 ---
 title: '`r sub(\".pdf$|.html$\", \"\", basename(output.file))`'
-author: '[Powered by MicrobiomeStat (Ver 1.2.1)](http://www.microbiomestat.wiki)'
+author: '`r sprintf(\"[Powered by MicrobiomeStat (Ver %s)](http://www.microbiomestat.wiki)\", as.character(packageVersion(\"MicrobiomeStat\")))`'
 date: '`r Sys.Date()`'
 ", yaml_output, "
 ---

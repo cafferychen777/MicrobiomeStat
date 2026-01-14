@@ -16,7 +16,7 @@ generate_pair_report_yaml_header <- function(yaml_output) {
   paste0("
 ---
 title: '`r sub(\".pdf$|.html$\", \"\", basename(output.file))`'
-author: '[Powered by MicrobiomeStat (Ver 1.2.1)](http://www.microbiomestat.wiki)'
+author: '`r sprintf(\"[Powered by MicrobiomeStat (Ver %s)](http://www.microbiomestat.wiki)\", as.character(packageVersion(\"MicrobiomeStat\")))`'
 date: '`r Sys.Date()`'
 ", yaml_output, "
 ---
@@ -904,7 +904,7 @@ report_beta_change_significance <- function(data_frame, group.var) {
 counter <- 1
 
 for(index_name in names(beta_change_test_results)) {
-  cat(sprintf('\\n### 3.3.%d %s distance \\n\\n', counter, ifelse(index_name == 'BC', 'Bray-Curtis', index_name)))
+  cat(sprintf('\\n### 3.2.%d %s distance \\n\\n', counter, ifelse(index_name == 'BC', 'Bray-Curtis', index_name)))
 
   report_beta_change_significance(beta_change_test_results[[index_name]], group.var)
 
