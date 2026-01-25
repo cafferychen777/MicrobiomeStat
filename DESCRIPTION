@@ -22,6 +22,7 @@ Depends:
     tibble
 Imports:
     ggplot2,
+    Matrix,
     matrixStats,
     lmerTest,
     foreach,

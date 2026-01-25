@@ -360,6 +360,7 @@ winsor.fun <- function(Y, quan, feature.dat.type) {
 #' @importFrom lmerTest lmer
 #' @import foreach
 #' @import parallel
+#' @importFrom Matrix Matrix Diagonal Cholesky solve
 #' @examples
 #' \dontrun{
 #' library(ggrepel)
