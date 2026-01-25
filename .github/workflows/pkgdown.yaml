@@ -51,9 +51,24 @@ jobs:
         with:
           extra-packages: any::pkgdown, local::.
           needs: website
+          dependencies: '"hard"'
         env:
           RSPM: https://packagemanager.rstudio.com/cran/__linux__/noble/latest
           R_COMPILE_AND_INSTALL_PACKAGES: never
+
+      - name: Install optional Suggests packages
+        run: |
+          if (!requireNamespace("BiocManager", quietly = TRUE))
+            install.packages("BiocManager")
+          pkgs <- c("ggtree", "ggtreeExtra", "biomformat", "Biostrings",
+                    "metagenomeSeq", "edgeR", "picante")
+          for (pkg in pkgs) {
+            tryCatch(
+              BiocManager::install(pkg, ask = FALSE, update = FALSE),
+              error = function(e) message("Skipping ", pkg, ": ", e$message)
+            )
+          }
+        shell: Rscript {0}
 
       - name: Build site
         run: |
