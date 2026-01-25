@@ -97,6 +97,17 @@ home:
 
 # Enhanced reference page with better organization
 reference:
+  - title: "🚀 Unified Interface"
+    desc: "Simplified high-level functions for common analyses"
+    contents:
+      - MicrobiomeStat-unified
+      - plot_alpha
+      - plot_beta
+      - plot_taxa
+      - test_alpha
+      - test_beta
+      - test_taxa
+
   - title: "📊 Alpha Diversity Analysis"
     desc: "Functions for analyzing within-sample diversity"
     contents:
@@ -105,7 +116,7 @@ reference:
       - mStat_calculate_alpha_diversity
       - mStat_calculate_adjusted_alpha_diversity
       - is_rarefied
-  
+
   - title: "🌐 Beta Diversity Analysis"
     desc: "Functions for analyzing between-sample diversity"
     contents:
@@ -115,7 +126,7 @@ reference:
       - mStat_calculate_adjusted_distance
       - mStat_calculate_PC
       - starts_with("mStat_subset")
-  
+
   - title: "🦠 Taxonomic Analysis"
     desc: "Functions for taxonomic composition and differential abundance"
     contents:
@@ -125,11 +136,12 @@ reference:
       - mStat_aggregate_by_taxonomy2
       - mStat_aggregate_data
       - build_mStat_tax_table
-  
+
   - title: "📈 Statistical Testing"
     desc: "Core statistical methods including LinDA"
     contents:
       - linda
+      - linda2
       - linda.plot
   
   - title: "📁 Data Import & Conversion"
