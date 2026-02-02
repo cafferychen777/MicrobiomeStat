@@ -151,7 +151,7 @@ generate_taxa_heatmap_long <- function(data.obj,
   # If a strata variable is provided, create an interaction term with the group variable
   if (!is.null(strata.var)) {
     meta_tab <-
-      meta_tab %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(strata.var), !!sym(group.var), sep = .STRATA_SEP))
+      meta_tab %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(group.var), !!sym(strata.var), sep = .STRATA_SEP))
   }
 
   # Set default clustering options if not specified
@@ -253,7 +253,7 @@ generate_taxa_heatmap_long <- function(data.obj,
     if (!is.null(strata.var)) {
       annotation_col_sorted <- annotation_col_sorted %>%
         tidyr::separate(!!sym(group.var),
-                        into = c(strata.var, group.var),
+                        into = c(group.var, strata.var),
                         sep = .STRATA_SEP) %>%
         dplyr::select(!!sym(time.var),!!sym(group.var),!!sym(strata.var))
       annotation_col_sorted <- mStat_restore_factor_levels(
