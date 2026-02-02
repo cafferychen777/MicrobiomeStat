@@ -11,7 +11,7 @@ generate_taxa_heatmap_single(
   group.var = NULL,
   strata.var = NULL,
   other.vars = NULL,
-  feature.level = NULL,
+  feature.level,
   feature.dat.type = c("count", "proportion", "other"),
   features.plot = NULL,
   top.k.plot = NULL,

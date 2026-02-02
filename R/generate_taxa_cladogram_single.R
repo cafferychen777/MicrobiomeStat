@@ -120,8 +120,9 @@ generate_taxa_cladogram_single <- function(
     adj.vars = NULL,
     prev.filter = 0.1,
     abund.filter = 0.0001,
-    feature.dat.type = "count"
+    feature.dat.type = c("count", "proportion", "other")
 ) {
+  feature.dat.type <- match.arg(feature.dat.type)
   # Ensure necessary packages are available
   if (!requireNamespace("ggtree", quietly = TRUE)) {
     stop("Package 'ggtree' is required but not installed.")

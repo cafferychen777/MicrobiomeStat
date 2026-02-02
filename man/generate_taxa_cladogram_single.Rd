@@ -21,7 +21,7 @@ generate_taxa_cladogram_single(
   adj.vars = NULL,
   prev.filter = 0.1,
   abund.filter = 1e-04,
-  feature.dat.type = "count"
+  feature.dat.type = c("count", "proportion", "other")
 )
 }
 \arguments{

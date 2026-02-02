@@ -7,12 +7,12 @@
 generate_taxa_association_test_long(
   data.obj,
   subject.var,
-  group.var = NULL,
+  group.var,
   adj.vars = NULL,
   prev.filter = 0,
   abund.filter = 0,
   feature.level,
-  feature.dat.type = c("count", "proportion"),
+  feature.dat.type = c("count", "proportion", "other"),
   ...
 )
 }

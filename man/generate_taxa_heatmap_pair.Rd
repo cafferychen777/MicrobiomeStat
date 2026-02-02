@@ -10,7 +10,7 @@ generate_taxa_heatmap_pair(
   time.var,
   group.var = NULL,
   strata.var = NULL,
-  feature.level = NULL,
+  feature.level,
   feature.dat.type = c("count", "proportion", "other"),
   features.plot = NULL,
   top.k.plot = NULL,

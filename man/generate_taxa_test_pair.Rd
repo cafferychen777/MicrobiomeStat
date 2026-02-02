@@ -9,7 +9,7 @@ generate_taxa_test_pair(
   subject.var,
   time.var = NULL,
   change.base = NULL,
-  group.var = NULL,
+  group.var,
   ref.level = NULL,
   adj.vars = NULL,
   feature.level,

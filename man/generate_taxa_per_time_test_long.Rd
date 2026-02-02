@@ -8,12 +8,12 @@ generate_taxa_per_time_test_long(
   data.obj,
   subject.var,
   time.var = NULL,
-  group.var = NULL,
+  group.var,
   adj.vars = NULL,
   feature.level,
   prev.filter = 0,
   abund.filter = 0,
-  feature.dat.type = c("count", "proportion"),
+  feature.dat.type = c("count", "proportion", "other"),
   ...
 )
 }

@@ -77,7 +77,7 @@ generate_taxa_change_test_pair <-
   function(data.obj,
            subject.var,
            time.var = NULL,
-           group.var = NULL,
+           group.var,
            ref.level = NULL,
            adj.vars = NULL,
            change.base = NULL,
@@ -301,6 +301,7 @@ generate_taxa_change_test_pair <-
       # Calculate average abundance and prevalence for each feature
       prop_prev_data <-
         otu_tax_agg_filter %>%
+        column_to_rownames(feature.level) %>%
         as.matrix() %>%
         as.table() %>%
         as.data.frame() %>%

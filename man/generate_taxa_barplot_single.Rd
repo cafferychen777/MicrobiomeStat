@@ -10,7 +10,7 @@ generate_taxa_barplot_single(
   t.level = NULL,
   group.var = NULL,
   strata.var = NULL,
-  feature.level = "original",
+  feature.level,
   feature.dat.type = c("count", "proportion", "other"),
   features.plot = NULL,
   feature.number = 20,

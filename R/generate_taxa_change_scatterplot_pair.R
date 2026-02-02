@@ -91,7 +91,7 @@ generate_taxa_change_scatterplot_pair <-
            strata.var = NULL,
            change.base = NULL,
            feature.change.func = "relative change",
-           feature.level = NULL,
+           feature.level,
            feature.dat.type = c("count", "proportion", "other"),
            features.plot = NULL,
            top.k.plot = NULL,

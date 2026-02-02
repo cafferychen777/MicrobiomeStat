@@ -10,7 +10,7 @@ generate_taxa_change_per_time_test_long(
   time.var = NULL,
   t0.level = NULL,
   ts.levels = NULL,
-  group.var = NULL,
+  group.var,
   adj.vars = NULL,
   feature.level,
   feature.change.func = "relative change",

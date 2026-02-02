@@ -8,7 +8,7 @@ generate_taxa_change_test_pair(
   data.obj,
   subject.var,
   time.var = NULL,
-  group.var = NULL,
+  group.var,
   ref.level = NULL,
   adj.vars = NULL,
   change.base = NULL,

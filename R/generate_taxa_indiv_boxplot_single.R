@@ -79,7 +79,7 @@ generate_taxa_indiv_boxplot_single <-
            t.level = NULL,
            group.var = NULL,
            strata.var = NULL,
-           feature.level = NULL,
+           feature.level,
            features.plot = NULL,
            feature.dat.type = c("count", "proportion", "other"),
            top.k.plot = NULL,

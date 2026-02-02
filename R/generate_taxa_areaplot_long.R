@@ -136,7 +136,7 @@ generate_taxa_areaplot_long <-
            time.var,
            group.var = NULL,
            strata.var = NULL,
-           feature.level = "original",
+           feature.level,
            feature.dat.type = c("count", "proportion", "other"),
            feature.number = 20,
            features.plot = NULL,

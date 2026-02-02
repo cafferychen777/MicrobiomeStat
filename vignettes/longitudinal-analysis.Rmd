@@ -231,10 +231,9 @@ generate_taxa_volcano_single(
 assoc.test <- generate_taxa_association_test_long(
   data.obj = ecam.obj,
   subject.var = "subject.id",
-  time.var = "month_num",
+  group.var = "delivery",
   feature.level = "Family",
-  feature.mt.method = "mean",
-  feature.mt.cutoff = 0.001
+  feature.dat.type = "count"
 )
 
 # View top associations
