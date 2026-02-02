@@ -399,15 +399,28 @@ generate_taxa_test_single <- function(data.obj,
       )
     } else {
       # Perform LinDA (Linear models for Differential Abundance) analysis
-      linda.obj <- linda(
-        feature.dat = otu_tax_agg_filter,
-        meta.dat = meta_tab,
-        formula = paste("~", formula),
-        feature.dat.type = feature.dat.type,
-        prev.filter = prev.filter,
-        mean.abund.filter = abund.filter,
-        ...
+      # Muffle linda's own "all filtered" warning; we emit our own below
+      linda.obj <- withCallingHandlers(
+        linda(
+          feature.dat = otu_tax_agg_filter,
+          meta.dat = meta_tab,
+          formula = paste("~", formula),
+          feature.dat.type = feature.dat.type,
+          prev.filter = prev.filter,
+          mean.abund.filter = abund.filter,
+          ...
+        ),
+        warning = function(w) {
+          if (grepl("All features were filtered out", conditionMessage(w)))
+            invokeRestart("muffleWarning")
+        }
       )
+    }
+
+    # Check if linda returned empty results (all features filtered internally)
+    if (feature.dat.type != "other" && length(linda.obj$output) == 0) {
+      warning("No features remain after filtering. Consider using less stringent filter thresholds.")
+      return(list())
     }
 
     # Determine the reference level for the group variable (only for categorical variables)

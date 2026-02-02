@@ -147,8 +147,7 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
       as.data.frame() %>%
       as.matrix()
 
-    meta.dat <- phyloseq.obj@sam_data %>% as.matrix() %>%
-      as.data.frame()
+    meta.dat <- data.frame(phyloseq.obj@sam_data, stringsAsFactors = FALSE)
   }
 
   # Check for NA values in the feature data
@@ -209,6 +208,13 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
 
   n <- ncol(Y)
   m <- nrow(Y)
+
+  # Guard: return early if all features were filtered out
+  if (m == 0) {
+    warning("All features were filtered out in LinDA. Consider relaxing filter thresholds.")
+    return(list(variables = character(0), bias = numeric(0), output = list(),
+                feature.dat.use = Y, meta.dat.use = Z))
+  }
 
   # Remove samples with zero total counts after feature filtering
   if (any(colSums(Y) == 0)) {

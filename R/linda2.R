@@ -415,8 +415,7 @@ linda2 <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.
       as.data.frame() %>%
       as.matrix()
 
-    meta.dat <- phyloseq.obj@sam_data %>% as.matrix() %>%
-      as.data.frame()
+    meta.dat <- data.frame(phyloseq.obj@sam_data, stringsAsFactors = FALSE)
 
     # Try to extract tree from phyloseq if not provided and tree.smooth is TRUE
     if (tree.smooth && is.null(tree)) {

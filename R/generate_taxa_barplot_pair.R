@@ -82,6 +82,10 @@ generate_taxa_barplot_pair <-
     # Extract and validate the data
     mStat_validate_data(data.obj)
 
+    # Capture original factor levels before any data extraction
+    fl <- mStat_capture_factor_levels(data.obj, group.var, strata.var)
+    data.obj <- fl$data.obj
+
     # Extract relevant metadata
     meta_tab <-
       data.obj$meta.dat %>% select(all_of(c(
@@ -417,7 +421,7 @@ generate_taxa_barplot_pair <-
           group.var = "ALL"
         }
         sorted_merged_long_df <-
-          sorted_merged_long_df %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(group.var), !!sym(strata.var)))
+          sorted_merged_long_df %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(group.var), !!sym(strata.var), sep = .STRATA_SEP))
       } else {
         if (is.null(group.var)) {
           sorted_merged_long_df <-
@@ -481,12 +485,13 @@ generate_taxa_barplot_pair <-
       df_average$joint_factor_numeric <-
         as.numeric(df_average$joint_factor)
 
-      # Separate strata variable if present
+      # Separate strata variable if present and restore factor levels
       if (!is.null(strata.var)) {
         df_average <- df_average %>%
           tidyr::separate(!!sym(group.var),
                           into = c(group.var, strata.var),
-                          sep = "\\.")
+                          sep = .STRATA_SEP)
+        df_average <- mStat_restore_factor_levels(df_average, fl$levels, group.var, strata.var)
       }
 
       # Set up color palette for the average plot

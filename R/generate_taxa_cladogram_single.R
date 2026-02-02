@@ -321,6 +321,7 @@ generate_taxa_cladogram_single <- function(
       }
       return(build_taxonomy_tree(taxonomy_annotation, taxonomic_hierarchy))
     }
+    if (verbose) message("Building taxonomy-based tree from feature annotations.")
     return(build_taxonomy_tree(taxonomy_annotation, taxonomic_hierarchy))
   }
   

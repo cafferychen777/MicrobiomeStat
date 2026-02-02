@@ -81,6 +81,10 @@ generate_taxa_dotplot_single <- function(data.obj,
     }
   }
 
+  # Capture original factor levels before any data extraction
+  fl <- mStat_capture_factor_levels(data.obj, group.var, strata.var)
+  data.obj <- fl$data.obj
+
   # Extract relevant variables from the metadata
   meta_tab <- data.obj$meta.dat %>% select(all_of(
     c(time.var, group.var, strata.var)))
@@ -94,7 +98,7 @@ generate_taxa_dotplot_single <- function(data.obj,
   # If a strata variable is provided, create an interaction term with the group variable
   if (!is.null(strata.var)) {
     meta_tab <-
-      meta_tab %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(group.var), !!sym(strata.var)))
+      meta_tab %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(group.var), !!sym(strata.var), sep = .STRATA_SEP))
   }
 
   # Get the color palette
@@ -178,7 +182,9 @@ generate_taxa_dotplot_single <- function(data.obj,
     if (!is.null(strata.var)){
       otu_tab_norm_agg <- otu_tab_norm_agg %>%
         dplyr::mutate(temp = !!sym(group.var)) %>%
-        tidyr::separate(temp, into = c(paste0(group.var,"2"), strata.var), sep = "\\.")
+        tidyr::separate(temp, into = c(paste0(group.var,"2"), strata.var), sep = .STRATA_SEP)
+      otu_tab_norm_agg <- mStat_restore_factor_levels(
+        otu_tab_norm_agg, fl$levels, paste0(group.var, "2"), strata.var)
     }
 
     # Filter features if specified

@@ -132,6 +132,10 @@ generate_taxa_heatmap_long <- function(data.obj,
   data.obj <-
     mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
 
+  # Capture original factor levels before any data extraction
+  fl <- mStat_capture_factor_levels(data.obj, group.var, strata.var)
+  data.obj <- fl$data.obj
+
   # Extract relevant metadata
   meta_tab <-
     data.obj$meta.dat %>% as.data.frame() %>% select(all_of(c(
@@ -147,7 +151,7 @@ generate_taxa_heatmap_long <- function(data.obj,
   # If a strata variable is provided, create an interaction term with the group variable
   if (!is.null(strata.var)) {
     meta_tab <-
-      meta_tab %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(strata.var), !!sym(group.var)))
+      meta_tab %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(strata.var), !!sym(group.var), sep = .STRATA_SEP))
   }
 
   # Set default clustering options if not specified
@@ -250,8 +254,10 @@ generate_taxa_heatmap_long <- function(data.obj,
       annotation_col_sorted <- annotation_col_sorted %>%
         tidyr::separate(!!sym(group.var),
                         into = c(strata.var, group.var),
-                        sep = "\\.") %>%
+                        sep = .STRATA_SEP) %>%
         dplyr::select(!!sym(time.var),!!sym(group.var),!!sym(strata.var))
+      annotation_col_sorted <- mStat_restore_factor_levels(
+        annotation_col_sorted, fl$levels, group.var, strata.var)
 
       annotation_col_sorted <-
         annotation_col_sorted[order(annotation_col_sorted[[strata.var]],

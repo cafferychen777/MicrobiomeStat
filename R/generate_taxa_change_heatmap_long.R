@@ -162,6 +162,10 @@ generate_taxa_change_heatmap_long <- function(data.obj,
   # Process the time variable in the data object
   data.obj <- mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
 
+  # Capture original factor levels before any data extraction
+  fl <- mStat_capture_factor_levels(data.obj, group.var, strata.var)
+  data.obj <- fl$data.obj
+
   # Extract relevant columns from the metadata
   meta_tab <- data.obj$meta.dat %>%
     as.data.frame() %>%
@@ -187,7 +191,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
   # If strata.var is provided, create an interaction term with group.var
   if (!is.null(strata.var)) {
     meta_tab <-
-      meta_tab %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(group.var), !!sym(strata.var)))
+      meta_tab %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(group.var), !!sym(strata.var), sep = .STRATA_SEP))
   }
 
   # Adjust filtering parameters based on input conditions
@@ -363,7 +367,9 @@ generate_taxa_change_heatmap_long <- function(data.obj,
       annotation_col_sorted <- annotation_col_sorted %>%
         tidyr::separate(!!sym(group.var),
                  into = c(group.var, strata.var),
-                 sep = "\\.")
+                 sep = .STRATA_SEP)
+      annotation_col_sorted <- mStat_restore_factor_levels(
+        annotation_col_sorted, fl$levels, group.var, strata.var)
 
       annotation_col_sorted <-
         annotation_col_sorted[order(annotation_col_sorted[[strata.var]], annotation_col_sorted[[group.var]], annotation_col_sorted[[time.var]]), ]

@@ -171,6 +171,10 @@ generate_taxa_barplot_long <-
     # Process time variable in the data object
     data.obj <- mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
 
+    # Capture original factor levels before any data extraction
+    fl <- mStat_capture_factor_levels(data.obj, group.var, strata.var)
+    data.obj <- fl$data.obj
+
     # Extract relevant metadata
     meta_tab <- data.obj$meta.dat %>% as.data.frame() %>% select(all_of(c(subject.var,group.var,time.var,strata.var)))
 
@@ -356,7 +360,7 @@ generate_taxa_barplot_long <-
       # Handle grouping and stratification
       if (!is.null(strata.var)){
         if (!is.null(group.var)){
-          sorted_merged_long_df <- sorted_merged_long_df %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(group.var),!!sym(strata.var)))
+          sorted_merged_long_df <- sorted_merged_long_df %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(group.var),!!sym(strata.var), sep = .STRATA_SEP))
         } else {
           group.var = ""
           sorted_merged_long_df <- sorted_merged_long_df %>% dplyr::mutate(!!sym(group.var) := "")
@@ -405,10 +409,11 @@ generate_taxa_barplot_long <-
       # Extract labels for x-axis
       labels <- sub("\\..*", "", levels(df_average$joint_factor))
 
-      # Separate group and strata variables if necessary
+      # Separate group and strata variables and restore factor levels
       if(!is.null(strata.var)){
         df_average <- df_average %>%
-          tidyr::separate(!!sym(group.var), into = c(group.var, strata.var), sep = "\\.")
+          tidyr::separate(!!sym(group.var), into = c(group.var, strata.var), sep = .STRATA_SEP)
+        df_average <- mStat_restore_factor_levels(df_average, fl$levels, group.var, strata.var)
       }
 
       # Create the main stacked barplot
