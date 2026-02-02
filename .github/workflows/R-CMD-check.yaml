@@ -58,10 +58,14 @@ jobs:
           echo '_R_CHECK_FORCE_SUGGESTS_=false' > ~/.Renviron
           echo 'NOT_CRAN=true' >> ~/.Renviron
           
-          # Install BiocManager, build tools, and dependencies
-          Rscript -e 'install.packages(c("BiocManager", "remotes", "rcmdcheck", "knitr", "rmarkdown"))'
-          Rscript -e 'BiocManager::install(c("ggtree", "ggtreeExtra", "tidytree", "GUniFrac", "Biostrings", "biomformat"), ask = FALSE, update = FALSE)'
-          Rscript -e 'remotes::install_deps(dependencies = c("Depends", "Imports", "LinkingTo"))'
+          # Install build/check toolchain and their transitive deps
+          Rscript -e 'install.packages(c("BiocManager", "remotes", "rcmdcheck", "testthat", "knitr", "rmarkdown"))'
+
+          # Install Bioconductor packages (Imports + Suggests that live on Bioc)
+          Rscript -e 'BiocManager::install(c("ggtree", "ggtreeExtra", "tidytree", "GUniFrac", "Biostrings", "biomformat", "metagenomeSeq", "edgeR"), ask = FALSE, update = FALSE)'
+
+          # Install all Depends + Imports + LinkingTo + Suggests so R CMD check has no missing-package NOTEs
+          Rscript -e 'remotes::install_deps(dependencies = TRUE)'
           
       - name: Create dummy rhdf5filters package (Unix/macOS)
         if: runner.os != 'Windows'
