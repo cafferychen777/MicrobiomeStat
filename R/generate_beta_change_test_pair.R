@@ -70,7 +70,7 @@ generate_beta_change_test_pair <-
            group.var,
            adj.vars = NULL,
            change.base = NULL,
-           dist.name = c('BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS')) {
+           dist.name = c('BC', 'Jaccard')) {
 
     # Check if dist.name is provided, if not, return early
     if (is.null(dist.name)){

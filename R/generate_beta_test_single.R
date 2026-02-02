@@ -102,7 +102,7 @@ generate_beta_test_single <- function(data.obj,
                                       t.level = NULL,
                                       group.var,
                                       adj.vars = NULL,
-                                      dist.name = c('BC', 'Jaccard', 'UniFrac', 'GUniFrac', 'WUniFrac', 'JS')) {
+                                      dist.name = c('BC', 'Jaccard')) {
 
   # Check if distance metrics are provided
   if (is.null(dist.name)){
