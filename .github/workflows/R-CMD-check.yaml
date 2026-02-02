@@ -58,8 +58,8 @@ jobs:
           echo '_R_CHECK_FORCE_SUGGESTS_=false' > ~/.Renviron
           echo 'NOT_CRAN=true' >> ~/.Renviron
           
-          # Install BiocManager and dependencies
-          Rscript -e 'install.packages(c("BiocManager", "remotes", "rcmdcheck"))'
+          # Install BiocManager, build tools, and dependencies
+          Rscript -e 'install.packages(c("BiocManager", "remotes", "rcmdcheck", "knitr", "rmarkdown"))'
           Rscript -e 'BiocManager::install(c("ggtree", "ggtreeExtra", "tidytree", "GUniFrac", "Biostrings", "biomformat"), ask = FALSE, update = FALSE)'
           Rscript -e 'remotes::install_deps(dependencies = c("Depends", "Imports", "LinkingTo"))'
           
