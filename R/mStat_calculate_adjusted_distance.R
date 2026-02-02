@@ -78,13 +78,25 @@ mStat_calculate_adjusted_distance <- function (data.obj,
 
     # Perform classical multidimensional scaling (MDS) on the distance matrix
     # This step transforms the distances into a set of coordinates in Euclidean space
-    mds_result <- suppressWarnings(cmdscale(distance_matrix, k = nrow(distance_matrix) - 1, eig = TRUE))
+    mds_result <- withCallingHandlers(
+      cmdscale(distance_matrix, k = nrow(distance_matrix) - 1, eig = TRUE),
+      warning = function(cond) {
+        if (grepl("eigenvalue", conditionMessage(cond), ignore.case = TRUE))
+          invokeRestart("muffleWarning")
+      }
+    )
 
     # Check if the eigenvalues are all positive
     # If not, add a constant to make the distances Euclidean
     if (!all(mds_result$eig > 0)){
       message("Additive constant c* is being added to the non-diagonal dissimilarities to ensure they are Euclidean.")
-      mds_result <- suppressWarnings(cmdscale(distance_matrix, k = nrow(distance_matrix) - 1, eig = TRUE, add = TRUE))
+      mds_result <- withCallingHandlers(
+        cmdscale(distance_matrix, k = nrow(distance_matrix) - 1, eig = TRUE, add = TRUE),
+        warning = function(cond) {
+          if (grepl("eigenvalue", conditionMessage(cond), ignore.case = TRUE))
+            invokeRestart("muffleWarning")
+        }
+      )
     }
 
     # Extract eigenvalues from the MDS result

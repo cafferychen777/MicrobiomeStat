@@ -358,7 +358,6 @@ winsor.fun <- function(Y, quan, feature.dat.type) {
 #' Analysis of Microbiome Compositional Data.
 #' @importFrom modeest mlv
 #' @importFrom lmerTest lmer
-#' @import foreach
 #' @import parallel
 #' @importFrom Matrix Matrix Diagonal Cholesky solve
 #' @examples
@@ -698,7 +697,16 @@ linda2 <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.
         # Determine zero-handling method based on correlation between sequencing depth and explanatory variables
         logN <- log(N)
         if (random.effect) {
-          tmp <- lmer(as.formula(paste0("logN", formula)), Z)
+          tmp <- tryCatch(
+            withCallingHandlers(
+              lmer(as.formula(paste0("logN", formula)), Z),
+              message = function(cond) invokeRestart("muffleMessage")
+            ),
+            error = function(e) {
+              if (verbose) message("  Mixed model for adaptive zero-handling failed; using fixed model.")
+              lm(as.formula(paste0("logN", formula)), Z)
+            }
+          )
         } else {
           tmp <- lm(as.formula(paste0("logN", formula)), Z)
         }
@@ -753,13 +761,14 @@ linda2 <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.
         message("Fit linear models ...")
       }
     }
-    if (!is.null(weights_normalized)) {
-      # Weighted regression
-      suppressMessages(fit <- lm(as.formula(paste0("W", formula)), Z, weights = weights_normalized))
-    } else {
-      # Unweighted regression (original behavior)
-      suppressMessages(fit <- lm(as.formula(paste0("W", formula)), Z))
-    }
+    fit <- withCallingHandlers(
+      if (!is.null(weights_normalized)) {
+        lm(as.formula(paste0("W", formula)), Z, weights = weights_normalized)
+      } else {
+        lm(as.formula(paste0("W", formula)), Z)
+      },
+      message = function(cond) invokeRestart("muffleMessage")
+    )
     res <- do.call(rbind, coef(summary(fit)))
     df <- rep(n - ncol(model.matrix(fit)), m)
   } else {
@@ -772,21 +781,37 @@ linda2 <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.
     }
     fun <- function(i) {
       w <- W[, i]
-      if (!is.null(weights_normalized)) {
-        # Weighted mixed model
-        suppressMessages(fit <- lmer(as.formula(paste0("w", formula)), Z, weights = weights_normalized))
-      } else {
-        # Unweighted mixed model (original behavior)
-        suppressMessages(fit <- lmer(as.formula(paste0("w", formula)), Z))
-      }
-      coef(summary(fit))
+      warns <- character(0)
+      fit <- withCallingHandlers({
+        if (!is.null(weights_normalized)) {
+          lmer(as.formula(paste0("w", formula)), Z, weights = weights_normalized)
+        } else {
+          lmer(as.formula(paste0("w", formula)), Z)
+        }
+      },
+      warning = function(cond) {
+        warns <<- c(warns, conditionMessage(cond))
+        invokeRestart("muffleWarning")
+      },
+      message = function(cond) invokeRestart("muffleMessage")
+      )
+      list(coefs = coef(summary(fit)), warnings = warns)
     }
     if (n.cores > 1) {
-      res <- mclapply(c(1:m), function(i) fun(i), mc.cores = n.cores)
+      res_raw <- mclapply(1:m, fun, mc.cores = n.cores)
     } else {
-      suppressMessages(res <- foreach(i = 1:m) %do% fun(i))
+      res_raw <- lapply(1:m, fun)
     }
-    res <- do.call(rbind, res)
+    fit_warnings <- lapply(res_raw, `[[`, "warnings")
+    res <- do.call(rbind, lapply(res_raw, `[[`, "coefs"))
+
+    # Aggregate and report model diagnostics
+    n_singular <- sum(vapply(fit_warnings, function(w) any(grepl("singular", w, ignore.case = TRUE)), logical(1)))
+    n_convergence <- sum(vapply(fit_warnings, function(w) any(grepl("converge", w, ignore.case = TRUE)), logical(1)))
+    if (verbose && (n_singular > 0 || n_convergence > 0)) {
+      message("  Model diagnostics: ", n_singular, " singular fit(s), ",
+              n_convergence, " convergence warning(s) out of ", m, " taxa")
+    }
   }
 
   # Extract and process results
@@ -857,14 +882,28 @@ linda2 <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.
 
       # Weighted density estimation
       scaled <- sqrt(n) * log2FoldChange
-      d <- suppressWarnings(density(scaled, weights = weights, kernel = "gaussian"))
+      d <- withCallingHandlers(
+        density(scaled, weights = weights, kernel = "gaussian"),
+        warning = function(cond) {
+          if (grepl("sum.*weights", conditionMessage(cond), ignore.case = TRUE))
+            invokeRestart("muffleWarning")
+        }
+      )
       mode_scaled <- d$x[which.max(d$y)]
       bias <- mode_scaled / sqrt(n)
     } else {
       # Fall back to unweighted (original LinDA)
-      suppressMessages(bias <- mlv(sqrt(n) * log2FoldChange,
-        method = "meanshift", kernel = "gaussian"
-      ) / sqrt(n))
+      bias <- tryCatch(
+        withCallingHandlers(
+          mlv(sqrt(n) * log2FoldChange,
+              method = "meanshift", kernel = "gaussian") / sqrt(n),
+          message = function(cond) invokeRestart("muffleMessage")
+        ),
+        error = function(e) {
+          if (verbose) message("  Mode estimation (mlv) failed for variable '", x, "'; using median for bias correction.")
+          median(log2FoldChange)
+        }
+      )
     }
 
     log2FoldChange <- log2FoldChange - bias
@@ -1006,13 +1045,22 @@ linda2 <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.
     message("Completed.")
   }
 
+  # Build diagnostics
+  fit_diag <- list(model.type = if (random.effect) "lmer" else "lm", n.taxa = m)
+  if (random.effect) {
+    fit_diag$n.singular <- n_singular
+    fit_diag$n.convergence <- n_convergence
+    fit_diag$warning.messages <- unique(unlist(fit_warnings))
+  }
+
   # Return the results (include weights and tree smoothing info if used)
   result <- list(
     variables = variables,
     bias = bias,
     output = output,
     feature.dat.use = Y,
-    meta.dat.use = Z
+    meta.dat.use = Z,
+    fit.diagnostics = fit_diag
   )
 
   if (!is.null(weights_normalized)) {
@@ -1123,9 +1171,7 @@ linda.plot <- function(linda.obj, variables.plot, titles = NULL, alpha = 0.05, l
 
   tmp <- match(variables, variables.plot)
   voi.ind <- order(tmp)[1:sum(!is.na(tmp))]
-  padj.mat <- foreach(i = voi.ind, .combine = "cbind") %do% {
-    output[[i]]$padj
-  }
+  padj.mat <- sapply(voi.ind, function(i) output[[i]]$padj)
 
   ## effect size plot
   if (is.matrix(padj.mat)) {

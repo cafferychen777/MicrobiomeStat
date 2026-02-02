@@ -96,28 +96,17 @@ Tests associations between taxa abundances and a grouping variable in
 longitudinal microbiome data using LinDA mixed-effects models.
 }
 \details{
-Based on whether group.var and adj.vars are NULL, the formula tests:
+Based on whether adj.vars is NULL, the formula tests:
 
-- When group.var is NULL and adj.vars is NOT NULL:
-  - Tests adj.vars main effects only.
-  - Adjusted for adj.vars but not group.var.
-
-- When group.var is NOT NULL and adj.vars is NOT NULL:
-  - Tests adj.vars and group.var main effects.
+- When adj.vars is NOT NULL:
+  - Tests group.var and adj.vars main effects.
   - Adjusted for adj.vars.
 
-- When group.var is NOT NULL and adj.vars is NULL:
+- When adj.vars is NULL:
   - Tests group.var main effects only.
   - Unadjusted analysis.
 
-- When both group.var and adj.vars are NULL:
-  - Tests the intercept only.
-  - Unadjusted analysis.
-
-The formula combines the appropriate terms based on which variables are NULL.
 Subject variability is accounted for through random effects.
-
-When group.var and adj.vars are NULL, the intercept is tested without adjusting for any covariates.
 }
 \examples{
 \dontrun{

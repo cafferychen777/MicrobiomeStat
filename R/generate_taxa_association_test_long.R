@@ -6,28 +6,17 @@
 #' @inheritParams mStat_data_obj_doc
 #'
 #' @details
-#' Based on whether group.var and adj.vars are NULL, the formula tests:
+#' Based on whether adj.vars is NULL, the formula tests:
 #'
-#' - When group.var is NULL and adj.vars is NOT NULL:
-#'   - Tests adj.vars main effects only.
-#'   - Adjusted for adj.vars but not group.var.
-#'
-#' - When group.var is NOT NULL and adj.vars is NOT NULL:
-#'   - Tests adj.vars and group.var main effects.
+#' - When adj.vars is NOT NULL:
+#'   - Tests group.var and adj.vars main effects.
 #'   - Adjusted for adj.vars.
 #'
-#' - When group.var is NOT NULL and adj.vars is NULL:
+#' - When adj.vars is NULL:
 #'   - Tests group.var main effects only.
 #'   - Unadjusted analysis.
 #'
-#' - When both group.var and adj.vars are NULL:
-#'   - Tests the intercept only.
-#'   - Unadjusted analysis.
-#'
-#' The formula combines the appropriate terms based on which variables are NULL.
 #' Subject variability is accounted for through random effects.
-#'
-#' When group.var and adj.vars are NULL, the intercept is tested without adjusting for any covariates.
 #'
 #' @return A nested list structure where:
 #' \itemize{
@@ -201,21 +190,24 @@ generate_taxa_association_test_long <-
         meta_tab <- meta_tab[keep_samples, , drop = FALSE]
       }
 
+      # After TSS normalization, count data becomes proportions for linda
+      if (feature.dat.type == "count"){
+        feature.dat.type <- "proportion"
+      }
+
       # Perform linear mixed model analysis using LInDA
       linda.obj <- linda(
         feature.dat = otu_tax_agg_filter,
         meta.dat = meta_tab,
         formula = paste("~", formula),
-        feature.dat.type = "proportion",
+        feature.dat.type = feature.dat.type,
         prev.filter = 0,
         mean.abund.filter = 0,
         ...
       )
 
       # Identify the reference level for the group variable
-      if (!is.null(group.var)){
-        reference_level <- levels(as.factor(meta_tab[,group.var]))[1]
-      }
+      reference_level <- levels(as.factor(meta_tab[,group.var]))[1]
 
       # Calculate average abundance and prevalence for each feature
       prop_prev_data <-

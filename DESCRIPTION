@@ -25,7 +25,6 @@ Imports:
     Matrix,
     matrixStats,
     lmerTest,
-    foreach,
     modeest,
     vegan,
     dplyr,
