@@ -282,22 +282,14 @@ generate_taxa_change_test_pair <-
         )
 
       # Calculate the change in feature values based on the specified method
-      if (is.function(feature.change.func)) {
-        combined_data <-
-          combined_data %>% dplyr::mutate(value_diff = feature.change.func(value_time_2, value_time_1))
-      } else if (feature.change.func == "log fold change") {
-        combined_data <-
-          combined_data %>% dplyr::mutate(value_diff = log2(value_time_2) - log2(value_time_1))
-      } else if (feature.change.func == "relative change") {
-        combined_data <- combined_data %>%
-          dplyr::mutate(value_diff = (value_time_2 - value_time_1) / (value_time_2 + value_time_1))
-      } else if (feature.change.func == "absolute change"){
-        combined_data <-
-          combined_data %>% dplyr::mutate(value_diff = value_time_2 - value_time_1)
-      } else {
-        combined_data <-
-          combined_data %>% dplyr::mutate(value_diff = value_time_2 - value_time_1)
-      }
+      # (fix: previously had no zero handling for log fold change, producing -Inf)
+      combined_data <- combined_data %>%
+        dplyr::mutate(value_diff = compute_taxa_change(
+          value_after  = value_time_2,
+          value_before = value_time_1,
+          method       = feature.change.func,
+          feature_id   = .data[[feature.level]]
+        ))
 
       message("Note: For repeated measurements of the same subject at the same time point, the average will be taken.")
 

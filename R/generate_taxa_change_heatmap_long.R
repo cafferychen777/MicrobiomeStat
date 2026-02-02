@@ -271,34 +271,14 @@ generate_taxa_change_heatmap_long <- function(data.obj,
     for (ts in ts.levels) {
       change_col_name <- paste0("change_", ts)
 
-      # Apply the specified change function
-      if (is.function(feature.change.func)) {
-        df_wide <- df_wide %>%
-          dplyr::rowwise() %>%
-          dplyr::mutate(!!sym(change_col_name) := feature.change.func(.data[[as.character(ts)]], .data[[as.character(t0.level)]]))
-      } else if (feature.change.func == "relative change") {
-        # Calculate relative change: (value_t - value_t0) / (value_t + value_t0)
-        df_wide <- df_wide %>%
-          dplyr::rowwise() %>%
-          dplyr::mutate(!!sym(change_col_name) := dplyr::case_when(
-            (.data[[as.character(ts)]] + .data[[as.character(t0.level)]]) != 0 ~ (.data[[as.character(ts)]] - .data[[as.character(t0.level)]]) / (.data[[as.character(ts)]] + .data[[as.character(t0.level)]]),
-            TRUE ~ 0
-          ))
-      } else if (feature.change.func == "absolute change") {
-        # Calculate absolute change: value_t - value_t0
-        df_wide <- df_wide %>%
-          dplyr::rowwise() %>%
-          dplyr::mutate(!!sym(change_col_name) := (.data[[as.character(ts)]] - .data[[as.character(t0.level)]]))
-      } else if (feature.change.func == "log fold change") {
-        # Calculate log fold change: log2(value_t + pseudocount) - log2(value_t0 + pseudocount)
-        df_wide <- df_wide %>%
-          dplyr::rowwise() %>%
-          dplyr::mutate(!!sym(change_col_name) := log2(.data[[as.character(ts)]] + 0.00001) - log2(.data[[as.character(t0.level)]] + 0.00001))
-      } else {
-        stop(
-          "`feature.change.func` must be either 'relative change', 'absolute change', 'log fold change' or a function."
-        )
-      }
+      df_wide <- df_wide %>%
+        dplyr::mutate(!!sym(change_col_name) := compute_taxa_change(
+          value_after  = .data[[as.character(ts)]],
+          value_before = .data[[as.character(t0.level)]],
+          method       = feature.change.func,
+          feature_id   = .data[[feature.level]],
+          verbose      = (ts == ts.levels[1])
+        ))
     }
 
     # Select relevant columns

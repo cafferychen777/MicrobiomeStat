@@ -195,13 +195,12 @@ generate_beta_pc_change_boxplot_pair <-
 
       # Calculate the change in PC coordinates
       combined_data <- combined_data %>%
-        dplyr::mutate(value_diff = if (is.function(change.func)) {
-          change.func(value_time_2, value_time_1)
-        } else if (change.func == "absolute change"){
-          value_time_2 - value_time_1
-        } else {
-          value_time_2 - value_time_1
-        })
+        dplyr::mutate(value_diff = compute_taxa_change(
+          value_after  = value_time_2,
+          value_before = value_time_1,
+          method       = change.func,
+          verbose      = FALSE
+        ))
 
       # Add metadata to the combined data
       combined_data <-

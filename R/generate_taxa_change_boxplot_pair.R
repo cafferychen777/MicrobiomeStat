@@ -232,64 +232,13 @@ generate_taxa_change_boxplot_pair <-
         )
 
       # Calculate the change in abundance based on the specified function
-      if (is.function(feature.change.func)) {
-        combined_data <-
-          combined_data %>% dplyr::mutate(value_diff = feature.change.func(value_time_2, value_time_1))
-      } else if (feature.change.func == "log fold change") {
-        # CRITICAL FIX: Calculate pseudocount across BOTH time points combined
-        # Using different pseudocounts at each time point introduces systematic bias
-        half_nonzero_min <- combined_data %>%
-          dplyr::group_by(!!sym(feature.level)) %>%
-          dplyr::summarize(
-            half_nonzero_min = {
-              all_values <- c(value_time_1[value_time_1 > 0],
-                              value_time_2[value_time_2 > 0])
-              if (length(all_values) > 0) {
-                min(all_values) / 2
-              } else {
-                1e-10
-              }
-            },
-            .groups = "drop"
-          )
-
-        # Join the single pseudocount to the data
-        combined_data <- dplyr::left_join(
-          combined_data,
-          half_nonzero_min,
-          by = feature.level
-        )
-
-        # Use the SAME pseudocount for BOTH time points
-        combined_data$value_time_1[combined_data$value_time_1 == 0] <-
-          combined_data$half_nonzero_min[combined_data$value_time_1 == 0]
-        combined_data$value_time_2[combined_data$value_time_2 == 0] <-
-          combined_data$half_nonzero_min[combined_data$value_time_2 == 0]
-
-        message(
-          "Zero-handling: Per-taxon half-minimum pseudocount across BOTH time points.\n",
-          "  This ensures unbiased log fold change calculations."
-        )
-
-        # Calculate log fold change
-        combined_data <-
-          combined_data %>% dplyr::mutate(value_diff = log2(value_time_2) - log2(value_time_1))
-      } else if (feature.change.func == "relative change") {
-        # Calculate relative change
-        combined_data <- combined_data %>%
-          dplyr::mutate(value_diff = dplyr::case_when(
-            value_time_2 == 0 & value_time_1 == 0 ~ 0,
-            TRUE ~ (value_time_2 - value_time_1) / (value_time_2 + value_time_1)
-          ))
-      } else if (feature.change.func == "absolute change"){
-        # Calculate absolute change
-        combined_data <-
-          combined_data %>% dplyr::mutate(value_diff = value_time_2 - value_time_1)
-      } else {
-        # Default to absolute change if no valid function is specified
-        combined_data <-
-          combined_data %>% dplyr::mutate(value_diff = value_time_2 - value_time_1)
-      }
+      combined_data <- combined_data %>%
+        dplyr::mutate(value_diff = compute_taxa_change(
+          value_after  = value_time_2,
+          value_before = value_time_1,
+          method       = feature.change.func,
+          feature_id   = .data[[feature.level]]
+        ))
 
       # Add metadata for the change time point
       combined_data <-

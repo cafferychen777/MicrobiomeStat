@@ -184,38 +184,16 @@ generate_alpha_change_test_pair <-
     # This is the core statistical operation of the function.
     diff_columns <- lapply(alpha.name, function(index) {
       diff_col_name <- paste0(index, "_diff")
+      col_after  <- paste0(index, "_time_2")
+      col_before <- paste0(index, "_time_1")
 
-      # Apply the specified method to calculate change in alpha diversity.
-      # This allows for flexible definitions of change (e.g., log fold change, absolute change).
-      if (is.function(alpha.change.func)) {
-        combined_alpha <- combined_alpha %>%
-          dplyr::mutate(!!diff_col_name := alpha.change.func(!!sym(paste0(
-            index, "_time_2"
-          )),!!sym(paste0(
-            index, "_time_1"
-          )))) %>%
-          dplyr::select(all_of(diff_col_name))
-      } else {
-        if (alpha.change.func == "log fold change") {
-          combined_alpha <- combined_alpha %>%
-            dplyr::mutate(!!sym(diff_col_name) := log2(!!sym(paste0(
-              index, "_time_2"
-            )) / !!sym(paste0(
-              index, "_time_1"
-            )))) %>%
-            dplyr::select(all_of(c(diff_col_name)))
-        } else
-          if (alpha.change.func == "absolute change") {
-            combined_alpha <- combined_alpha %>%
-              dplyr::mutate(!!diff_col_name := !!sym(paste0(index, "_time_2")) -!!sym(paste0(index, "_time_1"))) %>%
-              dplyr::select(all_of(diff_col_name))
-          } else {
-            message(paste("No valid alpha.change.func provided for", index, ". Defaulting to 'absolute change'."))
-            combined_alpha <- combined_alpha %>%
-              dplyr::mutate(!!diff_col_name := !!sym(paste0(index, "_time_2")) -!!sym(paste0(index, "_time_1"))) %>%
-              dplyr::select(all_of(diff_col_name))
-          }
-      }
+      combined_alpha %>%
+        dplyr::mutate(!!diff_col_name := compute_alpha_change(
+          value_after  = !!sym(col_after),
+          value_before = !!sym(col_before),
+          method       = alpha.change.func
+        )) %>%
+        dplyr::select(all_of(diff_col_name))
     })
 
     # Combine the calculated differences with the original data.

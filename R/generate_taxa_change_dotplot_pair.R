@@ -187,29 +187,15 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
         time2_mean_abundance = all_of(change.after)
       )
 
-    if (is.function(feature.change.func)) {
-      otu_tab_norm_agg_wide <-
-        otu_tab_norm_agg_wide %>% dplyr::mutate(abundance_change = feature.change.func(time2_mean_abundance, time2_mean_abundance))
-    } else if (feature.change.func == "log fold change") {
-      otu_tab_norm_agg_wide <-
-        otu_tab_norm_agg_wide %>% dplyr::mutate(
-          abundance_change = log2(time2_mean_abundance + 0.00001) - log2(time1_mean_abundance + 0.00001)
-        )
-    } else if (feature.change.func == "relative change") {
-      otu_tab_norm_agg_wide <- otu_tab_norm_agg_wide %>%
-        dplyr::mutate(
-          abundance_change = dplyr::case_when(
-            time2_mean_abundance == 0 & time1_mean_abundance == 0 ~ 0,
-            TRUE ~ (time2_mean_abundance - time1_mean_abundance) / (time2_mean_abundance + time1_mean_abundance)
-          )
-        )
-    } else if (feature.change.func == "absolute change") {
-      otu_tab_norm_agg_wide <-
-        otu_tab_norm_agg_wide %>% dplyr::mutate(abundance_change = time2_mean_abundance - time1_mean_abundance)
-    } else {
-      otu_tab_norm_agg_wide <-
-        otu_tab_norm_agg_wide %>% dplyr::mutate(abundance_change = time2_mean_abundance - time1_mean_abundance)
-    }
+    # Calculate abundance change (fix: was passing time2 twice for custom func,
+    # and using fixed +0.00001 instead of per-taxon pseudocount for log fold change)
+    otu_tab_norm_agg_wide <- otu_tab_norm_agg_wide %>%
+      dplyr::mutate(abundance_change = compute_taxa_change(
+        value_after  = time2_mean_abundance,
+        value_before = time1_mean_abundance,
+        method       = feature.change.func,
+        feature_id   = .data[[feature.level]]
+      ))
 
     # Compute the prevalence of each taxon at each time point
     prevalence_time <- otu_tax_agg %>%
@@ -224,29 +210,14 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
                     time2_prevalence = change.after)
 
     # Compute the difference in prevalence at different time points
-    if (is.function(feature.change.func)) {
-      prevalence_time_wide <-
-        prevalence_time_wide %>% dplyr::mutate(prevalence_change = feature.change.func(time2_prevalence, time1_prevalence))
-    } else if (feature.change.func == "log fold change") {
-      prevalence_time_wide <-
-        prevalence_time_wide %>% dplyr::mutate(
-          prevalence_change = log2(time2_prevalence + 0.00001) - log2(time1_prevalence + 0.00001)
-        )
-    } else if (feature.change.func == "relative change") {
-      prevalence_time_wide <- prevalence_time_wide %>%
-        dplyr::mutate(
-          prevalence_change = dplyr::case_when(
-            time2_prevalence == 0 & time1_prevalence == 0 ~ 0,
-            TRUE ~ (time2_prevalence - time1_prevalence) / (time2_prevalence + time1_prevalence)
-          )
-        )
-    } else if (feature.change.func == "absolute change") {
-      prevalence_time_wide <-
-        prevalence_time_wide %>% dplyr::mutate(prevalence_change = time2_prevalence - time1_prevalence)
-    } else {
-      prevalence_time_wide <-
-        prevalence_time_wide %>% dplyr::mutate(prevalence_change = time2_prevalence - time1_prevalence)
-    }
+    prevalence_time_wide <- prevalence_time_wide %>%
+      dplyr::mutate(prevalence_change = compute_taxa_change(
+        value_after  = time2_prevalence,
+        value_before = time1_prevalence,
+        method       = feature.change.func,
+        feature_id   = .data[[feature.level]],
+        verbose      = FALSE
+      ))
 
     otu_tab_norm_agg_wide <-
       otu_tab_norm_agg_wide %>% dplyr::left_join(prevalence_time_wide, by = c(feature.level, group.var))

@@ -347,15 +347,7 @@ taxa_change_heatmap_results <- generate_taxa_change_heatmap_pair(
 ```
 
 ```{r taxa-change-heatmap-pair-print, echo=FALSE, message=FALSE, results='asis', fig.align='center', fig.width = 25, fig.height = 20}
-if (is.function(feature.change.func)) {
-  cat('The changes were computed using a custom function provided by the user.')
-} else if (feature.change.func == 'relative change') {
-  cat('The changes were relative changes, which were computed as (after.abund - before.abund) / (after.abund + before.abund) so the values lie between [-1, 1].')
-} else if (feature.change.func == 'absolute change') {
-  cat('The changes were absolute changes, computed as the difference between after.abund and before.abund.')
-} else if (feature.change.func == 'log fold change') {
-  cat('The changes were log2 fold changes, computed as the logarithm of the ratio of after.abund to before.abund, with a small constant added to avoid taking the log of zero.')
-}
+cat(describe_change_method(feature.change.func, context = 'taxa'))
 
 
 cat(' The following plots display the change for each subject. \\n\\n')
@@ -402,15 +394,7 @@ taxa_change_dotplot_results <- generate_taxa_change_dotplot_pair(
 ```
 
 ```{r taxa-change-dotplot-pair-print, echo=FALSE, message=FALSE, results=result.output, fig.align='center', fig.width = 25, fig.height = 20}
-if (is.function(feature.change.func)) {
-  cat('The changes were computed using a custom function provided by the user.')
-} else if (feature.change.func == 'relative change') {
-  cat('The changes were relative changes, which were computed as (after.abund - before.abund) / (after.abund + before.abund) so the values lie between [-1, 1].')
-} else if (feature.change.func == 'absolute change') {
-  cat('The changes were absolute changes, computed as the difference between after.abund and before.abund.')
-} else if (feature.change.func == 'log fold change') {
-  cat('The changes were log2 fold changes, computed as the logarithm of the ratio of after.abund to before.abund, with a small constant added to avoid taking the log of zero.')
-}
+cat(describe_change_method(feature.change.func, context = 'taxa'))
 
 cat(' The following plots display the average change for each group, and stratum. \\n\\n')
 taxa_change_dotplot_results
@@ -478,13 +462,8 @@ alpha_change_boxplot_results <- generate_alpha_change_boxplot_pair(
 ```
 
 ```{r alpha-diversity-change-boxplot-print, message=FALSE, fig.align='center', results=result.output, echo = FALSE, fig.width=8, fig.height=3}
-if (is.function(alpha.change.func)) {
-  cat('The changes from change.base were computed using a custom function provided by the user.\\n\\n')
-} else if (alpha.change.func == 'log fold change') {
-  cat('The changes from change.base were computed as the log2 fold change of alpha diversity at the current timepoint versus change.base.\\n\\n')
-} else {
-  cat('The changes from change.base were computed as the absolute difference in alpha diversity at the current timepoint versus change.base.\\n\\n')
-}
+cat(describe_change_method(alpha.change.func, context = 'alpha'))
+cat('\\n\\n')
 
 alpha_change_boxplot_results
 ```
@@ -644,15 +623,8 @@ if(num_levels > 2) {
     cat(sprintf('\\n In this analysis, we utilized a general linear model to examine the influence of the variable %s on change.\\n', group.var))
 }
 
-if (is.function(alpha.change.func)) {
-    cat('The alpha diversity change is calculated using a custom function supplied by the user to compute the rate of change between consecutive time points.\\n\\n')
-} else {
-    if (alpha.change.func == 'log fold change') {
-        cat('The alpha diversity change is calculated by taking the logarithm of the fold change between consecutive time points.\\n\\n')
-    } else {
-        cat('The alpha diversity change is calculated by computing the direct difference in alpha diversity between consecutive time points.\\n\\n')
-    }
-}
+cat(describe_change_method(alpha.change.func, context = 'alpha'))
+cat('\\n\\n')
 
 # Define a function to report the significance of volatility based on group.var
 report_change_significance <- function(data_frame, group.var) {
@@ -1077,15 +1049,7 @@ if(num_levels > 2) {
     cat(sprintf('In this analysis, a general linear model was utilized to investigate the influence of the variable %s on the change of various taxa abundances.', group.var))
 }
 
-if (is.function(feature.change.func)) {
-  cat('The changes were computed using a custom function provided by the user.')
-} else if (feature.change.func == 'relative change') {
-  cat('The changes were relative changes, which were computed as (after.abund - before.abund) / (after.abund + before.abund) so the values lie between [-1, 1].')
-} else if (feature.change.func == 'absolute change') {
-  cat('The changes were absolute changes, computed as the difference between after.abund and before.abund.')
-} else if (feature.change.func == 'log fold change') {
-  cat('The changes were log2 fold changes, computed as the logarithm of the ratio of after.abund to before.abund, with a small constant added to avoid taking the log of zero.')
-}
+cat(describe_change_method(feature.change.func, context = 'taxa'))
 
 # Iterate over each taxonomic rank in taxa_change_test_results
 for(taxon_rank in names(taxa_change_test_results)) {

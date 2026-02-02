@@ -313,15 +313,7 @@ taxa_change_heatmap_long_results <- generate_taxa_change_heatmap_long(
 ```
 
 ```{r taxa-change-heatmap-longitudinal-print, echo=FALSE, message=FALSE, results=result.output, fig.align=\'center\', fig.width = 20, fig.height = 15, warning = FALSE}
-if (is.function(feature.change.func)) {
-  cat(\'The changes from t0.level were computed using a custom function provided by the user.\')
-} else if (feature.change.func == \'relative change\') {
-  cat(\'The changes from t0.level were relative changes, computed as the difference between the current value and t0.level divided by the sum of the two.\')
-} else if (feature.change.func == \'absolute change\') {
-  cat(\'The changes from t0.level were absolute changes, computed as the difference between the current value and t0.level.\')
-} else if (feature.change.func == \'log fold change\') {
-  cat(\'The changes from t0.level were log2 fold changes, computed as the logarithm of the ratio of the current value to t0.level, with a small constant added to avoid taking the log of zero.\')
-}
+cat(describe_change_method(feature.change.func, context = \'alpha\'))
 
 cat(\'The following plots display the average changes for each time point, group, and stratum. \\n\\n\')
 taxa_change_heatmap_long_results

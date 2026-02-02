@@ -198,46 +198,14 @@ generate_taxa_change_scatterplot_pair <-
       # Then, use dplyr::inner_join to merge these two subsets based on Phylum, subject and sex
       df <- dplyr::inner_join(df_ts, df_t0, by = c(feature.level, subject.var), suffix = c("_ts", "_t0"), relationship = "many-to-many")
 
-      # Finally, calculate the new count value
-      if (is.function(feature.change.func)) {
-        df <- df %>% dplyr::mutate(new_count = feature.change.func(count_ts, count_t0))
-      } else if (feature.change.func == "log fold change") {
-        # CRITICAL FIX: Calculate pseudocount across BOTH time points combined
-        # Using different pseudocounts at each time point introduces systematic bias
-        half_nonzero_min <- df %>%
-          dplyr::group_by(!!sym(feature.level)) %>%
-          dplyr::summarize(
-            half_nonzero_min = {
-              all_values <- c(count_t0[count_t0 > 0],
-                              count_ts[count_ts > 0])
-              if (length(all_values) > 0) {
-                min(all_values) / 2
-              } else {
-                1e-10
-              }
-            },
-            .groups = "drop"
-          )
-
-        df <- dplyr::left_join(df, half_nonzero_min, by = feature.level)
-        df$count_t0[df$count_t0 == 0] <- df$half_nonzero_min[df$count_t0 == 0]
-        df$count_ts[df$count_ts == 0] <- df$half_nonzero_min[df$count_ts == 0]
-
-        message("Zero-handling: Per-taxon half-minimum pseudocount across BOTH time points.\n",
-                "  This ensures unbiased log fold change calculations.")
-
-        df <- df %>% dplyr::mutate(new_count = log2(count_ts) - log2(count_t0))
-      } else if (feature.change.func == "relative change"){
-        df <- df %>%
-          dplyr::mutate(new_count = dplyr::case_when(
-            count_ts == 0 & count_t0 == 0 ~ 0,
-            TRUE ~ (count_ts - count_t0) / (count_ts + count_t0)
-          ))
-      } else if (feature.change.func == "absolute change"){
-        df <- df %>% dplyr::mutate(new_count = count_ts - count_t0)
-      } else {
-        df <- df %>% dplyr::mutate(new_count = count_ts - count_t0)
-      }
+      # Calculate the change in abundance based on the specified function
+      df <- df %>%
+        dplyr::mutate(new_count = compute_taxa_change(
+          value_after  = count_ts,
+          value_before = count_t0,
+          method       = feature.change.func,
+          feature_id   = .data[[feature.level]]
+        ))
 
       df <- df %>% dplyr::left_join(meta_tab %>% select(-all_of(time.var)) %>% dplyr::distinct(), by = c(subject.var))
 

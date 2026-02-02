@@ -220,15 +220,15 @@ resolve_feature_select <- function(feature.select = NULL, target_type = "default
 resolve_change_type <- function(change.type = "none") {
   mapping <- list(
     none = NULL,
-    relative = "relative change",
-    log_fold = "log fold change",
-    absolute = "absolute change"
+    relative = .CHANGE_RELATIVE,
+    log_fold = .CHANGE_LOG_FOLD,
+    absolute = .CHANGE_ABSOLUTE
   )
 
   func <- mapping[[change.type]]
   if (is.null(func) && change.type != "none") {
     warning("Unknown change.type '", change.type, "', using 'relative change'")
-    func <- "relative change"
+    func <- .CHANGE_RELATIVE
   }
 
   return(list(
