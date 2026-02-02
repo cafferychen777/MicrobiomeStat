@@ -46,7 +46,7 @@
 #' phylogenetic tree and computes the necessary correction factors.
 #'
 #' OPTIMIZATION: Uses sparse Cholesky decomposition and Hutchinson trace
-#' estimation to avoid computing the full S = A^{-1} matrix. This reduces
+#' estimation to avoid computing the full S = A⁻¹ matrix. This reduces
 #' complexity from O(M³) to O(M² × k) and achieves ~2000x speedup for
 #' large datasets (M > 5000 taxa).
 #'
@@ -56,7 +56,7 @@
 #' @param k.neighbors Integer; number of nearest neighbors for local smoothing (default 5)
 #'
 #' @return A list containing:
-#'   \item{chol_factor}{Sparse Cholesky factor for solving S*t = A^{-1}*t}
+#'   \item{chol_factor}{Sparse Cholesky factor for solving S*t = A⁻¹*t}
 #'   \item{var.correction}{Global variance correction factor (scalar)}
 #'   \item{meff}{Effective number of tests M_eff = tr(S^2)^2 / tr(S^4)}
 #'   \item{meff.correction}{M_eff / M ratio for p-value adjustment}
@@ -360,6 +360,7 @@ winsor.fun <- function(Y, quan, feature.dat.type) {
 #' @importFrom lmerTest lmer
 #' @import parallel
 #' @importFrom Matrix Matrix Diagonal Cholesky solve
+#' @importFrom stats density pnorm
 #' @examples
 #' \dontrun{
 #' library(ggrepel)

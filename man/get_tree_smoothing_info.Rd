@@ -17,7 +17,7 @@ get_tree_smoothing_info(phy.tree, tax.names, lambda = 0.1, k.neighbors = 5)
 }
 \value{
 A list containing:
-  \item{chol_factor}{Sparse Cholesky factor for solving S*t = A^{-1}*t}
+  \item{chol_factor}{Sparse Cholesky factor for solving S*t = A⁻¹*t}
   \item{var.correction}{Global variance correction factor (scalar)}
   \item{meff}{Effective number of tests M_eff = tr(S^2)^2 / tr(S^4)}
   \item{meff.correction}{M_eff / M ratio for p-value adjustment}
@@ -31,7 +31,7 @@ phylogenetic tree and computes the necessary correction factors.
 }
 \details{
 OPTIMIZATION: Uses sparse Cholesky decomposition and Hutchinson trace
-estimation to avoid computing the full S = A^{-1} matrix. This reduces
+estimation to avoid computing the full S = A⁻¹ matrix. This reduces
 complexity from O(M³) to O(M² × k) and achieves ~2000x speedup for
 large datasets (M > 5000 taxa).
 }
