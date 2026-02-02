@@ -162,26 +162,36 @@ generate_taxa_change_heatmap_long <- function(data.obj,
   # Process the time variable in the data object
   data.obj <- mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
 
+  # Capture original factor levels for group.var and strata.var
+  # so we can preserve ordering throughout the plotting pipeline.
+  # This must happen BEFORE meta_tab is extracted.
+  group_levels_original <- NULL
+  strata_levels_original <- NULL
+  if (!is.null(group.var)) {
+    if (is.factor(data.obj$meta.dat[[group.var]])) {
+      group_levels_original <- levels(data.obj$meta.dat[[group.var]])
+    } else {
+      group_levels_original <- unique(data.obj$meta.dat[[group.var]])
+    }
+    data.obj$meta.dat[[group.var]] <- factor(
+      data.obj$meta.dat[[group.var]], levels = group_levels_original
+    )
+  }
+  if (!is.null(strata.var)) {
+    if (is.factor(data.obj$meta.dat[[strata.var]])) {
+      strata_levels_original <- levels(data.obj$meta.dat[[strata.var]])
+    } else {
+      strata_levels_original <- unique(data.obj$meta.dat[[strata.var]])
+    }
+    data.obj$meta.dat[[strata.var]] <- factor(
+      data.obj$meta.dat[[strata.var]], levels = strata_levels_original
+    )
+  }
+
   # Extract relevant columns from the metadata
   meta_tab <- data.obj$meta.dat %>%
     as.data.frame() %>%
     select(all_of(c(subject.var,group.var,time.var,strata.var)))
-
-  # Capture original factor levels for group.var and strata.var
-  if (!is.null(group.var)) {
-    if (is.factor(meta_tab[[group.var]])) {
-      group_levels_original <- levels(meta_tab[[group.var]])
-    } else {
-      group_levels_original <- unique(meta_tab[[group.var]])
-    }
-  }
-  if (!is.null(strata.var)) {
-    if (is.factor(meta_tab[[strata.var]])) {
-      strata_levels_original <- levels(meta_tab[[strata.var]])
-    } else {
-      strata_levels_original <- unique(meta_tab[[strata.var]])
-    }
-  }
 
   # If group.var is not provided, create a dummy group variable
   if (is.null(group.var)) {
@@ -381,8 +391,12 @@ generate_taxa_change_heatmap_long <- function(data.obj,
                  into = c(group.var, strata.var),
                  sep = "\\.")
       # Restore factor levels after separate() which creates character columns
-      annotation_col_sorted[[group.var]] <- factor(annotation_col_sorted[[group.var]], levels = group_levels_original)
-      annotation_col_sorted[[strata.var]] <- factor(annotation_col_sorted[[strata.var]], levels = strata_levels_original)
+      if (!is.null(group_levels_original)) {
+        annotation_col_sorted[[group.var]] <- factor(annotation_col_sorted[[group.var]], levels = group_levels_original)
+      }
+      if (!is.null(strata_levels_original)) {
+        annotation_col_sorted[[strata.var]] <- factor(annotation_col_sorted[[strata.var]], levels = strata_levels_original)
+      }
 
       annotation_col_sorted <-
         annotation_col_sorted[order(annotation_col_sorted[[strata.var]], annotation_col_sorted[[group.var]], annotation_col_sorted[[time.var]]), ]

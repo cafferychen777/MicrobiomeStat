@@ -174,7 +174,10 @@ generate_taxa_areaplot_long <-
     data.obj <- mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
 
     # Capture original factor levels for group.var and strata.var
-    # so we can preserve ordering throughout the plotting pipeline
+    # so we can preserve ordering throughout the plotting pipeline.
+    # This must happen BEFORE meta_tab is extracted.
+    group_levels_original <- NULL
+    strata_levels_original <- NULL
     if (!is.null(group.var)) {
       if (is.factor(data.obj$meta.dat[[group.var]])) {
         group_levels_original <- levels(data.obj$meta.dat[[group.var]])
@@ -414,8 +417,12 @@ generate_taxa_areaplot_long <-
         df_average <- df_average %>%
           tidyr::separate(!!sym(group.var), into = c(group.var, strata.var), sep = "\\.")
         # Restore factor levels after separate() which creates character columns
-        df_average[[group.var]] <- factor(df_average[[group.var]], levels = group_levels_original)
-        df_average[[strata.var]] <- factor(df_average[[strata.var]], levels = strata_levels_original)
+        if (!is.null(group_levels_original)) {
+          df_average[[group.var]] <- factor(df_average[[group.var]], levels = group_levels_original)
+        }
+        if (!is.null(strata_levels_original)) {
+          df_average[[strata.var]] <- factor(df_average[[strata.var]], levels = strata_levels_original)
+        }
       }
 
       # Create the main stacked area plot

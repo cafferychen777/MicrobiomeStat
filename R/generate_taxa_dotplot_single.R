@@ -81,25 +81,35 @@ generate_taxa_dotplot_single <- function(data.obj,
     }
   }
 
+  # Capture original factor levels for group.var and strata.var
+  # so we can preserve ordering throughout the plotting pipeline.
+  # This must happen BEFORE meta_tab is extracted.
+  group_levels_original <- NULL
+  strata_levels_original <- NULL
+  if (!is.null(group.var)) {
+    if (is.factor(data.obj$meta.dat[[group.var]])) {
+      group_levels_original <- levels(data.obj$meta.dat[[group.var]])
+    } else {
+      group_levels_original <- unique(data.obj$meta.dat[[group.var]])
+    }
+    data.obj$meta.dat[[group.var]] <- factor(
+      data.obj$meta.dat[[group.var]], levels = group_levels_original
+    )
+  }
+  if (!is.null(strata.var)) {
+    if (is.factor(data.obj$meta.dat[[strata.var]])) {
+      strata_levels_original <- levels(data.obj$meta.dat[[strata.var]])
+    } else {
+      strata_levels_original <- unique(data.obj$meta.dat[[strata.var]])
+    }
+    data.obj$meta.dat[[strata.var]] <- factor(
+      data.obj$meta.dat[[strata.var]], levels = strata_levels_original
+    )
+  }
+
   # Extract relevant variables from the metadata
   meta_tab <- data.obj$meta.dat %>% select(all_of(
     c(time.var, group.var, strata.var)))
-
-  # Capture original factor levels for group.var and strata.var
-  if (!is.null(group.var)) {
-    if (is.factor(meta_tab[[group.var]])) {
-      group_levels_original <- levels(meta_tab[[group.var]])
-    } else {
-      group_levels_original <- unique(meta_tab[[group.var]])
-    }
-  }
-  if (!is.null(strata.var)) {
-    if (is.factor(meta_tab[[strata.var]])) {
-      strata_levels_original <- levels(meta_tab[[strata.var]])
-    } else {
-      strata_levels_original <- unique(meta_tab[[strata.var]])
-    }
-  }
 
   # If no group variable is provided, create a dummy "ALL" group
   if (is.null(group.var)) {
@@ -196,8 +206,12 @@ generate_taxa_dotplot_single <- function(data.obj,
         dplyr::mutate(temp = !!sym(group.var)) %>%
         tidyr::separate(temp, into = c(paste0(group.var,"2"), strata.var), sep = "\\.")
       # Restore factor levels after separate() which creates character columns
-      otu_tab_norm_agg[[paste0(group.var,"2")]] <- factor(otu_tab_norm_agg[[paste0(group.var,"2")]], levels = group_levels_original)
-      otu_tab_norm_agg[[strata.var]] <- factor(otu_tab_norm_agg[[strata.var]], levels = strata_levels_original)
+      if (!is.null(group_levels_original)) {
+        otu_tab_norm_agg[[paste0(group.var,"2")]] <- factor(otu_tab_norm_agg[[paste0(group.var,"2")]], levels = group_levels_original)
+      }
+      if (!is.null(strata_levels_original)) {
+        otu_tab_norm_agg[[strata.var]] <- factor(otu_tab_norm_agg[[strata.var]], levels = strata_levels_original)
+      }
     }
 
     # Filter features if specified

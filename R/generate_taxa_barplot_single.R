@@ -177,6 +177,32 @@ generate_taxa_barplot_single <-
     data.obj$meta.dat$subject.id <- rownames(data.obj$meta.dat)
     subject.var <- "subject.id"
 
+    # Capture original factor levels for group.var and strata.var
+    # so we can preserve ordering throughout the plotting pipeline.
+    # This must happen BEFORE meta_tab is extracted.
+    group_levels_original <- NULL
+    strata_levels_original <- NULL
+    if (!is.null(group.var)) {
+      if (is.factor(data.obj$meta.dat[[group.var]])) {
+        group_levels_original <- levels(data.obj$meta.dat[[group.var]])
+      } else {
+        group_levels_original <- unique(data.obj$meta.dat[[group.var]])
+      }
+      data.obj$meta.dat[[group.var]] <- factor(
+        data.obj$meta.dat[[group.var]], levels = group_levels_original
+      )
+    }
+    if (!is.null(strata.var)) {
+      if (is.factor(data.obj$meta.dat[[strata.var]])) {
+        strata_levels_original <- levels(data.obj$meta.dat[[strata.var]])
+      } else {
+        strata_levels_original <- unique(data.obj$meta.dat[[strata.var]])
+      }
+      data.obj$meta.dat[[strata.var]] <- factor(
+        data.obj$meta.dat[[strata.var]], levels = strata_levels_original
+      )
+    }
+
     # Handle time variable and subset data if necessary
     if (!is.null(time.var)){
       if (!is.null(t.level)){
@@ -199,29 +225,6 @@ generate_taxa_barplot_single <-
         c(subject.var, group.var, strata.var)))
       meta_tab$ALL2 <- "ALL"
       time.var = "ALL2"
-    }
-
-    # Capture original factor levels for group.var and strata.var
-    # so we can preserve ordering throughout the plotting pipeline
-    if (!is.null(group.var)) {
-      if (is.factor(data.obj$meta.dat[[group.var]])) {
-        group_levels_original <- levels(data.obj$meta.dat[[group.var]])
-      } else {
-        group_levels_original <- unique(data.obj$meta.dat[[group.var]])
-      }
-      data.obj$meta.dat[[group.var]] <- factor(
-        data.obj$meta.dat[[group.var]], levels = group_levels_original
-      )
-    }
-    if (!is.null(strata.var)) {
-      if (is.factor(data.obj$meta.dat[[strata.var]])) {
-        strata_levels_original <- levels(data.obj$meta.dat[[strata.var]])
-      } else {
-        strata_levels_original <- unique(data.obj$meta.dat[[strata.var]])
-      }
-      data.obj$meta.dat[[strata.var]] <- factor(
-        data.obj$meta.dat[[strata.var]], levels = strata_levels_original
-      )
     }
 
     # Get the appropriate theme for plotting
@@ -515,8 +518,12 @@ generate_taxa_barplot_single <-
         df_average <- df_average %>%
           tidyr::separate(!!sym(group.var), into = c(group.var, strata.var), sep = "\\.")
         # Restore factor levels after separate() which creates character columns
-        df_average[[group.var]] <- factor(df_average[[group.var]], levels = group_levels_original)
-        df_average[[strata.var]] <- factor(df_average[[strata.var]], levels = strata_levels_original)
+        if (!is.null(group_levels_original)) {
+          df_average[[group.var]] <- factor(df_average[[group.var]], levels = group_levels_original)
+        }
+        if (!is.null(strata_levels_original)) {
+          df_average[[strata.var]] <- factor(df_average[[strata.var]], levels = strata_levels_original)
+        }
       }
 
       # Sort features by their overall mean abundance for the average plot
