@@ -106,6 +106,22 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
       time.var, group.var, strata.var, subject.var
     )))
 
+  # Capture original factor levels for group.var and strata.var
+  if (!is.null(group.var)) {
+    if (is.factor(meta_tab[[group.var]])) {
+      group_levels_original <- levels(meta_tab[[group.var]])
+    } else {
+      group_levels_original <- unique(meta_tab[[group.var]])
+    }
+  }
+  if (!is.null(strata.var)) {
+    if (is.factor(meta_tab[[strata.var]])) {
+      strata_levels_original <- levels(meta_tab[[strata.var]])
+    } else {
+      strata_levels_original <- unique(meta_tab[[strata.var]])
+    }
+  }
+
   if (is.null(group.var)) {
     group.var = "ALL"
     meta_tab$ALL <- ""
@@ -253,6 +269,9 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
         tidyr::separate(temp,
                         into = c(paste0(group.var, "2"), strata.var),
                         sep = "\\.")
+      # Restore factor levels after separate() which creates character columns
+      otu_tab_norm_agg_wide[[paste0(group.var, "2")]] <- factor(otu_tab_norm_agg_wide[[paste0(group.var, "2")]], levels = group_levels_original)
+      otu_tab_norm_agg_wide[[strata.var]] <- factor(otu_tab_norm_agg_wide[[strata.var]], levels = strata_levels_original)
     }
 
     if (!is.null(features.plot)) {

@@ -147,8 +147,7 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
       as.data.frame() %>%
       as.matrix()
 
-    meta.dat <- phyloseq.obj@sam_data %>% as.matrix() %>%
-      as.data.frame()
+    meta.dat <- data.frame(phyloseq.obj@sam_data, stringsAsFactors = FALSE)
   }
 
   # Check for NA values in the feature data

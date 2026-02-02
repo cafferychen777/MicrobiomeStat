@@ -85,6 +85,22 @@ generate_taxa_dotplot_single <- function(data.obj,
   meta_tab <- data.obj$meta.dat %>% select(all_of(
     c(time.var, group.var, strata.var)))
 
+  # Capture original factor levels for group.var and strata.var
+  if (!is.null(group.var)) {
+    if (is.factor(meta_tab[[group.var]])) {
+      group_levels_original <- levels(meta_tab[[group.var]])
+    } else {
+      group_levels_original <- unique(meta_tab[[group.var]])
+    }
+  }
+  if (!is.null(strata.var)) {
+    if (is.factor(meta_tab[[strata.var]])) {
+      strata_levels_original <- levels(meta_tab[[strata.var]])
+    } else {
+      strata_levels_original <- unique(meta_tab[[strata.var]])
+    }
+  }
+
   # If no group variable is provided, create a dummy "ALL" group
   if (is.null(group.var)) {
     group.var = "ALL"
@@ -179,6 +195,9 @@ generate_taxa_dotplot_single <- function(data.obj,
       otu_tab_norm_agg <- otu_tab_norm_agg %>%
         dplyr::mutate(temp = !!sym(group.var)) %>%
         tidyr::separate(temp, into = c(paste0(group.var,"2"), strata.var), sep = "\\.")
+      # Restore factor levels after separate() which creates character columns
+      otu_tab_norm_agg[[paste0(group.var,"2")]] <- factor(otu_tab_norm_agg[[paste0(group.var,"2")]], levels = group_levels_original)
+      otu_tab_norm_agg[[strata.var]] <- factor(otu_tab_norm_agg[[strata.var]], levels = strata_levels_original)
     }
 
     # Filter features if specified

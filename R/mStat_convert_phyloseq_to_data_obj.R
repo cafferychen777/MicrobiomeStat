@@ -66,9 +66,10 @@ mStat_convert_phyloseq_to_data_obj <- function (phylo.obj) {
   # Process the sample data if it exists
   if (!is.null(phylo.obj@sam_data)) {
     # Convert the sample data to a data frame format for easier manipulation
-    data.obj$meta.dat <- phylo.obj@sam_data %>% as.matrix() %>%
-      as.data.frame()
-    
+    # Use data.frame() directly instead of as.matrix() %>% as.data.frame()
+    # to preserve factor levels and column types from the phyloseq object
+    data.obj$meta.dat <- data.frame(phylo.obj@sam_data, stringsAsFactors = FALSE)
+
     # Remove the "sample" column if it exists
     # This step prevents redundancy, as sample information is typically contained in the row names
     if ("sample" %in% colnames(data.obj$meta.dat)) {

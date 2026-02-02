@@ -171,6 +171,29 @@ generate_taxa_barplot_long <-
     # Process time variable in the data object
     data.obj <- mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
 
+    # Capture original factor levels for group.var and strata.var
+    # so we can preserve ordering throughout the plotting pipeline
+    if (!is.null(group.var)) {
+      if (is.factor(data.obj$meta.dat[[group.var]])) {
+        group_levels_original <- levels(data.obj$meta.dat[[group.var]])
+      } else {
+        group_levels_original <- unique(data.obj$meta.dat[[group.var]])
+      }
+      data.obj$meta.dat[[group.var]] <- factor(
+        data.obj$meta.dat[[group.var]], levels = group_levels_original
+      )
+    }
+    if (!is.null(strata.var)) {
+      if (is.factor(data.obj$meta.dat[[strata.var]])) {
+        strata_levels_original <- levels(data.obj$meta.dat[[strata.var]])
+      } else {
+        strata_levels_original <- unique(data.obj$meta.dat[[strata.var]])
+      }
+      data.obj$meta.dat[[strata.var]] <- factor(
+        data.obj$meta.dat[[strata.var]], levels = strata_levels_original
+      )
+    }
+
     # Extract relevant metadata
     meta_tab <- data.obj$meta.dat %>% as.data.frame() %>% select(all_of(c(subject.var,group.var,time.var,strata.var)))
 
@@ -409,6 +432,9 @@ generate_taxa_barplot_long <-
       if(!is.null(strata.var)){
         df_average <- df_average %>%
           tidyr::separate(!!sym(group.var), into = c(group.var, strata.var), sep = "\\.")
+        # Restore factor levels after separate() which creates character columns
+        df_average[[group.var]] <- factor(df_average[[group.var]], levels = group_levels_original)
+        df_average[[strata.var]] <- factor(df_average[[strata.var]], levels = strata_levels_original)
       }
 
       # Create the main stacked barplot

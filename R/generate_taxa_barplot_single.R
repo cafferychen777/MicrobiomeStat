@@ -201,6 +201,29 @@ generate_taxa_barplot_single <-
       time.var = "ALL2"
     }
 
+    # Capture original factor levels for group.var and strata.var
+    # so we can preserve ordering throughout the plotting pipeline
+    if (!is.null(group.var)) {
+      if (is.factor(data.obj$meta.dat[[group.var]])) {
+        group_levels_original <- levels(data.obj$meta.dat[[group.var]])
+      } else {
+        group_levels_original <- unique(data.obj$meta.dat[[group.var]])
+      }
+      data.obj$meta.dat[[group.var]] <- factor(
+        data.obj$meta.dat[[group.var]], levels = group_levels_original
+      )
+    }
+    if (!is.null(strata.var)) {
+      if (is.factor(data.obj$meta.dat[[strata.var]])) {
+        strata_levels_original <- levels(data.obj$meta.dat[[strata.var]])
+      } else {
+        strata_levels_original <- unique(data.obj$meta.dat[[strata.var]])
+      }
+      data.obj$meta.dat[[strata.var]] <- factor(
+        data.obj$meta.dat[[strata.var]], levels = strata_levels_original
+      )
+    }
+
     # Get the appropriate theme for plotting
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
@@ -487,10 +510,13 @@ generate_taxa_barplot_single <-
 
       df_average$joint_factor_numeric <- as.numeric(df_average$joint_factor)
 
-      # Separate strata variable if present
+      # Separate strata variable if present and restore factor levels
       if(!is.null(strata.var)){
         df_average <- df_average %>%
           tidyr::separate(!!sym(group.var), into = c(group.var, strata.var), sep = "\\.")
+        # Restore factor levels after separate() which creates character columns
+        df_average[[group.var]] <- factor(df_average[[group.var]], levels = group_levels_original)
+        df_average[[strata.var]] <- factor(df_average[[strata.var]], levels = strata_levels_original)
       }
 
       # Sort features by their overall mean abundance for the average plot
