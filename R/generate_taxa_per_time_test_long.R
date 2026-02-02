@@ -210,23 +210,8 @@ generate_taxa_per_time_test_long <-
           subset_data.obj <- mStat_normalize_data(subset_data.obj, method = "TSS")$data.obj.norm
         }
 
-        # Aggregate data by taxonomy if necessary
-        if (is.null(subset_data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
-          subset_data.obj <- mStat_aggregate_by_taxonomy(data.obj = subset_data.obj, feature.level = feature.level)
-        }
-
-        # Select appropriate feature table
-        if (feature.level != "original"){
-          otu_tax_agg <- subset_data.obj$feature.agg.list[[feature.level]]
-        } else {
-          otu_tax_agg <- subset_data.obj$feature.tab
-        }
-
-        # Apply prevalence and abundance filters
-        otu_tax_agg_filter <-  otu_tax_agg %>%
-          as.data.frame() %>%
-          mStat_filter(prev.filter = prev.filter,
-                       abund.filter = abund.filter)
+        # Aggregate, extract, and filter feature data
+        otu_tax_agg_filter <- get_taxa_data(subset_data.obj, feature.level, prev.filter, abund.filter, feature.col = FALSE)
 
         if (feature.dat.type == "count"){
           feature.dat.type = "proportion"
@@ -250,7 +235,7 @@ generate_taxa_per_time_test_long <-
 
         # Calculate average abundance and prevalence for each feature
         prop_prev_data <-
-          otu_tax_agg %>%
+          otu_tax_agg_filter %>%
           as.matrix() %>%
           as.table() %>%
           as.data.frame() %>%

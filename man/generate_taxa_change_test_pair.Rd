@@ -14,8 +14,8 @@ generate_taxa_change_test_pair(
   change.base = NULL,
   feature.change.func = "relative change",
   feature.level,
-  prev.filter = 0.1,
-  abund.filter = 1e-04,
+  prev.filter = 0,
+  abund.filter = 0,
   feature.dat.type = c("count", "proportion", "other"),
   winsor.qt = 0.97
 )

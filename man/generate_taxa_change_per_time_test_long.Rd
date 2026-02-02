@@ -15,8 +15,8 @@ generate_taxa_change_per_time_test_long(
   feature.level,
   feature.change.func = "relative change",
   feature.dat.type = c("count", "proportion", "other"),
-  prev.filter = 0.001,
-  abund.filter = 0.001,
+  prev.filter = 0,
+  abund.filter = 0,
   ...
 )
 }

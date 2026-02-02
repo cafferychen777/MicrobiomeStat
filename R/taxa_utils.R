@@ -27,15 +27,20 @@ NULL
 #'   \code{\link{mStat_filter}}. Set to 0 to skip filtering. Default 0.
 #' @param abund.filter Numeric abundance threshold passed to
 #'   \code{\link{mStat_filter}}. Set to 0 to skip filtering. Default 0.
+#' @param feature.col Logical; if \code{TRUE} (default), rownames are converted
+#'   to a leading column named \code{feature.level} via
+#'   \code{tibble::rownames_to_column}. Set to \code{FALSE} when the downstream
+#'   consumer expects a matrix-like object with rownames (e.g. \code{linda()}).
 #'
-#' @return A data.frame with a leading column named \code{feature.level}
-#'   (former rownames) followed by sample columns.
+#' @return When \code{feature.col = TRUE}, a data.frame with a leading column
+#'   named \code{feature.level}. When \code{FALSE}, a data.frame with rownames.
 #'
 #' @keywords internal
 get_taxa_data <- function(data.obj,
                           feature.level,
                           prev.filter = 0,
-                          abund.filter = 0) {
+                          abund.filter = 0,
+                          feature.col = TRUE) {
 
   # Step 1: Aggregate if needed (idempotent, cached in data.obj$feature.agg.list)
   if (is.null(data.obj$feature.agg.list[[feature.level]]) &
@@ -52,10 +57,15 @@ get_taxa_data <- function(data.obj,
     otu_tax_agg <- data.obj$feature.tab
   }
 
-  # Step 3: Filter and convert rownames to column
-  otu_tax_agg %>%
+  # Step 3: Filter
+  result <- otu_tax_agg %>%
     as.data.frame() %>%
     mStat_filter(prev.filter = prev.filter,
-                 abund.filter = abund.filter) %>%
-    tibble::rownames_to_column(feature.level)
+                 abund.filter = abund.filter)
+
+  if (feature.col) {
+    result <- tibble::rownames_to_column(result, feature.level)
+  }
+
+  result
 }

@@ -16,7 +16,7 @@ generate_taxa_boxplot_single(
   top.k.plot = NULL,
   top.k.func = NULL,
   transform = c("sqrt", "identity", "log"),
-  prev.filter = 0.05,
+  prev.filter = 0.01,
   abund.filter = 0.01,
   base.size = 16,
   theme.choice = "bw",

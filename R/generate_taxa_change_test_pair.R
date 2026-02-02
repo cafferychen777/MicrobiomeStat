@@ -184,25 +184,7 @@ generate_taxa_change_test_pair <-
     # Perform analysis for each feature level
     test.list <- lapply(feature.level, function(feature.level) {
       # Aggregate data by taxonomy if necessary
-      if (is.null(data.obj$feature.agg.list[[feature.level]]) &
-          feature.level != "original") {
-        data.obj <-
-          mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
-      }
-
-      # Select the appropriate feature table
-      if (feature.level != "original") {
-        otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
-      } else {
-        otu_tax_agg <- data.obj$feature.tab
-      }
-
-      # Filter the feature table based on prevalence and abundance
-      otu_tax_agg_filter <- otu_tax_agg %>%
-        as.data.frame() %>%
-        mStat_filter(prev.filter = prev.filter,
-                     abund.filter = abund.filter) %>%
-        rownames_to_column(feature.level)
+      otu_tax_agg_filter <- get_taxa_data(data.obj, feature.level, prev.filter, abund.filter)
 
       # Perform data imputation and winsorization for count or proportion data
       if (feature.dat.type %in% c("count", "proportion")) {
@@ -318,7 +300,7 @@ generate_taxa_change_test_pair <-
 
       # Calculate average abundance and prevalence for each feature
       prop_prev_data <-
-        otu_tax_agg %>%
+        otu_tax_agg_filter %>%
         as.matrix() %>%
         as.table() %>%
         as.data.frame() %>%

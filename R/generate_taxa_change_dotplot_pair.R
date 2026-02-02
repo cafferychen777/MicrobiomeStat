@@ -146,23 +146,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
         mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
     }
 
-    if (is.null(data.obj$feature.agg.list[[feature.level]]) &
-        feature.level != "original") {
-      data.obj <-
-        mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
-    }
-
-    if (feature.level != "original") {
-      otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
-    } else {
-      otu_tax_agg <- data.obj$feature.tab
-    }
-
-    otu_tax_agg <-  otu_tax_agg %>%
-      as.data.frame() %>%
-      mStat_filter(prev.filter = prev.filter,
-                   abund.filter = abund.filter) %>%
-      tibble::rownames_to_column(feature.level)
+    otu_tax_agg <- get_taxa_data(data.obj, feature.level, prev.filter, abund.filter)
 
     if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
       computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)

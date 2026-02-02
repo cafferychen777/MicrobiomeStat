@@ -17,7 +17,7 @@ generate_taxa_heatmap_single(
   top.k.plot = NULL,
   top.k.func = NULL,
   prev.filter = 0.01,
-  abund.filter = 1e-04,
+  abund.filter = 0.01,
   base.size = 10,
   palette = NULL,
   cluster.cols = NULL,

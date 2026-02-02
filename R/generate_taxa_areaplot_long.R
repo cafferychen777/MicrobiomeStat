@@ -228,27 +228,12 @@ generate_taxa_areaplot_long <-
     # Generate plots for each feature level
     plot_list_all <- lapply(feature.level,function(feature.level){
 
-      # Aggregate data by taxonomy if necessary
-      if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
-        data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
-      }
-
-      # Get the appropriate feature table
-      if (feature.level != "original"){
-        otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
-      } else {
-        otu_tax_agg <- data.obj$feature.tab
-      }
+      otu_tax_agg <- get_taxa_data(data.obj, feature.level)
 
       # Subset features if specified (using %in% for robustness against NA or non-existent features)
       if (!is.null(features.plot)){
-        otu_tax_agg <- otu_tax_agg[rownames(otu_tax_agg) %in% features.plot,]
+        otu_tax_agg <- otu_tax_agg[otu_tax_agg[[feature.level]] %in% features.plot,]
       }
-
-      # Prepare the feature table for analysis
-      otu_tax_agg <-  otu_tax_agg %>%
-        as.data.frame() %>%
-        rownames_to_column(feature.level)
 
       # Transpose the data
       otu_tab_counts <- apply(t(otu_tax_agg %>% select(-all_of(feature.level))), 1, function(x) x)

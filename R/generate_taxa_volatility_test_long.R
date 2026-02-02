@@ -135,16 +135,7 @@ generate_taxa_volatility_test_long <- function(data.obj,
     }
 
     # Aggregate data to the specified taxonomic level if necessary
-    if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
-      data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
-    }
-
-    # Extract the appropriate feature table
-    if (feature.level != "original"){
-      otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
-    } else {
-      otu_tax_agg <- data.obj$feature.tab
-    }
+    otu_tax_agg <- get_taxa_data(data.obj, feature.level, feature.col = FALSE)
 
     # Calculate average abundance and prevalence for each feature
     prop_prev_data <-

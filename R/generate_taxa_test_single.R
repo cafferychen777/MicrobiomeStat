@@ -350,24 +350,7 @@ generate_taxa_test_single <- function(data.obj,
   # Perform differential abundance testing for each specified taxonomic level
   test.list <- lapply(feature.level, function(feature.level) {
     # Aggregate data to the specified taxonomic level if necessary
-    if (is.null(data.obj$feature.agg.list[[feature.level]]) &
-        feature.level != "original") {
-      data.obj <-
-        mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
-    }
-
-    # Extract the appropriate feature table
-    if (feature.level != "original") {
-      otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
-    } else {
-      otu_tax_agg <- data.obj$feature.tab
-    }
-
-    # Apply prevalence and abundance filters
-    otu_tax_agg_filter <-  otu_tax_agg %>%
-      as.data.frame() %>%
-      mStat_filter(prev.filter = prev.filter,
-                   abund.filter = abund.filter)
+    otu_tax_agg_filter <- get_taxa_data(data.obj, feature.level, prev.filter, abund.filter, feature.col = FALSE)
 
     # Add a check before running linda
     if (nrow(otu_tax_agg_filter) == 0 || ncol(otu_tax_agg_filter) == 0) {
@@ -443,7 +426,7 @@ generate_taxa_test_single <- function(data.obj,
 
     # Calculate mean abundance and prevalence for each feature
     prop_prev_data <-
-      otu_tax_agg %>%
+      otu_tax_agg_filter %>%
       as.matrix() %>%
       as.table() %>%
       as.data.frame() %>%

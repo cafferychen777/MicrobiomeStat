@@ -11,7 +11,7 @@ generate_beta_test_single(
   t.level = NULL,
   group.var,
   adj.vars = NULL,
-  dist.name = c("BC", "Jaccard", "UniFrac", "GUniFrac", "WUniFrac", "JS")
+  dist.name = c("BC", "Jaccard")
 )
 }
 \arguments{

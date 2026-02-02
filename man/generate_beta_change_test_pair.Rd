@@ -12,7 +12,7 @@ generate_beta_change_test_pair(
   group.var,
   adj.vars = NULL,
   change.base = NULL,
-  dist.name = c("BC", "Jaccard", "UniFrac", "GUniFrac", "WUniFrac", "JS")
+  dist.name = c("BC", "Jaccard")
 )
 }
 \arguments{

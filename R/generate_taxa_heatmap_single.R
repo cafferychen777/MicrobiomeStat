@@ -262,23 +262,7 @@ generate_taxa_heatmap_single <- function(data.obj,
   plot_list <- lapply(feature.level, function(feature.level) {
 
     # Aggregate data by taxonomy if necessary
-    if (is.null(data.obj$feature.agg.list[[feature.level]]) & feature.level != "original"){
-      data.obj <- mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
-    }
-
-    # Select appropriate feature table
-    if (feature.level != "original"){
-      otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
-    } else {
-      otu_tax_agg <- data.obj$feature.tab
-    }
-
-    # Filter and prepare the feature table
-    otu_tax_agg <-  otu_tax_agg %>%
-      as.data.frame() %>%
-      mStat_filter(prev.filter = prev.filter,
-                   abund.filter = abund.filter) %>%
-      rownames_to_column(feature.level)
+    otu_tax_agg <- get_taxa_data(data.obj, feature.level, prev.filter, abund.filter)
 
     # Select top k features if specified
     if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {

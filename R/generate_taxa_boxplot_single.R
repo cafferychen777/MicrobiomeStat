@@ -233,25 +233,7 @@ generate_taxa_boxplot_single <-
       )
 
       # Aggregate data by taxonomy if necessary
-      if (is.null(data.obj$feature.agg.list[[feature.level]]) &
-          feature.level != "original") {
-        data.obj <-
-          mStat_aggregate_by_taxonomy(data.obj = data.obj, feature.level = feature.level)
-      }
-
-      # Extract aggregated feature table
-      if (feature.level != "original") {
-        otu_tax_agg <- data.obj$feature.agg.list[[feature.level]]
-      } else {
-        otu_tax_agg <- data.obj$feature.tab
-      }
-
-      # Filter feature table based on prevalence and abundance
-      otu_tax_agg <-  otu_tax_agg %>%
-        as.data.frame() %>%
-        mStat_filter(prev.filter = prev.filter,
-                     abund.filter = abund.filter) %>%
-        tibble::rownames_to_column(feature.level)
+      otu_tax_agg <- get_taxa_data(data.obj, feature.level, prev.filter, abund.filter)
 
       # Select top k features if specified
       if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
