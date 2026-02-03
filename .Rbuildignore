@@ -62,7 +62,7 @@
 ^renv/\.gitignore$
 
 # Test and development files
-^NewInterface_Comprehensive_Test_Report\.md$
+^Interface_Comprehensive_Test_Report\.md$
 ^test_.*\.R$
 ^check_.*\.R$
 ^demo_.*\.R$

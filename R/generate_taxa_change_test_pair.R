@@ -221,15 +221,8 @@ generate_taxa_change_test_pair <-
           return(x)
         })
 
-      } else if (feature.dat.type == "other") {
-        # Apply winsorization for 'other' data type
-        otu_tax_agg_filter[, -1] <- apply(otu_tax_agg_filter[, -1], 2, function(x) {
-          qt <- quantile(x, probs = c((1 - winsor.qt) / 2, 1 - (1 - winsor.qt) / 2))
-          x[x < qt[1]] <- qt[1]
-          x[x > qt[2]] <- qt[2]
-          return(x)
-        })
       }
+      # "other": no preprocessing — respect user's pre-processed data
 
       # Convert the filtered data from wide to long format
       otu_tax_long <- otu_tax_agg_filter %>%

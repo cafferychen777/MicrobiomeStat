@@ -324,8 +324,23 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
       colnames(Y) <- samp.name
       rownames(Y) <- taxa.name
     }
+  } else if (feature.dat.type == "other") {
+    if (any(Y == 0)) {
+      warning(
+        "Zero values detected with feature.dat.type='other'. ",
+        "Applying half-minimum imputation to allow CLR transformation. ",
+        "For full control over zero handling, pre-process your data before analysis."
+      )
+      Y <- t(apply(Y, 1, function(x) {
+        if (any(x != 0)) {
+          x[x == 0] <- 0.5 * min(x[x != 0])
+        }
+        return(x)
+      }))
+      colnames(Y) <- samp.name
+      rownames(Y) <- taxa.name
+    }
   }
-  # For "other": no zero handling needed (data is pre-processed)
 
   # Perform centered log-ratio (CLR) transformation
   logY <- log2(Y)
