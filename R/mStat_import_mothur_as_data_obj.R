@@ -62,47 +62,6 @@ mStat_import_mothur_as_data_obj <- function(mothur_list_file = NULL, mothur_grou
 }
 
 
-#' Build Taxonomy Table (Internal)
-#'
-#' This function accepts a list of taxonomic assignments for each feature and transforms it into a matrix format. It ensures the correct matching of taxonomic ranks dplyr::across different features. This function is particularly useful for creating a unified taxonomy table in microbiome studies.
-#'
-#' @param taxlist A list of taxonomy vectors. Each element of the list corresponds to a single feature (OTU or ASV). The names of the list should correspond to the identifiers of the features.
-#'
-#' @return A character matrix representing the taxonomic assignments of all features. Each row of the matrix corresponds to a feature, and each column corresponds to a specific taxonomic rank.
-#'
-#' @examples
-#' \dontrun{
-#'   # Sample list of taxonomy vectors
-#'   tax_list <- list(
-#'     "OTU1" = c("k__Bacteria", "p__Firmicutes", "c__Bacilli"),
-#'     "OTU2" = c("k__Bacteria", "p__Proteobacteria", "c__Gammaproteobacteria")
-#'   )
-#'
-#'   # Apply function
-#'   tax_table <- build_mStat_tax_table(tax_list)
-#'   print(tax_table)
-#' }
-#'
-#' @details
-#' This function forms an essential part of microbiome data preprocessing in the MicrobiomeStat toolkit. It facilitates the organization of taxonomy information for downstream analyses, such as diversity and compositionality analyses, taxon significance testing, etc.
-#'
-#' @keywords internal
-#' @noRd
-build_mStat_tax_table <- function(taxlist) {
-  columns = unique(unlist(lapply(taxlist, names)))
-  taxmat <- matrix(NA_character_, nrow = length(taxlist), ncol = length(columns))
-  colnames(taxmat) = columns
-  for (i in 1:length(taxlist)) {
-    if (length(taxlist[[i]]) > 0) {
-      taxmat[i, names(taxlist[[i]])] <- taxlist[[i]]
-    }
-  }
-  taxmat[taxmat == ""] <- NA_character_
-  taxmat <- as(taxmat, "matrix")
-  rownames(taxmat) = names(taxlist)
-  return(taxmat)
-}
-
 #' Import Mothur Consensus Taxonomy (Internal)
 #'
 #' This internal function reads in a Mothur consensus taxonomy file and applies the user-specified or default taxonomy parsing function to it. It transforms the raw taxonomy strings into a format that can be utilized by other functions in the MicrobiomeStat toolkit.
@@ -125,7 +84,6 @@ build_mStat_tax_table <- function(taxlist) {
 #' @keywords internal
 #' @noRd
 import_mothur_constaxonomy <- function(mothur_constaxonomy_file, parseFunction=parse_taxonomy_default) {
-  read.table(mothur_constaxonomy_file)
   rawtab = read.table(mothur_constaxonomy_file, header=TRUE, row.names=1, stringsAsFactors=FALSE)[, "Taxonomy", drop=FALSE]
   if( identical(parseFunction, parse_taxonomy_default) ){
     # Proceed with default parsing stuff.
@@ -145,6 +103,23 @@ import_mothur_constaxonomy <- function(mothur_constaxonomy_file, parseFunction=p
   return(build_mStat_tax_table(taxlist)) # Use new function name
 }
 
+
+#' Show Available Mothur Cutoff Labels (Internal)
+#'
+#' Reads the first field from each line of a Mothur output file and returns
+#' the distinct cutoff labels in file order.
+#'
+#' @param file A path to a Mothur list/shared file.
+#'
+#' @return A character vector of available cutoff labels.
+#'
+#' @keywords internal
+#' @noRd
+show_mothur_cutoffs <- function(file) {
+  lines <- readLines(file)
+  labels <- vapply(strsplit(lines, "\t", fixed = TRUE), `[`, character(1), 1)
+  unique(labels)
+}
 
 #' Import Mothur OTU List (Internal)
 #'
@@ -214,9 +189,9 @@ import_mothur_shared = function(mothur_shared_file, cutoff=NULL){
   cutoffs = cutoffs[!cutoffs %in% "label"]
   cutoff = select_mothur_cutoff(cutoff, cutoffs)
   x = readLines(mothur_shared_file)
-  rawtab = read.table(text=x[grep(paste0("^", cutoff), x)], header=FALSE, row.names=2, stringsAsFactors=FALSE)[, -(1:2)]
+  rawtab = read.table(text=x[grep(paste0("^", cutoff), x)], header=FALSE, row.names=2, stringsAsFactors=FALSE)[, -(1:2), drop = FALSE]
   colnames(rawtab) <- strsplit(x[1], "\t")[[1]][4:(ncol(rawtab)+3)]
-  return(otu_table(t(as.matrix(rawtab)), taxa_are_rows=TRUE))
+  return(t(as.matrix(rawtab)))
 }
 
 #' Select or Verify Cutoff Value from Mothur Outputs (Internal)
@@ -260,6 +235,8 @@ select_mothur_cutoff = function(cutoff, cutoffs){
       stop("The cutoff value you provided is not among those available. Try show_mothur_cutoffs()")
     }
   }
+
+  cutoff
 }
 
 #' Import Mothur List and Group Files as an OTU Table (Internal)
@@ -294,20 +271,28 @@ import_mothur_otu_table <- function(mothur_list_file, mothur_group_file, cutoff=
   colnames(mothur_otu_table) <- samplenames
   rownames(mothur_otu_table) <- names(otulist)
 
-  # Write a sparse versino of the abundance table
-  df = ldply(otulist, function(x){data.frame(read=x, stringsAsFactors=FALSE)})
-  colnames(df)[1] <- "OTU"
-  df = data.frame(df, sample=mothur_groups[df[, "read"], 1], stringsAsFactors=FALSE)
-  adf = ddply(df, c("OTU", "sample"), function(x){
-    # x = subset(df, OTU=="59_3_17" & sample=="C")
-    data.frame(x[1, c("OTU", "sample"), drop=FALSE], abundance=nrow(x))
-  })
+  # Write a sparse version of the abundance table
+  otu_ids <- rep(names(otulist), lengths(otulist))
+  read_ids <- unlist(otulist, use.names = FALSE)
+  df <- data.frame(
+    OTU = otu_ids,
+    read = read_ids,
+    sample = mothur_groups[read_ids, 1],
+    stringsAsFactors = FALSE
+  )
+  df <- df[!is.na(df$sample), , drop = FALSE]
+
+  adf <- stats::aggregate(
+    read ~ OTU + sample,
+    data = df,
+    FUN = length
+  )
+  colnames(adf)[colnames(adf) == "read"] <- "abundance"
 
   # Vectorized for speed using matrix indexing.
   # See help("Extract") for details about matrix indexing. Diff than 2-vec index.
-  mothur_otu_table[as(adf[, c("OTU", "sample")], "matrix")] <- adf[, "abundance"]
+  mothur_otu_table[as.matrix(adf[, c("OTU", "sample"), drop = FALSE])] <- adf[, "abundance"]
 
-  # Finally, return the otu_table as a phyloseq otu_table object.
   return(as.matrix(mothur_otu_table))
 }
 

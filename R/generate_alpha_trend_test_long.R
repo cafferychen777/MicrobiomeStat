@@ -119,38 +119,14 @@ generate_alpha_trend_test_long <- function(data.obj,
   }
 
   # Calculate alpha diversity if not provided
-  # This ensures we have the necessary diversity metrics for the analysis
-  if (is.null(alpha.obj)) {
-    # Perform rarefaction if depth is specified
-    # Rarefaction standardizes sampling effort across all samples
-    if (!is.null(depth)) {
-      message(
-        "Detected that the 'depth' parameter is not NULL. Proceeding with rarefaction. Call 'mStat_rarefy_data' to rarefy the data!"
-      )
-      data.obj <- mStat_rarefy_data(data.obj, depth = depth)
-    }
-    otu_tab <- data.obj$feature.tab
-    
-    # Extract tree if faith_pd is requested
-    tree <- NULL
-    if ("faith_pd" %in% alpha.name) {
-      tree <- data.obj$tree
-    }
-    
-    alpha.obj <-
-      mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name, tree = tree)
-  } else {
-    # Verify that all requested alpha diversity indices are available
-    if (!all(alpha.name %in% unlist(lapply(alpha.obj, function(x)
-      colnames(x))))) {
-      missing_alphas <- alpha.name[!alpha.name %in% names(alpha.obj)]
-      stop(
-        "The following alpha diversity indices are not available in alpha.obj: ",
-        paste(missing_alphas, collapse = ", "),
-        call. = FALSE
-      )
-    }
-  }
+  prepared <- mStat_prepare_alpha_inputs(
+    data.obj = data.obj,
+    alpha.obj = alpha.obj,
+    alpha.name = alpha.name,
+    depth = depth
+  )
+  data.obj <- prepared$data.obj
+  alpha.obj <- prepared$alpha.obj
 
   # Inform the user about the importance of numeric time variable for trend test
   # This message ensures that the user understands the requirements for proper analysis
@@ -163,7 +139,11 @@ generate_alpha_trend_test_long <- function(data.obj,
 
   # Convert the time variable to numeric
   # This step is crucial for performing trend analysis
-  data.obj$meta.dat <- data.obj$meta.dat %>% dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
+  data.obj$meta.dat[[time.var]] <- mStat_coerce_time_to_numeric(
+    data.obj$meta.dat[[time.var]],
+    time.var = time.var,
+    context = "alpha trend analysis"
+  )
 
   # Extract relevant metadata for the analysis
   meta_tab <-
@@ -173,10 +153,12 @@ generate_alpha_trend_test_long <- function(data.obj,
 
   # Combine alpha diversity data with metadata
   # This creates a comprehensive dataset for our analysis
-  alpha_df <-
-    dplyr::bind_cols(alpha.obj) %>% tibble::rownames_to_column("sample") %>%
-    dplyr::inner_join(meta_tab %>% rownames_to_column("sample"),
-                      by = c("sample"))
+  alpha_df <- mStat_prepare_alpha_data(
+    alpha.obj = alpha.obj,
+    meta.dat = meta_tab,
+    sample_col = "sample",
+    join = "inner"
+  )
 
   # Perform statistical tests for each alpha diversity index
   test.list <- lapply(alpha.name, function(index) {
@@ -222,7 +204,7 @@ generate_alpha_trend_test_long <- function(data.obj,
       coef.tab <- extract_coef(model)
     }
 
-    return(as_tibble(coef.tab))
+    return(tibble::as_tibble(coef.tab))
   })
 
   # Assign names to the elements of test.list based on the alpha diversity indices

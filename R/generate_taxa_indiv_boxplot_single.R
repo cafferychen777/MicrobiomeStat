@@ -102,7 +102,7 @@ generate_taxa_indiv_boxplot_single <-
     transform <- match.arg(transform)
 
     # Validate the input data object
-    mStat_validate_data(data.obj)
+    data.obj <- mStat_validate_data(data.obj)
 
     # Check if input variables are properly specified
     if (!is.null(group.var) &&
@@ -201,14 +201,13 @@ generate_taxa_indiv_boxplot_single <-
         current_features_plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
       }
 
-      # Reshape the data for plotting
-      otu_tax_agg_numeric <- otu_tax_agg %>%
-        tidyr::gather(key = "sample", value = "value", -all_of(feature.level)) %>%
-        dplyr::mutate(value = as.numeric(value))
-
-      # Merge feature data with metadata
       otu_tax_agg_merged <-
-        dplyr::left_join(otu_tax_agg_numeric, meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
+        mStat_prepare_taxa_long_data(
+          feature.dat = otu_tax_agg,
+          feature.level = feature.level,
+          value_col = "value",
+          meta.dat = meta_tab
+        ) %>%
         select(all_of(c("sample",
                         feature.level,
                         time.var,
@@ -216,31 +215,13 @@ generate_taxa_indiv_boxplot_single <-
                         strata.var,
                         "value")))
 
-      # Apply data transformation if specified
-      if (feature.dat.type %in% c("count","proportion")){
-        if (transform %in% c("identity", "sqrt", "log")) {
-          if (transform == "identity") {
-            # No transformation needed
-          } else if (transform == "sqrt") {
-            otu_tax_agg_merged$value <- sqrt(otu_tax_agg_merged$value)
-          } else if (transform == "log") {
-            # For log transformation, we need to handle zeros
-            # We replace zeros with half of the minimum non-zero value for each taxon
-            min_half_nonzero <- otu_tax_agg_merged %>%
-              dplyr::group_by(!!sym(feature.level)) %>%
-              filter(sum(value) != 0) %>%
-              dplyr::summarise(min_half_value = min(value[value > 0]) / 2) %>%
-              dplyr::ungroup()
-            otu_tax_agg_merged <- otu_tax_agg_merged %>%
-              dplyr::group_by(!!sym(feature.level)) %>%
-              filter(sum(value) != 0) %>%
-              dplyr::ungroup() %>%
-              dplyr::left_join(min_half_nonzero, by = feature.level) %>%
-              dplyr::mutate(value = ifelse(value == 0, log10(min_half_value), log10(value))) %>%
-              select(-min_half_value)
-          }
-        }
-      }
+      otu_tax_agg_merged <- mStat_transform_taxa_long_values(
+        long.df = otu_tax_agg_merged,
+        feature.level = feature.level,
+        value_col = "value",
+        feature.dat.type = feature.dat.type,
+        transform = transform
+      )
 
       # Determine if there are many samples
       manysample <- calc_sample_count(data.obj$meta.dat, time.var, group.var) > 8

@@ -33,20 +33,35 @@
 #'
 #' @export
 mStat_subset_PC <- function (pc.obj, samIDs) {
+  if (is.null(pc.obj) || length(pc.obj) == 0 || is.null(pc.obj[[1]]$points)) {
+    stop("pc.obj must contain at least one ordination result with sample coordinates.")
+  }
+
+  available_samIDs <- rownames(pc.obj[[1]]$points)
 
   # If samIDs is logical or numeric, convert it to character form of sample IDs
   if (is.logical(samIDs) || is.numeric(samIDs)) {
-    samIDs <- rownames(pc.obj[[1]])[samIDs]
+    samIDs <- available_samIDs[samIDs]
+  }
+
+  if (any(is.na(samIDs))) {
+    stop("Some requested samIDs are out of range or could not be resolved.")
+  }
+
+  samIDs <- unique(as.character(samIDs))
+  missing_samIDs <- setdiff(samIDs, available_samIDs)
+  if (length(missing_samIDs) != 0) {
+    stop(
+      "The following samIDs are not present in pc.obj: ",
+      paste(missing_samIDs, collapse = ", ")
+    )
   }
 
   # Apply the subsetting to each PCoA result in the list
   pc.obj <- lapply(pc.obj, function(x) {
     # If x is not NA or NULL, subset the matrix by samIDs
     if(!is.na.null(x)){
-      x$points <- x$points[samIDs, ]
-      if (!is.null(x$eig)) {
-        x$eig <- x$eig[samIDs]
-      }
+      x$points <- x$points[samIDs, , drop = FALSE]
     }
     # Return the processed result
     x

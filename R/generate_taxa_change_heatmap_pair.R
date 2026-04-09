@@ -146,36 +146,27 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
                                               pdf.hei = 8.5,
                                               ...) {
   # Validate the input data object
-  mStat_validate_data(data.obj)
+  data.obj <- mStat_validate_data(data.obj)
 
   # Match the feature data type argument
   feature.dat.type <- match.arg(feature.dat.type)
 
   # Extract relevant metadata
-  meta_tab <-  data.obj$meta.dat %>%
-    select(all_of(c(
-    time.var, group.var, strata.var, subject.var
-  ))) %>%
-    rownames_to_column("sample")
+  meta_tab <- mStat_meta_with_sample(
+    data.obj$meta.dat %>%
+      select(all_of(c(
+        time.var, group.var, strata.var, subject.var
+      )))
+  )
 
-  # Determine whether to cluster columns based on group variable
-  if (is.null(cluster.cols)) {
-    if (!is.null(group.var)) {
-      if (is.numeric(meta_tab %>% select(all_of(group.var)) %>% dplyr::pull()) &&
-          !is.integer(meta_tab %>% select(all_of(group.var)) %>% dplyr::pull())) {
-        cluster.cols = FALSE
-      } else {
-        cluster.cols = TRUE
-      }
-    } else {
-      cluster.cols = TRUE
-    }
+  default_cluster_cols <- if (!is.null(group.var)) {
+    !(is.numeric(meta_tab %>% select(all_of(group.var)) %>% dplyr::pull()) &&
+        !is.integer(meta_tab %>% select(all_of(group.var)) %>% dplyr::pull()))
+  } else {
+    TRUE
   }
-
-  # Set default for clustering rows if not specified
-  if (is.null(cluster.rows)) {
-    cluster.rows = TRUE
-  }
+  cluster.cols <- mStat_resolve_optional_flag(cluster.cols, default_cluster_cols, "cluster.cols")
+  cluster.rows <- mStat_resolve_optional_flag(cluster.rows, TRUE, "cluster.rows")
 
   # Adjust filtering parameters based on input conditions
   if (feature.dat.type == "other" || !is.null(features.plot) ||
@@ -204,25 +195,25 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
       features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
     }
 
-    # Reshape data to long format
-    otu_tax_long <- otu_tax_agg %>%
-      tidyr::gather(key = "sample", value = "value",-feature.level)
+    merged_data <- mStat_prepare_taxa_long_data(
+      feature.dat = otu_tax_agg,
+      feature.level = feature.level,
+      value_col = "value",
+      meta.dat = meta_tab,
+      join = "inner"
+    )
 
-    # Merge with metadata
-    merged_data <- otu_tax_long %>%
-      dplyr::inner_join(meta_tab, by = "sample")
-
-    # Group data by time variable
-    grouped_data <- merged_data %>%
-      dplyr::group_by(!!sym(time.var))
-
-    # Identify the time point to compare against the baseline
-    change.after <-
-      unique(grouped_data %>% select(all_of(c(time.var))))[unique(grouped_data %>% select(all_of(c(time.var)))) != change.base]
+    pair_times <- mStat_resolve_pair_timepoints(
+      values = merged_data[[time.var]],
+      time.var = time.var,
+      change.base = change.base,
+      context = "taxa change heatmap plotting"
+    )
+    change.base <- pair_times$change.base
+    change.after <- pair_times$change.after
 
     # Split data into baseline and comparison time points
-    split_data <-
-      split(merged_data, f = grouped_data %>% select(all_of(c(time.var))))
+    split_data <- split(merged_data, f = as.character(merged_data[[time.var]]))
 
     data_time_1 <- split_data[[change.base]]
     data_time_2 <- split_data[[change.after]]
@@ -248,14 +239,16 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
     value_diff_matrix <- combined_data %>%
       select(feature.level, !!sym(subject.var), value_diff) %>%
       tidyr::spread(key = !!sym(subject.var), value = value_diff) %>%
-      column_to_rownames(var = feature.level) %>%
-      as.matrix()
+      mStat_as_taxa_feature_matrix(
+        feature.level = feature.level,
+        feature_in_column = TRUE
+      )
 
     # Prepare metadata for annotation
     unique_meta_tab <- meta_tab %>%
       filter(!!sym(subject.var) %in% colnames(value_diff_matrix)) %>%
       select(all_of(c(subject.var, group.var, strata.var))) %>%
-      dplyr::distinct(!!sym(subject.var), .keep_all = TRUE) %>% as_tibble()
+      dplyr::distinct(!!sym(subject.var), .keep_all = TRUE) %>% tibble::as_tibble()
 
     # Match the order of metadata to the matrix columns
     order_index <-
@@ -285,14 +278,14 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
       annotation_cols <-
         sorted_meta_tab %>%
         select(all_of(c(group.var, strata.var, subject.var))) %>%
-        column_to_rownames(var = subject.var)
+        tibble::column_to_rownames(var = subject.var)
       annotation_col_sorted <-
         annotation_cols[order(annotation_cols[[strata.var]], annotation_cols[[group.var]]),]
     } else if (!is.null(group.var)){
       annotation_cols <-
         sorted_meta_tab %>%
         select(all_of(c(subject.var, group.var))) %>%
-        column_to_rownames(var = subject.var)
+        tibble::column_to_rownames(var = subject.var)
       annotation_col_sorted <- annotation_cols
     } else {
       annotation_col_sorted <- NULL
@@ -392,8 +385,10 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
         dplyr::group_by(!!sym(feature.level), !!sym(group.var), !!sym(strata.var)) %>%
         dplyr::summarize(mean_value_diff = mean(value_diff), .groups = 'drop') %>%
         tidyr::pivot_wider(names_from = all_of(c(group.var, strata.var)), values_from = mean_value_diff) %>%
-        column_to_rownames(var = feature.level) %>%
-        as.matrix()
+        mStat_as_taxa_feature_matrix(
+          feature.level = feature.level,
+          feature_in_column = TRUE
+        )
 
       # Create annotation dataframe for the average heatmap
       create_annotation_df <- function(colnames_vec, delimiter = "_") {
@@ -431,13 +426,15 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
         dplyr::group_by(!!sym(feature.level), !!sym(group.var)) %>%
         dplyr::summarize(mean_value_diff = mean(value_diff), .groups = 'drop') %>%
         tidyr::pivot_wider(names_from = all_of(c(group.var)), values_from = mean_value_diff) %>%
-        column_to_rownames(var = feature.level) %>%
-        as.matrix()
+        mStat_as_taxa_feature_matrix(
+          feature.level = feature.level,
+          feature_in_column = TRUE
+        )
 
       # Create simple annotation dataframe for group variable
       annotation_df <- data.frame(Var1 = colnames(average_value_diff_matrix)) %>%
         dplyr::mutate(Var2 = Var1) %>%
-        column_to_rownames("Var2") %>%
+        tibble::column_to_rownames("Var2") %>%
         dplyr::rename(!!sym(group.var) := Var1)
     } else {
       # Calculate overall average value differences when no group or strata variables are provided
@@ -446,8 +443,10 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
         dplyr::left_join(sorted_meta_tab, by = subject.var) %>%
         dplyr::group_by(!!sym(feature.level)) %>%
         dplyr::summarize(mean_value_diff = mean(value_diff), .groups = 'drop') %>%
-        column_to_rownames(var = feature.level) %>%
-        as.matrix()
+        mStat_as_taxa_feature_matrix(
+          feature.level = feature.level,
+          feature_in_column = TRUE
+        )
 
       annotation_df <- NULL
     }

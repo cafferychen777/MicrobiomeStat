@@ -96,12 +96,25 @@ generate_taxa_test_pair <-
            prev.filter = 0,
            abund.filter = 0,
            feature.dat.type = c("count", "proportion", "other"),
+           feature.mt.method = c("fdr", "bonferroni", "none"),
+           feature.sig.level = 0.05,
            ...) {
     # Validate the input data object
-    mStat_validate_data(data.obj)
+    data.obj <- mStat_validate_data(data.obj)
 
     # Match the feature data type argument
     feature.dat.type <- match.arg(feature.dat.type)
+    feature.mt.method <- match.arg(feature.mt.method)
+
+    p.adj.method <- switch(
+      feature.mt.method,
+      fdr = "BH",
+      bonferroni = "bonferroni",
+      none = "none"
+    )
+
+    extra_args <- list(...)
+    extra_args[c("p.adj.method", "alpha")] <- NULL
 
     # Extract relevant metadata
     meta_tab <-
@@ -297,18 +310,37 @@ generate_taxa_test_pair <-
       # Perform linear mixed model analysis using LInDA
       # If the original model fails, a simpler model is used as a fallback
       linda.obj <- tryCatch({
-        linda(feature.dat = otu_tax_agg_filter,
+        do.call(
+          linda,
+          c(
+            list(
+              feature.dat = otu_tax_agg_filter,
               meta.dat = meta_tab,
               formula = paste("~", formula),
               feature.dat.type = feature.dat.type,
-              ...)
+              p.adj.method = p.adj.method,
+              alpha = feature.sig.level
+            ),
+            extra_args
+          )
+        )
       }, error = function(e) {
         message("Error in linda: ", e)
         message("Due to the above error, a simpler model will be used for fitting.")
-        linda(feature.dat = otu_tax_agg_filter,
+        do.call(
+          linda,
+          c(
+            list(
+              feature.dat = otu_tax_agg_filter,
               meta.dat = meta_tab,
               formula = paste("~", formula_corrected),
-              feature.dat.type = feature.dat.type)
+              feature.dat.type = feature.dat.type,
+              p.adj.method = p.adj.method,
+              alpha = feature.sig.level
+            ),
+            extra_args
+          )
+        )
       })
 
       # Determine reference level for group comparisons
@@ -317,17 +349,10 @@ generate_taxa_test_pair <-
       }
 
       # Calculate average abundance and prevalence for each feature
-      prop_prev_data <-
-        otu_tax_agg_filter %>%
-        as.matrix() %>%
-        as.table() %>%
-        as.data.frame() %>%
-        dplyr::group_by(Var1) %>%
-        dplyr::summarise(
-          avg_abundance = mean(Freq),
-          prevalence = sum(Freq > 0) / dplyr::n()
-        ) %>% column_to_rownames("Var1") %>%
-        rownames_to_column(feature.level)
+      prop_prev_data <- mStat_summarize_taxa_features(
+        feature.dat = otu_tax_agg_filter,
+        feature.level = feature.level
+      )
 
       # Function to extract relevant data frames from LInDA output
       extract_data_frames <- function(linda_object, group_var = NULL) {
@@ -362,19 +387,12 @@ generate_taxa_test_pair <-
 
       # Format and annotate results
       sub_test.list <- lapply(sub_test.list, function(df){
-        df <- df %>%
-          rownames_to_column(feature.level) %>%
-          dplyr::left_join(prop_prev_data, by = feature.level) %>%
-          dplyr::select(all_of(all_of(c(feature.level,"log2FoldChange","lfcSE","pvalue","padj","avg_abundance","prevalence")))) %>%
-          dplyr::rename(Variable = feature.level,
-                        Coefficient = log2FoldChange,
-                        SE = lfcSE,
-                        P.Value = pvalue,
-                        Adjusted.P.Value = padj,
-                        Mean.Abundance = avg_abundance,
-                        Prevalence = prevalence)
-
-        return(df)
+        mStat_format_linda_feature_results(
+          result.df = df,
+          feature.level = feature.level,
+          feature.stats = prop_prev_data,
+          include_significant = TRUE
+        )
       })
 
       return(sub_test.list)

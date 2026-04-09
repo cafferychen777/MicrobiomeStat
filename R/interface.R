@@ -398,6 +398,14 @@ plot_beta <- function(data.obj,
   plot.type <- match.arg(plot.type)
   change.type <- match.arg(change.type)
 
+  if (change.type != "none") {
+    warning(
+      "plot_beta() does not support alternate change transformations. ",
+      "`change.type` is ignored.",
+      call. = FALSE
+    )
+  }
+
   # Detect study design
   design_info <- detect_study_design(data.obj, subject.var, time.var, time.points)
 
@@ -544,7 +552,9 @@ test_taxa <- function(data.obj,
     feature.level = feature.level,
     feature.dat.type = feature.dat.type,
     prev.filter = prev.filter,
-    abund.filter = abund.filter
+    abund.filter = abund.filter,
+    feature.mt.method = feature.mt.method,
+    feature.sig.level = feature.sig.level
   )
 
   # Add extra arguments

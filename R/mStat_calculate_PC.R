@@ -8,8 +8,9 @@
 #' \code{\link[MicrobiomeStat]{mStat_calculate_beta_diversity}} function.
 #' If NULL, beta diversity will be automatically computed from \code{data.obj}
 #' using \code{mStat_calculate_beta_diversity}.
-#' @param method A character vector specifying which methods to use for
-#'   calculating PCoA. Supported methods are "mds" (MDS), "nmds" (NMDS)
+#' @param method Character string specifying the ordination method to use.
+#'   Supported methods are "mds" (MDS) and "nmds" (NMDS). If multiple values
+#'   are supplied, only the first is used.
 #' @param k An integer specifying the number of principal coordinates to retain.
 #'   Default is 2.
 #' @param dist.name A character vector specifying which beta diversity indices to calculate. Supported indices are "BC" (Bray-Curtis), "Jaccard", "UniFrac" (unweighted UniFrac), "GUniFrac" (generalized UniFrac), "WUniFrac" (weighted UniFrac), and "JS" (Jensen-Shannon divergence). If a name is provided but the corresponding object does not exist within dist.obj, it will be computed internally. If the specific index is not supported, an error message will be returned.
@@ -29,61 +30,44 @@
 #'
 #' @export
 mStat_calculate_PC <- function(dist.obj, method = c('mds'), k = 2, dist.name = NULL) {
-
-  # Check if dist.name is NULL and return early if so
-  # This prevents unnecessary computations if no distance metric is specified
   if (is.null(dist.name)){
-    return()
+    dist.name <- names(dist.obj)
   }
 
-  # Define an inner function to calculate principal coordinates for a single method
-  # This function encapsulates the logic for different ordination techniques
+  if (length(method) > 1) {
+    warning("mStat_calculate_PC currently supports one method per call. Using the first entry: ", method[1])
+  }
+  method <- match.arg(method[1], choices = c("mds", "nmds"))
+
+  missing_dist <- setdiff(dist.name, names(dist.obj))
+  if (length(missing_dist) != 0) {
+    stop("dist.obj is missing the following requested distance matrices: ", paste(missing_dist, collapse = ", "))
+  }
+
   calculate_single_method <- function(m, dist_matrix, k, perplexity = NULL) {
     if (m == 'mds') {
-      # Metric Multidimensional Scaling (MDS)
-      # MDS aims to preserve the between-object distances in a lower-dimensional space
-      # It is useful for visualizing the level of similarity of individual cases in a dataset
       message("Calculating MDS...")
-      return(cmdscale(dist_matrix, eig = TRUE, k = k))
+      return(stats::cmdscale(dist_matrix, eig = TRUE, k = k))
     } else if (m == 'nmds') {
-      # Non-Metric Multidimensional Scaling (NMDS)
-      # NMDS is a rank-based approach that maximizes the correlation between 
-      # distances in the original high-dimensional space and distances in the ordination space
-      # It's often used when a non-linear relationship between dissimilarities is suspected
       message("Calculating NMDS...")
-      return(metaMDS(dist_matrix, distance = "euclidean", k = k))
+      return(vegan::metaMDS(dist_matrix, k = k, trace = FALSE))
     } else {
-      # If an unsupported method is specified, warn the user and return NULL
       warning(paste("Unsupported method:", m))
       return(NULL)
     }
   }
 
-  # Inform the user that the principal coordinate calculation is starting
   message("Calculating PC...")
   
-  # Use lapply to iterate over each specified distance metric
-  # This allows for efficient calculation of principal coordinates for multiple distance matrices
   pc.obj <- lapply(dist.name, function(dist_name) {
-    # Inform the user about which distance matrix is being processed
     message(paste("Processing", dist_name, "distance..."))
-    
-    # Extract the distance matrix for the current metric
     dist_matrix <- dist.obj[[dist_name]]
-    
-    # Calculate principal coordinates using the specified method
     pc_results <- calculate_single_method(method, dist_matrix, k)
-    
-    # Return the results for this distance metric
     return(pc_results)
   })
   
-  # Assign names to the list of results based on the distance metrics used
   names(pc.obj) <- dist.name
 
-  # Inform the user that all calculations are complete
   message("Calculation complete.")
-  
-  # Return the list of principal coordinate results
   return(pc.obj)
 }

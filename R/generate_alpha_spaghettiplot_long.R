@@ -160,42 +160,18 @@ generate_alpha_spaghettiplot_long <-
         !is.character(strata.var))
       stop("`strata.var` should be a character string or NULL.")
 
-    # Calculate alpha diversity if not provided
-    # This ensures we have the necessary diversity metrics for visualization
-    if (is.null(alpha.obj)) {
-      # Process time variable to ensure proper ordering in longitudinal analysis
-      data.obj <-
-        mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
-
-      # Perform rarefaction if depth is specified
-      # Rarefaction standardizes sampling effort across all samples
-      if (!is.null(depth)) {
-        message(
-          "Detected that the 'depth' parameter is not NULL. Proceeding with rarefaction. Call 'mStat_rarefy_data' to rarefy the data!"
-        )
-        data.obj <- mStat_rarefy_data(data.obj, depth = depth)
-      }
-
-      otu_tab <- data.obj$feature.tab
-
-      # Extract tree if faith_pd is requested
-      tree <- NULL
-      if ("faith_pd" %in% alpha.name) {
-        tree <- data.obj$tree
-      }
-      
-      alpha.obj <-
-        mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name, tree = tree)
-    } else {
-      # Verify that all requested alpha diversity indices are available
-      if (!all(alpha.name %in% unlist(lapply(alpha.obj, function(x) colnames(x))))) {
-        missing_alphas <- alpha.name[!alpha.name %in% names(alpha.obj)]
-        stop("The following alpha diversity indices are not available in alpha.obj: ",
-             paste(missing_alphas, collapse = ", "), call. = FALSE)
-      }
-      data.obj <-
-        mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
-    }
+    prepared <- mStat_prepare_alpha_inputs(
+      data.obj = data.obj,
+      alpha.obj = alpha.obj,
+      alpha.name = alpha.name,
+      depth = depth,
+      time.var = time.var,
+      t0.level = t0.level,
+      ts.levels = ts.levels,
+      process_time = TRUE
+    )
+    data.obj <- prepared$data.obj
+    alpha.obj <- prepared$alpha.obj
 
     # Extract relevant metadata for the analysis
     meta_tab <-
@@ -205,14 +181,12 @@ generate_alpha_spaghettiplot_long <-
 
     # Combine alpha diversity data with metadata
     # This step creates a comprehensive dataset for visualization
-    alpha.df <-
-      dplyr::bind_cols(alpha.obj) %>% rownames_to_column("sample") %>%
-      dplyr::inner_join(
-        meta_tab %>% dplyr::select(all_of(
-          c(subject.var, time.var, group.var, strata.var, adj.vars)
-        )) %>% rownames_to_column(var = "sample"),
-        by = c("sample")
-      )
+    alpha.df <- mStat_prepare_alpha_data(
+      alpha.obj = alpha.obj,
+      meta.dat = meta_tab,
+      sample_col = "sample",
+      join = "inner"
+    )
 
     # If no group variable is specified, create a single group for all samples
     if (is.null(group.var)){

@@ -37,9 +37,9 @@ mStat_rarefy_data <- function(data.obj, depth = NULL) {
     # This approach ensures that all samples can be rarefied without introducing NA values
     depth = min(colSums(otu_tab))
     message(paste("No depth specified, using the smallest column sum: ", depth))
-  } else if (!is.numeric(depth) || depth < 0) {
-    # Validate that the specified depth is a non-negative number
-    stop("Depth should be a non-negative number.")
+  } else if (!is.numeric(depth) || length(depth) != 1 || !is.finite(depth) || depth < 0) {
+    # Validate that the specified depth is a non-negative finite scalar
+    stop("Depth should be a single non-negative finite number.")
   }
 
   # Check if all samples have enough reads for the specified rarefaction depth
@@ -66,12 +66,12 @@ mStat_rarefy_data <- function(data.obj, depth = NULL) {
   # Update the data object with the rarefied feature table
   if(length(zero_row_indices) > 0) {
     # Remove all-zero rows from the rarefied feature table
-    rarefied_otu_tab <- rarefied_otu_tab[-zero_row_indices, ]
+    rarefied_otu_tab <- rarefied_otu_tab[-zero_row_indices, , drop = FALSE]
     # Update the data object with the filtered rarefied feature table
     data.obj <- update_data_obj_count(data.obj, rarefied_otu_tab)
     # Remove corresponding rows from the feature annotations if they exist
     if(!is.null(data.obj$feature.ann)) {
-      data.obj$feature.ann <- data.obj$feature.ann[-zero_row_indices, ]
+      data.obj$feature.ann <- data.obj$feature.ann[-zero_row_indices, , drop = FALSE]
     }
     # Inform the user about the removed features
     message(paste("Removed ", length(zero_row_indices), " rows from the feature table and feature annotations due to all-zero counts after rarefaction. The removed rows are: ", paste0(zero_row_indices, collapse = ", "), "."))

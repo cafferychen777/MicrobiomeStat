@@ -55,13 +55,7 @@ detect_study_design <- function(data.obj,
   # Get available time points from data
   available_times <- NULL
   if (!is.null(data.obj$meta.dat) && time.var %in% colnames(data.obj$meta.dat)) {
-    available_times <- unique(data.obj$meta.dat[[time.var]])
-    # Try to sort numerically if possible
-    if (is.numeric(available_times)) {
-      available_times <- sort(available_times)
-    } else {
-      available_times <- sort(as.character(available_times))
-    }
+    available_times <- mStat_order_time_values(data.obj$meta.dat[[time.var]])
   }
 
   # Parse time.points specification
@@ -213,11 +207,13 @@ resolve_feature_select <- function(feature.select = NULL, target_type = "default
 #' Converts unified change.type to function-specific parameters.
 #'
 #' @param change.type Change type: "none", "relative", "log_fold", "absolute"
+#' @param context Change context: "taxa" or "alpha"
 #'
-#' @return List with feature.change.func and related parameters
+#' @return List with the resolved change function and related parameters
 #'
 #' @keywords internal
-resolve_change_type <- function(change.type = "none") {
+resolve_change_type <- function(change.type = "none", context = c("taxa", "alpha")) {
+  context <- match.arg(context)
   mapping <- list(
     none = NULL,
     relative = .CHANGE_RELATIVE,
@@ -231,10 +227,14 @@ resolve_change_type <- function(change.type = "none") {
     func <- .CHANGE_RELATIVE
   }
 
-  return(list(
-    feature.change.func = func,
-    is_change_plot = change.type != "none"
-  ))
+  if (context == "alpha" && identical(change.type, "relative")) {
+    warning("Alpha diversity change plots do not support relative change; using 'absolute change' instead.")
+    func <- .CHANGE_ABSOLUTE
+  }
+
+  result <- list(is_change_plot = change.type != "none")
+  result[[if (context == "alpha") "alpha.change.func" else "feature.change.func"]] <- func
+  return(result)
 }
 
 
@@ -286,9 +286,13 @@ resolve_params <- function(args, target_func, design_info) {
 
   # Resolve change type
   if (!is.null(args$change.type)) {
-    change_params <- resolve_change_type(args$change.type)
+    change_context <- if (grepl("^generate_alpha_", target_func)) "alpha" else "taxa"
+    change_params <- resolve_change_type(args$change.type, context = change_context)
     if (!is.null(change_params$feature.change.func)) {
       resolved$feature.change.func <- change_params$feature.change.func
+    }
+    if (!is.null(change_params$alpha.change.func)) {
+      resolved$alpha.change.func <- change_params$alpha.change.func
     }
     resolved$change.type <- NULL  # Remove unified param
   }
@@ -297,9 +301,9 @@ resolve_params <- function(args, target_func, design_info) {
   if (design_info$design == "single" && !is.null(design_info$t.level)) {
     resolved$t.level <- design_info$t.level
   } else if (design_info$design %in% c("pair", "long")) {
-    # Functions that use change.base instead of t0.level/ts.levels
-    uses_change_base <- grepl("change", target_func) ||
-                        grepl("alpha_test_pair", target_func)
+    # Pair-specific change functions use change.base instead of t0.level/ts.levels
+    uses_change_base <- grepl("_pair$", target_func) &&
+                        (grepl("change", target_func) || grepl("alpha_test_pair", target_func))
 
     # Functions that don't need t0.level/ts.levels at all (trend/volatility tests)
     no_time_params <- grepl("_trend_test_", target_func) ||
@@ -391,13 +395,15 @@ get_function_registry <- function() {
     ),
     beta_test = list(
       difference = c(single = "generate_beta_test_single",
+                     long = "generate_beta_change_per_time_test_long",
                      pair = "generate_beta_change_test_pair"),
       trend = c(long = "generate_beta_trend_test_long"),
       volatility = c(long = "generate_beta_volatility_test_long")
     ),
     alpha_test = list(
       difference = c(single = "generate_alpha_test_single",
-                     pair = "generate_alpha_test_pair"),
+                     long = "generate_alpha_change_per_time_test_long",
+                     pair = "generate_alpha_change_test_pair"),
       trend = c(long = "generate_alpha_trend_test_long"),
       volatility = c(long = "generate_alpha_volatility_test_long"),
       per_time = c(long = "generate_alpha_per_time_test_long")
@@ -529,6 +535,13 @@ validate_inputs <- function(data.obj,
 
   if (!is.null(group.var) && !group.var %in% meta_cols) {
     errors <- c(errors, paste0("group.var '", group.var, "' not found in meta.dat"))
+  }
+
+  requires_group_var <-
+    category %in% c("taxa_test", "beta_test", "alpha_test") &&
+    plot_type %in% c("difference", "per_time", "association", "volatility")
+  if (requires_group_var && is.null(group.var)) {
+    errors <- c(errors, paste0("group.var is required for ", category, "/", plot_type))
   }
 
   # Check design compatibility

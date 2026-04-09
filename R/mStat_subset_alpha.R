@@ -33,17 +33,32 @@
 #'
 #' @export
 mStat_subset_alpha <- function(alpha.obj, samIDs) {
-  # If samIDs is logical or numeric, convert it to character form of sample IDs
-  if (is.logical(samIDs) || is.numeric(samIDs)) {
-    samIDs <- colnames(alpha.obj[[1]])[samIDs]
+  if (is.null(alpha.obj) || length(alpha.obj) == 0 || is.null(alpha.obj[[1]])) {
+    stop("alpha.obj must be a non-empty alpha diversity object.")
   }
 
-  # Apply the subsetting to each alpha diversity index in the list
+  available_samIDs <- rownames(alpha.obj[[1]])
+  if (is.logical(samIDs) || is.numeric(samIDs)) {
+    samIDs <- available_samIDs[samIDs]
+  }
+
+  if (any(is.na(samIDs))) {
+    stop("Some requested samIDs are out of range or could not be resolved.")
+  }
+
+  samIDs <- unique(as.character(samIDs))
+  missing_samIDs <- setdiff(samIDs, available_samIDs)
+  if (length(missing_samIDs) != 0) {
+    stop(
+      "The following samIDs are not present in alpha.obj: ",
+      paste(missing_samIDs, collapse = ", ")
+    )
+  }
+
   alpha.obj <- lapply(alpha.obj, function(x) {
     if (!is.null(x)) {
       x <- x[samIDs, , drop = FALSE]
     }
-    # Return the processed alpha diversity index
     x
   })
 

@@ -61,8 +61,9 @@ generate_taxa_trend_volcano_long <-
            pdf.hei = 5) {
 
     # Extract relevant metadata and add sample names as a column
-    meta_tab <- data.obj$meta.dat %>%
-      dplyr::select(all_of(c(group.var))) %>% rownames_to_column("sample")
+    meta_tab <- mStat_meta_with_sample(
+      data.obj$meta.dat %>% dplyr::select(all_of(c(group.var)))
+    )
 
     # Get the color palette for the plot
     color_palette <- mStat_get_palette(palette)

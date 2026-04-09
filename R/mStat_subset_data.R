@@ -111,73 +111,77 @@ get_sample_ids <- function(data.obj, var, values) {
 #' @export
 #' @importFrom dplyr filter select
 mStat_subset_data <- function (data.obj, samIDs = NULL, condition = NULL) {
+  data.obj <- mStat_validate_data(data.obj)
 
-  # Store the original sample names
   original_samIDs <- rownames(data.obj$meta.dat)
 
-  # Check that not both samIDs and condition are provided
   if (!is.null(samIDs) & !is.null(condition)) {
     stop("Only one of 'samIDs' and 'condition' should be provided.")
   }
 
-  if (!is.null(condition)) {
-    # If condition is provided, filter meta.dat by condition
-    data.obj$meta.dat <- dplyr::filter(data.obj$meta.dat, !!rlang::parse_expr(condition))
-    samIDs <- rownames(data.obj$meta.dat)
+  if (is.null(samIDs) && is.null(condition)) {
+    samIDs <- original_samIDs
+    message("No samIDs or condition provided; returning all samples in their current order.")
+  } else if (!is.null(condition)) {
+    filtered_meta <- dplyr::filter(data.obj$meta.dat, !!rlang::parse_expr(condition))
+    samIDs <- rownames(filtered_meta)
     message("Data has been subsetted based on the provided condition.")
   } else {
-    # If samIDs is logical or numeric, convert it to character form of sample IDs
     if (is.logical(samIDs) || is.numeric(samIDs)) {
-      samIDs <- rownames(data.obj$meta.dat)[samIDs]
+      samIDs <- original_samIDs[samIDs]
     }
     message("Data has been subsetted based on the provided samIDs.")
   }
 
-  # Extract subset of metadata that matches samIDs
-  data.obj$meta.dat <- dplyr::filter(data.obj$meta.dat, rownames(data.obj$meta.dat) %in% samIDs)
+  if (any(is.na(samIDs))) {
+    stop("Some requested samIDs are out of range or could not be resolved.")
+  }
+
+  samIDs <- unique(as.character(samIDs))
+
+  missing_samIDs <- setdiff(samIDs, original_samIDs)
+  if (length(missing_samIDs) != 0) {
+    stop(
+      "The following samIDs are not present in data.obj$meta.dat: ",
+      paste(missing_samIDs, collapse = ", ")
+    )
+  }
+
+  data.obj$meta.dat <- data.obj$meta.dat[samIDs, , drop = FALSE]
   message("Updated metadata to match the subsetted data.")
 
-  # Get the sample names that were excluded
   excluded_samIDs <- setdiff(original_samIDs, samIDs)
   message(paste("The following samples were excluded:", paste(excluded_samIDs, collapse = ", ")))
 
-  # If feature table exists, extract subset of feature table that matches samIDs
   if (!is.null(data.obj$feature.tab)) {
-    # Extract sample subset from feature table
-    # Use {} block to correctly reference the subsetted data's rowSums
-    data.obj$feature.tab <- data.obj$feature.tab %>%
-      as.data.frame() %>%
-      dplyr::select(all_of(samIDs)) %>%
-      { .[rowSums(.) != 0, , drop = FALSE] } %>%
-      as.matrix()
-
+    data.obj$feature.tab <- data.obj$feature.tab[, samIDs, drop = FALSE]
+    data.obj$feature.tab <- data.obj$feature.tab[rowSums(data.obj$feature.tab) != 0, , drop = FALSE]
     message("Updated feature table to match the subsetted data.")
-
   }
 
-  # Extract corresponding feature annotation subset
   if (!is.null(data.obj$feature.tab) & !is.null(data.obj$feature.ann)) {
-    data.obj$feature.ann <- data.obj$feature.ann %>%
-      as.data.frame() %>%
-      dplyr::filter(rownames(data.obj$feature.ann) %in% rownames(data.obj$feature.tab)) %>%
-      as.matrix()
-
+    data.obj$feature.ann <- data.obj$feature.ann[rownames(data.obj$feature.tab), , drop = FALSE]
     message("Updated feature annotation to match the subsetted data.")
   }
 
-  # If feature aggregation list exists, perform the same subset extraction operation for each feature aggregation table
   if (!is.null(data.obj$feature.agg.list)) {
     data.obj$feature.agg.list <- lapply(data.obj$feature.agg.list, function(x) {
-      x %>% as.data.frame() %>%
-        dplyr::select(all_of(samIDs)) %>%
-        { .[rowSums(.) != 0, , drop = FALSE] } %>%
-        as.matrix()
+      x <- as.matrix(x)
+      x <- x[, samIDs, drop = FALSE]
+      x[rowSums(x) != 0, , drop = FALSE]
     })
 
     message("Updated feature aggregation list to match the subsetted data.")
   }
 
+  if (!is.null(data.obj$tree) && !is.null(data.obj$feature.tab)) {
+    absent <- setdiff(data.obj$tree$tip.label, rownames(data.obj$feature.tab))
+    if (length(absent) != 0) {
+      data.obj$tree <- ape::drop.tip(data.obj$tree, absent)
+      message("Updated phylogenetic tree to match the subsetted feature table.")
+    }
+  }
+
   message("Data subsetting complete. Returning updated data object.")
-  # Return the processed data object
   return(data.obj)
 }

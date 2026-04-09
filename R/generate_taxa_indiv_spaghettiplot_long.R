@@ -65,7 +65,7 @@ generate_taxa_indiv_spaghettiplot_long <-
            pdf.hei = 8.5,
            ...) {
     # Validate the input data object
-    mStat_validate_data(data.obj)
+    data.obj <- mStat_validate_data(data.obj)
 
     # Match the feature data type argument
     feature.dat.type <- match.arg(feature.dat.type)
@@ -115,14 +115,12 @@ generate_taxa_indiv_spaghettiplot_long <-
         features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
       }
 
-      # Convert counts to numeric type
-      otu_tax_agg_numeric <-
-        dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
-
-      # Reshape data for plotting
-      df <- otu_tax_agg_numeric %>%
-        tidyr::gather(key = "sample", value = "count", -all_of(feature.level)) %>%
-        dplyr::left_join(meta_tab %>% rownames_to_column(var = "sample"), by = "sample")
+      df <- mStat_prepare_taxa_long_data(
+        feature.dat = otu_tax_agg,
+        feature.level = feature.level,
+        value_col = "count",
+        meta.dat = meta_tab
+      )
 
       # Create a dummy group if group variable is not provided
       if (is.null(group.var)) {

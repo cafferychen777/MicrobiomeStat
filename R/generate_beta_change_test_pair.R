@@ -77,33 +77,29 @@ generate_beta_change_test_pair <-
       return()
     }
 
-    # Calculate beta diversity if not provided
-    if (is.null(dist.obj) & !is.null(data.obj)) {
-      # Calculate beta diversity using specified distance metrics
-      dist.obj <-
-        mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
-      # Extract relevant metadata
-      meta_vars <- c(subject.var, group.var, time.var)
-      if (!is.null(adj.vars)) {
-        meta_vars <- c(meta_vars, adj.vars)
-      }
-      meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(meta_vars)) %>% rownames_to_column("sample")
-    } else {
-      # Extract metadata from data.obj or dist.obj
-      if (!is.null(data.obj)){
-        meta_vars <- c(subject.var, group.var, time.var)
-        if (!is.null(adj.vars)) {
-          meta_vars <- c(meta_vars, adj.vars)
-        }
-        meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(meta_vars)) %>% rownames_to_column("sample")
-      } else {
-        meta_vars <- c(subject.var, group.var, time.var)
-        if (!is.null(adj.vars)) {
-          meta_vars <- c(meta_vars, adj.vars)
-        }
-        meta_tab <- attr(dist.obj[[dist.name[1]]], "labels")  %>% dplyr::select(all_of(meta_vars)) %>% rownames_to_column("sample")
-      }
+    meta_vars <- c(subject.var, group.var, time.var)
+    if (!is.null(adj.vars)) {
+      meta_vars <- c(meta_vars, adj.vars)
     }
+
+    if (is.null(dist.obj) & !is.null(data.obj)) {
+      dist.obj <- mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
+    } else {
+      prepared_context <- mStat_prepare_precomputed_beta_context(
+        dist.obj = dist.obj,
+        dist.name = dist.name,
+        data.obj = data.obj
+      )
+      data.obj <- prepared_context$data.obj
+      dist.obj <- prepared_context$dist.obj
+    }
+
+    meta_tab <- mStat_extract_dist_metadata(
+      dist.obj = dist.obj,
+      dist.name = dist.name,
+      vars = meta_vars,
+      data.obj = data.obj
+    ) %>% mStat_meta_to_tibble(sample_col = "sample")
 
     # Initialize variable to store time-varying information
     time_varying_info <- NULL
@@ -119,23 +115,20 @@ generate_beta_change_test_pair <-
       }
     }
 
-    # Set default change.base if not provided
-    if (is.null(change.base)){
-      change.base <- unique(meta_tab %>% dplyr::select(all_of(c(time.var))))[1,]
-      message("The 'change.base' variable was NULL. It has been set to the first unique value in the 'time.var' column of the 'meta.dat' data frame: ", change.base)
-    }
-
-    # Identify time points after the baseline
-    change.after <-
-      unique(meta_tab %>% dplyr::select(all_of(c(time.var))))[unique(meta_tab %>% dplyr::select(all_of(c(time.var)))) != change.base]
+    pair_times <- mStat_resolve_pair_timepoints(
+      values = meta_tab[[time.var]],
+      time.var = time.var,
+      change.base = change.base,
+      context = "beta change testing"
+    )
+    change.base <- pair_times$change.base
+    change.after <- pair_times$change.after
 
     # Perform analysis for each distance metric
     test.list <- lapply(dist.name, function(dist.name){
 
       # Convert distance matrix to long format
-      dist.df <- as.matrix(dist.obj[[dist.name]]) %>%
-        as.data.frame() %>%
-        rownames_to_column("sample")
+      dist.df <- mStat_dist_to_tibble(dist.obj[[dist.name]], sample_col = "sample")
 
       # Prepare data for analysis
       long.df <- dist.df %>%
@@ -147,7 +140,7 @@ generate_beta_change_test_pair <-
         dplyr::group_by(!!sym(paste0(subject.var, ".subject"))) %>%
         # Filter for baseline and follow-up time points
         filter(!!sym(paste0(time.var,".sample")) == change.base) %>%
-        filter(!!sym(paste0(time.var,".subject")) != !!sym(paste0(time.var,".sample"))) %>%
+        filter(!!sym(paste0(time.var,".subject")) == change.after) %>%
         dplyr::ungroup() %>%
         dplyr::select(!!sym(paste0(subject.var, ".subject")), !!sym(paste0(time.var, ".subject")), distance) %>%
         dplyr::rename(!!sym(subject.var) := !!sym(paste0(subject.var, ".subject")), !!sym(time.var) := !!sym(paste0(time.var, ".subject")))
@@ -190,14 +183,14 @@ generate_beta_change_test_pair <-
       # Create coefficient table
       coef.tab <- summary$coefficients %>%
         as.data.frame() %>%
-        rownames_to_column("Term") %>%
+        tibble::rownames_to_column("Term") %>%
         dplyr::select(
                 Term,
                 Estimate,
                 Std.Error = `Std. Error`,
                 Statistic = `t value`,
                 P.Value = `Pr(>|t|)`) %>%
-        as_tibble()
+        tibble::as_tibble()
 
       # CRITICAL FIX: Only perform ANOVA if group variable is in the final model
       # Check if group variable is actually included in the fitted model
@@ -207,12 +200,12 @@ generate_beta_change_test_pair <-
         # Create ANOVA table
         anova.tab <- anova %>%
           as.data.frame() %>%
-          rownames_to_column("Term") %>%
+          tibble::rownames_to_column("Term") %>%
           dplyr::select(Term,
                         Statistic = `F value`,
                         P.Value = `Pr(>F)`) %>%
           dplyr::mutate(Estimate = NA, Std.Error = NA) %>%
-          as_tibble() %>%
+          tibble::as_tibble() %>%
           dplyr::select(
             Term,
             Estimate,

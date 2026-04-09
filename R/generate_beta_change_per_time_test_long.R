@@ -108,18 +108,30 @@ generate_beta_change_per_time_test_long <-
         dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
       }
     } else {
-      # If distance object is provided, extract metadata
-      if (!is.null(data.obj) & !is.null(data.obj$meta.dat)){
-        data.obj <-
-          mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
-        meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(time.var, group.var)))
-      } else {
-        meta_tab <- attr(dist.obj[[dist.name[1]]], "labels") %>% dplyr::select(all_of(c(time.var, group.var)))
-        data.obj <- list(meta.dat = meta_tab)
-        data.obj <- mStat_process_time_variable(meta_tab, time.var, t0.level, ts.levels)
-        meta_tab <- data.obj$meta.dat
-      }
+      prepared_context <- mStat_prepare_precomputed_beta_context(
+        dist.obj = dist.obj,
+        dist.name = dist.name,
+        data.obj = data.obj,
+        time.var = time.var,
+        t0.level = t0.level,
+        ts.levels = ts.levels,
+        process_time = TRUE
+      )
+      data.obj <- prepared_context$data.obj
+      dist.obj <- prepared_context$dist.obj
+      meta_tab <- mStat_extract_dist_metadata(
+        dist.obj = dist.obj,
+        dist.name = dist.name,
+        vars = c(time.var, group.var),
+        data.obj = data.obj
+      )
     }
+
+    mStat_validate_group_var_contract(
+      meta.dat = meta_tab,
+      group.var = group.var,
+      context = "beta change per-time testing"
+    )
 
     # Determine the reference level for the grouping variable
     reference_level <- levels(as.factor(meta_tab[,group.var]))[1]

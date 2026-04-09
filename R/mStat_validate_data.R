@@ -19,63 +19,90 @@
 #'
 #' @export
 mStat_validate_data <- function(data.obj) {
-  # Rule 1: Check if data.obj is the correct type
   if (!is.list(data.obj)) {
     stop("Rule 1 failed: data.obj should be a list.")
-  } else {
-    message("Rule 1 passed: data.obj is a list.")
   }
 
-  # Rule 2: Check if meta.dat is a data.frame
-  if (!is.data.frame(data.obj$meta.dat)) {
-    # If it is not, convert it to a data.frame
-    data.obj$meta.dat <- as.data.frame(data.obj$meta.dat)
-    message("Rule 2 passed: meta.dat has been converted to a data.frame.")
-  } else {
-    message("Rule 2 passed: meta.dat is a data.frame.")
+  if (is.null(data.obj$feature.tab)) {
+    stop("Rule 2 failed: data.obj$feature.tab is required.")
   }
 
-  # Rule 3: Check if the row names of feature.tab match the row names of feature.ann
-  if (!identical(rownames(data.obj$feature.tab), rownames(data.obj$feature.ann))) {
-    # If they do not match, adjust the order of rows in feature.ann to match feature.tab
-    data.obj$feature.ann <- data.obj$feature.ann[match(rownames(data.obj$feature.tab), rownames(data.obj$feature.ann)), ]
-    message("Rule 3 passed: The order of rows in feature.ann has been adjusted to match feature.tab.")
-  } else {
-    message("Rule 3 passed: The row names of feature.tab match the row names of feature.ann.")
+  if (is.data.frame(data.obj$feature.tab)) {
+    data.obj$feature.tab <- as.matrix(data.obj$feature.tab)
+    message("Converted feature.tab to a matrix.")
   }
-
-  # Rule 4: Check if the column names of feature.tab match the row names of meta.dat
-  if (!identical(colnames(data.obj$feature.tab), rownames(data.obj$meta.dat))) {
-    # If they do not match, adjust the order of rows in meta.dat to match feature.tab
-    data.obj$meta.dat <- data.obj$meta.dat[match(colnames(data.obj$feature.tab), rownames(data.obj$meta.dat)), ]
-    message("Rule 4 passed: The order of rows in meta.dat has been adjusted to match feature.tab.")
-  } else {
-    message("Rule 4 passed: The column names of feature.tab match the row names of meta.dat.")
-  }
-
-  # Rule 5: Check if feature.tab is a matrix
   if (!is.matrix(data.obj$feature.tab)) {
-    stop("Rule 5 failed: feature.tab should be a matrix.")
-  } else {
-    message("Rule 5 passed: feature.tab is a matrix.")
+    stop("Rule 3 failed: feature.tab should be a matrix or data.frame.")
   }
 
-  # Rule 6: Check if feature.ann is a matrix
-  if (!is.matrix(data.obj$feature.ann)) {
-    stop("Rule 6 failed: feature.ann should be a matrix.")
-  } else {
-    message("Rule 6 passed: feature.ann is a matrix.")
+  if (is.null(rownames(data.obj$feature.tab)) || is.null(colnames(data.obj$feature.tab))) {
+    stop("Rule 4 failed: feature.tab must have both row names (features) and column names (samples).")
+  }
+  if (anyDuplicated(rownames(data.obj$feature.tab)) != 0) {
+    stop("Rule 5 failed: feature.tab row names must be unique.")
+  }
+  if (anyDuplicated(colnames(data.obj$feature.tab)) != 0) {
+    stop("Rule 6 failed: feature.tab column names must be unique.")
   }
 
-  # Add additional rules here...
+  if (is.null(data.obj$meta.dat)) {
+    stop("Rule 7 failed: data.obj$meta.dat is required.")
+  }
 
-  # Add a message to remind the user about using base R data structures
-  message("Please note: The data components should follow base R data.frame and matrix structures, not phyloseq's formal class.")
+  if (!is.data.frame(data.obj$meta.dat)) {
+    data.obj$meta.dat <- as.data.frame(data.obj$meta.dat)
+    message("Converted meta.dat to a data.frame.")
+  }
 
-  # If all checks passed, print a validation passed message
+  if (is.null(rownames(data.obj$meta.dat)) && nrow(data.obj$meta.dat) == ncol(data.obj$feature.tab)) {
+    rownames(data.obj$meta.dat) <- colnames(data.obj$feature.tab)
+    message("meta.dat row names were missing and have been aligned to feature.tab column names.")
+  }
+  if (is.null(rownames(data.obj$meta.dat))) {
+    stop("Rule 8 failed: meta.dat must have row names matching feature.tab column names.")
+  }
+  if (anyDuplicated(rownames(data.obj$meta.dat)) != 0) {
+    stop("Rule 9 failed: meta.dat row names must be unique.")
+  }
+
+  missing_meta <- setdiff(colnames(data.obj$feature.tab), rownames(data.obj$meta.dat))
+  if (length(missing_meta) != 0) {
+    stop(
+      "Rule 10 failed: meta.dat is missing sample rows for: ",
+      paste(missing_meta, collapse = ", ")
+    )
+  }
+  data.obj$meta.dat <- data.obj$meta.dat[colnames(data.obj$feature.tab), , drop = FALSE]
+
+  if (!is.null(data.obj$feature.ann)) {
+    if (is.data.frame(data.obj$feature.ann)) {
+      data.obj$feature.ann <- as.matrix(data.obj$feature.ann)
+      message("Converted feature.ann to a matrix.")
+    }
+    if (!is.matrix(data.obj$feature.ann)) {
+      stop("Rule 11 failed: feature.ann should be a matrix or data.frame when provided.")
+    }
+    if (is.null(rownames(data.obj$feature.ann)) && nrow(data.obj$feature.ann) == nrow(data.obj$feature.tab)) {
+      rownames(data.obj$feature.ann) <- rownames(data.obj$feature.tab)
+      message("feature.ann row names were missing and have been aligned to feature.tab row names.")
+    }
+    if (is.null(rownames(data.obj$feature.ann))) {
+      stop("Rule 12 failed: feature.ann must have row names matching feature.tab row names when provided.")
+    }
+    if (anyDuplicated(rownames(data.obj$feature.ann)) != 0) {
+      stop("Rule 13 failed: feature.ann row names must be unique.")
+    }
+
+    missing_ann <- setdiff(rownames(data.obj$feature.tab), rownames(data.obj$feature.ann))
+    if (length(missing_ann) != 0) {
+      stop(
+        "Rule 14 failed: feature.ann is missing feature rows for: ",
+        paste(missing_ann, collapse = ", ")
+      )
+    }
+    data.obj$feature.ann <- data.obj$feature.ann[rownames(data.obj$feature.tab), , drop = FALSE]
+  }
+
   message("Validation passed.")
-
-  # Add a final message to remind the user that validation is not exhaustive
-  message("Note: Passing validation does not guarantee the absence of all data issues. Further data exploration may be needed.")
-
+  return(invisible(data.obj))
 }

@@ -56,7 +56,7 @@ mStat_import_qiime2_as_data_obj <- function(otu_qza,
     feature.ann <- parse_q2taxonomy(feature.ann)
   } else {
     message("No feature annotations provided. Skipping...")
-    taxa_tab <- NULL
+    feature.ann <- NULL
   }
 
   if (!is.null(sam_tab)) {
@@ -75,12 +75,20 @@ mStat_import_qiime2_as_data_obj <- function(otu_qza,
     tree <- NULL
   }
 
+  if (!is.null(refseq_qza)) {
+    message("Loading representative sequences...")
+    refseq <- read_qza(refseq_qza)
+  } else {
+    refseq <- NULL
+  }
+
   # Create data.obj list
   message("Creating MicrobiomeStat data object...")
   data.obj <- list(feature.tab = feature.tab,
                    meta.dat = sam_tab,
                    feature.ann = feature.ann,
-                   tree = tree)
+                   tree = tree,
+                   refseq = refseq)
 
 
   message("MicrobiomeStat data object created successfully!")
@@ -136,8 +144,14 @@ read_qza <- function(file, temp = tempdir()) {
     tree_file_path <- file.path(temp, file_uuid, "data/tree.nwk")
     processed_file <- read_tree(tree_file_path)
   } else if (file_format == "DNASequencesDirectoryFormat") {
+    if (!requireNamespace("Biostrings", quietly = TRUE)) {
+      stop(
+        "Package 'Biostrings' is required to import DNA sequence artifacts.",
+        call. = FALSE
+      )
+    }
     dna_sequences_file_path <- file.path(temp, file_uuid, "data/dna-sequences.fasta")
-    processed_file <- readDNAStringSet(dna_sequences_file_path)
+    processed_file <- Biostrings::readDNAStringSet(dna_sequences_file_path)
   } else {
     stop(
       "Only files in format of 'BIOMV210DirFmt' ",
@@ -162,8 +176,15 @@ read_qza <- function(file, temp = tempdir()) {
 #' # Please replace 'path_to_your_file.biom' with your actual file path
 #' # feature_table <- read_q2biom('path_to_your_file.biom')
 read_q2biom <- function(file) {
-  biomobj <- read_biom(file)
-  feature_tab <- as(biom_data(biomobj), "matrix")
+  if (!requireNamespace("biomformat", quietly = TRUE)) {
+    stop(
+      "Package 'biomformat' is required to import BIOM feature tables.",
+      call. = FALSE
+    )
+  }
+
+  biomobj <- biomformat::read_biom(file)
+  feature_tab <- as(biomformat::biom_data(biomobj), "matrix")
 
   return(feature_tab)
 }
@@ -238,5 +259,4 @@ parse_q2taxonomy <- function(taxa, sep = "; |;", trim_rank_prefix = TRUE) {
 
   return(as.matrix(taxa))
 }
-
 

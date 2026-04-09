@@ -68,10 +68,12 @@ generate_taxa_volatility_volcano_long <- function(data.obj,
                                                   pdf.hei = 5){
 
   # Extract relevant metadata and add sample names as a column
-  meta_tab <- data.obj$meta.dat %>%
-    dplyr::select(all_of(c(
-      group.var
-    ))) %>% rownames_to_column("sample")
+  meta_tab <- mStat_meta_with_sample(
+    data.obj$meta.dat %>%
+      dplyr::select(all_of(c(
+        group.var
+      )))
+  )
 
   # Extract feature levels from the test list
   feature.level <- names(test.list)

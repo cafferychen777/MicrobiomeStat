@@ -24,8 +24,8 @@ mStat_combine_data <- function(data.obj1, data.obj2) {
   combine_data_common <- function(data1, data2) {
     # Convert input data to data frames and add a 'feature' column from row names
     # This step ensures consistent data structure for further processing
-    data1 <- data1 %>% as.data.frame() %>% rownames_to_column("feature")
-    data2 <- data2 %>% as.data.frame() %>% rownames_to_column("feature")
+    data1 <- data1 %>% as.data.frame() %>% tibble::rownames_to_column("feature")
+    data2 <- data2 %>% as.data.frame() %>% tibble::rownames_to_column("feature")
 
     # Identify common features and samples between the two datasets
     # This is crucial for maintaining data integrity during combination
@@ -60,7 +60,7 @@ mStat_combine_data <- function(data.obj1, data.obj2) {
       # Reshape back to wide format, filling in missing values
       tidyr::spread(key = "sample", value = "count") %>% 
       # Convert 'feature' column back to row names
-      column_to_rownames("feature")
+      tibble::column_to_rownames("feature")
 
     message("Data combined.")
 

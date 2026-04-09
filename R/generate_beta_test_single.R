@@ -171,7 +171,7 @@ generate_beta_test_single <- function(data.obj,
   # Convert the p.tab results to tibble
   # This table contains the overall p-values for each term in the model
   permanova.results$p.tab <- result$p.tab %>%
-    as_tibble(rownames = "Term") %>%
+    tibble::as_tibble(rownames = "Term") %>%
     dplyr::mutate(Term = ifelse(Term == "data.obj$meta.dat[[group.var]]", group.var, Term))
 
   # Convert each aov.tab result to tibble and store them in the list
@@ -181,7 +181,7 @@ generate_beta_test_single <- function(data.obj,
   for (i in seq_along(result$aov.tab.list)) {
     permanova.results$aov.tab[[dist_names_used[i]]] <-
       result$aov.tab.list[[i]] %>%
-      as_tibble(rownames = "Variable") %>%
+      tibble::as_tibble(rownames = "Variable") %>%
       dplyr::mutate(
         Variable = gsub("data.obj\\$meta.dat\\[\\[\"", "", Variable),
         Variable = gsub("\"\\]\\]", "", Variable),

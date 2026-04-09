@@ -155,7 +155,7 @@ generate_taxa_barplot_long <-
     feature.dat.type <- match.arg(feature.dat.type)
 
     # Validate input data and variables
-    mStat_validate_data(data.obj)
+    data.obj <- mStat_validate_data(data.obj)
 
     if (!is.character(subject.var))
       stop("`subject.var` should be a character string.")
@@ -251,11 +251,10 @@ generate_taxa_barplot_long <-
         otu_tax_agg <- otu_tax_agg[otu_tax_agg[[feature.level]] %in% features.plot,]
       }
 
-      # Transpose the data
-      otu_tab_counts <- apply(t(otu_tax_agg %>% select(-all_of(feature.level))), 1, function(x) x)
-      # Actually normalize to proportions for each sample (account for sequencing depth)
-      otu_tab_norm <- sweep(otu_tab_counts, 2, colSums(otu_tab_counts), "/")
-      rownames(otu_tab_norm) <- as.matrix(otu_tax_agg[, feature.level])
+      otu_tab_norm <- mStat_as_taxa_composition_matrix(
+        feature.dat = otu_tax_agg,
+        feature.level = feature.level
+      )
 
       meta_tab_sorted <- meta_tab[colnames(otu_tab_norm), ]
 
@@ -265,7 +264,7 @@ generate_taxa_barplot_long <-
       # Replace taxa with relative abundance lower than the threshold with "Other"
       otu_tab_other <- otu_tab_norm %>%
         as.data.frame() %>%
-        rownames_to_column(feature.level)
+        tibble::rownames_to_column(feature.level)
 
       # Set the relative abundance threshold after feature.number
       other.abund.cutoff <- sort(avg_abund, decreasing=TRUE)[feature.number]
@@ -282,7 +281,7 @@ generate_taxa_barplot_long <-
 
       # Merge feature data with metadata
       merged_long_df <- otu_tab_long %>%
-        dplyr::inner_join(meta_tab_sorted  %>% rownames_to_column("sample"), by = "sample")
+        dplyr::inner_join(meta_tab_sorted %>% tibble::rownames_to_column("sample"), by = "sample")
 
       # Sort the merged data
       sorted_merged_long_df <- merged_long_df %>%

@@ -101,28 +101,33 @@ generate_beta_change_boxplot_pair <-
         dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
       }
     } else {
-      # Extract metadata if distance object is provided
-      if (!is.null(data.obj) & !is.null(data.obj$meta.dat)){
-        meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var, adj.vars)))
-      } else {
-        meta_tab <- attr(dist.obj[[dist.name[1]]], "labels") %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var, adj.vars)))
-        data.obj <- list(meta.dat = meta_tab)
-        meta_tab <- data.obj$meta.dat
-      }
+      prepared_context <- mStat_prepare_precomputed_beta_context(
+        dist.obj = dist.obj,
+        dist.name = dist.name,
+        data.obj = data.obj
+      )
+      data.obj <- prepared_context$data.obj
+      dist.obj <- prepared_context$dist.obj
     }
+
+    meta_tab <- mStat_extract_dist_metadata(
+      dist.obj = dist.obj,
+      dist.name = dist.name,
+      vars = c(subject.var, time.var, group.var, strata.var, adj.vars),
+      data.obj = data.obj
+    )
 
     # Add sample names to metadata
-    meta_tab <- meta_tab %>% rownames_to_column("sample")
+    meta_tab <- mStat_meta_to_tibble(meta_tab, sample_col = "sample")
 
-    # Set the baseline time point for change calculation if not provided
-    if (is.null(change.base)){
-      change.base <- unique(meta_tab %>% dplyr::select(all_of(c(time.var))))[1,]
-      message("The 'change.base' variable was NULL. It has been set to the first unique value in the 'time.var' column of the 'alpha_df' data frame: ", change.base)
-    }
-
-    # Identify the time point after the baseline for change calculation
-    change.after <-
-      unique(meta_tab %>% dplyr::select(all_of(c(time.var))))[unique(meta_tab %>% dplyr::select(all_of(c(time.var)))) != change.base]
+    pair_times <- mStat_resolve_pair_timepoints(
+      values = meta_tab[[time.var]],
+      time.var = time.var,
+      change.base = change.base,
+      context = "beta change plotting"
+    )
+    change.base <- pair_times$change.base
+    change.after <- pair_times$change.after
 
     # Get color palette for plotting
     col <- mStat_get_palette(palette)
@@ -141,9 +146,7 @@ generate_beta_change_boxplot_pair <-
       }
 
       # Convert distance matrix to long format for plotting
-      dist.df <- as.matrix(dist.obj[[dist.name]]) %>%
-        as.data.frame() %>%
-        rownames_to_column("sample")
+      dist.df <- mStat_dist_to_tibble(dist.obj[[dist.name]], sample_col = "sample")
 
       # Calculate pairwise distances between baseline and follow-up time points for each subject
       long.df <- dist.df %>%
@@ -153,13 +156,16 @@ generate_beta_change_boxplot_pair <-
         filter(!!sym(paste0(subject.var, ".subject")) == !!sym(paste0(subject.var, ".sample"))) %>%
         dplyr::group_by(!!sym(paste0(subject.var, ".subject"))) %>%
         filter(!!sym(paste0(time.var,".sample")) == change.base) %>%
-        filter(!!sym(paste0(time.var,".subject")) != !!sym(paste0(time.var,".sample"))) %>%
+        filter(!!sym(paste0(time.var,".subject")) == change.after) %>%
         dplyr::ungroup() %>%
         dplyr::select(!!sym(paste0(subject.var, ".subject")), !!sym(paste0(time.var, ".subject")), distance) %>%
         dplyr::rename(!!sym(subject.var) := !!sym(paste0(subject.var, ".subject")), !!sym(time.var) := !!sym(paste0(time.var, ".subject")))
 
       # Add group and strata information to the long-format data
-      long.df <- long.df %>% dplyr::left_join(meta_tab %>% dplyr::select(-time.var) %>% dplyr::distinct(), by = subject.var)
+      long.df <- long.df %>% dplyr::left_join(
+        meta_tab %>% dplyr::select(-all_of(time.var)) %>% dplyr::distinct(),
+        by = subject.var
+      )
 
       # Set up faceting formula based on presence of strata variable
       facet_formula <-

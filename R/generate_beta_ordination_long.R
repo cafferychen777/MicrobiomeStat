@@ -172,18 +172,26 @@ generate_beta_ordination_long <-
         dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
       }
     } else {
-      # If distance object is provided, process metadata accordingly
-      if (!is.null(data.obj) & !is.null(data.obj$meta.dat)){
-        data.obj <-
-          mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
-        meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
-      } else {
-        # Extract metadata from distance object if data object is not provided
-        meta_tab <- attr(dist.obj[[dist.name[1]]], "labels") %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
-        data.obj <- list(meta.dat = meta_tab)
-        data.obj <- mStat_process_time_variable(meta_tab, time.var, t0.level, ts.levels)
-        meta_tab <- data.obj$meta.dat
-      }
+      prepared_context <- mStat_prepare_precomputed_beta_context(
+        dist.obj = dist.obj,
+        dist.name = dist.name,
+        pc.obj = pc.obj,
+        data.obj = data.obj,
+        time.var = time.var,
+        t0.level = t0.level,
+        ts.levels = ts.levels,
+        process_time = TRUE,
+        required_pc_axes = 2
+      )
+      data.obj <- prepared_context$data.obj
+      dist.obj <- prepared_context$dist.obj
+      pc.obj <- prepared_context$pc.obj
+      meta_tab <- mStat_extract_dist_metadata(
+        dist.obj = dist.obj,
+        dist.name = dist.name,
+        vars = c(subject.var, time.var, group.var, strata.var),
+        data.obj = data.obj
+      )
     }
 
     # Calculate principal coordinates if not provided
@@ -219,8 +227,8 @@ generate_beta_ordination_long <-
       # Prepare data frame for plotting
       df <- as.data.frame(pc.mat) %>%
         setNames(c("PC1", "PC2")) %>%
-        rownames_to_column("sample") %>%
-        dplyr::inner_join(meta_tab %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var))) %>% rownames_to_column("sample"), by = "sample") %>%
+        tibble::rownames_to_column("sample") %>%
+        dplyr::inner_join(meta_tab %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var))) %>% tibble::rownames_to_column("sample"), by = "sample") %>%
         dplyr::mutate(x_start = PC1,
                y_start = PC2,
                x_end = NA,
@@ -393,8 +401,8 @@ generate_beta_ordination_long <-
         ggplot2::theme(
           panel.spacing.x = unit(0, "cm"),
           panel.spacing.y = unit(0, "cm"),
-          axis.line.x = ggplot2::element_line(size = 1, colour = "black"),
-          axis.line.y = ggplot2::element_line(size = 1, colour = "black"),
+          axis.line.x = ggplot2::element_line(linewidth = 1, colour = "black"),
+          axis.line.y = ggplot2::element_line(linewidth = 1, colour = "black"),
           strip.text.x = element_text(size = 12, color = "black"),
           axis.title = ggplot2::element_text(color = "black"),
           axis.text.x = element_text(color = "black", size = base.size),

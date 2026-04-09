@@ -134,63 +134,27 @@ generate_alpha_boxplot_single <- function (data.obj,
     return()
   }
 
-  # Calculate alpha diversity if not provided
-  if (is.null(alpha.obj)) {
-    # Perform rarefaction if depth is specified
-    if (!is.null(depth)) {
-      message(
-        "Detected that the 'depth' parameter is not NULL. Proceeding with rarefaction. Call 'mStat_rarefy_data' to rarefy the data!"
-      )
-      data.obj <- mStat_rarefy_data(data.obj, depth = depth)
-    }
-
-    # Subset data to specific time point if specified
-    if (!is.null(time.var) & !is.null(t.level)){
-      condition <- paste(time.var, "== '", t.level, "'", sep = "")
-      data.obj <- mStat_subset_data(data.obj, condition = condition)
-    }
-
-    # Extract feature table and calculate alpha diversity
-    otu_tab <- data.obj$feature.tab
-
-    # Extract tree if faith_pd is requested
-    tree <- NULL
-    if ("faith_pd" %in% alpha.name) {
-      tree <- data.obj$tree
-    }
-
-    alpha.obj <-
-      mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name, tree = tree)
-  } else {
-    # Validate that all requested alpha.name are present in alpha.obj
-    available_indices <- names(alpha.obj)
-    missing_indices <- alpha.name[!alpha.name %in% available_indices]
-
-    if (length(missing_indices) > 0) {
-      stop(
-        "The following alpha diversity indices are not available in alpha.obj: ",
-        paste(missing_indices, collapse = ", "),
-        ". Available indices: ",
-        paste(available_indices, collapse = ", "),
-        call. = FALSE
-      )
-    }
-
-    # Subset data to specific time point if specified
-    if (!is.null(time.var) & !is.null(t.level)){
-      condition <- paste(time.var, "== '", t.level, "'", sep = "")
-      data.obj <- mStat_subset_data(data.obj, condition = condition)
-    }
-  }
+  prepared <- mStat_prepare_alpha_inputs(
+    data.obj = data.obj,
+    alpha.obj = alpha.obj,
+    alpha.name = alpha.name,
+    depth = depth,
+    time.var = time.var,
+    t.level = t.level
+  )
+  data.obj <- prepared$data.obj
+  alpha.obj <- prepared$alpha.obj
 
   # Extract metadata
   meta_tab <- data.obj$meta.dat
 
   # Combine alpha diversity and metadata
-  alpha_df <-
-    dplyr::bind_cols(alpha.obj) %>% rownames_to_column("sample") %>%
-    dplyr::inner_join(meta_tab %>% rownames_to_column(var = "sample"),
-                      by = c("sample"))
+  alpha_df <- mStat_prepare_alpha_data(
+    alpha.obj = alpha.obj,
+    meta.dat = meta_tab,
+    sample_col = "sample",
+    join = "inner"
+  )
 
   # Create a default group if not specified
   if (is.null(group.var)) {

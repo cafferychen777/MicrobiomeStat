@@ -1,3 +1,90 @@
+test_that("linda normalizes zero.handling choice and keeps output shape", {
+  set.seed(42)
+
+  feature.tab <- matrix(
+    c(10, 0, 5, 2,
+      0, 3, 1, 4,
+      8, 1, 0, 2),
+    nrow = 3,
+    dimnames = list(paste0("Feature", 1:3), paste0("Sample", 1:4))
+  )
+  meta.dat <- data.frame(
+    group = c("A", "A", "B", "B"),
+    row.names = colnames(feature.tab),
+    stringsAsFactors = FALSE
+  )
+
+  lower <- linda(
+    feature.dat = feature.tab,
+    meta.dat = meta.dat,
+    formula = "~group",
+    zero.handling = "imputation",
+    is.winsor = FALSE,
+    adaptive = FALSE,
+    verbose = FALSE
+  )
+  mixed <- linda(
+    feature.dat = feature.tab,
+    meta.dat = meta.dat,
+    formula = "~group",
+    zero.handling = "Imputation",
+    is.winsor = FALSE,
+    adaptive = FALSE,
+    verbose = FALSE
+  )
+
+  expect_equal(lower$variables, mixed$variables)
+  expect_equal(lower$output[[1]]$log2FoldChange, mixed$output[[1]]$log2FoldChange)
+  expect_equal(lower$output[[1]]$pvalue, mixed$output[[1]]$pvalue)
+})
+
+test_that("linda2 normalizes zero.handling choice and keeps output shape", {
+  set.seed(42)
+
+  feature.tab <- matrix(
+    c(10, 0, 5, 2,
+      0, 3, 1, 4,
+      8, 1, 0, 2),
+    nrow = 3,
+    dimnames = list(paste0("Feature", 1:3), paste0("Sample", 1:4))
+  )
+  meta.dat <- data.frame(
+    group = c("A", "A", "B", "B"),
+    row.names = colnames(feature.tab),
+    stringsAsFactors = FALSE
+  )
+
+  lower <- linda2(
+    feature.dat = feature.tab,
+    meta.dat = meta.dat,
+    formula = "~group",
+    zero.handling = "pseudo-count",
+    is.winsor = FALSE,
+    adaptive = FALSE,
+    verbose = FALSE
+  )
+  mixed <- linda2(
+    feature.dat = feature.tab,
+    meta.dat = meta.dat,
+    formula = "~group",
+    zero.handling = "Pseudo-count",
+    is.winsor = FALSE,
+    adaptive = FALSE,
+    verbose = FALSE
+  )
+
+  expect_equal(lower$variables, mixed$variables)
+  expect_equal(lower$output[[1]]$log2FoldChange, mixed$output[[1]]$log2FoldChange)
+  expect_equal(lower$output[[1]]$pvalue, mixed$output[[1]]$pvalue)
+})
+
+test_that("mStat_has_random_effect_term distinguishes transforms from random effects", {
+  expect_false(mStat_has_random_effect_term("~log(age) + group"))
+  expect_false(mStat_has_random_effect_term(stats::as.formula("~log(age) + group")))
+  expect_true(mStat_has_random_effect_term("~group + (1|subject)"))
+  expect_true(mStat_has_random_effect_term(stats::as.formula("~group + (1|subject)")))
+})
+
 test_that("linda reference level switching works correctly", {
   # Create sample data
   set.seed(123)

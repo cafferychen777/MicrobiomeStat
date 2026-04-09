@@ -110,7 +110,7 @@ generate_taxa_change_scatterplot_pair <-
 
     feature.dat.type <- match.arg(feature.dat.type)
 
-    mStat_validate_data(data.obj)
+    data.obj <- mStat_validate_data(data.obj)
 
     meta_tab <-
       data.obj$meta.dat %>% as.data.frame() %>% select(all_of(c(
@@ -162,24 +162,29 @@ generate_taxa_change_scatterplot_pair <-
       features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
       }
 
-      # Convert counts to numeric type
-      otu_tax_agg_numeric <-
-        dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
+      otu_tab_norm_agg <- mStat_prepare_taxa_long_data(
+        feature.dat = otu_tax_agg,
+        feature.level = feature.level,
+        value_col = "count",
+        meta.dat = meta_tab,
+        join = "inner"
+      )
 
-      otu_tab_norm <- otu_tax_agg_numeric %>%
-        column_to_rownames(var = feature.level) %>%
-        as.matrix()
-
-      otu_tab_norm_agg <- otu_tax_agg_numeric %>%
-        tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
-        dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample")
+      pair_times <- mStat_resolve_pair_timepoints(
+        values = otu_tab_norm_agg[[time.var]],
+        time.var = time.var,
+        change.base = change.base,
+        context = "taxa change scatter plotting"
+      )
+      change.base <- pair_times$change.base
+      change.after <- pair_times$change.after
 
       taxa.levels <-
         otu_tab_norm_agg %>% select(all_of(feature.level)) %>% dplyr::distinct() %>% dplyr::pull()
 
       # First, divide the data into two subsets, one for change.base and one for change.after
       df_t0 <- otu_tab_norm_agg %>% filter(!!sym(time.var) == change.base)
-      df_ts <- otu_tab_norm_agg %>% filter(!!sym(time.var) != change.base)
+      df_ts <- otu_tab_norm_agg %>% filter(!!sym(time.var) == change.after)
 
       # Then, use dplyr::inner_join to merge these two subsets based on Phylum, subject and sex
       df <- dplyr::inner_join(df_ts, df_t0, by = c(feature.level, subject.var), suffix = c("_ts", "_t0"), relationship = "many-to-many")

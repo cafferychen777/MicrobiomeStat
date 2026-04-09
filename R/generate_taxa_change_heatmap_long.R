@@ -145,7 +145,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
   feature.dat.type <- match.arg(feature.dat.type)
 
   # Validate the input data object
-  mStat_validate_data(data.obj)
+  data.obj <- mStat_validate_data(data.obj)
 
   # Check if the input variables are of the correct type
   if (!is.character(subject.var))
@@ -170,6 +170,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
   meta_tab <- data.obj$meta.dat %>%
     as.data.frame() %>%
     select(all_of(c(subject.var,group.var,time.var,strata.var)))
+  meta_tab_with_sample <- mStat_meta_with_sample(meta_tab)
 
   # If group.var is not provided, create a dummy group variable
   if (is.null(group.var)) {
@@ -178,15 +179,8 @@ generate_taxa_change_heatmap_long <- function(data.obj,
   }
 
   # Set default values for clustering if not provided
-  if (is.null(cluster.cols)) {
-    cluster.cols = FALSE
-  } else {
-    cluster.cols = TRUE
-  }
-
-  if (is.null(cluster.rows)) {
-    cluster.rows = TRUE
-  }
+  cluster.cols <- mStat_resolve_optional_flag(cluster.cols, FALSE, "cluster.cols")
+  cluster.rows <- mStat_resolve_optional_flag(cluster.rows, TRUE, "cluster.rows")
 
   # If strata.var is provided, create an interaction term with group.var
   if (!is.null(strata.var)) {
@@ -221,11 +215,12 @@ generate_taxa_change_heatmap_long <- function(data.obj,
       features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
     }
 
-    # Calculate mean values for each combination of feature, group, and time
-    df_mean_value <- otu_tax_agg %>%
-      tidyr::gather(key = "sample", value = "value",-all_of(feature.level)) %>%
-      dplyr::left_join(meta_tab %>%
-                  rownames_to_column("sample"), "sample") %>%
+    df_mean_value <- mStat_prepare_taxa_long_data(
+      feature.dat = otu_tax_agg,
+      feature.level = feature.level,
+      value_col = "value",
+      meta.dat = meta_tab_with_sample
+    ) %>%
       dplyr::group_by(!!sym(feature.level),!!sym(group.var),!!sym(time.var)) %>%
       dplyr::summarise(mean_value = mean(value), .groups = "drop")
 
@@ -287,7 +282,11 @@ generate_taxa_change_heatmap_long <- function(data.obj,
                   values_from = "value")
 
     # Set row names to feature names
-    wide_data <- df_wide_new %>% column_to_rownames(feature.level)
+    wide_data <- mStat_as_taxa_feature_matrix(
+      feature.dat = df_wide_new,
+      feature.level = feature.level,
+      feature_in_column = TRUE
+    )
 
     # Save original column names
     original_colnames <- colnames(wide_data)
@@ -316,11 +315,11 @@ generate_taxa_change_heatmap_long <- function(data.obj,
     annotation_col <- meta_tab %>%
       select(!!sym(time.var), !!sym(group.var)) %>%
       filter(!!sym(time.var) != t0.level) %>%
-      as_tibble() %>%
+      tibble::as_tibble() %>%
       dplyr::distinct() %>%
       dplyr::mutate(group_time = paste(!!sym(group.var), !!sym(time.var), sep = "_")) %>%
       filter(group_time %in% new_colnames) %>%
-      column_to_rownames("group_time")
+      tibble::column_to_rownames("group_time")
 
     # Sort annotation by group and time
     annotation_col_sorted <-

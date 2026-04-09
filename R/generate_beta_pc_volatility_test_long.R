@@ -46,6 +46,8 @@ generate_beta_pc_volatility_test_long <- function(data.obj,
 
   # If distance object is not provided, calculate it from the data object
   if (is.null(dist.obj)) {
+    data.obj <- mStat_process_time_variable(data.obj, time.var)
+
     # Extract relevant metadata
     meta_tab <-
       data.obj$meta.dat %>% select(all_of(c(
@@ -59,21 +61,32 @@ generate_beta_pc_volatility_test_long <- function(data.obj,
       dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
     }
   } else {
-    # If data object is provided with metadata, extract relevant information
-    if (!is.null(data.obj) & !is.null(data.obj$meta.dat)) {
-      meta_tab <-
-        data.obj$meta.dat %>% select(all_of(c(
-          subject.var, time.var, group.var, adj.vars
-        )))
-    } else {
-      # If no data object, extract metadata from distance object
-      meta_tab <-
-        attr(dist.obj[[dist.name[1]]], "labels") %>% select(all_of(c(
-          subject.var, time.var, group.var, adj.vars
-        )))
-      dist.obj <- mStat_subset_dist(dist.obj, colnames(meta_tab))
-    }
+    prepared_context <- mStat_prepare_precomputed_beta_context(
+      dist.obj = dist.obj,
+      dist.name = dist.name,
+      pc.obj = pc.obj,
+      data.obj = data.obj,
+      time.var = time.var,
+      process_time = TRUE,
+      required_pc_axes = max(pc.ind)
+    )
+    data.obj <- prepared_context$data.obj
+    dist.obj <- prepared_context$dist.obj
+    pc.obj <- prepared_context$pc.obj
+    meta_tab <- mStat_extract_dist_metadata(
+      dist.obj = dist.obj,
+      dist.name = dist.name,
+      vars = c(subject.var, time.var, group.var, adj.vars),
+      data.obj = data.obj
+    )
   }
+
+  mStat_validate_group_var_contract(
+    meta.dat = meta_tab,
+    group.var = group.var,
+    subject.var = subject.var,
+    context = "beta PC volatility testing"
+  )
 
   # Inform the user about the importance of numeric time variable
   message(
@@ -103,20 +116,14 @@ generate_beta_pc_volatility_test_long <- function(data.obj,
     # Extract principal component coordinates
     pc.mat <- pc.obj[[dist.name]]$points
 
-    colnames(pc.mat) <- paste0("PC", 1:ncol(pc.mat))
-
-    pc.mat <- pc.mat %>% as_tibble()
-
-    # Combine PC coordinates with metadata
-    df <-
-      cbind(pc.mat[, paste0("PC", pc.ind)], meta_tab[, c(subject.var, time.var, group.var)])
-
-    # Reshape data from wide to long format
-    df <- df %>%
-      as_tibble() %>%
-      tidyr::gather(key = "PC",
-                    value = "value",
-                    -all_of(subject.var, group.var, time.var))
+    df <- mStat_prepare_pc_long_data(
+      pc.points = pc.mat,
+      pc.ind = pc.ind,
+      meta.dat = meta_tab,
+      vars = c(subject.var, time.var, group.var),
+      sample_col = "sample",
+      join = "inner"
+    )
 
     # Perform volatility test for each principal component
     sub_test.list <- lapply(unique(df$PC), function(pc.index) {
@@ -132,8 +139,11 @@ generate_beta_pc_volatility_test_long <- function(data.obj,
         )
 
       # Ensure time variable is numeric
-      sub_df <-
-        sub_df %>% dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
+      sub_df[[time.var]] <- mStat_coerce_time_to_numeric(
+        sub_df[[time.var]],
+        time.var = time.var,
+        context = "beta PC volatility analysis"
+      )
 
       # Calculate volatility for each subject
       # Volatility is defined as the mean of absolute differences in PC values divided by time differences
@@ -155,7 +165,8 @@ generate_beta_pc_volatility_test_long <- function(data.obj,
         dplyr::left_join(meta_tab %>%
                     select(all_of(c(subject.var, group.var))) %>%
                     dplyr::distinct(),
-                  by = subject.var)
+                  by = subject.var,
+                  relationship = "many-to-one")
 
       # Test the association between volatility and group variable using linear regression
       formula <- as.formula(paste("volatility ~", group.var))
@@ -169,14 +180,14 @@ generate_beta_pc_volatility_test_long <- function(data.obj,
         anova <- anova(test_result)
         # Format ANOVA results to match coefficient table structure
         anova.tab <- anova %>% as.data.frame() %>%
-          rownames_to_column("Term") %>%
+          tibble::rownames_to_column("Term") %>%
           dplyr::select(
                  Term,
                  Statistic = `F value`,
                  P.Value = `Pr(>F)`) %>%
           dplyr::mutate(Estimate = NA, Std.Error = NA) %>%
-          as_tibble() %>%
-          select(
+          tibble::as_tibble() %>%
+          dplyr::select(
             Term,
             Estimate,
             Std.Error,
@@ -189,7 +200,7 @@ generate_beta_pc_volatility_test_long <- function(data.obj,
           rbind(coef.tab, anova.tab)
       }
 
-      return(as_tibble(coef.tab))
+      return(tibble::as_tibble(coef.tab))
     })
 
     names(sub_test.list) <- unique(df$PC)

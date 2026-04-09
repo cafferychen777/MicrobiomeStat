@@ -121,7 +121,7 @@ generate_taxa_indiv_change_scatterplot_pair <-
            ...) {
 
     # Validate the input data object
-    mStat_validate_data(data.obj)
+    data.obj <- mStat_validate_data(data.obj)
 
     # Match the feature data type argument
     feature.dat.type <- match.arg(feature.dat.type)
@@ -132,9 +132,14 @@ generate_taxa_indiv_change_scatterplot_pair <-
         time.var, group.var, strata.var, subject.var
       )))
 
-    # Determine the time point after the base time point
-    change.after <-
-      unique(meta_tab %>% select(all_of(c(time.var))))[unique(meta_tab %>% select(all_of(c(time.var)))) != change.base]
+    pair_times <- mStat_resolve_pair_timepoints(
+      values = meta_tab[[time.var]],
+      time.var = time.var,
+      change.base = change.base,
+      context = "taxa individual change scatter plotting"
+    )
+    change.base <- pair_times$change.base
+    change.after <- pair_times$change.after
 
     # If group variable is not provided, create a dummy group
     if (is.null(group.var)) {
@@ -188,19 +193,13 @@ generate_taxa_indiv_change_scatterplot_pair <-
       features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
       }
 
-      # Convert counts to numeric type
-      otu_tax_agg_numeric <-
-        dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
-
-      # Create normalized feature table
-      otu_tab_norm <- otu_tax_agg_numeric %>%
-        column_to_rownames(var = feature.level) %>%
-        as.matrix()
-
-      # Reshape data for plotting
-      otu_tab_norm_agg <- otu_tax_agg_numeric %>%
-        tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
-        dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample")
+      otu_tab_norm_agg <- mStat_prepare_taxa_long_data(
+        feature.dat = otu_tax_agg,
+        feature.level = feature.level,
+        value_col = "count",
+        meta.dat = meta_tab,
+        join = "inner"
+      )
 
       # Get unique taxa levels
       taxa.levels <-

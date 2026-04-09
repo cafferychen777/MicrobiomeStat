@@ -133,39 +133,27 @@ generate_alpha_change_per_time_test_long <-
       return()
     }
 
-    if (is.null(alpha.obj)) {
-      if (!is.null(depth)) {
-        message(
-          "Detected that the 'depth' parameter is not NULL. Proceeding with rarefaction. Call 'mStat_rarefy_data' to rarefy the data!"
-        )
-        data.obj <- mStat_rarefy_data(data.obj, depth = depth)
-      }
-      otu_tab <- data.obj$feature.tab
-      
-      # Extract tree if faith_pd is requested
-      tree <- NULL
-      if ("faith_pd" %in% alpha.name) {
-        tree <- data.obj$tree
-      }
-      
-      alpha.obj <- mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name, tree = tree)
-    } else {
-      # Verify that all alpha.name are present in alpha.obj
-      if (!all(alpha.name %in% unlist(lapply(alpha.obj, function(x)
-        colnames(x))))) {
-        missing_alphas <- alpha.name[!alpha.name %in% names(alpha.obj)]
-        stop(
-          "The following alpha diversity indices are not available in alpha.obj: ",
-          paste(missing_alphas, collapse = ", "),
-          call. = FALSE
-        )
-      }
-    }
+    data.obj <- mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
+
+    prepared <- mStat_prepare_alpha_inputs(
+      data.obj = data.obj,
+      alpha.obj = alpha.obj,
+      alpha.name = alpha.name,
+      depth = depth
+    )
+    data.obj <- prepared$data.obj
+    alpha.obj <- prepared$alpha.obj
 
     meta_tab <-
       data.obj$meta.dat %>% as.data.frame() %>% dplyr::select(all_of(c(
         subject.var, group.var, time.var, adj.vars
       )))
+
+    mStat_validate_group_var_contract(
+      meta.dat = meta_tab,
+      group.var = group.var,
+      context = "alpha change per-time testing"
+    )
 
     reference_level <- levels(as.factor(meta_tab[,group.var]))[1]
 

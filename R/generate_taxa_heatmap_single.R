@@ -183,7 +183,7 @@ generate_taxa_heatmap_single <- function(data.obj,
                                          pdf.hei = 8.5,
                                          ...) {
   # Validate the input data object
-  mStat_validate_data(data.obj)
+  data.obj <- mStat_validate_data(data.obj)
 
   # Match the feature data type argument
   feature.dat.type <- match.arg(feature.dat.type)
@@ -210,15 +210,8 @@ generate_taxa_heatmap_single <- function(data.obj,
   n_colors <- 100
 
   # Set clustering options for columns and rows
-  if (is.null(cluster.cols)) {
-    cluster.cols = FALSE
-  } else {
-    cluster.cols = TRUE
-  }
-
-  if (is.null(cluster.rows)) {
-    cluster.rows = TRUE
-  }
+  cluster.cols <- mStat_resolve_optional_flag(cluster.cols, FALSE, "cluster.cols")
+  cluster.rows <- mStat_resolve_optional_flag(cluster.rows, TRUE, "cluster.rows")
 
   # Disable filtering if specific conditions are met
   if (feature.dat.type == "other" || !is.null(features.plot) ||
@@ -278,8 +271,10 @@ generate_taxa_heatmap_single <- function(data.obj,
     otu_tab_norm <-
       otu_tax_agg_numeric %>%
       dplyr::mutate(!!sym(feature.level) := tidyr::replace_na(!!sym(feature.level), "Unclassified")) %>%
-      column_to_rownames(var = feature.level) %>%
-      as.matrix()
+      mStat_as_taxa_feature_matrix(
+        feature.level = feature.level,
+        feature_in_column = TRUE
+      )
 
     # Sort samples by group and strata variables if provided
     if (!is.null(group.var) & !is.null(strata.var)) {

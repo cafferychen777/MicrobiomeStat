@@ -39,14 +39,20 @@ mStat_import_biom_as_data_obj <-
   {
     data.obj <- list()
     if (inherits(BIOMfilename, "character")) {
-      x = read_biom(biom_file = BIOMfilename)
+      if (!requireNamespace("biomformat", quietly = TRUE)) {
+        stop(
+          "Package 'biomformat' is required to import BIOM files.",
+          call. = FALSE
+        )
+      }
+      x = biomformat::read_biom(biom_file = BIOMfilename)
     } else if (inherits(BIOMfilename, "biom")) {
       x = BIOMfilename
     } else {
       stop("import_biom requires a 'character' string to a biom file or a 'biom-class' object")
     }
 
-    data.obj$feature.tab = as(biom_data(x), "matrix")
+    data.obj$feature.tab = as(biomformat::biom_data(x), "matrix")
 
     if (all(sapply(sapply(x$rows, function(i) {
       i$metadata
@@ -64,10 +70,10 @@ mStat_import_biom_as_data_obj <-
 
     data.obj$feature.ann <- taxtab
 
-    if (is.null(sample_metadata(x))) {
+    if (is.null(biomformat::sample_metadata(x))) {
       samdata <- NULL
     } else {
-      samdata = sample_metadata(x)
+      samdata = biomformat::sample_metadata(x)
     }
 
     data.obj$meta.dat <- samdata

@@ -6,7 +6,12 @@
 #' @param group.var Group variable name
 #' @return List with analysis results
 #' @noRd
-perform_lm_analysis <- function(feature.dat, meta.dat, formula, group.var) {
+perform_lm_analysis <- function(feature.dat,
+                                meta.dat,
+                                formula,
+                                group.var,
+                                p.adj.method = "BH",
+                                alpha = 0.05) {
   # Check if group.var is categorical (factor or character)
   is_categorical <- is.factor(meta.dat[, group.var]) || is.character(meta.dat[, group.var])
 
@@ -94,8 +99,8 @@ perform_lm_analysis <- function(feature.dat, meta.dat, formula, group.var) {
     df <- feature_results[[group_level]]
     if (nrow(df) > 0) {
       # Add multiple testing correction
-      df$padj <- p.adjust(df$pvalue, method = "BH")
-      df$reject <- df$padj <= 0.05
+      df$padj <- p.adjust(df$pvalue, method = p.adj.method)
+      df$reject <- df$padj <= alpha
       df$baseMean <- NA  # Not applicable for linear models
       df$stat <- df$log2FoldChange / df$lfcSE
       df$df <- nrow(meta.dat) - length(all.vars(as.formula(paste("~", formula)))) - 1
@@ -247,12 +252,25 @@ generate_taxa_test_single <- function(data.obj,
                                       abund.filter = 0,
                                       feature.level,
                                       feature.dat.type = c("count", "proportion", "other"),
+                                      feature.mt.method = c("fdr", "bonferroni", "none"),
+                                      feature.sig.level = 0.05,
                                       ...) {
   # Match the feature data type argument
   feature.dat.type <- match.arg(feature.dat.type)
+  feature.mt.method <- match.arg(feature.mt.method)
+
+  p.adj.method <- switch(
+    feature.mt.method,
+    fdr = "BH",
+    bonferroni = "bonferroni",
+    none = "none"
+  )
+
+  extra_args <- list(...)
+  extra_args[c("p.adj.method", "alpha")] <- NULL
 
   # Validate the input data object
-  mStat_validate_data(data.obj)
+  data.obj <- mStat_validate_data(data.obj)
 
   # Subset the data if a specific time point is specified
   if (!is.null(time.var)) {
@@ -378,21 +396,28 @@ generate_taxa_test_single <- function(data.obj,
         feature.dat = otu_tax_agg_filter,
         meta.dat = meta_tab,
         formula = formula,
-        group.var = group.var
+        group.var = group.var,
+        p.adj.method = p.adj.method,
+        alpha = feature.sig.level
       )
     } else {
       # Perform LinDA (Linear models for Differential Abundance) analysis
       # Muffle linda's own "all filtered" warning; we emit our own below
-      linda.obj <- withCallingHandlers(
-        linda(
+      linda_args <- c(
+        list(
           feature.dat = otu_tax_agg_filter,
           meta.dat = meta_tab,
           formula = paste("~", formula),
           feature.dat.type = feature.dat.type,
           prev.filter = prev.filter,
           mean.abund.filter = abund.filter,
-          ...
+          p.adj.method = p.adj.method,
+          alpha = feature.sig.level
         ),
+        extra_args
+      )
+      linda.obj <- withCallingHandlers(
+        do.call(linda, linda_args),
         warning = function(w) {
           if (grepl("All features were filtered out", conditionMessage(w)))
             invokeRestart("muffleWarning")
@@ -425,17 +450,10 @@ generate_taxa_test_single <- function(data.obj,
     }
 
     # Calculate mean abundance and prevalence for each feature
-    prop_prev_data <-
-      otu_tax_agg_filter %>%
-      as.matrix() %>%
-      as.table() %>%
-      as.data.frame() %>%
-      dplyr::group_by(Var1) %>%
-      dplyr::summarise(avg_abundance = mean(Freq),
-                       prevalence = sum(Freq != 0) / dplyr::n(),
-                       .groups = "drop") %>%
-      column_to_rownames("Var1") %>%
-      rownames_to_column(feature.level)
+    prop_prev_data <- mStat_summarize_taxa_features(
+      feature.dat = otu_tax_agg_filter,
+      feature.level = feature.level
+    )
 
     # Function to extract relevant data frames from LinDA output
     extract_data_frames <-
@@ -476,35 +494,12 @@ generate_taxa_test_single <- function(data.obj,
 
     # Process each data frame in the list
     sub_test.list <- lapply(sub_test.list, function(df) {
-      df <- df %>%
-        # Add feature level as a column
-        rownames_to_column(feature.level) %>%
-        # Join with prevalence and abundance data
-        dplyr::left_join(prop_prev_data, by = feature.level) %>%
-        # Select relevant columns
-        dplyr::select(all_of(all_of(
-          c(
-            feature.level,
-            "log2FoldChange",
-            "lfcSE",
-            "pvalue",
-            "padj",
-            "avg_abundance",
-            "prevalence"
-          )
-        ))) %>%
-        # Rename columns for clarity
-        dplyr::rename(
-          Variable = feature.level,
-          Coefficient = log2FoldChange,
-          SE = lfcSE,
-          P.Value = pvalue,
-          Adjusted.P.Value = padj,
-          Mean.Abundance = avg_abundance,
-          Prevalence = prevalence
-        )
-
-      return(df)
+      mStat_format_linda_feature_results(
+        result.df = df,
+        feature.level = feature.level,
+        feature.stats = prop_prev_data,
+        include_significant = TRUE
+      )
     })
 
     return(sub_test.list)

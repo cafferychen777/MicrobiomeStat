@@ -25,12 +25,14 @@ mStat_remove_feature <- function (data.obj, featureIDs, feature.level = NULL) {
   }
 
   # If feature.level is 'original', then filter by rownames
-  if ("original" %in% feature.level) {
+  if (!is.null(feature.level) && "original" %in% feature.level) {
     # Save the initial number of features
     initial_features <- nrow(data.obj$feature.tab)
 
-    data.obj$feature.tab <- data.obj$feature.tab[!rownames(data.obj$feature.tab) %in% featureIDs, ]
-    data.obj$feature.ann <- data.obj$feature.ann[!rownames(data.obj$feature.ann) %in% featureIDs, ]
+    data.obj$feature.tab <- data.obj$feature.tab[!rownames(data.obj$feature.tab) %in% featureIDs, , drop = FALSE]
+    if (!is.null(data.obj$feature.ann)) {
+      data.obj$feature.ann <- data.obj$feature.ann[!rownames(data.obj$feature.ann) %in% featureIDs, , drop = FALSE]
+    }
 
     # Compute the number of removed features
     removed_features <- initial_features - nrow(data.obj$feature.tab)
@@ -48,19 +50,20 @@ mStat_remove_feature <- function (data.obj, featureIDs, feature.level = NULL) {
   if (is.null(feature.level)) {
     message(paste("The feature IDs were found in the following levels:", paste(found.levels, collapse = ", "),
                ". Please specify the 'feature.level' parameter for the level you want to remove."))
-    return()
+    return(data.obj)
   } else if (!(feature.level %in% found.levels)) {
     message(paste("The specified 'feature.level' does not contain any of the feature IDs. The feature IDs were found in the following levels:",
                paste(found.levels, collapse = ", "), "."))
-    return()
+    return(data.obj)
   }
 
   # Save the initial number of features before filtering
   initial_features <- nrow(data.obj$feature.tab)
 
   # Use the tidyverse function 'filter' to subset the data
-  data.obj$feature.tab <- dplyr::filter(data.obj$feature.tab %>% as.data.frame(), !(data.obj$feature.ann[, feature.level] %in% featureIDs))
-  data.obj$feature.ann <- dplyr::filter(data.obj$feature.ann %>% as.data.frame(), !(data.obj$feature.ann[, feature.level] %in% featureIDs))
+  keep_rows <- !(data.obj$feature.ann[, feature.level] %in% featureIDs)
+  data.obj$feature.tab <- data.obj$feature.tab[keep_rows, , drop = FALSE]
+  data.obj$feature.ann <- data.obj$feature.ann[keep_rows, , drop = FALSE]
 
   # Message about removed features (correct calculation)
   removed_features <- initial_features - nrow(data.obj$feature.tab)

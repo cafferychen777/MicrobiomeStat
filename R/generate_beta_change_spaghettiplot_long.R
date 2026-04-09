@@ -127,17 +127,23 @@ generate_beta_change_spaghettiplot_long <-
           dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
         }
       } else {
-        # Process time variable if distance object is provided
-        if (!is.null(data.obj) & !is.null(data.obj$meta.dat)){
-          data.obj <-
-            mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
-          meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
-        } else {
-          meta_tab <- attr(dist.obj[[dist.name[1]]], "labels") %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
-          data.obj <- list(meta.dat = meta_tab)
-          data.obj <- mStat_process_time_variable(meta_tab, time.var, t0.level, ts.levels)
-          meta_tab <- data.obj$meta.dat
-        }
+        prepared_context <- mStat_prepare_precomputed_beta_context(
+          dist.obj = dist.obj,
+          dist.name = dist.name,
+          data.obj = data.obj,
+          time.var = time.var,
+          t0.level = t0.level,
+          ts.levels = ts.levels,
+          process_time = TRUE
+        )
+        data.obj <- prepared_context$data.obj
+        dist.obj <- prepared_context$dist.obj
+        meta_tab <- mStat_extract_dist_metadata(
+          dist.obj = dist.obj,
+          dist.name = dist.name,
+          vars = c(subject.var, time.var, group.var, strata.var),
+          data.obj = data.obj
+        )
       }
 
       # Check if the specified distance metric exists in the distance object
@@ -170,11 +176,8 @@ generate_beta_change_spaghettiplot_long <-
       }
 
       # Convert distance matrix to long format for plotting
-      dist.df <- dist.df %>%
-        as.data.frame() %>%
-        rownames_to_column("sample")
-
-      meta_tab <- meta_tab %>% rownames_to_column("sample")
+      dist.df <- mStat_dist_to_tibble(dist.df, sample_col = "sample")
+      meta_tab <- mStat_meta_to_tibble(meta_tab, sample_col = "sample")
 
       # Determine the baseline time point for change calculation
       if (is.factor(meta_tab[, time.var])) {
@@ -228,7 +231,7 @@ generate_beta_change_spaghettiplot_long <-
           dplyr::left_join(long.df, long.df.mean, by = c(time.var, group.var, strata.var))
       }
 
-      long.df <- long.df %>% dplyr::arrange(subject.var,time.var)
+      long.df <- long.df %>% dplyr::arrange(!!sym(subject.var), !!sym(time.var))
 
       # Set y-axis label based on whether distances are adjusted for covariates
       if (is.null(adj.vars)) {

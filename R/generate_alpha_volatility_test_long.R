@@ -49,37 +49,27 @@ generate_alpha_volatility_test_long <- function(data.obj,
 
   # Calculate alpha diversity if not provided
   # This ensures we have the necessary diversity metrics for the analysis
-  if (is.null(alpha.obj)) {
-    # Perform rarefaction if depth is specified
-    # Rarefaction standardizes sampling effort across all samples
-    if (!is.null(depth)) {
-      message(
-        "Detected that the 'depth' parameter is not NULL. Proceeding with rarefaction. Call 'mStat_rarefy_data' to rarefy the data!"
-      )
-      data.obj <- mStat_rarefy_data(data.obj, depth = depth)
-    }
-    otu_tab <- data.obj$feature.tab
-    
-    # Extract tree if faith_pd is requested
-    tree <- NULL
-    if ("faith_pd" %in% alpha.name) {
-      tree <- data.obj$tree
-    }
-    
-    alpha.obj <-
-      mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name, tree = tree)
-  } else {
-    # Verify that all requested alpha diversity indices are available
-    if (!all(alpha.name %in% unlist(lapply(alpha.obj, function(x)
-      colnames(x))))) {
-      missing_alphas <- alpha.name[!alpha.name %in% names(alpha.obj)]
-      stop(
-        "The following alpha diversity indices are not available in alpha.obj: ",
-        paste(missing_alphas, collapse = ", "),
-        call. = FALSE
-      )
-    }
-  }
+  prepared <- mStat_prepare_alpha_inputs(
+    data.obj = data.obj,
+    alpha.obj = alpha.obj,
+    alpha.name = alpha.name,
+    depth = depth
+  )
+  data.obj <- prepared$data.obj
+  alpha.obj <- prepared$alpha.obj
+
+  # Extract relevant metadata for the analysis
+  meta_tab <-
+    data.obj$meta.dat %>% as.data.frame() %>% dplyr::select(all_of(c(
+      subject.var, group.var, time.var, adj.vars
+    )))
+
+  mStat_validate_group_var_contract(
+    meta.dat = meta_tab,
+    group.var = group.var,
+    subject.var = subject.var,
+    context = "alpha volatility testing"
+  )
 
   # Inform the user about the importance of numeric time variable for volatility calculation
   # This message ensures that the user understands the requirements for proper analysis
@@ -92,21 +82,22 @@ generate_alpha_volatility_test_long <- function(data.obj,
 
   # Convert the time variable to numeric
   # This step is crucial for performing volatility analysis
-  data.obj$meta.dat <-
-    data.obj$meta.dat %>% dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
+  data.obj$meta.dat[[time.var]] <- mStat_coerce_time_to_numeric(
+    data.obj$meta.dat[[time.var]],
+    time.var = time.var,
+    context = "alpha volatility analysis"
+  )
 
-  # Extract relevant metadata for the analysis
-  meta_tab <-
-    data.obj$meta.dat %>% as.data.frame() %>% dplyr::select(all_of(c(
-      subject.var, group.var, time.var, adj.vars
-    )))
+  meta_tab[[time.var]] <- data.obj$meta.dat[[time.var]]
 
   # Combine alpha diversity data with metadata
   # This creates a comprehensive dataset for our analysis
-  alpha_df <-
-    dplyr::bind_cols(alpha.obj) %>% tibble::rownames_to_column("sample") %>%
-    dplyr::inner_join(meta_tab %>% rownames_to_column("sample"),
-                      by = c("sample"))
+  alpha_df <- mStat_prepare_alpha_data(
+    alpha.obj = alpha.obj,
+    meta.dat = meta_tab,
+    sample_col = "sample",
+    join = "inner"
+  )
 
   # Perform statistical tests for each alpha diversity index
   test.list <- lapply(alpha.name, function(index) {
@@ -167,7 +158,8 @@ generate_alpha_volatility_test_long <- function(data.obj,
                            subject.var, group.var
                          ))) %>%
                          dplyr::distinct(),
-                       by = subject.var)
+                       by = subject.var,
+                       relationship = "many-to-one")
 
     # Test the association between the volatility and the grouping variable
     # This uses a linear model to assess if volatility differs between groups
@@ -183,13 +175,13 @@ generate_alpha_volatility_test_long <- function(data.obj,
       anova <- anova(test_result)
       anova.tab <- anova %>%
         as.data.frame() %>%
-        rownames_to_column("Term") %>%
+        tibble::rownames_to_column("Term") %>%
         dplyr::select(
           Term,
           Statistic = `F value`,
           P.Value = `Pr(>F)`
         ) %>%
-        as_tibble() %>%
+        tibble::as_tibble() %>%
         dplyr::mutate(Estimate = NA, Std.Error = NA)
 
       # Reorder the columns to match coef.tab
@@ -207,7 +199,7 @@ generate_alpha_volatility_test_long <- function(data.obj,
         rbind(coef.tab, anova.tab)
     }
 
-    return(as_tibble(coef.tab))
+    return(tibble::as_tibble(coef.tab))
   })
 
   # Assign names to the elements of test.list based on the alpha diversity indices

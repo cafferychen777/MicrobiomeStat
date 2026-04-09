@@ -74,23 +74,36 @@ mStat_subset_dist <- function (dist.obj, samIDs) {
     return(NULL)
   }
 
+  mStat_validate_dist_object(dist.obj)
+
+  available_samIDs <- mStat_get_dist_labels(dist.obj[[1]])
+
   # If samIDs is logical or numeric, convert it to character form of sample IDs
   if (is.logical(samIDs) || is.numeric(samIDs)) {
-    # Verify first element exists before accessing
-    if (is.null(dist.obj[[1]])) {
-      warning("First element of dist.obj is NULL, returning NULL")
-      return(NULL)
-    }
-    samIDs <- rownames(as.matrix(dist.obj[[1]]))[samIDs]
+    samIDs <- available_samIDs[samIDs]
+  }
+
+  if (any(is.na(samIDs))) {
+    stop("Some requested samIDs are out of range or could not be resolved.")
+  }
+
+  samIDs <- unique(as.character(samIDs))
+  missing_samIDs <- setdiff(samIDs, available_samIDs)
+  if (length(missing_samIDs) != 0) {
+    stop(
+      "The following samIDs are not present in dist.obj: ",
+      paste(missing_samIDs, collapse = ", ")
+    )
   }
 
   # Apply the subsetting to each distance matrix in the list
   dist.obj <- lapply(dist.obj, function(x) {
     # If x is not NA or NULL, subset the matrix by samIDs
     if(!is.na.null(x)){
+      dist.meta <- attr(x, "metadata")
       x <- as.matrix(x)
       x <- x[samIDs, samIDs]
-      x <- as.dist(x)
+      x <- mStat_attach_dist_metadata(as.dist(x), dist.meta)
     }
     # Return the processed matrix
     x

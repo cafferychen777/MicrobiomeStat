@@ -45,6 +45,7 @@ Suggests:
     parallel,
     ggprism,
     aplot,
+    phangorn,
     yaml,
     biomformat,
     Biostrings,
@@ -53,7 +54,12 @@ Suggests:
     ggtree,
     ggtreeExtra,
     metagenomeSeq,
-    edgeR
+    edgeR,
+    SummarizedExperiment,
+    DESeq2,
+    MultiAssayExperiment,
+    Biobase,
+    S4Vectors
 Config/testthat/edition: 3
 Config/build/clean-inst-doc: TRUE
 Config/build/clean-docs-in-inst: TRUE

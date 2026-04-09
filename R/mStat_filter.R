@@ -54,11 +54,14 @@ mStat_filter <- function(x, prev.filter, abund.filter){
     dplyr::summarise(
       # Calculate the average abundance across all samples
       # This metric helps identify consistently abundant taxa
-      avg_abundance = mean(Freq),
+      avg_abundance = mean(Freq, na.rm = TRUE),
       # Calculate the prevalence (proportion of samples where the taxon is present)
       # For data with negative values, prevalence is calculated as proportion of non-zero values
       # This handles both positive and negative abundances appropriately
-      prevalence = sum(Freq != 0) / dplyr::n(),
+      prevalence = {
+        non_missing <- sum(!is.na(Freq))
+        if (non_missing == 0) NA_real_ else sum(Freq != 0 & !is.na(Freq)) / non_missing
+      },
       .groups = "drop"
     ) %>%
     # Apply the filtering criteria
@@ -75,7 +78,7 @@ mStat_filter <- function(x, prev.filter, abund.filter){
 
   # Subset the original matrix to include only the filtered taxa
   # This creates a new matrix with reduced dimensions, focusing on the most relevant taxa
-  filtered_x <- x[filtered_taxa, ]
+  filtered_x <- x[filtered_taxa, , drop = FALSE]
 
   # Return the filtered matrix
   # The resulting matrix contains only taxa that meet both prevalence and abundance criteria

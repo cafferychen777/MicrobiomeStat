@@ -95,20 +95,22 @@ generate_beta_pc_trend_test_long <- function(data.obj = NULL,
       dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
     }
   } else {
-    # If data object is provided with metadata, extract relevant information
-    if (!is.null(data.obj) & !is.null(data.obj$meta.dat)) {
-      meta_tab <-
-        data.obj$meta.dat %>% select(all_of(c(
-          subject.var, time.var, group.var, adj.vars
-        )))
-    } else {
-      # If no data object, extract metadata from distance object
-      meta_tab <-
-        attr(dist.obj[[dist.name[1]]], "labels") %>% select(all_of(c(
-          subject.var, time.var, group.var, adj.vars
-        )))
-      dist.obj <- mStat_subset_dist(dist.obj, colnames(meta_tab))
-    }
+    prepared_context <- mStat_prepare_precomputed_beta_context(
+      dist.obj = dist.obj,
+      dist.name = dist.name,
+      pc.obj = pc.obj,
+      data.obj = data.obj,
+      required_pc_axes = max(pc.ind)
+    )
+    data.obj <- prepared_context$data.obj
+    dist.obj <- prepared_context$dist.obj
+    pc.obj <- prepared_context$pc.obj
+    meta_tab <- mStat_extract_dist_metadata(
+      dist.obj = dist.obj,
+      dist.name = dist.name,
+      vars = c(subject.var, time.var, group.var, adj.vars),
+      data.obj = data.obj
+    )
   }
 
   # Inform the user about the importance of numeric time variable
@@ -139,21 +141,14 @@ generate_beta_pc_trend_test_long <- function(data.obj = NULL,
     # Extract principal component coordinates
     pc.mat <- pc.obj[[dist.name]]$points
 
-    colnames(pc.mat) <- paste0("PC", 1:ncol(pc.mat))
-
-    pc.mat <- pc.mat %>% as_tibble()
-
-    # Combine PC coordinates with metadata
-    df <-
-      cbind(pc.mat[, paste0("PC", pc.ind)], meta_tab[, c(subject.var, time.var, group.var)])
-
-    # Reshape data from wide to long format
-    df <-
-      df %>%
-      as_tibble() %>%
-      tidyr::gather(key = "PC",
-                    value = "value",
-                    -all_of(subject.var, group.var, time.var))
+    df <- mStat_prepare_pc_long_data(
+      pc.points = pc.mat,
+      pc.ind = pc.ind,
+      meta.dat = meta_tab,
+      vars = c(subject.var, time.var, group.var),
+      sample_col = "sample",
+      join = "inner"
+    )
 
     # Perform trend test for each principal component
     sub_test.list <- lapply(unique(df$PC), function(pc.index) {
@@ -169,8 +164,11 @@ generate_beta_pc_trend_test_long <- function(data.obj = NULL,
         )
 
       # Ensure time variable is numeric
-      sub_df <-
-        sub_df %>% dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
+      sub_df[[time.var]] <- mStat_coerce_time_to_numeric(
+        sub_df[[time.var]],
+        time.var = time.var,
+        context = "beta PC trend analysis"
+      )
 
       # Fit linear mixed effects model
       model <- lmer(formula, data = sub_df, ...)
@@ -204,7 +202,7 @@ generate_beta_pc_trend_test_long <- function(data.obj = NULL,
         coef.tab <- extract_coef(model)
       }
 
-      return(as_tibble(coef.tab))
+      return(tibble::as_tibble(coef.tab))
     })
 
     names(sub_test.list) <- unique(df$PC)

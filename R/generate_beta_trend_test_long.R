@@ -115,7 +115,7 @@ generate_beta_trend_test_long <-
     }
 
     # Validate the input data object
-    mStat_validate_data(data.obj)
+    data.obj <- mStat_validate_data(data.obj)
 
     # Inform the user about the importance of numeric time variable
     message(
@@ -126,7 +126,11 @@ generate_beta_trend_test_long <-
     )
 
     # Convert time variable to numeric
-    data.obj$meta.dat <- data.obj$meta.dat %>% dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
+    data.obj$meta.dat[[time.var]] <- mStat_coerce_time_to_numeric(
+      data.obj$meta.dat[[time.var]],
+      time.var = time.var,
+      context = "beta trend analysis"
+    )
 
     # If distance object is not provided, calculate it from the data object
     if (is.null(dist.obj)) {
@@ -140,12 +144,19 @@ generate_beta_trend_test_long <-
         dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
       }
     } else {
-      # If distance object is provided, extract metadata from the appropriate source
-      if (!is.null(data.obj) & !is.null(data.obj$meta.dat)){
-        meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var, adj.vars)))
-      } else {
-        meta_tab <- attr(dist.obj[[dist.name[1]]], "labels") %>% dplyr::select(all_of(c(subject.var, time.var, group.var, adj.vars)))
-      }
+      prepared_context <- mStat_prepare_precomputed_beta_context(
+        dist.obj = dist.obj,
+        dist.name = dist.name,
+        data.obj = data.obj
+      )
+      data.obj <- prepared_context$data.obj
+      dist.obj <- prepared_context$dist.obj
+      meta_tab <- mStat_extract_dist_metadata(
+        dist.obj = dist.obj,
+        dist.name = dist.name,
+        vars = c(subject.var, time.var, group.var, adj.vars),
+        data.obj = data.obj
+      )
     }
 
     # Ensure the distance object and metadata have matching dimensions
@@ -159,10 +170,8 @@ generate_beta_trend_test_long <-
 
       # Convert distance matrix to long format
       dist.df <- as.matrix(dist.obj[[dist.name]])
-      dist.df <- dist.df %>%
-        as.data.frame() %>%
-        rownames_to_column("sample")
-      meta_tab <- meta_tab %>% rownames_to_column("sample")
+      dist.df <- mStat_dist_to_tibble(dist.df, sample_col = "sample")
+      meta_tab <- mStat_meta_to_tibble(meta_tab, sample_col = "sample")
 
       # Prepare data for longitudinal analysis
       # This step calculates the distance from each time point to the baseline for each subject
@@ -182,7 +191,11 @@ generate_beta_trend_test_long <-
       long.df <- long.df %>% dplyr::left_join(meta_tab %>% dplyr::select(all_of(c(subject.var, group.var))) %>% dplyr::distinct(), by = subject.var, relationship = "many-to-many")
 
       # Ensure time variable is numeric
-      long.df <- long.df %>% dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
+      long.df[[time.var]] <- mStat_coerce_time_to_numeric(
+        long.df[[time.var]],
+        time.var = time.var,
+        context = "beta trend analysis"
+      )
 
       # Attempt to fit the mixed effects model with random slopes
       # This model accounts for individual variations in the trend over time
@@ -252,7 +265,7 @@ generate_beta_trend_test_long <-
         coef.tab <- extract_coef(model)
       }
 
-      return(as_tibble(coef.tab))
+      return(tibble::as_tibble(coef.tab))
     })
 
     # Assign names to the elements of test.list

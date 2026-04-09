@@ -1,30 +1,3 @@
-winsor.fun <- function(Y, quan, feature.dat.type) {
-  # Apply Winsorization based on data type
-  # Using switch for mutually exclusive conditions
-  switch(feature.dat.type,
-    count = {
-      # For count data: normalize, winsorize, then scale back
-      N <- colSums(Y)
-      P <- t(t(Y) / N)
-      cut <- apply(P, 1, quantile, quan)
-      Cut <- matrix(rep(cut, ncol(Y)), nrow(Y))
-      ind <- P > Cut
-      P[ind] <- Cut[ind]
-      Y <- round(t(t(P) * N))
-    },
-    proportion = {
-      # For proportion data: winsorize directly
-      cut <- apply(Y, 1, quantile, quan)
-      Cut <- matrix(rep(cut, ncol(Y)), nrow(Y))
-      ind <- Y > Cut
-      Y[ind] <- Cut[ind]
-    }
-    # For "other": no winsorization needed, Y unchanged
-  )
-
-  return(Y)
-}
-
 #' @title Linear (Lin) model for differential abundance (DA) analysis
 #'
 #' @description This function implements a simple, robust, and highly scalable approach to tackle
@@ -137,6 +110,7 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
                   n.cores = 1, verbose = TRUE) {
   # Match the feature data type argument
   feature.dat.type <- match.arg(feature.dat.type)
+  zero.handling <- match.arg(tolower(zero.handling), c("pseudo-count", "imputation"))
 
   # If a phyloseq object is provided, extract the feature and metadata from it
   if (!is.null(phyloseq.obj)) {
@@ -246,15 +220,11 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
 
   # Apply Winsorization to handle outliers if specified
   if (is.winsor) {
-    Y <- winsor.fun(Y, 1 - outlier.pct, feature.dat.type)
+    Y <- winsor_feature_table(Y, 1 - outlier.pct, feature.dat.type)
   }
 
   # Determine if the model includes random effects
-  if (grepl("\\(", formula)) {
-    random.effect <- TRUE
-  } else {
-    random.effect <- FALSE
-  }
+  random.effect <- mStat_has_random_effect_term(formula)
 
   # Assign names to taxa and samples
   if (is.null(rownames(feature.dat))) {

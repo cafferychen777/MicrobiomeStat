@@ -92,7 +92,7 @@ generate_taxa_dotplot_pair <- function(data.obj,
   feature.dat.type <- match.arg(feature.dat.type)
 
   # Validate the input data object
-  mStat_validate_data(data.obj)
+  data.obj <- mStat_validate_data(data.obj)
 
   # Capture original factor levels before any data extraction
   fl <- mStat_capture_factor_levels(data.obj, group.var, strata.var)
@@ -149,27 +149,23 @@ generate_taxa_dotplot_pair <- function(data.obj,
       features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
     }
 
-    # Convert counts to numeric type
-    otu_tax_agg_numeric <-
-      dplyr::mutate_at(otu_tax_agg, vars(-!!sym(feature.level)), as.numeric)
+    otu_tax_long <- mStat_prepare_taxa_long_data(
+      feature.dat = otu_tax_agg,
+      feature.level = feature.level,
+      value_col = "count",
+      meta.dat = meta_tab,
+      join = "inner"
+    )
 
-    # Calculate mean abundance for each group and time point
-    otu_tab_norm_agg <- otu_tax_agg_numeric %>%
-      tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
-      dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
-      dplyr::group_by(!!sym(group.var),!!sym(feature.level),!!sym(time.var)) %>%
-      dplyr::summarise(mean_abundance = sqrt(mean(count)))
-
-    # Calculate prevalence for each group and time point
-    prevalence_all <- otu_tax_agg_numeric %>%
-      tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
-      dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
-      dplyr::group_by(!!sym(group.var),!!sym(feature.level),!!sym(time.var)) %>%
-      dplyr::summarise(prevalence = sum(count > 0) / dplyr::n()) %>% as.data.frame()
-
-    # Merge mean abundance and prevalence data
-    otu_tab_norm_agg <-
-      otu_tab_norm_agg %>% dplyr::left_join(prevalence_all, c(feature.level,group.var,time.var))
+    otu_tab_norm_agg <- mStat_summarize_grouped_taxa_long(
+      long.df = otu_tax_long,
+      feature.level = feature.level,
+      group_vars = c(group.var, time.var),
+      value_col = "count",
+      mean_col = "mean_abundance",
+      prevalence_col = "prevalence",
+      mean_transform = sqrt
+    )
 
     # Calculate the midpoint of mean abundance for color scaling
     midpoint <- quantile(otu_tab_norm_agg$mean_abundance, 0.5)
@@ -177,8 +173,8 @@ generate_taxa_dotplot_pair <- function(data.obj,
     # Handle strata variable if present
     if (!is.null(strata.var)){
       otu_tab_norm_agg <- otu_tab_norm_agg %>%
-        dplyr::mutate(temp = !!sym(group.var)) %>%
-        tidyr::separate(temp, into = c(paste0(group.var,"2"), strata.var), sep = .STRATA_SEP)
+        dplyr::mutate(group_key = !!sym(group.var)) %>%
+        tidyr::separate(group_key, into = c(paste0(group.var,"2"), strata.var), sep = .STRATA_SEP)
       otu_tab_norm_agg <- mStat_restore_factor_levels(
         otu_tab_norm_agg, fl$levels, paste0(group.var, "2"), strata.var)
     }

@@ -127,7 +127,7 @@ as.ggplot_internal <- function(plot, scale = 1, hjust = 0, vjust = 0, ...) {
   ymin <- xmin <- 1 - scale
   xmax <- ymax <- scale
 
-  ggplot(data.frame(x = 0:1, y = 0:1), aes_(x = ~x, y = ~y)) +
+  ggplot(data.frame(x = 0:1, y = 0:1), ggplot2::aes(x = rlang::.data$x, y = rlang::.data$y)) +
     geom_blank() +
     scale_x_continuous(limits = c(0,1), expand = c(0, 0)) +
     scale_y_continuous(limits = c(0,1), expand = c(0, 0)) +
@@ -329,6 +329,5 @@ is_categorical <- function(x) {
     return(FALSE)
   }
 }
-
 
 

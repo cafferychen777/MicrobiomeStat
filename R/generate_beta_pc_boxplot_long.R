@@ -114,26 +114,26 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
         )
     }
   } else {
-    # If distance object is provided, process metadata accordingly
-    if (!is.null(data.obj) & !is.null(data.obj$meta.dat)) {
-      data.obj <-
-        mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
-      meta_tab <-
-        data.obj$meta.dat %>% select(all_of(c(
-          subject.var, time.var, group.var, strata.var
-        )))
-    } else {
-      # Extract metadata from distance object if data object is not provided
-      meta_tab <-
-        attr(dist.obj[[dist.name[1]]], "labels") %>% select(all_of(c(
-          subject.var, time.var, group.var, strata.var
-        )))
-      data.obj <- list(meta.dat = meta_tab)
-      data.obj <-
-        mStat_process_time_variable(meta_tab, time.var, t0.level, ts.levels)
-      meta_tab <- data.obj$meta.dat
-      dist.obj <- mStat_subset_dist(dist.obj, colnames(meta_tab))
-    }
+    prepared_context <- mStat_prepare_precomputed_beta_context(
+      dist.obj = dist.obj,
+      dist.name = dist.name,
+      pc.obj = pc.obj,
+      data.obj = data.obj,
+      time.var = time.var,
+      t0.level = t0.level,
+      ts.levels = ts.levels,
+      process_time = TRUE,
+      required_pc_axes = max(pc.ind)
+    )
+    data.obj <- prepared_context$data.obj
+    dist.obj <- prepared_context$dist.obj
+    pc.obj <- prepared_context$pc.obj
+    meta_tab <- mStat_extract_dist_metadata(
+      dist.obj = dist.obj,
+      dist.name = dist.name,
+      vars = c(subject.var, time.var, group.var, strata.var),
+      data.obj = data.obj
+    )
   }
 
   # Determine the number of unique time points
@@ -204,25 +204,14 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
     # Extract principal coordinates
     pc.mat <- pc.obj[[dist.name]]$points
 
-    # Rename columns to PC1, PC2, etc.
-    colnames(pc.mat) <- paste0("PC", 1:ncol(pc.mat))
-
-    # Convert to tibble for easier manipulation
-    pc.mat <- pc.mat %>% as_tibble()
-
-    # Combine principal coordinates with metadata
-    df <-
-      cbind(pc.mat[, paste0("PC", pc.ind)], meta_tab[, c(subject.var, time.var, group.var, strata.var)])
-
-    # Reshape data from wide to long format
-    df <-
-      df %>%
-      as_tibble() %>%
-      tidyr::gather(
-        key = "PC",
-        value = "value",
-        -all_of(subject.var, group.var, time.var, strata.var)
-      )
+    df <- mStat_prepare_pc_long_data(
+      pc.points = pc.mat,
+      pc.ind = pc.ind,
+      meta.dat = meta_tab,
+      vars = c(subject.var, time.var, group.var, strata.var),
+      sample_col = "sample",
+      join = "inner"
+    )
 
     # Count unique subjects and time points
     n_subjects <- length(unique(df[[subject.var]]))

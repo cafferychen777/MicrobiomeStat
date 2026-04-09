@@ -114,7 +114,7 @@ generate_taxa_heatmap_long <- function(data.obj,
   feature.dat.type <- match.arg(feature.dat.type)
 
   # Validate the input data object
-  mStat_validate_data(data.obj)
+  data.obj <- mStat_validate_data(data.obj)
 
   # Input validation for key variables
   if (!is.character(subject.var))
@@ -155,15 +155,8 @@ generate_taxa_heatmap_long <- function(data.obj,
   }
 
   # Set default clustering options if not specified
-  if (is.null(cluster.cols)) {
-    cluster.cols = FALSE
-  } else {
-    cluster.cols = TRUE
-  }
-
-  if (is.null(cluster.rows)) {
-    cluster.rows = TRUE
-  }
+  cluster.cols <- mStat_resolve_optional_flag(cluster.cols, FALSE, "cluster.cols")
+  cluster.rows <- mStat_resolve_optional_flag(cluster.rows, TRUE, "cluster.rows")
 
   # Determine whether to apply abundance and prevalence filters
   if (feature.dat.type == "other" || !is.null(features.plot) ||
@@ -200,32 +193,38 @@ generate_taxa_heatmap_long <- function(data.obj,
     otu_tab_norm <-
       otu_tax_agg_numeric %>%
       filter(!is.na(!!sym(feature.level))) %>%
-      column_to_rownames(var = feature.level) %>%
-      as.matrix()
+      mStat_as_taxa_feature_matrix(
+        feature.level = feature.level,
+        feature_in_column = TRUE
+      )
 
     # Calculate mean values for each group and time point
     wide_data <- otu_tab_norm %>%
       as.data.frame() %>%
-      rownames_to_column(var = feature.level) %>%
+      tibble::rownames_to_column(var = feature.level) %>%
       tidyr::gather(key = "sample",
                     value = "value",
                     -all_of(feature.level)) %>%
       dplyr::left_join(meta_tab %>%
-                         rownames_to_column("sample"), by = "sample") %>%
+                         tibble::rownames_to_column("sample"), by = "sample") %>%
       dplyr::group_by(!!sym(feature.level),
                       !!sym(group.var),
                       !!sym(time.var)) %>%
       dplyr::summarise(mean_value = mean(value)) %>%
       tidyr::unite("group_time", c(group.var, time.var), sep = "_") %>%
-      tidyr::spread(key = "group_time", value = "mean_value") %>% column_to_rownames(feature.level)
+      tidyr::spread(key = "group_time", value = "mean_value") %>%
+      mStat_as_taxa_feature_matrix(
+        feature.level = feature.level,
+        feature_in_column = TRUE
+      )
 
     # Prepare column annotations for the heatmap
     annotation_col <- meta_tab %>%
       select(!!sym(time.var), !!sym(group.var)) %>%
-      as_tibble() %>%
+      tibble::as_tibble() %>%
       dplyr::distinct() %>%
       dplyr::mutate(group_time = paste(!!sym(group.var), !!sym(time.var), sep = "_")) %>%
-      column_to_rownames("group_time")
+      tibble::column_to_rownames("group_time")
 
     # Sort the annotation columns
     annotation_col_sorted <-

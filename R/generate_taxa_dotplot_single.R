@@ -71,7 +71,7 @@ generate_taxa_dotplot_single <- function(data.obj,
   feature.dat.type <- match.arg(feature.dat.type)
 
   # Validate the input data object
-  mStat_validate_data(data.obj)
+  data.obj <- mStat_validate_data(data.obj)
 
   # Subset the data if a specific time point is specified
   if (!is.null(time.var)) {
@@ -134,26 +134,34 @@ generate_taxa_dotplot_single <- function(data.obj,
       features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
     }
 
-    # Calculate the average abundance of each group
-    # The square root transformation is applied to reduce the impact of extreme values
-    otu_tab_norm_agg <- otu_tax_agg %>%
-      tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
-      dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
-      dplyr::group_by(!!sym(group.var),!!sym(feature.level)) %>%
-      dplyr::summarise(mean_abundance = sqrt(mean(count)))
+    otu_tax_long <- mStat_prepare_taxa_long_data(
+      feature.dat = otu_tax_agg,
+      feature.level = feature.level,
+      value_col = "count",
+      meta.dat = meta_tab,
+      join = "inner"
+    )
 
-    # Calculate the prevalence (proportion of non-zero values) for each feature
-    prevalence_all <- otu_tax_agg %>%
-      column_to_rownames(feature.level) %>%
-      as.matrix() %>%
-      as.table() %>%
-      as.data.frame() %>%
-      dplyr::group_by(Var1) %>%
-      dplyr::summarise(
-        prevalence = sum(Freq > 0) / dplyr::n()
-      ) %>%
-      column_to_rownames("Var1") %>%
-      rownames_to_column(feature.level)
+    otu_tab_norm_agg <- mStat_summarize_grouped_taxa_long(
+      long.df = otu_tax_long,
+      feature.level = feature.level,
+      group_vars = group.var,
+      value_col = "count",
+      mean_col = "mean_abundance",
+      prevalence_col = "group_prevalence",
+      mean_transform = sqrt
+    ) %>%
+      dplyr::select(-group_prevalence)
+
+    prevalence_all <- mStat_summarize_grouped_taxa_long(
+      long.df = otu_tax_long,
+      feature.level = feature.level,
+      group_vars = NULL,
+      value_col = "count",
+      mean_col = "avg_abundance",
+      prevalence_col = "prevalence"
+    ) %>%
+      dplyr::select(all_of(c(feature.level, "prevalence")))
 
     # Merge the abundance and prevalence data
     otu_tab_norm_agg <-
@@ -165,8 +173,8 @@ generate_taxa_dotplot_single <- function(data.obj,
     # Handle strata variable if present
     if (!is.null(strata.var)){
       otu_tab_norm_agg <- otu_tab_norm_agg %>%
-        dplyr::mutate(temp = !!sym(group.var)) %>%
-        tidyr::separate(temp, into = c(paste0(group.var,"2"), strata.var), sep = .STRATA_SEP)
+        dplyr::mutate(group_key = !!sym(group.var)) %>%
+        tidyr::separate(group_key, into = c(paste0(group.var,"2"), strata.var), sep = .STRATA_SEP)
       otu_tab_norm_agg <- mStat_restore_factor_levels(
         otu_tab_norm_agg, fl$levels, paste0(group.var, "2"), strata.var)
     }

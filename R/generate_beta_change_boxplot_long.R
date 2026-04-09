@@ -183,20 +183,27 @@ generate_beta_change_boxplot_long <-
         dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
       }
     } else {
-      # Process time variable if distance object is provided
-      data.obj <-
-        mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
-      if (!is.null(data.obj) & !is.null(data.obj$meta.dat)){
-        meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var, adj.vars)))
-      } else {
-        meta_tab <- attr(dist.obj[[dist.name[1]]], "labels") %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var, adj.vars)))
-        data.obj <- list(meta.dat = meta_tab)
-        meta_tab <- data.obj$meta.dat
-      }
+      prepared_context <- mStat_prepare_precomputed_beta_context(
+        dist.obj = dist.obj,
+        dist.name = dist.name,
+        data.obj = data.obj,
+        time.var = time.var,
+        t0.level = t0.level,
+        ts.levels = ts.levels,
+        process_time = TRUE
+      )
+      data.obj <- prepared_context$data.obj
+      dist.obj <- prepared_context$dist.obj
+      meta_tab <- mStat_extract_dist_metadata(
+        dist.obj = dist.obj,
+        dist.name = dist.name,
+        vars = c(subject.var, time.var, group.var, strata.var, adj.vars),
+        data.obj = data.obj
+      )
     }
 
     # Add sample names to metadata
-    meta_tab <- meta_tab %>% rownames_to_column("sample")
+    meta_tab <- mStat_meta_to_tibble(meta_tab, sample_col = "sample")
 
     # Get color palette for plotting
     col <- mStat_get_palette(palette)
@@ -208,7 +215,7 @@ generate_beta_change_boxplot_long <-
     plot_list <- lapply(dist.name, function(dist.name) {
 
       # Convert distance object to a tibble for easier manipulation
-      dist_tibble <- as_tibble(as.matrix(dist.obj[[dist.name]]), rownames = "Sample1")
+      dist_tibble <- tibble::as_tibble(as.matrix(dist.obj[[dist.name]]), rownames = "Sample1")
 
       # Join metadata with distance information
       if (!is.null(strata.var)){

@@ -99,22 +99,30 @@ generate_beta_ordination_pair <-
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
       # Extract relevant metadata
-      meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
-      
       # Adjust distances if adjustment variables are provided
       # This step helps to account for potential confounding factors
       if (!is.null(adj.vars)){
         dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
       }
-      print(dist.obj)
     } else {
-      # If distance object is provided, extract metadata accordingly
-      if (is.null(data.obj)) {
-        meta_tab <- attr(dist.obj[[dist.name[1]]], "labels") %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
-      } else {
-        meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var)))
-      }
+      prepared_context <- mStat_prepare_precomputed_beta_context(
+        dist.obj = dist.obj,
+        dist.name = dist.name,
+        pc.obj = pc.obj,
+        data.obj = data.obj,
+        required_pc_axes = 2
+      )
+      data.obj <- prepared_context$data.obj
+      dist.obj <- prepared_context$dist.obj
+      pc.obj <- prepared_context$pc.obj
     }
+
+    meta_tab <- mStat_extract_dist_metadata(
+      dist.obj = dist.obj,
+      dist.name = dist.name,
+      vars = c(subject.var, time.var, group.var, strata.var),
+      data.obj = data.obj
+    )
 
     # Perform dimension reduction if not already done
     if (is.null(pc.obj)) {
@@ -250,8 +258,8 @@ generate_beta_ordination_pair <-
         ggplot2::theme(
           panel.spacing.x = unit(0, "cm"),
           panel.spacing.y = unit(0, "cm"),
-          axis.line.x = ggplot2::element_line(size = 1, colour = "black"),
-          axis.line.y = ggplot2::element_line(size = 1, colour = "black"),
+          axis.line.x = ggplot2::element_line(linewidth = 1, colour = "black"),
+          axis.line.y = ggplot2::element_line(linewidth = 1, colour = "black"),
           strip.text.x = element_text(size = 12, color = "black"),
           axis.title = ggplot2::element_text(color = "black"),
           axis.text.x = element_text(color = "black", size = base.size),

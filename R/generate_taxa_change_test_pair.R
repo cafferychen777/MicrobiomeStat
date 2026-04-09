@@ -88,7 +88,7 @@ generate_taxa_change_test_pair <-
            feature.dat.type = c("count", "proportion", "other"),
            winsor.qt = 0.97) {
     # Validate the input data object
-    mStat_validate_data(data.obj)
+    data.obj <- mStat_validate_data(data.obj)
 
     # Match the feature data type argument
     feature.dat.type <- match.arg(feature.dat.type)
@@ -230,19 +230,19 @@ generate_taxa_change_test_pair <-
 
       # Merge the long-format data with metadata
       merged_data <- otu_tax_long %>%
-        dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample")
+        dplyr::inner_join(meta_tab %>% tibble::rownames_to_column("sample"), by = "sample")
 
-      # Group the data by time
-      grouped_data <- merged_data %>%
-        dplyr::group_by(!!sym(time.var))
-
-      # Identify the time point after the baseline
-      change.after <-
-        unique(grouped_data %>% select(all_of(c(time.var))))[unique(grouped_data %>% select(all_of(c(time.var)))) != change.base]
+      pair_times <- mStat_resolve_pair_timepoints(
+        values = merged_data[[time.var]],
+        time.var = time.var,
+        change.base = change.base,
+        context = "taxa change testing"
+      )
+      change.base <- pair_times$change.base
+      change.after <- pair_times$change.after
 
       # Split the data into separate time points
-      split_data <-
-        split(merged_data, f = grouped_data %>% select(all_of(c(time.var))))
+      split_data <- split(merged_data, f = as.character(merged_data[[time.var]]))
 
       # Extract data for the baseline and follow-up time points
       data_time_1 <- split_data[[change.base]]
@@ -274,39 +274,34 @@ generate_taxa_change_test_pair <-
         dplyr::group_by(!!sym(feature.level), !!sym(subject.var)) %>%
         dplyr::summarise(value_diff = mean(value_diff, na.rm = TRUE)) %>%
         tidyr::spread(key = !!sym(subject.var), value = value_diff) %>%
-        column_to_rownames(var = feature.level) %>%
+        tibble::column_to_rownames(var = feature.level) %>%
         as.matrix()
 
       # Prepare metadata for analysis
       unique_meta_tab <- meta_tab %>%
         filter(!!sym(subject.var) %in% colnames(value_diff_matrix)) %>%
         select(all_of(c(subject.var, group.var, adj.vars))) %>%
-        dplyr::distinct(!!sym(subject.var), .keep_all = TRUE) %>% as_tibble()
+        dplyr::distinct(!!sym(subject.var), .keep_all = TRUE) %>% tibble::as_tibble()
 
       cols_order <- colnames(na.omit(value_diff_matrix))
 
       unique_meta_tab <-
-        unique_meta_tab %>% column_to_rownames(subject.var)
+        unique_meta_tab %>% tibble::column_to_rownames(subject.var)
 
       sorted_unique_meta_tab <- unique_meta_tab %>%
         dplyr::slice(match(cols_order, rownames(unique_meta_tab)))
 
       # Calculate average abundance and prevalence for each feature
-      prop_prev_data <-
-        otu_tax_agg_filter %>%
-        column_to_rownames(feature.level) %>%
-        as.matrix() %>%
-        as.table() %>%
-        as.data.frame() %>%
-        dplyr::group_by(Var1) %>%
-        dplyr::summarise(avg_abundance = mean(Freq),
-                         prevalence = sum(Freq > 0) / dplyr::n()) %>% column_to_rownames("Var1") %>%
-        rownames_to_column(feature.level)
+      prop_prev_data <- mStat_summarize_taxa_features(
+        feature.dat = otu_tax_agg_filter,
+        feature.level = feature.level,
+        feature_in_column = TRUE
+      )
 
       # Convert the value difference matrix to long format
       value_diff_long <- value_diff_matrix %>%
         as.data.frame() %>%
-        rownames_to_column(feature.level) %>%
+        tibble::rownames_to_column(feature.level) %>%
         tidyr::gather(key = !!sym(subject.var), value = "value", -feature.level)
 
       # Perform statistical tests for each feature
@@ -317,7 +312,7 @@ generate_taxa_change_test_pair <-
             dplyr::filter(!!sym(feature.level) == taxon) %>%
             dplyr::left_join(sorted_unique_meta_tab %>%
                                as.data.frame() %>%
-                               rownames_to_column(subject.var),
+                               tibble::rownames_to_column(subject.var),
                              by = subject.var)
 
           # Fit the linear model
@@ -331,13 +326,13 @@ generate_taxa_change_test_pair <-
             anova <- anova(test_result)
             anova.tab <- anova %>%
               as.data.frame() %>%
-              rownames_to_column("Term") %>%
+              tibble::rownames_to_column("Term") %>%
               select(
                 Term,
                 Statistic = `F value`,
                 P.Value = `Pr(>F)`
               ) %>%
-              as_tibble() %>%
+              tibble::as_tibble() %>%
               dplyr::mutate(Estimate = NA, Std.Error = NA)
 
             # Reorder the columns to match coef.tab
@@ -354,7 +349,7 @@ generate_taxa_change_test_pair <-
             coef.tab <-
               rbind(coef.tab, anova.tab)
           }
-          return(as_tibble(coef.tab))
+          return(tibble::as_tibble(coef.tab))
         })
 
       # Assign names to the elements of sub_test.list

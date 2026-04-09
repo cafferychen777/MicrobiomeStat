@@ -140,7 +140,7 @@ generate_taxa_heatmap_pair <- function(data.obj,
                                        pdf.hei = 8.5,
                                        ...) {
   # Validate the input data object
-  mStat_validate_data(data.obj)
+  data.obj <- mStat_validate_data(data.obj)
 
   # Match the feature data type argument
   feature.dat.type <- match.arg(feature.dat.type)
@@ -151,15 +151,8 @@ generate_taxa_heatmap_pair <- function(data.obj,
   )))
 
   # Set default clustering options if not specified
-  if (is.null(cluster.cols)) {
-    cluster.cols = FALSE
-  } else {
-    cluster.cols = TRUE
-  }
-
-  if (is.null(cluster.rows)) {
-    cluster.rows = TRUE
-  }
+  cluster.cols <- mStat_resolve_optional_flag(cluster.cols, FALSE, "cluster.cols")
+  cluster.rows <- mStat_resolve_optional_flag(cluster.rows, TRUE, "cluster.rows")
 
   # Determine whether to apply abundance and prevalence filters
   if (feature.dat.type == "other" || !is.null(features.plot) ||
@@ -190,7 +183,11 @@ generate_taxa_heatmap_pair <- function(data.obj,
 
     # Normalize the feature table
     otu_tab_norm <-
-      otu_tax_agg %>% column_to_rownames(var = feature.level) %>% as.matrix()
+      mStat_as_taxa_feature_matrix(
+        feature.dat = otu_tax_agg,
+        feature.level = feature.level,
+        feature_in_column = TRUE
+      )
 
     # Sort samples by group.var and strata.var
     if (!is.null(group.var) & !is.null(strata.var)) {
@@ -314,9 +311,9 @@ generate_taxa_heatmap_pair <- function(data.obj,
     if (!is.null(strata.var) & !is.null(group.var) & !is.null(time.var)){
       wide_data <- otu_tab_norm_sorted %>%
         as.data.frame() %>%
-        rownames_to_column(feature.level) %>%
+        tibble::rownames_to_column(feature.level) %>%
         tidyr::pivot_longer(cols = -feature.level, names_to = "sample", values_to = "value") %>%
-        dplyr::left_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
+        dplyr::left_join(meta_tab %>% tibble::rownames_to_column("sample"), by = "sample") %>%
         dplyr::group_by(!!sym(feature.level), !!sym(strata.var), !!sym(group.var), !!sym(time.var)) %>%
         dplyr::summarise(mean_value = mean(value)) %>%
         tidyr::unite("column_name", !!sym(time.var), !!sym(group.var), !!sym(strata.var), sep = "_") %>%
@@ -326,20 +323,20 @@ generate_taxa_heatmap_pair <- function(data.obj,
       annotation_col <- wide_data %>%
         dplyr::select(-all_of(c(feature.level))) %>%
         names() %>%
-        tibble(column_name = .) %>%
+        tibble::tibble(column_name = .) %>%
         dplyr::mutate(
           !!time.var := stringr::str_extract(column_name, "^[^_]+"),
           !!group.var := stringr::str_extract(column_name, "(?<=_).*(?=_)"),
           !!strata.var := stringr::str_extract(column_name, "[^_]+$")
         ) %>%
-        column_to_rownames("column_name")
+        tibble::column_to_rownames("column_name")
 
     } else if (!is.null(group.var) & !is.null(time.var)){
       wide_data <- otu_tab_norm_sorted %>%
         as.data.frame() %>%
-        rownames_to_column(feature.level) %>%
+        tibble::rownames_to_column(feature.level) %>%
         tidyr::pivot_longer(cols = -feature.level, names_to = "sample", values_to = "value") %>%
-        dplyr::left_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
+        dplyr::left_join(meta_tab %>% tibble::rownames_to_column("sample"), by = "sample") %>%
         dplyr::group_by(!!sym(feature.level), !!sym(group.var), !!sym(time.var)) %>%
         dplyr::summarise(mean_value = mean(value)) %>%
         tidyr::unite("column_name", !!sym(time.var), !!sym(group.var), sep = "_") %>%
@@ -349,20 +346,20 @@ generate_taxa_heatmap_pair <- function(data.obj,
       annotation_col <- wide_data %>%
         dplyr::select(-all_of(c(feature.level))) %>%
         names() %>%
-        tibble(column_name = .) %>%
+        tibble::tibble(column_name = .) %>%
         dplyr::mutate(
           !!time.var := stringr::str_extract(column_name, "^[^_]+"),
           !!group.var := stringr::str_extract(column_name, "(?<=_).*")
         ) %>%
         tidyr::unite("column_name", !!sym(time.var), !!sym(group.var), sep = "_", remove = FALSE) %>%
-        column_to_rownames("column_name")
+        tibble::column_to_rownames("column_name")
 
     } else if (!is.null(time.var)){
       wide_data <- otu_tab_norm_sorted %>%
         as.data.frame() %>%
-        rownames_to_column(feature.level) %>%
+        tibble::rownames_to_column(feature.level) %>%
         tidyr::pivot_longer(cols = -feature.level, names_to = "sample", values_to = "value") %>%
-        dplyr::left_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
+        dplyr::left_join(meta_tab %>% tibble::rownames_to_column("sample"), by = "sample") %>%
         dplyr::group_by(!!sym(feature.level), !!sym(time.var)) %>%
         dplyr::summarise(mean_value = mean(value)) %>%
         tidyr::unite("column_name", !!sym(time.var), sep = "_") %>%
@@ -375,16 +372,19 @@ generate_taxa_heatmap_pair <- function(data.obj,
         stringr::str_split("_", simplify = TRUE) %>%
         as.data.frame() %>%
         setNames(c(time.var)) %>%
-        distinct() %>%
+        dplyr::distinct() %>%
         tidyr::unite("column_name", !!sym(time.var), sep = "_", remove = FALSE) %>%
-        column_to_rownames("column_name")
+        tibble::column_to_rownames("column_name")
     }
 
     # Apply square root transformation if necessary
+    processed_wide_data <- mStat_as_taxa_feature_matrix(
+      feature.dat = wide_data,
+      feature.level = feature.level,
+      feature_in_column = TRUE
+    )
     if (feature.dat.type != "other") {
-      processed_wide_data <- wide_data %>% column_to_rownames(feature.level) %>% sqrt()
-    } else {
-      processed_wide_data <- wide_data %>% column_to_rownames(feature.level)
+      processed_wide_data <- sqrt(processed_wide_data)
     }
 
     # Generate average heatmap

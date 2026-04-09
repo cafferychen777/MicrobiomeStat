@@ -32,46 +32,60 @@
 #'
 #' @export
 mStat_convert_MultiAssayExperiment_to_data_obj <- function (mae.obj, experiment_name = NULL) {
-
-  # Initialize an empty list to store the converted data
-  data.obj <- list()
-
-  # If no experiment name is provided, use the first experiment in the MultiAssayExperiment object
-  if (is.null(experiment_name)) {
-    experiment_name <- names(experiments(mae.obj))[1]
+  if (!requireNamespace("MultiAssayExperiment", quietly = TRUE)) {
+    stop(
+      "Package 'MultiAssayExperiment' is required to convert MultiAssayExperiment objects.",
+      call. = FALSE
+    )
+  }
+  if (!requireNamespace("SummarizedExperiment", quietly = TRUE)) {
+    stop(
+      "Package 'SummarizedExperiment' is required to extract assay data from MultiAssayExperiment objects.",
+      call. = FALSE
+    )
   }
 
-  # Check if the specified experiment exists in the MultiAssayExperiment object
-  # If not, stop execution and provide an informative error message
-  if (!experiment_name %in% names(experiments(mae.obj))) {
+  data.obj <- list()
+
+  experiments_list <- MultiAssayExperiment::experiments(mae.obj)
+  if (is.null(experiment_name)) {
+    experiment_name <- names(experiments_list)[1]
+  }
+
+  if (!experiment_name %in% names(experiments_list)) {
     stop(paste("The experiment", experiment_name, "does not exist in the MultiAssayExperiment object."))
   }
 
-  # Extract the assay data for the specified experiment
-  assay_data <- assays(mae.obj)[[experiment_name]]
-  
-  # Process the assay data if it exists
+  assay_data <- SummarizedExperiment::assay(experiments_list[[experiment_name]])
   if (!is.null(assay_data)) {
-    # Convert the assay data to a matrix format
-    # This step ensures compatibility with downstream analyses
     data.obj$feature.tab <- assay_data %>%
       as.data.frame() %>%
       as.matrix()
-
-    # Remove features (rows) with zero counts across all samples
-    # This step is crucial for reducing sparsity and improving statistical power in subsequent analyses
-    data.obj$feature.tab <- data.obj$feature.tab[rowSums(data.obj$feature.tab) > 0, ]
+    data.obj$feature.tab <- data.obj$feature.tab[rowSums(data.obj$feature.tab) > 0, , drop = FALSE]
   }
 
-  # Extract and process the column data (metadata) from the MultiAssayExperiment object
-  # This metadata typically includes sample-specific information
-  if (!is.null(colData(mae.obj))) {
-    # Convert the column data to a data frame for easier manipulation
-    data.obj$meta.dat <- colData(mae.obj) %>%
+  col_data <- MultiAssayExperiment::colData(mae.obj)
+  if (!is.null(col_data)) {
+    data.obj$meta.dat <- col_data %>%
       as.data.frame()
   }
 
-  # Return the processed data object
-  # This object contains the feature table and metadata, ready for further analysis
+  if (methods::is(experiments_list[[experiment_name]], "SummarizedExperiment")) {
+    row_data <- SummarizedExperiment::rowData(experiments_list[[experiment_name]])
+    if (!is.null(row_data)) {
+      data.obj$feature.ann <- row_data %>%
+        as.data.frame() %>%
+        as.matrix()
+
+      if (!is.null(data.obj$feature.tab)) {
+        data.obj$feature.ann <- data.obj$feature.ann[
+          rownames(data.obj$feature.tab),
+          ,
+          drop = FALSE
+        ]
+      }
+    }
+  }
+
   return(data.obj)
 }

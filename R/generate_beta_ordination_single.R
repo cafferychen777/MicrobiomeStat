@@ -126,26 +126,37 @@ generate_beta_ordination_single <-
       if (!is.null(adj.vars)){
         dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
       }
+      meta_tab <- mStat_extract_dist_metadata(
+        dist.obj = dist.obj,
+        dist.name = dist.name,
+        vars = c(group.var, strata.var, time.var),
+        data.obj = data.obj
+      )
     } else {
-      # If distance object is provided, extract metadata accordingly
-      if (!is.null(data.obj)){
-        if (!is.null(time.var)){
-          if (!is.null(t.level)){
-            condition <- paste(time.var, "== '", t.level, "'", sep = "")
-            data.obj <- mStat_subset_data(data.obj, condition = condition)
-            meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(group.var,strata.var,time.var)))
-          } else {
-            meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(group.var,strata.var,time.var)))
-            if (length(levels(as.factor(meta_tab[,time.var]))) != 1){
-              message("Multiple time points detected in your dataset. It is recommended to either set t.level or utilize functions for longitudinal data analysis.")
-            }
-          }
-        } else {
-          meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(group.var,strata.var,time.var)))
+      prepared_context <- mStat_prepare_precomputed_beta_context(
+        dist.obj = dist.obj,
+        dist.name = dist.name,
+        pc.obj = pc.obj,
+        data.obj = data.obj,
+        time.var = time.var,
+        t.level = t.level,
+        required_pc_axes = 2
+      )
+      data.obj <- prepared_context$data.obj
+      dist.obj <- prepared_context$dist.obj
+      pc.obj <- prepared_context$pc.obj
+
+      meta_tab <- mStat_extract_dist_metadata(
+        dist.obj = dist.obj,
+        dist.name = dist.name,
+        vars = c(group.var, strata.var, time.var),
+        data.obj = data.obj
+      )
+
+      if (!is.null(time.var) && is.null(t.level)) {
+        if (length(levels(as.factor(meta_tab[, time.var]))) != 1){
+          message("Multiple time points detected in your dataset. It is recommended to either set t.level or utilize functions for longitudinal data analysis.")
         }
-      }
-      if (!is.null(attr(dist.obj[[dist.name[1]]], "labels"))){
-        meta_tab <- attr(dist.obj[[dist.name[1]]], "labels")  %>% dplyr::select(all_of(c(group.var,strata.var,time.var)))
       }
     }
 
@@ -191,17 +202,17 @@ generate_beta_ordination_single <-
       df <-
         pc.mat %>%
         as.data.frame() %>%
-        rownames_to_column("sample") %>%
+        tibble::rownames_to_column("sample") %>%
         dplyr::left_join(meta_tab %>%
                            dplyr::select(all_of(c(time.var, group.var, strata.var))) %>%
-                           rownames_to_column("sample"), by = "sample")
+                           tibble::rownames_to_column("sample"), by = "sample")
 
       # Filter out NA values in time variable if it exists
       if (!is.null(time.var)){
         df <- df %>% dplyr::filter(!is.na(!!sym(time.var)))
       }
 
-      df <- df %>% column_to_rownames("sample")
+      df <- df %>% tibble::column_to_rownames("sample")
 
       colnames(df)[1:2] <- c("PC1", "PC2")
 
@@ -227,8 +238,8 @@ generate_beta_ordination_single <-
         ) +
         theme_to_use  +
         ggplot2::theme(
-          axis.line.x = ggplot2::element_line(size = 1, colour = "black"),
-          axis.line.y = ggplot2::element_line(size = 1, colour = "black"),
+          axis.line.x = ggplot2::element_line(linewidth = 1, colour = "black"),
+          axis.line.y = ggplot2::element_line(linewidth = 1, colour = "black"),
           strip.text.x = element_text(size = 12, color = "black"),
           axis.title = ggplot2::element_text(color = "black", size = 20),
           axis.text.x = element_text(color = "black", size = base.size),

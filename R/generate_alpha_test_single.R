@@ -64,39 +64,16 @@ generate_alpha_test_single <-
       return()
     }
 
-    if (!is.null(time.var) & !is.null(t.level)) {
-      subset.ids <- get_sample_ids(data.obj, time.var, t.level)
-      subset_data.obj <- mStat_subset_data(data.obj, samIDs = subset.ids)
-    }
-
-    if (is.null(alpha.obj)) {
-      if (!is.null(depth)) {
-        message(
-          "Detected that the 'depth' parameter is not NULL. Proceeding with rarefaction. Call 'mStat_rarefy_data' to rarefy the data!"
-        )
-        data.obj <- mStat_rarefy_data(data.obj, depth = depth)
-      }
-      otu_tab <- data.obj$feature.tab
-      
-      # Extract tree if faith_pd is requested
-      tree <- NULL
-      if ("faith_pd" %in% alpha.name) {
-        tree <- data.obj$tree
-      }
-      
-      alpha.obj <- mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name, tree = tree)
-    } else {
-      # Verify that all alpha.name are present in alpha.obj
-      if (!all(alpha.name %in% unlist(lapply(alpha.obj, function(x)
-        colnames(x))))) {
-        missing_alphas <- alpha.name[!alpha.name %in% names(alpha.obj)]
-        stop(
-          "The following alpha diversity indices are not available in alpha.obj: ",
-          paste(missing_alphas, collapse = ", "),
-          call. = FALSE
-        )
-      }
-    }
+    prepared <- mStat_prepare_alpha_inputs(
+      data.obj = data.obj,
+      alpha.obj = alpha.obj,
+      alpha.name = alpha.name,
+      depth = depth,
+      time.var = time.var,
+      t.level = t.level
+    )
+    data.obj <- prepared$data.obj
+    alpha.obj <- prepared$alpha.obj
 
     # Generate tests
     test.list <- lapply(alpha.name, function(alpha.name) {
@@ -105,8 +82,8 @@ generate_alpha_test_single <-
       # Join the alpha diversity index with metadata
       merged_df <-
         dplyr::inner_join(
-          df %>% rownames_to_column("sample"),
-          data.obj$meta.dat %>% rownames_to_column("sample"),
+          df %>% tibble::rownames_to_column("sample"),
+          data.obj$meta.dat %>% tibble::rownames_to_column("sample"),
           by = "sample"
         )
 
@@ -125,8 +102,8 @@ generate_alpha_test_single <-
 
       coef.tab <- summary$coefficients %>%
         as.data.frame() %>%
-        rownames_to_column("Term") %>%
-        as_tibble()
+        tibble::rownames_to_column("Term") %>%
+        tibble::as_tibble()
 
       # Rearrange the table
       coef.tab <-
@@ -143,7 +120,7 @@ generate_alpha_test_single <-
         anova <- anova(lm.model)
         anova.tab <- anova %>%
           as.data.frame() %>%
-          rownames_to_column("Term") %>%
+          tibble::rownames_to_column("Term") %>%
           dplyr::select(
             Term,
             Statistic = `F value`,
@@ -160,7 +137,7 @@ generate_alpha_test_single <-
           dplyr::filter(
             Term == group.var
           ) %>%
-          as_tibble()
+          tibble::as_tibble()
 
         coef.tab <-
           rbind(coef.tab, anova.tab)

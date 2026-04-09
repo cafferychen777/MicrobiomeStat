@@ -34,53 +34,49 @@
 #'
 #' @export
 mStat_convert_MRExperiment_to_data_obj <- function (mr.obj) {
-
-  # Initialize an empty list to store the converted data
-  # This list will contain three main components: feature table, metadata, and feature annotations
-  # The structure mimics the standard format used in MicrobiomeStat for consistency across analyses
-  data.obj <- list()
-
-  # Extract and process the expression data (feature table)
-  if (!is.null(exprs(mr.obj))) {
-    # Convert the expression matrix to a data frame, then to a matrix
-    # This ensures consistent data structure and allows for easier manipulation
-    data.obj$feature.tab <- exprs(mr.obj) %>%
-      as.data.frame() %>%
-      as.matrix()
-
-    # Remove features (rows) with zero counts across all samples
-    # This step is crucial in microbiome data analysis to reduce sparsity and focus on informative features
-    # It helps to improve statistical power and reduce computational burden in downstream analyses
-    data.obj$feature.tab <- data.obj$feature.tab[rowSums(data.obj$feature.tab) > 0, ]
+  if (!requireNamespace("metagenomeSeq", quietly = TRUE)) {
+    stop(
+      "Package 'metagenomeSeq' is required to convert MRExperiment objects.",
+      call. = FALSE
+    )
+  }
+  if (!requireNamespace("Biobase", quietly = TRUE)) {
+    stop(
+      "Package 'Biobase' is required to convert MRExperiment objects.",
+      call. = FALSE
+    )
   }
 
-  # Extract and process the phenotype data (sample metadata)
-  if (!is.null(pData(mr.obj))) {
-    # Convert the phenotype data to a data frame
-    # This preserves the sample-level information associated with the expression data
-    # Phenotype data typically includes experimental factors, clinical variables, and other relevant metadata
-    data.obj$meta.dat <- pData(mr.obj) %>%
+  data.obj <- list()
+
+  expr_data <- metagenomeSeq::MRcounts(mr.obj)
+  if (!is.null(expr_data)) {
+    data.obj$feature.tab <- expr_data %>%
+      as.data.frame() %>%
+      as.matrix()
+    data.obj$feature.tab <- data.obj$feature.tab[rowSums(data.obj$feature.tab) > 0, , drop = FALSE]
+  }
+
+  pheno_data <- Biobase::pData(mr.obj)
+  if (!is.null(pheno_data)) {
+    data.obj$meta.dat <- pheno_data %>%
       as.data.frame()
   }
 
-  # Extract and process the feature data (feature annotations)
-  if (!is.null(fData(mr.obj))) {
-    # Convert the feature data to a data frame, then to a matrix
-    # This ensures consistent structure with the feature table
-    data.obj$feature.ann <- fData(mr.obj) %>%
+  feature_data <- Biobase::fData(mr.obj)
+  if (!is.null(feature_data)) {
+    data.obj$feature.ann <- feature_data %>%
       as.data.frame() %>%
       as.matrix()
 
-    # Ensure that feature annotations correspond to the features in the expression data
-    # This step is crucial for maintaining data integrity and consistency
-    # It allows for accurate mapping between features and their annotations in downstream analyses
-    if (exists("feature.tab", data.obj)) {
-      data.obj$feature.ann <- data.obj$feature.ann[rownames(data.obj$feature.ann) %in% rownames(data.obj$feature.tab), ]
+    if (!is.null(data.obj$feature.tab)) {
+      data.obj$feature.ann <- data.obj$feature.ann[
+        rownames(data.obj$feature.tab),
+        ,
+        drop = FALSE
+      ]
     }
   }
 
-  # Return the converted data object
-  # This object now contains the expression data, sample metadata, and feature annotations in a standardized format
-  # The returned object can be seamlessly integrated into the MicrobiomeStat analysis pipeline
   return(data.obj)
 }

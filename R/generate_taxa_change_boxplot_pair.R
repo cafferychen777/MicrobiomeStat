@@ -101,7 +101,7 @@ generate_taxa_change_boxplot_pair <-
            pdf.hei = 8.5,
            ...) {
     # Validate input data
-    mStat_validate_data(data.obj)
+    data.obj <- mStat_validate_data(data.obj)
 
     # Match and validate the feature data type
     feature.dat.type <- match.arg(feature.dat.type)
@@ -119,10 +119,11 @@ generate_taxa_change_boxplot_pair <-
       stop("`strata.var` should be a character string or NULL.")
 
     # Extract metadata
-    meta_tab <-
+    meta_tab <- mStat_meta_with_sample(
       data.obj$meta.dat %>% as.data.frame() %>% select(all_of(c(
         subject.var, time.var, group.var, strata.var
-      ))) %>% rownames_to_column("sample")
+      )))
+    )
 
     # Get plot theme
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
@@ -173,14 +174,13 @@ generate_taxa_change_boxplot_pair <-
       features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
       }
 
-      # Reshape data for plotting
-      otu_tax_agg_numeric <- otu_tax_agg %>%
-        tidyr::gather(key = "sample", value = "value", -all_of(feature.level)) %>%
-        dplyr::mutate(value = as.numeric(value))
-
-      # Merge OTU data with metadata
       otu_tax_agg_merged <-
-        dplyr::left_join(otu_tax_agg_numeric, meta_tab, by = "sample") %>%
+        mStat_prepare_taxa_long_data(
+          feature.dat = otu_tax_agg,
+          feature.level = feature.level,
+          value_col = "value",
+          meta.dat = meta_tab
+        ) %>%
         select(all_of(
           c(
             "sample",
@@ -193,15 +193,17 @@ generate_taxa_change_boxplot_pair <-
           )
         ))
 
-      # Identify the time point after the change base
-      change.after <-
-        unique(otu_tax_agg_merged %>% select(all_of(c(time.var))))[unique(otu_tax_agg_merged %>% select(all_of(c(time.var)))) != change.base]
+      pair_times <- mStat_resolve_pair_timepoints(
+        values = otu_tax_agg_merged[[time.var]],
+        time.var = time.var,
+        change.base = change.base,
+        context = "taxa change boxplotting"
+      )
+      change.base <- pair_times$change.base
+      change.after <- pair_times$change.after
 
       # Split data into separate tibbles for each time point
-      split_data <-
-        split(otu_tax_agg_merged,
-              f = otu_tax_agg_merged %>%
-                dplyr::group_by(!!sym(time.var)) %>% select(all_of(c(time.var))))
+      split_data <- split(otu_tax_agg_merged, f = as.character(otu_tax_agg_merged[[time.var]]))
 
       # Extract data for the base time point and the change time point
       data_time_1 <- split_data[[change.base]]

@@ -135,39 +135,14 @@ generate_alpha_test_pair <-
       return()
     }
 
-    # Calculate alpha diversity if not provided
-    # This ensures we have the necessary diversity metrics for the analysis
-    if (is.null(alpha.obj)) {
-      # Perform rarefaction if depth is specified
-      # Rarefaction standardizes sampling effort across all samples
-      if (!is.null(depth)) {
-        message(
-          "Detected that the 'depth' parameter is not NULL. Proceeding with rarefaction. Call 'mStat_rarefy_data' to rarefy the data!"
-        )
-        data.obj <- mStat_rarefy_data(data.obj, depth = depth)
-      }
-      otu_tab <- data.obj$feature.tab
-      
-      # Extract tree if faith_pd is requested
-      tree <- NULL
-      if ("faith_pd" %in% alpha.name) {
-        tree <- data.obj$tree
-      }
-      
-      alpha.obj <-
-        mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name, tree = tree)
-    } else {
-      # Verify that all requested alpha diversity indices are available
-      if (!all(alpha.name %in% unlist(lapply(alpha.obj, function(x)
-        colnames(x))))) {
-        missing_alphas <- alpha.name[!alpha.name %in% names(alpha.obj)]
-        stop(
-          "The following alpha diversity indices are not available in alpha.obj: ",
-          paste(missing_alphas, collapse = ", "),
-          call. = FALSE
-        )
-      }
-    }
+    prepared <- mStat_prepare_alpha_inputs(
+      data.obj = data.obj,
+      alpha.obj = alpha.obj,
+      alpha.name = alpha.name,
+      depth = depth
+    )
+    data.obj <- prepared$data.obj
+    alpha.obj <- prepared$alpha.obj
 
     # Extract relevant metadata for the analysis
     meta_tab <-
@@ -188,10 +163,12 @@ generate_alpha_test_pair <-
 
     # Combine alpha diversity data with metadata
     # This creates a comprehensive dataset for our analysis
-    alpha_df <-
-      dplyr::bind_cols(alpha.obj) %>% rownames_to_column("sample") %>%
-      dplyr::inner_join(meta_tab %>% rownames_to_column("sample"),
-                        by = c("sample"))
+    alpha_df <- mStat_prepare_alpha_data(
+      alpha.obj = alpha.obj,
+      meta.dat = meta_tab,
+      sample_col = "sample",
+      join = "inner"
+    )
 
     # Determine the number of levels in the group variable if it exists
     # This information is used later to decide between t-test and ANOVA
@@ -274,11 +251,11 @@ generate_alpha_test_pair <-
       if (group.levels > 2) {
         anova.tab <- anova(lme.model) %>%
           as.data.frame() %>%
-          rownames_to_column("Term") %>%
+          tibble::rownames_to_column("Term") %>%
           dplyr::select(Term,
                         Statistic = `F value`,
                         P.Value = `Pr(>F)`) %>%
-          as_tibble() %>%
+          tibble::as_tibble() %>%
           dplyr::mutate(Estimate = NA, Std.Error = NA) %>%
           dplyr::select(
             Term,
@@ -295,7 +272,7 @@ generate_alpha_test_pair <-
       }
     }
 
-      return(as_tibble(coef.tab))
+      return(tibble::as_tibble(coef.tab))
     })
 
     # Assign names to the elements of test.list based on the alpha diversity indices

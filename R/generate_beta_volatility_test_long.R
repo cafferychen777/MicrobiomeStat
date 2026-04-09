@@ -70,7 +70,7 @@ generate_beta_volatility_test_long <-
     }
 
     # Validate the input data object
-    mStat_validate_data(data.obj)
+    data.obj <- mStat_validate_data(data.obj)
 
     # Inform the user about the importance of numeric time variable
     message(
@@ -84,6 +84,8 @@ generate_beta_volatility_test_long <-
     if (is.null(dist.obj)) {
       # Extract relevant metadata
       meta_tab <- data.obj$meta.dat %>% select(all_of(c(subject.var, time.var, group.var, adj.vars)))
+      data.obj <- mStat_process_time_variable(data.obj, time.var)
+      meta_tab <- data.obj$meta.dat %>% select(all_of(c(subject.var, time.var, group.var, adj.vars)))
       # Calculate beta diversity
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
@@ -92,29 +94,36 @@ generate_beta_volatility_test_long <-
         dist.obj <- mStat_calculate_adjusted_distance(data.obj = data.obj, dist.obj = dist.obj, adj.vars = adj.vars, dist.name = dist.name)
       }
     } else {
-      # If distance object is provided, extract metadata from the appropriate source
-      if (!is.null(data.obj) & !is.null(data.obj$meta.dat)){
-        meta_tab <- data.obj$meta.dat %>% select(all_of(c(subject.var, time.var, group.var, adj.vars)))
-      } else {
-        meta_tab <- attr(dist.obj[[dist.name[1]]], "labels") %>% select(all_of(c(subject.var, time.var, group.var, adj.vars)))
-      }
+      prepared_context <- mStat_prepare_precomputed_beta_context(
+        dist.obj = dist.obj,
+        dist.name = dist.name,
+        data.obj = data.obj,
+        time.var = time.var,
+        process_time = TRUE
+      )
+      data.obj <- prepared_context$data.obj
+      dist.obj <- prepared_context$dist.obj
+      meta_tab <- mStat_extract_dist_metadata(
+        dist.obj = dist.obj,
+        dist.name = dist.name,
+        vars = c(subject.var, time.var, group.var, adj.vars),
+        data.obj = data.obj
+      )
     }
 
-    # Ensure the distance object and metadata have matching dimensions
-    if (nrow(as.matrix(dist.obj[[dist.name[1]]])) > nrow(meta_tab)){
-      samIDs <- rownames(meta_tab)
-      dist.obj <- mStat_subset_dist(dist.obj = dist.obj, samIDs = samIDs)
-    }
+    mStat_validate_group_var_contract(
+      meta.dat = meta_tab,
+      group.var = group.var,
+      subject.var = subject.var,
+      context = "beta volatility testing"
+    )
 
     # Perform volatility test for each distance metric
     test.list <- lapply(dist.name,function(dist.name){
 
       # Convert distance matrix to long format
-      dist.df <- as.matrix(dist.obj[[dist.name]])
-      dist.df <- dist.df %>%
-        as.data.frame() %>%
-        rownames_to_column("sample")
-      meta_tab <- meta_tab %>% rownames_to_column("sample")
+      dist.df <- mStat_dist_to_tibble(dist.obj[[dist.name]], sample_col = "sample")
+      meta_tab <- mStat_meta_to_tibble(meta_tab, sample_col = "sample")
 
       # Prepare data for volatility analysis
       # This step calculates the distance between consecutive time points for each subject
@@ -139,9 +148,16 @@ generate_beta_volatility_test_long <-
         )
 
       # Ensure time variables are numeric
-      long.df <- long.df %>%
-        dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)),
-               !!sym(paste0(time.var, ".before")) := as.numeric(!!sym(paste0(time.var, ".before"))))
+      long.df[[time.var]] <- mStat_coerce_time_to_numeric(
+        long.df[[time.var]],
+        time.var = time.var,
+        context = "beta volatility analysis"
+      )
+      long.df[[paste0(time.var, ".before")]] <- mStat_coerce_time_to_numeric(
+        long.df[[paste0(time.var, ".before")]],
+        time.var = paste0(time.var, ".before"),
+        context = "beta volatility analysis"
+      )
 
       # Calculate volatility for each subject
       # Volatility is defined as the mean of distances divided by time differences
@@ -161,7 +177,7 @@ generate_beta_volatility_test_long <-
       test_df <- volatility_df %>%
         dplyr::left_join(meta_tab %>%
                            select(all_of(c(subject.var, group.var))) %>%
-                           dplyr::distinct(), by = subject.var, relationship = "many-to-many")
+                           dplyr::distinct(), by = subject.var, relationship = "many-to-one")
 
       # Test the association between volatility and group variable using linear regression
       formula <- as.formula(paste("volatility ~", group.var))
@@ -175,15 +191,15 @@ generate_beta_volatility_test_long <-
         anova <- anova(test_result)
         # Format ANOVA results to match coefficient table structure
         anova.tab <- anova %>% as.data.frame() %>%
-          rownames_to_column("Term") %>%
-          select(
+          tibble::rownames_to_column("Term") %>%
+          dplyr::select(
             Term,
             Statistic = `F value`,
             P.Value = `Pr(>F)`
           ) %>%
           dplyr::mutate(Estimate = NA, Std.Error = NA) %>%
-          as_tibble() %>%
-          select(
+          tibble::as_tibble() %>%
+          dplyr::select(
             Term,
             Estimate,
             Std.Error,
@@ -196,7 +212,7 @@ generate_beta_volatility_test_long <-
           rbind(coef.tab, anova.tab)
       }
 
-      return(as_tibble(coef.tab))
+      return(tibble::as_tibble(coef.tab))
     })
 
     # Assign names to the elements of test.list

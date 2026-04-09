@@ -15,6 +15,116 @@ is_count_data <- function(data_mat) {
   all(data_mat == floor(data_mat) & data_mat >= 0)
 }
 
+mStat_sanitize_scale_factor <- function(scale_factor, otu_tab, method) {
+  scale_factor <- as.numeric(scale_factor)
+  names(scale_factor) <- colnames(otu_tab)
+
+  zero_samples <- colSums(otu_tab, na.rm = TRUE) == 0
+  if (any(zero_samples)) {
+    warning(
+      sum(zero_samples),
+      " sample(s) have zero total counts and cannot be meaningfully normalized with ",
+      method,
+      ". Using scale factor 1 to preserve zero profiles."
+    )
+    scale_factor[zero_samples] <- 1
+  }
+
+  invalid <- !is.finite(scale_factor) | scale_factor <= 0
+  invalid[zero_samples] <- FALSE
+  if (any(invalid)) {
+    stop(
+      "Failed to compute positive finite scale factors for ",
+      method,
+      " normalization."
+    )
+  }
+
+  scale_factor
+}
+
+mStat_apply_scale_factor <- function(otu_tab, scale_factor) {
+  normalized_tab <- as.matrix(sweep(otu_tab, 2, scale_factor, "/"))
+
+  non_finite <- !is.finite(normalized_tab)
+  if (any(non_finite)) {
+    warning("NaN or Inf values detected after normalization. Setting these values to 0.")
+    normalized_tab[non_finite] <- 0
+  }
+
+  normalized_tab
+}
+
+mStat_compute_deseq_size_factors <- function(otu_tab) {
+  otu_mat <- as.matrix(otu_tab)
+  positive_everywhere <- rowSums(otu_mat <= 0) == 0
+
+  if (any(positive_everywhere)) {
+    geo_means <- exp(rowMeans(log(otu_mat[positive_everywhere, , drop = FALSE])))
+    ratio_mat <- sweep(otu_mat[positive_everywhere, , drop = FALSE], 1, geo_means, "/")
+    size_factor <- apply(ratio_mat, 2, function(x) {
+      stats::median(x[is.finite(x) & x > 0], na.rm = TRUE)
+    })
+  } else {
+    warning(
+      "Standard DESeq median-ratio normalization requires features that are positive in every sample. ",
+      "Falling back to a positive-count geometric mean variant for sparse data."
+    )
+
+    positive_mask <- otu_mat > 0
+    positive_per_feature <- rowSums(positive_mask)
+    valid_features <- positive_per_feature > 0
+
+    if (!any(valid_features)) {
+      size_factor <- rep(1, ncol(otu_mat))
+      names(size_factor) <- colnames(otu_mat)
+      return(size_factor)
+    }
+
+    log_counts <- matrix(
+      0,
+      nrow = nrow(otu_mat),
+      ncol = ncol(otu_mat),
+      dimnames = dimnames(otu_mat)
+    )
+    log_counts[positive_mask] <- log(otu_mat[positive_mask])
+
+    geo_means <- exp(rowSums(log_counts) / positive_per_feature)
+    ratio_mat <- sweep(otu_mat[valid_features, , drop = FALSE], 1, geo_means[valid_features], "/")
+    ratio_mat[ratio_mat <= 0] <- NA_real_
+
+    size_factor <- apply(ratio_mat, 2, function(x) {
+      stats::median(x[is.finite(x) & x > 0], na.rm = TRUE)
+    })
+  }
+
+  names(size_factor) <- colnames(otu_mat)
+
+  finite_positive <- is.finite(size_factor) & size_factor > 0
+  if (any(finite_positive)) {
+    size_factor[finite_positive] <- size_factor[finite_positive] /
+      exp(mean(log(size_factor[finite_positive])))
+  }
+
+  size_factor
+}
+
+mStat_compute_tmm_scale_factors <- function(otu_tab) {
+  if (!requireNamespace("edgeR", quietly = TRUE)) {
+    stop(
+      "Package 'edgeR' required for TMM normalization.\n",
+      "Install with: BiocManager::install('edgeR')"
+    )
+  }
+
+  dge <- edgeR::DGEList(counts = as.matrix(otu_tab))
+  dge <- edgeR::calcNormFactors(dge, method = "TMM")
+
+  scale_factor <- dge$samples$lib.size * dge$samples$norm.factors
+  names(scale_factor) <- colnames(otu_tab)
+  scale_factor
+}
+
 #' Normalize a MicrobiomeStat Data Object
 #'
 #' Normalizes feature abundance data using various methods.
@@ -83,7 +193,7 @@ mStat_normalize_data <-
 
     # Extract the OTU (Operational Taxonomic Unit) table from the input data object
     # The feature table is the core data structure in microbiome analysis, representing taxon abundances across samples
-    otu_tab <- as.data.frame(data.obj$feature.tab)
+    otu_tab <- as.matrix(data.obj$feature.tab)
 
     # Validate and select the normalization method
     # This step ensures that only supported methods are used
@@ -103,6 +213,8 @@ mStat_normalize_data <-
 
       if (is.null(depth)) {
         depth <- min_depth
+      } else if (!is.numeric(depth) || length(depth) != 1 || !is.finite(depth) || depth < 0) {
+        stop("Depth should be a single non-negative finite number.")
       } else if (depth > min_depth) {
         stop("Depth is greater than the smallest total count across samples.")
       }
@@ -124,19 +236,19 @@ mStat_normalize_data <-
     } else if (method == "TSS") {
       # Total Sum Scaling
       # This method converts counts to relative abundances
-      scale_factor <- colSums(otu_tab, na.rm = TRUE)
-      
-      # Check for zero-sum samples and handle them gracefully
-      zero_samples <- which(scale_factor == 0)
-      if (length(zero_samples) > 0) {
-        warning(paste("Found", length(zero_samples), "samples with zero total counts.",
-                      "Setting scale factor to 1 for these samples to avoid division by zero."))
-        scale_factor[zero_samples] <- 1
-      }
+      scale_factor <- mStat_sanitize_scale_factor(
+        colSums(otu_tab, na.rm = TRUE),
+        otu_tab,
+        method
+      )
     } else if (method == "GMPR") {
       # Geometric Mean of Pairwise Ratios
       # This method is robust to compositional effects and uneven sequencing depth
-      scale_factor <- GUniFrac::GMPR(otu_tab)
+      scale_factor <- mStat_sanitize_scale_factor(
+        GUniFrac::GMPR(otu_tab),
+        otu_tab,
+        method
+      )
     } else if (method == "CSS") {
       # Cumulative Sum Scaling (Paulson et al. 2013, Nature Methods)
       # CSS normalizes by the cumulative sum up to a data-driven quantile
@@ -162,57 +274,36 @@ mStat_normalize_data <-
       css_factors_df <- metagenomeSeq::calcNormFactors(mr_obj, p = p)
 
       # Extract normalization factors as a vector
-      scale_factor <- css_factors_df$normFactors
-      names(scale_factor) <- rownames(css_factors_df)
+      scale_factor <- mStat_sanitize_scale_factor(
+        setNames(css_factors_df$normFactors, rownames(css_factors_df)),
+        otu_tab,
+        method
+      )
 
       message(paste0("CSS normalization using quantile threshold p = ", round(p, 3)))
     } else if (method == "DESeq") {
-      # DESeq normalization
-      # This method is particularly useful for RNA-seq data from microbiome studies
-      scale_factor <- apply(otu_tab, 2, function(x) {
-        positive_vals <- x[x > 0]
-        # Handle edge case: if no positive values, return NA
-        if (length(positive_vals) == 0) {
-          return(NA_real_)
-        }
-        sum(x) / exp(mean(log(positive_vals)))
-      })
-      # Warn about samples with NA scale factors (all zeros)
-      if (any(is.na(scale_factor))) {
-        n_na <- sum(is.na(scale_factor))
-        warning(
-          n_na, " sample(s) have all zero counts and cannot be normalized with DESeq method. ",
-          "These samples will have NA scale factors."
-        )
-      }
+      # DESeq median-ratio normalization.
+      # Use a sparse-data fallback when no feature is positive in every sample.
+      scale_factor <- mStat_sanitize_scale_factor(
+        mStat_compute_deseq_size_factors(otu_tab),
+        otu_tab,
+        method
+      )
     } else if (method == "TMM") {
-      # TMM normalization (Trimmed Mean of M-values)
-      # This method is robust to compositional effects and uneven sequencing depth
-
-      # Check for edgeR package
-      if (!requireNamespace("edgeR", quietly = TRUE)) {
-        stop(
-          "Package 'edgeR' required for TMM normalization.\n",
-          "Install with: BiocManager::install('edgeR')"
-        )
-      }
-
-      # Calculate TMM normalization factors
-      scale_factor <- edgeR::calcNormFactors(otu_tab, method = "TMM")
+      # TMM normalization uses edgeR composition factors together with library sizes.
+      scale_factor <- mStat_sanitize_scale_factor(
+        mStat_compute_tmm_scale_factors(otu_tab),
+        otu_tab,
+        method
+      )
     } else {
       stop("Invalid normalization method.")
     }
 
     if (method %in% c("TSS", "GMPR", "CSS", "DESeq", "TMM")) {
       # Normalize the data
-      normalized_tab <- as.matrix(sweep(otu_tab, 2, scale_factor, "/"))
-      
-      # Check for and handle NaN/Inf values that may result from division
-      if (any(is.nan(normalized_tab)) || any(is.infinite(normalized_tab))) {
-        warning("NaN or Inf values detected after normalization. Setting these values to 0.")
-        normalized_tab[is.nan(normalized_tab) | is.infinite(normalized_tab)] <- 0
-      }
-      
+      normalized_tab <- mStat_apply_scale_factor(otu_tab, scale_factor)
+
       data.obj.norm <- update_data_obj_count(data.obj, normalized_tab)
     } else {
       data.obj.norm <-

@@ -171,7 +171,7 @@ generate_taxa_barplot_single <-
     feature.dat.type <- match.arg(feature.dat.type)
 
     # Validate the input data object
-    mStat_validate_data(data.obj)
+    data.obj <- mStat_validate_data(data.obj)
 
     # Create a subject identifier from sample names (rownames)
     data.obj$meta.dat$subject.id <- rownames(data.obj$meta.dat)
@@ -278,11 +278,10 @@ generate_taxa_barplot_single <-
         otu_tax_agg <- otu_tax_agg[otu_tax_agg[[feature.level]] %in% features.plot,]
       }
 
-      # Transpose the data
-      otu_tab_counts <- apply(t(otu_tax_agg %>% select(-all_of(feature.level))), 1, function(x) x)
-      # Actually normalize to proportions for each sample (account for sequencing depth)
-      otu_tab_norm <- sweep(otu_tab_counts, 2, colSums(otu_tab_counts), "/")
-      rownames(otu_tab_norm) <- as.matrix(otu_tax_agg[, feature.level])
+      otu_tab_norm <- mStat_as_taxa_composition_matrix(
+        feature.dat = otu_tax_agg,
+        feature.level = feature.level
+      )
 
       # Sort the metadata to match the feature table
       meta_tab_sorted <- meta_tab[colnames(otu_tab_norm), ]
@@ -293,7 +292,7 @@ generate_taxa_barplot_single <-
       # Prepare data for plotting, grouping less abundant features as "Other"
       otu_tab_other <- otu_tab_norm %>%
         as.data.frame() %>%
-        rownames_to_column(feature.level)
+        tibble::rownames_to_column(feature.level)
 
       # Determine the abundance cutoff for "Other" category
       other.abund.cutoff <- sort(avg_abund, decreasing=TRUE)[feature.number]
@@ -310,7 +309,7 @@ generate_taxa_barplot_single <-
 
       # Merge feature data with metadata
       merged_long_df <- otu_tab_long %>%
-        dplyr::inner_join(meta_tab_sorted  %>% rownames_to_column("sample"), by = "sample")
+        dplyr::inner_join(meta_tab_sorted %>% tibble::rownames_to_column("sample"), by = "sample")
 
       # Sort the data by subject
       sorted_merged_long_df <- merged_long_df %>%

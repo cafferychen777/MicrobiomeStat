@@ -332,5 +332,5 @@ mStat_summarize_data_obj <-
     table1$Value[is_numeric][has_more_than_three_decimals] <- round(as.numeric(table1$Value[is_numeric][has_more_than_three_decimals]), 3)
 
     # Return the summary table as a tibble for easier viewing and manipulation
-    return(as_tibble(table1))
+    return(tibble::as_tibble(table1))
   }

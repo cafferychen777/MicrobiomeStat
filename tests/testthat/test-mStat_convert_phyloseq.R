@@ -139,6 +139,122 @@ test_that("mStat_convert_phyloseq_to_data_obj handles square matrices correctly"
   expect_true(all(grepl("^Sample", colnames(data_obj_sq_cols$feature.tab))))
 })
 
+test_that("mStat_convert_SummarizedExperiment_to_data_obj keeps aligned feature annotations", {
+  skip_if_not_installed("SummarizedExperiment")
+  skip_if_not_installed("S4Vectors")
+
+  se <- SummarizedExperiment::SummarizedExperiment(
+    assays = list(counts = matrix(
+      c(1, 2,
+        0, 0,
+        3, 4),
+      nrow = 3,
+      byrow = TRUE,
+      dimnames = list(c("f1", "f2", "f3"), c("s1", "s2"))
+    )),
+    rowData = S4Vectors::DataFrame(phylum = c("p1", "p2", "p3"), row.names = c("f1", "f2", "f3")),
+    colData = S4Vectors::DataFrame(group = c("A", "B"), row.names = c("s1", "s2"))
+  )
+
+  data.obj <- mStat_convert_SummarizedExperiment_to_data_obj(se)
+
+  expect_identical(rownames(data.obj$feature.tab), c("f1", "f3"))
+  expect_identical(rownames(data.obj$feature.ann), c("f1", "f3"))
+  expect_equal(dim(data.obj$feature.ann), c(2L, 1L))
+  expect_identical(rownames(data.obj$meta.dat), c("s1", "s2"))
+})
+
+test_that("mStat_convert_DESeqDataSet_to_data_obj keeps aligned feature annotations", {
+  skip_if_not_installed("DESeq2")
+  skip_if_not_installed("S4Vectors")
+
+  dds <- DESeq2::DESeqDataSetFromMatrix(
+    countData = matrix(
+      c(1, 2,
+        0, 0,
+        3, 4),
+      nrow = 3,
+      byrow = TRUE,
+      dimnames = list(c("f1", "f2", "f3"), c("s1", "s2"))
+    ),
+    colData = S4Vectors::DataFrame(group = c("A", "B"), row.names = c("s1", "s2")),
+    design = ~ 1
+  )
+  SummarizedExperiment::rowData(dds)$phylum <- c("p1", "p2", "p3")
+
+  data.obj <- mStat_convert_DESeqDataSet_to_data_obj(dds)
+
+  expect_identical(rownames(data.obj$feature.tab), c("f1", "f3"))
+  expect_identical(rownames(data.obj$feature.ann), c("f1", "f3"))
+  expect_equal(dim(data.obj$feature.ann), c(2L, 1L))
+  expect_identical(rownames(data.obj$meta.dat), c("s1", "s2"))
+})
+
+test_that("mStat_convert_MRExperiment_to_data_obj keeps aligned feature annotations", {
+  skip_if_not_installed("metagenomeSeq")
+  skip_if_not_installed("Biobase")
+
+  mr <- metagenomeSeq::newMRexperiment(
+    counts = matrix(
+      c(1, 2,
+        0, 0,
+        3, 4),
+      nrow = 3,
+      byrow = TRUE,
+      dimnames = list(c("f1", "f2", "f3"), c("s1", "s2"))
+    ),
+    phenoData = Biobase::AnnotatedDataFrame(
+      data.frame(group = c("A", "B"), row.names = c("s1", "s2"))
+    ),
+    featureData = Biobase::AnnotatedDataFrame(
+      data.frame(phylum = c("p1", "p2", "p3"), row.names = c("f1", "f2", "f3"))
+    )
+  )
+
+  data.obj <- mStat_convert_MRExperiment_to_data_obj(mr)
+
+  expect_identical(rownames(data.obj$feature.tab), c("f1", "f3"))
+  expect_identical(rownames(data.obj$feature.ann), c("f1", "f3"))
+  expect_equal(dim(data.obj$feature.ann), c(2L, 1L))
+  expect_identical(rownames(data.obj$meta.dat), c("s1", "s2"))
+})
+
+test_that("mStat_convert_MultiAssayExperiment_to_data_obj extracts named experiment with namespace-safe access", {
+  skip_if_not_installed("MultiAssayExperiment")
+  skip_if_not_installed("SummarizedExperiment")
+  skip_if_not_installed("S4Vectors")
+
+  se1 <- SummarizedExperiment::SummarizedExperiment(
+    assays = list(counts = matrix(
+      c(1, 2,
+        0, 0,
+        3, 4),
+      nrow = 3,
+      byrow = TRUE,
+      dimnames = list(c("f1", "f2", "f3"), c("s1", "s2"))
+    ))
+  )
+  se2 <- SummarizedExperiment::SummarizedExperiment(
+    assays = list(counts = matrix(
+      c(5, 6,
+        7, 8),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(c("g1", "g2"), c("s1", "s2"))
+    ))
+  )
+  mae <- MultiAssayExperiment::MultiAssayExperiment(
+    experiments = list(rna = se1, taxa = se2),
+    colData = S4Vectors::DataFrame(group = c("A", "B"), row.names = c("s1", "s2"))
+  )
+
+  data.obj <- mStat_convert_MultiAssayExperiment_to_data_obj(mae, experiment_name = "taxa")
+
+  expect_identical(rownames(data.obj$feature.tab), c("g1", "g2"))
+  expect_identical(colnames(data.obj$feature.tab), c("s1", "s2"))
+  expect_identical(rownames(data.obj$meta.dat), c("s1", "s2"))
+})
+
 test_that("mStat_convert_phyloseq_to_data_obj removes zero-sum features correctly", {
   # Skip if phyloseq is not installed
   skip_if_not_installed("phyloseq")

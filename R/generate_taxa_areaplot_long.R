@@ -156,7 +156,7 @@ generate_taxa_areaplot_long <-
     feature.dat.type <- match.arg(feature.dat.type)
     
     # Validate the input data object
-    mStat_validate_data(data.obj)
+    data.obj <- mStat_validate_data(data.obj)
 
     # Check if the input variables are of the correct type
     if (!is.character(subject.var))
@@ -235,11 +235,10 @@ generate_taxa_areaplot_long <-
         otu_tax_agg <- otu_tax_agg[otu_tax_agg[[feature.level]] %in% features.plot,]
       }
 
-      # Transpose the data
-      otu_tab_counts <- apply(t(otu_tax_agg %>% select(-all_of(feature.level))), 1, function(x) x)
-      # Actually normalize to proportions for each sample (account for sequencing depth)
-      otu_tab_norm <- sweep(otu_tab_counts, 2, colSums(otu_tab_counts), "/")
-      rownames(otu_tab_norm) <- as.matrix(otu_tax_agg[, feature.level])
+      otu_tab_norm <- mStat_as_taxa_composition_matrix(
+        feature.dat = otu_tax_agg,
+        feature.level = feature.level
+      )
 
       meta_tab_sorted <- meta_tab[colnames(otu_tab_norm), ]
 
@@ -249,7 +248,7 @@ generate_taxa_areaplot_long <-
       # Replace taxon with "Other" for relative abundance below threshold
       otu_tab_other <- otu_tab_norm %>%
         as.data.frame() %>%
-        rownames_to_column(feature.level)
+        tibble::rownames_to_column(feature.level)
 
       # Threshold the relative abundance below after feature.number
       other.abund.cutoff <- sort(avg_abund, decreasing=TRUE)[feature.number]
@@ -267,7 +266,7 @@ generate_taxa_areaplot_long <-
       # Merge feature data with metadata
       merged_long_df <- otu_tab_long %>%
         dplyr::inner_join(meta_tab_sorted  %>%
-                            rownames_to_column("sample"), by = "sample")
+                            tibble::rownames_to_column("sample"), by = "sample")
 
       # Sort the merged data
       sorted_merged_long_df <- merged_long_df %>%
@@ -387,14 +386,7 @@ generate_taxa_areaplot_long <-
         df_average %>%
         ggplot(aes(x = joint_factor_numeric, y = mean_value, fill = !!sym(feature.level))) +
         geom_area(stat = "identity", position = "fill") +
-        {
-          # Adjust y-axis scale based on data type
-          if (all(round(apply(otu_tax_agg %>% column_to_rownames(feature.level), 2, sum),2) == 1)){
-            scale_y_continuous(expand = c(0, 0), labels = scales::percent)
-          } else {
-            scale_y_continuous(expand = c(0, 0))
-          }
-        } +
+        scale_y_continuous(expand = c(0, 0), labels = scales::percent) +
         scale_x_continuous(expand = c(0.01, 0.01), breaks = unique(df_average$joint_factor_numeric), labels = labels) +
         {
           # Add faceting if group variable is present

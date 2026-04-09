@@ -99,7 +99,7 @@ generate_taxa_per_time_test_long <-
            feature.dat.type = c("count", "proportion", "other"),
            ...) {
     # Validate the input data object to ensure it meets the required format
-    mStat_validate_data(data.obj)
+    data.obj <- mStat_validate_data(data.obj)
 
     # Match the feature data type argument
     feature.dat.type <- match.arg(feature.dat.type)
@@ -234,17 +234,10 @@ generate_taxa_per_time_test_long <-
         }
 
         # Calculate average abundance and prevalence for each feature
-        prop_prev_data <-
-          otu_tax_agg_filter %>%
-          as.matrix() %>%
-          as.table() %>%
-          as.data.frame() %>%
-          dplyr::group_by(Var1) %>%
-          dplyr::summarise(
-            avg_abundance = mean(Freq),
-            prevalence = sum(Freq > 0) / dplyr::n()
-          ) %>% column_to_rownames("Var1") %>%
-          rownames_to_column(feature.level)
+        prop_prev_data <- mStat_summarize_taxa_features(
+          feature.dat = otu_tax_agg_filter,
+          feature.level = feature.level
+        )
 
         # Function to extract relevant data frames from LInDA output
         extract_data_frames <- function(linda_object, group_var = NULL) {
@@ -276,19 +269,11 @@ generate_taxa_per_time_test_long <-
 
         # Format and annotate results
         sub_test.list <- lapply(sub_test.list, function(df){
-          df <- df %>%
-            rownames_to_column(feature.level) %>%
-            dplyr::left_join(prop_prev_data, by = feature.level) %>%
-            dplyr::select(all_of(all_of(c(feature.level,"log2FoldChange","lfcSE","pvalue","padj","avg_abundance","prevalence")))) %>%
-            dplyr::rename(Variable = feature.level,
-                          Coefficient = log2FoldChange,
-                          SE = lfcSE,
-                          P.Value = pvalue,
-                          Adjusted.P.Value = padj,
-                          Mean.Abundance = avg_abundance,
-                          Prevalence = prevalence)
-
-          return(df)
+          mStat_format_linda_feature_results(
+            result.df = df,
+            feature.level = feature.level,
+            feature.stats = prop_prev_data
+          )
         })
 
         return(sub_test.list)

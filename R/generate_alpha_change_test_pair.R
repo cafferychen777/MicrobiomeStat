@@ -86,39 +86,14 @@ generate_alpha_change_test_pair <-
       return()
     }
 
-    # Calculate alpha diversity if not provided.
-    # This step ensures we have the necessary diversity metrics for the analysis.
-    if (is.null(alpha.obj)) {
-      # Perform rarefaction if depth is specified.
-      # Rarefaction standardizes the sequencing depth across samples, which is important for fair comparisons.
-      if (!is.null(depth)) {
-        message(
-          "Detected that the 'depth' parameter is not NULL. Proceeding with rarefaction. Call 'mStat_rarefy_data' to rarefy the data!"
-        )
-        data.obj <- mStat_rarefy_data(data.obj, depth = depth)
-      }
-      otu_tab <- data.obj$feature.tab
-      
-      # Extract tree if faith_pd is requested
-      tree <- NULL
-      if ("faith_pd" %in% alpha.name) {
-        tree <- data.obj$tree
-      }
-      
-      alpha.obj <- mStat_calculate_alpha_diversity(x = otu_tab, alpha.name = alpha.name, tree = tree)
-    } else {
-      # Verify that all requested alpha diversity indices are available.
-      # This ensures that we can proceed with the analysis using the specified indices.
-      if (!all(alpha.name %in% unlist(lapply(alpha.obj, function(x)
-        colnames(x))))) {
-        missing_alphas <- alpha.name[!alpha.name %in% names(alpha.obj)]
-        stop(
-          "The following alpha diversity indices are not available in alpha.obj: ",
-          paste(missing_alphas, collapse = ", "),
-          call. = FALSE
-        )
-      }
-    }
+    prepared <- mStat_prepare_alpha_inputs(
+      data.obj = data.obj,
+      alpha.obj = alpha.obj,
+      alpha.name = alpha.name,
+      depth = depth
+    )
+    data.obj <- prepared$data.obj
+    alpha.obj <- prepared$alpha.obj
 
     # Extract relevant metadata.
     # This step prepares the metadata for merging with the alpha diversity data.
@@ -143,42 +118,75 @@ generate_alpha_change_test_pair <-
       }
     }
 
+    mStat_validate_group_var_contract(
+      meta.dat = meta_tab,
+      group.var = group.var,
+      subject.var = subject.var,
+      context = "alpha change testing"
+    )
+
     # Combine alpha diversity and metadata.
     # This creates a comprehensive dataset for our analysis.
-    alpha_df <-
-      dplyr::bind_cols(alpha.obj) %>% rownames_to_column("sample") %>%
-      dplyr::inner_join(meta_tab %>% rownames_to_column("sample"),
-                 by = c("sample"))
+    alpha_df <- mStat_prepare_alpha_data(
+      alpha.obj = alpha.obj,
+      meta.dat = meta_tab,
+      sample_col = "sample",
+      join = "inner"
+    )
 
-    # Set change.base to first time point if not specified.
-    # This determines the reference point for calculating changes in alpha diversity.
-    if (is.null(change.base)){
-      change.base <- unique(alpha_df %>% dplyr::select(all_of(c(time.var))))[1,]
-      message("The 'change.base' variable was NULL. It has been set to the first unique value in the 'time.var' column of the 'alpha_df' data frame: ", change.base)
-    }
-
-    # Identify the time point after change.base.
-    # This will be used to calculate the change in alpha diversity.
-    change.after <-
-      unique(alpha_df %>% dplyr::select(all_of(c(time.var))))[unique(alpha_df %>% dplyr::select(all_of(c(time.var)))) != change.base]
+    pair_times <- mStat_resolve_pair_timepoints(
+      values = alpha_df[[time.var]],
+      time.var = time.var,
+      change.base = change.base,
+      context = "alpha change testing"
+    )
+    change.base <- pair_times$change.base
+    change.after <- pair_times$change.after
 
     # Split alpha diversity data by time points.
     # This separates the data into baseline and follow-up measurements.
-    alpha_grouped <- alpha_df %>% dplyr::group_by(!!sym(time.var))
-    alpha_split <- split(alpha_df, f = alpha_grouped[[time.var]])
+    alpha_split <- split(alpha_df, f = as.character(alpha_df[[time.var]]))
 
     alpha_time_1 <- alpha_split[[change.base]]
     alpha_time_2 <- alpha_split[[change.after]]
+
+    alpha_time_1 <- alpha_time_1 %>%
+      dplyr::group_by(!!sym(subject.var)) %>%
+      dplyr::summarise(
+        dplyr::across(all_of(alpha.name), ~ mean(.x, na.rm = TRUE)),
+        !!paste0(group.var, "_time_1") := dplyr::first(.data[[group.var]]),
+        dplyr::across(
+          any_of(time_varying_info$time_varying_vars),
+          ~ dplyr::first(.x),
+          .names = "{.col}_time_1"
+        ),
+        .groups = "drop"
+      )
+
+    alpha_time_2 <- alpha_time_2 %>%
+      dplyr::group_by(!!sym(subject.var)) %>%
+      dplyr::summarise(
+        dplyr::across(all_of(alpha.name), ~ mean(.x, na.rm = TRUE)),
+        !!paste0(group.var, "_time_2") := dplyr::first(.data[[group.var]]),
+        dplyr::across(
+          any_of(time_varying_info$time_varying_vars),
+          ~ dplyr::first(.x),
+          .names = "{.col}_time_2"
+        ),
+        .groups = "drop"
+      )
 
     # Combine alpha diversity data from two time points.
     # This step pairs the baseline and follow-up measurements for each subject.
     combined_alpha <- alpha_time_1 %>%
       dplyr::inner_join(
         alpha_time_2,
-        by = c(subject.var, group.var),
+        by = subject.var,
         suffix = c("_time_1", "_time_2"),
-        relationship = "many-to-many"
-      )
+        relationship = "one-to-one"
+      ) %>%
+      dplyr::mutate(!!group.var := .data[[paste0(group.var, "_time_1")]]) %>%
+      dplyr::select(-all_of(c(paste0(group.var, "_time_1"), paste0(group.var, "_time_2"))))
 
     # Calculate change in alpha diversity.
     # This is the core statistical operation of the function.
@@ -202,7 +210,9 @@ generate_alpha_change_test_pair <-
     # Rename time-varying variables to avoid confusion in the model.
     if (length(time_varying_info$time_varying_vars) > 0) {
       names_map <- setNames(paste0(time_varying_info$time_varying_vars, "_time_2"), time_varying_info$time_varying_vars)
+      drop_names <- paste0(time_varying_info$time_varying_vars, "_time_1")
       combined_alpha <- combined_alpha %>%
+        dplyr::select(-any_of(drop_names)) %>%
         rename(!!!names_map)
     }
 
@@ -236,19 +246,19 @@ generate_alpha_change_test_pair <-
           Statistic = `t value`,
           P.Value = `Pr(>|t|)`,
           Estimate
-        ) %>% as_tibble()
+        ) %>% tibble::as_tibble()
 
       # Perform ANOVA if the group variable has more than two levels.
       # This tests for overall differences among groups, rather than pairwise comparisons.
       if (length(unique(combined_alpha[[group.var]])) > 2) {
         anova <- anova(lm.model)
         anova.tab <- as.data.frame(anova) %>%
-          rownames_to_column("Term") %>%
+          tibble::rownames_to_column("Term") %>%
           dplyr::select(Term,
                         Statistic = `F value`,
                         P.Value = `Pr(>F)`) %>%
           dplyr::mutate(Estimate = NA, Std.Error = NA) %>%
-          as_tibble()
+          tibble::as_tibble()
 
         # Combine the coefficient table and ANOVA table.
         coef.tab <-

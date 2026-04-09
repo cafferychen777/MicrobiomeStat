@@ -103,7 +103,7 @@ generate_taxa_change_per_time_test_long <-
     feature.dat.type <- match.arg(feature.dat.type)
 
     # Validate the input data object to ensure it meets the required format
-    mStat_validate_data(data.obj)
+    data.obj <- mStat_validate_data(data.obj)
 
     # Check if the input variables are of the correct type
     if (!is.character(subject.var))

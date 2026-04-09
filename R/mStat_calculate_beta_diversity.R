@@ -103,18 +103,22 @@ mStat_calculate_beta_diversity <- function(data.obj,
   # Bray-Curtis quantifies the compositional dissimilarity between two different sites, based on counts at each site
   if ('BC' %in% dist.name) {
     message("Calculating Bray-Curtis dissimilarity...")
-    dist.obj$BC <- vegan::vegdist(t(otu_tab), method = 'bray')
+    dist.obj$BC <- mStat_attach_dist_metadata(
+      vegan::vegdist(t(otu_tab), method = 'bray'),
+      data.obj$meta.dat
+    )
   }
 
   # Calculate Jaccard dissimilarity if requested
   # Jaccard index measures dissimilarity between sample sets, and is defined as the size of the intersection divided by the size of the union of the sample sets
   if ('Jaccard' %in% dist.name) {
     message("Calculating Jaccard dissimilarity...")
-    dist.obj$Jaccard <- vegan::vegdist(t(otu_tab), method = 'jaccard')
+    dist.obj$Jaccard <- mStat_attach_dist_metadata(
+      vegan::vegdist(t(otu_tab), method = 'jaccard', binary = TRUE),
+      data.obj$meta.dat
+    )
   }
 
-  # Calculate UniFrac distances if any of UniFrac, GUniFrac, or WUniFrac are requested
-  # UniFrac incorporates phylogenetic distances between observed organisms in the computation
   if ('UniFrac' %in% dist.name || 'GUniFrac' %in% dist.name || 'WUniFrac' %in% dist.name) {
     message("Calculating UniFrac dissimilarities...")
     phy_tree <- data.obj$tree
@@ -130,39 +134,43 @@ mStat_calculate_beta_diversity <- function(data.obj,
       data.obj$tree <- phy_tree
     }
     
-    # Determine which alpha values to use based on the requested UniFrac variants
     alpha_values <- c()
-    if ('UniFrac' %in% dist.name) {
-      alpha_values <- c(alpha_values, 1)  # Unweighted UniFrac
-    }
     if ('GUniFrac' %in% dist.name) {
-      alpha_values <- c(alpha_values, 0)  # Generalized UniFrac
+      alpha_values <- c(alpha_values, 0)
     }
     if ('WUniFrac' %in% dist.name) {
-      alpha_values <- c(alpha_values, 0.5)  # Weighted UniFrac
+      alpha_values <- c(alpha_values, 1)
     }
-    
-    # Perform GUniFrac calculations for all requested alpha values
+    if (length(alpha_values) == 0) {
+      alpha_values <- 0
+    }
+
     message("Performing GUniFrac calculations...")
-    unifracs <- GUniFrac(t(otu_tab), phy_tree, alpha = unique(alpha_values))$unifracs
+    unifracs <- GUniFrac::GUniFrac(t(otu_tab), phy_tree, alpha = unique(alpha_values))$unifracs
   }
 
-  # Assign UniFrac results to the distance object if requested
   if ('UniFrac' %in% dist.name) {
     message("Assigning UniFrac results...")
-    dist.obj$UniFrac <- unifracs[, , "d_1"]
+    dist.obj$UniFrac <- mStat_attach_dist_metadata(
+      stats::as.dist(unifracs[, , "d_UW"]),
+      data.obj$meta.dat
+    )
   }
 
-  # Assign GUniFrac results to the distance object if requested
   if ('GUniFrac' %in% dist.name) {
     message("Assigning GUniFrac results...")
-    dist.obj$GUniFrac <- unifracs[, , "d_0"]
+    dist.obj$GUniFrac <- mStat_attach_dist_metadata(
+      stats::as.dist(unifracs[, , "d_0"]),
+      data.obj$meta.dat
+    )
   }
 
-  # Assign WUniFrac results to the distance object if requested
   if ('WUniFrac' %in% dist.name) {
     message("Assigning WUniFrac results...")
-    dist.obj$WUniFrac <- unifracs[, , "d_0.5"]
+    dist.obj$WUniFrac <- mStat_attach_dist_metadata(
+      stats::as.dist(unifracs[, , "d_1"]),
+      data.obj$meta.dat
+    )
   }
 
   # Calculate Jensen-Shannon divergence if requested
@@ -170,86 +178,65 @@ mStat_calculate_beta_diversity <- function(data.obj,
   if ('JS' %in% dist.name) {
     message("Calculating Jensen-Shannon divergence...")
 
-    # Check for samples with zero total counts before normalization
     sample_sums <- colSums(otu_tab, na.rm = TRUE)
     zero_samples <- which(sample_sums == 0)
-    
+
     if (length(zero_samples) > 0) {
       warning(paste("Found", length(zero_samples), "samples with zero total counts.",
                     "These samples will be handled by adding a small pseudocount (1e-10)."))
-      # Add small pseudocount to avoid division by zero
       otu_tab[, zero_samples] <- otu_tab[, zero_samples] + 1e-10
       sample_sums[zero_samples] <- colSums(otu_tab[, zero_samples, drop = FALSE])
     }
 
-    # Normalize feature table to relative abundances
     otu_tab_norm <- sweep(otu_tab, 2, sample_sums, FUN = "/")
-    
-    # Replace any remaining NaN/Inf values with 0
+
     if (any(is.nan(otu_tab_norm)) || any(is.infinite(otu_tab_norm))) {
       warning("NaN or Inf values detected after normalization. Setting to 0.")
       otu_tab_norm[is.nan(otu_tab_norm) | is.infinite(otu_tab_norm)] <- 0
     }
 
-    # Define Kullback-Leibler divergence (KLD) function
-    # KLD measures how one probability distribution diverges from a second, expected probability distribution
     KLD <- function(p, q) {
-      # Check for NA/NaN values and handle them gracefully
-      if (any(is.na(p)) || any(is.na(q)) || any(is.nan(p)) || any(is.nan(q))) {
-        # Replace NA/NaN with 0 for calculation purposes
-        p[is.na(p) | is.nan(p)] <- 0
-        q[is.na(q) | is.nan(q)] <- 0
-      }
-      
-      # Only include positions where both p and q are positive to avoid log(x/0) = Inf
       valid_idx <- (p > 0) & (q > 0)
-      
-      # Extra safety: ensure valid_idx doesn't contain NA
       valid_idx[is.na(valid_idx)] <- FALSE
-      
-      # Use na.rm = TRUE for robustness
-      if (sum(valid_idx, na.rm = TRUE) == 0) {
-        return(0)  # If no valid positions, return 0
+
+      if (!any(valid_idx)) {
+        return(0)
       }
+
       sum(p[valid_idx] * log(p[valid_idx] / q[valid_idx]))
     }
 
-    # Define Jensen-Shannon divergence (JSD) function
-    # JSD is a symmetrized and smoothed version of the KLD
     JSD <- function(p, q) {
       m <- (p + q) / 2
       (KLD(p, m) + KLD(q, m)) / 2
     }
 
-    # Calculate JSD for each pair of samples
     num_samples <- ncol(otu_tab_norm)
     jsd_matrix <- matrix(0, nrow = num_samples, ncol = num_samples)
 
-    for (i in 1:(num_samples - 1)) {
-      for (j in (i + 1):num_samples) {
-        jsd_value <- JSD(otu_tab_norm[, i], otu_tab_norm[, j])
-        # Check for invalid values and handle them
-        if (is.na(jsd_value) || is.infinite(jsd_value)) {
-          warning(paste("Invalid JSD value between samples", i, "and", j, ". Setting to 0."))
-          jsd_value <- 0
+    if (num_samples > 1) {
+      for (i in seq_len(num_samples - 1)) {
+        for (j in seq.int(i + 1, num_samples)) {
+          jsd_value <- sqrt(JSD(otu_tab_norm[, i], otu_tab_norm[, j]))
+          if (!is.finite(jsd_value)) {
+            warning(paste("Invalid JSD value between samples", i, "and", j, ". Setting to 0."))
+            jsd_value <- 0
+          }
+          jsd_matrix[i, j] <- jsd_value
+          jsd_matrix[j, i] <- jsd_value
         }
-        jsd_matrix[i, j] <- jsd_value
-        jsd_matrix[j, i] <- jsd_value  # JSD is symmetric
       }
     }
 
-    # Assign row and column names to the JSD matrix
     rownames(jsd_matrix) <- colnames(otu_tab)
     colnames(jsd_matrix) <- colnames(otu_tab)
 
-    # Check for any remaining NA or infinite values in the matrix
     if (any(is.na(jsd_matrix)) || any(is.infinite(jsd_matrix))) {
       warning("Jensen-Shannon divergence matrix contains NA or infinite values. This may cause issues in downstream analyses.")
     }
 
-    # Convert the JSD matrix to a dist object
-    jsd_dist <- as.dist(jsd_matrix)
-    dist.obj$JS <- jsd_dist
+    jsd_dist <- stats::as.dist(jsd_matrix)
+    dist.obj$JS <- mStat_attach_dist_metadata(jsd_dist, data.obj$meta.dat)
   }
 
   # Inform the user that all calculations are complete

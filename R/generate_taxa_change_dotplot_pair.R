@@ -99,7 +99,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
   feature.dat.type <- match.arg(feature.dat.type)
 
   # Extract data
-  mStat_validate_data(data.obj)
+  data.obj <- mStat_validate_data(data.obj)
 
   # Capture original factor levels before any data extraction
   fl <- mStat_capture_factor_levels(data.obj, group.var, strata.var)
@@ -153,15 +153,32 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
       features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
     }
 
-    # Calculate the average abundance for each group
-    otu_tab_norm_agg <- otu_tax_agg %>%
-      tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
-      dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
-      dplyr::group_by(!!sym(group.var), !!sym(feature.level), !!sym(time.var), !!sym(subject.var)) %>% # Add time.var to dplyr::group_by
-      dplyr::summarise(mean_abundance = mean(count))
+    otu_tax_long <- mStat_prepare_taxa_long_data(
+      feature.dat = otu_tax_agg,
+      feature.level = feature.level,
+      value_col = "count",
+      meta.dat = meta_tab,
+      join = "inner"
+    )
 
-    change.after <-
-      unique(meta_tab %>% select(all_of(c(time.var))))[unique(meta_tab %>% select(all_of(c(time.var)))) != change.base]
+    otu_tab_norm_agg <- mStat_summarize_grouped_taxa_long(
+      long.df = otu_tax_long,
+      feature.level = feature.level,
+      group_vars = c(group.var, time.var, subject.var),
+      value_col = "count",
+      mean_col = "mean_abundance",
+      prevalence_col = "subject_prevalence"
+    ) %>%
+      dplyr::select(-subject_prevalence)
+
+    pair_times <- mStat_resolve_pair_timepoints(
+      values = meta_tab[[time.var]],
+      time.var = time.var,
+      change.base = change.base,
+      context = "taxa change dotplotting"
+    )
+    change.base <- pair_times$change.base
+    change.after <- pair_times$change.after
 
     # Convert data from long format to wide format, placing the mean_abundance values at different time points in different columns.
     otu_tab_norm_agg_wide <- otu_tab_norm_agg %>%
@@ -181,12 +198,15 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
         feature_id   = .data[[feature.level]]
       ))
 
-    # Compute the prevalence of each taxon at each time point
-    prevalence_time <- otu_tax_agg %>%
-      tidyr::gather(-!!sym(feature.level), key = "sample", value = "count") %>%
-      dplyr::inner_join(meta_tab %>% rownames_to_column("sample"), by = "sample") %>%
-      dplyr::group_by(!!sym(group.var),!!sym(feature.level),!!sym(time.var)) %>%
-      dplyr::summarise(prevalence = sum(count > 0) / dplyr::n())
+    prevalence_time <- mStat_summarize_grouped_taxa_long(
+      long.df = otu_tax_long,
+      feature.level = feature.level,
+      group_vars = c(group.var, time.var),
+      value_col = "count",
+      mean_col = "avg_abundance",
+      prevalence_col = "prevalence"
+    ) %>%
+      dplyr::select(-avg_abundance)
 
     prevalence_time_wide <- prevalence_time %>%
       tidyr::spread(key = time.var, value = prevalence) %>%
@@ -208,8 +228,8 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
 
     if (!is.null(strata.var)) {
       otu_tab_norm_agg_wide <- otu_tab_norm_agg_wide %>%
-        dplyr::mutate(temp = !!sym(group.var)) %>%
-        tidyr::separate(temp,
+        dplyr::mutate(group_key = !!sym(group.var)) %>%
+        tidyr::separate(group_key,
                         into = c(paste0(group.var, "2"), strata.var),
                         sep = .STRATA_SEP)
       otu_tab_norm_agg_wide <- mStat_restore_factor_levels(
@@ -221,16 +241,11 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
         otu_tab_norm_agg_wide %>% filter(!!sym(feature.level) %in% features.plot)
     }
 
-    prop_prev_data <-
-      otu_tax_agg %>%
-      column_to_rownames(feature.level) %>%
-      as.matrix() %>%
-      as.table() %>%
-      as.data.frame() %>%
-      dplyr::group_by(Var1) %>%
-      dplyr::summarise(avg_abundance = mean(Freq),
-                       prevalence = sum(Freq > 0) / dplyr::n()) %>% column_to_rownames("Var1") %>%
-      rownames_to_column(feature.level)
+    prop_prev_data <- mStat_summarize_taxa_features(
+      feature.dat = otu_tax_agg,
+      feature.level = feature.level,
+      feature_in_column = TRUE
+    )
 
     otu_tab_norm_agg_wide <- otu_tab_norm_agg_wide %>%
       tidyr::gather(key = "Type",

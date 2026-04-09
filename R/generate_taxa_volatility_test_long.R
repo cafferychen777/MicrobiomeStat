@@ -84,7 +84,7 @@ generate_taxa_volatility_test_long <- function(data.obj,
                                                transform = "CLR",
                                                ...) {
   # Validate the input data object
-  mStat_validate_data(data.obj)
+  data.obj <- mStat_validate_data(data.obj)
 
   # Match the feature data type argument
   feature.dat.type <- match.arg(feature.dat.type)
@@ -98,22 +98,28 @@ generate_taxa_volatility_test_long <- function(data.obj,
   )
 
   # Convert time variable to numeric
-  data.obj$meta.dat <-
-    data.obj$meta.dat %>% dplyr::mutate(!!sym(time.var) := as.numeric(!!sym(time.var)))
+  data.obj$meta.dat[[time.var]] <- mStat_coerce_time_to_numeric(
+    data.obj$meta.dat[[time.var]],
+    time.var = time.var,
+    context = "taxa volatility analysis"
+  )
 
   # Extract relevant variables from metadata
-  meta_tab <- data.obj$meta.dat %>%
-    dplyr::select(all_of(c(
-      time.var, subject.var, group.var, adj.vars
-    ))) %>% rownames_to_column("sample")
+  meta_tab <- mStat_meta_with_sample(
+    data.obj$meta.dat %>%
+      dplyr::select(all_of(c(
+        time.var, subject.var, group.var, adj.vars
+      )))
+  )
 
   # Extract group levels and set reference level
   group_level <- meta_tab %>% select(all_of(c(group.var))) %>% pull() %>% as.factor() %>% levels
   reference_level <- group_level[1]
 
-  # If CLR transformation is used, set abundance filter to 0
+  # CLR-transformed data contains negative values, so abundance filtering must
+  # be disabled explicitly.
   if (transform == "CLR"){
-    abund.filter <- 0
+    abund.filter <- -Inf
   }
 
   # Create a formula for the linear model
@@ -138,47 +144,18 @@ generate_taxa_volatility_test_long <- function(data.obj,
     otu_tax_agg <- get_taxa_data(data.obj, feature.level, feature.col = FALSE)
 
     # Calculate average abundance and prevalence for each feature
-    prop_prev_data <-
-      otu_tax_agg %>%
-      as.matrix() %>%
-      as.table() %>%
-      as.data.frame() %>%
-      dplyr::group_by(Var1) %>%
-      dplyr::summarise(
-        avg_abundance = mean(Freq),
-        prevalence = sum(Freq > 0) / dplyr::n()
-      ) %>% column_to_rownames("Var1") %>%
-      rownames_to_column(feature.level)
+    prop_prev_data <- mStat_summarize_taxa_features(
+      feature.dat = otu_tax_agg,
+      feature.level = feature.level
+    )
 
-    # Function for performing CLR transformation on data
-    clr_transform <- function(x) {
-      gm = exp(mean(log(x)))
-      return(log(x / gm))
-    }
-
-    # Function to impute zeros with half the minimum non-zero value
-    impute_zeros_rowwise <- function(row) {
-      min_nonzero <- min(row[row > 0])
-      row[row == 0] <- min_nonzero / 2
-      return(row)
-    }
-
-    # Impute zeros and apply CLR transformation
-    otu_tax_agg_imputed_temp <- apply(otu_tax_agg, 1, impute_zeros_rowwise)
-    otu_tax_agg_imputed <- t(otu_tax_agg_imputed_temp)
-
-    # Apply CLR transformation per SAMPLE (column-wise)
-    # CLR must be applied within each sample, not across samples for each taxon
-    # Each sample's CLR values should sum to 0 (compositional data property)
-    otu_tax_agg_clr <- apply(otu_tax_agg_imputed, 2, clr_transform)
-
-    # Convert to long format and apply filters
-    otu_tax_agg_clr_long <- otu_tax_agg_clr %>%
-      as.data.frame() %>%
-      mStat_filter(prev.filter = prev.filter,
-                   abund.filter = abund.filter) %>%
-      rownames_to_column(feature.level) %>%
-      tidyr::gather(key = "sample", value = "value",-feature.level)
+    otu_tax_agg_clr_long <- mStat_prepare_taxa_clr_long_data(
+      feature.dat = otu_tax_agg,
+      feature.level = feature.level,
+      prev.filter = prev.filter,
+      abund.filter = abund.filter,
+      value_col = "value"
+    )
 
     taxa.levels <- otu_tax_agg_clr_long %>% select(all_of(feature.level)) %>% pull() %>% unique()
 
@@ -218,12 +195,12 @@ generate_taxa_volatility_test_long <- function(data.obj,
         if (length(unique(taxa_df[[group.var]])) > 2) {
           anova <- anova(test_result)
           anova.tab <- anova %>% as.data.frame() %>%
-            rownames_to_column("Term") %>%
+            tibble::rownames_to_column("Term") %>%
             dplyr::select(
                    Term,
                    Statistic = `F value`,
                    P.Value = `Pr(>F)`) %>%
-            as_tibble() %>%
+            tibble::as_tibble() %>%
             dplyr::mutate(Estimate = NA, Std.Error = NA) %>%
             select(
               Term,
@@ -235,7 +212,7 @@ generate_taxa_volatility_test_long <- function(data.obj,
 
           coef.tab <- rbind(coef.tab, anova.tab) # Append the anova.tab to the coef.tab
         }
-        return(as_tibble(coef.tab))
+        return(tibble::as_tibble(coef.tab))
       })
 
     # Assign names to the elements of test.list

@@ -118,18 +118,12 @@ generate_beta_pc_change_boxplot_pair <-
         stop(paste0("The requested dist.name(s) ", paste(dist.name[!dist.name %in% names(dist.obj)], collapse = ", "),
                     " are not available in the provided dist.obj. Please check again."))
       }
-      # Extract metadata from the distance object
-      meta_tab <- attr(dist.obj[[dist.name[1]]], "labels")
-      if (is.null(meta_tab)) {
-        message("No metadata found in dist.obj. Attempting to load metadata from data.obj.")
-        if (is.null(data.obj)) {
-          stop("No data.obj provided to load metadata from. Please ensure either dist.obj or data.obj contain the necessary metadata.")
-        }
-        meta_tab <- data.obj$meta.dat
-        if (is.null(meta_tab)) {
-          stop("No metadata could be loaded from data.obj. Please ensure it contains the necessary metadata.")
-        }
-      }
+      meta_tab <- mStat_extract_dist_metadata(
+        dist.obj = dist.obj,
+        dist.name = dist.name,
+        vars = c(subject.var, time.var, group.var, strata.var),
+        data.obj = data.obj
+      )
     }
 
     # If principal component object is not provided, calculate it using MDS
@@ -156,31 +150,26 @@ generate_beta_pc_change_boxplot_pair <-
       # Extract principal component coordinates
       pc.mat <- pc.obj[[dist.name]]$points
 
-      colnames(pc.mat) <- paste0("PC", 1:ncol(pc.mat))
+      pair_times <- mStat_resolve_pair_timepoints(
+        values = meta_tab[[time.var]],
+        time.var = time.var,
+        change.base = change.base,
+        context = "beta PC change plotting"
+      )
+      change.base <- pair_times$change.base
+      change.after <- pair_times$change.after
 
-      pc.mat <- pc.mat %>% as_tibble()
-
-      # Combine PC coordinates with metadata
-      df <-
-        cbind(pc.mat[, paste0("PC", pc.ind)], meta_tab[, c(subject.var, time.var, group.var, strata.var)])
-
-      # Identify the time point to compare with the baseline
-      change.after <-
-        unique(df %>% select(all_of(c(time.var))))[unique(df %>% select(all_of(c(time.var)))) != change.base]
-
-      # Reshape the data from wide to long format
-      df <-
-        df %>%
-        as_tibble() %>%
-        tidyr::gather(
-          key = "PC",
-          value = "value",-all_of(subject.var, group.var, time.var, strata.var)
-        )
+      df <- mStat_prepare_pc_long_data(
+        pc.points = pc.mat,
+        pc.ind = pc.ind,
+        meta.dat = meta_tab,
+        vars = c(subject.var, time.var, group.var, strata.var),
+        sample_col = "sample",
+        join = "inner"
+      )
 
       # Split the data by time points
-      split_data <-
-        split(df, f = df %>%
-                dplyr::group_by(!!sym(time.var)) %>% select(!!sym(time.var)))
+      split_data <- split(df, f = as.character(df[[time.var]]))
 
       data_time_1 <- split_data[[change.base]]
       data_time_2 <- split_data[[change.after]]
