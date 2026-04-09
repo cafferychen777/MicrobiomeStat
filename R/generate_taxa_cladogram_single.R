@@ -9,7 +9,7 @@
 #' @param test.list A list of data frames containing test results (coefficients, P-values)
 #'   for taxa at each taxonomic level. If NULL, results are generated internally.
 #' @param feature.mt.method Character string specifying the multiple testing correction method.
-#'   Options: "fdr", "bonferroni", "holm", "hochberg", "hommel", "BH", "BY", or "none" (default).
+#'   Options: "fdr", "bonferroni", or "none" (default).
 #' @param cutoff Numeric. Significance threshold for filtering taxa. Default is 1 (no filtering).
 #' @param color.group.level Character string. Taxonomic level for color-coding branches.
 #'   Defaults to the first level in `feature.level`.
@@ -132,15 +132,6 @@ generate_taxa_cladogram_single <- function(
   }
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("Package 'ggplot2' is required but not installed.")
-  }
-  
-  # Ensure required namespaces are available
-  requireNamespace("ggplot2", quietly = TRUE)
-
-  # Compatibility fix for ggplot2 >= 4.0.0 which no longer exports is.waive()
-  # ggtree depends on this function internally, so we need to provide it
-  if (!exists("is.waive", envir = .GlobalEnv)) {
-    assign("is.waive", function(x) inherits(x, "waiver"), envir = .GlobalEnv)
   }
 
   # Check group.var parameter
@@ -534,62 +525,55 @@ generate_taxa_cladogram_single <- function(
   for (comparison in unique(merged_test_data$Comparison)) {
     comparison_data <- merged_test_data %>% dplyr::filter(Comparison == comparison)
 
-    # Ensure ggplot2 namespace is available in this scope
-    if (!requireNamespace("ggplot2", quietly = TRUE)) {
-      stop("Package 'ggplot2' is required but not installed.")
-    }
-    
-    # IMPORTANT: DO NOT MODIFY THIS SECTION WITHOUT THOROUGH TESTING
-    # The ggtreeExtra::geom_fruit function has a non-standard evaluation (NSE) mechanism
-    # that requires the geom_tile function to be available in the global environment,
-    # or to be passed as a string. This is a known issue with the package.
-    # 
-    # If you modify this code, the function may break in subtle ways that are
-    # difficult to debug. The current implementation has been thoroughly tested
-    # and works correctly with various datasets.
-    #
-    # The following line ensures that geom_tile is available in the global environment
-    # which is required for ggtreeExtra::geom_fruit to work properly.
-    if (!exists("geom_tile", envir = .GlobalEnv)) {
-      assign("geom_tile", ggplot2::geom_tile, envir = .GlobalEnv)
-    }
-    
-    # Create the circular cladogram plot
-    p <- ggtree::ggtree(annotated_tree, layout = "circular", open.angle = 5) +
-      # CRITICAL: The geom parameter must be a string "geom_tile" for ggtreeExtra::geom_fruit
-      # Do not change this to a function object or unquoted symbol, as it will break the function.
-      # This is due to how ggtreeExtra::geom_fruit handles non-standard evaluation.
-      ggtreeExtra::geom_fruit(
-        data = comparison_data,
-        geom = "geom_tile",  # Use a string, not a function object or unquoted symbol
-        mapping = ggplot2::aes(y = Variable, x = taxonomic_level, fill = Coefficient),
-        offset = 0.03,
-        size = 0.02,
-        color = "black"
-      ) +
-      ggtree::geom_tiplab(ggplot2::aes(color = .data[[color.group.level]]), offset = calculated_offset, align = TRUE,
-                          linetype = "blank", size = 2, show.legend = FALSE) +
-      ggplot2::scale_fill_gradient2(low = "#0571b0", high = "#ca0020") +
-      ggplot2::geom_text(mapping = ggplot2::aes(label = "",
-                              color = .data[[color.group.level]]),
-                key_glyph = ggplot2::draw_key_rect) +
-      ggplot2::theme(
-        legend.position = "bottom",
-        legend.box = "vertical",
-        legend.text = ggplot2::element_text(size = 6),
-        legend.title = ggplot2::element_text(size = 8)
-      ) +
-      ggplot2::scale_color_manual(values = unique(palette)[seq_along(unique(comparison_data[[color.group.level]]))]) +
-      ggplot2::guides(
-        fill = ggplot2::guide_colorbar(title = "Coefficient", barwidth = 10, barheight = 0.5),
-        color = ggplot2::guide_legend(
-          title = color.group.level,
-          override.aes = list(size = 2),
-          byrow = TRUE,
-          keywidth = ggplot2::unit(0.5, "lines"),
-          keyheight = ggplot2::unit(0.5, "lines")
+    # Create the circular cladogram plot in a local compatibility scope so
+    # ggtree/ggtreeExtra can resolve their legacy NSE helpers without touching
+    # the user's global workspace.
+    p <- local({
+      is.waive <- function(x) inherits(x, "waiver")
+      geom_tile <- ggplot2::geom_tile
+
+      ggtree::ggtree(annotated_tree, layout = "circular", open.angle = 5) +
+        ggtreeExtra::geom_fruit(
+          data = comparison_data,
+          geom = "geom_tile",
+          mapping = ggplot2::aes(y = Variable, x = taxonomic_level, fill = Coefficient),
+          offset = 0.03,
+          size = 0.02,
+          color = "black"
+        ) +
+        ggtree::geom_tiplab(
+          ggplot2::aes(color = .data[[color.group.level]]),
+          offset = calculated_offset,
+          align = TRUE,
+          linetype = "blank",
+          size = 2,
+          show.legend = FALSE
+        ) +
+        ggplot2::scale_fill_gradient2(low = "#0571b0", high = "#ca0020") +
+        ggplot2::geom_text(
+          mapping = ggplot2::aes(label = "", color = .data[[color.group.level]]),
+          key_glyph = ggplot2::draw_key_rect
+        ) +
+        ggplot2::theme(
+          legend.position = "bottom",
+          legend.box = "vertical",
+          legend.text = ggplot2::element_text(size = 6),
+          legend.title = ggplot2::element_text(size = 8)
+        ) +
+        ggplot2::scale_color_manual(
+          values = unique(palette)[seq_along(unique(comparison_data[[color.group.level]]))]
+        ) +
+        ggplot2::guides(
+          fill = ggplot2::guide_colorbar(title = "Coefficient", barwidth = 10, barheight = 0.5),
+          color = ggplot2::guide_legend(
+            title = color.group.level,
+            override.aes = list(size = 2),
+            byrow = TRUE,
+            keywidth = ggplot2::unit(0.5, "lines"),
+            keyheight = ggplot2::unit(0.5, "lines")
+          )
         )
-      )
+    })
 
     # Save as PDF if requested
     if (pdf) {

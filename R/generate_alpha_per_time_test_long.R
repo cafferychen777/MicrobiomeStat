@@ -7,6 +7,8 @@
 #' @inheritParams mStat_test_params_doc
 #'
 #' @return A list where each element corresponds to a different time point and contains the results of alpha diversity tests for that time point.
+#'
+#' @param group.var Required. Character string specifying the grouping variable in metadata.
 #' @examples
 #' \dontrun{
 #' # Example 1: Analyzing the ECAM dataset (without providing alpha.obj)
@@ -100,7 +102,7 @@ generate_alpha_per_time_test_long <- function(data.obj,
                                      time.var,
                                      t0.level,
                                      ts.levels,
-                                     group.var = NULL,
+                                     group.var,
                                      adj.vars = NULL) {
   # Validate the input data object to ensure it meets the required format.
   data.obj <- mStat_validate_data(data.obj)

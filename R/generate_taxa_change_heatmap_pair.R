@@ -190,9 +190,11 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
     otu_tax_agg <- get_taxa_data(data.obj, feature.level, prev.filter, abund.filter)
 
     # Select top k features if specified
-    if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
+    selected_features <- features.plot
+    if (is.null(selected_features) && !is.null(top.k.plot) && !is.null(top.k.func)) {
       computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
-      features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
+      top_k_n <- min(top.k.plot, length(computed_values))
+      selected_features <- names(sort(computed_values, decreasing = TRUE)[seq_len(top_k_n)])
     }
 
     merged_data <- mStat_prepare_taxa_long_data(
@@ -299,30 +301,36 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
 
     # Determine gaps for the heatmap based on strata or group variables
     if (!is.null(strata.var)) {
-      gaps <-
-        cumsum(table(sorted_meta_tab[[strata.var]]))[-length(sorted_meta_tab[[strata.var]])]
+      strata_counts <- table(sorted_meta_tab[[strata.var]])
+      gaps <- cumsum(strata_counts)[-length(strata_counts)]
+    } else if (!is.null(group.var)) {
+      group_counts <- table(sorted_meta_tab[[group.var]])
+      gaps <- cumsum(group_counts)[-length(group_counts)]
     } else {
-      if (!is.null(group.var)) {
-        gaps <-
-          cumsum(table(sorted_meta_tab[[group.var]]))[-length(sorted_meta_tab[[group.var]])]
-      } else {
-        gaps <- NULL
-      }
+      gaps <- NULL
     }
 
     # Filter features to plot if specified
-    if (!is.null(features.plot)) {
+    if (!is.null(selected_features)) {
       value_diff_matrix <-
-        value_diff_matrix[rownames(value_diff_matrix) %in% features.plot,]
+        value_diff_matrix[rownames(value_diff_matrix) %in% selected_features,, drop = FALSE]
     }
 
     # Set up color scheme for the heatmap
     n_colors <- 100
     col <- c("#0571b0", "#92c5de", "white", "#f4a582", "#ca0020")
-    max_abs_val <- max(abs(range(na.omit(
-      c(value_diff_matrix)
-    ))))
-    zero_pos <- round(max_abs_val / (2 * max_abs_val) * n_colors)
+    matrix_values <- as.numeric(value_diff_matrix)
+    finite_values <- matrix_values[is.finite(matrix_values)]
+    if (length(finite_values) == 0) {
+      max_abs_val <- 1
+    } else {
+      max_abs_val <- max(abs(finite_values))
+      if (!is.finite(max_abs_val) || max_abs_val <= 0) {
+        max_abs_val <- 1
+      }
+    }
+
+    zero_pos <- floor(n_colors / 2)
     my_col <-
       c(
         colorRampPalette(col[1:3])(zero_pos),
@@ -452,9 +460,9 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
     }
 
     # Filter features for plotting if specified
-    if (!is.null(features.plot)) {
+    if (!is.null(selected_features)) {
       average_value_diff_matrix <-
-        average_value_diff_matrix[rownames(average_value_diff_matrix) %in% features.plot,]
+        average_value_diff_matrix[rownames(average_value_diff_matrix) %in% selected_features,, drop = FALSE]
     }
 
     # Reorder columns of average_value_diff_matrix to match annotation_df if applicable

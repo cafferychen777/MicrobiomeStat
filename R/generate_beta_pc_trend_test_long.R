@@ -145,7 +145,7 @@ generate_beta_pc_trend_test_long <- function(data.obj = NULL,
       pc.points = pc.mat,
       pc.ind = pc.ind,
       meta.dat = meta_tab,
-      vars = c(subject.var, time.var, group.var),
+      vars = c(subject.var, time.var, group.var, adj.vars),
       sample_col = "sample",
       join = "inner"
     )
@@ -154,15 +154,6 @@ generate_beta_pc_trend_test_long <- function(data.obj = NULL,
     sub_test.list <- lapply(unique(df$PC), function(pc.index) {
       sub_df <- df %>% filter(PC == pc.index)
 
-      # Create formula for mixed effects model
-      formula <-
-        create_mixed_effects_formula(
-          response.var = "value",
-          time.var = time.var,
-          group.var = group.var,
-          subject.var = subject.var
-        )
-
       # Ensure time variable is numeric
       sub_df[[time.var]] <- mStat_coerce_time_to_numeric(
         sub_df[[time.var]],
@@ -170,36 +161,23 @@ generate_beta_pc_trend_test_long <- function(data.obj = NULL,
         context = "beta PC trend analysis"
       )
 
-      # Fit linear mixed effects model
-      model <- lmer(formula, data = sub_df, ...)
+      model <- mStat_fit_mixed_effects_model(
+        response.var = "value",
+        time.var = time.var,
+        group.var = group.var,
+        subject.var = subject.var,
+        data = sub_df,
+        adj.vars = adj.vars,
+        context = "beta PC trend analysis"
+      )
 
-      # Check if group variable has more than two categories
-      if (length(unique(sub_df[[group.var]])) > 2) {
-        # Perform Type III ANOVA for multi-category group variable
+      coef.tab <- extract_coef(model)
+      if (!is.null(group.var) && length(unique(sub_df[[group.var]])) > 2) {
         anova_result <- anova(model, type = "III")
-
-        # Extract coefficients from the model
-        coef.tab <- extract_coef(model)
-        
-        # Extract the last row of ANOVA results (overall effect of group variable)
-        last_row <- utils::tail(anova_result, 1)
-        var_name <- rownames(last_row)[1]
-
-        # Adjust the last row to match the format of coefficient table
-        adjusted_last_row <- data.frame(
-          Term = var_name,
-          Estimate = NA,
-          Std.Error = NA,
-          Statistic = last_row$`F value`,
-          P.Value = last_row$`Pr(>F)`
-        )
-
-        # Combine coefficient table with adjusted last row
-        coef.tab <- rbind(coef.tab, adjusted_last_row)
-
-      } else {
-        # For binary group variable, extract coefficients directly
-        coef.tab <- extract_coef(model)
+        group_row <- mStat_extract_group_anova_row(anova_result, group.var)
+        if (!is.null(group_row)) {
+          coef.tab <- rbind(coef.tab, group_row)
+        }
       }
 
       return(tibble::as_tibble(coef.tab))

@@ -86,10 +86,58 @@ mStat_coerce_time_to_numeric <- function(values,
 
 
 #' @keywords internal
+mStat_has_variation <- function(values) {
+  non_missing <- stats::na.omit(values)
+
+  if (length(non_missing) == 0) {
+    return(FALSE)
+  }
+
+  if (is.numeric(non_missing)) {
+    return(stats::var(non_missing) > 0)
+  }
+
+  length(unique(non_missing)) > 1
+}
+
+
+#' @keywords internal
+mStat_validate_time_var_contract <- function(meta.dat,
+                                             time.var,
+                                             context = "analysis",
+                                             require_variation = FALSE) {
+  if (is.null(time.var) || !nzchar(time.var)) {
+    stop("`time.var` is required for ", context, ".", call. = FALSE)
+  }
+
+  if (!time.var %in% names(meta.dat)) {
+    stop("`time.var` ('", time.var, "') was not found in metadata for ", context, ".", call. = FALSE)
+  }
+
+  observed_time <- stats::na.omit(meta.dat[[time.var]])
+  if (length(observed_time) == 0) {
+    stop("`time.var` ('", time.var, "') has no observed values for ", context, ".", call. = FALSE)
+  }
+
+  if (require_variation && !mStat_has_variation(observed_time)) {
+    stop(
+      "`time.var` ('", time.var, "') must have at least two observed levels/values for ",
+      context,
+      ".",
+      call. = FALSE
+    )
+  }
+
+  invisible(TRUE)
+}
+
+
+#' @keywords internal
 mStat_validate_group_var_contract <- function(meta.dat,
                                               group.var,
                                               subject.var = NULL,
-                                              context = "analysis") {
+                                              context = "analysis",
+                                              require_variation = TRUE) {
   if (is.null(group.var) || !nzchar(group.var)) {
     stop("`group.var` is required for ", context, ".", call. = FALSE)
   }
@@ -98,7 +146,20 @@ mStat_validate_group_var_contract <- function(meta.dat,
     stop("`group.var` ('", group.var, "') was not found in metadata for ", context, ".", call. = FALSE)
   }
 
+  if (require_variation && !mStat_has_variation(meta.dat[[group.var]])) {
+    stop(
+      "`group.var` ('", group.var, "') must have at least two observed levels/values for ",
+      context,
+      ".",
+      call. = FALSE
+    )
+  }
+
   if (!is.null(subject.var)) {
+    if (!subject.var %in% names(meta.dat)) {
+      stop("`subject.var` ('", subject.var, "') was not found in metadata for ", context, ".", call. = FALSE)
+    }
+
     inconsistent_subjects <- meta.dat %>%
       dplyr::select(all_of(c(subject.var, group.var))) %>%
       dplyr::distinct() %>%

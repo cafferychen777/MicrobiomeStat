@@ -115,6 +115,105 @@ detect_study_design <- function(data.obj,
 }
 
 
+#' @keywords internal
+mStat_design_time_values <- function(design_info) {
+  if (is.null(design_info) || is.null(design_info$design)) {
+    return(character())
+  }
+
+  if (identical(design_info$design, "single") && !is.null(design_info$t.level)) {
+    return(as.character(design_info$t.level))
+  }
+
+  if (design_info$design %in% c("pair", "long")) {
+    return(as.character(c(design_info$t0.level, design_info$ts.levels)))
+  }
+
+  character()
+}
+
+
+#' @keywords internal
+mStat_scope_unified_context <- function(data.obj,
+                                        design_info,
+                                        time.var = NULL,
+                                        alpha.obj = NULL,
+                                        dist.obj = NULL,
+                                        pc.obj = NULL) {
+  scoped <- list(
+    data.obj = data.obj,
+    alpha.obj = alpha.obj,
+    dist.obj = dist.obj,
+    pc.obj = pc.obj
+  )
+
+  if (is.null(data.obj$meta.dat) || is.null(time.var) || !time.var %in% colnames(data.obj$meta.dat)) {
+    return(scoped)
+  }
+
+  candidate_samIDs <- rownames(data.obj$meta.dat)
+
+  if (!is.null(alpha.obj) && length(alpha.obj) > 0 && !is.null(alpha.obj[[1]])) {
+    alpha_samIDs <- rownames(alpha.obj[[1]])
+    if (is.null(alpha_samIDs)) {
+      stop("alpha.obj must have sample row names.", call. = FALSE)
+    }
+    candidate_samIDs <- intersect(candidate_samIDs, alpha_samIDs)
+  }
+
+  if (!is.null(dist.obj) && length(dist.obj) > 0 && !is.null(dist.obj[[1]])) {
+    dist_samIDs <- mStat_get_dist_labels(dist.obj[[1]])
+    candidate_samIDs <- intersect(candidate_samIDs, dist_samIDs)
+  }
+
+  if (!is.null(pc.obj) && length(pc.obj) > 0 && !is.null(pc.obj[[1]]$points)) {
+    pc_samIDs <- rownames(pc.obj[[1]]$points)
+    candidate_samIDs <- intersect(candidate_samIDs, pc_samIDs)
+  }
+
+  requested_time_values <- unique(mStat_design_time_values(design_info))
+  available_time_values <- as.character(mStat_order_time_values(data.obj$meta.dat[[time.var]]))
+
+  if (length(requested_time_values) > 0) {
+    missing_time_values <- setdiff(requested_time_values, available_time_values)
+    if (length(missing_time_values) != 0) {
+      stop(
+        "Requested time.points not found in `", time.var, "`: ",
+        paste(missing_time_values, collapse = ", "),
+        ". Available values: ",
+        paste(available_time_values, collapse = ", "),
+        call. = FALSE
+      )
+    }
+
+    scoped_meta <- data.obj$meta.dat[candidate_samIDs, , drop = FALSE]
+    candidate_samIDs <- rownames(
+      scoped_meta[scoped_meta[[time.var]] %in% requested_time_values, , drop = FALSE]
+    )
+  }
+
+  if (length(candidate_samIDs) == 0) {
+    stop("No samples remain after applying the requested time scope.", call. = FALSE)
+  }
+
+  if (!identical(candidate_samIDs, rownames(data.obj$meta.dat))) {
+    scoped$data.obj <- mStat_subset_data(data.obj, samIDs = candidate_samIDs)
+  }
+
+  if (!is.null(alpha.obj)) {
+    scoped$alpha.obj <- mStat_subset_alpha(alpha.obj, candidate_samIDs)
+  }
+
+  if (!is.null(dist.obj) || !is.null(pc.obj)) {
+    aligned <- mStat_subset_beta_objects(dist.obj, pc.obj, candidate_samIDs)
+    scoped$dist.obj <- aligned$dist.obj
+    scoped$pc.obj <- aligned$pc.obj
+  }
+
+  scoped
+}
+
+
 # =============================================================================
 # Parameter Resolution
 # =============================================================================
@@ -445,30 +544,11 @@ route_function <- function(category, plot_type, design, is_change = FALSE) {
     return(NULL)
   }
 
-  # Get function for design (use single bracket to avoid subscript error)
-  func_name <- if (design %in% names(type_variants)) type_variants[[design]] else NULL
-
-  # Fallback logic if exact design not available
-  if (is.null(func_name)) {
-    # Try fallback order
-    fallbacks <- switch(design,
-      single = c("single"),
-      pair = c("pair", "long", "single"),
-      long = c("long", "pair")
-    )
-
-    for (fb in fallbacks) {
-      if (fb %in% names(type_variants)) {
-        func_name <- type_variants[[fb]]
-        if (fb != design) {
-          message("Note: Using ", fb, " variant for ", design, " design")
-        }
-        break
-      }
-    }
+  if (!design %in% names(type_variants)) {
+    return(NULL)
   }
 
-  return(func_name)
+  type_variants[[design]]
 }
 
 
@@ -556,11 +636,19 @@ validate_inputs <- function(data.obj,
   }
 
   # Check if target function exists
-  func_name <- route_function(category, plot_type,
-                               if (!is.null(design_info)) design_info$design else "single")
+  requested_design <- if (!is.null(design_info)) design_info$design else "single"
+  func_name <- route_function(category, plot_type, requested_design)
   if (is.null(func_name)) {
-    errors <- c(errors, paste0("No function available for ", category, "/", plot_type,
-                               " with ", design_info$design, " design"))
+    registry <- get_function_registry()
+    supported_designs <- names(registry[[category]][[plot_type]])
+    errors <- c(
+      errors,
+      paste0(
+        "No function available for ", category, "/", plot_type,
+        " with ", requested_design, " design. Supported designs: ",
+        paste(supported_designs, collapse = ", ")
+      )
+    )
   } else if (!exists(func_name, mode = "function")) {
     errors <- c(errors, paste0("Function '", func_name, "' not found"))
   }
@@ -604,6 +692,31 @@ clean_resolved_params <- function(resolved, design = "single") {
   resolved[!sapply(names(resolved), function(n) {
     is.null(resolved[[n]]) && !n %in% keep_if_null
   })]
+}
+
+
+#' Drop Unsupported Parameters for Target Function
+#'
+#' Removes arguments that the target function cannot accept unless it
+#' explicitly declares `...`.
+#'
+#' @param resolved Named list of resolved parameters
+#' @param target_func Function name as character
+#'
+#' @return Filtered parameter list
+#'
+#' @keywords internal
+filter_target_params <- function(resolved, target_func = NULL) {
+  if (is.null(target_func) || !exists(target_func, mode = "function")) {
+    return(resolved)
+  }
+
+  target_formals <- names(formals(get(target_func, mode = "function")))
+  if ("..." %in% target_formals) {
+    return(resolved)
+  }
+
+  resolved[names(resolved) %in% target_formals]
 }
 
 

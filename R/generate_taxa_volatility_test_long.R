@@ -7,7 +7,8 @@
 #' @inheritParams mStat_data_obj_doc
 #'
 #' @param transform Character; transformation method before volatility calculation.
-#'   "CLR" applies CLR transform (default). Set to other value to skip transformation.
+#'   "CLR" applies CLR transform (default). Any other value skips CLR and uses
+#'   filtered abundance values directly.
 #' @param ... Additional arguments passed to other methods.
 #' @return A nested list structure where:
 #' \itemize{
@@ -149,21 +150,37 @@ generate_taxa_volatility_test_long <- function(data.obj,
       feature.level = feature.level
     )
 
-    otu_tax_agg_clr_long <- mStat_prepare_taxa_clr_long_data(
-      feature.dat = otu_tax_agg,
-      feature.level = feature.level,
-      prev.filter = prev.filter,
-      abund.filter = abund.filter,
-      value_col = "value"
-    )
+    if (identical(transform, "CLR")) {
+      otu_tax_long <- mStat_prepare_taxa_clr_long_data(
+        feature.dat = otu_tax_agg,
+        feature.level = feature.level,
+        prev.filter = prev.filter,
+        abund.filter = abund.filter,
+        value_col = "value"
+      )
+    } else {
+      otu_tax_agg_filtered <- mStat_filter(
+        otu_tax_agg,
+        prev.filter = prev.filter,
+        abund.filter = abund.filter
+      )
+      otu_tax_long <- mStat_prepare_taxa_long_data(
+        feature.dat = otu_tax_agg_filtered,
+        feature.level = feature.level,
+        value_col = "value",
+        meta.dat = NULL,
+        feature_in_column = FALSE,
+        join = "left"
+      )
+    }
 
-    taxa.levels <- otu_tax_agg_clr_long %>% select(all_of(feature.level)) %>% pull() %>% unique()
+    taxa.levels <- otu_tax_long %>% select(all_of(feature.level)) %>% pull() %>% unique()
 
     # Perform volatility analysis for each taxon
     sub_test.list <-
       lapply(taxa.levels, function(taxon) {
 
-        taxa_df <- otu_tax_agg_clr_long %>%
+        taxa_df <- otu_tax_long %>%
           dplyr::filter(!!sym(feature.level) == taxon) %>%
           dplyr::left_join(meta_tab, by = "sample")
 
@@ -186,8 +203,29 @@ generate_taxa_volatility_test_long <- function(data.obj,
                              dplyr::distinct(),
                            by = subject.var)
 
+        if (nrow(test_df) <= 1) {
+          return(NULL)
+        }
+
+        model_terms <- c(group.var, adj.vars)
+        model_terms <- model_terms[!is.null(model_terms)]
+
+        valid_terms <- model_terms[vapply(model_terms, function(term) {
+          term_values <- test_df[[term]]
+          if (is.numeric(term_values)) {
+            return(stats::var(term_values, na.rm = TRUE) > 0)
+          }
+          length(unique(stats::na.omit(term_values))) > 1
+        }, logical(1))]
+
+        model_formula <- if (length(valid_terms) > 0) {
+          stats::as.formula(paste("volatility ~", paste(valid_terms, collapse = " + ")))
+        } else {
+          stats::as.formula("volatility ~ 1")
+        }
+
         # Fit linear model
-        test_result <- lm(formula, data = test_df)
+        test_result <- lm(model_formula, data = test_df)
 
         coef.tab <- extract_coef(test_result)
 
@@ -216,7 +254,7 @@ generate_taxa_volatility_test_long <- function(data.obj,
       })
 
     # Assign names to the elements of test.list
-    names(sub_test.list) <- otu_tax_agg_clr_long %>% select(all_of(feature.level)) %>% pull() %>% unique()
+    names(sub_test.list) <- otu_tax_long %>% select(all_of(feature.level)) %>% pull() %>% unique()
 
     # Find all unique terms related to the group variable
     unique_terms <- grep(paste0("^", group.var, "$|^", group.var, ".*"), unique(unlist(lapply(sub_test.list, function(df) unique(df$Term)))), value = TRUE)

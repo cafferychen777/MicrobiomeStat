@@ -213,6 +213,46 @@ as.grob.ggplot <- function(plot, ...) {
   ggplotGrob(plot)
 }
 
+#' Convert supported plot objects to grobs
+#'
+#' @param plot Plot-like object.
+#' @param ... Additional arguments forwarded to `as.grob()`.
+#'
+#' @return A grob object suitable for `grid::grid.draw()`.
+#' @keywords internal
+mStat_plot_to_grob <- function(plot, ...) {
+  if (grid::is.grob(plot)) {
+    return(plot)
+  }
+
+  if (inherits(plot, "aplot")) {
+    return(as.grob.aplot(plot, ...))
+  }
+
+  if (inherits(plot, "ggplot2::ggplot") || inherits(plot, "ggplot")) {
+    return(ggplot2::ggplotGrob(plot))
+  }
+
+  as.grob(plot, ...)
+}
+
+#' Save a plot-like object to PDF via grid drawing
+#'
+#' @param plot Plot-like object.
+#' @param filename Output PDF path.
+#' @param width,height PDF dimensions in inches.
+#' @param ... Additional arguments forwarded to `mStat_plot_to_grob()`.
+#'
+#' @return Invisibly returns `filename`.
+#' @keywords internal
+mStat_save_plot_pdf <- function(plot, filename, width, height, ...) {
+  grDevices::pdf(filename, width = width, height = height)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  grid::grid.newpage()
+  grid::grid.draw(mStat_plot_to_grob(plot, ...))
+  invisible(filename)
+}
+
 ##' @rdname as-grob
 ##' @method as.grob meme
 ##' @noRd
@@ -329,5 +369,3 @@ is_categorical <- function(x) {
     return(FALSE)
   }
 }
-
-

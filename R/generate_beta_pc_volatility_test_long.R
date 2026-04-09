@@ -8,6 +8,7 @@
 #' @param pc.obj A list containing dimension reduction results from
 #'   \code{\link{mStat_calculate_PC}}. If NULL, PCoA is performed automatically.
 #' @param pc.ind Numeric vector specifying which PC axes to test. Default c(1, 2).
+#' @param group.var Required. Character string specifying the grouping variable in metadata.
 #' @param ... Additional arguments passed to internal functions.
 #'
 #' @return A list of results for each distance measure and selected Principal Coordinate, including coefficients from the mixed-effects models.
@@ -34,7 +35,7 @@ generate_beta_pc_volatility_test_long <- function(data.obj,
                                              pc.ind = c(1, 2),
                                              subject.var,
                                              time.var,
-                                             group.var = NULL,
+                                             group.var,
                                              adj.vars = NULL,
                                              dist.name = c("BC"),
                                              ...) {
@@ -120,7 +121,7 @@ generate_beta_pc_volatility_test_long <- function(data.obj,
       pc.points = pc.mat,
       pc.ind = pc.ind,
       meta.dat = meta_tab,
-      vars = c(subject.var, time.var, group.var),
+      vars = c(subject.var, time.var, group.var, adj.vars),
       sample_col = "sample",
       join = "inner"
     )
@@ -129,14 +130,6 @@ generate_beta_pc_volatility_test_long <- function(data.obj,
     sub_test.list <- lapply(unique(df$PC), function(pc.index) {
       sub_df <- df %>% filter(PC == pc.index)
 
-      # Create formula for mixed effects model (not used in this function, but kept for potential future use)
-      formula <-
-        create_mixed_effects_formula(
-          response.var = "value",
-          time.var = time.var,
-          group.var = group.var,
-          subject.var = subject.var
-        )
 
       # Ensure time variable is numeric
       sub_df[[time.var]] <- mStat_coerce_time_to_numeric(
@@ -168,36 +161,42 @@ generate_beta_pc_volatility_test_long <- function(data.obj,
                   by = subject.var,
                   relationship = "many-to-one")
 
-      # Test the association between volatility and group variable using linear regression
-      formula <- as.formula(paste("volatility ~", group.var))
-      test_result <- lm(formula, data = test_df)
+      model_terms <- c()
+      if (!is.null(group.var)) {
+        model_terms <- c(model_terms, group.var)
+      }
+      if (!is.null(adj.vars)) {
+        model_terms <- c(model_terms, adj.vars)
+      }
+      model_rhs <- if (length(model_terms) > 0) {
+        paste(model_terms, collapse = " + ")
+      } else {
+        "1"
+      }
 
-      # Extract coefficients from the linear model
+      test_result <- lm(as.formula(paste("volatility ~", model_rhs)), data = test_df)
+
       coef.tab <- extract_coef(test_result)
 
-      # If group variable has more than one level, perform ANOVA
-      if (length(unique(test_df[[group.var]])) > 1) {
-        anova <- anova(test_result)
-        # Format ANOVA results to match coefficient table structure
-        anova.tab <- anova %>% as.data.frame() %>%
-          tibble::rownames_to_column("Term") %>%
-          dplyr::select(
-                 Term,
-                 Statistic = `F value`,
-                 P.Value = `Pr(>F)`) %>%
-          dplyr::mutate(Estimate = NA, Std.Error = NA) %>%
-          tibble::as_tibble() %>%
-          dplyr::select(
-            Term,
-            Estimate,
-            Std.Error,
-            Statistic,
-            P.Value
+      if (!is.null(group.var) && length(unique(test_df[[group.var]])) > 1) {
+        anova_result <- anova(test_result)
+        group_row <- as.data.frame(anova_result)
+        terms <- rownames(group_row)
+        group_index <- which(terms == group.var)
+        if (length(group_index) > 0) {
+          selected <- group_row[group_index[[1]], , drop = FALSE]
+          coef.tab <- rbind(
+            coef.tab,
+            data.frame(
+              Term = group.var,
+              Estimate = NA_real_,
+              Std.Error = NA_real_,
+              Statistic = selected$`F value`,
+              P.Value = selected$`Pr(>F)`,
+              check.names = FALSE
+            )
           )
-
-        # Combine coefficient table with ANOVA results
-        coef.tab <-
-          rbind(coef.tab, anova.tab)
+        }
       }
 
       return(tibble::as_tibble(coef.tab))

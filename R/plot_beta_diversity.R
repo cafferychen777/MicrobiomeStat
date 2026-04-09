@@ -110,9 +110,13 @@ plot_beta_diversity <- function (dist.obj,
                                  adj.vars = NULL, # If specified, aPCoA will be performed.
                                  time.point.plot, # The first pt will be the reference.
                                  is.plot.change = TRUE,
-                                 plot.type = c("PcoA", "boxplot", "spaghettiplot"), # dependent on settings
+                                 plot.type = c("PCoA", "boxplot", "spaghettiplot"), # dependent on settings
                                  ...
 ) {
+  if (length(plot.type) == 1 && identical(plot.type, "PcoA")) {
+    plot.type <- "PCoA"
+  }
+  plot.type <- match.arg(plot.type)
 
   data.obj <- list()
 
@@ -131,7 +135,8 @@ plot_beta_diversity <- function (dist.obj,
         strata.var = strata.var,
         dist.obj = dist.obj,
         dist.name = measure,
-        pc.obj = pc.obj
+        pc.obj = pc.obj,
+        pdf = FALSE
       )
     }
   } else if (!is.null(time.var) & length(time.point.plot) == 2) {
@@ -152,7 +157,8 @@ plot_beta_diversity <- function (dist.obj,
           group.var = group.var,
           strata.var = strata.var,
           adj.vars = adj.vars,
-          dist.name = measure
+          dist.name = measure,
+          pdf = FALSE
         )
       } else {
         message(paste(
@@ -173,7 +179,8 @@ plot_beta_diversity <- function (dist.obj,
           strata.var = strata.var,
           adj.vars = adj.vars,
           change.base = time.point.plot[1],
-          dist.name = measure
+          dist.name = measure,
+          pdf = FALSE
         )
       } else {
         message(paste(
@@ -203,7 +210,8 @@ plot_beta_diversity <- function (dist.obj,
           group.var = group.var,
           strata.var = strata.var,
           adj.vars = adj.vars,
-          dist.name = measure
+          dist.name = measure,
+          pdf = FALSE
         )
       } else if (plot.type == "spaghettiplot"){
         p <- generate_beta_change_spaghettiplot_long(
@@ -216,7 +224,8 @@ plot_beta_diversity <- function (dist.obj,
           group.var = group.var,
           strata.var = strata.var,
           adj.vars = adj.vars,
-          dist.name = measure
+          dist.name = measure,
+          pdf = FALSE
         )
       } else {
         message(
@@ -241,7 +250,8 @@ plot_beta_diversity <- function (dist.obj,
           group.var = group.var,
           strata.var = strata.var,
           adj.vars = adj.vars,
-          dist.name = measure
+          dist.name = measure,
+          pdf = FALSE
         )
       } else {
         message(
@@ -259,5 +269,4 @@ plot_beta_diversity <- function (dist.obj,
 
   return(p)
 }
-
 

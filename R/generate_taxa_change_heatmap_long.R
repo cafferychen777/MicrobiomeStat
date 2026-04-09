@@ -210,9 +210,11 @@ generate_taxa_change_heatmap_long <- function(data.obj,
     otu_tax_agg <- get_taxa_data(data.obj, feature.level, prev.filter, abund.filter)
 
     # Select top k features if specified
-    if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
+    selected_features <- features.plot
+    if (is.null(selected_features) && !is.null(top.k.plot) && !is.null(top.k.func)) {
       computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
-      features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
+      top_k_n <- min(top.k.plot, length(computed_values))
+      selected_features <- names(sort(computed_values, decreasing = TRUE)[seq_len(top_k_n)])
     }
 
     df_mean_value <- mStat_prepare_taxa_long_data(
@@ -293,7 +295,7 @@ generate_taxa_change_heatmap_long <- function(data.obj,
 
     # Remove columns where all values are NA
     wide_data <-
-      wide_data[, colSums(is.na(wide_data)) != nrow(wide_data)]
+      wide_data[, colSums(is.na(wide_data)) != nrow(wide_data), drop = FALSE]
 
     # Save new column names
     new_colnames <- colnames(wide_data)
@@ -346,18 +348,21 @@ generate_taxa_change_heatmap_long <- function(data.obj,
     }
 
     # Sort wide data according to annotation
-    wide_data_sorted <- wide_data[, rownames(annotation_col_sorted)]
+    wide_data_sorted <- wide_data[, rownames(annotation_col_sorted), drop = FALSE]
 
     # Filter features if specified
-    if (!is.null(features.plot)) {
+    if (!is.null(selected_features)) {
       wide_data_sorted <-
-        wide_data_sorted[rownames(wide_data_sorted) %in% features.plot,]
+        wide_data_sorted[rownames(wide_data_sorted) %in% selected_features,, drop = FALSE]
     }
 
     # Calculate gaps for heatmap
     if (!is.null(group.var)) {
       gaps <-
         cumsum(table(annotation_col_sorted[[group.var]]))[-length(table(annotation_col_sorted[[group.var]]))]
+      if (length(gaps) == 0) {
+        gaps <- NULL
+      }
     } else {
       gaps <- NULL
     }
@@ -365,20 +370,33 @@ generate_taxa_change_heatmap_long <- function(data.obj,
     if (!is.null(strata.var)){
       gaps <-
         cumsum(table(annotation_col_sorted[[strata.var]]))[-length(table(annotation_col_sorted[[strata.var]]))]
+      if (length(gaps) == 0) {
+        gaps <- NULL
+      }
+    }
+
+    if (!is.null(gaps) && ncol(wide_data_sorted) <= 1) {
+      gaps <- NULL
     }
 
     # Set up color scheme for heatmap
     n_colors <- 100
     col <- c("#0571b0", "#92c5de", "white", "#f4a582", "#ca0020")
-    
-    # Find the maximum absolute value in the data
-    max_abs_val <-
-      max(abs(range(na.omit(
-        c(as.matrix(wide_data_sorted))
-      ))))
 
-    # Calculate the position of the zero value in the new color vector
-    zero_pos <- round(max_abs_val / (2 * max_abs_val) * n_colors)
+    # Find the maximum absolute value in the data
+    matrix_values <- as.numeric(wide_data_sorted)
+    finite_values <- matrix_values[is.finite(matrix_values)]
+    if (length(finite_values) == 0) {
+      max_abs_val <- 1
+    } else {
+      max_abs_val <- max(abs(finite_values))
+      if (!is.finite(max_abs_val) || max_abs_val <= 0) {
+        max_abs_val <- 1
+      }
+    }
+
+    # Keep white centered at zero with a fixed midpoint
+    zero_pos <- floor(n_colors / 2)
 
     # Create color vectors
     my_col <-
@@ -440,15 +458,21 @@ generate_taxa_change_heatmap_long <- function(data.obj,
       annotation_colors_list <- NULL
     }
 
+    heatmap_gaps <- if (!is.null(gaps) && length(gaps) > 0 && ncol(wide_data_sorted) > 1) {
+      gaps
+    } else {
+      NULL
+    }
+
     # Plot stacked heatmap
     heatmap_plot <- pheatmap::pheatmap(
-      mat = wide_data_sorted[order(rowMeans(abs(wide_data_sorted), na.rm = TRUE), decreasing = TRUE), ],
+      mat = wide_data_sorted[order(rowMeans(abs(wide_data_sorted), na.rm = TRUE), decreasing = TRUE), , drop = FALSE],
       annotation_col = annotation_col_sorted,
       annotation_colors = annotation_colors_list,
       cluster_rows = cluster.rows,
       cluster_cols = cluster.cols,
       show_colnames = FALSE,
-      gaps_col = gaps,
+      gaps_col = heatmap_gaps,
       fontsize = base.size,
       silent = TRUE,
       color = my_col,

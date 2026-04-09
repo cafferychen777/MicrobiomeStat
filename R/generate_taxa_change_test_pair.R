@@ -99,6 +99,13 @@ generate_taxa_change_test_pair <-
         time.var, group.var, adj.vars, subject.var
       )))
 
+    mStat_validate_group_var_contract(
+      meta.dat = meta_tab,
+      group.var = group.var,
+      subject.var = subject.var,
+      context = "taxa change testing"
+    )
+
     # Set reference level for group variable
     if (!is.null(group.var)) {
       # Convert to factor (this function always treats group.var as categorical)
@@ -156,15 +163,6 @@ generate_taxa_change_test_pair <-
 
     # Convert the formula string to a formula object
     formula <- as.formula(formula_str)
-
-    # Set the baseline time point if not provided
-    if (is.null(change.base)) {
-      change.base <- unique(meta_tab %>% select(all_of(c(time.var))))[1,]
-      message(
-        "The 'change.base' variable was NULL. It has been set to the first unique value in the 'time.var' column of the 'meta.dat' data frame: ",
-        change.base
-      )
-    }
 
     # Adjust filters for 'other' data type
     if (feature.dat.type == "other") {

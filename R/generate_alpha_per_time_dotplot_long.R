@@ -91,10 +91,9 @@ generate_alpha_per_time_dotplot_long <- function(data.obj,
   # This allows for flexible customization of the plot's appearance.
   theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
-  # Filter group names to only include those with "vs".
-  # This step focuses on comparisons between groups, which are typically denoted with "vs" in the name.
+  # Keep all group-term names from the test list.
+  # This includes both categorical contrasts ("... vs ...") and continuous terms.
   group.names <- names(test.list[[1]])
-  group.names <- group.names[grep("vs", group.names)]
 
   # Process the test results for each group comparison.
   # This loop restructures the data for easier plotting.

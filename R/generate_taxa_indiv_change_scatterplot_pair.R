@@ -141,6 +141,8 @@ generate_taxa_indiv_change_scatterplot_pair <-
     change.base <- pair_times$change.base
     change.after <- pair_times$change.after
 
+    has_strata <- !is.null(strata.var)
+
     # If group variable is not provided, create a dummy group
     if (is.null(group.var)) {
       group.var = "ALL"
@@ -148,7 +150,7 @@ generate_taxa_indiv_change_scatterplot_pair <-
     }
 
     # If strata variable is not provided, create a dummy strata
-    if (is.null(strata.var)) {
+    if (!has_strata) {
       strata.var = "ALL2"
       meta_tab$ALL2 <- ""
     }
@@ -160,7 +162,7 @@ generate_taxa_indiv_change_scatterplot_pair <-
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
     # Define aesthetic function based on whether strata variable is provided
-    aes_function <- if (!is.null(strata.var)){
+    aes_function <- if (has_strata){
       aes(shape = !!sym(strata.var), color = !!sym(strata.var))
     } else {
       aes(color = !!sym(time.var))
@@ -188,9 +190,11 @@ generate_taxa_indiv_change_scatterplot_pair <-
       otu_tax_agg <- get_taxa_data(data.obj, feature.level, prev.filter, abund.filter)
 
       # Select top k features if specified
-      if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
-      computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
-      features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
+      selected_features <- features.plot
+      if (is.null(selected_features) && !is.null(top.k.plot) && !is.null(top.k.func)) {
+        computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
+        top_k_n <- min(top.k.plot, length(computed_values))
+        selected_features <- names(sort(computed_values, decreasing = TRUE)[seq_len(top_k_n)])
       }
 
       otu_tab_norm_agg <- mStat_prepare_taxa_long_data(
@@ -205,12 +209,15 @@ generate_taxa_indiv_change_scatterplot_pair <-
       taxa.levels <-
         otu_tab_norm_agg %>% select(all_of(feature.level)) %>% dplyr::distinct() %>% dplyr::pull()
 
-      # Split data into two subsets: one for change.base, one for change.after
-      df_t0 <- otu_tab_norm_agg %>% filter(!!sym(time.var) == change.base)
-      df_ts <- otu_tab_norm_agg %>% filter(!!sym(time.var) == change.after)
+      subject_time_abundance <- otu_tab_norm_agg %>%
+        dplyr::group_by(!!sym(feature.level), !!sym(subject.var), !!sym(time.var)) %>%
+        dplyr::summarise(count = mean(count, na.rm = TRUE), .groups = "drop")
+
+      df_t0 <- subject_time_abundance %>% filter(!!sym(time.var) == change.base)
+      df_ts <- subject_time_abundance %>% filter(!!sym(time.var) == change.after)
 
       # Join the two subsets
-      df <- dplyr::inner_join(df_ts, df_t0, by = c(feature.level, subject.var), suffix = c("_ts", "_t0"), relationship = "many-to-many")
+      df <- dplyr::inner_join(df_ts, df_t0, by = c(feature.level, subject.var), suffix = c("_ts", "_t0"))
 
       # Calculate the change in abundance based on the specified function
       df <- df %>%
@@ -244,8 +251,8 @@ generate_taxa_indiv_change_scatterplot_pair <-
       }
 
       # Filter taxa levels if specific features are requested
-      if (!is.null(features.plot)){
-        taxa.levels <- taxa.levels[taxa.levels %in% features.plot]
+      if (!is.null(selected_features)){
+        taxa.levels <- taxa.levels[taxa.levels %in% selected_features]
       }
 
       # Create a plot for each taxon

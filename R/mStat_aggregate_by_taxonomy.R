@@ -67,7 +67,16 @@ if (!feature.level %in% colnames(tax_tab)) {
 
   otu_tax <- otu_tab %>%
     tibble::rownames_to_column("feature_id") %>%
-    dplyr::inner_join(tax_subset, by = "feature_id") %>%
+    dplyr::inner_join(tax_subset, by = "feature_id")
+
+  if (nrow(otu_tax) == 0) {
+    stop(
+      "No overlapping feature IDs between feature.tab and feature.ann after join. ",
+      "Please ensure row names are aligned before aggregation."
+    )
+  }
+
+  otu_tax <- otu_tax %>%
     tibble::column_to_rownames("feature_id")
 
   # Aggregate by taxonomy level:

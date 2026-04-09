@@ -4,7 +4,10 @@
 #' to visualize alpha diversity measures in microbiome data. It supports different
 #' visualization schemes for single time point, paired time points, and longitudinal data.
 #'
-#' @param alpha.obj An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.
+#' @param alpha.obj A required list of pre-calculated alpha diversity indices,
+#'   typically returned by `mStat_calculate_alpha_diversity()`. This legacy
+#'   wrapper does not accept a raw feature table and therefore cannot calculate
+#'   alpha diversity internally.
 #' @param meta.dat A data frame containing metadata for the samples.
 #' @param measure The alpha diversity index to be plotted. Supported indices include "shannon", "simpson", "observed_species", "chao1", "ace", "pielou", and "faith_pd".
 #' @param group.var Character string specifying the grouping variable in meta.dat.
@@ -126,6 +129,13 @@ plot_alpha_diversity <- function (alpha.obj,
                                   alpha.change.func = "log fold change",
                                   plot.type = c("boxplot", "spaghettiplot"),
                                   ...) {
+  if (missing(alpha.obj)) {
+    stop(
+      "`alpha.obj` is required for `plot_alpha_diversity()`; ",
+      "calculate it first with `mStat_calculate_alpha_diversity()`.",
+      call. = FALSE
+    )
+  }
 
   # Validate and set the plot type
   # This step ensures that only supported plot types are used, enhancing function robustness
@@ -135,6 +145,12 @@ plot_alpha_diversity <- function (alpha.obj,
   # This approach facilitates consistent data handling across different analysis functions
   data.obj <- list()
   data.obj$meta.dat <- meta.dat
+  data.obj$feature.tab <- matrix(
+    1,
+    nrow = 1,
+    ncol = nrow(meta.dat),
+    dimnames = list("alpha_placeholder", rownames(meta.dat))
+  )
 
   # The function adapts to various study designs based on time variables and number of time points
   # This flexibility allows for comprehensive analysis of different experimental setups
@@ -158,7 +174,8 @@ plot_alpha_diversity <- function (alpha.obj,
         strata.var = strata.var,
         adj.vars = adj.vars,
         time.var = time.var,
-        t.level = time.point.plot
+        t.level = time.point.plot,
+        pdf = FALSE
       )
     } else {
       # Inform the user if the requested plot type is not supported for this scenario
@@ -199,6 +216,7 @@ plot_alpha_diversity <- function (alpha.obj,
           adj.vars = adj.vars,
           change.base = time.point.plot[1],
           alpha.change.func = alpha.change.func,
+          pdf = FALSE
         )
       } else {
         # Inform the user if the requested plot type is not supported for this scenario
@@ -226,7 +244,8 @@ plot_alpha_diversity <- function (alpha.obj,
           ts.levels = time.point.plot[-1],
           group.var = group.var,
           strata.var = strata.var,
-          adj.vars = adj.vars
+          adj.vars = adj.vars,
+          pdf = FALSE
         )
       } else if (plot.type == "spaghettiplot") {
         # Spaghetti plot for longitudinal data with two time points
@@ -242,7 +261,8 @@ plot_alpha_diversity <- function (alpha.obj,
           ts.levels = time.point.plot[-1],
           group.var = group.var,
           strata.var = strata.var,
-          adj.vars = adj.vars
+          adj.vars = adj.vars,
+          pdf = FALSE
         )
       } else {
         # Inform the user if the requested plot type is not supported for this scenario
@@ -283,7 +303,8 @@ plot_alpha_diversity <- function (alpha.obj,
           ts.levels = time.point.plot[-1],
           group.var = group.var,
           strata.var = strata.var,
-          adj.vars = adj.vars
+          adj.vars = adj.vars,
+          pdf = FALSE
         )
       } else if (plot.type == "spaghettiplot") {
         # Spaghetti plot for longitudinal data with multiple time points
@@ -299,7 +320,8 @@ plot_alpha_diversity <- function (alpha.obj,
           ts.levels = time.point.plot[-1],
           group.var = group.var,
           strata.var = strata.var,
-          adj.vars = adj.vars
+          adj.vars = adj.vars,
+          pdf = FALSE
         )
       } else {
         # Inform the user if the requested plot type is not supported for this scenario

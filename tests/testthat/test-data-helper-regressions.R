@@ -301,3 +301,130 @@ test_that("mStat_remove_feature preserves matrix dimensions when one feature rem
   expect_equal(dim(removed$feature.ann), c(1L, 1L))
   expect_identical(rownames(removed$feature.tab), "f2")
 })
+
+test_that("mStat_combine_data merges feature/meta/taxonomy without suffix corruption", {
+  data.obj1 <- list(
+    feature.tab = matrix(
+      c(1, 2,
+        3, 4),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(c("f1", "f2"), c("s1", "s2"))
+    ),
+    meta.dat = data.frame(
+      group = c("A", "B"),
+      row.names = c("s1", "s2"),
+      stringsAsFactors = FALSE
+    ),
+    feature.ann = matrix(
+      c("p1", "p2"),
+      ncol = 1,
+      dimnames = list(c("f1", "f2"), "Phylum")
+    )
+  )
+
+  data.obj2 <- list(
+    feature.tab = matrix(
+      c(1, 5,
+        3, 6),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(c("f1", "f3"), c("s1", "s3"))
+    ),
+    meta.dat = data.frame(
+      group = c("A", "C"),
+      row.names = c("s1", "s3"),
+      stringsAsFactors = FALSE
+    ),
+    feature.ann = matrix(
+      c("p1", "p3"),
+      ncol = 1,
+      dimnames = list(c("f1", "f3"), "Phylum")
+    )
+  )
+
+  combined <- suppressMessages(mStat_combine_data(data.obj1, data.obj2))
+
+  expect_identical(colnames(combined$feature.tab), c("s1", "s2", "s3"))
+  expect_identical(rownames(combined$feature.tab), c("f1", "f2", "f3"))
+  expect_equal(combined$feature.tab["f2", "s3"], 0)
+  expect_equal(combined$feature.tab["f3", "s2"], 0)
+
+  expect_true(is.data.frame(combined$meta.dat))
+  expect_identical(rownames(combined$meta.dat), c("s1", "s2", "s3"))
+  expect_identical(colnames(combined$meta.dat), "group")
+  expect_identical(combined$meta.dat$group, c("A", "B", "C"))
+
+  expect_true(is.matrix(combined$feature.ann))
+  expect_identical(rownames(combined$feature.ann), c("f1", "f2", "f3"))
+  expect_identical(colnames(combined$feature.ann), "Phylum")
+  expect_identical(as.character(combined$feature.ann[, "Phylum"]), c("p1", "p2", "p3"))
+})
+
+test_that("mStat_aggregate_by_taxonomy fails early on disjoint feature IDs", {
+  data.obj <- list(
+    feature.tab = matrix(
+      c(1, 2,
+        3, 4),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(c("f1", "f2"), c("s1", "s2"))
+    ),
+    feature.ann = matrix(
+      c("p1", "p2"),
+      ncol = 1,
+      dimnames = list(c("g1", "g2"), "Phylum")
+    )
+  )
+
+  expect_error(
+    suppressMessages(mStat_aggregate_by_taxonomy(data.obj, feature.level = "Phylum")),
+    "No overlapping feature IDs"
+  )
+})
+
+test_that("mStat_import_dada2_as_data_obj does not require Biostrings attachment", {
+  seq_tab <- matrix(
+    c(10, 20,
+      30, 40),
+    nrow = 2,
+    byrow = TRUE,
+    dimnames = list(c("s1", "s2"), c("ACGT", "TGCA"))
+  )
+
+  tax_tab <- matrix(
+    c("k__Bacteria", "k__Bacteria"),
+    ncol = 1,
+    dimnames = list(c("ACGT", "TGCA"), "Kingdom")
+  )
+
+  data.obj <- mStat_import_dada2_as_data_obj(seq_tab = seq_tab, tax_tab = tax_tab)
+
+  expect_identical(rownames(data.obj$feature.tab), c("ASV1", "ASV2"))
+  expect_identical(colnames(data.obj$feature.tab), c("s1", "s2"))
+  expect_identical(rownames(data.obj$feature.ann), c("ASV1", "ASV2"))
+  expect_identical(
+    unname(data.obj$feature.ann[, "Kingdom"]),
+    c("k__Bacteria", "k__Bacteria")
+  )
+})
+
+test_that("mStat_import_mothur_as_data_obj creates metadata rownames from feature.tab", {
+  shared_file <- tempfile(fileext = ".shared")
+  writeLines(
+    c(
+      "label\tGroup\tnumOtus\tOtu1\tOtu2",
+      "0.03\ts1\t2\t1\t0",
+      "0.03\ts2\t2\t0\t1"
+    ),
+    con = shared_file
+  )
+
+  data.obj <- suppressMessages(
+    mStat_import_mothur_as_data_obj(mothur_shared_file = shared_file)
+  )
+
+  expect_true(is.data.frame(data.obj$meta.dat))
+  expect_identical(rownames(data.obj$meta.dat), colnames(data.obj$feature.tab))
+  expect_equal(ncol(data.obj$meta.dat), 0)
+})

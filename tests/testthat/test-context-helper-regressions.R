@@ -545,3 +545,224 @@ test_that("mStat_import_qiime2_as_data_obj handles optional taxa and refseq clea
   expect_null(imported$feature.ann)
   expect_identical(imported$refseq, "mock-refseq")
 })
+
+
+test_that("mStat_validate_dist_object rejects cross-distance label mismatch", {
+  dist.obj <- list(
+    BC = stats::as.dist(matrix(
+      c(0, 1, 2,
+        1, 0, 3,
+        2, 3, 0),
+      nrow = 3,
+      dimnames = list(c("s1", "s2", "s3"), c("s1", "s2", "s3"))
+    )),
+    Jaccard = stats::as.dist(matrix(
+      c(0, 4, 5,
+        4, 0, 6,
+        5, 6, 0),
+      nrow = 3,
+      dimnames = list(c("s2", "s1", "s3"), c("s2", "s1", "s3"))
+    ))
+  )
+
+  expect_error(
+    mStat_validate_dist_object(dist.obj, c("BC", "Jaccard")),
+    "share identical sample labels and order"
+  )
+})
+
+
+test_that("mStat_meta_to_tibble handles existing sample column", {
+  meta.dat <- data.frame(
+    sample = c("legacy-1", "legacy-2"),
+    group = c("A", "B"),
+    row.names = c("s1", "s2"),
+    stringsAsFactors = FALSE
+  )
+
+  meta.tbl <- mStat_meta_to_tibble(meta.dat, sample_col = "sample")
+
+  expect_identical(meta.tbl$sample, c("s1", "s2"))
+  expect_identical(meta.tbl$group, c("A", "B"))
+  expect_false(anyDuplicated(colnames(meta.tbl)) > 0)
+})
+
+
+test_that("generate_beta_pc_trend_test_long supports group.var = NULL", {
+  data.obj <- list(
+    feature.tab = matrix(
+      c(10, 8, 6, 7, 5, 3,
+        1, 2, 3, 2, 3, 4,
+        3, 3, 3, 3, 3, 3),
+      nrow = 3,
+      byrow = TRUE,
+      dimnames = list(c("f1", "f2", "f3"), c("s1", "s2", "s3", "s4", "s5", "s6"))
+    ),
+    meta.dat = data.frame(
+      subject = rep(c("id1", "id2"), each = 3),
+      time = rep(c("0", "1", "2"), times = 2),
+      row.names = c("s1", "s2", "s3", "s4", "s5", "s6"),
+      stringsAsFactors = FALSE
+    )
+  )
+
+  result <- suppressWarnings(
+    generate_beta_pc_trend_test_long(
+      data.obj = data.obj,
+      subject.var = "subject",
+      time.var = "time",
+      group.var = NULL,
+      dist.name = "BC"
+    )
+  )
+
+  expect_true("BC" %in% names(result))
+  expect_true(all(c("PC1", "PC2") %in% names(result$BC)))
+})
+
+
+test_that("generate_beta_pc_volatility_test_long fails clearly without group.var", {
+  data.obj <- list(
+    feature.tab = matrix(
+      c(10, 8, 6, 7, 5, 3,
+        1, 2, 3, 2, 3, 4,
+        3, 3, 3, 3, 3, 3),
+      nrow = 3,
+      byrow = TRUE,
+      dimnames = list(c("f1", "f2", "f3"), c("s1", "s2", "s3", "s4", "s5", "s6"))
+    ),
+    meta.dat = data.frame(
+      subject = rep(c("id1", "id2"), each = 3),
+      time = rep(c("0", "1", "2"), times = 2),
+      row.names = c("s1", "s2", "s3", "s4", "s5", "s6"),
+      stringsAsFactors = FALSE
+    )
+  )
+
+  expect_error(
+    suppressWarnings(
+      generate_beta_pc_volatility_test_long(
+        data.obj = data.obj,
+        subject.var = "subject",
+        time.var = "time",
+        group.var = NULL,
+        dist.name = "BC"
+      )
+    ),
+    "`group.var` is required"
+  )
+})
+
+
+test_that("generate_alpha_volatility_test_long ignores invariant covariates and keeps group test", {
+  sample_ids <- paste0("s", 1:8)
+  data.obj <- list(
+    feature.tab = matrix(
+      c(10, 11, 12, 13, 8, 7, 6, 5,
+        1, 2, 1, 2, 3, 4, 3, 4),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(c("f1", "f2"), sample_ids)
+    ),
+    meta.dat = data.frame(
+      subject = rep(c("id1", "id2", "id3", "id4"), each = 2),
+      time = rep(c("0", "1"), times = 4),
+      group = rep(c("A", "A", "B", "B"), each = 2),
+      invariant = 1,
+      row.names = sample_ids,
+      stringsAsFactors = FALSE
+    )
+  )
+
+  result <- suppressWarnings(
+    generate_alpha_volatility_test_long(
+      data.obj = data.obj,
+      alpha.name = "shannon",
+      time.var = "time",
+      subject.var = "subject",
+      group.var = "group",
+      adj.vars = "invariant"
+    )
+  )
+
+  expect_true("shannon" %in% names(result))
+  expect_true(any(grepl("group", result$shannon$Term, fixed = TRUE)))
+})
+
+
+test_that("group and time contracts reject missing or degenerate inputs", {
+  meta <- data.frame(
+    subject = c("id1", "id1", "id2", "id2"),
+    group = c("A", "A", "B", "B"),
+    time = c("T1", "T2", "T1", "T2"),
+    stringsAsFactors = FALSE
+  )
+
+  expect_error(
+    mStat_validate_group_var_contract(meta, group.var = NULL, context = "contract test"),
+    "`group.var` is required"
+  )
+
+  expect_error(
+    mStat_validate_group_var_contract(meta, group.var = "missing", context = "contract test"),
+    "was not found in metadata"
+  )
+
+  expect_error(
+    mStat_validate_group_var_contract(
+      transform(meta, group = "A"),
+      group.var = "group",
+      context = "contract test"
+    ),
+    "must have at least two observed levels/values"
+  )
+
+  expect_error(
+    mStat_validate_time_var_contract(meta, time.var = NULL, context = "contract test"),
+    "`time.var` is required"
+  )
+
+  expect_error(
+    mStat_validate_time_var_contract(meta, time.var = "missing", context = "contract test"),
+    "was not found in metadata"
+  )
+
+  expect_error(
+    mStat_validate_time_var_contract(
+      transform(meta, time = NA_character_),
+      time.var = "time",
+      context = "contract test"
+    ),
+    "has no observed values"
+  )
+
+  expect_error(
+    mStat_validate_time_var_contract(
+      transform(meta, time = "T1"),
+      time.var = "time",
+      context = "contract test",
+      require_variation = TRUE
+    ),
+    "must have at least two observed levels/values"
+  )
+})
+
+
+test_that("group-required public helpers keep non-NULL signature contract", {
+  expect_identical(
+    formals(generate_alpha_per_time_test_long)$group.var,
+    quote(expr = )
+  )
+  expect_identical(
+    formals(generate_beta_change_per_time_test_long)$group.var,
+    quote(expr = )
+  )
+  expect_identical(
+    formals(generate_beta_volatility_test_long)$group.var,
+    quote(expr = )
+  )
+  expect_identical(
+    formals(generate_beta_pc_volatility_test_long)$group.var,
+    quote(expr = )
+  )
+})

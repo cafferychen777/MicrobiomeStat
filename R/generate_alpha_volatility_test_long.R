@@ -71,6 +71,12 @@ generate_alpha_volatility_test_long <- function(data.obj,
     context = "alpha volatility testing"
   )
 
+  mStat_validate_time_var_contract(
+    meta.dat = meta_tab,
+    time.var = time.var,
+    context = "alpha volatility testing"
+  )
+
   # Inform the user about the importance of numeric time variable for volatility calculation
   # This message ensures that the user understands the requirements for proper analysis
   message(
@@ -107,14 +113,20 @@ generate_alpha_volatility_test_long <- function(data.obj,
       # Create a model matrix for the adjustment variables
       data_subset <- alpha_df %>%
         dplyr::select(all_of(adj.vars)) %>%
-        dplyr::mutate(dplyr::across(where(is.character) &
-                                      !is.factor, factor))
+        dplyr::mutate(dplyr::across(where(is.character) & !is.factor, factor))
+
+      factor_terms <- names(data_subset)[vapply(data_subset, is.factor, logical(1))]
+      contrasts_arg <- if (length(factor_terms) > 0) {
+        lapply(data_subset[factor_terms], stats::contrasts, contrasts = FALSE)
+      } else {
+        NULL
+      }
 
       M <-
         model.matrix(
           ~ 0 + .,
           data = data_subset,
-          contrasts.arg = lapply(data_subset, stats::contrasts, contrasts = FALSE)
+          contrasts.arg = contrasts_arg
         )
 
       # Center the covariates
@@ -161,42 +173,45 @@ generate_alpha_volatility_test_long <- function(data.obj,
                        by = subject.var,
                        relationship = "many-to-one")
 
-    # Test the association between the volatility and the grouping variable
-    # This uses a linear model to assess if volatility differs between groups
-    formula <- as.formula(paste("volatility ~", group.var))
-    test_result <- stats::lm(formula, data = test_df)
+    model_terms <- c(group.var, adj.vars)
+    model_terms <- model_terms[!is.null(model_terms)]
 
-    # Extract coefficients from the linear model
+    valid_terms <- model_terms[vapply(model_terms, function(term) {
+      term_values <- test_df[[term]]
+      if (is.numeric(term_values)) {
+        return(stats::var(term_values, na.rm = TRUE) > 0)
+      }
+      length(unique(stats::na.omit(term_values))) > 1
+    }, logical(1))]
+
+    model_formula <- if (length(valid_terms) > 0) {
+      stats::as.formula(paste("volatility ~", paste(valid_terms, collapse = " + ")))
+    } else {
+      stats::as.formula("volatility ~ 1")
+    }
+
+    test_result <- stats::lm(model_formula, data = test_df)
     coef.tab <- extract_coef(test_result)
 
-    # Perform ANOVA if the grouping variable has more than two levels
-    # This tests for overall differences in volatility among groups
-    if (length(unique(alpha_df[[group.var]])) > 2) {
-      anova <- anova(test_result)
-      anova.tab <- anova %>%
-        as.data.frame() %>%
-        tibble::rownames_to_column("Term") %>%
-        dplyr::select(
-          Term,
-          Statistic = `F value`,
-          P.Value = `Pr(>F)`
-        ) %>%
-        tibble::as_tibble() %>%
-        dplyr::mutate(Estimate = NA, Std.Error = NA)
-
-      # Reorder the columns to match coef.tab
-      anova.tab <- anova.tab %>%
-        dplyr::select(
-          Term,
-          Estimate,
-          Std.Error,
-          Statistic,
-          P.Value
+    if (group.var %in% valid_terms && length(unique(stats::na.omit(test_df[[group.var]]))) > 2) {
+      anova_result <- anova(test_result)
+      group_row <- as.data.frame(anova_result)
+      terms <- rownames(group_row)
+      group_index <- which(terms == group.var)
+      if (length(group_index) > 0) {
+        selected <- group_row[group_index[[1]], , drop = FALSE]
+        coef.tab <- rbind(
+          coef.tab,
+          data.frame(
+            Term = group.var,
+            Estimate = NA_real_,
+            Std.Error = NA_real_,
+            Statistic = selected$`F value`,
+            P.Value = selected$`Pr(>F)`,
+            check.names = FALSE
+          )
         )
-
-      # Combine the coefficient table with the ANOVA results
-      coef.tab <-
-        rbind(coef.tab, anova.tab)
+      }
     }
 
     return(tibble::as_tibble(coef.tab))

@@ -101,6 +101,13 @@ generate_beta_change_test_pair <-
       data.obj = data.obj
     ) %>% mStat_meta_to_tibble(sample_col = "sample")
 
+    mStat_validate_group_var_contract(
+      meta.dat = tibble::column_to_rownames(meta_tab, "sample"),
+      group.var = group.var,
+      subject.var = subject.var,
+      context = "beta change testing"
+    )
+
     # Initialize variable to store time-varying information
     time_varying_info <- NULL
 

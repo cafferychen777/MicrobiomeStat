@@ -69,6 +69,31 @@
 #'   pdf.hei = 8.5
 #' )
 #' }
+#' @noRd
+mStat_build_axis_labels_from_eig <- function(eig_vals) {
+  positive_eig <- eig_vals[is.finite(eig_vals) & eig_vals > 0]
+  eig_denom <- if (length(positive_eig) > 0) sum(positive_eig) else NA_real_
+
+  format_axis_label <- function(axis_index) {
+    if (is.null(eig_vals) || length(eig_vals) < axis_index) {
+      return(paste0("Axis ", axis_index))
+    }
+
+    axis_value <- eig_vals[[axis_index]]
+    if (is.finite(axis_value) && is.finite(eig_denom) && eig_denom > 0 && axis_value > 0) {
+      paste0("Axis ", axis_index, " (", round(axis_value / eig_denom * 100, 2), "%)")
+    } else {
+      paste0("Axis ", axis_index, " (0%)")
+    }
+  }
+
+  list(
+    x = format_axis_label(1),
+    y = format_axis_label(2)
+  )
+}
+
+
 #' @export
 generate_beta_ordination_single <-
   function(data.obj,
@@ -216,12 +241,14 @@ generate_beta_ordination_single <-
 
       colnames(df)[1:2] <- c("PC1", "PC2")
 
+      axis_labels <- mStat_build_axis_labels_from_eig(pc.obj[[dist.name]]$eig)
+
       # Create the main scatter plot
       p <- ggplot2::ggplot(df, ggplot2::aes(PC1, PC2)) +
         ggplot2::geom_point(size = point.size, aes_function, show.legend = T) +
         ggplot2::labs(
-          x = ifelse(!is.null(pc.obj[[dist.name]]$eig),paste0("Axis 1 (", round(pc.obj[[dist.name]]$eig[1]/sum(pc.obj[[dist.name]]$eig)*100,2),"%)"),"Axis 1"),
-          y = ifelse(!is.null(pc.obj[[dist.name]]$eig),paste0("Axis 2 (", round(pc.obj[[dist.name]]$eig[2]/sum(pc.obj[[dist.name]]$eig)*100,2),"%)"),"Axis 2")
+          x = axis_labels$x,
+          y = axis_labels$y
         ) +
         # Add 95% confidence ellipses for each group
         ggplot2::stat_ellipse(ggplot2::aes(color = !!sym(group.var)),fill="white",geom = "polygon",
@@ -296,10 +323,11 @@ generate_beta_ordination_single <-
 
       # Combine the main plot with the boxplots
       # This provides a comprehensive view of the data distribution along both principal coordinates
-      p <- p %>%
+      combined_plot <- p %>%
         aplot::insert_top(Fig1a.taxa.pc1.boxplot, height = 0.2) %>%
-        aplot::insert_right(Fig1a.taxa.pc2.boxplot, width=0.2) %>%
-        as.ggplot()
+        aplot::insert_right(Fig1a.taxa.pc2.boxplot, width=0.2)
+
+      p <- combined_plot
 
       # Save the plot as a PDF file if requested
       if (pdf) {
@@ -317,12 +345,11 @@ generate_beta_ordination_single <-
           pdf_name <- paste0(pdf_name, "_", file.ann)
         }
         pdf_name <- paste0(pdf_name, ".pdf")
-        ggsave(
+        mStat_save_plot_pdf(
+          plot = combined_plot,
           filename = pdf_name,
-          plot = p,
           width = pdf.wid,
-          height = pdf.hei,
-          dpi = 300
+          height = pdf.hei
         )
       }
       return(p)

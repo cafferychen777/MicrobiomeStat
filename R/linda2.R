@@ -65,6 +65,25 @@
 #'   \item{matched.idx}{Indices of taxa matched to tree in full M-dimensional space}
 #'
 #' @keywords internal
+mStat_with_local_seed <- function(seed, expr) {
+  has_seed <- exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+  if (has_seed) {
+    old_seed <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+  }
+
+  on.exit({
+    if (has_seed) {
+      assign(".Random.seed", old_seed, envir = .GlobalEnv)
+    } else if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
+      rm(".Random.seed", envir = .GlobalEnv)
+    }
+  }, add = TRUE)
+
+  set.seed(seed)
+  force(expr)
+}
+
+#' @keywords internal
 get_tree_smoothing_info <- function(phy.tree, tax.names,
                                      lambda = 0.1,
                                      k.neighbors = 5) {
@@ -156,8 +175,10 @@ get_tree_smoothing_info <- function(phy.tree, tax.names,
   #   diag(S)[i] ≈ mean(Z[i,:] * (S*Z)[i,:])
   # ---------------------------------------------------------------------------
   n_hutch <- 200  # 200 samples for good accuracy (<0.5% error in M_eff)
-  set.seed(42)    # Reproducibility
-  Z <- matrix(sample(c(-1, 1), m * n_hutch, replace = TRUE), m, n_hutch)
+  Z <- mStat_with_local_seed(
+    42,
+    matrix(sample(c(-1, 1), m * n_hutch, replace = TRUE), m, n_hutch)
+  )
 
   # S*Z = A⁻¹*Z via sparse Cholesky solve
   SZ <- as.matrix(Matrix::solve(chol_factor, Z, system = "A"))

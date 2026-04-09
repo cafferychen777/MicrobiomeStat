@@ -121,6 +121,13 @@ plot_taxa <- function(data.obj,
   # Detect study design
   design_info <- detect_study_design(data.obj, subject.var, time.var, time.points)
 
+  scoped_context <- mStat_scope_unified_context(
+    data.obj = data.obj,
+    design_info = design_info,
+    time.var = time.var
+  )
+  data.obj <- scoped_context$data.obj
+
   # Determine if this is a change plot
   is_change <- change.type != "none"
 
@@ -190,6 +197,7 @@ if (!validation$is_valid && is_change) {
 
   # Clean parameters (remove NULLs except key params, remove subject.var for single design)
   resolved <- clean_resolved_params(resolved, design_info$design)
+  resolved <- filter_target_params(resolved, target_func)
 
   # Call the target function
   result <- tryCatch({
@@ -266,6 +274,15 @@ plot_alpha <- function(data.obj,
   # Detect study design
   design_info <- detect_study_design(data.obj, subject.var, time.var, time.points)
 
+  scoped_context <- mStat_scope_unified_context(
+    data.obj = data.obj,
+    design_info = design_info,
+    time.var = time.var,
+    alpha.obj = alpha.obj
+  )
+  data.obj <- scoped_context$data.obj
+  alpha.obj <- scoped_context$alpha.obj
+
   # Determine if this is a change plot
   is_change <- change.type != "none"
 
@@ -325,6 +342,7 @@ plot_alpha <- function(data.obj,
   # Resolve parameters
   resolved <- resolve_params(args, target_func, design_info)
   resolved <- clean_resolved_params(resolved, design_info$design)
+  resolved <- filter_target_params(resolved, target_func)
 
   # Call the target function
   result <- tryCatch({
@@ -409,6 +427,17 @@ plot_beta <- function(data.obj,
   # Detect study design
   design_info <- detect_study_design(data.obj, subject.var, time.var, time.points)
 
+  scoped_context <- mStat_scope_unified_context(
+    data.obj = data.obj,
+    design_info = design_info,
+    time.var = time.var,
+    dist.obj = dist.obj,
+    pc.obj = pc.obj
+  )
+  data.obj <- scoped_context$data.obj
+  dist.obj <- scoped_context$dist.obj
+  pc.obj <- scoped_context$pc.obj
+
   # Validate inputs
   validation <- validate_inputs(
     data.obj = data.obj,
@@ -447,6 +476,7 @@ plot_beta <- function(data.obj,
   # Resolve parameters
   resolved <- resolve_params(args, target_func, design_info)
   resolved <- clean_resolved_params(resolved, design_info$design)
+  resolved <- filter_target_params(resolved, target_func)
 
   # Call the target function
   result <- tryCatch({
@@ -524,6 +554,13 @@ test_taxa <- function(data.obj,
   # Detect study design
   design_info <- detect_study_design(data.obj, subject.var, time.var, time.points)
 
+  scoped_context <- mStat_scope_unified_context(
+    data.obj = data.obj,
+    design_info = design_info,
+    time.var = time.var
+  )
+  data.obj <- scoped_context$data.obj
+
   # Validate inputs
   validation <- validate_inputs(
     data.obj = data.obj,
@@ -564,6 +601,7 @@ test_taxa <- function(data.obj,
   # Resolve parameters
   resolved <- resolve_params(args, target_func, design_info)
   resolved <- clean_resolved_params(resolved, design_info$design)
+  resolved <- filter_target_params(resolved, target_func)
 
   # Call the target function
   result <- tryCatch({
@@ -625,6 +663,15 @@ test_beta <- function(data.obj,
   # Detect study design
   design_info <- detect_study_design(data.obj, subject.var, time.var, time.points)
 
+  scoped_context <- mStat_scope_unified_context(
+    data.obj = data.obj,
+    design_info = design_info,
+    time.var = time.var,
+    dist.obj = dist.obj
+  )
+  data.obj <- scoped_context$data.obj
+  dist.obj <- scoped_context$dist.obj
+
   # Validate inputs
   validation <- validate_inputs(
     data.obj = data.obj,
@@ -661,6 +708,7 @@ test_beta <- function(data.obj,
   # Resolve parameters
   resolved <- resolve_params(args, target_func, design_info)
   resolved <- clean_resolved_params(resolved, design_info$design)
+  resolved <- filter_target_params(resolved, target_func)
 
   # Call the target function
   result <- tryCatch({
@@ -731,6 +779,15 @@ test_alpha <- function(data.obj,
   # Detect study design
   design_info <- detect_study_design(data.obj, subject.var, time.var, time.points)
 
+  scoped_context <- mStat_scope_unified_context(
+    data.obj = data.obj,
+    design_info = design_info,
+    time.var = time.var,
+    alpha.obj = alpha.obj
+  )
+  data.obj <- scoped_context$data.obj
+  alpha.obj <- scoped_context$alpha.obj
+
   # Validate inputs
   validation <- validate_inputs(
     data.obj = data.obj,
@@ -768,6 +825,7 @@ test_alpha <- function(data.obj,
   # Resolve parameters
   resolved <- resolve_params(args, target_func, design_info)
   resolved <- clean_resolved_params(resolved, design_info$design)
+  resolved <- filter_target_params(resolved, target_func)
 
   # Call the target function
   result <- tryCatch({

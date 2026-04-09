@@ -225,3 +225,185 @@ test_that("generate_alpha_change_test_pair rejects more than one follow-up level
     "exactly one follow-up level"
   )
 })
+
+
+test_that("paired change tests fail fast when group.var changes within subject", {
+  sample_ids <- paste0("s", 1:4)
+  data.obj <- list(
+    feature.tab = matrix(
+      c(
+        5, 6, 7, 8,
+        8, 7, 6, 5
+      ),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(c("f1", "f2"), sample_ids)
+    ),
+    meta.dat = data.frame(
+      subject = rep(c("u1", "u2"), each = 2),
+      time = rep(c("T1", "T2"), times = 2),
+      group = c("A", "B", "C", "C"),
+      row.names = sample_ids,
+      stringsAsFactors = FALSE
+    )
+  )
+
+  expect_error(
+    suppressWarnings(
+      generate_taxa_change_test_pair(
+        data.obj = data.obj,
+        subject.var = "subject",
+        time.var = "time",
+        group.var = "group",
+        feature.level = "original",
+        feature.dat.type = "proportion"
+      )
+    ),
+    "must be constant within each subject"
+  )
+
+  expect_error(
+    suppressWarnings(
+      generate_taxa_test_pair(
+        data.obj = data.obj,
+        subject.var = "subject",
+        time.var = "time",
+        group.var = "group",
+        feature.level = "original",
+        feature.dat.type = "proportion"
+      )
+    ),
+    "must be constant within each subject"
+  )
+
+  expect_error(
+    suppressWarnings(
+      generate_beta_change_test_pair(
+        data.obj = data.obj,
+        subject.var = "subject",
+        time.var = "time",
+        group.var = "group",
+        dist.name = "BC"
+      )
+    ),
+    "must be constant within each subject"
+  )
+})
+
+
+test_that("generate_alpha_trend_test_long falls back from random slopes", {
+  data(peerj32.obj)
+
+  expect_message(
+    result <- suppressWarnings(
+      generate_alpha_trend_test_long(
+        data.obj = peerj32.obj,
+        alpha.name = "shannon",
+        time.var = "time",
+        subject.var = "subject",
+        group.var = "group"
+      )
+    ),
+    "Simplifying the random-effects structure"
+  )
+
+  expect_true("shannon" %in% names(result))
+  expect_true("Term" %in% colnames(result$shannon))
+})
+
+
+test_that("create_mixed_effects_formula includes adjustment covariates", {
+  formula <- create_mixed_effects_formula(
+    response.var = "distance",
+    time.var = "time",
+    group.var = "group",
+    subject.var = "subject",
+    adj.vars = "batch",
+    random_slopes = TRUE
+  )
+
+  formula_str <- paste(deparse(formula), collapse = "")
+  expect_match(formula_str, "batch")
+})
+
+
+test_that("ordination axis labels are robust when eigenvalues include negatives", {
+  data.obj <- list(
+    feature.tab = matrix(
+      c(1, 2, 3,
+        2, 1, 3,
+        3, 3, 1),
+      nrow = 3,
+      byrow = TRUE,
+      dimnames = list(c("f1", "f2", "f3"), c("s1", "s2", "s3"))
+    ),
+    meta.dat = data.frame(
+      group = c("A", "A", "B"),
+      row.names = c("s1", "s2", "s3"),
+      stringsAsFactors = FALSE
+    )
+  )
+
+  dist.obj <- list(
+    BC = stats::as.dist(matrix(
+      c(0, 1, 2,
+        1, 0, 1,
+        2, 1, 0),
+      nrow = 3,
+      dimnames = list(c("s1", "s2", "s3"), c("s1", "s2", "s3"))
+    ))
+  )
+  attr(dist.obj$BC, "metadata") <- data.obj$meta.dat
+
+  pc.obj <- list(
+    BC = list(
+      points = matrix(
+        c(1, 0,
+          0, 1,
+          -1, -1),
+        nrow = 3,
+        byrow = TRUE,
+        dimnames = list(c("s1", "s2", "s3"), c("V1", "V2"))
+      ),
+      eig = c(0.4, -0.3, -0.1)
+    )
+  )
+
+  plot_single <- suppressWarnings(
+    generate_beta_ordination_single(
+      data.obj = data.obj,
+      dist.obj = dist.obj,
+      pc.obj = pc.obj,
+      group.var = "group",
+      dist.name = "BC",
+      pdf = FALSE
+    )
+  )
+
+  pair_data <- data.obj
+  pair_data$meta.dat$subject <- c("id1", "id1", "id2")
+  pair_data$meta.dat$time <- c("T0", "T1", "T0")
+
+  plot_pair <- suppressWarnings(
+    generate_beta_ordination_pair(
+      data.obj = pair_data,
+      dist.obj = dist.obj,
+      pc.obj = pc.obj,
+      subject.var = "subject",
+      time.var = "time",
+      group.var = "group",
+      dist.name = "BC",
+      pdf = FALSE
+    )
+  )
+
+  axis_labels <- mStat_build_axis_labels_from_eig(pc.obj$BC$eig)
+
+  expect_match(axis_labels$x, "Axis 1")
+  expect_match(axis_labels$y, "Axis 2")
+  expect_false(grepl("NaN", axis_labels$x, fixed = TRUE))
+  expect_false(grepl("NaN", axis_labels$y, fixed = TRUE))
+
+  expect_s3_class(plot_single$BC, "ggplot")
+  expect_s3_class(plot_pair$BC, "ggplot")
+})

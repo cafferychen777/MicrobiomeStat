@@ -364,23 +364,10 @@ generate_beta_ordination_long <-
                                   size = 1.5)
           }
         } +
-        # Add axis labels with explained variance
-        ggplot2::labs(
-          x = ifelse(
-            !is.null(pc.obj[[dist.name]]$eig),
-            paste0("Axis 1 (", round(
-              pc.obj[[dist.name]]$eig[1] / sum(pc.obj[[dist.name]]$eig) * 100, 2
-            ), "%)"),
-            "Axis 1"
-          ),
-          y = ifelse(
-            !is.null(pc.obj[[dist.name]]$eig),
-            paste0("Axis 2 (", round(
-              pc.obj[[dist.name]]$eig[2] / sum(pc.obj[[dist.name]]$eig) * 100, 2
-            ), "%)"),
-            "Axis 2"
-          )
-        ) +
+        {
+          axis_labels <- mStat_build_axis_labels_from_eig(pc.obj[[dist.name]]$eig)
+          ggplot2::labs(x = axis_labels$x, y = axis_labels$y)
+        } +
         # Set color scale based on grouping variables
         {
           if (!is.null(group.var) | !is.null(strata.var)){

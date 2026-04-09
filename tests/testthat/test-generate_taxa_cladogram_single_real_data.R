@@ -53,11 +53,6 @@ test_that("generate_taxa_cladogram_single works with NSE in geom_fruit", {
     )
   }
   
-  # 确保全局环境中有 geom_tile
-  if (!exists("geom_tile", envir = .GlobalEnv)) {
-    assign("geom_tile", ggplot2::geom_tile, envir = .GlobalEnv)
-  }
-  
   # 测试 generate_taxa_cladogram_single 函数
   plot.list <- generate_taxa_cladogram_single(
     data.obj = data.obj,
@@ -74,6 +69,7 @@ test_that("generate_taxa_cladogram_single works with NSE in geom_fruit", {
   expect_true(all(sapply(plot.list, function(x) inherits(x, "ggplot"))))
   expect_true(length(plot.list) > 0)
   
-  # 确保全局环境中有 geom_tile
-  expect_true(exists("geom_tile", envir = .GlobalEnv))
+  # 函数不应污染全局环境
+  expect_false(exists("geom_tile", envir = .GlobalEnv, inherits = FALSE))
+  expect_false(exists("is.waive", envir = .GlobalEnv, inherits = FALSE))
 })

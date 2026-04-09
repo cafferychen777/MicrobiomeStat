@@ -63,6 +63,9 @@ mStat_validate_dist_object <- function(dist.obj, dist.name = NULL) {
     )
   }
 
+  reference_labels <- NULL
+  reference_key <- NULL
+
   for (dist_key in dist.name) {
     dist_matrix <- dist.obj[[dist_key]]
     if (is.null(dist_matrix)) {
@@ -105,6 +108,17 @@ mStat_validate_dist_object <- function(dist.obj, dist.name = NULL) {
         !identical(rownames(matrix_view), labels)) {
       stop(
         "dist.obj[['", dist_key, "']] must have matching row, column, and distance labels.",
+        call. = FALSE
+      )
+    }
+
+    if (is.null(reference_labels)) {
+      reference_labels <- labels
+      reference_key <- dist_key
+    } else if (!identical(labels, reference_labels)) {
+      stop(
+        "All requested distance matrices must share identical sample labels and order. ",
+        "dist.obj[['", dist_key, "']] does not match dist.obj[['", reference_key, "']].",
         call. = FALSE
       )
     }
@@ -308,10 +322,12 @@ mStat_dist_to_tibble <- function(dist.matrix, sample_col = "sample") {
 
 #' @keywords internal
 mStat_meta_to_tibble <- function(meta.dat, sample_col = "sample") {
-  tibble::rownames_to_column(
-    as.data.frame(meta.dat, stringsAsFactors = FALSE),
-    var = sample_col
-  )
+  meta.tbl <- as.data.frame(meta.dat, stringsAsFactors = FALSE)
+  if (sample_col %in% colnames(meta.tbl)) {
+    meta.tbl[[sample_col]] <- NULL
+  }
+
+  tibble::rownames_to_column(meta.tbl, var = sample_col)
 }
 
 

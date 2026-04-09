@@ -5,6 +5,7 @@
 #' @inheritParams mStat_data_obj_doc
 #' @inheritParams mStat_test_params_doc
 #' @param ... Additional arguments passed to underlying functions.
+#' @param group.var Required. Character string specifying the grouping variable in metadata.
 #'
 #' @return A list of test results, structured to facilitate further analysis and visualization.
 #'
@@ -83,7 +84,7 @@ generate_beta_change_per_time_test_long <-
            t0.level = NULL,
            ts.levels = NULL,
            subject.var,
-           group.var = NULL,
+           group.var,
            adj.vars = NULL,
            dist.name = c('BC', 'Jaccard'),
            ...) {

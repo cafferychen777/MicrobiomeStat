@@ -5,6 +5,7 @@
 #'
 #' @inheritParams mStat_data_obj_doc
 #' @inheritParams mStat_test_params_doc
+#' @param group.var Required. Character string specifying the grouping variable in metadata.
 #' @param ... Additional arguments passed to internal functions.
 #'
 #' @return A list containing the result of the volatility test for each specified beta diversity index.
@@ -59,7 +60,7 @@ generate_beta_volatility_test_long <-
            dist.obj = NULL,
            subject.var,
            time.var,
-           group.var = NULL,
+           group.var,
            adj.vars = NULL,
            dist.name = c("BC"),
            ...) {

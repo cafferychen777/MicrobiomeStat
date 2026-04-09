@@ -233,23 +233,13 @@ generate_beta_ordination_pair <-
           size = 1
         )
 
+      axis_labels <- mStat_build_axis_labels_from_eig(pc.obj[[dist.name]]$eig)
+
       # Add labels and customize plot appearance
       p <- p +
         ggplot2::labs(
-          x = ifelse(
-            !is.null(pc.obj[[dist.name]]$eig),
-            paste0("Axis 1 (", round(
-              pc.obj[[dist.name]]$eig[1] / sum(pc.obj[[dist.name]]$eig) * 100, 2
-            ), "%)"),
-            "Axis 1"
-          ),
-          y = ifelse(
-            !is.null(pc.obj[[dist.name]]$eig),
-            paste0("Axis 2 (", round(
-              pc.obj[[dist.name]]$eig[2] / sum(pc.obj[[dist.name]]$eig) * 100, 2
-            ), "%)"),
-            "Axis 2"
-          )
+          x = axis_labels$x,
+          y = axis_labels$y
         ) +
         scale_color_manual(values = col) +
         ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "black") +

@@ -13,8 +13,12 @@
 #' The resulting formula object can be used as an input to mixed-effects modeling functions such as 'lmer' from the lme4 package.
 #'
 #' @noRd
-create_mixed_effects_formula <- function(response.var, time.var, group.var = NULL, subject.var, random_slopes = TRUE) {
-  # Formula for the fixed effects part
+create_mixed_effects_formula <- function(response.var,
+                                        time.var,
+                                        group.var = NULL,
+                                        subject.var,
+                                        adj.vars = NULL,
+                                        random_slopes = TRUE) {
   fixed_effects <- response.var
   if (!is.null(group.var)) {
     fixed_effects <- paste(fixed_effects, group.var, sep = " ~ ")
@@ -23,21 +27,134 @@ create_mixed_effects_formula <- function(response.var, time.var, group.var = NUL
     fixed_effects <- paste(fixed_effects, "~", time.var, sep = "")
   }
 
-  # Formula for constructing the random effects part
+  if (!is.null(adj.vars) && length(adj.vars) > 0) {
+    fixed_effects <- paste(fixed_effects, paste(adj.vars, collapse = " + "), sep = " + ")
+  }
+
   if (random_slopes) {
     random_effects <- paste("(1 +", time.var, "|", subject.var, ")", sep = "")
   } else {
     random_effects <- paste("(1|", subject.var, ")", sep = "")
   }
 
-  # Merge fixed effects and random effects parts
-  formula_str <- paste(fixed_effects, random_effects, sep = " + ")
+  as.formula(paste(fixed_effects, random_effects, sep = " + "))
+}
 
-  # Convert to formula object using as.formula
-  formula_obj <- as.formula(formula_str)
 
-  # Return formula object
-  return(formula_obj)
+#' @noRd
+create_fixed_effects_formula <- function(response.var,
+                                         time.var,
+                                         group.var = NULL,
+                                         adj.vars = NULL) {
+  fixed_effects <- response.var
+  if (!is.null(group.var)) {
+    fixed_effects <- paste(fixed_effects, group.var, sep = " ~ ")
+    fixed_effects <- paste(fixed_effects, " * ", time.var, sep = "")
+  } else {
+    fixed_effects <- paste(fixed_effects, "~", time.var, sep = "")
+  }
+
+  if (!is.null(adj.vars) && length(adj.vars) > 0) {
+    fixed_effects <- paste(fixed_effects, paste(adj.vars, collapse = " + "), sep = " + ")
+  }
+
+  stats::as.formula(fixed_effects)
+}
+
+
+#' @noRd
+mStat_fit_mixed_effects_model <- function(response.var,
+                                          time.var,
+                                          group.var,
+                                          subject.var,
+                                          data,
+                                          adj.vars = NULL,
+                                          ...,
+                                          context = "mixed-effects analysis") {
+  formula <- create_mixed_effects_formula(
+    response.var = response.var,
+    time.var = time.var,
+    group.var = group.var,
+    subject.var = subject.var,
+    adj.vars = adj.vars,
+    random_slopes = TRUE
+  )
+
+  model_fit <- try(lmer(formula, data = data, ...), silent = TRUE)
+  if (!inherits(model_fit, "try-error")) {
+    return(model_fit)
+  }
+
+  error_message <- conditionMessage(attr(model_fit, "condition"))
+  fallback_pattern <- "number of observations.*<=.*number of random effects|singular|number of levels of each grouping factor"
+  if (!grepl(fallback_pattern, error_message, ignore.case = TRUE)) {
+    stop("Model fitting failed in ", context, ": ", error_message, call. = FALSE)
+  }
+
+  message("Simplifying the random-effects structure due to overparameterization.")
+  formula <- create_mixed_effects_formula(
+    response.var = response.var,
+    time.var = time.var,
+    group.var = group.var,
+    subject.var = subject.var,
+    adj.vars = adj.vars,
+    random_slopes = FALSE
+  )
+
+  model_fit <- try(lmer(formula, data = data, ...), silent = TRUE)
+  if (!inherits(model_fit, "try-error")) {
+    return(model_fit)
+  }
+
+  simplified_error <- conditionMessage(attr(model_fit, "condition"))
+  if (!grepl(fallback_pattern, simplified_error, ignore.case = TRUE)) {
+    stop(
+      "Model fitting failed even after simplifying the random-effects structure in ",
+      context,
+      ": ",
+      simplified_error,
+      call. = FALSE
+    )
+  }
+
+  message("Falling back to a fixed-effects model due to insufficient repeated observations.")
+  fixed_formula <- create_fixed_effects_formula(
+    response.var = response.var,
+    time.var = time.var,
+    group.var = group.var,
+    adj.vars = adj.vars
+  )
+
+  stats::lm(fixed_formula, data = data)
+}
+
+
+#' @noRd
+mStat_extract_group_anova_row <- function(anova_result, group.var) {
+  if (is.null(group.var) || !nzchar(group.var)) {
+    return(NULL)
+  }
+
+  anova_df <- as.data.frame(anova_result)
+  terms <- rownames(anova_df)
+  if (is.null(terms) || length(terms) == 0) {
+    return(NULL)
+  }
+
+  term_index <- which(terms == group.var)
+  if (length(term_index) == 0) {
+    return(NULL)
+  }
+
+  selected <- anova_df[term_index[[1]], , drop = FALSE]
+  data.frame(
+    Term = group.var,
+    Estimate = NA_real_,
+    Std.Error = NA_real_,
+    Statistic = selected$`F value`,
+    P.Value = selected$`Pr(>F)`,
+    check.names = FALSE
+  )
 }
 
 
@@ -119,7 +236,7 @@ generate_beta_trend_test_long <-
 
     # Inform the user about the importance of numeric time variable
     message(
-      "The trend test in 'generate_alpha_trend_test_long' relies on a numeric time variable.\n",
+      "The trend test in 'generate_beta_trend_test_long' relies on a numeric time variable.\n",
       "Please ensure that your time variable is coded as numeric.\n",
       "If the time variable is not numeric, it may cause issues in computing the results of the trend test.\n",
       "The time variable will be converted to numeric within the function if needed."
@@ -175,20 +292,35 @@ generate_beta_trend_test_long <-
 
       # Prepare data for longitudinal analysis
       # This step calculates the distance from each time point to the baseline for each subject
+      selected_cols <- c(
+        paste0(subject.var, ".subject"),
+        paste0(time.var, ".subject"),
+        "distance",
+        paste0(adj.vars, ".subject")
+      )
+
       long.df <- dist.df %>%
         tidyr::gather(key = "sample2", value = "distance", -sample) %>%
         dplyr::left_join(meta_tab, by = "sample") %>%
         dplyr::left_join(meta_tab, by = c("sample2" = "sample"), suffix = c(".subject", ".sample")) %>%
         filter(!!sym(paste0(subject.var, ".subject")) == !!sym(paste0(subject.var, ".sample"))) %>%
         dplyr::group_by(!!sym(paste0(subject.var, ".subject"))) %>%
-        filter(!!sym(paste0(time.var,".sample")) == min(!!sym(paste0(time.var,".sample")))) %>%
-        filter(!!sym(paste0(time.var,".subject")) != !!sym(paste0(time.var,".sample"))) %>%
+        filter(!!sym(paste0(time.var, ".sample")) == min(!!sym(paste0(time.var, ".sample")))) %>%
+        filter(!!sym(paste0(time.var, ".subject")) != !!sym(paste0(time.var, ".sample"))) %>%
         dplyr::ungroup() %>%
-        dplyr::select(!!sym(paste0(subject.var, ".subject")), !!sym(paste0(time.var, ".subject")), distance) %>%
-        dplyr::rename(!!sym(subject.var) := !!sym(paste0(subject.var, ".subject")), !!sym(time.var) := !!sym(paste0(time.var, ".subject")))
+        dplyr::select(all_of(selected_cols))
+
+      colnames(long.df) <- c(subject.var, time.var, "distance", adj.vars)
 
       # Add group information to the long format data
-      long.df <- long.df %>% dplyr::left_join(meta_tab %>% dplyr::select(all_of(c(subject.var, group.var))) %>% dplyr::distinct(), by = subject.var, relationship = "many-to-many")
+      if (!is.null(group.var)) {
+        long.df <- long.df %>%
+          dplyr::left_join(
+            meta_tab %>% dplyr::select(all_of(c(subject.var, group.var))) %>% dplyr::distinct(),
+            by = subject.var,
+            relationship = "many-to-many"
+          )
+      }
 
       # Ensure time variable is numeric
       long.df[[time.var]] <- mStat_coerce_time_to_numeric(
@@ -197,72 +329,24 @@ generate_beta_trend_test_long <-
         context = "beta trend analysis"
       )
 
-      # Attempt to fit the mixed effects model with random slopes
-      # This model accounts for individual variations in the trend over time
-      formula <- create_mixed_effects_formula(
+      model <- mStat_fit_mixed_effects_model(
         response.var = "distance",
         time.var = time.var,
         group.var = group.var,
         subject.var = subject.var,
-        random_slopes = TRUE
+        data = long.df,
+        adj.vars = adj.vars,
+        context = "beta trend analysis"
       )
 
-      model_fit <- try(lmer(formula, data = long.df), silent = TRUE)
-
-      # If the model fitting fails, attempt to simplify the random effects structure
-      if (inherits(model_fit, "try-error")) {
-        error_message <- attr(model_fit, "condition")$message
-        if (grepl("number of observations.*<=.*number of random effects", error_message, ignore.case = TRUE)) {
-          message("Simplifying the random-effects structure due to overparameterization.")
-          # Simplify the random effects structure by removing random slopes
-          formula <- create_mixed_effects_formula(
-            response.var = "distance",
-            time.var = time.var,
-            group.var = group.var,
-            subject.var = subject.var,
-            random_slopes = FALSE
-          )
-          model_fit <- try(lmer(formula, data = long.df), silent = TRUE)
-          if (inherits(model_fit, "try-error")) {
-            stop("Model fitting failed even after simplifying the random-effects structure: ", model_fit)
-          }
-        } else {
-          stop("Model fitting failed due to an error: ", model_fit)
-        }
-      }
-
-      model <- model_fit
-
       # Extract and format model results
-      if (!is.null(group.var)){
-        # For multi-category group variables, perform Type III ANOVA
-        if (length(unique(long.df[[group.var]])) > 2) {
-          anova_result <- anova(model, type = "III")
-
-          # Extract coefficients and ANOVA results
-          coef.tab <- extract_coef(model)
-          last_row <- utils::tail(anova_result, 1)
-          var_name <- rownames(last_row)[1]
-
-          # Adjust ANOVA results to match coefficient table format
-          adjusted_last_row <- data.frame(
-            Term = var_name,
-            Estimate = NA,
-            Std.Error = NA,
-            Statistic = last_row$`F value`,
-            P.Value = last_row$`Pr(>F)`
-          )
-
-          # Combine coefficient table with ANOVA results
-          coef.tab <- rbind(coef.tab, adjusted_last_row)
-
-        } else {
-          # For binary group variables, extract coefficients directly
-          coef.tab <- extract_coef(model)
+      coef.tab <- extract_coef(model)
+      if (!is.null(group.var) && length(unique(long.df[[group.var]])) > 2) {
+        anova_result <- anova(model, type = "III")
+        group_row <- mStat_extract_group_anova_row(anova_result, group.var)
+        if (!is.null(group_row)) {
+          coef.tab <- rbind(coef.tab, group_row)
         }
-      } else {
-        # If no group variable, extract coefficients
-        coef.tab <- extract_coef(model)
       }
 
       return(tibble::as_tibble(coef.tab))

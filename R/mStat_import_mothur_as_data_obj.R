@@ -58,6 +58,12 @@ mStat_import_mothur_as_data_obj <- function(mothur_list_file = NULL, mothur_grou
                                       parseFunction)
     data.obj$feature.ann <- tax
   }
+
+  if (!is.null(data.obj$feature.tab)) {
+    samIDs <- colnames(data.obj$feature.tab)
+    data.obj$meta.dat <- data.frame(row.names = samIDs)
+  }
+
   return(data.obj)
 }
 

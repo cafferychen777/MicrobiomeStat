@@ -82,6 +82,81 @@
 #' Each list element corresponds to a taxonomic level specified in \code{feature.level}.
 #' The function uses linear mixed-effects models via LinDA to account for subject-level
 #' correlations in paired or longitudinal data.
+#' @noRd
+.mStat_build_taxa_linda_formula <- function(group.var = NULL,
+                                            adj.vars = NULL,
+                                            time.var = NULL,
+                                            subject.var = NULL,
+                                            random_slopes = TRUE) {
+  adj.vars_str <- if (!is.null(adj.vars)) paste(adj.vars, collapse = " + ") else NULL
+
+  if (is.null(time.var)) {
+    if (is.null(group.var)) {
+      fixed_effects <- if (!is.null(adj.vars_str)) adj.vars_str else "1"
+    } else if (!is.null(adj.vars_str)) {
+      fixed_effects <- paste(adj.vars_str, "+", group.var)
+    } else {
+      fixed_effects <- group.var
+    }
+    random_effects <- paste("(1 |", subject.var, ")")
+  } else {
+    if (is.null(group.var)) {
+      fixed_effects <- if (!is.null(adj.vars_str)) paste(adj.vars_str, "+", time.var) else time.var
+    } else if (!is.null(adj.vars_str)) {
+      fixed_effects <- paste(adj.vars_str, "+", group.var, "*", time.var)
+    } else {
+      fixed_effects <- paste(group.var, "*", time.var)
+    }
+
+    random_effects <- if (random_slopes) {
+      paste("(1 +", time.var, "|", subject.var, ")")
+    } else {
+      paste("(1 |", subject.var, ")")
+    }
+  }
+
+  paste(fixed_effects, random_effects, sep = " + ")
+}
+
+#' @noRd
+.mStat_extract_pair_linda_outputs <- function(linda_output,
+                                              group_var = NULL,
+                                              time_var = NULL,
+                                              reference_level = NULL) {
+  result_list <- list()
+  output_names <- names(linda_output)
+
+  if (is.null(group_var)) {
+    for (df_name in output_names) {
+      result_list[[df_name]] <- linda_output[[df_name]]
+    }
+    return(result_list)
+  }
+
+  matching_dfs <- grep(paste0("^", group_var), output_names, value = TRUE)
+  for (df_name in matching_dfs) {
+    group_value <- strsplit(df_name, split = ":", fixed = TRUE)[[1]][1]
+    group_value <- sub(paste0("^", group_var), "", group_value)
+
+    base_label <- if (nzchar(group_value)) {
+      paste0(group_value, " vs ", reference_level, " (Reference)")
+    } else {
+      group_var
+    }
+
+    is_interaction <- !is.null(time_var) && grepl(paste0(":", time_var), df_name, fixed = TRUE)
+    label <- if (is_interaction) {
+      paste0(base_label, " [Interaction]")
+    } else {
+      paste0(base_label, " [Main Effect]")
+    }
+
+    result_list[[label]] <- linda_output[[df_name]]
+  }
+
+  result_list
+}
+
 #' @export
 #' @name generate_taxa_test_pair
 generate_taxa_test_pair <-
@@ -122,6 +197,13 @@ generate_taxa_test_pair <-
         time.var, group.var, adj.vars, subject.var
       )))
 
+    mStat_validate_group_var_contract(
+      meta.dat = meta_tab,
+      group.var = group.var,
+      subject.var = subject.var,
+      context = "taxa paired testing"
+    )
+
     # Set reference level for group variable if it is categorical
     if (!is.null(group.var)) {
       if (is.factor(meta_tab[[group.var]]) || is.character(meta_tab[[group.var]])) {
@@ -156,155 +238,50 @@ generate_taxa_test_pair <-
       }
     }
 
-    # Function to generate the formula for the linear mixed model
-    # This function constructs the fixed and random effects based on the provided variables
-    generate_formula <- function(group.var = NULL, adj.vars = NULL, time.var = NULL, subject.var = NULL) {
-      # Initialize variables for fixed and random effects
-      fixed_effects <- NULL
-      random_effects <- NULL
+    # Build primary and fallback formulas (fallback removes random slopes)
+    formula <- .mStat_build_taxa_linda_formula(
+      group.var = group.var,
+      adj.vars = adj.vars,
+      time.var = time.var,
+      subject.var = subject.var,
+      random_slopes = TRUE
+    )
 
-      # Combine adjustment variables into a single string if they exist
-      if (!is.null(adj.vars)) {
-        adj.vars_str <- paste(adj.vars, collapse = " + ")
-      } else {
-        adj.vars_str <- NULL
-      }
+    formula_corrected <- .mStat_build_taxa_linda_formula(
+      group.var = group.var,
+      adj.vars = adj.vars,
+      time.var = time.var,
+      subject.var = subject.var,
+      random_slopes = FALSE
+    )
 
-      # Construct the formula based on the presence or absence of time variable
-      if (is.null(time.var)) {
-        # For cross-sectional analysis (no time variable)
-        if (is.null(group.var)) {
-          fixed_effects <- adj.vars_str
-          if (is.null(fixed_effects)) {
-            fixed_effects <- "1"  # Intercept-only model if no predictors
-          }
-        } else {
-          # Include group variable and adjustment variables in fixed effects
-          if (!is.null(adj.vars_str)) {
-            fixed_effects <- paste(adj.vars_str, "+", group.var)
-          } else {
-            fixed_effects <- group.var
-          }
-        }
-        # Add random intercept for subject
-        random_effects <- paste("(1 |", subject.var, ")")
-      } else {
-        # For longitudinal analysis (time variable present)
-        if (is.null(group.var)) {
-          # Time effect and adjustment variables
-          fixed_effects <- paste(adj.vars_str, "+", time.var)
-          if (is.null(adj.vars_str)) {
-            fixed_effects <- time.var
-          }
-        } else {
-          # Interaction between group and time, plus adjustment variables
-          if (!is.null(adj.vars_str)) {
-            fixed_effects <- paste(adj.vars_str, "+", group.var, "*", time.var)
-          } else {
-            fixed_effects <- paste(group.var, "*", time.var)
-          }
-        }
-        # Random intercept and slope for subject
-        random_effects <- paste("(1 +", time.var, "|", subject.var, ")")
-      }
-
-      # Combine fixed and random effects into full formula
-      formula <- paste(fixed_effects, random_effects, sep = " + ")
-      return(formula)
+    analysis_data.obj <- data.obj
+    analysis_feature.dat.type <- feature.dat.type
+    if (feature.dat.type == "count") {
+      message(
+        "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
+      )
+      analysis_data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
+      analysis_feature.dat.type <- "proportion"
     }
-
-    # Generate the formula for the current analysis
-    formula <- generate_formula(group.var = group.var,
-                                adj.vars = adj.vars,
-                                time.var = time.var,
-                                subject.var = subject.var)
-
-    # Function to generate a corrected formula with simplified random effects
-    # This is used as a fallback if the original model fails to converge
-    correct_formula <- function(group.var = NULL, adj.vars = NULL, time.var = NULL, subject.var = NULL) {
-      # Initialize variables for fixed and random effects
-      fixed_effects <- NULL
-      random_effects <- NULL
-
-      # Combine adjustment variables into a single string if they exist
-      if (!is.null(adj.vars)) {
-        adj.vars_str <- paste(adj.vars, collapse = " + ")
-      } else {
-        adj.vars_str <- NULL
-      }
-
-      # Construct the formula based on the presence or absence of time variable
-      if (is.null(time.var)) {
-        # For cross-sectional analysis (no time variable)
-        if (is.null(group.var)) {
-          fixed_effects <- adj.vars_str
-          if (is.null(fixed_effects)) {
-            fixed_effects <- "1"  # Intercept-only model if no predictors
-          }
-        } else {
-          # Include group variable and adjustment variables in fixed effects
-          if (!is.null(adj.vars_str)) {
-            fixed_effects <- paste(adj.vars_str, "+", group.var)
-          } else {
-            fixed_effects <- group.var
-          }
-        }
-        # Add random intercept for subject
-        random_effects <- paste("(1 |", subject.var, ")")
-      } else {
-        # For longitudinal analysis (time variable present)
-        if (is.null(group.var)) {
-          # Time effect and adjustment variables
-          fixed_effects <- paste(adj.vars_str, "+", time.var)
-          if (is.null(adj.vars_str)) {
-            fixed_effects <- time.var
-          }
-        } else {
-          # Interaction between group and time, plus adjustment variables
-          if (!is.null(adj.vars_str)) {
-            fixed_effects <- paste(adj.vars_str, "+", group.var, "*", time.var)
-          } else {
-            fixed_effects <- paste(group.var, "*", time.var)
-          }
-        }
-        # Random intercept for subject
-        random_effects <- paste("(1 |", subject.var, ")")
-      }
-
-      # Combine fixed and random effects into full formula
-      formula <- paste(fixed_effects, random_effects, sep = " + ")
-      return(formula)
-    }
-
-    # Generate the corrected formula
-    formula_corrected <- correct_formula(group.var = group.var,
-                                adj.vars = adj.vars,
-                                time.var = time.var,
-                                subject.var = subject.var)
 
     # Perform analysis for each taxonomic level
     test.list <- lapply(feature.level, function(feature.level) {
-
-      # Normalize count data if necessary
-      if (feature.dat.type == "count"){
-        message(
-          "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
-        )
-        data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
-      }
-
       # Aggregate data by taxonomy if necessary
-      otu_tax_agg_filter <- get_taxa_data(data.obj, feature.level, prev.filter, abund.filter, feature.col = FALSE)
-
-      if (feature.dat.type == "count"){
-        feature.dat.type <- "proportion"
-      }
+      otu_tax_agg_filter <- get_taxa_data(
+        analysis_data.obj,
+        feature.level,
+        prev.filter,
+        abund.filter,
+        feature.col = FALSE
+      )
+      meta_tab_level <- meta_tab
 
       # Add this check before linda analysis
       if (any(colSums(otu_tax_agg_filter) == 0)) {
         keep_samples <- colSums(otu_tax_agg_filter) > 0
         otu_tax_agg_filter <- otu_tax_agg_filter[, keep_samples]
-        meta_tab <- meta_tab[keep_samples, ]
+        meta_tab_level <- meta_tab_level[keep_samples, , drop = FALSE]
       }
 
       # Perform linear mixed model analysis using LInDA
@@ -315,9 +292,9 @@ generate_taxa_test_pair <-
           c(
             list(
               feature.dat = otu_tax_agg_filter,
-              meta.dat = meta_tab,
+              meta.dat = meta_tab_level,
               formula = paste("~", formula),
-              feature.dat.type = feature.dat.type,
+              feature.dat.type = analysis_feature.dat.type,
               p.adj.method = p.adj.method,
               alpha = feature.sig.level
             ),
@@ -332,9 +309,9 @@ generate_taxa_test_pair <-
           c(
             list(
               feature.dat = otu_tax_agg_filter,
-              meta.dat = meta_tab,
+              meta.dat = meta_tab_level,
               formula = paste("~", formula_corrected),
-              feature.dat.type = feature.dat.type,
+              feature.dat.type = analysis_feature.dat.type,
               p.adj.method = p.adj.method,
               alpha = feature.sig.level
             ),
@@ -345,7 +322,7 @@ generate_taxa_test_pair <-
 
       # Determine reference level for group comparisons
       if (!is.null(group.var)){
-        reference_level <- levels(as.factor(meta_tab[,group.var]))[1]
+        reference_level <- levels(as.factor(meta_tab_level[,group.var]))[1]
       }
 
       # Calculate average abundance and prevalence for each feature
@@ -354,36 +331,13 @@ generate_taxa_test_pair <-
         feature.level = feature.level
       )
 
-      # Function to extract relevant data frames from LInDA output
-      extract_data_frames <- function(linda_object, group_var = NULL) {
-        # Initialize an empty list to store the extracted dataframes
-        result_list <- list()
-
-        # Get all matching dataframe names
-        matching_dfs <- grep(paste0(group_var), names(linda_object$output), value = TRUE)
-
-        # Iteratively traverse all matching dataframe names and extract them
-        for (df_name in matching_dfs) {
-          # Extract group values from data frame names
-          group_prefix <- paste0(group_var)
-
-          # Extract the content after "group_prefix" and stop before the ":"
-          group_value <- unlist(strsplit(df_name, split = ":"))[1]
-          group_value <- gsub(pattern = group_prefix, replacement = "", x = group_value)
-
-          if (grepl(pattern = time.var, x = df_name)){
-            result_list[[paste0(group_value," vs ", reference_level, " (Reference) [", "Interaction", "]")]] <- linda_object$output[[df_name]]
-          } else {
-            # Add the data frame to the result list
-            result_list[[paste0(group_value," vs ", reference_level, " (Reference) [", "Main Effect", "]")]] <- linda_object$output[[df_name]]
-          }
-        }
-
-        return(result_list)
-      }
-
       # Extract and process results from LInDA output
-      sub_test.list <- extract_data_frames(linda_object = linda.obj, group_var = group.var)
+      sub_test.list <- .mStat_extract_pair_linda_outputs(
+        linda_output = linda.obj$output,
+        group_var = group.var,
+        time_var = time.var,
+        reference_level = if (!is.null(group.var)) reference_level else NULL
+      )
 
       # Format and annotate results
       sub_test.list <- lapply(sub_test.list, function(df){

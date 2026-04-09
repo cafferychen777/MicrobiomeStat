@@ -117,12 +117,14 @@ generate_taxa_change_scatterplot_pair <-
         time.var, group.var, strata.var, subject.var
       )))
 
+    has_strata <- !is.null(strata.var)
+
     if (is.null(group.var)) {
       group.var = "ALL"
       meta_tab$ALL <- ""
     }
 
-    if (is.null(strata.var)) {
+    if (!has_strata) {
       strata.var = "ALL2"
       meta_tab$ALL2 <- ""
     }
@@ -134,7 +136,7 @@ generate_taxa_change_scatterplot_pair <-
     # Replace the existing theme selection code with this:
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
-    aes_function <- if (!is.null(strata.var)){
+    aes_function <- if (has_strata){
       aes(shape = !!sym(strata.var), color = !!sym(strata.var))
     } else {
       aes(color = !!sym(time.var))
@@ -157,9 +159,11 @@ generate_taxa_change_scatterplot_pair <-
 
       otu_tax_agg <- get_taxa_data(data.obj, feature.level, prev.filter, abund.filter)
 
-      if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
-      computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
-      features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
+      selected_features <- features.plot
+      if (is.null(selected_features) && !is.null(top.k.plot) && !is.null(top.k.func)) {
+        computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
+        top_k_n <- min(top.k.plot, length(computed_values))
+        selected_features <- names(sort(computed_values, decreasing = TRUE)[seq_len(top_k_n)])
       }
 
       otu_tab_norm_agg <- mStat_prepare_taxa_long_data(
@@ -182,12 +186,16 @@ generate_taxa_change_scatterplot_pair <-
       taxa.levels <-
         otu_tab_norm_agg %>% select(all_of(feature.level)) %>% dplyr::distinct() %>% dplyr::pull()
 
-      # First, divide the data into two subsets, one for change.base and one for change.after
-      df_t0 <- otu_tab_norm_agg %>% filter(!!sym(time.var) == change.base)
-      df_ts <- otu_tab_norm_agg %>% filter(!!sym(time.var) == change.after)
+      subject_time_abundance <- otu_tab_norm_agg %>%
+        dplyr::group_by(!!sym(feature.level), !!sym(subject.var), !!sym(time.var)) %>%
+        dplyr::summarise(count = mean(count, na.rm = TRUE), .groups = "drop")
 
-      # Then, use dplyr::inner_join to merge these two subsets based on Phylum, subject and sex
-      df <- dplyr::inner_join(df_ts, df_t0, by = c(feature.level, subject.var), suffix = c("_ts", "_t0"), relationship = "many-to-many")
+      # First, divide the data into two subsets, one for change.base and one for change.after
+      df_t0 <- subject_time_abundance %>% filter(!!sym(time.var) == change.base)
+      df_ts <- subject_time_abundance %>% filter(!!sym(time.var) == change.after)
+
+      # Then, merge two time points by feature and subject
+      df <- dplyr::inner_join(df_ts, df_t0, by = c(feature.level, subject.var), suffix = c("_ts", "_t0"))
 
       # Calculate the change in abundance based on the specified function
       df <- df %>%
@@ -198,7 +206,11 @@ generate_taxa_change_scatterplot_pair <-
           feature_id   = .data[[feature.level]]
         ))
 
-      df <- df %>% dplyr::left_join(meta_tab %>% select(-all_of(time.var)) %>% dplyr::distinct(), by = c(subject.var))
+      meta_subject <- meta_tab %>%
+        select(-all_of(time.var)) %>%
+        dplyr::distinct(!!sym(subject.var), .keep_all = TRUE)
+
+      df <- df %>% dplyr::left_join(meta_subject, by = c(subject.var))
 
       df <- df %>% setNames(ifelse(names(.) == paste0(time.var,"_ts"), time.var, names(.)))
 
@@ -216,18 +228,16 @@ generate_taxa_change_scatterplot_pair <-
         }
       }
 
-      if (!is.null(features.plot)) {
-
-      } else {
+      if (is.null(selected_features)) {
         if (length(taxa.levels) >= 5) {
-          features.plot <- taxa.levels[1:4]
+          selected_features <- taxa.levels[1:4]
         } else {
-          features.plot <- taxa.levels
+          selected_features <- taxa.levels
         }
       }
 
         scatterplot <-
-          ggplot(df %>% filter(!!sym(feature.level) %in% features.plot),
+          ggplot(df %>% filter(!!sym(feature.level) %in% selected_features),
                  aes(
                    x = !!sym(group.var),
                    y = new_count,
@@ -236,7 +246,7 @@ generate_taxa_change_scatterplot_pair <-
                    group = !!sym(strata.var)   # Add this line to tidyr::separate smoothing line by strata.var
                  )) +
           geom_smooth(se = TRUE, method = 'lm') +
-          geom_point(aes_function,data = df %>% filter(!!sym(feature.level) %in% features.plot),
+          geom_point(aes_function,data = df %>% filter(!!sym(feature.level) %in% selected_features),
                      size = 4) +
           scale_shape_manual(values = c(21, 22, 24, 25)) +
           scale_fill_manual(values = colors) +
@@ -274,6 +284,10 @@ generate_taxa_change_scatterplot_pair <-
           scatterplot <- scatterplot + theme(
             legend.title = element_blank()
           )
+        }
+
+        if (is.numeric(df[[group.var]]) && group.var != "ALL") {
+          scatterplot <- scatterplot + xlab(group.var)
         }
 
         # Save the stacked dotplot as a PDF file

@@ -53,23 +53,17 @@ mStat_import_dada2_as_data_obj <- function(seq_tab,
                                            sam_tab = NULL,
                                            phy_tree = NULL) {
 
-  # refseq
   refseq <- colnames(seq_tab)
-  # set refseq and taxa names to ASV_1, ASV_2,...
   refseq_nm <- paste0("ASV", seq_along(refseq))
   colnames(seq_tab) <- refseq_nm
   names(refseq) <- refseq_nm
 
   if (!is.null(tax_tab)) {
     if (!identical(refseq_nm, row.names(tax_tab))) {
-      tax_tab <- tax_tab[match(refseq, row.names(tax_tab)), ,
-                         drop = FALSE]
+      tax_tab <- tax_tab[match(refseq, row.names(tax_tab)), , drop = FALSE]
     }
     row.names(tax_tab) <- refseq_nm
   }
-
-  # refseq to XStringSet
-  refseq <- DNAStringSet(refseq)
 
   if (!is.null(phy_tree) && inherits(phy_tree, "character")) {
     phy_tree <- read_tree(phy_tree)

@@ -13,9 +13,19 @@
 #' @return A formula object suitable for use in functions requiring a linear mixed effects model formula.
 #'
 #' @noRd
-construct_formula <- function(index, group.var, time.var, subject.var, adj.vars) {
+construct_formula <- function(index,
+                              group.var,
+                              time.var,
+                              subject.var,
+                              adj.vars,
+                              random_slopes = TRUE) {
   if (!is.null(group.var)) {
-    formula_part <- paste(index, "~", group.var, "*", time.var, " + (1 +", time.var, "|", subject.var, ")")
+    random_effects <- if (random_slopes) {
+      paste("(1 +", time.var, "|", subject.var, ")")
+    } else {
+      paste("(1|", subject.var, ")")
+    }
+    formula_part <- paste(index, "~", group.var, "*", time.var, "+", random_effects)
   } else {
     formula_part <- paste(index, "~", time.var, " + (1|", subject.var, ")")
   }
@@ -163,45 +173,23 @@ generate_alpha_trend_test_long <- function(data.obj,
   # Perform statistical tests for each alpha diversity index
   test.list <- lapply(alpha.name, function(index) {
 
-    # Construct the formula for the linear mixed-effects model
-    # This model accounts for repeated measures and potential group differences
-    formula <- construct_formula(index, group.var, time.var, subject.var, adj.vars)
+    model <- mStat_fit_mixed_effects_model(
+      response.var = index,
+      time.var = time.var,
+      group.var = group.var,
+      subject.var = subject.var,
+      data = alpha_df,
+      adj.vars = adj.vars,
+      context = "alpha trend analysis"
+    )
 
-    # Fit the linear mixed-effects model
-    # This model allows for the analysis of longitudinal data with potential confounders
-    model <- lmer(formula, data = alpha_df)
-
-    if (!is.null(group.var)){
-      # Check if the grouping variable has more than two categories
-      if (length(unique(alpha_df[[group.var]])) > 2) {
-        # Perform Type III ANOVA for multi-category grouping variables
-        # This tests for overall differences among groups, accounting for other variables
-        anova_result <- anova(model, type = "III")
-
-        # Extract coefficients from the model
-        coef.tab <- extract_coef(model)
-        
-        # Append the ANOVA result for the grouping variable to the coefficient table
-        # This provides both individual coefficient estimates and overall group effects
-        last_row <- utils::tail(anova_result, 1)
-        var_name <- rownames(last_row)[1]
-
-        adjusted_last_row <- data.frame(
-          Term = var_name,
-          Estimate = NA,
-          Std.Error = NA,
-          Statistic = last_row$`F value`,
-          P.Value = last_row$`Pr(>F)`
-        )
-
-        coef.tab <- rbind(coef.tab, adjusted_last_row)
-      } else {
-        # For binary grouping variables, extract coefficients directly
-        coef.tab <- extract_coef(model)
+    coef.tab <- extract_coef(model)
+    if (!is.null(group.var) && length(unique(alpha_df[[group.var]])) > 2) {
+      anova_result <- anova(model, type = "III")
+      group_row <- mStat_extract_group_anova_row(anova_result, group.var)
+      if (!is.null(group_row)) {
+        coef.tab <- rbind(coef.tab, group_row)
       }
-    } else {
-      # If no grouping variable is specified, extract coefficients directly
-      coef.tab <- extract_coef(model)
     }
 
     return(tibble::as_tibble(coef.tab))

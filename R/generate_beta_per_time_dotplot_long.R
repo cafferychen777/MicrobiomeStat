@@ -238,9 +238,5 @@ generate_beta_per_time_dotplot_long <- function(data.obj,
   # Assign group names to the list of plots
   names(plot.list) <- group.names
 
-  # Filter the plot list to include only plots with "vs" in their names
-  # This typically selects plots that compare different groups
-  plot.list <- plot.list[grep("vs", names(plot.list), value = TRUE)]
-
   return(plot.list)
 }

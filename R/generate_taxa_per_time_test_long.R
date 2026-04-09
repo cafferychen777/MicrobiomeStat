@@ -1,7 +1,7 @@
 #' Longitudinal Per-Time-Point Differential Abundance Test
 #'
 #' Performs differential abundance testing at each time point separately in
-#' longitudinal microbiome data using LinDA mixed-effects models.
+#' longitudinal microbiome data using per-time LinDA fixed-effects models.
 #'
 #' @inheritParams mStat_data_obj_doc
 #'
@@ -9,7 +9,7 @@
 #' @details
 #' The function integrates various data manipulations, normalization procedures, and statistical tests to assess the significance of taxa changes over time or between groups. It allows for the adjustment of covariates and handles both count and proportion data types.
 #'
-#' The function constructs a mixed-effects model formula based on the provided variables, handling fixed and random effects to account for repeated measures in subjects. It performs filtering based on prevalence and abundance thresholds and applies normalization and aggregation procedures as necessary.
+#' The function constructs a fixed-effects model formula based on the provided variables and performs filtering based on prevalence and abundance thresholds, with optional normalization for count data.
 #'
 #' Importantly, the function conducts differential abundance analysis separately for each time point in the longitudinal data. This approach allows for the identification of taxa that show significant changes at specific time points, providing insights into the dynamics of the microbiome over time.
 #'
@@ -32,7 +32,7 @@
 #'         }
 #' }
 #'
-#' Analysis is performed separately for each time point using LinDA mixed-effects models.
+#' Analysis is performed separately for each time point using LinDA fixed-effects models.
 #'
 #' @examples
 #' \dontrun{
@@ -104,69 +104,25 @@ generate_taxa_per_time_test_long <-
     # Match the feature data type argument
     feature.dat.type <- match.arg(feature.dat.type)
 
-    # Define a function to generate the formula for the linear mixed model
-    # This function constructs the fixed and random effects based on the provided variables
-    generate_formula <- function(group.var = NULL, adj.vars = NULL, time.var = NULL, subject.var = NULL) {
+    build_per_time_formula <- function(group.var = NULL, adj.vars = NULL) {
+      terms <- c(group.var, adj.vars)
+      terms <- terms[!is.null(terms)]
 
-      # Initialize variables for fixed and random effects
-      fixed_effects <- NULL
-      random_effects <- NULL
-
-      # Combine adjustment variables into a single string if they exist
-      if (!is.null(adj.vars)) {
-        adj.vars_str <- paste(adj.vars, collapse = " + ")
-      } else {
-        adj.vars_str <- NULL
+      if (length(terms) == 0) {
+        return("1")
       }
 
-      # Construct the formula based on the presence or absence of time variable
-      if (is.null(time.var)) {
-        # For cross-sectional analysis (no time variable)
-        if (is.null(group.var)) {
-          fixed_effects <- adj.vars_str
-          if (is.null(fixed_effects)) {
-            fixed_effects <- "1"  # Intercept-only model if no predictors
-          }
-        } else {
-          # Include group variable and adjustment variables in fixed effects
-          if (!is.null(adj.vars_str)) {
-            fixed_effects <- paste(adj.vars_str, "+", group.var)
-          } else {
-            fixed_effects <- group.var
-          }
-        }
-        # Add random intercept for subject
-        random_effects <- paste("(1 |", subject.var, ")")
-      } else {
-        # For longitudinal analysis (time variable present)
-        if (is.null(group.var)) {
-          # Time effect and adjustment variables
-          fixed_effects <- paste(adj.vars_str, "+", time.var)
-          if (is.null(adj.vars_str)) {
-            fixed_effects <- time.var
-          }
-        } else {
-          # Interaction between group and time, plus adjustment variables
-          if (!is.null(adj.vars_str)) {
-            fixed_effects <- paste(adj.vars_str, "+", group.var, "*", time.var)
-          } else {
-            fixed_effects <- paste(group.var, "*", time.var)
-          }
-        }
-        # Random intercept and slope for subject
-        random_effects <- paste("(1 +", time.var, "|", subject.var, ")")
-      }
-
-      # Combine fixed and random effects into full formula
-      formula <- paste(fixed_effects, random_effects, sep = " + ")
-      return(formula)
+      paste(terms, collapse = " + ")
     }
 
-    # Generate the formula for the current analysis
-    formula <- generate_formula(group.var = group.var,
-                                adj.vars = adj.vars,
-                                time.var = NULL,
-                                subject.var = subject.var)
+    # Generate the fixed-effects formula for each per-time analysis
+    formula <- build_per_time_formula(group.var = group.var, adj.vars = adj.vars)
+
+    mStat_validate_time_var_contract(
+      meta.dat = data.obj$meta.dat,
+      time.var = time.var,
+      context = "taxa per-time testing"
+    )
 
     # Extract unique time levels from the data
     time.levels <- data.obj$meta.dat %>% select(all_of(c(time.var))) %>% unique() %>% pull()
@@ -183,54 +139,45 @@ generate_taxa_per_time_test_long <-
           subset_data.obj$meta.dat %>% select(all_of(c(
             time.var, group.var, adj.vars, subject.var
           )))
-        
-        # Check if we have enough data points for mixed effects model
-        # Count unique subjects and observations
-        n_subjects <- length(unique(meta_tab[[subject.var]]))
-        n_observations <- nrow(meta_tab)
-        
-        if (n_subjects >= n_observations) {
-          warning(
-            "At time point ", t.level, ", the number of unique subjects (", n_subjects, ") ",
-            "is greater than or equal to the number of observations (", n_observations, "). ",
-            "This makes it impossible to fit a mixed effects model. ",
-            "Skipping this time point."
-          )
-          return(NULL) # Return NULL for this time point
-        }
-        
-        # Perform analysis for each taxonomic level
-        test.list <- lapply(feature.level, function(feature.level) {
 
-        # Normalize count data if necessary
+        mStat_validate_group_var_contract(
+          meta.dat = meta_tab,
+          group.var = group.var,
+          context = paste0("taxa per-time testing at ", t.level)
+        )
+
+        analysis_data.obj <- subset_data.obj
+        analysis_feature.dat.type <- feature.dat.type
         if (feature.dat.type == "count"){
           message(
             "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
           )
-          subset_data.obj <- mStat_normalize_data(subset_data.obj, method = "TSS")$data.obj.norm
+          analysis_data.obj <- mStat_normalize_data(subset_data.obj, method = "TSS")$data.obj.norm
+          analysis_feature.dat.type <- "proportion"
         }
+
+        # Perform analysis for each taxonomic level
+        test.list <- lapply(feature.level, function(feature.level) {
 
         # Aggregate, extract, and filter feature data
-        otu_tax_agg_filter <- get_taxa_data(subset_data.obj, feature.level, prev.filter, abund.filter, feature.col = FALSE)
+        otu_tax_agg_filter <- get_taxa_data(analysis_data.obj, feature.level, prev.filter, abund.filter, feature.col = FALSE)
 
-        if (feature.dat.type == "count"){
-          feature.dat.type = "proportion"
-        }
-
-        # Perform linear mixed model analysis using LInDA
+        # Perform per-time fixed-effects analysis using LinDA
         linda.obj <- linda(
           feature.dat = otu_tax_agg_filter,
           meta.dat = meta_tab,
           formula = paste("~", formula),
-          feature.dat.type = feature.dat.type,
+          feature.dat.type = analysis_feature.dat.type,
           prev.filter = prev.filter,
           mean.abund.filter = abund.filter,
           ...
         )
 
-        # Determine reference level for group comparisons
-        if (!is.null(group.var)){
-          reference_level <- levels(as.factor(meta_tab[,group.var]))[1]
+        group_is_categorical <- is.factor(meta_tab[[group.var]]) || is.character(meta_tab[[group.var]])
+        reference_level <- if (group_is_categorical) {
+          levels(as.factor(meta_tab[[group.var]]))[1]
+        } else {
+          NULL
         }
 
         # Calculate average abundance and prevalence for each feature
@@ -240,32 +187,46 @@ generate_taxa_per_time_test_long <-
         )
 
         # Function to extract relevant data frames from LInDA output
-        extract_data_frames <- function(linda_object, group_var = NULL) {
-
-          # Initialize an empty list to store the extracted dataframes
+        extract_data_frames <- function(linda_object,
+                                        group_var = NULL,
+                                        reference_level = NULL,
+                                        is_categorical = TRUE) {
           result_list <- list()
 
-          # Get all matching data frame names
-          matching_dfs <- grep(group_var, names(linda_object$output), value = TRUE)
-
-          # Iterate through all matching dataframe names and extract them
-          for (df_name in matching_dfs) {
-            # Extract group values from the data frame name
-            group_prefix <- paste0(group_var)
-
-            # Extract the content after "group_prefix", and stop before the ":"
-            group_value <- unlist(strsplit(df_name, split = ":"))[1]
-            group_value <- gsub(pattern = group_prefix, replacement = "", x = group_value)
-
-            # Add the data frame to the result list
-            result_list[[paste0(group_value," vs ", reference_level, " (Reference)")]] <- linda_object$output[[df_name]]
+          if (is.null(group_var)) {
+            return(result_list)
           }
 
-          return(result_list)
+          output_names <- names(linda_object$output)
+          matching_dfs <- grep(paste0("^", group_var), output_names, value = TRUE)
+
+          for (df_name in matching_dfs) {
+            group_value <- strsplit(df_name, split = ":", fixed = TRUE)[[1]][1]
+            group_value <- sub(paste0("^", group_var), "", group_value)
+
+            label <- if (is_categorical && nzchar(group_value)) {
+              paste0(group_value, " vs ", reference_level, " (Reference)")
+            } else {
+              group_var
+            }
+
+            result_list[[label]] <- linda_object$output[[df_name]]
+          }
+
+          result_list
         }
 
         # Extract and process results from LInDA output
-        sub_test.list <- extract_data_frames(linda_object = linda.obj, group_var = group.var)
+        sub_test.list <- extract_data_frames(
+          linda_object = linda.obj,
+          group_var = group.var,
+          reference_level = reference_level,
+          is_categorical = group_is_categorical
+        )
+
+        if (length(sub_test.list) == 0) {
+          return(list())
+        }
 
         # Format and annotate results
         sub_test.list <- lapply(sub_test.list, function(df){
@@ -293,12 +254,18 @@ generate_taxa_per_time_test_long <-
       })
     })
 
-    # FIXED: Record which time points have valid results BEFORE filtering
-    # This preserves the correct mapping to time.levels indices
-    valid_time_indices <- which(!sapply(test.list, is.null))
-    
-    # Remove NULL entries from the list (time points that were skipped)
-    test.list <- Filter(Negate(is.null), test.list)
+    # Keep time points that produced at least one non-empty feature-level result
+    has_results <- vapply(test.list, function(tp_result) {
+      if (is.null(tp_result)) {
+        return(FALSE)
+      }
+      any(vapply(tp_result, length, integer(1)) > 0)
+    }, logical(1))
+
+    valid_time_indices <- which(has_results)
+
+    # Remove empty/failed time points from the list
+    test.list <- test.list[has_results]
     
     # If all time points were skipped, return a message
     if (length(test.list) == 0) {

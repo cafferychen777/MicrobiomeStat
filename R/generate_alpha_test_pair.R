@@ -126,7 +126,7 @@ generate_alpha_test_pair <-
            depth = NULL,
            subject.var,
            time.var,
-           group.var,
+           group.var = NULL,
            adj.vars = NULL,
            change.base = NULL) {
 
@@ -191,41 +191,14 @@ generate_alpha_test_pair <-
         error = function(e) {
           # If the complex model fails, attempt a simpler model
           message("Complex model failed. Trying a simpler model...")
-
-          # Function to construct a simpler formula
-          correct_formula <-
-            function(index,
-                     group.var,
-                     time.var,
-                     subject.var,
-                     adj.vars) {
-
-              if (!is.null(group.var)) {
-                formula_part <-
-                  paste(index,
-                        "~",
-                        group.var,
-                        "*",
-                        time.var,
-                        " + (1 ",
-                        "|",
-                        subject.var,
-                        ")")
-              } else {
-                formula_part <-
-                  paste(index, "~", time.var, " + (1|", subject.var, ")")
-              }
-
-              if (!is.null(adj.vars)) {
-                formula_str <- paste(formula_part, "+", adj.vars)
-              } else {
-                formula_str <- formula_part
-              }
-              return(as.formula(formula_str))
-            }
-
-          new_formula_str <-
-            correct_formula(index, group.var, time.var, subject.var, adj.vars)
+          new_formula_str <- construct_formula(
+            index = index,
+            group.var = group.var,
+            time.var = time.var,
+            subject.var = subject.var,
+            adj.vars = adj.vars,
+            random_slopes = FALSE
+          )
 
           # Fit the simpler mixed-effects model
           lme.model_simple <-

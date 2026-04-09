@@ -9,54 +9,29 @@
 #'   If NULL, the first level alphabetically is used. Ignored for continuous variables.
 #' @param ... Additional arguments passed to downstream functions.
 #' @details
-#' Based on whether group.var, adj.vars, and time.var are NULL, the formula tests:
+#' This function requires \\code{time.var} and always evaluates temporal trends.
+#' The fixed-effects structure is:
+#' \\itemize{
+#'   \\item \\code{time.var} when \\code{group.var = NULL}
+#'   \\item \\code{group.var * time.var} when \\code{group.var} is provided
+#'   \\item optional additive adjustment terms from \\code{adj.vars}
+#' }
+#' Random effects are modeled as \\code{(1 + time.var | subject.var)}.
 #'
-#' - When time.var is NULL:
-#'   - When group.var is NULL and adj.vars is NOT NULL:
-#'     - Tests adj.vars main effects only.
-#'     - Adjusted for adj.vars but not for group.var or time.var.
-#'   - When group.var is NOT NULL and adj.vars is NOT NULL:
-#'     - Tests adj.vars and group.var main effects.
-#'     - Adjusted for adj.vars but not for time.var.
-#'   - When group.var is NOT NULL and adj.vars is NULL:
-#'     - Tests group.var main effects only.
-#'     - Unadjusted for adj.vars but adjusted for group.var.
-#'   - When both group.var and adj.vars are NULL:
-#'     - Tests the intercept only.
-#'     - Unadjusted analysis.
-#'
-#' - When time.var is NOT NULL:
-#'   - When group.var is NULL and adj.vars is NOT NULL:
-#'     - Tests adj.vars and time.var main effects.
-#'     - Adjusted for adj.vars but not for group.var.
-#'   - When group.var is NOT NULL and adj.vars is NOT NULL:
-#'     - Tests adj.vars main effects.
-#'     - Tests group.var and time.var main effects.
-#'     - Tests group.var x time.var interaction.
-#'     - Adjusted for adj.vars.
-#'   - When group.var is NOT NULL and adj.vars is NULL:
-#'     - Tests group.var and time.var main effects.
-#'     - Tests group.var x time.var interaction.
-#'     - Unadjusted analysis.
-#'   - When both group.var and adj.vars are NULL:
-#'     - Tests time.var main effect only.
-#'     - Unadjusted analysis.
-#'
-#' The formula combines the appropriate terms based on which variables are NULL.
-#' Subject variability is accounted for through random effects.
-#'
-#' When group.var = NULL and adj.vars = NULL and time.var is NOT NULL,
-#' the slope of time.var is tested without adjusting for any additional covariates.
+#' Output includes time main effect (when available), group main effects, and
+#' group-time interaction terms when \\code{group.var} is specified.
 #'
 #' @return A nested list structure where:
 #' \itemize{
 #'   \item First level: Named by \code{feature.level} (e.g., "Phylum", "Genus")
 #'   \item Second level: Named by tested effects (e.g., "time", "group:time interaction")
 #'         \itemize{
-#'           \item For categorical \code{group.var}: Separate elements for each non-reference level
-#'                 (e.g., "Treatment vs Control (Reference)")
-#'           \item For continuous \code{group.var}: Single element named by the variable
-#'           \item Time effects and interactions are also included depending on the model
+#'           \item For categorical \code{group.var}: Elements named as
+#'                 "Level vs Reference (Reference) [Main Effect]" and
+#'                 "Level vs Reference (Reference) [Interaction]"
+#'           \item For continuous \code{group.var}: Elements named by model terms
+#'                 (e.g., \code{group.var}, \code{group.var:time.var})
+#'           \item \code{time.var} main effect is included when present in model output
 #'         }
 #'   \item Each element is a data.frame with the following columns:
 #'         \itemize{
@@ -124,6 +99,52 @@
 #'   feature.mt.method = "none")
 #'
 #' }
+#' @noRd
+.mStat_extract_trend_linda_outputs <- function(linda_output,
+                                               group_var = NULL,
+                                               time_var = NULL,
+                                               reference_level = NULL) {
+  result_list <- list()
+  output_names <- names(linda_output)
+
+  if (is.null(group_var)) {
+    if (!is.null(time_var) && time_var %in% output_names) {
+      result_list[[time_var]] <- linda_output[[time_var]]
+    }
+    return(result_list)
+  }
+
+  if (!is.null(time_var) && time_var %in% output_names) {
+    result_list[[time_var]] <- linda_output[[time_var]]
+  }
+
+  matching_dfs <- grep(paste0("^", group_var), output_names, value = TRUE)
+  for (df_name in matching_dfs) {
+    term_head <- strsplit(df_name, split = ":", fixed = TRUE)[[1]][1]
+    group_value <- sub(paste0("^", group_var), "", term_head)
+    is_interaction <- !is.null(time_var) && grepl(paste0(":", time_var), df_name, fixed = TRUE)
+
+    if (nzchar(group_value)) {
+      base_label <- paste0(group_value, " vs ", reference_level, " (Reference)")
+      label <- if (is_interaction) {
+        paste0(base_label, " [Interaction]")
+      } else {
+        paste0(base_label, " [Main Effect]")
+      }
+    } else {
+      label <- if (is_interaction) {
+        paste0(group_var, ":", time_var)
+      } else {
+        group_var
+      }
+    }
+
+    result_list[[label]] <- linda_output[[df_name]]
+  }
+
+  result_list
+}
+
 #' @export
 generate_taxa_trend_test_long <-
   function(data.obj,
@@ -143,6 +164,10 @@ generate_taxa_trend_test_long <-
     # Match the feature data type argument
     feature.dat.type <- match.arg(feature.dat.type)
 
+    if (is.null(time.var)) {
+      stop("`time.var` is required for generate_taxa_trend_test_long.", call. = FALSE)
+    }
+
     # Inform the user about the importance of numeric time variable
     message(
       "The trend test calculation relies on a numeric time variable.\n",
@@ -151,14 +176,12 @@ generate_taxa_trend_test_long <-
       "You can ensure the time variable is numeric by mutating it in the metadata."
     )
 
-    # Convert time variable to numeric if it exists
-    if (!is.null(time.var)){
-      data.obj$meta.dat[[time.var]] <- mStat_coerce_time_to_numeric(
-        data.obj$meta.dat[[time.var]],
-        time.var = time.var,
-        context = "taxa trend analysis"
-      )
-    }
+    # Convert time variable to numeric
+    data.obj$meta.dat[[time.var]] <- mStat_coerce_time_to_numeric(
+      data.obj$meta.dat[[time.var]],
+      time.var = time.var,
+      context = "taxa trend analysis"
+    )
 
     # Extract relevant variables from metadata
     meta_tab <-
@@ -200,92 +223,48 @@ generate_taxa_trend_test_long <-
       }
     }
 
-    # Function to generate the formula for linear mixed-effects model
-    generate_formula <- function(group.var = NULL, adj.vars = NULL, time.var = NULL, subject.var = NULL) {
-      # Initialize fixed and random effects
-      fixed_effects <- NULL
-      random_effects <- NULL
+    # Build longitudinal formula
+    formula <- .mStat_build_taxa_linda_formula(
+      group.var = group.var,
+      adj.vars = adj.vars,
+      time.var = time.var,
+      subject.var = subject.var,
+      random_slopes = TRUE
+    )
 
-      # Combine adjustment variables
-      if (!is.null(adj.vars)) {
-        adj.vars_str <- paste(adj.vars, collapse = " + ")
-      } else {
-        adj.vars_str <- NULL
-      }
-
-      # Generate formula based on available variables
-      if (is.null(time.var)) {
-        # Case: No time variable
-        if (is.null(group.var)) {
-          fixed_effects <- adj.vars_str
-          if (is.null(fixed_effects)) {
-            fixed_effects <- "1"  # Intercept-only model
-          }
-        } else {
-          if (!is.null(adj.vars_str)) {
-            fixed_effects <- paste(adj.vars_str, "+", group.var)
-          } else {
-            fixed_effects <- group.var
-          }
-        }
-        random_effects <- paste("(1 |", subject.var, ")")
-      } else {
-        # Case: Time variable present
-        if (is.null(group.var)) {
-          fixed_effects <- paste(adj.vars_str, "+", time.var)
-          if (is.null(adj.vars_str)) {
-            fixed_effects <- time.var
-          }
-        } else {
-          if (!is.null(adj.vars_str)) {
-            fixed_effects <- paste(adj.vars_str, "+", group.var, "*", time.var)
-          } else {
-            fixed_effects <- paste(group.var, "*", time.var)
-          }
-        }
-        random_effects <- paste("(1 +", time.var, "|", subject.var, ")")
-      }
-
-      # Combine fixed and random effects into full formula
-      formula <- paste(fixed_effects, random_effects, sep = " + ")
-      return(formula)
+    analysis_data.obj <- data.obj
+    analysis_feature.dat.type <- feature.dat.type
+    if (feature.dat.type == "count"){
+      message(
+        "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
+      )
+      analysis_data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
+      analysis_feature.dat.type <- "proportion"
+    } else if (feature.dat.type == "other") {
+      message(
+        "CAUTION: You have selected 'other' as feature.dat.type. This assumes your data has been appropriately pre-processed.\n",
+        "Please ensure your data:\n",
+        "1. Does not contain zero values (required for CLR transformation)\n",
+        "2. Has been properly normalized or transformed for compositional data analysis\n",
+        "3. Is suitable for trend analysis across time points\n",
+        "Non-standard preprocessing may affect result interpretation and comparability."
+      )
     }
-
-    # Generate the formula for the linear mixed-effects model
-    formula <- generate_formula(group.var = group.var,
-                                adj.vars = adj.vars,
-                                time.var = time.var,
-                                subject.var = subject.var)
 
     # Perform analysis for each taxonomic level
     test.list <- lapply(feature.level, function(feature.level) {
-      # Handle data based on feature.dat.type
-      if (feature.dat.type == "count"){
-        message(
-          "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
-        )
-        data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
-      } else if (feature.dat.type == "other") {
-        message(
-          "CAUTION: You have selected 'other' as feature.dat.type. This assumes your data has been appropriately pre-processed.\n",
-          "Please ensure your data:\n",
-          "1. Does not contain zero values (required for CLR transformation)\n",
-          "2. Has been properly normalized or transformed for compositional data analysis\n",
-          "3. Is suitable for trend analysis across time points\n",
-          "Non-standard preprocessing may affect result interpretation and comparability."
-        )
-      }
-
       # Aggregate data to the specified taxonomic level if necessary
-      otu_tax_agg_filter <- get_taxa_data(data.obj, feature.level, prev.filter, abund.filter, feature.col = FALSE)
+      otu_tax_agg_filter <- get_taxa_data(
+        analysis_data.obj,
+        feature.level,
+        prev.filter,
+        abund.filter,
+        feature.col = FALSE
+      )
+      meta_tab_level <- meta_tab
 
-      # Set feature data type to proportion if it was originally count
-      if (feature.dat.type == "count"){
-        feature.dat.type = "proportion"
-      }
-      
       # Handle zero values in the data if using 'other' mode
-      if (feature.dat.type == "other" && any(otu_tax_agg_filter == 0)) {
+      if (analysis_feature.dat.type == "other" && any(otu_tax_agg_filter == 0)) {
         warning(
           "Zero values detected in your data with feature.dat.type='other'.\n",
           "Applying half-minimum imputation for zeros to allow CLR transformation.\n",
@@ -308,15 +287,15 @@ generate_taxa_trend_test_long <-
       if (any(colSums(otu_tax_agg_filter) == 0)) {
         keep_samples <- colSums(otu_tax_agg_filter) > 0
         otu_tax_agg_filter <- otu_tax_agg_filter[, keep_samples]
-        meta_tab <- meta_tab[keep_samples, ]
+        meta_tab_level <- meta_tab_level[keep_samples, , drop = FALSE]
       }
 
       # Perform LinDA (Linear models for Differential Abundance) analysis
       linda.obj <- linda(
         feature.dat = otu_tax_agg_filter,
-        meta.dat = meta_tab,
+        meta.dat = meta_tab_level,
         formula = paste("~", formula),
-        feature.dat.type = feature.dat.type,
+        feature.dat.type = analysis_feature.dat.type,
         prev.filter = prev.filter,
         mean.abund.filter = abund.filter,
         ...
@@ -324,7 +303,7 @@ generate_taxa_trend_test_long <-
 
       # Determine the reference level for the group variable
       if (!is.null(group.var)){
-        reference_level <- levels(as.factor(meta_tab[,group.var]))[1]
+        reference_level <- levels(as.factor(meta_tab_level[,group.var]))[1]
       }
 
       # Calculate mean abundance and prevalence for each feature
@@ -333,36 +312,17 @@ generate_taxa_trend_test_long <-
         feature.level = feature.level
       )
 
-      # Function to extract relevant data frames from LinDA output
-      extract_data_frames <- function(linda_object, group_var = NULL, time_var) {
-        result_list <- list()
-
-        if (!is.null(group_var)) {
-          # Extract data frames for group comparisons
-          matching_dfs <- grep(paste0(group_var, ".*:", time_var), names(linda_object$output), value = TRUE)
-
-          for (df_name in matching_dfs) {
-            group_prefix <- paste0(group_var)
-            group_value <- unlist(strsplit(df_name, split = ":"))[1]
-            group_value <- gsub(pattern = group_prefix, replacement = "", x = group_value)
-
-            result_list[[paste0(group_value," vs ", reference_level, " (Reference)")]] <- linda_object$output[[df_name]]
-          }
-        } else {
-          # Extract data frame for time effect when no group variable is present
-          df <- linda_object$output[[time_var]]
-          if (!is.null(df)) {
-            result_list[[time_var]] <- df
-          } else {
-            warning(paste("No data frame found with the name:", time_var))
-          }
-        }
-
-        return(result_list)
-      }
-
       # Extract relevant data frames from LinDA output
-      sub_test.list <- extract_data_frames(linda_object = linda.obj, group_var = group.var, time_var = time.var)
+      sub_test.list <- .mStat_extract_trend_linda_outputs(
+        linda_output = linda.obj$output,
+        group_var = group.var,
+        time_var = time.var,
+        reference_level = if (!is.null(group.var)) reference_level else NULL
+      )
+
+      if (length(sub_test.list) == 0 && !is.null(time.var)) {
+        warning(paste("No data frame found for time variable:", time.var))
+      }
 
       # Process each data frame in the list
       sub_test.list <- lapply(sub_test.list, function(df){
