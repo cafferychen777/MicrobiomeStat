@@ -56,7 +56,7 @@ level(s) for analysis. Should match column names in feature.ann, such as
 original feature level without aggregation.}
 
 \item{feature.mt.method}{Character string specifying the multiple testing correction method.
-Options: "fdr", "bonferroni", "holm", "hochberg", "hommel", "BH", "BY", or "none" (default).}
+Options: "fdr", "bonferroni", or "none" (default).}
 
 \item{cutoff}{Numeric. Significance threshold for filtering taxa. Default is 1 (no filtering).}
 
@@ -79,7 +79,9 @@ current working directory. Default is TRUE.}
 
 \item{time.var}{Character string specifying the column name in meta.dat
 containing the time variable. Required for longitudinal and paired analyses.
-Should be a factor or character with meaningful time point labels.}
+Supports character/factor labels (e.g., "baseline", "week4") and numeric
+values. Some trend/volatility methods require numeric or coercible-to-numeric
+time values.}
 
 \item{t.level}{Character string specifying time point to subset data. Default is NULL.}
 

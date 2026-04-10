@@ -40,8 +40,8 @@ Data objects can be created using converters like
   \item "TMM": Trimmed Mean of M-values (requires edgeR)
 }}
 
-\item{depth}{Numeric value or NULL. Rarefaction depth for diversity
-calculations. If NULL, uses minimum sample depth or no rarefaction.}
+\item{depth}{Numeric value or NULL. Rarefaction depth for rarefaction
+workflows. If NULL, uses the minimum sample depth.}
 }
 \value{
 A list with normalized data object and scale factors.

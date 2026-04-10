@@ -21,7 +21,10 @@ plot_alpha_diversity(
 )
 }
 \arguments{
-\item{alpha.obj}{An optional list containing pre-calculated alpha diversity indices. If NULL (default), alpha diversity indices will be calculated using mStat_calculate_alpha_diversity function from MicrobiomeStat package.}
+\item{alpha.obj}{A required list of pre-calculated alpha diversity indices,
+typically returned by `mStat_calculate_alpha_diversity()`. This legacy
+wrapper does not accept a raw feature table and therefore cannot calculate
+alpha diversity internally.}
 
 \item{meta.dat}{A data frame containing metadata for the samples.}
 

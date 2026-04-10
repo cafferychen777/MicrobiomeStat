@@ -27,6 +27,7 @@ to analyze. Options include:
   \item "chao1": Chao1 richness estimator
   \item "ace": ACE richness estimator
   \item "pielou": Pielou's evenness
+  \item "faith_pd": Faith's phylogenetic diversity (requires a tree)
 }}
 
 \item{dist.obj}{A list of pre-calculated distance matrices. If NULL and
@@ -45,8 +46,8 @@ Options depend on available methods:
   \item "JS": Jensen-Shannon divergence
 }}
 
-\item{depth}{Numeric value or NULL. Rarefaction depth for diversity
-calculations. If NULL, uses minimum sample depth or no rarefaction.}
+\item{depth}{Numeric value or NULL. Rarefaction depth for rarefaction
+workflows. If NULL, uses the minimum sample depth.}
 }
 \value{
 NULL (documentation-only function)

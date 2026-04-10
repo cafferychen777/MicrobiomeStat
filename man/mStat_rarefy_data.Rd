@@ -25,8 +25,8 @@ Data objects can be created using converters like
 \code{\link{mStat_convert_phyloseq_to_data_obj}} or importers like
 \code{\link{mStat_import_qiime2_as_data_obj}}.}
 
-\item{depth}{Numeric value or NULL. Rarefaction depth for diversity
-calculations. If NULL, uses minimum sample depth or no rarefaction.}
+\item{depth}{Numeric value or NULL. Rarefaction depth for rarefaction
+workflows. If NULL, uses the minimum sample depth.}
 }
 \value{
 A MicrobiomeStat data object with rarefied feature table.

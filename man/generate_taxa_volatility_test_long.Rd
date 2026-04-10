@@ -39,7 +39,9 @@ Data objects can be created using converters like
 
 \item{time.var}{Character string specifying the column name in meta.dat
 containing the time variable. Required for longitudinal and paired analyses.
-Should be a factor or character with meaningful time point labels.}
+Supports character/factor labels (e.g., "baseline", "week4") and numeric
+values. Some trend/volatility methods require numeric or coercible-to-numeric
+time values.}
 
 \item{subject.var}{Character string specifying the column name in meta.dat
 that uniquely identifies each subject or sample unit. Required for
@@ -74,7 +76,8 @@ feature.tab. One of:
 }}
 
 \item{transform}{Character; transformation method before volatility calculation.
-"CLR" applies CLR transform (default). Set to other value to skip transformation.}
+"CLR" applies CLR transform (default). Any other value skips CLR and uses
+filtered abundance values directly.}
 
 \item{...}{Additional arguments passed to other methods.}
 }

@@ -11,7 +11,7 @@ generate_alpha_test_pair(
   depth = NULL,
   subject.var,
   time.var,
-  group.var,
+  group.var = NULL,
   adj.vars = NULL,
   change.base = NULL
 )
@@ -49,10 +49,11 @@ to analyze. Options include:
   \item "chao1": Chao1 richness estimator
   \item "ace": ACE richness estimator
   \item "pielou": Pielou's evenness
+  \item "faith_pd": Faith's phylogenetic diversity (requires a tree)
 }}
 
-\item{depth}{Numeric value or NULL. Rarefaction depth for diversity
-calculations. If NULL, uses minimum sample depth or no rarefaction.}
+\item{depth}{Numeric value or NULL. Rarefaction depth for rarefaction
+workflows. If NULL, uses the minimum sample depth.}
 
 \item{subject.var}{Character string specifying the column name in meta.dat
 that uniquely identifies each subject or sample unit. Required for
@@ -60,7 +61,9 @@ longitudinal and paired designs to track repeated measurements.}
 
 \item{time.var}{Character string specifying the column name in meta.dat
 containing the time variable. Required for longitudinal and paired analyses.
-Should be a factor or character with meaningful time point labels.}
+Supports character/factor labels (e.g., "baseline", "week4") and numeric
+values. Some trend/volatility methods require numeric or coercible-to-numeric
+time values.}
 
 \item{group.var}{Character string specifying the column name in meta.dat
 containing the grouping variable (e.g., treatment, condition, phenotype).

@@ -12,10 +12,12 @@ Options include:
 \itemize{
   \item "bw": Black and white theme (theme_bw)
   \item "classic": Classic theme (theme_classic)
-  \item "minimal": Minimal theme (theme_minimal)
-  \item "prism": GraphPad Prism-like theme
-  \item "nature": Nature journal style
+  \item "gray": Gray theme (theme_gray)
   \item "light": Light theme (theme_light)
+  \item "dark": Dark theme (theme_dark)
+  \item "minimal": Minimal theme (theme_minimal)
+  \item "void": Void theme (theme_void)
+  \item "prism": GraphPad Prism-like theme
 }
 Can also use a custom ggplot2 theme object via custom.theme.}
 

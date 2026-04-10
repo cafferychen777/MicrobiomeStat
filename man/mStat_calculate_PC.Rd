@@ -12,8 +12,9 @@ mStat_calculate_PC(dist.obj, method = c("mds"), k = 2, dist.name = NULL)
 If NULL, beta diversity will be automatically computed from \code{data.obj}
 using \code{mStat_calculate_beta_diversity}.}
 
-\item{method}{A character vector specifying which methods to use for
-calculating PCoA. Supported methods are "mds" (MDS), "nmds" (NMDS)}
+\item{method}{Character string specifying the ordination method to use.
+Supported methods are "mds" (MDS) and "nmds" (NMDS). If multiple values
+are supplied, only the first is used.}
 
 \item{k}{An integer specifying the number of principal coordinates to retain.
 Default is 2.}

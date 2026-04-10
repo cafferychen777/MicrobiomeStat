@@ -48,14 +48,17 @@ to analyze. Options include:
   \item "chao1": Chao1 richness estimator
   \item "ace": ACE richness estimator
   \item "pielou": Pielou's evenness
+  \item "faith_pd": Faith's phylogenetic diversity (requires a tree)
 }}
 
-\item{depth}{Numeric value or NULL. Rarefaction depth for diversity
-calculations. If NULL, uses minimum sample depth or no rarefaction.}
+\item{depth}{Numeric value or NULL. Rarefaction depth for rarefaction
+workflows. If NULL, uses the minimum sample depth.}
 
 \item{time.var}{Character string specifying the column name in meta.dat
 containing the time variable. Required for longitudinal and paired analyses.
-Should be a factor or character with meaningful time point labels.}
+Supports character/factor labels (e.g., "baseline", "week4") and numeric
+values. Some trend/volatility methods require numeric or coercible-to-numeric
+time values.}
 
 \item{t.level}{Character string specifying the time level/value to subset data to,
 if a time variable is provided. Default NULL does not subset data.}

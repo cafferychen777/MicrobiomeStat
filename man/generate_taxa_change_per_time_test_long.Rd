@@ -45,7 +45,9 @@ longitudinal and paired designs to track repeated measurements.}
 
 \item{time.var}{Character string specifying the column name in meta.dat
 containing the time variable. Required for longitudinal and paired analyses.
-Should be a factor or character with meaningful time point labels.}
+Supports character/factor labels (e.g., "baseline", "week4") and numeric
+values. Some trend/volatility methods require numeric or coercible-to-numeric
+time values.}
 
 \item{t0.level}{Character or numeric value specifying the baseline time
 point for longitudinal or paired analyses. Should match a value in the

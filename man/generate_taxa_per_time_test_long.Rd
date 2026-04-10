@@ -42,7 +42,9 @@ longitudinal and paired designs to track repeated measurements.}
 
 \item{time.var}{Character string specifying the column name in meta.dat
 containing the time variable. Required for longitudinal and paired analyses.
-Should be a factor or character with meaningful time point labels.}
+Supports character/factor labels (e.g., "baseline", "week4") and numeric
+values. Some trend/volatility methods require numeric or coercible-to-numeric
+time values.}
 
 \item{group.var}{Character string specifying the column name in meta.dat
 containing the grouping variable (e.g., treatment, condition, phenotype).
@@ -94,16 +96,16 @@ A nested list structure where:
         }
 }
 
-Analysis is performed separately for each time point using LinDA mixed-effects models.
+Analysis is performed separately for each time point using LinDA fixed-effects models.
 }
 \description{
 Performs differential abundance testing at each time point separately in
-longitudinal microbiome data using LinDA mixed-effects models.
+longitudinal microbiome data using per-time LinDA fixed-effects models.
 }
 \details{
 The function integrates various data manipulations, normalization procedures, and statistical tests to assess the significance of taxa changes over time or between groups. It allows for the adjustment of covariates and handles both count and proportion data types.
 
-The function constructs a mixed-effects model formula based on the provided variables, handling fixed and random effects to account for repeated measures in subjects. It performs filtering based on prevalence and abundance thresholds and applies normalization and aggregation procedures as necessary.
+The function constructs a fixed-effects model formula based on the provided variables and performs filtering based on prevalence and abundance thresholds, with optional normalization for count data.
 
 Importantly, the function conducts differential abundance analysis separately for each time point in the longitudinal data. This approach allows for the identification of taxa that show significant changes at specific time points, providing insights into the dynamics of the microbiome over time.
 }
