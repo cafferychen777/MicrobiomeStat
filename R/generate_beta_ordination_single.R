@@ -1,3 +1,28 @@
+#' @noRd
+mStat_build_axis_labels_from_eig <- function(eig_vals) {
+  positive_eig <- eig_vals[is.finite(eig_vals) & eig_vals > 0]
+  eig_denom <- if (length(positive_eig) > 0) sum(positive_eig) else NA_real_
+
+  format_axis_label <- function(axis_index) {
+    if (is.null(eig_vals) || length(eig_vals) < axis_index) {
+      return(paste0("Axis ", axis_index))
+    }
+
+    axis_value <- eig_vals[[axis_index]]
+    if (is.finite(axis_value) && is.finite(eig_denom) && eig_denom > 0 && axis_value > 0) {
+      paste0("Axis ", axis_index, " (", round(axis_value / eig_denom * 100, 2), "%)")
+    } else {
+      paste0("Axis ", axis_index, " (0%)")
+    }
+  }
+
+  list(
+    x = format_axis_label(1),
+    y = format_axis_label(2)
+  )
+}
+
+
 #' Generate Beta Diversity Ordination Plot for Cross-Sectional Data
 #'
 #' Creates PCoA ordination plots for single time point or cross-sectional
@@ -69,31 +94,6 @@
 #'   pdf.hei = 8.5
 #' )
 #' }
-#' @noRd
-mStat_build_axis_labels_from_eig <- function(eig_vals) {
-  positive_eig <- eig_vals[is.finite(eig_vals) & eig_vals > 0]
-  eig_denom <- if (length(positive_eig) > 0) sum(positive_eig) else NA_real_
-
-  format_axis_label <- function(axis_index) {
-    if (is.null(eig_vals) || length(eig_vals) < axis_index) {
-      return(paste0("Axis ", axis_index))
-    }
-
-    axis_value <- eig_vals[[axis_index]]
-    if (is.finite(axis_value) && is.finite(eig_denom) && eig_denom > 0 && axis_value > 0) {
-      paste0("Axis ", axis_index, " (", round(axis_value / eig_denom * 100, 2), "%)")
-    } else {
-      paste0("Axis ", axis_index, " (0%)")
-    }
-  }
-
-  list(
-    x = format_axis_label(1),
-    y = format_axis_label(2)
-  )
-}
-
-
 #' @export
 generate_beta_ordination_single <-
   function(data.obj,

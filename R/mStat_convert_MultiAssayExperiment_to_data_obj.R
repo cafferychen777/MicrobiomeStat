@@ -70,7 +70,7 @@ mStat_convert_MultiAssayExperiment_to_data_obj <- function (mae.obj, experiment_
       as.data.frame()
   }
 
-  if (methods::is(experiments_list[[experiment_name]], "SummarizedExperiment")) {
+  if (inherits(experiments_list[[experiment_name]], "SummarizedExperiment")) {
     row_data <- SummarizedExperiment::rowData(experiments_list[[experiment_name]])
     if (!is.null(row_data)) {
       data.obj$feature.ann <- row_data %>%

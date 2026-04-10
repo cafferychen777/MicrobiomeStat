@@ -7,13 +7,13 @@
 get_tree_smoothing_info(phy.tree, tax.names, lambda = 0.1, k.neighbors = 5)
 }
 \arguments{
-\item{phy.tree}{A phylo object (from ape package) representing the phylogenetic tree}
+\item{phy.tree}{A phylo object (from ape package) representing the phylogenetic tree.}
 
-\item{tax.names}{Character vector of taxa names (must match tree tip labels)}
+\item{tax.names}{Character vector of taxa names (must match tree tip labels).}
 
-\item{lambda}{Numeric; smoothing strength parameter (default 0.1)}
+\item{lambda}{Numeric smoothing strength parameter. Default is 0.1.}
 
-\item{k.neighbors}{Integer; number of nearest neighbors for local smoothing (default 5)}
+\item{k.neighbors}{Integer number of nearest neighbors for local smoothing. Default is 5.}
 }
 \value{
 A list containing:

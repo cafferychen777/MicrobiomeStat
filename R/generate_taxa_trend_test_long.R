@@ -1,3 +1,49 @@
+#' @noRd
+.mStat_extract_trend_linda_outputs <- function(linda_output,
+                                               group_var = NULL,
+                                               time_var = NULL,
+                                               reference_level = NULL) {
+  result_list <- list()
+  output_names <- names(linda_output)
+
+  if (is.null(group_var)) {
+    if (!is.null(time_var) && time_var %in% output_names) {
+      result_list[[time_var]] <- linda_output[[time_var]]
+    }
+    return(result_list)
+  }
+
+  if (!is.null(time_var) && time_var %in% output_names) {
+    result_list[[time_var]] <- linda_output[[time_var]]
+  }
+
+  matching_dfs <- grep(paste0("^", group_var), output_names, value = TRUE)
+  for (df_name in matching_dfs) {
+    term_head <- strsplit(df_name, split = ":", fixed = TRUE)[[1]][1]
+    group_value <- sub(paste0("^", group_var), "", term_head)
+    is_interaction <- !is.null(time_var) && grepl(paste0(":", time_var), df_name, fixed = TRUE)
+
+    if (nzchar(group_value)) {
+      base_label <- paste0(group_value, " vs ", reference_level, " (Reference)")
+      label <- if (is_interaction) {
+        paste0(base_label, " [Interaction]")
+      } else {
+        paste0(base_label, " [Main Effect]")
+      }
+    } else {
+      label <- if (is_interaction) {
+        paste0(group_var, ":", time_var)
+      } else {
+        group_var
+      }
+    }
+
+    result_list[[label]] <- linda_output[[df_name]]
+  }
+
+  result_list
+}
+
 #' Longitudinal Taxa Trend Test
 #'
 #' Conducts longitudinal trend tests to analyze how microbial taxa abundance changes
@@ -9,17 +55,17 @@
 #'   If NULL, the first level alphabetically is used. Ignored for continuous variables.
 #' @param ... Additional arguments passed to downstream functions.
 #' @details
-#' This function requires \\code{time.var} and always evaluates temporal trends.
+#' This function requires \code{time.var} and always evaluates temporal trends.
 #' The fixed-effects structure is:
-#' \\itemize{
-#'   \\item \\code{time.var} when \\code{group.var = NULL}
-#'   \\item \\code{group.var * time.var} when \\code{group.var} is provided
-#'   \\item optional additive adjustment terms from \\code{adj.vars}
+#' \itemize{
+#'   \item \code{time.var} when \code{group.var = NULL}
+#'   \item \code{group.var * time.var} when \code{group.var} is provided
+#'   \item optional additive adjustment terms from \code{adj.vars}
 #' }
-#' Random effects are modeled as \\code{(1 + time.var | subject.var)}.
+#' Random effects are modeled as \code{(1 + time.var | subject.var)}.
 #'
 #' Output includes time main effect (when available), group main effects, and
-#' group-time interaction terms when \\code{group.var} is specified.
+#' group-time interaction terms when \code{group.var} is specified.
 #'
 #' @return A nested list structure where:
 #' \itemize{
@@ -99,52 +145,6 @@
 #'   feature.mt.method = "none")
 #'
 #' }
-#' @noRd
-.mStat_extract_trend_linda_outputs <- function(linda_output,
-                                               group_var = NULL,
-                                               time_var = NULL,
-                                               reference_level = NULL) {
-  result_list <- list()
-  output_names <- names(linda_output)
-
-  if (is.null(group_var)) {
-    if (!is.null(time_var) && time_var %in% output_names) {
-      result_list[[time_var]] <- linda_output[[time_var]]
-    }
-    return(result_list)
-  }
-
-  if (!is.null(time_var) && time_var %in% output_names) {
-    result_list[[time_var]] <- linda_output[[time_var]]
-  }
-
-  matching_dfs <- grep(paste0("^", group_var), output_names, value = TRUE)
-  for (df_name in matching_dfs) {
-    term_head <- strsplit(df_name, split = ":", fixed = TRUE)[[1]][1]
-    group_value <- sub(paste0("^", group_var), "", term_head)
-    is_interaction <- !is.null(time_var) && grepl(paste0(":", time_var), df_name, fixed = TRUE)
-
-    if (nzchar(group_value)) {
-      base_label <- paste0(group_value, " vs ", reference_level, " (Reference)")
-      label <- if (is_interaction) {
-        paste0(base_label, " [Interaction]")
-      } else {
-        paste0(base_label, " [Main Effect]")
-      }
-    } else {
-      label <- if (is_interaction) {
-        paste0(group_var, ":", time_var)
-      } else {
-        group_var
-      }
-    }
-
-    result_list[[label]] <- linda_output[[df_name]]
-  }
-
-  result_list
-}
-
 #' @export
 generate_taxa_trend_test_long <-
   function(data.obj,

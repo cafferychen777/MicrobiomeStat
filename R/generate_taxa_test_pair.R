@@ -1,87 +1,3 @@
-#' Paired/Longitudinal Taxa Differential Abundance Test
-#'
-#' Performs differential abundance analysis for paired or longitudinal data using
-#' linear mixed-effects models via LinDA, accounting for subject-level correlations.
-#'
-#' @inheritParams mStat_data_obj_doc
-#'
-#' @param change.base Value indicating the base/reference level for the time variable.
-#'   If NULL, the first level is used.
-#' @param ref.level Character string specifying the reference level for categorical group.var.
-#'   If NULL, the first level alphabetically is used. Ignored for continuous variables.
-#' @param ... Additional parameters passed to the linda function.
-#'
-#' @examples
-#' \dontrun{
-#' data(peerj32.obj)
-#' test.list <- generate_taxa_test_pair(
-#'   data.obj = peerj32.obj,
-#'   subject.var = "subject",
-#'   time.var = "time",
-#'   group.var = "group",
-#'   adj.vars = c("sex"),
-#'   feature.level = c("Genus"),
-#'   prev.filter = 0.1,
-#'   abund.filter = 0.0001,
-#'   feature.dat.type = "count"
-#' )
-#' plot.list <-
-#' generate_taxa_volcano_single(
-#'  data.obj = peerj32.obj,
-#'  group.var = "group",
-#'  test.list = test.list,
-#'  feature.sig.level = 0.1,
-#'  feature.mt.method = "none"
-#')
-#'
-#' data("subset_pairs.obj")
-#' test.list <- generate_taxa_test_pair(
-#'   data.obj = subset_pairs.obj,
-#'   subject.var = "MouseID",
-#'   time.var = "Antibiotic",
-#'   group.var = "Sex",
-#'   adj.vars = NULL,
-#'   feature.level = c("Genus"),
-#'   prev.filter = 0.1,
-#'   abund.filter = 0.0001,
-#'   feature.dat.type = "count"
-#' )
-#' plot.list <-
-#' generate_taxa_volcano_single(
-#'  data.obj = subset_pairs.obj,
-#'  group.var = "Sex",
-#'  test.list = test.list,
-#'  feature.sig.level = 0.1,
-#'  feature.mt.method = "none"
-#')
-#' }
-#'
-#' @return A nested list structure where:
-#' \itemize{
-#'   \item First level: Named by \code{feature.level} (e.g., "Phylum", "Genus")
-#'   \item Second level: Named by tested comparisons and effects
-#'         \itemize{
-#'           \item For categorical \code{group.var}: Elements named as
-#'                 "Level vs Reference (Reference) [Main Effect]" or "[Interaction]"
-#'           \item For continuous \code{group.var}: Element named by the variable
-#'           \item When \code{time.var} is provided: Both main effects and interaction effects
-#'         }
-#'   \item Each element is a data.frame with the following columns:
-#'         \itemize{
-#'           \item \code{Variable}: Feature/taxon name
-#'           \item \code{Coefficient}: Log2 fold change for the comparison or time effect
-#'           \item \code{SE}: Standard error of the coefficient
-#'           \item \code{P.Value}: Raw p-value from LinDA's statistical test
-#'           \item \code{Adjusted.P.Value}: FDR-adjusted p-value using Benjamini-Hochberg method
-#'           \item \code{Mean.Abundance}: Mean abundance of the feature across all samples
-#'           \item \code{Prevalence}: Proportion of samples where the feature is present (non-zero)
-#'         }
-#' }
-#'
-#' @details This function performs paired/longitudinal differential abundance analysis.
-#' Each list element corresponds to a taxonomic level specified in \code{feature.level}.
-#' The function uses linear mixed-effects models via LinDA to account for subject-level
-#' correlations in paired or longitudinal data.
 #' @noRd
 .mStat_build_taxa_linda_formula <- function(group.var = NULL,
                                             adj.vars = NULL,
@@ -157,8 +73,21 @@
   result_list
 }
 
-#' @export
+#' @title Paired/Longitudinal Taxa Differential Abundance Test
+#' @description Performs differential abundance analysis for paired or longitudinal data using
+#'   linear mixed-effects models via LinDA, accounting for subject-level correlations.
+#' @inheritParams mStat_data_obj_doc
+#' @param change.base Value indicating the base/reference level for the time variable.
+#'   If NULL, the first level is used.
+#' @param ref.level Character string specifying the reference level for categorical group.var.
+#'   If NULL, the first level alphabetically is used. Ignored for continuous variables.
+#' @param feature.mt.method Character string specifying the multiple-testing correction method.
+#'   One of "fdr", "bonferroni", or "none".
+#' @param feature.sig.level Numeric significance threshold used by the testing procedure.
+#' @param ... Additional parameters passed to the linda function.
+#' @return A nested list of differential abundance test results by feature level and comparison.
 #' @name generate_taxa_test_pair
+#' @export
 generate_taxa_test_pair <-
   function(data.obj,
            subject.var,

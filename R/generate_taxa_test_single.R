@@ -137,6 +137,9 @@ perform_lm_analysis <- function(feature.dat,
 #'   Default NULL does not subset data.
 #' @param ref.level Character string specifying the reference level for categorical group.var.
 #'   If NULL, the first level alphabetically is used. Ignored for continuous variables.
+#' @param feature.mt.method Character string specifying the multiple-testing correction method.
+#'   One of "fdr", "bonferroni", or "none".
+#' @param feature.sig.level Numeric significance threshold used by the testing procedure.
 #' @param ... Additional arguments passed to the linda function.
 #'
 #' @return A nested list structure where:

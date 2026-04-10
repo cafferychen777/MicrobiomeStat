@@ -16,6 +16,8 @@ generate_taxa_test_pair(
   prev.filter = 0,
   abund.filter = 0,
   feature.dat.type = c("count", "proportion", "other"),
+  feature.mt.method = c("fdr", "bonferroni", "none"),
+  feature.sig.level = 0.05,
   ...
 )
 }
@@ -44,7 +46,9 @@ longitudinal and paired designs to track repeated measurements.}
 
 \item{time.var}{Character string specifying the column name in meta.dat
 containing the time variable. Required for longitudinal and paired analyses.
-Should be a factor or character with meaningful time point labels.}
+Supports character/factor labels (e.g., "baseline", "week4") and numeric
+values. Some trend/volatility methods require numeric or coercible-to-numeric
+time values.}
 
 \item{change.base}{Value indicating the base/reference level for the time variable.
 If NULL, the first level is used.}
@@ -80,84 +84,17 @@ feature.tab. One of:
   \item "other": Pre-transformed data (no transformation applied)
 }}
 
+\item{feature.mt.method}{Character string specifying the multiple-testing correction method.
+One of "fdr", "bonferroni", or "none".}
+
+\item{feature.sig.level}{Numeric significance threshold used by the testing procedure.}
+
 \item{...}{Additional parameters passed to the linda function.}
 }
 \value{
-A nested list structure where:
-\itemize{
-  \item First level: Named by \code{feature.level} (e.g., "Phylum", "Genus")
-  \item Second level: Named by tested comparisons and effects
-        \itemize{
-          \item For categorical \code{group.var}: Elements named as
-                "Level vs Reference (Reference) [Main Effect]" or "[Interaction]"
-          \item For continuous \code{group.var}: Element named by the variable
-          \item When \code{time.var} is provided: Both main effects and interaction effects
-        }
-  \item Each element is a data.frame with the following columns:
-        \itemize{
-          \item \code{Variable}: Feature/taxon name
-          \item \code{Coefficient}: Log2 fold change for the comparison or time effect
-          \item \code{SE}: Standard error of the coefficient
-          \item \code{P.Value}: Raw p-value from LinDA's statistical test
-          \item \code{Adjusted.P.Value}: FDR-adjusted p-value using Benjamini-Hochberg method
-          \item \code{Mean.Abundance}: Mean abundance of the feature across all samples
-          \item \code{Prevalence}: Proportion of samples where the feature is present (non-zero)
-        }
-}
+A nested list of differential abundance test results by feature level and comparison.
 }
 \description{
 Performs differential abundance analysis for paired or longitudinal data using
-linear mixed-effects models via LinDA, accounting for subject-level correlations.
-}
-\details{
-This function performs paired/longitudinal differential abundance analysis.
-Each list element corresponds to a taxonomic level specified in \code{feature.level}.
-The function uses linear mixed-effects models via LinDA to account for subject-level
-correlations in paired or longitudinal data.
-}
-\examples{
-\dontrun{
-data(peerj32.obj)
-test.list <- generate_taxa_test_pair(
-  data.obj = peerj32.obj,
-  subject.var = "subject",
-  time.var = "time",
-  group.var = "group",
-  adj.vars = c("sex"),
-  feature.level = c("Genus"),
-  prev.filter = 0.1,
-  abund.filter = 0.0001,
-  feature.dat.type = "count"
-)
-plot.list <-
-generate_taxa_volcano_single(
- data.obj = peerj32.obj,
- group.var = "group",
- test.list = test.list,
- feature.sig.level = 0.1,
- feature.mt.method = "none"
-)
-
-data("subset_pairs.obj")
-test.list <- generate_taxa_test_pair(
-  data.obj = subset_pairs.obj,
-  subject.var = "MouseID",
-  time.var = "Antibiotic",
-  group.var = "Sex",
-  adj.vars = NULL,
-  feature.level = c("Genus"),
-  prev.filter = 0.1,
-  abund.filter = 0.0001,
-  feature.dat.type = "count"
-)
-plot.list <-
-generate_taxa_volcano_single(
- data.obj = subset_pairs.obj,
- group.var = "Sex",
- test.list = test.list,
- feature.sig.level = 0.1,
- feature.mt.method = "none"
-)
-}
-
+  linear mixed-effects models via LinDA, accounting for subject-level correlations.
 }

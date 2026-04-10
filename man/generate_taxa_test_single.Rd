@@ -15,6 +15,8 @@ generate_taxa_test_single(
   abund.filter = 0,
   feature.level,
   feature.dat.type = c("count", "proportion", "other"),
+  feature.mt.method = c("fdr", "bonferroni", "none"),
+  feature.sig.level = 0.05,
   ...
 )
 }
@@ -39,7 +41,9 @@ Data objects can be created using converters like
 
 \item{time.var}{Character string specifying the column name in meta.dat
 containing the time variable. Required for longitudinal and paired analyses.
-Should be a factor or character with meaningful time point labels.}
+Supports character/factor labels (e.g., "baseline", "week4") and numeric
+values. Some trend/volatility methods require numeric or coercible-to-numeric
+time values.}
 
 \item{t.level}{Character string specifying the time level/value to subset data to.
 Default NULL does not subset data.}
@@ -74,6 +78,11 @@ feature.tab. One of:
   \item "proportion": Relative abundance data (should sum to 1 per sample)
   \item "other": Pre-transformed data (no transformation applied)
 }}
+
+\item{feature.mt.method}{Character string specifying the multiple-testing correction method.
+One of "fdr", "bonferroni", or "none".}
+
+\item{feature.sig.level}{Numeric significance threshold used by the testing procedure.}
 
 \item{...}{Additional arguments passed to the linda function.}
 }

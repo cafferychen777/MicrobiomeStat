@@ -11,7 +11,7 @@ generate_beta_pc_volatility_test_long(
   pc.ind = c(1, 2),
   subject.var,
   time.var,
-  group.var = NULL,
+  group.var,
   adj.vars = NULL,
   dist.name = c("BC"),
   ...
@@ -52,11 +52,11 @@ longitudinal and paired designs to track repeated measurements.}
 
 \item{time.var}{Character string specifying the column name in meta.dat
 containing the time variable. Required for longitudinal and paired analyses.
-Should be a factor or character with meaningful time point labels.}
+Supports character/factor labels (e.g., "baseline", "week4") and numeric
+values. Some trend/volatility methods require numeric or coercible-to-numeric
+time values.}
 
-\item{group.var}{Character string specifying the column name in meta.dat
-containing the grouping variable (e.g., treatment, condition, phenotype).
-Used for between-group comparisons.}
+\item{group.var}{Required. Character string specifying the grouping variable in metadata.}
 
 \item{adj.vars}{Character vector specifying column names in meta.dat to be
 used as covariates for adjustment in statistical models. These variables

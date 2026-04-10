@@ -16,7 +16,7 @@ plot_beta_diversity(
   adj.vars = NULL,
   time.point.plot,
   is.plot.change = TRUE,
-  plot.type = c("PcoA", "boxplot", "spaghettiplot"),
+  plot.type = c("PCoA", "boxplot", "spaghettiplot"),
   ...
 )
 }

@@ -43,7 +43,9 @@ longitudinal and paired designs to track repeated measurements.}
 
 \item{time.var}{Character string specifying the column name in meta.dat
 containing the time variable. Required for longitudinal and paired analyses.
-Should be a factor or character with meaningful time point labels.}
+Supports character/factor labels (e.g., "baseline", "week4") and numeric
+values. Some trend/volatility methods require numeric or coercible-to-numeric
+time values.}
 
 \item{group.var}{Character string specifying the column name in meta.dat
 containing the grouping variable (e.g., treatment, condition, phenotype).
@@ -84,10 +86,12 @@ A nested list structure where:
   \item First level: Named by \code{feature.level} (e.g., "Phylum", "Genus")
   \item Second level: Named by tested effects (e.g., "time", "group:time interaction")
         \itemize{
-          \item For categorical \code{group.var}: Separate elements for each non-reference level
-                (e.g., "Treatment vs Control (Reference)")
-          \item For continuous \code{group.var}: Single element named by the variable
-          \item Time effects and interactions are also included depending on the model
+          \item For categorical \code{group.var}: Elements named as
+                "Level vs Reference (Reference) [Main Effect]" and
+                "Level vs Reference (Reference) [Interaction]"
+          \item For continuous \code{group.var}: Elements named by model terms
+                (e.g., \code{group.var}, \code{group.var:time.var})
+          \item \code{time.var} main effect is included when present in model output
         }
   \item Each element is a data.frame with the following columns:
         \itemize{
@@ -108,44 +112,17 @@ Conducts longitudinal trend tests to analyze how microbial taxa abundance change
 over time and across groups using linear mixed-effects models.
 }
 \details{
-Based on whether group.var, adj.vars, and time.var are NULL, the formula tests:
+This function requires \code{time.var} and always evaluates temporal trends.
+The fixed-effects structure is:
+\itemize{
+  \item \code{time.var} when \code{group.var = NULL}
+  \item \code{group.var * time.var} when \code{group.var} is provided
+  \item optional additive adjustment terms from \code{adj.vars}
+}
+Random effects are modeled as \code{(1 + time.var | subject.var)}.
 
-- When time.var is NULL:
-  - When group.var is NULL and adj.vars is NOT NULL:
-    - Tests adj.vars main effects only.
-    - Adjusted for adj.vars but not for group.var or time.var.
-  - When group.var is NOT NULL and adj.vars is NOT NULL:
-    - Tests adj.vars and group.var main effects.
-    - Adjusted for adj.vars but not for time.var.
-  - When group.var is NOT NULL and adj.vars is NULL:
-    - Tests group.var main effects only.
-    - Unadjusted for adj.vars but adjusted for group.var.
-  - When both group.var and adj.vars are NULL:
-    - Tests the intercept only.
-    - Unadjusted analysis.
-
-- When time.var is NOT NULL:
-  - When group.var is NULL and adj.vars is NOT NULL:
-    - Tests adj.vars and time.var main effects.
-    - Adjusted for adj.vars but not for group.var.
-  - When group.var is NOT NULL and adj.vars is NOT NULL:
-    - Tests adj.vars main effects.
-    - Tests group.var and time.var main effects.
-    - Tests group.var x time.var interaction.
-    - Adjusted for adj.vars.
-  - When group.var is NOT NULL and adj.vars is NULL:
-    - Tests group.var and time.var main effects.
-    - Tests group.var x time.var interaction.
-    - Unadjusted analysis.
-  - When both group.var and adj.vars are NULL:
-    - Tests time.var main effect only.
-    - Unadjusted analysis.
-
-The formula combines the appropriate terms based on which variables are NULL.
-Subject variability is accounted for through random effects.
-
-When group.var = NULL and adj.vars = NULL and time.var is NOT NULL,
-the slope of time.var is tested without adjusting for any additional covariates.
+Output includes time main effect (when available), group main effects, and
+group-time interaction terms when \code{group.var} is specified.
 }
 \examples{
 \dontrun{

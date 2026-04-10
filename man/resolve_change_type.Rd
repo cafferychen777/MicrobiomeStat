@@ -4,13 +4,15 @@
 \alias{resolve_change_type}
 \title{Resolve Change Type Parameters}
 \usage{
-resolve_change_type(change.type = "none")
+resolve_change_type(change.type = "none", context = c("taxa", "alpha"))
 }
 \arguments{
 \item{change.type}{Change type: "none", "relative", "log_fold", "absolute"}
+
+\item{context}{Change context: "taxa" or "alpha"}
 }
 \value{
-List with feature.change.func and related parameters
+List with the resolved change function and related parameters
 }
 \description{
 Converts unified change.type to function-specific parameters.

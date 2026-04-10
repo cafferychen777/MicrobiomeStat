@@ -40,31 +40,7 @@
 # - Nyholt DR (2004). A simple correction for multiple testing. Am J Hum Genet.
 ################################################################################
 
-#' Compute Tree-Guided Smoothing Information (Sparse Optimized)
-#'
-#' Internal function that constructs a local KNN smoothing matrix from a
-#' phylogenetic tree and computes the necessary correction factors.
-#'
-#' OPTIMIZATION: Uses sparse Cholesky decomposition and Hutchinson trace
-#' estimation to avoid computing the full S = A⁻¹ matrix. This reduces
-#' complexity from O(M³) to O(M² × k) and achieves ~2000x speedup for
-#' large datasets (M > 5000 taxa).
-#'
-#' @param phy.tree A phylo object (from ape package) representing the phylogenetic tree
-#' @param tax.names Character vector of taxa names (must match tree tip labels)
-#' @param lambda Numeric; smoothing strength parameter (default 0.1)
-#' @param k.neighbors Integer; number of nearest neighbors for local smoothing (default 5)
-#'
-#' @return A list containing:
-#'   \item{chol_factor}{Sparse Cholesky factor for solving S*t = A⁻¹*t}
-#'   \item{var.correction}{Global variance correction factor (scalar)}
-#'   \item{meff}{Effective number of tests M_eff = tr(S^2)^2 / tr(S^4)}
-#'   \item{meff.correction}{M_eff / M ratio for p-value adjustment}
-#'   \item{rho}{Correlation between baseline and smoothed statistics for Max-T omnibus}
-#'   \item{n.matched}{Number of taxa matched to tree tips}
-#'   \item{matched.idx}{Indices of taxa matched to tree in full M-dimensional space}
-#'
-#' @keywords internal
+#' @noRd
 mStat_with_local_seed <- function(seed, expr) {
   has_seed <- exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
   if (has_seed) {
@@ -83,6 +59,30 @@ mStat_with_local_seed <- function(seed, expr) {
   force(expr)
 }
 
+#' Compute Tree-Guided Smoothing Information (Sparse Optimized)
+#'
+#' Internal function that constructs a local KNN smoothing matrix from a
+#' phylogenetic tree and computes the necessary correction factors.
+#'
+#' OPTIMIZATION: Uses sparse Cholesky decomposition and Hutchinson trace
+#' estimation to avoid computing the full S = A⁻¹ matrix. This reduces
+#' complexity from O(M³) to O(M² × k) and achieves ~2000x speedup for
+#' large datasets (M > 5000 taxa).
+#'
+#' @param phy.tree A phylo object (from ape package) representing the phylogenetic tree.
+#' @param tax.names Character vector of taxa names (must match tree tip labels).
+#' @param lambda Numeric smoothing strength parameter. Default is 0.1.
+#' @param k.neighbors Integer number of nearest neighbors for local smoothing. Default is 5.
+#'
+#' @return A list containing:
+#'   \item{chol_factor}{Sparse Cholesky factor for solving S*t = A⁻¹*t}
+#'   \item{var.correction}{Global variance correction factor (scalar)}
+#'   \item{meff}{Effective number of tests M_eff = tr(S^2)^2 / tr(S^4)}
+#'   \item{meff.correction}{M_eff / M ratio for p-value adjustment}
+#'   \item{rho}{Correlation between baseline and smoothed statistics for Max-T omnibus}
+#'   \item{n.matched}{Number of taxa matched to tree tips}
+#'   \item{matched.idx}{Indices of taxa matched to tree in full M-dimensional space}
+#'
 #' @keywords internal
 get_tree_smoothing_info <- function(phy.tree, tax.names,
                                      lambda = 0.1,
