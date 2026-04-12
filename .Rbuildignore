@@ -24,6 +24,8 @@
 ^pkgdown/.*$
 ^docs$
 ^docs/.*$
+^inst/pkgdown$
+^inst/pkgdown/.*$
 ^vignettes/.*\.html$
 ^vignettes/.*\.pdf$
 ^vignettes/.*_files$

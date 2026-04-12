@@ -1,63 +1,39 @@
-# R specific
-.Rproj.user
+# OS / editor
+.DS_Store
+**/.DS_Store
+Thumbs.db
+.Rproj.user/
+*.Rproj
+.idea/
+.vscode/
+*~
+
+# R session / build artifacts
 .Rhistory
 .RData
 .Ruserdata
-*.Rproj
-renv/
-renv.lock
-inst/doc
-/doc/
-/Meta/
-
-# Build related
+.Rprofile
+*.Rcheck/
+MicrobiomeStat.Rcheck/
 *.tar.gz
+check/
+Rplots.pdf
 src/*.o
 src/*.so
 src/*.dll
-/revdep/
 
-# Documentation
-docs/
-# Ignore all PDF files in docs directory and its subdirectories
-docs/**/*.pdf
-# Ignore specific documentation PDFs
-inst/doc/**/*.pdf
-vignettes/**/*.pdf
+# Generated documentation/build outputs
+inst/doc/
+/pkgdown/
+/docs/reference/*.pdf
+vignettes/*.html
+vignettes/*.pdf
+vignettes/*_files/
+vignettes/*_cache/
 
-# Private communications
-emails/
-
-# Package build check
-*.Rcheck/
-MicrobiomeStat.Rcheck/
-
-# pkgdown generated files
-pkgdown/
-
-# Output files
-*.pdf
-*.csv
-*.html
-check/
-
-# IDE
-.idea/
-.vscode/
-.project
-*~
-
-# Claude Code configuration
+# Local research-only workspace content
 CLAUDE.md
-
-# OS specific
-.DS_Store
-**/.DS_Store
-.DS_Store?
-._.DS_Store
-**/._.DS_Store
-Thumbs.db
-.directory
-
-# Simulation files
-simulation_files/
+TODO_BUGFIXES.md
+dev/
+data/ecam_full/
+data/yassour2018_*.rds
