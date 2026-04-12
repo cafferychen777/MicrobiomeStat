@@ -22,7 +22,7 @@
 #' library(vegan)
 #' data(peerj32.obj)
 #'
-#' # Example 1: Using both group.var and adj.vars
+#' # Example 1: Basic paired comparison by group
 #' generate_alpha_change_test_pair(
 #'   data.obj = peerj32.obj,
 #'   alpha.obj = NULL,
@@ -39,7 +39,7 @@
 #' peerj32.obj$meta.dat <- peerj32.obj$meta.dat %>%
 #'   dplyr::rename(Day = time)
 #'
-#' # Example 2: Using group.var and adj.vars with a renamed time variable
+#' # Example 2: Using a renamed time variable with no additional adjustment
 #' generate_alpha_change_test_pair(
 #'   data.obj = peerj32.obj,
 #'   alpha.obj = NULL,
@@ -47,7 +47,7 @@
 #'   subject.var = "subject",
 #'   time.var = "Day",
 #'   group.var = "sex",
-#'   adj.vars = c("group"),
+#'   adj.vars = NULL,
 #'   change.base = "2",
 #'   alpha.change.func = "log fold change"
 #' )
@@ -153,7 +153,7 @@ generate_alpha_change_test_pair <-
       drop_names <- paste0(time_varying_info$time_varying_vars, "_time_1")
       combined_alpha <- combined_alpha %>%
         dplyr::select(-any_of(drop_names)) %>%
-        rename(!!!names_map)
+        dplyr::rename(!!!names_map)
     }
 
     test.list <- lapply(alpha.name, function(index) {

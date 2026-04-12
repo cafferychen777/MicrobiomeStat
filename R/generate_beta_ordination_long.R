@@ -217,7 +217,7 @@ generate_beta_ordination_long <-
       aes(color = !!sym(group.var),
           alpha = !!sym(time.var))
     } else {
-      aes(color = !!sym(time.var))
+      aes(color = .data[["time_color_value"]])
     }
 
     # Get appropriate theme
@@ -233,10 +233,13 @@ generate_beta_ordination_long <-
         setNames(c("PC1", "PC2")) %>%
         tibble::rownames_to_column("sample") %>%
         dplyr::inner_join(meta_tab %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var))) %>% tibble::rownames_to_column("sample"), by = "sample") %>%
-        dplyr::mutate(x_start = PC1,
-               y_start = PC2,
-               x_end = NA,
-               y_end = NA)
+        dplyr::mutate(
+          time_color_value = as.numeric(.data[[time.var]]),
+          x_start = PC1,
+          y_start = PC2,
+          x_end = NA,
+          y_end = NA
+        )
 
       # Calculate end points for arrows
       df <- df %>%
@@ -322,8 +325,11 @@ generate_beta_ordination_long <-
             y_end = dplyr::if_else(!!sym(time.var) == end_condition, NA_real_, dplyr::lead(mean_PC2))
           ) %>%
           dplyr::ungroup() %>%
-          dplyr::mutate(x_start = mean_PC1,
-                        y_start = mean_PC2)
+          dplyr::mutate(
+            time_color_value = as.numeric(.data[[time.var]]),
+            x_start = mean_PC1,
+            y_start = mean_PC2
+          )
 
       }
 
@@ -363,7 +369,7 @@ generate_beta_ordination_long <-
                                       y = y_start,
                                       xend = x_end,
                                       yend = y_end,
-                                      color = !!sym(time.var)),
+                                      color = time_color_value),
                                   arrow = ggplot2::arrow(length = unit(0.25, "cm"), type = "open"),
                                   size = 1.5)
           }
@@ -377,7 +383,11 @@ generate_beta_ordination_long <-
           if (!is.null(group.var) || !is.null(strata.var)){
             scale_color_manual(values = col)
           } else {
-            ggplot2::scale_color_gradientn(colors = c("#92c5de", "#0571b0", "#f4a582", "#ca0020"))
+            ggplot2::scale_color_gradientn(
+              colors = c("#92c5de", "#0571b0", "#f4a582", "#ca0020"),
+              breaks = seq_along(levels(df[[time.var]])),
+              labels = levels(df[[time.var]])
+            )
           }
         } +
         # Add reference lines

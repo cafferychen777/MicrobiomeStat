@@ -521,6 +521,15 @@ generate_taxa_cladogram_single <- function(
   # Create a list to store individual plots
   plot.list <- list()
 
+  # ggtreeExtra resolves fruit geoms and some draw-time helpers by bare name.
+  # Provide session-local shims only when they are otherwise unavailable.
+  if (!exists("geom_tile", envir = .GlobalEnv, inherits = FALSE)) {
+    assign("geom_tile", ggplot2::geom_tile, envir = .GlobalEnv)
+  }
+  if (!exists("is.waive", envir = .GlobalEnv, inherits = FALSE)) {
+    assign("is.waive", function(x) inherits(x, "waiver"), envir = .GlobalEnv)
+  }
+
   # Generate a plot for each comparison
   for (comparison in unique(merged_test_data$Comparison)) {
     comparison_data <- merged_test_data %>% dplyr::filter(Comparison == comparison)
@@ -535,7 +544,7 @@ generate_taxa_cladogram_single <- function(
       ggtree::ggtree(annotated_tree, layout = "circular", open.angle = 5) +
         ggtreeExtra::geom_fruit(
           data = comparison_data,
-          geom = "geom_tile",
+          geom = geom_tile,
           mapping = ggplot2::aes(y = Variable, x = taxonomic_level, fill = Coefficient),
           offset = 0.03,
           size = 0.02,

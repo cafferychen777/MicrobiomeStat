@@ -16,63 +16,50 @@
 #'
 #' @examples
 #' \dontrun{
-#' data(subset_T2D.obj)
-#' result1 <- generate_beta_change_per_time_test_long(
-#'   data.obj = subset_T2D.obj,
+#' data("subset_pairs.obj")
+#'
+#' result_pairs <- generate_beta_change_per_time_test_long(
+#'   data.obj = subset_pairs.obj,
 #'   dist.obj = NULL,
-#'   time.var = "visit_number_num",
-#'   t0.level = unique(subset_T2D.obj$meta.dat$visit_number_num)[1],
-#'   ts.levels = unique(subset_T2D.obj$meta.dat$visit_number_num)[-1],
-#'   subject.var = "subject_id",
-#'   group.var = "subject_race",
+#'   time.var = "Antibiotic",
+#'   t0.level = "Baseline",
+#'   ts.levels = "Week 2",
+#'   subject.var = "MouseID",
+#'   group.var = "Sex",
 #'   adj.vars = NULL,
-#'   dist.name = c('BC', 'Jaccard')
+#'   dist.name = "BC"
 #' )
 #'
-#' # Visualizing the results for the Type 2 Diabetes dataset
-#' dotplot_T2D <- generate_beta_per_time_dotplot_long(
-#'   data.obj = subset_T2D.obj,
-#'   test.list = result1,
-#'   group.var = "subject_race",
-#'   time.var = "visit_number_num",
-#'   t0.level = unique(subset_T2D.obj$meta.dat$visit_number_num)[1],
-#'   ts.levels = unique(subset_T2D.obj$meta.dat$visit_number_num)[-1],
+#' generate_beta_per_time_dotplot_long(
+#'   data.obj = subset_pairs.obj,
+#'   test.list = result_pairs,
+#'   group.var = "Sex",
+#'   time.var = "Antibiotic",
+#'   t0.level = "Baseline",
+#'   ts.levels = "Week 2"
 #' )
 #'
-#' generate_beta_change_per_time_test_long(
-#'   data.obj = subset_T2D.obj,
-#'   dist.obj = NULL,
-#'   time.var = "visit_number_num",
-#'   t0.level = unique(subset_T2D.obj$meta.dat$visit_number_num)[1],
-#'   ts.levels = unique(subset_T2D.obj$meta.dat$visit_number_num)[-1],
-#'   subject.var = "subject_id",
-#'   group.var = "subject_race",
-#'   adj.vars = c("sample_body_site", "subject_gender"),
-#'   dist.name = c('BC', 'Jaccard')
-#' )
-#'
-#' data(ecam.obj)
-#' dist.obj <- mStat_calculate_beta_diversity(ecam.obj, c('BC', 'Jaccard'))
-#' result2 <- generate_beta_change_per_time_test_long(
+#' data("ecam.obj")
+#' dist.obj <- mStat_calculate_beta_diversity(ecam.obj, "BC")
+#' result_ecam <- generate_beta_change_per_time_test_long(
 #'   data.obj = ecam.obj,
 #'   dist.obj = dist.obj,
-#'   time.var = "month",
-#'   t0.level = unique(ecam.obj$meta.dat$month)[1],
-#'   ts.levels = unique(ecam.obj$meta.dat$month)[-1],
+#'   time.var = "month_num",
+#'   t0.level = "0",
+#'   ts.levels = c("1", "2"),
 #'   subject.var = "subject.id",
-#'   group.var = "diet",
+#'   group.var = "delivery",
 #'   adj.vars = NULL,
-#'   dist.name = c('BC', 'Jaccard')
+#'   dist.name = "BC"
 #' )
 #'
-#' # Visualizing the results for the ECAM dataset
-#' dotplot_ecam <- generate_beta_per_time_dotplot_long(
+#' generate_beta_per_time_dotplot_long(
 #'   data.obj = ecam.obj,
-#'   test.list = result2,
+#'   test.list = result_ecam,
 #'   group.var = "delivery",
-#'   time.var = "month",
-#'   t0.level = unique(ecam.obj$meta.dat$month)[1],
-#'   ts.levels = unique(ecam.obj$meta.dat$month)[-1],
+#'   time.var = "month_num",
+#'   t0.level = "0",
+#'   ts.levels = c("1", "2"),
 #'   base.size = 15
 #' )
 #' }

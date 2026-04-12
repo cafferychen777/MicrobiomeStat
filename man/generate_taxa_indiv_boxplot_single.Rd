@@ -181,7 +181,7 @@ generate_taxa_indiv_boxplot_single(
   group.var = "group",
   strata.var = "sex",
   feature.level = c("Family"),
-  features.plot = list(Family = c("Bacteroidaceae", "Lachnospiraceae")),
+  features.plot = list(Family = c("Bacteroidetes", "Actinobacteria")),
   feature.dat.type = "count",
   top.k.plot = NULL,
   top.k.func = NULL,

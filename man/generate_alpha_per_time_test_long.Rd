@@ -83,87 +83,50 @@ Performs alpha diversity testing at each time point in longitudinal
 }
 \examples{
 \dontrun{
-# Example 1: Analyzing the ECAM dataset (without providing alpha.obj)
-data("ecam.obj")
+data("subset_pairs.obj")
 
-# Perform the longitudinal alpha diversity test for the ECAM dataset
-alpha_test_results_ecam <- generate_alpha_per_time_test_long(
-  data.obj = ecam.obj,
-  alpha.name = c("shannon", "simpson", "observed_species", "pielou"),
-  time.var = "month",
-  t0.level = unique(ecam.obj$meta.dat$month)[1],
-  ts.levels = unique(ecam.obj$meta.dat$month)[-1],
-  group.var = "delivery",
-  adj.vars = c("diet")
-)
-
-# Generate dot plots for the ECAM dataset results
-dot_plots_ecam <- generate_alpha_per_time_dotplot_long(
-  data.obj = ecam.obj,
-  test.list = alpha_test_results_ecam,
-  group.var = "delivery",
-  time.var = "month",
-  t0.level = unique(ecam.obj$meta.dat$month)[1],
-  ts.levels = unique(ecam.obj$meta.dat$month)[-1],
-  base.size = 16,
-  theme.choice = "bw"
-)
-
-# Example 2: Analyzing the Type 2 Diabetes (T2D) dataset (with providing alpha.obj)
-data("subset_T2D.obj")
-
-# Calculate alpha diversity indices
-alpha.obj <- mStat_calculate_alpha_diversity(
-  x = subset_T2D.obj$feature.tab,
-  alpha.name = c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou")
-)
-
-# Perform the longitudinal alpha diversity test for the T2D dataset
-alpha_test_results_T2D <- generate_alpha_per_time_test_long(
-  data.obj = subset_T2D.obj,
-  alpha.obj = alpha.obj,
-  alpha.name = c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou"),
-  time.var = "visit_number_num",
-  t0.level = unique(subset_T2D.obj$meta.dat$visit_number_num)[1],
-  ts.levels = unique(subset_T2D.obj$meta.dat$visit_number_num)[-1],
-  group.var = "subject_race",
-  adj.vars = c("sample_body_site")
-)
-
-# Generate dot plots for the T2D dataset results
-dot_plots_T2D <- generate_alpha_per_time_dotplot_long(
-  data.obj = subset_T2D.obj,
-  test.list = alpha_test_results_T2D,
-  group.var = "subject_race",
-  time.var = "visit_number_num",
-  t0.level = unique(subset_T2D.obj$meta.dat$visit_number_num)[1],
-  ts.levels = unique(subset_T2D.obj$meta.dat$visit_number_num)[-1],
-  base.size = 16,
-  theme.choice = "bw"
-)
-
-# Example 3: Analyzing the ECAM dataset without adjustment variables
-alpha_test_results_ecam_no_adj <- generate_alpha_per_time_test_long(
-  data.obj = ecam.obj,
-  alpha.name = c("shannon", "simpson", "observed_species", "pielou"),
-  depth = 1000,
-  time.var = "month",
-  t0.level = unique(ecam.obj$meta.dat$month)[1],
-  ts.levels = unique(ecam.obj$meta.dat$month)[-1],
-  group.var = "delivery",
+alpha_test_results_pairs <- generate_alpha_per_time_test_long(
+  data.obj = subset_pairs.obj,
+  alpha.name = c("shannon", "simpson"),
+  time.var = "Antibiotic",
+  t0.level = "Baseline",
+  ts.levels = "Week 2",
+  group.var = "Sex",
   adj.vars = NULL
 )
 
-# Generate dot plots for the ECAM dataset results without adjustment variables
-dot_plots_ecam_no_adj <- generate_alpha_per_time_dotplot_long(
-  data.obj = ecam.obj,
-  test.list = alpha_test_results_ecam_no_adj,
-  group.var = "delivery",
-  time.var = "month",
-  t0.level = unique(ecam.obj$meta.dat$month)[1],
-  ts.levels = unique(ecam.obj$meta.dat$month)[-1],
+generate_alpha_per_time_dotplot_long(
+  data.obj = subset_pairs.obj,
+  test.list = alpha_test_results_pairs,
+  group.var = "Sex",
+  time.var = "Antibiotic",
+  t0.level = "Baseline",
+  ts.levels = "Week 2",
   base.size = 16,
-  theme.choice = "minimal"
+  theme.choice = "bw"
+)
+
+data("ecam.obj")
+
+alpha_test_results_ecam <- generate_alpha_per_time_test_long(
+  data.obj = ecam.obj,
+  alpha.name = c("shannon", "simpson"),
+  time.var = "month_num",
+  t0.level = "0",
+  ts.levels = c("1", "2"),
+  group.var = "delivery",
+  adj.vars = "diet"
+)
+
+generate_alpha_per_time_dotplot_long(
+  data.obj = ecam.obj,
+  test.list = alpha_test_results_ecam,
+  group.var = "delivery",
+  time.var = "month_num",
+  t0.level = "0",
+  ts.levels = c("1", "2"),
+  base.size = 16,
+  theme.choice = "bw"
 )
 }
 }

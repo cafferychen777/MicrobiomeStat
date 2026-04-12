@@ -88,7 +88,10 @@ mStat_as_taxa_feature_matrix <- function(feature.dat,
         call. = FALSE
       )
     }
-    feature.df <- tibble::column_to_rownames(feature.df, var = feature.level)
+
+    feature_ids <- feature.df[[feature.level]]
+    feature.df[[feature.level]] <- NULL
+    rownames(feature.df) <- feature_ids
   }
 
   feature_ids <- rownames(feature.df)

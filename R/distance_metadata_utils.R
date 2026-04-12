@@ -553,6 +553,29 @@ mStat_attach_change_metadata <- function(change.df,
     dplyr::select(-dplyr::any_of(sample_col), dplyr::all_of(keep_cols)) %>%
     dplyr::distinct()
 
+  common_by <- intersect(by, colnames(change.df))
+  for (join_col in common_by) {
+    if (!join_col %in% colnames(meta.tbl)) {
+      next
+    }
+
+    x_col <- change.df[[join_col]]
+    y_col <- meta.tbl[[join_col]]
+
+    if (is.numeric(x_col)) {
+      meta.tbl[[join_col]] <- suppressWarnings(as.numeric(y_col))
+    } else if (inherits(x_col, "Date")) {
+      meta.tbl[[join_col]] <- suppressWarnings(
+        as.Date(y_col, tryFormats = c("%Y-%m-%d", "%Y/%m/%d"))
+      )
+    } else if (inherits(x_col, "POSIXt")) {
+      meta.tbl[[join_col]] <- suppressWarnings(as.POSIXct(y_col, tz = "UTC"))
+    } else {
+      meta.tbl[[join_col]] <- as.character(y_col)
+      change.df[[join_col]] <- as.character(x_col)
+    }
+  }
+
   dplyr::left_join(
     change.df,
     meta.tbl,

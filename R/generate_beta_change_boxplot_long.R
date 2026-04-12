@@ -336,7 +336,7 @@ generate_beta_change_boxplot_long <-
 
       # Add faceting by strata if a strata variable is specified
       if (!is.null(strata.var)) {
-        p <- p + facet_wrap2(
+        p <- p + ggh4x::facet_wrap2(
           "Strata",
           scales = "free",
           nrow = length(unique(stats::na.omit(meta_tab[[strata.var]])))

@@ -110,9 +110,9 @@ generate_beta_trend_test_long(
   data.obj = subset_T2D.obj,
   dist.obj = NULL,
   subject.var = "subject_id",
-  time.var = "visit_number",
+  time.var = "visit_number_num",
   group.var = "subject_race",
-  adj.vars = c("subject_gender","sample_body_site"),
+  adj.vars = c("subject_gender"),
   dist.name = c("BC", "Jaccard")
 )
 
@@ -120,7 +120,7 @@ generate_beta_trend_test_long(
   data.obj = subset_T2D.obj,
   dist.obj = NULL,
   subject.var = "subject_id",
-  time.var = "visit_number",
+  time.var = "visit_number_num",
   group.var = NULL,
   adj.vars = NULL,
   dist.name = c("BC", "Jaccard")

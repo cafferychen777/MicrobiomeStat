@@ -274,10 +274,19 @@ mStat_prepare_alpha_data <- function(alpha.obj,
     return(alpha_df)
   }
 
+  meta_df <- as.data.frame(meta.dat, stringsAsFactors = FALSE, check.names = FALSE)
+
   meta_subset <- if (is.null(vars)) {
-    as.data.frame(meta.dat, stringsAsFactors = FALSE)
+    meta_df
   } else {
-    mStat_select_metadata_columns(meta.dat, vars)
+    keep_vars <- unique(unlist(vars, use.names = FALSE))
+    keep_vars <- keep_vars[!is.na(keep_vars)]
+
+    if (sample_col %in% colnames(meta_df)) {
+      keep_vars <- unique(c(sample_col, keep_vars))
+    }
+
+    mStat_select_metadata_columns(meta_df, keep_vars)
   }
 
   meta.tbl <- mStat_meta_to_tibble(

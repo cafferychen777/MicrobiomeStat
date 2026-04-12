@@ -235,14 +235,31 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
       fallback_n = 6
     )
 
+    facet_group_var <- resolved_group_var
     if (!is.null(strata.var)) {
+      facet_group_var <- if (is.null(group.var)) {
+        NULL
+      } else {
+        paste0(group.var, "2")
+      }
+
+      separate_into <- c(facet_group_var, strata.var)
+      separate_into <- separate_into[!is.null(separate_into)]
+
       otu_tab_norm_agg_wide <- otu_tab_norm_agg_wide %>%
         dplyr::mutate(group_key = !!sym(resolved_group_var)) %>%
-        tidyr::separate(group_key,
-                        into = c(paste0(group.var, "2"), strata.var),
-                        sep = .STRATA_SEP)
+        tidyr::separate(
+          group_key,
+          into = separate_into,
+          sep = .STRATA_SEP
+        )
+
       otu_tab_norm_agg_wide <- mStat_restore_factor_levels(
-        otu_tab_norm_agg_wide, fl$levels, paste0(group.var, "2"), strata.var)
+        otu_tab_norm_agg_wide,
+        fl$levels,
+        group.col = facet_group_var,
+        strata.col = strata.var
+      )
     }
 
     if (!is.null(current_features_plot)) {
@@ -306,9 +323,15 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
     taxa.levels <-
       otu_tab_norm_agg_wide %>% dplyr::ungroup() %>% select(all_of(c(feature.level))) %>% pull() %>% unique() %>% length()
 
+    summary_group_vars <- c(resolved_group_var, feature.level, "Type", "Base")
+    if (!is.null(strata.var)) {
+      summary_group_vars <- c(summary_group_vars, facet_group_var, strata.var)
+    }
+    summary_group_vars <- unique(stats::na.omit(summary_group_vars))
+
     otu_tab_norm_agg_wide <- otu_tab_norm_agg_wide %>%
       select(-all_of(subject.var)) %>%
-      dplyr::group_by(!!sym(resolved_group_var), !!sym(feature.level), Type, Base) %>%
+      dplyr::group_by(dplyr::across(all_of(summary_group_vars))) %>%
       dplyr::summarise(change = mean(change), .groups = "drop")
 
     # Add disease prevalence as the size of the points, and use the average abundance as the color of the points
@@ -345,14 +368,21 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
       ) +
       {
         if (!is.null(strata.var)) {
-          ggh4x::facet_nested(
-            rows = vars(!!sym(strata.var),!!sym(paste0(
-              group.var, "2"
-            ))),
-            cols = vars(!!sym(feature.level)),
-            scales = "free",
-            switch = "y"
-          )
+          if (is.null(facet_group_var)) {
+            ggh4x::facet_nested(
+              rows = vars(!!sym(strata.var)),
+              cols = vars(!!sym(feature.level)),
+              scales = "free",
+              switch = "y"
+            )
+          } else {
+            ggh4x::facet_nested(
+              rows = vars(!!sym(strata.var), !!sym(facet_group_var)),
+              cols = vars(!!sym(feature.level)),
+              scales = "free",
+              switch = "y"
+            )
+          }
         } else {
           ggh4x::facet_nested(
             rows = vars(!!sym(resolved_group_var)),

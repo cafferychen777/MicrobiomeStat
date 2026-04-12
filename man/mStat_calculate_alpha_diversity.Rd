@@ -26,8 +26,20 @@ otu.tab <- matrix(data = rpois(100, 5), nrow = 10, ncol = 10)
 rownames(otu.tab) <- paste0("Taxon_", 1:10)
 colnames(otu.tab) <- paste0("Sample_", 1:10)
 
-# Calculate alpha diversity indices
-alpha.obj <- mStat_calculate_alpha_diversity(x = otu.tab, alpha.name =
-c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou", "faith_pd"), tree = tree)
+# Calculate non-phylogenetic alpha diversity indices
+alpha.obj <- mStat_calculate_alpha_diversity(
+  x = otu.tab,
+  alpha.name = c("shannon", "simpson", "observed_species", "chao1", "ace", "pielou")
+)
+
+# Calculate Faith's PD when picante is available
+if (requireNamespace("picante", quietly = TRUE)) {
+  tree <- ape::rtree(n = nrow(otu.tab), tip.label = rownames(otu.tab))
+  faith_pd <- mStat_calculate_alpha_diversity(
+    x = otu.tab,
+    alpha.name = "faith_pd",
+    tree = tree
+  )
+}
 }
 }

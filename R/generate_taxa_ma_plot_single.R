@@ -28,11 +28,11 @@
 #' test.list <- generate_taxa_test_single(
 #'   data.obj = subset_T2D.obj,
 #'   time.var = "visit_number",
-#'   time.point = "1",
+#'   t.level = unique(subset_T2D.obj$meta.dat$visit_number)[1],
 #'   group.var = "subject_race",
 #'   adj.vars = "sample_body_site",
-#'   feature.level = c("Genus","Family"),
-#'   feature.dat.type = c("count")
+#'   feature.level = c("Genus", "Family"),
+#'   feature.dat.type = "count"
 #' )
 #'
 #' plot.list <- generate_taxa_ma_plot_single(

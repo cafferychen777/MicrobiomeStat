@@ -56,6 +56,18 @@ test_that("mStat_as_taxa_feature_matrix and composition matrix preserve schema c
   expect_equal(colnames(feature.mat), c("s1", "s2", "s3"))
   expect_type(feature.mat, "double")
 
+  feature.with.rownames <- feature.df
+  rownames(feature.with.rownames) <- c("row-1", "row-2")
+
+  feature.mat.with.rownames <- mStat_as_taxa_feature_matrix(
+    feature.dat = feature.with.rownames,
+    feature.level = "Genus",
+    feature_in_column = TRUE
+  )
+
+  expect_equal(rownames(feature.mat.with.rownames), c("tax1", "tax2"))
+  expect_equal(colnames(feature.mat.with.rownames), c("s1", "s2", "s3"))
+
   composition.mat <- mStat_as_taxa_composition_matrix(
     feature.dat = feature.df,
     feature.level = "Genus"

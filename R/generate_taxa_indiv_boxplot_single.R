@@ -55,7 +55,7 @@
 #'   group.var = "group",
 #'   strata.var = "sex",
 #'   feature.level = c("Family"),
-#'   features.plot = list(Family = c("Bacteroidaceae", "Lachnospiraceae")),
+#'   features.plot = list(Family = c("Bacteroidetes", "Actinobacteria")),
 #'   feature.dat.type = "count",
 #'   top.k.plot = NULL,
 #'   top.k.func = NULL,
@@ -287,11 +287,15 @@ generate_taxa_indiv_boxplot_single <-
         }
 
         # Add faceting if strata variable is provided
-        if (!is.null(group.var)) {
-          if (!is.null(strata.var)) {
-            boxplot <-
-              boxplot + ggh4x::facet_nested(as.formula(paste("~", strata.var)), scales = "free", space = "free") + theme(panel.spacing = unit(0,"lines"))
-          }
+        if (!is.null(group.var) && !is.null(strata.var)) {
+          boxplot <-
+            boxplot +
+            ggh4x::facet_nested(
+              cols = vars(!!sym(strata.var)),
+              scales = "free",
+              space = "free"
+            ) +
+            theme(panel.spacing = unit(0, "lines"))
         }
 
         # Modify y-axis scale based on the transformation

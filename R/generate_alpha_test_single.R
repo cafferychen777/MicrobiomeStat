@@ -18,7 +18,7 @@
 #' data("subset_T2D.obj")
 #' # Example where alpha diversity indices are calculated beforehand
 #' alpha.obj <- mStat_calculate_alpha_diversity(subset_T2D.obj$feature.tab,
-#'                                              c("shannon", "observed_species"))
+#'                                              c("shannon", "observed_species", "ace"))
 #' generate_alpha_test_single(data.obj = subset_T2D.obj,
 #'                            alpha.obj = alpha.obj,
 #'                            alpha.name = c("shannon", "observed_species", "ace"),
@@ -30,7 +30,7 @@
 #' # Example where alpha diversity indices are calculated within the function
 #' generate_alpha_test_single(data.obj = subset_T2D.obj,
 #'                            time.var = "visit_number",
-#'                            t.level = "4",
+#'                            t.level = unique(subset_T2D.obj$meta.dat$visit_number)[4],
 #'                            alpha.name = c("shannon", "observed_species"),
 #'                            group.var = "subject_race",
 #'                            adj.vars = "subject_gender")

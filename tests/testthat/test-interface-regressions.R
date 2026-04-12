@@ -221,6 +221,57 @@ test_that("resolve_params preserves explicit pdf values for plot targets", {
   expect_true(resolved_explicit$pdf)
 })
 
+test_that("alpha preparation keeps sample ids when selecting covariates", {
+  data(peerj32.obj)
+
+  meta.dat <- peerj32.obj$meta.dat %>%
+    tibble::rownames_to_column("sample")
+
+  alpha.obj <- suppressWarnings(
+    mStat_calculate_alpha_diversity(
+      x = peerj32.obj$feature.tab,
+      alpha.name = "shannon"
+    )
+  )
+
+  prepared <- mStat_prepare_alpha_data(
+    alpha.obj = alpha.obj,
+    meta.dat = meta.dat,
+    vars = "group",
+    sample_col = "sample",
+    join = "inner"
+  )
+
+  expect_equal(nrow(prepared), nrow(meta.dat))
+  expect_true(all(c("sample", "shannon", "group") %in% names(prepared)))
+  expect_setequal(prepared$sample, meta.dat$sample)
+})
+
+test_that("change metadata casts join keys to match long-form distances", {
+  change.df <- tibble::tibble(
+    subject = c("s1", "s1", "s2"),
+    month = c("1", "2", "1"),
+    distance = c(0.1, 0.2, 0.3)
+  )
+
+  meta.dat <- data.frame(
+    subject = c("s1", "s1", "s2"),
+    month = c(1, 2, 1),
+    diet = c("A", "B", "A"),
+    row.names = c("sample-1", "sample-2", "sample-3"),
+    stringsAsFactors = FALSE
+  )
+
+  attached <- mStat_attach_change_metadata(
+    change.df = change.df,
+    meta.dat = meta.dat,
+    by = c("subject", "month"),
+    vars = "diet"
+  )
+
+  expect_equal(attached$diet, c("A", "B", "A"))
+})
+
 test_that("plot_taxa fallback clears stale change.type before dispatch", {
   ns <- asNamespace("MicrobiomeStat")
   original_validate_inputs <- get("validate_inputs", envir = ns)

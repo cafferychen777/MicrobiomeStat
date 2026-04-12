@@ -22,7 +22,7 @@
 #'         outputs a message confirming this.
 #'
 #' @examples
-#' # Example 1: All variables are non-time-varying
+#' # Example 1: All variables are non-time-varying within subjects
 #' meta.dat <- data.frame(
 #'   subject = c(1, 1, 2, 2, 3, 3, 4, 4),
 #'   age = c(30, 30, 25, 25, 40, 40, 35, 35),
@@ -32,48 +32,17 @@
 #' subject.var <- "subject"
 #' mStat_identify_time_varying_vars(meta.dat, adj.vars, subject.var)
 #'
-#' # Example 2: Missing variables in meta.dat
-#' try({
-#'   meta.dat <- data.frame(
-#'     subject = c(1, 1, 2, 2, 3, 3, 4, 4),
-#'     age = c(30, 30, 25, 25, 40, 40, 35, 35)
-#'   )
-#'   adj.vars <- c("age", "bmi")  # "bmi" is missing
-#'   subject.var <- "subject"
-#'   mStat_identify_time_varying_vars(meta.dat, adj.vars, subject.var)
-#' })
+#' # Example 2: One variable varies within subjects
+#' meta.dat2 <- data.frame(
+#'   subject = c(1, 1, 2, 2, 3, 3, 4, 4),
+#'   age = c(30, 31, 25, 25, 40, 40, 35, 35),
+#'   bmi = c(22, 22, 24, 24, 28, 28, 26, 26)
+#' )
+#' mStat_identify_time_varying_vars(meta.dat2, adj.vars, subject.var)
 #'
-#' # Example 3: One variable is time-varying
-#' try({
-#'   meta.dat <- data.frame(
-#'     subject = c(1, 1, 2, 2, 3, 3, 4, 4),
-#'     age = c(30, 31, 25, 25, 40, 40, 35, 35),
-#'     bmi = c(22, 22, 24, 24, 28, 28, 26, 26)
-#'   )
-#'   adj.vars <- c("age", "bmi")
-#'   subject.var <- "subject"
-#'   mStat_identify_time_varying_vars(meta.dat, adj.vars, subject.var)
-#' })
-#'
-#' # Example 4: Empty data set
-#' try({
-#'   meta.dat <- data.frame(subject = integer(0), age = integer(0), bmi = integer(0))
-#'   adj.vars <- c("age", "bmi")
-#'   subject.var <- "subject"
-#'   mStat_identify_time_varying_vars(meta.dat, adj.vars, subject.var)
-#' })
-#'
-#' # Example 5: Mixed case with time-varying and non-time-varying variables
-#' try({
-#'   meta.dat <- data.frame(
-#'     subject = c(1, 1, 2, 2, 3, 3, 4, 4),
-#'     age = c(30, 31, 25, 26, 40, 41, 35, 36),
-#'     bmi = c(22, 23, 24, 25, 28, 29, 26, 27)
-#'   )
-#'   adj.vars <- c("age", "bmi")
-#'   subject.var <- "subject"
-#'   mStat_identify_time_varying_vars(meta.dat, adj.vars, subject.var)
-#' })
+#' # Example 3: Empty metadata returns both variables as non-time-varying
+#' meta.dat3 <- data.frame(subject = integer(0), age = integer(0), bmi = integer(0))
+#' mStat_identify_time_varying_vars(meta.dat3, adj.vars, subject.var)
 #' @export
 mStat_identify_time_varying_vars <- function(meta.dat, adj.vars, subject.var) {
   # Check if all specified variables exist in the metadata data.frame
