@@ -99,21 +99,27 @@ generate_taxa_dotplot_pair <- function(data.obj,
   data.obj <- fl$data.obj
 
   # Extract relevant variables from the metadata
-  meta_tab <-
-    data.obj$meta.dat %>% select(all_of(c(
-      time.var, group.var, strata.var, subject.var
-    )))
+  meta_tab <- select_meta_vars(
+    data.obj$meta.dat,
+    time.var,
+    group.var,
+    strata.var,
+    subject.var
+  )
 
-  # If no group variable is provided, create a dummy "ALL" group
-  if (is.null(group.var)) {
-    group.var = "ALL"
-    meta_tab$ALL <- ""
-  }
+  placeholder_group <- mStat_ensure_group_placeholder(
+    meta_tab,
+    group.var = group.var,
+    value = "ALL",
+    column_name = "ALL"
+  )
+  meta_tab <- placeholder_group$df
+  resolved_group_var <- placeholder_group$group.var
 
   # If a strata variable is provided, create an interaction term with the group variable
   if (!is.null(strata.var)) {
     meta_tab <-
-      meta_tab %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(group.var), !!sym(strata.var), sep = .STRATA_SEP))
+      meta_tab %>% dplyr::mutate(!!sym(resolved_group_var) := interaction(!!sym(resolved_group_var), !!sym(strata.var), sep = .STRATA_SEP))
   }
 
   # Get the color palette
@@ -129,25 +135,22 @@ generate_taxa_dotplot_pair <- function(data.obj,
     abund.filter <- 0
   }
 
-  # Normalize count data if necessary
-  if (feature.dat.type == "count"){
-    message(
-      "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
-    )
-    data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
-  }
+  # Normalize count data if necessary.
+  analysis_data.obj <- mStat_normalize_count_data_if_needed(data.obj, feature.dat.type)
 
   # Create a list to store plots for each taxonomic level
   plot_list <- lapply(feature.level, function(feature.level) {
 
     # Aggregate data by taxonomy if necessary
-    otu_tax_agg <- get_taxa_data(data.obj, feature.level, prev.filter, abund.filter)
+    otu_tax_agg <- get_taxa_data(analysis_data.obj, feature.level, prev.filter, abund.filter)
 
-    # Select top k features if specified
-    if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
-      computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
-      features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
-    }
+    current_features_plot <- mStat_resolve_selected_features(
+      feature.dat = otu_tax_agg,
+      feature.level = feature.level,
+      features.plot = features.plot,
+      top.k.plot = top.k.plot,
+      top.k.func = top.k.func
+    )
 
     otu_tax_long <- mStat_prepare_taxa_long_data(
       feature.dat = otu_tax_agg,
@@ -160,7 +163,7 @@ generate_taxa_dotplot_pair <- function(data.obj,
     otu_tab_norm_agg <- mStat_summarize_grouped_taxa_long(
       long.df = otu_tax_long,
       feature.level = feature.level,
-      group_vars = c(group.var, time.var),
+      group_vars = c(resolved_group_var, time.var),
       value_col = "count",
       mean_col = "mean_abundance",
       prevalence_col = "prevalence",
@@ -173,44 +176,19 @@ generate_taxa_dotplot_pair <- function(data.obj,
     # Handle strata variable if present
     if (!is.null(strata.var)){
       otu_tab_norm_agg <- otu_tab_norm_agg %>%
-        dplyr::mutate(group_key = !!sym(group.var)) %>%
+        dplyr::mutate(group_key = !!sym(resolved_group_var)) %>%
         tidyr::separate(group_key, into = c(paste0(group.var,"2"), strata.var), sep = .STRATA_SEP)
       otu_tab_norm_agg <- mStat_restore_factor_levels(
         otu_tab_norm_agg, fl$levels, paste0(group.var, "2"), strata.var)
     }
 
     # Filter features if specified
-    if (!is.null(features.plot)){
-      otu_tab_norm_agg <- otu_tab_norm_agg %>% filter(!!sym(feature.level) %in% features.plot)
+    if (!is.null(current_features_plot)){
+      otu_tab_norm_agg <- otu_tab_norm_agg %>% filter(!!sym(feature.level) %in% current_features_plot)
     }
 
     # Count unique taxa levels
     taxa.levels <- otu_tab_norm_agg %>% select(all_of(c(feature.level))) %>% pull() %>% unique() %>% length()
-
-    # Function to adjust point size range based on number of taxa levels
-    adjust_size_range <- function(taxa.levels) {
-      if (taxa.levels <= 2) {
-        return(c(40, 57))
-      } else if (taxa.levels <= 4) {
-        return(c(35, 42))
-      } else if (taxa.levels <= 6) {
-        return(c(30, 37))
-      } else if (taxa.levels <= 8) {
-        return(c(25, 33))
-      } else if (taxa.levels < 10) {
-        return(c(20, 17))
-      } else if (taxa.levels < 20) {
-        return(c(10, 15))
-      } else if (taxa.levels < 30) {
-        return(c(8, 13))
-      } else if (taxa.levels < 40) {
-        return(c(6, 10))
-      } else if (taxa.levels < 50) {
-        return(c(4, 8))
-      } else {
-        return(c(1, 4))
-      }
-    }
 
     # Create the dot plot
     dotplot <-
@@ -218,7 +196,7 @@ generate_taxa_dotplot_pair <- function(data.obj,
         otu_tab_norm_agg,
         aes(
           x = !!sym(feature.level),
-          y = !!sym(group.var),
+          y = !!sym(resolved_group_var),
           size = prevalence,
           shape = !!sym(time.var),
           color = !!sym(time.var)
@@ -228,9 +206,9 @@ generate_taxa_dotplot_pair <- function(data.obj,
                  shape = 21,
                  position = position_dodge(0.9)) +
       xlab(feature.level) +
-      ylab(group.var) +
+      ylab(if (is.null(group.var)) NULL else group.var) +
       scale_colour_manual(values = c("transparent","black")) +
-      scale_size_continuous(range = adjust_size_range(taxa.levels)) +
+      scale_size_continuous(range = mStat_get_taxa_dotplot_size_range(taxa.levels)) +
       {
         # Set up color scale based on feature data type
         if(feature.dat.type == "other") {
@@ -256,7 +234,7 @@ generate_taxa_dotplot_pair <- function(data.obj,
         if (!is.null(strata.var)){
           ggh4x::facet_nested(rows = vars(!!sym(strata.var),!!sym(paste0(group.var,"2"))), cols = vars(!!sym(feature.level)), scales = "free", switch = "y")
         } else {
-          ggh4x::facet_nested(rows = vars(!!sym(group.var)), cols = vars(!!sym(feature.level)), scales = "free", switch = "y")}
+          ggh4x::facet_nested(rows = vars(!!sym(resolved_group_var)), cols = vars(!!sym(feature.level)), scales = "free", switch = "y")}
       } +
       theme_to_use +
       theme(
@@ -273,7 +251,7 @@ generate_taxa_dotplot_pair <- function(data.obj,
         axis.ticks.x = element_blank(),
         panel.spacing = unit(0, "lines"),
         strip.text.x = element_blank(),
-        strip.text.y = if (group.var == "ALL") element_blank() else element_text(size = base.size),
+        strip.text.y = if (is.null(group.var)) element_blank() else element_text(size = base.size),
         legend.position = "right",
         legend.direction = "vertical",
         legend.box = "vertical",
@@ -309,12 +287,11 @@ generate_taxa_dotplot_pair <- function(data.obj,
         "abund_filter_",
         abund.filter
       )
-      if (!is.null(group.var)) {
-        pdf_name <- paste0(pdf_name, "_", "group_", group.var)
-      }
-      if (!is.null(strata.var)) {
-        pdf_name <- paste0(pdf_name, "_", "strata_", strata.var)
-      }
+      pdf_name <- mStat_append_pdf_group_suffixes(
+        pdf_name = pdf_name,
+        group.var = group.var,
+        strata.var = strata.var
+      )
       if (!is.null(file.ann)) {
         pdf_name <- paste0(pdf_name, "_", file.ann)
       }

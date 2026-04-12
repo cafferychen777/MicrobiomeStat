@@ -1,49 +1,3 @@
-#' @noRd
-.mStat_extract_trend_linda_outputs <- function(linda_output,
-                                               group_var = NULL,
-                                               time_var = NULL,
-                                               reference_level = NULL) {
-  result_list <- list()
-  output_names <- names(linda_output)
-
-  if (is.null(group_var)) {
-    if (!is.null(time_var) && time_var %in% output_names) {
-      result_list[[time_var]] <- linda_output[[time_var]]
-    }
-    return(result_list)
-  }
-
-  if (!is.null(time_var) && time_var %in% output_names) {
-    result_list[[time_var]] <- linda_output[[time_var]]
-  }
-
-  matching_dfs <- grep(paste0("^", group_var), output_names, value = TRUE)
-  for (df_name in matching_dfs) {
-    term_head <- strsplit(df_name, split = ":", fixed = TRUE)[[1]][1]
-    group_value <- sub(paste0("^", group_var), "", term_head)
-    is_interaction <- !is.null(time_var) && grepl(paste0(":", time_var), df_name, fixed = TRUE)
-
-    if (nzchar(group_value)) {
-      base_label <- paste0(group_value, " vs ", reference_level, " (Reference)")
-      label <- if (is_interaction) {
-        paste0(base_label, " [Interaction]")
-      } else {
-        paste0(base_label, " [Main Effect]")
-      }
-    } else {
-      label <- if (is_interaction) {
-        paste0(group_var, ":", time_var)
-      } else {
-        group_var
-      }
-    }
-
-    result_list[[label]] <- linda_output[[df_name]]
-  }
-
-  result_list
-}
-
 #' Longitudinal Taxa Trend Test
 #'
 #' Conducts longitudinal trend tests to analyze how microbial taxa abundance changes
@@ -168,12 +122,10 @@ generate_taxa_trend_test_long <-
       stop("`time.var` is required for generate_taxa_trend_test_long.", call. = FALSE)
     }
 
-    # Inform the user about the importance of numeric time variable
-    message(
-      "The trend test calculation relies on a numeric time variable.\n",
-      "Please check that your time variable is coded as numeric.\n",
-      "If the time variable is not numeric, it may cause issues in computing the test results.\n",
-      "You can ensure the time variable is numeric by mutating it in the metadata."
+    mStat_inform_numeric_time_requirement(
+      function_name = "generate_taxa_trend_test_long",
+      analysis_label = "trend analysis",
+      conversion_behavior = "preprocess"
     )
 
     # Convert time variable to numeric
@@ -232,15 +184,9 @@ generate_taxa_trend_test_long <-
       random_slopes = TRUE
     )
 
-    analysis_data.obj <- data.obj
-    analysis_feature.dat.type <- feature.dat.type
-    if (feature.dat.type == "count"){
-      message(
-        "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
-      )
-      analysis_data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
-      analysis_feature.dat.type <- "proportion"
-    } else if (feature.dat.type == "other") {
+    analysis_data.obj <- mStat_normalize_count_data_if_needed(data.obj, feature.dat.type)
+    analysis_feature.dat.type <- if (feature.dat.type == "count") "proportion" else feature.dat.type
+    if (feature.dat.type == "other") {
       message(
         "CAUTION: You have selected 'other' as feature.dat.type. This assumes your data has been appropriately pre-processed.\n",
         "Please ensure your data:\n",
@@ -283,28 +229,29 @@ generate_taxa_trend_test_long <-
         }))
       }
 
-      # Add this check before linda analysis
       if (any(colSums(otu_tax_agg_filter) == 0)) {
-        keep_samples <- colSums(otu_tax_agg_filter) > 0
-        otu_tax_agg_filter <- otu_tax_agg_filter[, keep_samples]
-        meta_tab_level <- meta_tab_level[keep_samples, , drop = FALSE]
+        pruned_inputs <- .mStat_prune_zero_total_samples(
+          feature.dat = otu_tax_agg_filter,
+          meta.dat = meta_tab_level
+        )
+        otu_tax_agg_filter <- pruned_inputs$feature.dat
+        meta_tab_level <- pruned_inputs$meta.dat
       }
 
-      # Perform LinDA (Linear models for Differential Abundance) analysis
-      linda.obj <- linda(
+      linda.obj <- .mStat_run_linda(
         feature.dat = otu_tax_agg_filter,
         meta.dat = meta_tab_level,
-        formula = paste("~", formula),
+        formula = formula,
         feature.dat.type = analysis_feature.dat.type,
         prev.filter = prev.filter,
         mean.abund.filter = abund.filter,
-        ...
+        extra_args = list(...)
       )
 
-      # Determine the reference level for the group variable
-      if (!is.null(group.var)){
-        reference_level <- levels(as.factor(meta_tab_level[,group.var]))[1]
-      }
+      reference_level <- .mStat_get_group_reference_level(
+        meta.dat = meta_tab_level,
+        group.var = group.var
+      )
 
       # Calculate mean abundance and prevalence for each feature
       prop_prev_data <- mStat_summarize_taxa_features(

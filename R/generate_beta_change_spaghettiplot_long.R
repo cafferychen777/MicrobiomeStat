@@ -102,13 +102,7 @@ generate_beta_change_spaghettiplot_long <-
 
     # Set the theme for plotting
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
-
-    # Calculate new sizes based on base.size for consistent plot aesthetics
-    title.size = base.size * 1.25
-    axis.title.size = base.size * 0.75
-    axis.text.size = base.size * 0.5
-    legend.title.size = base.size * 1
-    legend.text.size = base.size * 0.75
+    text_sizes <- mStat_get_spaghettiplot_text_sizes(base.size, variant = "wide_panel")
 
     # Inform users about the requirement for baseline time points
     message("Note: This function requires subjects to have a baseline time point (specified by `t0.level`) to calculate the change in beta diversity. Subjects without a baseline time point will be excluded from the visualization.")
@@ -146,89 +140,52 @@ generate_beta_change_spaghettiplot_long <-
         )
       }
 
-      # Check if the specified distance metric exists in the distance object
+      # Check if the specified distance metric exists in the distance object.
       if (is.null(dist.obj[[dist.name]])) {
-        message(paste("dist.obj does not contain", dist.name))
-      } else {
-        # Convert distance object to matrix format
-        tryCatch({
-          dist.df <- as.matrix(dist.obj[[dist.name]])
-        }, error = function(e) {
-          message(paste("Failed to convert dist.obj[[", dist.name, "]] to a matrix: ", e$message))
-        })
-
-        # Check for missing samples in the distance matrix
-        missing_rows <- setdiff(rownames(meta_tab), rownames(dist.df))
-        missing_cols <- setdiff(rownames(meta_tab), colnames(dist.df))
-
-        if (length(missing_rows) > 0) {
-          message(paste("The following rows in meta_tab are not in dist.df:", paste(missing_rows, collapse = ", ")))
-        }
-
-        if (length(missing_cols) > 0) {
-          message(paste("The following columns in meta_tab are not in dist.df:", paste(missing_cols, collapse = ", ")))
-        }
-
-        # Subset distance matrix to match metadata
-        if (length(missing_rows) == 0 & length(missing_cols) == 0) {
-          dist.df <- dist.df[rownames(meta_tab), rownames(meta_tab)]
-        }
+        stop("dist.obj does not contain ", dist.name, call. = FALSE)
       }
 
-      # Convert distance matrix to long format for plotting
-      dist.df <- mStat_dist_to_tibble(dist.df, sample_col = "sample")
       meta_tab <- mStat_meta_to_tibble(meta_tab, sample_col = "sample")
 
-      # Determine the baseline time point for change calculation
-      if (is.factor(meta_tab[, time.var])) {
-        change.base <- levels(meta_tab[, time.var])[1]
-      } else if (is.numeric(meta_tab[, time.var])) {
-        change.base <- min(meta_tab[, time.var], na.rm = TRUE)
-      } else {
-        stop("The variable is neither factor nor numeric.")
-      }
+      resolved_time <- mStat_resolve_followup_timepoints(
+        values = meta_tab[[time.var]],
+        time.var = time.var,
+        t0.level = t0.level,
+        ts.levels = ts.levels,
+        context = "beta change spaghetti plot"
+      )
+      change.base <- resolved_time$t0.level
 
       # Calculate pairwise distances between baseline and follow-up time points for each subject
-      long.df <- dist.df %>%
-        tidyr::gather(key = "sample2", value = "distance", -sample) %>%
-        dplyr::left_join(meta_tab, by = "sample") %>%
-        dplyr::left_join(meta_tab, by = c("sample2" = "sample"), suffix = c(".subject", ".sample")) %>%
-        filter(!!sym(paste0(subject.var, ".subject")) == !!sym(paste0(subject.var, ".sample"))) %>%
-        dplyr::group_by(!!sym(paste0(subject.var, ".subject"))) %>%
-        filter(!!sym(paste0(time.var,".sample")) == change.base) %>%
-        filter(!!sym(paste0(time.var,".subject")) != !!sym(paste0(time.var,".sample"))) %>%
-        dplyr::ungroup() %>%
-        dplyr::select(!!sym(paste0(subject.var, ".subject")), !!sym(paste0(time.var, ".subject")), distance) %>%
-        dplyr::rename(!!sym(subject.var) := !!sym(paste0(subject.var, ".subject")), !!sym(time.var) := !!sym(paste0(time.var, ".subject")))
+      long.df <- mStat_prepare_beta_change_long_data(
+        dist.matrix = dist.obj[[dist.name]],
+        meta.dat = meta_tab,
+        subject.var = subject.var,
+        time.var = time.var,
+        change.base = change.base
+      )
 
       # Add group and strata information to the long-format data
-      if (!is.null(strata.var) & !is.null(group.var)) {
-        long.df <- long.df %>% dplyr::left_join(meta_tab %>% dplyr::select(-all_of("sample")) %>% dplyr::distinct(),by = c(subject.var,time.var))
-      } else if (is.null(strata.var) & !is.null(group.var)) {
-        long.df <- long.df %>% dplyr::left_join(meta_tab %>% dplyr::select(-all_of("sample")) %>% dplyr::distinct(),by = c(subject.var,time.var))
-      } else {
-        long.df <- long.df
-      }
+      long.df <- mStat_attach_change_metadata(
+        change.df = long.df,
+        meta.dat = meta_tab,
+        by = c(subject.var, time.var),
+        vars = c(group.var, strata.var)
+      )
 
-      # Create a dummy group variable if not provided
-      if (is.null(group.var)){
-        long.df <- long.df %>% dplyr::mutate("ALL" = "ALL")
-        group.var = "ALL"
-      }
+      placeholder_group <- mStat_ensure_group_placeholder(long.df, group.var = group.var)
+      long.df <- placeholder_group$df
+      resolved_group_var <- placeholder_group$group.var
 
       # Calculate mean distances for each time point and group (and strata if applicable)
       if (is.null(strata.var)) {
         long.df.mean <- long.df %>%
-          dplyr::group_by(!!sym(time.var),!!sym(group.var)) %>%
-          dplyr::summarize(mean_distance = mean(distance, na.rm = TRUE))
-        long.df <-
-          dplyr::left_join(long.df, long.df.mean, by = c(time.var, group.var))
+          dplyr::group_by(!!sym(time.var), !!sym(resolved_group_var)) %>%
+          dplyr::summarize(mean_distance = mean(distance, na.rm = TRUE), .groups = "drop")
       } else {
         long.df.mean <- long.df %>%
-          dplyr::group_by(!!sym(time.var),!!sym(group.var),!!sym(strata.var)) %>%
-          dplyr::summarize(mean_distance = mean(distance, na.rm = TRUE))
-        long.df <-
-          dplyr::left_join(long.df, long.df.mean, by = c(time.var, group.var, strata.var))
+          dplyr::group_by(!!sym(time.var), !!sym(resolved_group_var), !!sym(strata.var)) %>%
+          dplyr::summarize(mean_distance = mean(distance, na.rm = TRUE), .groups = "drop")
       }
 
       long.df <- long.df %>% dplyr::arrange(!!sym(subject.var), !!sym(time.var))
@@ -244,32 +201,32 @@ generate_beta_change_spaghettiplot_long <-
       p <- ggplot() +
         geom_point(
           data = long.df,
-          aes_string(
-            x = time.var,
-            y = "distance",
-            group = subject.var,
-            color = group.var
+          aes(
+            x = .data[[time.var]],
+            y = .data[["distance"]],
+            group = .data[[subject.var]],
+            color = .data[[resolved_group_var]]
           ),
           alpha = 0.3,
           size = 3
         ) +
         geom_line(
-          data = long.df,
-          aes_string(
-            x = time.var,
-            y = "mean_distance",
-            group = group.var,
-            color = group.var
+          data = long.df.mean,
+          aes(
+            x = .data[[time.var]],
+            y = .data[["mean_distance"]],
+            group = .data[[resolved_group_var]],
+            color = .data[[resolved_group_var]]
           ),
           size = 2
         ) +
         geom_point(
-          data = long.df,
-          aes_string(
-            x = time.var,
-            y = "mean_distance",
-            group = group.var,
-            color = group.var
+          data = long.df.mean,
+          aes(
+            x = .data[[time.var]],
+            y = .data[["mean_distance"]],
+            group = .data[[resolved_group_var]],
+            color = .data[[resolved_group_var]]
           ),
           size = 5
         ) +
@@ -282,19 +239,19 @@ generate_beta_change_spaghettiplot_long <-
           panel.spacing.x = unit(0, "cm"),
           panel.spacing.y = unit(0, "cm"),
           strip.text.x = element_text(size = 12, color = "black"),
-          axis.title.x = element_text(size = axis.title.size*2),
-          axis.title.y = element_text(size = axis.title.size*2),
-          axis.text.x = element_text(angle = 90, color = "black", vjust = 0.5, size = base.size * 2),
-          axis.text.y = element_text(size = base.size*2),
+          axis.title.x = element_text(size = text_sizes$axis.title),
+          axis.title.y = element_text(size = text_sizes$axis.title),
+          axis.text.x = element_text(angle = 90, color = "black", vjust = 0.5, size = text_sizes$axis.text),
+          axis.text.y = element_text(size = text_sizes$axis.text),
           plot.margin = unit(c(0.3, 0.3, 0.3, 0.3), units = "cm"),
-          legend.text = ggplot2::element_text(size = 16 * 2),
-          legend.title = ggplot2::element_text(size = 16 * 2),
+          legend.text = ggplot2::element_text(size = text_sizes$legend.text),
+          legend.title = ggplot2::element_text(size = text_sizes$legend.title),
           legend.key.size = unit(10, "mm"),
           legend.key.spacing = unit(2, "mm")
         )
 
       # Remove legend if there's only one group
-      if (group.var == "ALL"){
+      if (is.null(group.var)){
         p <- p + theme(legend.position = "none")
       }
 
@@ -302,7 +259,7 @@ generate_beta_change_spaghettiplot_long <-
       if (!is.null(strata.var)) {
         p <- p + ggh4x::facet_nested(
           cols = vars(!!sym(strata.var)),
-          scale = "free",
+          scales = "free",
           space = "free"
         )
       }

@@ -40,47 +40,24 @@
 #' }
 #' @export
 mStat_filter <- function(x, prev.filter, abund.filter){
+  x_mat <- as.matrix(x)
 
-  # Convert the input matrix to a long format data frame
-  # This transformation facilitates group-wise operations and is crucial for calculating prevalence and abundance
-  x_long <- as.data.frame(as.table(as.matrix(x)))
+  avg_abundance <- rowMeans(x_mat, na.rm = TRUE)
+  non_missing <- rowSums(!is.na(x_mat))
+  prevalence <- rep(NA_real_, nrow(x_mat))
+  has_observed <- non_missing > 0
+  prevalence[has_observed] <- rowSums((!is.na(x_mat)) & x_mat != 0)[has_observed] / non_missing[has_observed]
 
-  # Perform filtering based on prevalence and abundance
-  # This step is critical for reducing noise and focusing on biologically relevant features
-  filtered_taxa <- x_long %>%
-    # Group the data by taxa (Var1 represents the row names, i.e., taxa)
-    dplyr::group_by(Var1) %>%
-    # Calculate summary statistics for each taxon
-    dplyr::summarise(
-      # Calculate the average abundance across all samples
-      # This metric helps identify consistently abundant taxa
-      avg_abundance = mean(Freq, na.rm = TRUE),
-      # Calculate the prevalence (proportion of samples where the taxon is present)
-      # For data with negative values, prevalence is calculated as proportion of non-zero values
-      # This handles both positive and negative abundances appropriately
-      prevalence = {
-        non_missing <- sum(!is.na(Freq))
-        if (non_missing == 0) NA_real_ else sum(Freq != 0 & !is.na(Freq)) / non_missing
-      },
-      .groups = "drop"
-    ) %>%
-    # Apply the filtering criteria
-    # This step removes taxa that don't meet the specified thresholds, reducing data dimensionality
-    # Special handling for negative infinity abundance filter (disables abundance filtering)
-    dplyr::filter(prevalence >= prev.filter,
-                  if (is.infinite(abund.filter) && abund.filter < 0) {
-                    TRUE
-                  } else {
-                    avg_abundance >= abund.filter
-                  }) %>%
-    # Extract the names of the taxa that pass the filters
-    dplyr::pull("Var1")
+  keep_taxa <- !is.na(prevalence) & prevalence >= prev.filter
+  if (!(is.infinite(abund.filter) && abund.filter < 0)) {
+    keep_taxa <- keep_taxa & avg_abundance >= abund.filter
+  }
 
-  # Subset the original matrix to include only the filtered taxa
-  # This creates a new matrix with reduced dimensions, focusing on the most relevant taxa
-  filtered_x <- x[filtered_taxa, , drop = FALSE]
+  filtered_x <- x_mat[keep_taxa, , drop = FALSE]
 
-  # Return the filtered matrix
-  # The resulting matrix contains only taxa that meet both prevalence and abundance criteria
-  return(filtered_x)
+  if (is.data.frame(x)) {
+    return(as.data.frame(filtered_x, stringsAsFactors = FALSE, check.names = FALSE))
+  }
+
+  filtered_x
 }

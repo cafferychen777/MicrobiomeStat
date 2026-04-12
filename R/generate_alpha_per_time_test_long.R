@@ -112,125 +112,102 @@ generate_alpha_per_time_test_long <- function(data.obj,
     return()
   }
 
-  data.obj <- mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
+  mStat_validate_time_var_contract(
+    meta.dat = data.obj$meta.dat,
+    time.var = time.var,
+    context = "alpha per-time testing"
+  )
 
   prepared <- mStat_prepare_alpha_inputs(
     data.obj = data.obj,
     alpha.obj = alpha.obj,
     alpha.name = alpha.name,
-    depth = depth
+    depth = depth,
+    time.var = time.var,
+    t0.level = t0.level,
+    ts.levels = ts.levels,
+    process_time = TRUE
   )
   data.obj <- prepared$data.obj
   alpha.obj <- prepared$alpha.obj
 
   # Extract relevant metadata for the analysis.
-  meta_tab <-
-    data.obj$meta.dat %>% as.data.frame() %>% dplyr::select(all_of(c(
-      group.var, time.var, adj.vars
-    )))
+  meta_tab <- mStat_prepare_alpha_meta_tab(
+    data.obj = data.obj,
+    vars = c(group.var, time.var, adj.vars)
+  )
 
   mStat_validate_group_var_contract(
     meta.dat = meta_tab,
     group.var = group.var,
-    context = "alpha per-time testing"
+    context = "alpha per-time testing",
+    require_variation = FALSE
   )
 
   # Determine the reference level for the group variable.
   # This will be used as the baseline for comparisons.
-  reference_level <- levels(as.factor(meta_tab[,group.var]))[1]
+  reference_level <- .mStat_get_group_reference_level(
+    meta.dat = meta_tab,
+    group.var = group.var
+  )
 
-  # Set the baseline time point (t0) if not provided.
-  if (is.null(t0.level)) {
-    if (is.numeric(meta_tab[, time.var])) {
-      t0.level <- sort(unique(meta_tab[, time.var]))[1]
-    } else if (is.factor(meta_tab[, time.var])) {
-      t0.level <- levels(meta_tab[, time.var])[1]
-    } else {
-      # For character type, use sort(unique()) like numeric
-      t0.level <- sort(unique(meta_tab[, time.var]))[1]
-    }
-  }
-
-  # Set the subsequent time points (ts) if not provided.
-  if (is.null(ts.levels)) {
-    if (is.numeric(meta_tab[, time.var])) {
-      ts.levels <- sort(unique(meta_tab[, time.var]))[-1]
-    } else if (is.factor(meta_tab[, time.var])) {
-      ts.levels <- levels(meta_tab[, time.var])[-1]
-    } else {
-      # For character type, use sort(unique()) like numeric
-      ts.levels <- sort(unique(meta_tab[, time.var]))[-1]
-    }
-  }
+  resolved_time <- mStat_resolve_followup_timepoints(
+    values = meta_tab[[time.var]],
+    time.var = time.var,
+    t0.level = t0.level,
+    ts.levels = ts.levels,
+    context = "alpha per-time testing"
+  )
+  t0.level <- resolved_time$t0.level
+  ts.levels <- resolved_time$ts.levels
 
   # Combine all time levels for analysis.
-  time.levels <- c(t0.level, ts.levels)
+  time.levels <- resolved_time$kept_levels
 
   # Perform alpha diversity tests for each time point.
-  test.list <- lapply(time.levels, function(t.level){
-    # Subset the data for the specific time level.
-    # This allows for time-specific analysis of alpha diversity.
-    subset.ids <- get_sample_ids(data.obj, time.var, t.level)
-    subset_data.obj <- mStat_subset_data(data.obj, samIDs = subset.ids)
+  mStat_run_per_time_analysis(
+    time.levels = time.levels,
+    context = "alpha per-time testing",
+    analysis_fn = function(t.level) {
+      # Subset the data for the specific time level.
+      # This allows for time-specific analysis of alpha diversity.
+      subset_inputs <- mStat_subset_analysis_inputs_by_meta_values(
+        data.obj = data.obj,
+        var = time.var,
+        values = t.level,
+        alpha.obj = alpha.obj,
+        prune.features = FALSE
+      )
+      subset_data.obj <- subset_inputs$data.obj
+      subset_alpha.obj <- subset_inputs$alpha.obj
 
-    # Subset the alpha diversity object to match the subsetted data.
-    subset_alpha.obj <- mStat_subset_alpha(alpha.obj = alpha.obj, samIDs = subset.ids)
+      subset_meta_tab <- mStat_prepare_alpha_meta_tab(
+        data.obj = subset_data.obj,
+        vars = c(group.var, time.var, adj.vars)
+      )
 
-    # Perform alpha diversity test for the subset data.
-    # This generates statistical comparisons for each alpha diversity metric.
-    subset.test.list <- generate_alpha_test_single(
-      data.obj = subset_data.obj,
-      alpha.obj = subset_alpha.obj,
-      alpha.name = alpha.name,
-      time.var = time.var,
-      t.level = t.level,
-      group.var = group.var,
-      adj.vars = adj.vars
-    )
+      mStat_validate_group_var_contract(
+        meta.dat = subset_meta_tab,
+        group.var = group.var,
+        context = paste0("alpha per-time testing at ", t.level)
+      )
 
-    # Extract all terms from the test results, excluding the intercept.
-    # This focuses on the group comparisons of interest.
-    all_terms <- unique(unlist(lapply(subset.test.list, \(df) df$Term)))
-    all_terms <- setdiff(all_terms, "(Intercept)")
-    all_terms <- all_terms[grepl(paste0("^", group.var), all_terms)]
+      # Perform alpha diversity test for the subset data.
+      subset.test.list <- generate_alpha_test_single(
+        data.obj = subset_data.obj,
+        alpha.obj = subset_alpha.obj,
+        alpha.name = alpha.name,
+        time.var = NULL,
+        t.level = NULL,
+        group.var = group.var,
+        adj.vars = adj.vars
+      )
 
-    # Restructure the test results for easier interpretation.
-    new_list <- lapply(all_terms, \(term) {
-      alpha_dfs <- lapply(names(subset.test.list), \(alpha_name) {
-        df <- subset.test.list[[alpha_name]]
-        filtered_df <- filter(df, Term == term) %>%
-          dplyr::select(-Term) %>%
-          dplyr::mutate(Term = alpha_name) %>%
-          dplyr::select(Term, everything())
-
-        if(nrow(filtered_df) == 0) {
-          return(NULL)
-        }
-
-        return(filtered_df)
-      })
-      do.call(rbind, alpha_dfs)
-    })
-
-    # Modify the terms to clearly indicate the comparison being made.
-    all_terms <- lapply(all_terms, function(term) {
-      if (term != group.var) {
-        modified_term <- stringr::str_replace(term, paste0("^", group.var), "")
-        modified_term <- stringr::str_trim(modified_term)
-        paste(sprintf("%s vs %s", modified_term, reference_level), "(Reference)")
-      } else {
-        term
-      }
-    })
-
-    # Create the final list of test results for this time point.
-    new_subset_test_list <- setNames(new_list, all_terms)
-
-    return(new_subset_test_list)
-  })
-
-  # Name the list elements by time levels for easy access.
-  names(test.list) <- time.levels
-
-  return(test.list)
+      mStat_restructure_group_term_results(
+        test.list = subset.test.list,
+        group.var = group.var,
+        reference_level = reference_level
+      )
+    }
+  )
 }

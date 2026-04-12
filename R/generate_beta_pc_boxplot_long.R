@@ -91,6 +91,10 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
     return()
   }
 
+  if (is.null(data.obj) && is.null(dist.obj)) {
+    stop("Either `data.obj` or `dist.obj` must be provided.", call. = FALSE)
+  }
+
   # This block handles the calculation or retrieval of distance matrices and metadata
   if (is.null(dist.obj)) {
     # Process time variable and extract relevant metadata
@@ -137,70 +141,32 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
   }
 
   # Determine the number of unique time points
-  time.levels <-
-    meta_tab %>% dplyr::select(all_of(c(time.var))) %>%
-    pull() %>%
-    as.factor() %>%
-    levels() %>%
-    length()
+  time.levels <- dplyr::n_distinct(stats::na.omit(meta_tab[[time.var]]))
 
   # Get color palette for plotting
   col <- mStat_get_palette(palette)
 
-  # Define aesthetic mappings for the plot
-  # These determine how different variables will be represented visually
-  aes_function <- if (!is.null(group.var)) {
-    aes(
-      x = !!sym(time.var),
-      y = value,
-      fill = !!sym(group.var)
-    )
-  } else {
-    aes(
-      x = !!sym(time.var),
-      y = value,
-      fill = !!sym(time.var)
-    )
-  }
-
-  # Define aesthetic mappings for the line plot
-  line_aes_function <- if (!is.null(group.var)) {
-    aes(
-      x = !!sym(time.var),
-      y = value,
-      group = !!sym(subject.var),
-      color = !!sym(group.var)
-    )
-  } else {
-    aes(
-      x = !!sym(time.var),
-      y = value,
-      group = !!sym(subject.var)
-    )
-  }
-
   # Get appropriate theme for plotting
   theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
+  if (is.null(pc.obj)) {
+    message("No pc.obj provided, using MDS (PCoA) for dimension reduction by default.")
+    message(
+      "If you prefer other methods such as NMDS, t-SNE or UMAP, you can use the mStat_calculate_PC function with a specified method."
+    )
+    # Use Multidimensional Scaling (MDS) to reduce dimensions
+    # This allows for visualization of high-dimensional distance data in lower-dimensional space
+    pc.obj <-
+      mStat_calculate_PC(
+        dist.obj = dist.obj,
+        method = "mds",
+        k = max(pc.ind),
+        dist.name = dist.name
+      )
+  }
+
   # Generate plots for each distance metric
   plot_list <- lapply(dist.name, function(dist.name) {
-    # Perform dimension reduction if not already done
-    if (is.null(pc.obj)) {
-      message("No pc.obj provided, using MDS (PCoA) for dimension reduction by default.")
-      message(
-        "If you prefer other methods such as NMDS, t-SNE or UMAP, you can use the mStat_calculate_PC function with a specified method."
-      )
-      # Use Multidimensional Scaling (MDS) to reduce dimensions
-      # This allows for visualization of high-dimensional distance data in lower-dimensional space
-      pc.obj <-
-        mStat_calculate_PC(
-          dist.obj = dist.obj[dist.name],
-          method = "mds",
-          k = max(pc.ind),
-          dist.name = dist.name
-        )
-    }
-
     # Extract principal coordinates
     pc.mat <- pc.obj[[dist.name]]$points
 
@@ -213,9 +179,33 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
       join = "inner"
     )
 
+    placeholder_group <- mStat_ensure_group_placeholder(df, group.var = group.var)
+    df <- placeholder_group$df
+    resolved_group_var <- placeholder_group$group.var
+
+    aes_function <- if (!is.null(group.var)) {
+      aes(
+        x = !!sym(time.var),
+        y = value,
+        fill = !!sym(resolved_group_var)
+      )
+    } else {
+      aes(
+        x = !!sym(time.var),
+        y = value,
+        fill = !!sym(time.var)
+      )
+    }
+
+    line_aes_function <- aes(
+      x = !!sym(time.var),
+      y = value,
+      group = !!sym(subject.var)
+    )
+
     # Count unique subjects and time points
-    n_subjects <- length(unique(df[[subject.var]]))
-    n_times <- length(unique(df[[time.var]]))
+    n_subjects <- length(unique(stats::na.omit(df[[subject.var]])))
+    n_times <- length(unique(stats::na.omit(df[[time.var]])))
 
     # Generate plots for each principal coordinate
     sub_plot_list <- lapply(unique(df$PC), function(pc.index) {
@@ -225,17 +215,17 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
       # This helps to simplify the visualization when there's a lot of data
       average_sub_df <- NULL
       if (n_times > 10 || n_subjects > 25) {
-        if (!is.null(strata.var) & !is.null(group.var)) {
+        if (!is.null(strata.var) && !is.null(group.var)) {
           average_sub_df <- sub_df %>%
             dplyr::group_by(!!sym(strata.var),
-                            !!sym(group.var),
+                            !!sym(resolved_group_var),
                             !!sym(time.var)) %>%
             dplyr::summarise(dplyr::across(value, mean, na.rm = TRUE), .groups = "drop") %>%
             dplyr::ungroup() %>%
             dplyr::mutate(!!sym(subject.var) := "ALL")
         } else if (!is.null(group.var)) {
           average_sub_df <- sub_df %>%
-            dplyr::group_by(!!sym(group.var),!!sym(time.var)) %>%
+            dplyr::group_by(!!sym(resolved_group_var),!!sym(time.var)) %>%
             dplyr::summarise(dplyr::across(value, mean, na.rm = TRUE), .groups = "drop") %>%
             dplyr::ungroup() %>%
             dplyr::mutate(!!sym(subject.var) := "ALL")
@@ -297,13 +287,13 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
         if (!is.null(group.var)) {
           if (is.null(strata.var)) {
             boxplot <-
-              boxplot + ggh4x::facet_nested(cols = vars(!!sym(group.var)),
+              boxplot + ggh4x::facet_nested(cols = vars(!!sym(resolved_group_var)),
                                             scales = "free",
                                             space = "free")
           } else {
             boxplot <-
               boxplot + ggh4x::facet_nested(
-                cols = vars(!!sym(group.var)),
+                cols = vars(!!sym(resolved_group_var)),
                 rows = vars(!!sym(strata.var)),
                 scales = "free",
                 space = "free"
@@ -314,13 +304,13 @@ generate_beta_pc_boxplot_long <- function(data.obj = NULL,
         if (!is.null(group.var)) {
           if (is.null(strata.var)) {
             boxplot <-
-              boxplot + ggh4x::facet_nested(cols = vars(!!sym(group.var)),
+              boxplot + ggh4x::facet_nested(cols = vars(!!sym(resolved_group_var)),
                                             scales = "free",
                                             space = "free")
           } else {
             boxplot <-
               boxplot + ggh4x::facet_nested(
-                cols = vars(!!sym(strata.var), !!sym(group.var)),
+                cols = vars(!!sym(strata.var), !!sym(resolved_group_var)),
                 scales = "free",
                 space = "free"
               )

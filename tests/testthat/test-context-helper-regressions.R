@@ -508,6 +508,419 @@ test_that("per-time helpers respect ordered character time values", {
   expect_identical(names(beta_result), c("T2", "T10"))
 })
 
+test_that("alpha and beta per-time helpers skip invalid time slices but keep analyzable ones", {
+  alpha_data.obj <- list(
+    feature.tab = matrix(
+      c(10, 12, 14,
+        3, 4, 5),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(c("f1", "f2"), c("s1", "s2", "s3"))
+    ),
+    meta.dat = data.frame(
+      subject = c("u1", "u2", "u3"),
+      time = c("T1", "T2", "T2"),
+      group = c("A", "A", "B"),
+      row.names = c("s1", "s2", "s3"),
+      stringsAsFactors = FALSE
+    )
+  )
+
+  alpha_result <- suppressWarnings(
+    generate_alpha_per_time_test_long(
+      data.obj = alpha_data.obj,
+      alpha.name = "shannon",
+      time.var = "time",
+      t0.level = NULL,
+      ts.levels = NULL,
+      group.var = "group"
+    )
+  )
+
+  expect_identical(names(alpha_result), "T2")
+  expect_true("B vs A (Reference)" %in% names(alpha_result$T2))
+
+  pair_data.obj <- list(
+    feature.tab = matrix(
+      c(9, 7, 5, 4, 6,
+        1, 2, 3, 4, 2),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(c("f1", "f2"), c("s1", "s2", "s3", "s4", "s5"))
+    ),
+    meta.dat = data.frame(
+      subject = c("id1", "id1", "id1", "id2", "id2"),
+      time = c("T0", "T1", "T2", "T0", "T1"),
+      group = c("A", "A", "A", "B", "B"),
+      row.names = c("s1", "s2", "s3", "s4", "s5"),
+      stringsAsFactors = FALSE
+    )
+  )
+
+  alpha_change_result <- suppressWarnings(
+    generate_alpha_change_per_time_test_long(
+      data.obj = pair_data.obj,
+      alpha.name = "shannon",
+      time.var = "time",
+      t0.level = "T0",
+      ts.levels = c("T1", "T2"),
+      subject.var = "subject",
+      group.var = "group"
+    )
+  )
+
+  beta_change_result <- suppressWarnings(
+    generate_beta_change_per_time_test_long(
+      data.obj = pair_data.obj,
+      time.var = "time",
+      t0.level = "T0",
+      ts.levels = c("T1", "T2"),
+      subject.var = "subject",
+      group.var = "group",
+      dist.name = "BC"
+    )
+  )
+
+  expect_identical(names(alpha_change_result), "T1")
+  expect_identical(names(beta_change_result), "T1")
+  expect_true("B vs A (Reference)" %in% names(alpha_change_result$T1))
+  expect_true("B vs A (Reference)" %in% names(beta_change_result$T1))
+})
+
+test_that("per-time helpers fail cleanly when every time slice is invalid", {
+  alpha_data.obj <- list(
+    feature.tab = matrix(
+      c(10, 12, 14,
+        3, 4, 5),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(c("f1", "f2"), c("s1", "s2", "s3"))
+    ),
+    meta.dat = data.frame(
+      subject = c("u1", "u2", "u3"),
+      time = c("T1", "T2", "T2"),
+      group = c("A", "A", "A"),
+      row.names = c("s1", "s2", "s3"),
+      stringsAsFactors = FALSE
+    )
+  )
+
+  expect_error(
+    suppressWarnings(
+      generate_alpha_per_time_test_long(
+        data.obj = alpha_data.obj,
+        alpha.name = "shannon",
+        time.var = "time",
+        t0.level = NULL,
+        ts.levels = NULL,
+        group.var = "group"
+      )
+    ),
+    "No time points could be analyzed for alpha per-time testing"
+  )
+
+  pair_data.obj <- list(
+    feature.tab = matrix(
+      c(9, 7, 5,
+        1, 2, 3),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(c("f1", "f2"), c("s1", "s2", "s3"))
+    ),
+    meta.dat = data.frame(
+      subject = c("id1", "id1", "id1"),
+      time = c("T0", "T1", "T2"),
+      group = c("A", "A", "A"),
+      row.names = c("s1", "s2", "s3"),
+      stringsAsFactors = FALSE
+    )
+  )
+
+  expect_error(
+    suppressWarnings(
+      generate_alpha_change_per_time_test_long(
+        data.obj = pair_data.obj,
+        alpha.name = "shannon",
+        time.var = "time",
+        t0.level = "T0",
+        ts.levels = c("T1", "T2"),
+        subject.var = "subject",
+        group.var = "group"
+      )
+    ),
+    "No time points could be analyzed for alpha change per-time testing"
+  )
+
+  expect_error(
+    suppressWarnings(
+      generate_beta_change_per_time_test_long(
+        data.obj = pair_data.obj,
+        time.var = "time",
+        t0.level = "T0",
+        ts.levels = c("T1", "T2"),
+        subject.var = "subject",
+        group.var = "group",
+        dist.name = "BC"
+      )
+    ),
+    "No time points could be analyzed for beta change per-time testing"
+  )
+})
+
+test_that("unified and legacy time scoping share the same missing-level contract", {
+  data.obj <- list(
+    feature.tab = matrix(
+      c(5, 6, 7,
+        1, 2, 3),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(c("f1", "f2"), c("s1", "s2", "s3"))
+    ),
+    meta.dat = data.frame(
+      time = c("T1", "T2", "T10"),
+      row.names = c("s1", "s2", "s3"),
+      stringsAsFactors = FALSE
+    )
+  )
+
+  expect_error(
+    mStat_process_time_variable(data.obj, "time", t0.level = "T0", ts.levels = "T2"),
+    "Requested time levels not found"
+  )
+
+  design_info <- list(design = "pair", t0.level = "T0", ts.levels = "T2", t.level = NULL)
+  expect_error(
+    mStat_scope_unified_context(data.obj, design_info, time.var = "time"),
+    "Requested time levels not found"
+  )
+})
+
+test_that("beta change helpers keep one follow-up row per subject and attach follow-up metadata", {
+  meta_tab <- data.frame(
+    subject = c("id1", "id1", "id2", "id2"),
+    time = c("T0", "T1", "T0", "T1"),
+    group = c("A", "A", "B", "B"),
+    batch = c(1, 10, 2, 20),
+    row.names = c("s1", "s2", "s3", "s4"),
+    stringsAsFactors = FALSE
+  )
+  dist.mat <- stats::dist(
+    matrix(
+      c(
+        0, 1,
+        1, 0,
+        0, 2,
+        2, 0
+      ),
+      nrow = 4,
+      byrow = TRUE,
+      dimnames = list(rownames(meta_tab), c("f1", "f2"))
+    )
+  )
+
+  change_df <- mStat_prepare_beta_change_long_data(
+    dist.matrix = dist.mat,
+    meta.dat = meta_tab,
+    subject.var = "subject",
+    time.var = "time",
+    change.base = "T0",
+    change.after = "T1"
+  )
+
+  expect_identical(change_df$subject, c("id1", "id2"))
+  expect_identical(as.character(change_df$time), c("T1", "T1"))
+
+  attached <- mStat_attach_change_metadata(
+    change.df = change_df,
+    meta.dat = meta_tab,
+    by = c("subject", "time"),
+    vars = c("group", "batch")
+  )
+
+  expect_identical(attached$group, c("A", "B"))
+  expect_equal(attached$batch, c(10, 20))
+})
+
+
+test_that("mStat_prepare_dist_group_time_long_data reuses metadata joins consistently", {
+  meta_tab <- data.frame(
+    group = c("A", "A", "B"),
+    time = c("T0", "T1", "T0"),
+    strata = c("X", "X", "Y"),
+    row.names = c("s1", "s2", "s3"),
+    stringsAsFactors = FALSE
+  )
+  dist.mat <- stats::dist(
+    matrix(
+      c(
+        0, 1,
+        1, 0,
+        2, 1
+      ),
+      nrow = 3,
+      byrow = TRUE,
+      dimnames = list(rownames(meta_tab), c("f1", "f2"))
+    )
+  )
+
+  dist_long <- mStat_prepare_dist_group_time_long_data(
+    dist.matrix = dist.mat,
+    meta.dat = meta_tab,
+    group.var = "group",
+    time.var = "time",
+    strata.var = "strata",
+    pair_col = "Sample2"
+  )
+
+  expect_true(all(c("sample", "Sample2", "Group.x", "Time.x", "Strata.x", "Group.y", "Time.y", "Strata.y") %in% names(dist_long)))
+  expect_identical(dist_long$Group.x[dist_long$sample == "s1" & dist_long$Sample2 == "s2"], "A")
+  expect_identical(dist_long$Time.y[dist_long$sample == "s1" & dist_long$Sample2 == "s2"], "T1")
+})
+
+test_that("beta trend and adjacent helpers use subject-specific observed time order", {
+  meta_tab <- data.frame(
+    subject = c("id1", "id1", "id2", "id2", "id2"),
+    time = c("1", "10", "1", "2", "10"),
+    group = c("A", "A", "B", "B", "B"),
+    batch = c(1, 10, 1, 2, 10),
+    row.names = c("s1", "s2", "s3", "s4", "s5"),
+    stringsAsFactors = FALSE
+  )
+  dist.mat <- stats::dist(
+    matrix(
+      c(
+        0, 1,
+        1, 0,
+        0, 2,
+        2, 0,
+        1, 1
+      ),
+      nrow = 5,
+      byrow = TRUE,
+      dimnames = list(rownames(meta_tab), c("f1", "f2"))
+    )
+  )
+
+  trend_df <- mStat_prepare_beta_trend_long_data(
+    dist.matrix = dist.mat,
+    meta.dat = meta_tab,
+    subject.var = "subject",
+    time.var = "time",
+    vars = c("group", "batch")
+  )
+
+  expect_identical(trend_df$subject, c("id1", "id2", "id2"))
+  expect_identical(as.character(trend_df$time), c("10", "2", "10"))
+  expect_identical(trend_df$group, c("A", "B", "B"))
+  expect_equal(trend_df$batch, c(10, 2, 10))
+
+  adjacent_df <- mStat_prepare_beta_adjacent_long_data(
+    dist.matrix = dist.mat,
+    meta.dat = meta_tab,
+    subject.var = "subject",
+    time.var = "time"
+  )
+
+  expect_identical(adjacent_df$subject, c("id1", "id2", "id2"))
+  expect_identical(as.character(adjacent_df$time.before), c("1", "1", "2"))
+  expect_identical(as.character(adjacent_df$time), c("10", "2", "10"))
+})
+
+test_that("generate_beta_volatility_test_long works with precomputed dist metadata only", {
+  sample_ids <- paste0("s", 1:8)
+  data.obj <- list(
+    feature.tab = matrix(
+      c(
+        10, 8, 6, 4, 11, 9, 7, 5,
+        1, 2, 3, 4, 4, 3, 2, 1,
+        3, 3, 3, 3, 2, 2, 2, 2
+      ),
+      nrow = 3,
+      byrow = TRUE,
+      dimnames = list(c("f1", "f2", "f3"), sample_ids)
+    ),
+    meta.dat = data.frame(
+      subject = rep(paste0("id", 1:4), each = 2),
+      time = rep(c("1", "10"), times = 4),
+      group = rep(c("A", "A", "B", "B"), each = 2),
+      row.names = sample_ids,
+      stringsAsFactors = FALSE
+    )
+  )
+
+  dist.obj <- suppressWarnings(mStat_calculate_beta_diversity(data.obj, dist.name = "BC"))
+
+  result <- suppressWarnings(
+    generate_beta_volatility_test_long(
+      data.obj = NULL,
+      dist.obj = dist.obj,
+      subject.var = "subject",
+      time.var = "time",
+      group.var = "group",
+      dist.name = "BC"
+    )
+  )
+
+  expect_true("BC" %in% names(result))
+  expect_true(any(grepl("group", result$BC$Term, fixed = TRUE)))
+})
+
+test_that("generate_beta_trend_test_long works with precomputed dist metadata only", {
+  sample_ids <- paste0("s", 1:8)
+  data.obj <- list(
+    feature.tab = matrix(
+      c(
+        10, 8, 6, 4, 11, 9, 7, 5,
+        1, 2, 3, 4, 4, 3, 2, 1,
+        3, 3, 3, 3, 2, 2, 2, 2
+      ),
+      nrow = 3,
+      byrow = TRUE,
+      dimnames = list(c("f1", "f2", "f3"), sample_ids)
+    ),
+    meta.dat = data.frame(
+      subject = rep(paste0("id", 1:4), each = 2),
+      time = rep(c("1", "10"), times = 4),
+      group = rep(c("A", "A", "B", "B"), each = 2),
+      row.names = sample_ids,
+      stringsAsFactors = FALSE
+    )
+  )
+
+  dist.obj <- suppressWarnings(mStat_calculate_beta_diversity(data.obj, dist.name = "BC"))
+
+  result <- suppressWarnings(
+    generate_beta_trend_test_long(
+      data.obj = NULL,
+      dist.obj = dist.obj,
+      subject.var = "subject",
+      time.var = "time",
+      group.var = "group",
+      dist.name = "BC"
+    )
+  )
+
+  expect_true("BC" %in% names(result))
+  expect_true(nrow(result$BC) > 0)
+})
+
+test_that("beta helper files use shared long-format prep and avoid gather", {
+  package_root <- normalizePath(file.path(test_path(), "..", ".."), mustWork = TRUE)
+  helper_paths <- c(
+    "R/generate_beta_change_spaghettiplot_long.R",
+    "R/generate_beta_change_boxplot_pair.R",
+    "R/generate_beta_change_test_pair.R",
+    "R/generate_beta_trend_test_long.R",
+    "R/generate_beta_volatility_test_long.R"
+  )
+
+  for (path in helper_paths) {
+    contents <- paste(readLines(file.path(package_root, path), warn = FALSE), collapse = "\n")
+    expect_match(contents, "mStat_prepare_beta_change_long_data|mStat_prepare_beta_trend_long_data|mStat_prepare_beta_adjacent_long_data|mStat_prepare_dist_long_pairs")
+    expect_no_match(contents, "tidyr::gather\\(")
+  }
+})
+
 test_that("mStat_import_qiime2_as_data_obj handles optional taxa and refseq cleanly", {
   ns <- asNamespace("MicrobiomeStat")
   original_read_qza <- get("read_qza", envir = ns)
@@ -651,6 +1064,88 @@ test_that("generate_beta_pc_volatility_test_long fails clearly without group.var
     ),
     "`group.var` is required"
   )
+})
+
+
+test_that("generate_beta_change_boxplot_long works with group.var = NULL", {
+  samples <- paste0("s", 1:6)
+  data.obj <- list(
+    feature.tab = matrix(
+      c(
+        10, 9, 8, 7, 6, 5,
+        1, 2, 3, 4, 5, 6,
+        3, 3, 3, 3, 3, 3
+      ),
+      nrow = 3,
+      byrow = TRUE,
+      dimnames = list(c("f1", "f2", "f3"), samples)
+    ),
+    meta.dat = data.frame(
+      subject = rep(c("id1", "id2"), each = 3),
+      time = rep(c("0", "1", "2"), times = 2),
+      row.names = samples,
+      stringsAsFactors = FALSE
+    )
+  )
+
+  dist.obj <- suppressWarnings(mStat_calculate_beta_diversity(data.obj, dist.name = c("BC", "Jaccard")))
+
+  result <- suppressWarnings(
+    generate_beta_change_boxplot_long(
+      data.obj = data.obj,
+      dist.obj = dist.obj,
+      subject.var = "subject",
+      time.var = "time",
+      t0.level = "0",
+      ts.levels = c("1", "2"),
+      group.var = NULL,
+      dist.name = c("BC", "Jaccard"),
+      pdf = FALSE
+    )
+  )
+
+  expect_named(result, c("BC", "Jaccard"))
+})
+
+
+test_that("generate_beta_pc long plotting computes all distances when pc.obj is NULL", {
+  data(peerj32.obj)
+  dist.obj <- suppressWarnings(mStat_calculate_beta_diversity(peerj32.obj, dist.name = c("BC", "Jaccard")))
+
+  boxplot_result <- suppressWarnings(
+    generate_beta_pc_boxplot_long(
+      data.obj = peerj32.obj,
+      dist.obj = dist.obj,
+      pc.obj = NULL,
+      subject.var = "subject",
+      time.var = "time",
+      t0.level = "1",
+      ts.levels = "2",
+      group.var = NULL,
+      dist.name = c("BC", "Jaccard"),
+      pdf = FALSE
+    )
+  )
+
+  spaghetti_result <- suppressWarnings(
+    generate_beta_pc_spaghettiplot_long(
+      data.obj = peerj32.obj,
+      dist.obj = dist.obj,
+      pc.obj = NULL,
+      subject.var = "subject",
+      time.var = "time",
+      t0.level = "1",
+      ts.levels = "2",
+      group.var = NULL,
+      dist.name = c("BC", "Jaccard"),
+      pdf = FALSE
+    )
+  )
+
+  expect_named(boxplot_result, c("BC", "Jaccard"))
+  expect_named(spaghetti_result, c("BC", "Jaccard"))
+  expect_true(all(vapply(boxplot_result, function(x) all(c("PC1", "PC2") %in% names(x)), logical(1))))
+  expect_true(all(vapply(spaghetti_result, function(x) all(c("PC1", "PC2") %in% names(x)), logical(1))))
 })
 
 

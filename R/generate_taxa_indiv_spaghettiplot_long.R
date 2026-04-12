@@ -95,25 +95,22 @@ generate_taxa_indiv_spaghettiplot_long <-
       abund.filter <- 0
     }
 
-    # Normalize count data if necessary
-    if (feature.dat.type == "count"){
-      message(
-        "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
-      )
-      data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
-    }
+    # Normalize count data if necessary.
+    analysis_data.obj <- mStat_normalize_count_data_if_needed(data.obj, feature.dat.type)
 
     # Process each feature level
     plot_list_all <- lapply(feature.level, function(feature.level) {
 
       # Aggregate data by taxonomy if necessary
-      otu_tax_agg <- get_taxa_data(data.obj, feature.level, prev.filter, abund.filter)
+      otu_tax_agg <- get_taxa_data(analysis_data.obj, feature.level, prev.filter, abund.filter)
 
-      # Select top k features if specified
-      if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
-        computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
-        features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
-      }
+      current_features_plot <- mStat_resolve_selected_features(
+        feature.dat = otu_tax_agg,
+        feature.level = feature.level,
+        features.plot = features.plot,
+        top.k.plot = top.k.plot,
+        top.k.func = top.k.func
+      )
 
       df <- mStat_prepare_taxa_long_data(
         feature.dat = otu_tax_agg,
@@ -122,31 +119,23 @@ generate_taxa_indiv_spaghettiplot_long <-
         meta.dat = meta_tab
       )
 
-      # Create a dummy group if group variable is not provided
-      if (is.null(group.var)) {
-        df <- df %>% dplyr::mutate("ALL" = "ALL")
-        group.var = "ALL"
-      }
+      placeholder_group <- mStat_ensure_group_placeholder(df, group.var = group.var)
+      df <- placeholder_group$df
+      resolved_group_var <- placeholder_group$group.var
 
       # Calculate mean counts
       if (!is.null(strata.var)) {
         # Calculate mean counts for each combination of feature, time, group, and strata
         mean_df <-
-          df %>% dplyr::group_by(!!sym(feature.level),!!sym(time.var),!!sym(group.var),!!sym(strata.var)) %>%
-          dplyr::summarize(mean_count = mean(count), na.rm = TRUE)
-        df <-
-          dplyr::left_join(df,
-                           mean_df,
-                           by = c(feature.level, time.var, group.var, strata.var))
+          df %>% dplyr::group_by(!!sym(feature.level),!!sym(time.var),!!sym(resolved_group_var),!!sym(strata.var)) %>%
+          dplyr::summarize(mean_count = mean(count), na.rm = TRUE, .groups = "drop")
       } else {
         # Calculate mean counts for each combination of feature, time, and group
         mean_df <-
           df %>% dplyr::group_by(!!sym(feature.level),
                                  !!sym(time.var),
-                                 !!sym(group.var)) %>%
-          dplyr::summarize(mean_count = mean(count), na.rm = TRUE)
-        df <-
-          dplyr::left_join(df, mean_df, by = c(feature.level, time.var, group.var))
+                                 !!sym(resolved_group_var)) %>%
+          dplyr::summarize(mean_count = mean(count), na.rm = TRUE, .groups = "drop")
       }
 
       # Get color palette
@@ -154,77 +143,62 @@ generate_taxa_indiv_spaghettiplot_long <-
 
       # Get the appropriate theme for plotting
       theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
+      text_sizes <- mStat_get_spaghettiplot_text_sizes(base.size)
 
-      # Calculate new sizes based on base.size
-      title.size = base.size * 1.25
-      axis.title.size = base.size * 0.75
-      axis.text.size = base.size * 0.5
-      legend.title.size = base.size * 1
-      legend.text.size = base.size * 0.75
-
-      # Get taxa levels to plot
-      if (is.null(features.plot)){
-        taxa.levels <- df %>% select(feature.level) %>% dplyr::distinct() %>% dplyr::pull()
-      } else {
-        taxa.levels <- df %>% filter(!!sym(feature.level) %in% features.plot) %>% select(feature.level) %>% dplyr::distinct() %>% dplyr::pull()
-      }
+      taxa.levels <- df %>% select(feature.level) %>% dplyr::distinct() %>% dplyr::pull()
+      current_features_plot <- mStat_resolve_selected_features(
+        feature.level = feature.level,
+        features.plot = current_features_plot,
+        taxa.levels = taxa.levels,
+        fallback_n = length(taxa.levels)
+      )
+      taxa.levels <- current_features_plot
 
       # Create a plot for each taxon
       plot_list <- lapply(taxa.levels, function(tax) {
         sub_df <- df %>% filter(!!sym(feature.level) == tax)
+        sub_df.mean <- mean_df %>% filter(!!sym(feature.level) == tax)
         lineplot <- ggplot() +
           # Add individual subject points
           geom_point(
             data = sub_df,
-            aes_string(
-              x = time.var,
-              y = "count",
-              group = subject.var,
-              color = group.var
+            aes(
+              x = .data[[time.var]],
+              y = .data[["count"]],
+              group = .data[[subject.var]],
+              color = .data[[resolved_group_var]]
             ),
             alpha = 0.5
           ) +
           # Add mean abundance line
           geom_line(
-            data = sub_df,
-            aes_string(
-              x = time.var,
-              y = "mean_count",
-              group = group.var,
-              color = group.var
+            data = sub_df.mean,
+            aes(
+              x = .data[[time.var]],
+              y = .data[["mean_count"]],
+              group = .data[[resolved_group_var]],
+              color = .data[[resolved_group_var]]
             ),
             size = 2
           ) +
           # Add mean abundance points
           geom_point(
-            data = sub_df,
-            aes_string(
-              x = time.var,
-              y = "mean_count",
-              group = group.var,
-              color = group.var
+            data = sub_df.mean,
+            aes(
+              x = .data[[time.var]],
+              y = .data[["mean_count"]],
+              group = .data[[resolved_group_var]],
+              color = .data[[resolved_group_var]]
             ),
             size = 3
           ) +
           scale_color_manual(values = col) +
-          # Set appropriate labels based on feature data type
-          {
-            if (feature.dat.type != "other") {
-              labs(
-                x = time.var,
-                y = "Relative Abundance",
-                color = group.var,
-                title = tax
-              )
-            } else {
-              labs(
-                x = time.var,
-                y = "Abundance",
-                color = group.var,
-                title = tax
-              )
-            }
-          } +
+          labs(
+            x = time.var,
+            y = mStat_get_taxa_value_ylabel(feature.dat.type),
+            color = if (is.null(group.var)) NULL else group.var,
+            title = tax
+          ) +
           # Add faceting if strata variable is provided
           {
             if (!is.null(strata.var)) {
@@ -234,19 +208,19 @@ generate_taxa_indiv_spaghettiplot_long <-
           theme_to_use +
           theme(
             plot.title = element_text(
-              size = title.size,
+              size = text_sizes$title,
               hjust = 0.5
             ),
-            axis.title.x = element_text(size = axis.title.size),
-            axis.title.y = element_text(size = axis.title.size),
-            axis.text.x = element_text(size = axis.text.size),
-            axis.text.y = element_text(size = axis.text.size),
-            legend.title = element_text(size = legend.title.size),
-            legend.text = element_text(size = legend.text.size)
+            axis.title.x = element_text(size = text_sizes$axis.title),
+            axis.title.y = element_text(size = text_sizes$axis.title),
+            axis.text.x = element_text(size = text_sizes$axis.text),
+            axis.text.y = element_text(size = text_sizes$axis.text),
+            legend.title = element_text(size = text_sizes$legend.title),
+            legend.text = element_text(size = text_sizes$legend.text)
           )
 
         # Remove legend for single group case
-        if (group.var == "ALL") {
+        if (is.null(group.var)) {
           lineplot <- lineplot + theme(legend.position = "none")
         }
         return(lineplot)
@@ -263,12 +237,6 @@ generate_taxa_indiv_spaghettiplot_long <-
           "time_",
           time.var,
           "_",
-          "group_",
-          group.var,
-          "_",
-          "strata_",
-          strata.var,
-          "_",
           "feature_level_",
           feature.level,
           "_",
@@ -279,6 +247,11 @@ generate_taxa_indiv_spaghettiplot_long <-
           abund.filter
         )
 
+        pdf_name <- mStat_append_pdf_group_suffixes(
+          pdf_name = pdf_name,
+          group.var = group.var,
+          strata.var = strata.var
+        )
         if (!is.null(file.ann)) {
           pdf_name <- paste0(pdf_name, "_", file.ann)
         }
@@ -288,7 +261,9 @@ generate_taxa_indiv_spaghettiplot_long <-
         # Create a multi-page PDF file
         pdf(pdf_name, width = pdf.wid, height = pdf.hei)
         # Print each plot to a new page in the PDF
-        lapply(plot_list, print)
+        for (plot_obj in plot_list) {
+          print(plot_obj)
+        }
         # Close the PDF device
         dev.off()
       }

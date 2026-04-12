@@ -78,6 +78,124 @@ test_that("linda2 normalizes zero.handling choice and keeps output shape", {
   expect_equal(lower$output[[1]]$pvalue, mixed$output[[1]]$pvalue)
 })
 
+test_that("linda and linda2 preserve matrix shape after filtering to one feature", {
+  feature.tab <- matrix(
+    c(
+      5, 5, 5, 5,
+      0, 0, 0, 1
+    ),
+    nrow = 2,
+    byrow = TRUE,
+    dimnames = list(c("Feature1", "Feature2"), paste0("Sample", 1:4))
+  )
+  meta.dat <- data.frame(
+    group = c("A", "A", "B", "B"),
+    row.names = colnames(feature.tab),
+    stringsAsFactors = FALSE
+  )
+
+  linda_res <- linda(
+    feature.dat = feature.tab,
+    meta.dat = meta.dat,
+    formula = "~group",
+    prev.filter = 0.5,
+    is.winsor = FALSE,
+    adaptive = FALSE,
+    verbose = FALSE
+  )
+
+  linda2_res <- linda2(
+    feature.dat = feature.tab,
+    meta.dat = meta.dat,
+    formula = "~group",
+    prev.filter = 0.5,
+    is.winsor = FALSE,
+    adaptive = FALSE,
+    verbose = FALSE
+  )
+
+  expect_equal(dim(linda_res$feature.dat.use), c(1, 4))
+  expect_equal(dim(linda2_res$feature.dat.use), c(1, 4))
+  expect_true(length(linda_res$output) > 0)
+  expect_true(length(linda2_res$output) > 0)
+})
+
+
+test_that("linda helpers reuse shared sample-total normalization when filtering features", {
+  package_root <- normalizePath(file.path(test_path(), "..", ".."), mustWork = TRUE)
+  linda_src <- paste(readLines(file.path(package_root, "R/linda.R"), warn = FALSE), collapse = "\n")
+  linda2_src <- paste(readLines(file.path(package_root, "R/linda2.R"), warn = FALSE), collapse = "\n")
+
+  expect_match(linda_src, "mStat_normalize_feature_matrix_by_sample_total")
+  expect_match(linda2_src, "mStat_normalize_feature_matrix_by_sample_total")
+  expect_no_match(linda_src, "temp <- t\\(t\\(Y\\) / colSums\\(Y\\)\\)")
+  expect_no_match(linda2_src, "temp <- t\\(t\\(Y\\) / colSums\\(Y\\)\\)")
+})
+
+test_that("linda2 returns structured empty result when all features are filtered out", {
+  feature.tab <- matrix(
+    c(
+      1, 0, 0, 1,
+      0, 1, 1, 0
+    ),
+    nrow = 2,
+    byrow = TRUE,
+    dimnames = list(c("Feature1", "Feature2"), paste0("Sample", 1:4))
+  )
+  meta.dat <- data.frame(
+    group = c("A", "A", "B", "B"),
+    row.names = colnames(feature.tab),
+    stringsAsFactors = FALSE
+  )
+
+  expect_warning(
+    linda2_res <- linda2(
+      feature.dat = feature.tab,
+      meta.dat = meta.dat,
+      formula = "~group",
+      prev.filter = 0.75,
+      is.winsor = FALSE,
+      adaptive = FALSE,
+      verbose = FALSE
+    ),
+    "All features were filtered out in LinDA2"
+  )
+
+  expect_equal(dim(linda2_res$feature.dat.use), c(0, 4))
+  expect_equal(linda2_res$variables, character(0))
+  expect_equal(linda2_res$bias, numeric(0))
+  expect_length(linda2_res$output, 0)
+  expect_equal(rownames(linda2_res$meta.dat.use), colnames(feature.tab))
+})
+
+test_that("linda preserves sample row names with single-column metadata", {
+  feature.tab <- matrix(
+    c(
+      5, 5, 5, 5,
+      2, 2, 2, 2
+    ),
+    nrow = 2,
+    byrow = TRUE,
+    dimnames = list(c("Feature1", "Feature2"), paste0("Sample", 1:4))
+  )
+  meta.dat <- data.frame(
+    group = c("A", "A", "B", "B"),
+    row.names = colnames(feature.tab),
+    stringsAsFactors = FALSE
+  )
+
+  linda_res <- linda(
+    feature.dat = feature.tab,
+    meta.dat = meta.dat,
+    formula = "~group",
+    is.winsor = FALSE,
+    adaptive = FALSE,
+    verbose = FALSE
+  )
+
+  expect_equal(rownames(linda_res$meta.dat.use), colnames(feature.tab))
+})
+
 test_that("mStat_has_random_effect_term distinguishes transforms from random effects", {
   expect_false(mStat_has_random_effect_term("~log(age) + group"))
   expect_false(mStat_has_random_effect_term(stats::as.formula("~log(age) + group")))
@@ -175,8 +293,8 @@ test_that("linda reference level switching works correctly", {
   print(comparison_df)
 
   # Validation
-  expect_equal(names(test.list1$Genus), "B vs A (Reference)")
-  expect_equal(names(test.list2$Genus), "A vs B (Reference)")
+  expect_equal(names(test.list1$Genus), "B vs A (Reference) [Main Effect]")
+  expect_equal(names(test.list2$Genus), "A vs B (Reference) [Main Effect]")
   expect_equal(test.list1$Genus[[1]]$Coefficient,
               -test.list2$Genus[[1]]$Coefficient)
   expect_equal(test.list1$Genus[[1]]$P.Value,

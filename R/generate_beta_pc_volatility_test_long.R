@@ -45,6 +45,10 @@ generate_beta_pc_volatility_test_long <- function(data.obj,
     return()
   }
 
+  if (is.null(data.obj) && is.null(dist.obj)) {
+    stop("Either `data.obj` or `dist.obj` must be provided.", call. = FALSE)
+  }
+
   # If distance object is not provided, calculate it from the data object
   if (is.null(dist.obj)) {
     data.obj <- mStat_process_time_variable(data.obj, time.var)
@@ -89,12 +93,10 @@ generate_beta_pc_volatility_test_long <- function(data.obj,
     context = "beta PC volatility testing"
   )
 
-  # Inform the user about the importance of numeric time variable
-  message(
-    "The volatility test in 'generate_beta_pc_volatility_test_long' relies on a numeric time variable.\n",
-    "Please ensure that your time variable is coded as numeric.\n",
-    "If the time variable is not numeric, it may cause issues in computing the results of the volatility test.\n",
-    "The time variable will be processed within the function if needed."
+  mStat_inform_numeric_time_requirement(
+    function_name = "generate_beta_pc_volatility_test_long",
+    analysis_label = "volatility analysis",
+    conversion_behavior = "coerce"
   )
 
   # If principal component object is not provided, calculate it using MDS
@@ -126,17 +128,15 @@ generate_beta_pc_volatility_test_long <- function(data.obj,
       join = "inner"
     )
 
+    df[[time.var]] <- mStat_coerce_time_to_numeric(
+      df[[time.var]],
+      time.var = time.var,
+      context = "beta PC volatility analysis"
+    )
+
     # Perform volatility test for each principal component
     sub_test.list <- lapply(unique(df$PC), function(pc.index) {
       sub_df <- df %>% filter(PC == pc.index)
-
-
-      # Ensure time variable is numeric
-      sub_df[[time.var]] <- mStat_coerce_time_to_numeric(
-        sub_df[[time.var]],
-        time.var = time.var,
-        context = "beta PC volatility analysis"
-      )
 
       # Calculate volatility for each subject
       # Volatility is defined as the mean of absolute differences in PC values divided by time differences
@@ -154,48 +154,29 @@ generate_beta_pc_volatility_test_long <- function(data.obj,
         )
 
       # Join volatility data with group information
-      test_df <- volatility_df %>%
-        dplyr::left_join(meta_tab %>%
-                    select(all_of(c(subject.var, group.var))) %>%
-                    dplyr::distinct(),
-                  by = subject.var,
-                  relationship = "many-to-one")
+      test_df <- mStat_attach_subject_level_metadata(
+        df = volatility_df,
+        meta.dat = meta_tab,
+        subject.var = subject.var,
+        vars = c(group.var, adj.vars)
+      )
 
-      model_terms <- c()
-      if (!is.null(group.var)) {
-        model_terms <- c(model_terms, group.var)
-      }
-      if (!is.null(adj.vars)) {
-        model_terms <- c(model_terms, adj.vars)
-      }
-      model_rhs <- if (length(model_terms) > 0) {
-        paste(model_terms, collapse = " + ")
-      } else {
-        "1"
-      }
+      valid_terms <- mStat_resolve_variable_terms(
+        data = test_df,
+        terms = c(group.var, adj.vars)
+      )
 
-      test_result <- lm(as.formula(paste("volatility ~", model_rhs)), data = test_df)
+      test_result <- lm(
+        mStat_build_formula(response = "volatility", terms = valid_terms),
+        data = test_df
+      )
 
       coef.tab <- extract_coef(test_result)
 
-      if (!is.null(group.var) && length(unique(test_df[[group.var]])) > 1) {
-        anova_result <- anova(test_result)
-        group_row <- as.data.frame(anova_result)
-        terms <- rownames(group_row)
-        group_index <- which(terms == group.var)
-        if (length(group_index) > 0) {
-          selected <- group_row[group_index[[1]], , drop = FALSE]
-          coef.tab <- rbind(
-            coef.tab,
-            data.frame(
-              Term = group.var,
-              Estimate = NA_real_,
-              Std.Error = NA_real_,
-              Statistic = selected$`F value`,
-              P.Value = selected$`Pr(>F)`,
-              check.names = FALSE
-            )
-          )
+      if (group.var %in% valid_terms && length(unique(stats::na.omit(test_df[[group.var]]))) > 2) {
+        group_row <- mStat_extract_group_anova_row(anova(test_result), group.var)
+        if (!is.null(group_row)) {
+          coef.tab <- rbind(coef.tab, group_row)
         }
       }
 

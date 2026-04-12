@@ -95,7 +95,7 @@ generate_beta_pc_change_boxplot_pair <-
     }
 
     # Ensure that at least one of data.obj or dist.obj is provided
-    if (is.null(data.obj) & is.null(dist.obj)) {
+    if (is.null(data.obj) && is.null(dist.obj)) {
       stop("Both data.obj and dist.obj cannot be NULL. Please provide at least one.")
     }
 
@@ -150,15 +150,6 @@ generate_beta_pc_change_boxplot_pair <-
       # Extract principal component coordinates
       pc.mat <- pc.obj[[dist.name]]$points
 
-      pair_times <- mStat_resolve_pair_timepoints(
-        values = meta_tab[[time.var]],
-        time.var = time.var,
-        change.base = change.base,
-        context = "beta PC change plotting"
-      )
-      change.base <- pair_times$change.base
-      change.after <- pair_times$change.after
-
       df <- mStat_prepare_pc_long_data(
         pc.points = pc.mat,
         pc.ind = pc.ind,
@@ -168,41 +159,31 @@ generate_beta_pc_change_boxplot_pair <-
         join = "inner"
       )
 
-      # Split the data by time points
-      split_data <- split(df, f = as.character(df[[time.var]]))
-
-      data_time_1 <- split_data[[change.base]]
-      data_time_2 <- split_data[[change.after]]
-
-      # Combine data from two time points
-      combined_data <- data_time_1 %>%
-        dplyr::inner_join(
-          data_time_2,
-          by = c("PC", subject.var),
-          suffix = c("_time_1", "_time_2")
-        )
-
-      # Calculate the change in PC coordinates
-      combined_data <- combined_data %>%
-        dplyr::mutate(value_diff = compute_taxa_change(
-          value_after  = value_time_2,
-          value_before = value_time_1,
-          method       = change.func,
-          verbose      = FALSE
-        ))
+      pair_change <- mStat_prepare_pc_pair_change_data(
+        long.df = df,
+        subject.var = subject.var,
+        time.var = time.var,
+        change.base = change.base,
+        change.func = change.func,
+        context = "beta PC change plotting"
+      )
+      combined_data <- pair_change$combined_data
+      change.base <- pair_change$change.base
+      change.after <- pair_change$change.after
 
       # Add metadata to the combined data
-      combined_data <-
-        combined_data %>% dplyr::left_join(meta_tab %>% select(all_of(
-          c(subject.var, time.var, group.var, strata.var)
-        )) %>% filter(!!sym(time.var) == change.after),
-        by = subject.var)
+      combined_data <- mStat_attach_pair_metadata(
+        df = combined_data,
+        meta_tab = meta_tab,
+        subject.var = subject.var,
+        time.var = time.var,
+        mode = "followup_time",
+        change.after = change.after
+      )
 
-      # If no group variable is provided, create a dummy group
-      if (is.null(group.var)) {
-        group.var = "ALL"
-        combined_data$ALL <- "ALL"
-      }
+      placeholder_group <- mStat_ensure_group_placeholder(combined_data, group.var = group.var)
+      combined_data <- placeholder_group$df
+      resolved_group_var <- placeholder_group$group.var
 
       # Create a list to store plots for each principal component
       sub.plot_list <- lapply(paste0("PC", pc.ind), function(pc.index) {
@@ -210,9 +191,9 @@ generate_beta_pc_change_boxplot_pair <-
         boxplot <- ggplot(
           combined_data %>% filter(PC == pc.index),
           aes(
-            x = !!sym(group.var),
+            x = !!sym(resolved_group_var),
             y = value_diff,
-            fill = !!sym(group.var)
+            fill = !!sym(resolved_group_var)
           )
         ) +
           #geom_violin(trim = F, alpha = 0.8) +
@@ -229,14 +210,21 @@ generate_beta_pc_change_boxplot_pair <-
           geom_jitter(width = 0.3,
                       alpha = 0.5,
                       size = 1.7) +
-          scale_alpha_manual(values = c(0.5, 0.5)) +
           scale_fill_manual(values = col) +
-          labs(x = group.var, y = paste("Change in ", "Axis ", gsub("PC", "", pc.index), " - ",
-                                        if(is.function(change.func)){
-                                          "custom function"
-                                        } else {
-                                          change.func
-                                        })) +
+          labs(
+            x = if (is.null(group.var)) NULL else group.var,
+            y = paste(
+              "Change in ",
+              "Axis ",
+              gsub("PC", "", pc.index),
+              " - ",
+              if (is.function(change.func)) {
+                "custom function"
+              } else {
+                change.func
+              }
+            )
+          ) +
           theme_to_use +
           theme(
             panel.spacing.x = unit(0, "cm"),
@@ -253,9 +241,7 @@ generate_beta_pc_change_boxplot_pair <-
           )
 
         # Add faceting if strata variable is provided
-        if (is.null(strata.var)) {
-          boxplot <- boxplot
-        } else {
+        if (!is.null(strata.var)) {
           boxplot <- boxplot +
             ggh4x::facet_nested(cols = vars(!!sym(strata.var)),
                                 scales = "fixed",
@@ -263,8 +249,8 @@ generate_beta_pc_change_boxplot_pair <-
         }
 
         # Adjust theme if there's only one group
-        if (group.var == "ALL") {
-          boxplot <- boxplot  + theme(
+        if (is.null(group.var)) {
+          boxplot <- boxplot + theme(
             axis.text.x = element_blank(),
             axis.title.x = element_blank(),
             legend.position = "none",

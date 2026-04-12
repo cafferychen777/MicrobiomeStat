@@ -84,10 +84,7 @@ generate_taxa_volcano_single <-
           sub_test.result <- sub_test.list[[group.level]]
 
           # Filter features if a specific set is provided
-          if (!is.null(features.plot)) {
-            sub_test.result <- sub_test.result %>%
-              filter(Variable %in% features.plot)
-          }
+          sub_test.result <- mStat_filter_test_result_features(sub_test.result, features.plot)
 
           # Calculate the maximum absolute coefficient for symmetric x-axis
           max_abs_log2FC <-

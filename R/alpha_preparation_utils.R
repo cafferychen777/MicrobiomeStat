@@ -108,6 +108,159 @@ mStat_alpha_to_tibble <- function(alpha.obj, sample_col = "sample") {
 
 
 #' @keywords internal
+mStat_prepare_alpha_meta_tab <- function(data.obj,
+                                         vars,
+                                         sample_col = "sample") {
+  mStat_prepare_meta_tab(
+    meta.dat = data.obj$meta.dat,
+    vars = vars,
+    sample_col = sample_col
+  )
+}
+
+
+#' @keywords internal
+mStat_attach_subject_level_metadata <- function(df,
+                                                meta.dat,
+                                                subject.var,
+                                                vars = NULL) {
+  meta.tbl <- mStat_prepare_subject_metadata(
+    meta.dat = meta.dat,
+    subject.var = subject.var,
+    vars = vars
+  )
+
+  if (is.null(meta.tbl)) {
+    return(df)
+  }
+
+  dplyr::left_join(df, meta.tbl, by = subject.var, relationship = "many-to-one")
+}
+
+
+#' @keywords internal
+mStat_append_alpha_change_columns <- function(combined_alpha,
+                                              alpha.name,
+                                              change.func) {
+  diff_columns <- lapply(alpha.name, function(index) {
+    diff_col_name <- paste0(index, "_diff")
+    col_after <- paste0(index, "_time_2")
+    col_before <- paste0(index, "_time_1")
+
+    combined_alpha %>%
+      dplyr::transmute(!!diff_col_name := compute_alpha_change(
+        value_after = .data[[col_after]],
+        value_before = .data[[col_before]],
+        method = change.func
+      ))
+  })
+
+  dplyr::bind_cols(combined_alpha, diff_columns)
+}
+
+
+#' @keywords internal
+mStat_prepare_alpha_pair_change_data <- function(alpha.df,
+                                                 alpha.name,
+                                                 subject.var,
+                                                 time.var,
+                                                 change.base = NULL,
+                                                 change.func,
+                                                 context,
+                                                 join_vars = subject.var) {
+  pair_slices <- mStat_prepare_pair_time_slices(
+    df = alpha.df,
+    time.var = time.var,
+    change.base = change.base,
+    context = context
+  )
+
+  combined_alpha <- pair_slices$data_time_1 %>%
+    dplyr::inner_join(
+      pair_slices$data_time_2,
+      by = join_vars,
+      suffix = c("_time_1", "_time_2"),
+      relationship = "one-to-one"
+    )
+
+  list(
+    combined_alpha = mStat_append_alpha_change_columns(
+      combined_alpha = combined_alpha,
+      alpha.name = alpha.name,
+      change.func = change.func
+    ),
+    change.base = pair_slices$change.base,
+    change.after = pair_slices$change.after
+  )
+}
+
+
+#' @keywords internal
+mStat_prepare_alpha_pair_test_data <- function(alpha.df,
+                                               alpha.name,
+                                               subject.var,
+                                               time.var,
+                                               group.var,
+                                               time_varying_vars = NULL,
+                                               change.base = NULL,
+                                               change.func,
+                                               context) {
+  pair_slices <- mStat_prepare_pair_time_slices(
+    df = alpha.df,
+    time.var = time.var,
+    change.base = change.base,
+    context = context
+  )
+
+  alpha_time_1 <- pair_slices$data_time_1 %>%
+    dplyr::group_by(!!rlang::sym(subject.var)) %>%
+    dplyr::summarise(
+      dplyr::across(dplyr::all_of(alpha.name), ~ mean(.x, na.rm = TRUE)),
+      !!paste0(group.var, "_time_1") := dplyr::first(.data[[group.var]]),
+      dplyr::across(
+        dplyr::any_of(time_varying_vars),
+        ~ dplyr::first(.x),
+        .names = "{.col}_time_1"
+      ),
+      .groups = "drop"
+    )
+
+  alpha_time_2 <- pair_slices$data_time_2 %>%
+    dplyr::group_by(!!rlang::sym(subject.var)) %>%
+    dplyr::summarise(
+      dplyr::across(dplyr::all_of(alpha.name), ~ mean(.x, na.rm = TRUE)),
+      !!paste0(group.var, "_time_2") := dplyr::first(.data[[group.var]]),
+      dplyr::across(
+        dplyr::any_of(time_varying_vars),
+        ~ dplyr::first(.x),
+        .names = "{.col}_time_2"
+      ),
+      .groups = "drop"
+    )
+
+  combined_alpha <- alpha_time_1 %>%
+    dplyr::inner_join(
+      alpha_time_2,
+      by = subject.var,
+      suffix = c("_time_1", "_time_2"),
+      relationship = "one-to-one"
+    ) %>%
+    dplyr::mutate(!!group.var := .data[[paste0(group.var, "_time_1")]]) %>%
+    dplyr::select(-dplyr::all_of(c(paste0(group.var, "_time_1"), paste0(group.var, "_time_2"))))
+
+  list(
+    combined_alpha = mStat_append_alpha_change_columns(
+      combined_alpha = combined_alpha,
+      alpha.name = alpha.name,
+      change.func = change.func
+    ),
+    change.base = pair_slices$change.base,
+    change.after = pair_slices$change.after
+  )
+}
+
+
+#' @keywords internal
 mStat_prepare_alpha_data <- function(alpha.obj,
                                      meta.dat = NULL,
                                      vars = NULL,
@@ -152,8 +305,12 @@ mStat_prepare_alpha_inputs <- function(data.obj,
   }
 
   if (!is.null(time.var) && !is.null(t.level)) {
-    subset.ids <- get_sample_ids(data.obj, time.var, t.level)
-    data.obj <- mStat_subset_data(data.obj, samIDs = subset.ids)
+    data.obj <- mStat_subset_by_meta_values(
+      data.obj,
+      time.var,
+      t.level,
+      prune.features = TRUE
+    )
   }
 
   if (is.null(alpha.obj)) {

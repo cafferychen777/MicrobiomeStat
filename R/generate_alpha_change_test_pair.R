@@ -95,15 +95,16 @@ generate_alpha_change_test_pair <-
     data.obj <- prepared$data.obj
     alpha.obj <- prepared$alpha.obj
 
-    # Extract relevant metadata.
-    # This step prepares the metadata for merging with the alpha diversity data.
-    meta_tab <-
-      data.obj$meta.dat %>% as.data.frame() %>% dplyr::select(all_of(c(
-        subject.var, group.var, time.var, adj.vars
-      )))
+    meta_tab <- mStat_prepare_alpha_meta_tab(
+      data.obj = data.obj,
+      vars = c(subject.var, group.var, time.var, adj.vars)
+    )
 
     # Initialize variable to store information about time-varying covariates.
-    time_varying_info <- NULL
+    time_varying_info <- list(
+      time_varying_vars = character(),
+      non_time_varying_vars = character()
+    )
 
     # Adjust alpha diversity for non-time-varying covariates if specified.
     # This is an important step to control for potential confounding factors.
@@ -125,8 +126,6 @@ generate_alpha_change_test_pair <-
       context = "alpha change testing"
     )
 
-    # Combine alpha diversity and metadata.
-    # This creates a comprehensive dataset for our analysis.
     alpha_df <- mStat_prepare_alpha_data(
       alpha.obj = alpha.obj,
       meta.dat = meta_tab,
@@ -134,80 +133,21 @@ generate_alpha_change_test_pair <-
       join = "inner"
     )
 
-    pair_times <- mStat_resolve_pair_timepoints(
-      values = alpha_df[[time.var]],
+    pair_change <- mStat_prepare_alpha_pair_test_data(
+      alpha.df = alpha_df,
+      alpha.name = alpha.name,
+      subject.var = subject.var,
       time.var = time.var,
+      group.var = group.var,
+      time_varying_vars = time_varying_info$time_varying_vars,
       change.base = change.base,
+      change.func = alpha.change.func,
       context = "alpha change testing"
     )
-    change.base <- pair_times$change.base
-    change.after <- pair_times$change.after
+    combined_alpha <- pair_change$combined_alpha
+    change.base <- pair_change$change.base
+    change.after <- pair_change$change.after
 
-    # Split alpha diversity data by time points.
-    # This separates the data into baseline and follow-up measurements.
-    alpha_split <- split(alpha_df, f = as.character(alpha_df[[time.var]]))
-
-    alpha_time_1 <- alpha_split[[change.base]]
-    alpha_time_2 <- alpha_split[[change.after]]
-
-    alpha_time_1 <- alpha_time_1 %>%
-      dplyr::group_by(!!sym(subject.var)) %>%
-      dplyr::summarise(
-        dplyr::across(all_of(alpha.name), ~ mean(.x, na.rm = TRUE)),
-        !!paste0(group.var, "_time_1") := dplyr::first(.data[[group.var]]),
-        dplyr::across(
-          any_of(time_varying_info$time_varying_vars),
-          ~ dplyr::first(.x),
-          .names = "{.col}_time_1"
-        ),
-        .groups = "drop"
-      )
-
-    alpha_time_2 <- alpha_time_2 %>%
-      dplyr::group_by(!!sym(subject.var)) %>%
-      dplyr::summarise(
-        dplyr::across(all_of(alpha.name), ~ mean(.x, na.rm = TRUE)),
-        !!paste0(group.var, "_time_2") := dplyr::first(.data[[group.var]]),
-        dplyr::across(
-          any_of(time_varying_info$time_varying_vars),
-          ~ dplyr::first(.x),
-          .names = "{.col}_time_2"
-        ),
-        .groups = "drop"
-      )
-
-    # Combine alpha diversity data from two time points.
-    # This step pairs the baseline and follow-up measurements for each subject.
-    combined_alpha <- alpha_time_1 %>%
-      dplyr::inner_join(
-        alpha_time_2,
-        by = subject.var,
-        suffix = c("_time_1", "_time_2"),
-        relationship = "one-to-one"
-      ) %>%
-      dplyr::mutate(!!group.var := .data[[paste0(group.var, "_time_1")]]) %>%
-      dplyr::select(-all_of(c(paste0(group.var, "_time_1"), paste0(group.var, "_time_2"))))
-
-    # Calculate change in alpha diversity.
-    # This is the core statistical operation of the function.
-    diff_columns <- lapply(alpha.name, function(index) {
-      diff_col_name <- paste0(index, "_diff")
-      col_after  <- paste0(index, "_time_2")
-      col_before <- paste0(index, "_time_1")
-
-      combined_alpha %>%
-        dplyr::mutate(!!diff_col_name := compute_alpha_change(
-          value_after  = !!sym(col_after),
-          value_before = !!sym(col_before),
-          method       = alpha.change.func
-        )) %>%
-        dplyr::select(all_of(diff_col_name))
-    })
-
-    # Combine the calculated differences with the original data.
-    combined_alpha <- dplyr::bind_cols(combined_alpha, diff_columns)
-
-    # Rename time-varying variables to avoid confusion in the model.
     if (length(time_varying_info$time_varying_vars) > 0) {
       names_map <- setNames(paste0(time_varying_info$time_varying_vars, "_time_2"), time_varying_info$time_varying_vars)
       drop_names <- paste0(time_varying_info$time_varying_vars, "_time_1")
@@ -216,7 +156,6 @@ generate_alpha_change_test_pair <-
         rename(!!!names_map)
     }
 
-    # Generate statistical tests for each alpha diversity index.
     test.list <- lapply(alpha.name, function(index) {
 
       # Create a formula for the linear model.
@@ -250,7 +189,7 @@ generate_alpha_change_test_pair <-
 
       # Perform ANOVA if the group variable has more than two levels.
       # This tests for overall differences among groups, rather than pairwise comparisons.
-      if (length(unique(combined_alpha[[group.var]])) > 2) {
+      if (length(unique(stats::na.omit(combined_alpha[[group.var]]))) > 2) {
         anova <- anova(lm.model)
         anova.tab <- as.data.frame(anova) %>%
           tibble::rownames_to_column("Term") %>%

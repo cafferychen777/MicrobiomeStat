@@ -137,6 +137,10 @@ generate_beta_pc_spaghettiplot_long <- function(data.obj = NULL,
     return()
   }
 
+  if (is.null(data.obj) && is.null(dist.obj)) {
+    stop("Either `data.obj` or `dist.obj` must be provided.", call. = FALSE)
+  }
+
   # If distance object is not provided, calculate it from the data object
   if (is.null(dist.obj)) {
     # Process time variable and extract relevant metadata
@@ -187,33 +191,26 @@ generate_beta_pc_spaghettiplot_long <- function(data.obj = NULL,
   # Get color palette
   col <- mStat_get_palette(palette)
 
-  # Calculate new sizes based on base.size for consistent plot aesthetics
-  title.size = base.size * 1.25
-  axis.title.size = base.size * 0.75
-  axis.text.size = base.size * 0.5
-  legend.title.size = base.size * 1
-  legend.text.size = base.size * 0.75
-
   # Get the appropriate theme
   theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
+  text_sizes <- mStat_get_spaghettiplot_text_sizes(base.size, variant = "wide_panel")
+
+  if (is.null(pc.obj)) {
+    message("No pc.obj provided, using MDS (PCoA) for dimension reduction by default.")
+    message(
+      "If you prefer other methods such as NMDS, t-SNE or UMAP, you can use the mStat_calculate_PC function with a specified method."
+    )
+    pc.obj <-
+      mStat_calculate_PC(
+        dist.obj = dist.obj,
+        method = "mds",
+        k = max(pc.ind),
+        dist.name = dist.name
+      )
+  }
 
   # Create a list to store plots for each distance metric
   plot_list <- lapply(dist.name, function(dist.name) {
-    # If principal component object is not provided, calculate it using MDS
-    if (is.null(pc.obj)) {
-      message("No pc.obj provided, using MDS (PCoA) for dimension reduction by default.")
-      message(
-        "If you prefer other methods such as NMDS, t-SNE or UMAP, you can use the mStat_calculate_PC function with a specified method."
-      )
-      pc.obj <-
-        mStat_calculate_PC(
-          dist.obj = dist.obj[dist.name],
-          method = "mds",
-          k = max(pc.ind),
-          dist.name = dist.name
-        )
-    }
-
     # Extract principal component coordinates
     pc.mat <- pc.obj[[dist.name]]$points
 
@@ -226,61 +223,56 @@ generate_beta_pc_spaghettiplot_long <- function(data.obj = NULL,
       join = "inner"
     )
 
-    # If no group variable is provided, create a dummy group
-    if (is.null(group.var)){
-      df <- df %>% dplyr::mutate("ALL" = "ALL")
-      group.var = "ALL"
-    }
+    placeholder_group <- mStat_ensure_group_placeholder(df, group.var = group.var)
+    df <- placeholder_group$df
+    resolved_group_var <- placeholder_group$group.var
 
     # Calculate mean values for each group and time point
     if (is.null(strata.var)) {
       df.mean <- df %>%
-        dplyr::group_by(!!sym(time.var),!!sym(group.var), PC) %>%
-        dplyr::summarize(mean_value = mean(value, na.rm = TRUE))
-      df <-
-        dplyr::left_join(df, df.mean, by = c(time.var, group.var, "PC"))
+        dplyr::group_by(!!sym(time.var), !!sym(resolved_group_var), PC) %>%
+        dplyr::summarize(mean_value = mean(value, na.rm = TRUE), .groups = "drop")
     } else {
       df.mean <- df %>%
-        dplyr::group_by(!!sym(time.var),!!sym(group.var),!!sym(strata.var), PC) %>%
-        dplyr::summarize(mean_value = mean(value, na.rm = TRUE))
-      df <-
-        dplyr::left_join(df, df.mean, by = c(time.var, group.var, strata.var, "PC"))
+        dplyr::group_by(!!sym(time.var), !!sym(resolved_group_var), !!sym(strata.var), PC) %>%
+        dplyr::summarize(mean_value = mean(value, na.rm = TRUE), .groups = "drop")
     }
 
     # Create a list to store plots for each principal component
     sub_plot_list <- lapply(unique(df$PC), function(pc.index) {
       sub_df <- df %>% filter(PC == pc.index)
+      sub_df.mean <- df.mean %>% filter(PC == pc.index)
 
       # Create the spaghetti plot
       p <- ggplot() +
         geom_point(
           data = sub_df,
-          aes_string(
-            x = time.var,
-            y = "value",
-            group = subject.var,
-            color = group.var
+          aes(
+            x = .data[[time.var]],
+            y = .data[["value"]],
+            group = .data[[subject.var]],
+            color = .data[[resolved_group_var]]
           ),
           alpha = 0.3,
           size = 3
         ) +
         geom_line(
-          data = sub_df,
-          aes_string(
-            x = time.var,
-            y = "mean_value",
-            group = group.var,
-            color = group.var
+          data = sub_df.mean,
+          aes(
+            x = .data[[time.var]],
+            y = .data[["mean_value"]],
+            group = .data[[resolved_group_var]],
+            color = .data[[resolved_group_var]]
           ),
           size = 2
         ) +
         geom_point(
-          data = sub_df,
-          aes_string(
-            x = time.var,
-            y = "mean_value",
-            group = group.var,
-            color = group.var
+          data = sub_df.mean,
+          aes(
+            x = .data[[time.var]],
+            y = .data[["mean_value"]],
+            group = .data[[resolved_group_var]],
+            color = .data[[resolved_group_var]]
           ),
           size = 5
         ) +
@@ -296,19 +288,19 @@ generate_beta_pc_spaghettiplot_long <- function(data.obj = NULL,
           panel.spacing.x = unit(0, "cm"),
           panel.spacing.y = unit(0, "cm"),
           strip.text.x = element_text(size = 12, color = "black"),
-          axis.title.x = element_text(size = axis.title.size*2),
-          axis.title.y = element_text(size = axis.title.size*2),
-          axis.text.x = element_text(angle = 90, color = "black", vjust = 0.5, size = base.size * 2),
-          axis.text.y = element_text(size = base.size*2),
+          axis.title.x = element_text(size = text_sizes$axis.title),
+          axis.title.y = element_text(size = text_sizes$axis.title),
+          axis.text.x = element_text(angle = 90, color = "black", vjust = 0.5, size = text_sizes$axis.text),
+          axis.text.y = element_text(size = text_sizes$axis.text),
           plot.margin = unit(c(0.3, 0.3, 0.3, 0.3), units = "cm"),
-          legend.text = ggplot2::element_text(size = 16 * 2),
-          legend.title = ggplot2::element_text(size = 16 * 2),
+          legend.text = ggplot2::element_text(size = text_sizes$legend.text),
+          legend.title = ggplot2::element_text(size = text_sizes$legend.title),
           legend.key.size = unit(10, "mm"),
           legend.key.spacing = unit(2, "mm")
         )
 
       # Remove legend if there's only one group
-      if (group.var == "ALL"){
+      if (is.null(group.var)){
         p <- p + theme(legend.position = "none")
       }
 
@@ -316,7 +308,7 @@ generate_beta_pc_spaghettiplot_long <- function(data.obj = NULL,
       if (!is.null(strata.var)) {
         p <- p + ggh4x::facet_nested(
           cols = vars(!!sym(strata.var)),
-          scale = "free",
+          scales = "free",
           space = "free"
         )
       }

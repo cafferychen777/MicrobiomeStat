@@ -90,10 +90,13 @@ generate_beta_change_boxplot_pair <-
       return()
     }
 
+    if (is.null(data.obj) && is.null(dist.obj)) {
+      stop("Either `data.obj` or `dist.obj` must be provided.", call. = FALSE)
+    }
+
     # Calculate beta diversity if not provided
     # This step ensures we have the necessary distance matrices for the analysis
     if (is.null(dist.obj)) {
-      meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var, strata.var, adj.vars)))
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
       # Adjust distances for covariates if specified
@@ -119,6 +122,14 @@ generate_beta_change_boxplot_pair <-
 
     # Add sample names to metadata
     meta_tab <- mStat_meta_to_tibble(meta_tab, sample_col = "sample")
+    placeholder_group <- mStat_ensure_group_placeholder(
+      meta_tab,
+      group.var = group.var,
+      value = "ALL",
+      column_name = "x_alternative"
+    )
+    meta_tab <- placeholder_group$df
+    resolved_group_var <- placeholder_group$group.var
 
     pair_times <- mStat_resolve_pair_timepoints(
       values = meta_tab[[time.var]],
@@ -146,25 +157,21 @@ generate_beta_change_boxplot_pair <-
       }
 
       # Convert distance matrix to long format for plotting
-      dist.df <- mStat_dist_to_tibble(dist.obj[[dist.name]], sample_col = "sample")
-
-      # Calculate pairwise distances between baseline and follow-up time points for each subject
-      long.df <- dist.df %>%
-        tidyr::gather(key = "sample2", value = "distance", -sample) %>%
-        dplyr::left_join(meta_tab, by = "sample") %>%
-        dplyr::left_join(meta_tab, by = c("sample2" = "sample"), suffix = c(".subject", ".sample")) %>%
-        filter(!!sym(paste0(subject.var, ".subject")) == !!sym(paste0(subject.var, ".sample"))) %>%
-        dplyr::group_by(!!sym(paste0(subject.var, ".subject"))) %>%
-        filter(!!sym(paste0(time.var,".sample")) == change.base) %>%
-        filter(!!sym(paste0(time.var,".subject")) == change.after) %>%
-        dplyr::ungroup() %>%
-        dplyr::select(!!sym(paste0(subject.var, ".subject")), !!sym(paste0(time.var, ".subject")), distance) %>%
-        dplyr::rename(!!sym(subject.var) := !!sym(paste0(subject.var, ".subject")), !!sym(time.var) := !!sym(paste0(time.var, ".subject")))
+      long.df <- mStat_prepare_beta_change_long_data(
+        dist.matrix = dist.obj[[dist.name]],
+        meta.dat = meta_tab,
+        subject.var = subject.var,
+        time.var = time.var,
+        change.base = change.base,
+        change.after = change.after
+      )
 
       # Add group and strata information to the long-format data
-      long.df <- long.df %>% dplyr::left_join(
-        meta_tab %>% dplyr::select(-all_of(time.var)) %>% dplyr::distinct(),
-        by = subject.var
+      long.df <- mStat_attach_change_metadata(
+        change.df = long.df,
+        meta.dat = meta_tab,
+        by = c(subject.var, time.var),
+        vars = c(group.var, strata.var)
       )
 
       # Set up faceting formula based on presence of strata variable
@@ -175,23 +182,12 @@ generate_beta_change_boxplot_pair <-
           ". ~ 1"
         }
 
-      # Create alternative x-axis variable for cases without grouping
-      long.df$x_alternative <- "ALL"
-      
       # Set up aesthetic mapping based on presence of grouping variable
-      aes_function <- if (!is.null(group.var)){
-        aes(
-          x = !!sym(group.var),
-          y = distance,
-          fill = !!sym(group.var)
-        )
-      }else{
-        aes(
-          x = x_alternative,
-          y = distance,
-          fill = x_alternative
-        )
-      }
+      aes_function <- aes(
+        x = !!sym(resolved_group_var),
+        y = distance,
+        fill = !!sym(resolved_group_var)
+      )
 
       # Create the boxplot
       p <-
@@ -206,7 +202,7 @@ generate_beta_change_boxplot_pair <-
         geom_jitter(width = 0.3, alpha = 0.5, size = 1.7) +
         scale_fill_manual(values = col) +
         facet_wrap(as.formula(facet_formula), scales = "fixed") +
-        xlab(group.var) +
+        xlab(if (is.null(group.var)) NULL else group.var) +
         ylab(y_label) +
         theme_to_use +
         theme(
@@ -233,7 +229,7 @@ generate_beta_change_boxplot_pair <-
         )
       }
 
-      if (!is.null(group.var) & is.null(strata.var)){
+      if (!is.null(group.var) && is.null(strata.var)){
         p <- p + theme(
           strip.text.x = element_blank()
         )

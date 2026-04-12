@@ -93,6 +93,10 @@ generate_beta_ordination_pair <-
       return()
     }
 
+    if (is.null(data.obj) && is.null(dist.obj)) {
+      stop("Either `data.obj` or `dist.obj` must be provided.", call. = FALSE)
+    }
+
     # Calculate beta diversity if not provided
     if (is.null(dist.obj)) {
       # Compute beta diversity distances using specified metrics

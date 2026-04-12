@@ -1,44 +1,3 @@
-#' Construct a Linear Mixed Effects Model Formula
-#'
-#' This function constructs a formula for a linear mixed effects model based on the specified
-#' index, group variable, time variable, subject variable, and additional covariates.
-#' When the `group.var` is NULL, the function will test the slope=0 in the mixed effects model.
-#'
-#' @param index A character string representing the dependent variable in the model.
-#' @param group.var A character string representing the group variable in the model, or NULL if no group variable is included.
-#' @param time.var A character string representing the time variable in the model.
-#' @param subject.var A character string representing the subject variable in the model.
-#' @param adj.vars A character string or vector representing additional covariates to be included in the model, or NULL if no additional covariates are included.
-#'
-#' @return A formula object suitable for use in functions requiring a linear mixed effects model formula.
-#'
-#' @noRd
-construct_formula <- function(index,
-                              group.var,
-                              time.var,
-                              subject.var,
-                              adj.vars,
-                              random_slopes = TRUE) {
-  if (!is.null(group.var)) {
-    random_effects <- if (random_slopes) {
-      paste("(1 +", time.var, "|", subject.var, ")")
-    } else {
-      paste("(1|", subject.var, ")")
-    }
-    formula_part <- paste(index, "~", group.var, "*", time.var, "+", random_effects)
-  } else {
-    formula_part <- paste(index, "~", time.var, " + (1|", subject.var, ")")
-  }
-
-  if (!is.null(adj.vars)) {
-    adj_str <- paste(adj.vars, collapse = " + ")
-    formula_str <- paste(formula_part, "+", adj_str)
-  } else {
-    formula_str <- formula_part
-  }
-  return(as.formula(formula_str))
-}
-
 #' @title Alpha Diversity Trend Test (Longitudinal)
 #'
 #' @description Tests for temporal trends in alpha diversity using linear
@@ -138,13 +97,10 @@ generate_alpha_trend_test_long <- function(data.obj,
   data.obj <- prepared$data.obj
   alpha.obj <- prepared$alpha.obj
 
-  # Inform the user about the importance of numeric time variable for trend test
-  # This message ensures that the user understands the requirements for proper analysis
-  message(
-    "The trend test in 'generate_alpha_trend_test_long' relies on a numeric time variable.\n",
-    "Please ensure that your time variable is coded as numeric.\n",
-    "If the time variable is not numeric, it may cause issues in computing the results of the trend test.\n",
-    "The time variable will be converted to numeric within the function if needed."
+  mStat_inform_numeric_time_requirement(
+    function_name = "generate_alpha_trend_test_long",
+    analysis_label = "trend analysis",
+    conversion_behavior = "coerce"
   )
 
   # Convert the time variable to numeric
@@ -156,10 +112,10 @@ generate_alpha_trend_test_long <- function(data.obj,
   )
 
   # Extract relevant metadata for the analysis
-  meta_tab <-
-    data.obj$meta.dat %>% as.data.frame() %>% dplyr::select(all_of(c(
-      subject.var, group.var, time.var, adj.vars
-    )))
+  meta_tab <- mStat_prepare_alpha_meta_tab(
+    data.obj = data.obj,
+    vars = c(subject.var, group.var, time.var, adj.vars)
+  )
 
   # Combine alpha diversity data with metadata
   # This creates a comprehensive dataset for our analysis
@@ -184,8 +140,8 @@ generate_alpha_trend_test_long <- function(data.obj,
     )
 
     coef.tab <- extract_coef(model)
-    if (!is.null(group.var) && length(unique(alpha_df[[group.var]])) > 2) {
-      anova_result <- anova(model, type = "III")
+    if (!is.null(group.var) && length(unique(stats::na.omit(alpha_df[[group.var]]))) > 2) {
+      anova_result <- mStat_compute_group_anova(model)
       group_row <- mStat_extract_group_anova_row(anova_result, group.var)
       if (!is.null(group_row)) {
         coef.tab <- rbind(coef.tab, group_row)

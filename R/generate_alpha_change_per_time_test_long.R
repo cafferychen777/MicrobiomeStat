@@ -129,113 +129,92 @@ generate_alpha_change_per_time_test_long <-
            adj.vars = NULL,
            alpha.change.func = "log fold change") {
 
+    data.obj <- mStat_validate_data(data.obj)
+
     if (is.null(alpha.name)){
       return()
     }
 
-    data.obj <- mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
+    mStat_validate_time_var_contract(
+      meta.dat = data.obj$meta.dat,
+      time.var = time.var,
+      context = "alpha change per-time testing"
+    )
 
     prepared <- mStat_prepare_alpha_inputs(
       data.obj = data.obj,
       alpha.obj = alpha.obj,
       alpha.name = alpha.name,
-      depth = depth
+      depth = depth,
+      time.var = time.var,
+      t0.level = t0.level,
+      ts.levels = ts.levels,
+      process_time = TRUE
     )
     data.obj <- prepared$data.obj
     alpha.obj <- prepared$alpha.obj
 
-    meta_tab <-
-      data.obj$meta.dat %>% as.data.frame() %>% dplyr::select(all_of(c(
-        subject.var, group.var, time.var, adj.vars
-      )))
+    meta_tab <- mStat_prepare_alpha_meta_tab(
+      data.obj = data.obj,
+      vars = c(subject.var, group.var, time.var, adj.vars)
+    )
 
     mStat_validate_group_var_contract(
       meta.dat = meta_tab,
       group.var = group.var,
-      context = "alpha change per-time testing"
+      subject.var = subject.var,
+      context = "alpha change per-time testing",
+      require_variation = FALSE
     )
 
-    reference_level <- levels(as.factor(meta_tab[,group.var]))[1]
+    reference_level <- .mStat_get_group_reference_level(
+      meta.dat = meta_tab,
+      group.var = group.var
+    )
 
-    if (is.null(t0.level)) {
-      if (is.numeric(meta_tab[, time.var])) {
-        t0.level <- sort(unique(meta_tab[, time.var]))[1]
-      } else {
-        t0.level <- levels(meta_tab[, time.var])[1]
-      }
-    }
-
-    if (is.null(ts.levels)) {
-      if (is.numeric(meta_tab[, time.var])) {
-        ts.levels <- sort(unique(meta_tab[, time.var]))[-1]
-      } else {
-        ts.levels <- levels(meta_tab[, time.var])[-1]
-      }
-    }
-
-    # Get unique time levels
-    time.levels <- c(t0.level, ts.levels)
+    resolved_time <- mStat_resolve_followup_timepoints(
+      values = meta_tab[[time.var]],
+      time.var = time.var,
+      t0.level = t0.level,
+      ts.levels = ts.levels,
+      context = "alpha change per-time testing"
+    )
+    t0.level <- resolved_time$t0.level
+    ts.levels <- resolved_time$ts.levels
 
     # Generate tests
-    test.list <- lapply(ts.levels, function(ts.level) {
+    mStat_run_per_time_analysis(
+      time.levels = ts.levels,
+      context = "alpha change per-time testing",
+      analysis_fn = function(ts.level) {
+        subset_inputs <- mStat_subset_analysis_inputs_by_meta_values(
+          data.obj = data.obj,
+          var = time.var,
+          values = c(t0.level, ts.level),
+          alpha.obj = alpha.obj,
+          prune.features = TRUE
+        )
+        subset_data.obj <- subset_inputs$data.obj
+        subset_alpha.obj <- subset_inputs$alpha.obj
 
-      subset.ids <- get_sample_ids(data.obj, time.var, c(t0.level, ts.level))
+        subset.test.list <- generate_alpha_change_test_pair(
+          data.obj = subset_data.obj,
+          alpha.obj = subset_alpha.obj,
+          alpha.name = alpha.name,
+          depth = depth,
+          time.var = time.var,
+          subject.var = subject.var,
+          group.var = group.var,
+          adj.vars = adj.vars,
+          change.base = t0.level,
+          alpha.change.func = alpha.change.func
+        )
 
-      subset_data.obj <- mStat_subset_data(data.obj, samIDs = subset.ids)
-
-      subset_alpha.obj <- mStat_subset_alpha(alpha.obj, samIDs = subset.ids)
-
-      subset.test.list <- generate_alpha_change_test_pair(
-        data.obj = subset_data.obj,
-        alpha.obj = subset_alpha.obj,
-        alpha.name = alpha.name,
-        depth = depth,
-        time.var = time.var,
-        subject.var = subject.var,
-        group.var = group.var,
-        adj.vars = adj.vars,
-        change.base = t0.level,
-        alpha.change.func = alpha.change.func
-      )
-
-      all_terms <- unique(unlist(lapply(subset.test.list, \(df) df$Term)))
-      all_terms <- setdiff(all_terms, "(Intercept)")
-      all_terms <- all_terms[grepl(paste0("^", group.var), all_terms)]
-
-      new_list <- lapply(all_terms, \(term) {
-        alpha_dfs <- lapply(names(subset.test.list), \(alpha_name) {
-          df <- subset.test.list[[alpha_name]]
-          filtered_df <- filter(df, Term == term) %>%
-            dplyr::select(-Term) %>%
-            dplyr::mutate(Term = alpha_name) %>%
-            dplyr::select(Term, everything())
-
-          if(nrow(filtered_df) == 0) {
-            return(NULL)
-          }
-
-          return(filtered_df)
-        })
-        do.call(rbind, alpha_dfs)
-      })
-
-      all_terms <- lapply(all_terms, function(term) {
-        if (term != group.var) {
-          modified_term <- stringr::str_replace(term, paste0("^", group.var), "")
-          modified_term <- stringr::str_trim(modified_term)
-          paste(sprintf("%s vs %s", modified_term, reference_level), "(Reference)")
-        } else {
-          term
-        }
-      })
-
-      new_subset_test_list <- setNames(new_list, all_terms)
-
-      return(new_subset_test_list)
-    })
-
-    # Assign names to the elements of test.list
-    names(test.list) <- ts.levels
-
-    return(test.list)
+        mStat_restructure_group_term_results(
+          test.list = subset.test.list,
+          group.var = group.var,
+          reference_level = reference_level
+        )
+      }
+    )
   }

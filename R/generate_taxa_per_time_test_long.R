@@ -104,19 +104,11 @@ generate_taxa_per_time_test_long <-
     # Match the feature data type argument
     feature.dat.type <- match.arg(feature.dat.type)
 
-    build_per_time_formula <- function(group.var = NULL, adj.vars = NULL) {
-      terms <- c(group.var, adj.vars)
-      terms <- terms[!is.null(terms)]
-
-      if (length(terms) == 0) {
-        return("1")
-      }
-
-      paste(terms, collapse = " + ")
-    }
-
     # Generate the fixed-effects formula for each per-time analysis
-    formula <- build_per_time_formula(group.var = group.var, adj.vars = adj.vars)
+    formula <- paste(attr(terms(mStat_build_formula(".response", c(group.var, adj.vars))), "term.labels"), collapse = " + ")
+    if (!nzchar(formula)) {
+      formula <- "1"
+    }
 
     mStat_validate_time_var_contract(
       meta.dat = data.obj$meta.dat,
@@ -124,21 +116,23 @@ generate_taxa_per_time_test_long <-
       context = "taxa per-time testing"
     )
 
-    # Extract unique time levels from the data
-    time.levels <- data.obj$meta.dat %>% select(all_of(c(time.var))) %>% unique() %>% pull()
+    # Extract ordered time levels from the data.
+    time.levels <- mStat_order_time_labels(data.obj$meta.dat[[time.var]])
 
-    # Perform analysis for each time point
-    test.list <- lapply(time.levels, function(t.level){
-      tryCatch({
-        # Subset data for the current time point
-        subset.ids <- get_sample_ids(data.obj, time.var, t.level)
-        subset_data.obj <- mStat_subset_data(data.obj, samIDs = subset.ids)
-        
-        # Extract relevant metadata for the current subset
-        meta_tab <-
-          subset_data.obj$meta.dat %>% select(all_of(c(
-            time.var, group.var, adj.vars, subject.var
-          )))
+    # Perform analysis for each time point.
+    mStat_run_per_time_analysis(
+      time.levels = time.levels,
+      context = "taxa per-time testing",
+      analysis_fn = function(t.level) {
+        subset_data.obj <- mStat_subset_analysis_inputs_by_meta_values(
+          data.obj = data.obj,
+          var = time.var,
+          values = t.level,
+          prune.features = TRUE
+        )$data.obj
+
+        meta_tab <- subset_data.obj$meta.dat %>%
+          dplyr::select(all_of(c(time.var, group.var, adj.vars, subject.var)))
 
         mStat_validate_group_var_contract(
           meta.dat = meta_tab,
@@ -146,137 +140,61 @@ generate_taxa_per_time_test_long <-
           context = paste0("taxa per-time testing at ", t.level)
         )
 
-        analysis_data.obj <- subset_data.obj
-        analysis_feature.dat.type <- feature.dat.type
-        if (feature.dat.type == "count"){
-          message(
-            "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
-          )
-          analysis_data.obj <- mStat_normalize_data(subset_data.obj, method = "TSS")$data.obj.norm
-          analysis_feature.dat.type <- "proportion"
-        }
+        analysis_data.obj <- mStat_normalize_count_data_if_needed(subset_data.obj, feature.dat.type)
+        analysis_feature.dat.type <- if (feature.dat.type == "count") "proportion" else feature.dat.type
 
-        # Perform analysis for each taxonomic level
         test.list <- lapply(feature.level, function(feature.level) {
-
-        # Aggregate, extract, and filter feature data
-        otu_tax_agg_filter <- get_taxa_data(analysis_data.obj, feature.level, prev.filter, abund.filter, feature.col = FALSE)
-
-        # Perform per-time fixed-effects analysis using LinDA
-        linda.obj <- linda(
-          feature.dat = otu_tax_agg_filter,
-          meta.dat = meta_tab,
-          formula = paste("~", formula),
-          feature.dat.type = analysis_feature.dat.type,
-          prev.filter = prev.filter,
-          mean.abund.filter = abund.filter,
-          ...
-        )
-
-        group_is_categorical <- is.factor(meta_tab[[group.var]]) || is.character(meta_tab[[group.var]])
-        reference_level <- if (group_is_categorical) {
-          levels(as.factor(meta_tab[[group.var]]))[1]
-        } else {
-          NULL
-        }
-
-        # Calculate average abundance and prevalence for each feature
-        prop_prev_data <- mStat_summarize_taxa_features(
-          feature.dat = otu_tax_agg_filter,
-          feature.level = feature.level
-        )
-
-        # Function to extract relevant data frames from LInDA output
-        extract_data_frames <- function(linda_object,
-                                        group_var = NULL,
-                                        reference_level = NULL,
-                                        is_categorical = TRUE) {
-          result_list <- list()
-
-          if (is.null(group_var)) {
-            return(result_list)
-          }
-
-          output_names <- names(linda_object$output)
-          matching_dfs <- grep(paste0("^", group_var), output_names, value = TRUE)
-
-          for (df_name in matching_dfs) {
-            group_value <- strsplit(df_name, split = ":", fixed = TRUE)[[1]][1]
-            group_value <- sub(paste0("^", group_var), "", group_value)
-
-            label <- if (is_categorical && nzchar(group_value)) {
-              paste0(group_value, " vs ", reference_level, " (Reference)")
-            } else {
-              group_var
-            }
-
-            result_list[[label]] <- linda_object$output[[df_name]]
-          }
-
-          result_list
-        }
-
-        # Extract and process results from LInDA output
-        sub_test.list <- extract_data_frames(
-          linda_object = linda.obj,
-          group_var = group.var,
-          reference_level = reference_level,
-          is_categorical = group_is_categorical
-        )
-
-        if (length(sub_test.list) == 0) {
-          return(list())
-        }
-
-        # Format and annotate results
-        sub_test.list <- lapply(sub_test.list, function(df){
-          mStat_format_linda_feature_results(
-            result.df = df,
-            feature.level = feature.level,
-            feature.stats = prop_prev_data
+          otu_tax_agg_filter <- get_taxa_data(
+            analysis_data.obj,
+            feature.level,
+            prev.filter,
+            abund.filter,
+            feature.col = FALSE
           )
+
+          linda.obj <- .mStat_run_linda(
+            feature.dat = otu_tax_agg_filter,
+            meta.dat = meta_tab,
+            formula = formula,
+            feature.dat.type = analysis_feature.dat.type,
+            prev.filter = prev.filter,
+            mean.abund.filter = abund.filter,
+            extra_args = list(...)
+          )
+
+          reference_level <- .mStat_get_group_reference_level(
+            meta.dat = meta_tab,
+            group.var = group.var
+          )
+          group_is_categorical <- !is.null(reference_level)
+
+          prop_prev_data <- mStat_summarize_taxa_features(
+            feature.dat = otu_tax_agg_filter,
+            feature.level = feature.level
+          )
+
+          sub_test.list <- .mStat_extract_pair_linda_outputs(
+            linda_output = linda.obj$output,
+            group_var = group.var,
+            time_var = NULL,
+            reference_level = if (group_is_categorical) reference_level else NULL
+          )
+
+          if (length(sub_test.list) == 0) {
+            return(list())
+          }
+
+          lapply(sub_test.list, function(df) {
+            mStat_format_linda_feature_results(
+              result.df = df,
+              feature.level = feature.level,
+              feature.stats = prop_prev_data
+            )
+          })
         })
 
-        return(sub_test.list)
-
-      })
-
-      # Assign names to the elements of test.list
-      names(test.list) <- feature.level
-
-      return(test.list)
-      }, error = function(e) {
-        warning(
-          "Error analyzing time point ", t.level, ": ", conditionMessage(e), "\n",
-          "Skipping this time point and continuing with others."
-        )
-        return(NULL) # Return NULL for this time point if an error occurs
-      })
-    })
-
-    # Keep time points that produced at least one non-empty feature-level result
-    has_results <- vapply(test.list, function(tp_result) {
-      if (is.null(tp_result)) {
-        return(FALSE)
+        names(test.list) <- feature.level
+        test.list
       }
-      any(vapply(tp_result, length, integer(1)) > 0)
-    }, logical(1))
-
-    valid_time_indices <- which(has_results)
-
-    # Remove empty/failed time points from the list
-    test.list <- test.list[has_results]
-    
-    # If all time points were skipped, return a message
-    if (length(test.list) == 0) {
-      stop("No time points could be analyzed. Check if you have enough observations per subject at each time point.")
-    }
-    
-    # FIXED: Use the indices recorded from the original list to assign correct time point names
-    # This ensures that the names correspond to the actual time points that were analyzed
-    if (length(valid_time_indices) > 0) {
-      names(test.list) <- time.levels[valid_time_indices]
-    }
-
-    return(test.list)
+    )
   }

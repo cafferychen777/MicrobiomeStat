@@ -152,9 +152,10 @@ generate_alpha_boxplot_long <- function (data.obj,
   alpha.obj <- prepared$alpha.obj
 
   # Prepare metadata and alpha diversity data
-  meta_tab <- data.obj$meta.dat %>% 
-    as.data.frame() %>% 
-    dplyr::select(all_of(c(subject.var, group.var, time.var, strata.var, adj.vars)))
+  meta_tab <- mStat_prepare_alpha_meta_tab(
+    data.obj = data.obj,
+    vars = c(subject.var, group.var, time.var, strata.var, adj.vars)
+  )
 
   time.levels <- meta_tab %>%
     dplyr::select(all_of(c(time.var))) %>%
@@ -177,33 +178,23 @@ generate_alpha_boxplot_long <- function (data.obj,
   # Use mStat_get_palette to set the color palette
   col <- mStat_get_palette(palette)
 
-  # Handle case when no grouping variable is provided
-  if (is.null(group.var)) {
-    alpha_df <- alpha_df %>% dplyr::mutate("ALL" = "ALL")
-    group.var <- "ALL"
-  }
+  placeholder_group <- mStat_ensure_group_placeholder(alpha_df, group.var = group.var)
+  alpha_df <- placeholder_group$df
+  resolved_group_var <- placeholder_group$group.var
 
   # Create a plot for each alpha diversity index
   plot_list <- lapply(alpha.name, function(index) {
-    line_aes_function <- if (!is.null(group.var)) {
-      aes(
-        x = !!sym(time.var),
-        y = !!sym(index),
-        group = !!sym(subject.var)
-      )
-    } else {
-      aes(
-        x = !!sym(time.var),
-        y = !!sym(index),
-        group = !!sym(subject.var)
-      )
-    }
+    line_aes_function <- aes(
+      x = !!sym(time.var),
+      y = !!sym(index),
+      group = !!sym(subject.var)
+    )
 
     aes_function <- if (!is.null(group.var)) {
       aes(
         x = !!sym(time.var),
         y = !!sym(index),
-        fill = !!sym(group.var)
+        fill = !!sym(resolved_group_var)
       )
     } else {
       aes(
@@ -248,18 +239,18 @@ generate_alpha_boxplot_long <- function (data.obj,
 
     # Calculate average alpha diversity for large datasets
     average_alpha_df <- NULL
-    if (length(unique(alpha_df[[time.var]])) > 10 ||
-        length(unique(alpha_df[[subject.var]])) > 25) {
-      if (!is.null(strata.var) & !is.null(group.var)) {
+    if (length(unique(stats::na.omit(alpha_df[[time.var]]))) > 10 ||
+        length(unique(stats::na.omit(alpha_df[[subject.var]]))) > 25) {
+      if (!is.null(strata.var) && !is.null(group.var)) {
         average_alpha_df <- alpha_df %>%
-          dplyr::group_by(!!sym(strata.var), !!sym(group.var), !!sym(time.var)) %>%
+          dplyr::group_by(!!sym(strata.var), !!sym(resolved_group_var), !!sym(time.var)) %>%
           dplyr::summarise(dplyr::across(!!sym(index), \(x) mean(x, na.rm = TRUE)), .groups = "drop") %>%
           dplyr::ungroup() %>%
           dplyr::mutate(!!sym(subject.var) := "ALL") %>%
           dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var)))
       } else if (!is.null(group.var)) {
         average_alpha_df <- alpha_df %>%
-          dplyr::group_by(!!sym(group.var), !!sym(time.var)) %>%
+          dplyr::group_by(!!sym(resolved_group_var), !!sym(time.var)) %>%
           dplyr::summarise(dplyr::across(!!sym(index), \(x) mean(x, na.rm = TRUE)), .groups = "drop") %>%
           dplyr::ungroup() %>%
           dplyr::mutate(!!sym(subject.var) := "ALL") %>%
@@ -310,37 +301,33 @@ generate_alpha_boxplot_long <- function (data.obj,
       scale_fill_manual(values = col) +
       {
         if (time.levels > 2) {
-          if (!is.null(strata.var) & !is.null(group.var)) {
+          if (!is.null(strata.var) && !is.null(group.var)) {
             ggh4x::facet_nested(
-              cols = vars(!!sym(group.var)),
+              cols = vars(!!sym(resolved_group_var)),
               rows = vars(!!sym(strata.var)),
-              scale = "free",
+              scales = "free",
               space = "free"
             )
-          } else {
-            if (group.var != "ALL") {
-              ggh4x::facet_nested(
-                cols = vars(!!sym(group.var)),
-                scale = "free",
-                space = "free"
-              )
-            }
+          } else if (!is.null(group.var)) {
+            ggh4x::facet_nested(
+              cols = vars(!!sym(resolved_group_var)),
+              scales = "free",
+              space = "free"
+            )
           }
         } else {
-          if (!is.null(strata.var) & !is.null(group.var)) {
+          if (!is.null(strata.var) && !is.null(group.var)) {
             ggh4x::facet_nested(
-              cols = vars(!!sym(strata.var), !!sym(group.var)),
-              scale = "free",
+              cols = vars(!!sym(strata.var), !!sym(resolved_group_var)),
+              scales = "free",
               space = "free"
             )
-          } else {
-            if (group.var != "ALL") {
-              ggh4x::facet_nested(
-                cols = vars(!!sym(group.var)),
-                scale = "free",
-                space = "free"
-              )
-            }
+          } else if (!is.null(group.var)) {
+            ggh4x::facet_nested(
+              cols = vars(!!sym(resolved_group_var)),
+              scales = "free",
+              space = "free"
+            )
           }
         }
       } +
@@ -367,14 +354,14 @@ generate_alpha_boxplot_long <- function (data.obj,
         legend.key.size = unit(10, "mm"),
         legend.key.spacing = unit(2, "mm")
       ) + {
-        if (group.var == "ALL") {
+        if (is.null(group.var)) {
           guides(fill = "none")
         }
       }
 
     # Add geom_jitter() if the number of unique time points or subjects is greater than 10
-    if (length(unique(alpha_df[[time.var]])) > 10 ||
-        length(unique(alpha_df[[subject.var]])) > 10) {
+    if (length(unique(stats::na.omit(alpha_df[[time.var]]))) > 10 ||
+        length(unique(stats::na.omit(alpha_df[[subject.var]]))) > 10) {
       boxplot <- boxplot + geom_jitter(width = 0.1,
                                        alpha = 0.1,
                                        size = 1)

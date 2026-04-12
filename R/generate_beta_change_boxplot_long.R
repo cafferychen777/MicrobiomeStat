@@ -169,6 +169,10 @@ generate_beta_change_boxplot_long <-
       return()
     }
 
+    if (is.null(data.obj) && is.null(dist.obj)) {
+      stop("Either `data.obj` or `dist.obj` must be provided.", call. = FALSE)
+    }
+
     # Calculate beta diversity if not provided
     # This step ensures we have the necessary distance matrices for the analysis
     if (is.null(dist.obj)) {
@@ -204,6 +208,9 @@ generate_beta_change_boxplot_long <-
 
     # Add sample names to metadata
     meta_tab <- mStat_meta_to_tibble(meta_tab, sample_col = "sample")
+    placeholder_group <- mStat_ensure_group_placeholder(meta_tab, group.var = group.var)
+    meta_tab <- placeholder_group$df
+    resolved_group_var <- placeholder_group$group.var
 
     # Get color palette for plotting
     col <- mStat_get_palette(palette)
@@ -214,44 +221,42 @@ generate_beta_change_boxplot_long <-
     # Generate plots for each specified distance metric
     plot_list <- lapply(dist.name, function(dist.name) {
 
-      # Convert distance object to a tibble for easier manipulation
-      dist_tibble <- tibble::as_tibble(as.matrix(dist.obj[[dist.name]]), rownames = "Sample1")
+      dist_meta <- mStat_prepare_dist_group_time_long_data(
+        dist.matrix = dist.obj[[dist.name]],
+        meta.dat = meta_tab,
+        group.var = resolved_group_var,
+        time.var = time.var,
+        strata.var = strata.var,
+        sample_col = "sample",
+        pair_col = "Sample2",
+        distance_col = "Distance"
+      ) %>%
+        dplyr::rename(Sample1 = sample) %>%
+        dplyr::filter(Time.x == Time.y)
 
-      # Join metadata with distance information
-      if (!is.null(strata.var)){
-        dist_meta <- dist_tibble %>%
-          tidyr::pivot_longer(cols = -Sample1, names_to = "Sample2", values_to = "Distance") %>%
-          dplyr::left_join(meta_tab %>% select(sample, Group = all_of(group.var), Time = all_of(time.var), Strata = all_of(strata.var)), by = c("Sample1" = "sample")) %>%
-          dplyr::left_join(meta_tab %>% select(sample, Group = all_of(group.var), Time = all_of(time.var), Strata = all_of(strata.var)), by = c("Sample2" = "sample"))
-      } else {
-        dist_meta <- dist_tibble %>%
-          tidyr::pivot_longer(cols = -Sample1, names_to = "Sample2", values_to = "Distance") %>%
-          dplyr::left_join(meta_tab %>% select(sample, Group = all_of(group.var), Time = all_of(time.var)), by = c("Sample1" = "sample")) %>%
-          dplyr::left_join(meta_tab %>% select(sample, Group = all_of(group.var), Time = all_of(time.var)), by = c("Sample2" = "sample"))
-      }
+      n_groups <- dplyr::n_distinct(stats::na.omit(dist_meta$Group.x))
 
       # Handle different plotting scenarios based on the number of groups
-      if (length(unique(dist_meta$Group.x)) <= 2) {
+      if (n_groups <= 2) {
         # For two or fewer groups, calculate within- and between-group distances
-        if (!is.null(strata.var)){
-          within_between_dist <- dist_meta %>%
-            filter(Time.x == Time.y) %>%
-            dplyr::mutate(
-              Type = dplyr::if_else(Group.x == Group.y, "Within", "Between"),
-              Group = dplyr::if_else(Type == "Within", Group.x, paste(Group.x, Group.y, sep = "-")),
-              Time = Time.x
-            ) %>%
-            select(Group, Distance, Type, Time, Strata = Strata.x)
-        } else {
-          within_between_dist <- dist_meta %>%
-            filter(Time.x == Time.y) %>%
-            dplyr::mutate(
-              Type = dplyr::if_else(Group.x == Group.y, "Within", "Between"),
-              Group = dplyr::if_else(Type == "Within", Group.x, paste(Group.x, Group.y, sep = "-")),
-              Time = Time.x
-            ) %>%
-            select(Group, Distance, Type, Time)
-        }
+        within_between_dist <- dist_meta %>%
+          dplyr::mutate(
+            Type = dplyr::if_else(Group.x == Group.y, "Within", "Between"),
+            Group = dplyr::if_else(
+              Type == "Within",
+              Group.x,
+              mStat_canonicalize_group_pair_labels(Group.x, Group.y)
+            ),
+            Time = Time.x
+          ) %>%
+          dplyr::select(
+            Group,
+            Distance,
+            Type,
+            Time,
+            dplyr::any_of("Strata.x")
+          ) %>%
+          dplyr::rename(Strata = dplyr::any_of("Strata.x"))
 
         # Create boxplot for within- and between-group distances
         p <- ggplot(within_between_dist, aes(x = Time, y = Distance, fill = Type)) +
@@ -285,27 +290,18 @@ generate_beta_change_boxplot_long <-
 
       } else {
         # For more than two groups, calculate pairwise distances between all groups
-        if (!is.null(strata.var)){
-          within_between_dist <- dist_meta %>%
-            filter(Time.x == Time.y) %>%
-            dplyr::mutate(
-              Type = paste(Group.x, Group.y, sep = "-"),
-              Time = Time.x
-            ) %>%
-            select(Type, Distance, Time, Strata = Strata.x) %>%
-            dplyr::mutate(Type = apply(select(., Type), 1, function(x) paste(sort(unlist(strsplit(x, "-"))), collapse = "-"))) %>%
-            distinct(Type, Time, Distance, Strata, .keep_all = TRUE)
-        } else {
-          within_between_dist <- dist_meta %>%
-            filter(Time.x == Time.y) %>%
-            dplyr::mutate(
-              Type = paste(Group.x, Group.y, sep = "-"),
-              Time = Time.x
-            ) %>%
-            select(Type, Distance, Time) %>%
-            dplyr::mutate(Type = apply(select(., Type), 1, function(x) paste(sort(unlist(strsplit(x, "-"))), collapse = "-"))) %>%
-            distinct(Type, Time, Distance, .keep_all = TRUE)
-        }
+        within_between_dist <- dist_meta %>%
+          dplyr::mutate(
+            Type = mStat_canonicalize_group_pair_labels(Group.x, Group.y),
+            Time = Time.x
+          ) %>%
+          dplyr::select(
+            Type,
+            Distance,
+            Time,
+            dplyr::any_of("Strata.x")
+          ) %>%
+          dplyr::rename(Strata = dplyr::any_of("Strata.x"))
 
         # Create boxplot for pairwise distances between all groups
         p <- ggplot(within_between_dist, aes(x = Time, y = Distance, fill = Type)) +
@@ -340,7 +336,11 @@ generate_beta_change_boxplot_long <-
 
       # Add faceting by strata if a strata variable is specified
       if (!is.null(strata.var)) {
-        p <- p + facet_wrap2("Strata", scales = "free", nrow = length(unique(meta_tab[[strata.var]])))
+        p <- p + facet_wrap2(
+          "Strata",
+          scales = "free",
+          nrow = length(unique(stats::na.omit(meta_tab[[strata.var]])))
+        )
       } else {
         p <- p
       }

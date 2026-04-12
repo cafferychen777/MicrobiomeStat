@@ -161,13 +161,8 @@ generate_taxa_heatmap_pair <- function(data.obj,
     abund.filter <- 0
   }
 
-  # Normalize count data if necessary
-  if (feature.dat.type == "count"){
-    message(
-      "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
-    )
-    data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
-  }
+  # Normalize count data if necessary.
+  data.obj <- mStat_normalize_count_data_if_needed(data.obj, feature.dat.type)
 
   # Create a list to store plots for each taxonomic level
   plot_list <- lapply(feature.level, function(feature.level) {
@@ -175,11 +170,13 @@ generate_taxa_heatmap_pair <- function(data.obj,
     # Aggregate data by taxonomy if necessary
     otu_tax_agg <- get_taxa_data(data.obj, feature.level, prev.filter, abund.filter)
 
-    # Select top k features if specified
-    if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
-      computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
-      features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
-    }
+    current_features_plot <- mStat_resolve_selected_features(
+      feature.dat = otu_tax_agg,
+      feature.level = feature.level,
+      features.plot = features.plot,
+      top.k.plot = top.k.plot,
+      top.k.func = top.k.func
+    )
 
     # Normalize the feature table
     otu_tab_norm <-
@@ -190,49 +187,48 @@ generate_taxa_heatmap_pair <- function(data.obj,
       )
 
     # Sort samples by group.var and strata.var
-    if (!is.null(group.var) & !is.null(strata.var)) {
+    if (!is.null(group.var) && !is.null(strata.var)) {
       meta_tab_sorted <-
         meta_tab[order(meta_tab[[strata.var]], meta_tab[[group.var]]), ]
       otu_tab_norm_sorted <-
-        otu_tab_norm[, rownames(meta_tab_sorted)]
+        otu_tab_norm[, rownames(meta_tab_sorted), drop = FALSE]
     } else if (!is.null(group.var)) {
       meta_tab_sorted <- meta_tab[order(meta_tab[[group.var]]), ]
       otu_tab_norm_sorted <-
-        otu_tab_norm[, rownames(meta_tab_sorted)]
+        otu_tab_norm[, rownames(meta_tab_sorted), drop = FALSE]
     } else {
       otu_tab_norm_sorted <- otu_tab_norm
     }
 
-    # Calculate gaps for the heatmap
-    if (!is.null(group.var)){
-      gaps <-
-        cumsum(table(meta_tab_sorted[[subject.var]]))[-length(table(meta_tab_sorted[[subject.var]]))]
+    # Calculate gaps for the heatmap.
+    if (!is.null(group.var)) {
+      gaps <- cumsum(table(meta_tab_sorted[[subject.var]]))[-length(table(meta_tab_sorted[[subject.var]]))]
     } else {
       gaps <- NULL
     }
 
-    # Set up annotation_col based on group.var and strata.var values
-    if (!is.null(group.var) & !is.null(strata.var)) {
-      annotation_col <-
-        meta_tab %>% select(all_of(c(time.var, group.var, strata.var)))
-    } else if (!is.null(group.var) & is.null(strata.var)) {
-      annotation_col <-
-        meta_tab %>% select(all_of(c(time.var, group.var)))
+    # Set up annotation_col based on group.var and strata.var values.
+    if (!is.null(group.var) && !is.null(strata.var)) {
+      annotation_col <- meta_tab %>% select(all_of(c(time.var, group.var, strata.var)))
+    } else if (!is.null(group.var)) {
+      annotation_col <- meta_tab %>% select(all_of(c(time.var, group.var)))
+    } else if (!is.null(strata.var)) {
+      annotation_col <- meta_tab %>% select(all_of(c(time.var, strata.var)))
     } else {
       annotation_col <- meta_tab %>% select(all_of(c(time.var)))
     }
 
     # Filter features if specified
-    if (!is.null(features.plot)) {
+    if (!is.null(current_features_plot)) {
       otu_tab_norm_sorted <-
-        otu_tab_norm_sorted[rownames(otu_tab_norm_sorted) %in% features.plot,]
+        otu_tab_norm_sorted[rownames(otu_tab_norm_sorted) %in% current_features_plot, , drop = FALSE]
     }
 
     # Get color palette
     color_vector <- mStat_get_palette(palette)
 
     # Set up annotation colors
-    if (!is.null(strata.var) & !is.null(group.var)){
+    if (!is.null(strata.var) && !is.null(group.var)){
       # Check if variables are already factors to preserve their order
       if (is.factor(annotation_col[[group.var]])) {
         group_levels <- levels(annotation_col[[group.var]])
@@ -264,6 +260,17 @@ generate_taxa_heatmap_pair <- function(data.obj,
         list(group_colors),
         c(group.var)
       )
+    } else if (!is.null(strata.var)) {
+      if (is.factor(annotation_col[[strata.var]])) {
+        strata_levels <- levels(annotation_col[[strata.var]])
+      } else {
+        strata_levels <- annotation_col %>% dplyr::select(all_of(c(strata.var))) %>% distinct() %>% pull()
+      }
+      strata_colors <- setNames(rev(color_vector)[1:length(strata_levels)], strata_levels)
+      annotation_colors_list <- setNames(
+        list(strata_colors),
+        c(strata.var)
+      )
     } else {
       annotation_colors_list <- NULL
     }
@@ -289,14 +296,20 @@ generate_taxa_heatmap_pair <- function(data.obj,
       processed_otu_tab <- otu_tab_norm_sorted
     }
 
+    heatmap_gaps <- if (!is.null(gaps) && length(gaps) > 0 && ncol(processed_otu_tab) > 1) {
+      gaps
+    } else {
+      NULL
+    }
+
     # Generate individual sample heatmap
     heatmap_plot <- pheatmap::pheatmap(
-      mat = processed_otu_tab[order(rowMeans(processed_otu_tab, na.rm = TRUE), decreasing = TRUE), ],
+      mat = processed_otu_tab[order(rowMeans(processed_otu_tab, na.rm = TRUE), decreasing = TRUE), , drop = FALSE],
       annotation_col = annotation_col,
       annotation_colors = annotation_colors_list,
       cluster_rows = cluster.rows,
       cluster_cols = cluster.cols,
-      gaps_col = gaps,
+      gaps_col = heatmap_gaps,
       legend_breaks = quantiles,
       legend_labels = labels,
       color = my_col(n_colors),
@@ -308,17 +321,25 @@ generate_taxa_heatmap_pair <- function(data.obj,
     gg_heatmap_plot <- as.ggplot(heatmap_plot)
 
     # Generate average heatmap
-    if (!is.null(strata.var) & !is.null(group.var) & !is.null(time.var)){
-      wide_data <- otu_tab_norm_sorted %>%
-        as.data.frame() %>%
-        tibble::rownames_to_column(feature.level) %>%
-        tidyr::pivot_longer(cols = -feature.level, names_to = "sample", values_to = "value") %>%
-        dplyr::left_join(meta_tab %>% tibble::rownames_to_column("sample"), by = "sample") %>%
-        dplyr::group_by(!!sym(feature.level), !!sym(strata.var), !!sym(group.var), !!sym(time.var)) %>%
-        dplyr::summarise(mean_value = mean(value)) %>%
+    taxa_long_with_meta <- mStat_prepare_taxa_long_data(
+      feature.dat = otu_tab_norm_sorted,
+      feature.level = feature.level,
+      value_col = "value",
+      meta.dat = meta_tab,
+      sample_col = "sample",
+      feature_in_column = FALSE
+    )
+
+    if (!is.null(strata.var) && !is.null(group.var) && !is.null(time.var)){
+      wide_data <- mStat_summarize_mean_by_groups(
+        long.df = taxa_long_with_meta,
+        feature.level = feature.level,
+        group_vars = c(strata.var, group.var, time.var),
+        value_col = "value",
+        mean_col = "mean_value"
+      ) %>%
         tidyr::unite("column_name", !!sym(time.var), !!sym(group.var), !!sym(strata.var), sep = "_") %>%
-        tidyr::pivot_wider(names_from = column_name, values_from = mean_value) %>%
-        dplyr::ungroup()
+        tidyr::pivot_wider(names_from = column_name, values_from = mean_value)
 
       annotation_col <- wide_data %>%
         dplyr::select(-all_of(c(feature.level))) %>%
@@ -331,17 +352,16 @@ generate_taxa_heatmap_pair <- function(data.obj,
         ) %>%
         tibble::column_to_rownames("column_name")
 
-    } else if (!is.null(group.var) & !is.null(time.var)){
-      wide_data <- otu_tab_norm_sorted %>%
-        as.data.frame() %>%
-        tibble::rownames_to_column(feature.level) %>%
-        tidyr::pivot_longer(cols = -feature.level, names_to = "sample", values_to = "value") %>%
-        dplyr::left_join(meta_tab %>% tibble::rownames_to_column("sample"), by = "sample") %>%
-        dplyr::group_by(!!sym(feature.level), !!sym(group.var), !!sym(time.var)) %>%
-        dplyr::summarise(mean_value = mean(value)) %>%
+    } else if (!is.null(group.var) && !is.null(time.var)){
+      wide_data <- mStat_summarize_mean_by_groups(
+        long.df = taxa_long_with_meta,
+        feature.level = feature.level,
+        group_vars = c(group.var, time.var),
+        value_col = "value",
+        mean_col = "mean_value"
+      ) %>%
         tidyr::unite("column_name", !!sym(time.var), !!sym(group.var), sep = "_") %>%
-        tidyr::pivot_wider(names_from = column_name, values_from = mean_value) %>%
-        dplyr::ungroup()
+        tidyr::pivot_wider(names_from = column_name, values_from = mean_value)
 
       annotation_col <- wide_data %>%
         dplyr::select(-all_of(c(feature.level))) %>%
@@ -354,17 +374,37 @@ generate_taxa_heatmap_pair <- function(data.obj,
         tidyr::unite("column_name", !!sym(time.var), !!sym(group.var), sep = "_", remove = FALSE) %>%
         tibble::column_to_rownames("column_name")
 
+    } else if (!is.null(strata.var) && !is.null(time.var)) {
+      wide_data <- mStat_summarize_mean_by_groups(
+        long.df = taxa_long_with_meta,
+        feature.level = feature.level,
+        group_vars = c(strata.var, time.var),
+        value_col = "value",
+        mean_col = "mean_value"
+      ) %>%
+        tidyr::unite("column_name", !!sym(time.var), !!sym(strata.var), sep = "_") %>%
+        tidyr::pivot_wider(names_from = column_name, values_from = mean_value)
+
+      annotation_col <- wide_data %>%
+        dplyr::select(-all_of(c(feature.level))) %>%
+        names() %>%
+        tibble::tibble(column_name = .) %>%
+        dplyr::mutate(
+          !!time.var := stringr::str_extract(column_name, "^[^_]+"),
+          !!strata.var := stringr::str_extract(column_name, "(?<=_).*")
+        ) %>%
+        tidyr::unite("column_name", !!sym(time.var), !!sym(strata.var), sep = "_", remove = FALSE) %>%
+        tibble::column_to_rownames("column_name")
     } else if (!is.null(time.var)){
-      wide_data <- otu_tab_norm_sorted %>%
-        as.data.frame() %>%
-        tibble::rownames_to_column(feature.level) %>%
-        tidyr::pivot_longer(cols = -feature.level, names_to = "sample", values_to = "value") %>%
-        dplyr::left_join(meta_tab %>% tibble::rownames_to_column("sample"), by = "sample") %>%
-        dplyr::group_by(!!sym(feature.level), !!sym(time.var)) %>%
-        dplyr::summarise(mean_value = mean(value)) %>%
+      wide_data <- mStat_summarize_mean_by_groups(
+        long.df = taxa_long_with_meta,
+        feature.level = feature.level,
+        group_vars = time.var,
+        value_col = "value",
+        mean_col = "mean_value"
+      ) %>%
         tidyr::unite("column_name", !!sym(time.var), sep = "_") %>%
-        tidyr::pivot_wider(names_from = column_name, values_from = mean_value) %>%
-        dplyr::ungroup()
+        tidyr::pivot_wider(names_from = column_name, values_from = mean_value)
 
       annotation_col <- wide_data %>%
         dplyr::select(-all_of(c(feature.level))) %>%
@@ -389,7 +429,7 @@ generate_taxa_heatmap_pair <- function(data.obj,
 
     # Generate average heatmap
     average_heatmap_plot <- pheatmap::pheatmap(
-      mat = processed_wide_data[order(rowMeans(processed_wide_data, na.rm = TRUE), decreasing = TRUE), ],
+      mat = processed_wide_data[order(rowMeans(processed_wide_data, na.rm = TRUE), decreasing = TRUE), , drop = FALSE],
       annotation_col = annotation_col,
       annotation_colors = annotation_colors_list,
       cluster_rows = cluster.rows,
@@ -455,12 +495,6 @@ generate_taxa_heatmap_pair <- function(data.obj,
         "time_",
         time.var,
         "_",
-        "group_",
-        group.var,
-        "_",
-        "strata_",
-        strata.var,
-        "_",
         "feature_level_",
         feature.level,
         "_",
@@ -469,6 +503,11 @@ generate_taxa_heatmap_pair <- function(data.obj,
         "_",
         "abund_filter_",
         abund.filter
+      )
+      pdf_name <- mStat_append_pdf_group_suffixes(
+        pdf_name = pdf_name,
+        group.var = group.var,
+        strata.var = strata.var
       )
       if (!is.null(file.ann)) {
         pdf_name <- paste0(pdf_name, "_", file.ann)

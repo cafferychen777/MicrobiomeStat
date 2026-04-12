@@ -156,6 +156,10 @@ generate_beta_ordination_long <-
       return()
     }
 
+    if (is.null(data.obj) && is.null(dist.obj)) {
+      stop("Either `data.obj` or `dist.obj` must be provided.", call. = FALSE)
+    }
+
     # Calculate beta diversity if not provided
     if (is.null(dist.obj)) {
       # Process time variable and extract relevant metadata
@@ -250,7 +254,7 @@ generate_beta_ordination_long <-
         dplyr::ungroup()
 
       # Calculate mean positions for different grouping scenarios
-      if (!is.null(strata.var) & !is.null(group.var)) {
+      if (!is.null(strata.var) && !is.null(group.var)) {
         # Case: Both strata and group variables are present
         df_mean <- df %>%
           dplyr::group_by(!!sym(time.var), !!sym(group.var), !!sym(strata.var)) %>%
@@ -370,7 +374,7 @@ generate_beta_ordination_long <-
         } +
         # Set color scale based on grouping variables
         {
-          if (!is.null(group.var) | !is.null(strata.var)){
+          if (!is.null(group.var) || !is.null(strata.var)){
             scale_color_manual(values = col)
           } else {
             ggplot2::scale_color_gradientn(colors = c("#92c5de", "#0571b0", "#f4a582", "#ca0020"))

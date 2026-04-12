@@ -500,7 +500,7 @@ for(time_point in names(alpha_per_time_test_results)) {
     significant_results <- results_df[results_df$P.Value < 0.05,]
     if(nrow(significant_results) > 0) {
       cat(\'\\nSignificant differences were observed for the following alpha diversity measures:\\n\\n\')
-      for(i in 1:nrow(significant_results)) {
+      for(i in seq_len(nrow(significant_results))) {
         cat(sprintf(\'- %s (p-value: %.3f)\\n\', significant_results$Term[i], significant_results$P.Value[i]))
       }
     } else {
@@ -759,7 +759,7 @@ report_beta_significance <- function(results_df) {
   significant_results <- results_df[results_df$P.Value < 0.05,]
   if(nrow(significant_results) > 0) {
     cat(\'Significant differences were observed for the following beta diversity measures:\\n\\n\')
-    for(i in 1:nrow(significant_results)) {
+    for(i in seq_len(nrow(significant_results))) {
       cat(sprintf(\'- %s (p-value: %.3f)\\n\', significant_results$Term[i], significant_results$P.Value[i]))
     }
   } else {

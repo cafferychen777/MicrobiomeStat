@@ -126,16 +126,14 @@ generate_beta_ordination_single <-
       # Process data based on time variable if it exists
       if (!is.null(time.var)){
         if (!is.null(t.level)){
-          # Subset data to specific time point if t.level is provided
-          condition <- paste(time.var, "== '", t.level, "'", sep = "")
-          data.obj <- mStat_subset_data(data.obj, condition = condition)
+          data.obj <- mStat_subset_by_meta_values(data.obj, time.var, t.level)
           meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(group.var,strata.var,time.var)))
           dist.obj <-
             mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
         } else {
           # If no specific time point is provided, use all time points but warn if multiple exist
           meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(group.var,strata.var,time.var)))
-          if (length(levels(as.factor(meta_tab[,time.var]))) != 1){
+          if (dplyr::n_distinct(stats::na.omit(meta_tab[[time.var]])) > 1){
             message("Multiple time points detected in your dataset. It is recommended to either set t.level or utilize functions for longitudinal data analysis.")
           }
           dist.obj <-
@@ -179,7 +177,7 @@ generate_beta_ordination_single <-
       )
 
       if (!is.null(time.var) && is.null(t.level)) {
-        if (length(levels(as.factor(meta_tab[, time.var]))) != 1){
+        if (dplyr::n_distinct(stats::na.omit(meta_tab[[time.var]])) > 1){
           message("Multiple time points detected in your dataset. It is recommended to either set t.level or utilize functions for longitudinal data analysis.")
         }
       }
@@ -200,18 +198,16 @@ generate_beta_ordination_single <-
     # Get color palette for plotting
     col <- mStat_get_palette(palette)
 
-    # If no group variable is provided, create a dummy "ALL" group
-    if (is.null(group.var)){
-      group.var = "ALL"
-      meta_tab$ALL <- "ALL"
-    }
+    placeholder_group <- mStat_ensure_group_placeholder(meta_tab, group.var = group.var)
+    meta_tab <- placeholder_group$df
+    resolved_group_var <- placeholder_group$group.var
 
     # Define aesthetic mapping based on presence of strata variable
     aes_function <- if (!is.null(strata.var)) {
-      aes(color = !!sym(group.var),
+      aes(color = !!sym(resolved_group_var),
           shape = !!sym(strata.var))
     } else {
-      aes(color = !!sym(group.var))
+      aes(color = !!sym(resolved_group_var))
     }
 
     # Get appropriate theme for plotting
@@ -224,13 +220,17 @@ generate_beta_ordination_single <-
       pc.mat <- pc.obj[[dist.name]]$points[, 1:2]
 
       # Prepare data frame for plotting
-      df <-
-        pc.mat %>%
-        as.data.frame() %>%
-        tibble::rownames_to_column("sample") %>%
-        dplyr::left_join(meta_tab %>%
-                           dplyr::select(all_of(c(time.var, group.var, strata.var))) %>%
-                           tibble::rownames_to_column("sample"), by = "sample")
+      df <- mStat_prepare_pc_long_data(
+        pc.points = pc.mat,
+        pc.ind = c(1, 2),
+        meta.dat = meta_tab,
+        vars = c(time.var, resolved_group_var, strata.var),
+        sample_col = "sample",
+        join = "inner",
+        pc_col = "PC",
+        value_col = "value"
+      ) %>%
+        tidyr::pivot_wider(names_from = "PC", values_from = "value")
 
       # Filter out NA values in time variable if it exists
       if (!is.null(time.var)){
@@ -238,8 +238,6 @@ generate_beta_ordination_single <-
       }
 
       df <- df %>% tibble::column_to_rownames("sample")
-
-      colnames(df)[1:2] <- c("PC1", "PC2")
 
       axis_labels <- mStat_build_axis_labels_from_eig(pc.obj[[dist.name]]$eig)
 
@@ -251,7 +249,7 @@ generate_beta_ordination_single <-
           y = axis_labels$y
         ) +
         # Add 95% confidence ellipses for each group
-        ggplot2::stat_ellipse(ggplot2::aes(color = !!sym(group.var)),fill="white",geom = "polygon",
+        ggplot2::stat_ellipse(ggplot2::aes(color = !!sym(resolved_group_var)),fill="white",geom = "polygon",
                               level=0.95,alpha = 0.01,show.legend = F) +
         ggplot2::geom_vline(
           xintercept = 0,
@@ -286,7 +284,7 @@ generate_beta_ordination_single <-
         )
 
       # Set color scale based on grouping
-      if (group.var == "ALL") {
+      if (is.null(group.var)) {
         p <- p + scale_color_manual(values = col, guide = "none")
       } else {
         p <- p + scale_color_manual(values = col)
@@ -295,7 +293,7 @@ generate_beta_ordination_single <-
       # Create a boxplot for PC1 values
       Fig1a.taxa.pc1.boxplot <-
         ggplot2::ggplot(df) +
-        ggplot2::geom_boxplot(ggplot2::aes(x=!!sym(group.var), y=PC1, fill=!!sym(group.var)), color="black", alpha=0.5, show.legend = F) +
+        ggplot2::geom_boxplot(ggplot2::aes(x=!!sym(resolved_group_var), y=PC1, fill=!!sym(resolved_group_var)), color="black", alpha=0.5, show.legend = F) +
         ggplot2::scale_fill_manual(values=col) +
         ggplot2::theme_classic() +
         ggplot2::scale_y_continuous(expand = c(0,0.001)) +
@@ -310,7 +308,7 @@ generate_beta_ordination_single <-
       # Create a boxplot for PC2 values
       Fig1a.taxa.pc2.boxplot <-
         ggplot2::ggplot(df) +
-        ggplot2::geom_boxplot(ggplot2::aes(x=!!sym(group.var), y=PC2, fill=!!sym(group.var)), color="black", alpha=0.5, show.legend = F) +
+        ggplot2::geom_boxplot(ggplot2::aes(x=!!sym(resolved_group_var), y=PC2, fill=!!sym(resolved_group_var)), color="black", alpha=0.5, show.legend = F) +
         ggplot2::scale_fill_manual(values=col) +
         ggplot2::theme_classic() +
         ggplot2::scale_y_continuous(expand = c(0,0.001)) +

@@ -3,6 +3,11 @@
 # avoids false splits when level names contain dots or underscores.
 .STRATA_SEP <- ":::"
 
+#' @keywords internal
+mStat_escape_regex <- function(x) {
+  gsub("([][{}()+*^$|\\.?-])", "\\\\\\1", x)
+}
+
 #' Capture and Enforce Factor Levels in Metadata
 #'
 #' Reads factor levels from \code{data.obj$meta.dat} for the requested

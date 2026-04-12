@@ -145,10 +145,10 @@ generate_alpha_test_pair <-
     alpha.obj <- prepared$alpha.obj
 
     # Extract relevant metadata for the analysis
-    meta_tab <-
-      data.obj$meta.dat %>% as.data.frame() %>% dplyr::select(all_of(c(
-        subject.var, group.var, time.var, adj.vars
-      )))
+    meta_tab <- mStat_prepare_alpha_meta_tab(
+      data.obj = data.obj,
+      vars = c(subject.var, group.var, time.var, adj.vars)
+    )
 
 
     # Change the base level for time.var if change.base is specified
@@ -178,56 +178,28 @@ generate_alpha_test_pair <-
 
     # Perform statistical tests for each alpha diversity index
     test.list <- lapply(alpha.name, function(index) {
-
-      # Function to try fitting a complex mixed-effects model
-      # If the complex model fails, it falls back to a simpler model
-      try_complex_model <- function(alpha_df, formula_str) {
-        tryCatch({
-          # Attempt to fit a complex mixed-effects model
-          # This model accounts for repeated measures and potential interactions
-          lme.model <- lmerTest::lmer(formula_str, data = alpha_df)
-          return(lme.model)
-        },
-        error = function(e) {
-          # If the complex model fails, attempt a simpler model
-          message("Complex model failed. Trying a simpler model...")
-          new_formula_str <- construct_formula(
-            index = index,
-            group.var = group.var,
-            time.var = time.var,
-            subject.var = subject.var,
-            adj.vars = adj.vars,
-            random_slopes = FALSE
-          )
-
-          # Fit the simpler mixed-effects model
-          lme.model_simple <-
-            lmerTest::lmer(new_formula_str, data = alpha_df)
-          return(lme.model_simple)
-        })
-      }
-
-      # Construct the formula for the mixed-effects model
-      formula_str <-
-        construct_formula(index, group.var, time.var, subject.var, adj.vars)
-
-      # Attempt to fit the model, falling back to a simpler model if necessary
-      lme.model <- try_complex_model(alpha_df, formula_str)
+      lme.model <- mStat_fit_mixed_effects_model(
+        response.var = index,
+        time.var = time.var,
+        group.var = group.var,
+        subject.var = subject.var,
+        data = alpha_df,
+        adj.vars = adj.vars,
+        context = "alpha paired testing"
+      )
 
       # Extract coefficients from the fitted model
       coef.tab <- extract_coef(lme.model)
 
-    # Perform additional analysis if a grouping variable is present
-    if(!is.null(group.var)){
-      # Run ANOVA if the grouping variable has more than two levels
-      # This tests for overall differences among groups, rather than pairwise comparisons
-      if (group.levels > 2) {
+      if (!is.null(group.var) && group.levels > 2) {
         anova.tab <- anova(lme.model) %>%
           as.data.frame() %>%
           tibble::rownames_to_column("Term") %>%
-          dplyr::select(Term,
-                        Statistic = `F value`,
-                        P.Value = `Pr(>F)`) %>%
+          dplyr::select(
+            Term,
+            Statistic = `F value`,
+            P.Value = `Pr(>F)`
+          ) %>%
           tibble::as_tibble() %>%
           dplyr::mutate(Estimate = NA, Std.Error = NA) %>%
           dplyr::select(
@@ -239,11 +211,8 @@ generate_alpha_test_pair <-
           ) %>%
           dplyr::filter(Term %in% c(group.var, paste0(group.var, ":", time.var)))
 
-        # Combine the coefficient table with the ANOVA results
-        coef.tab <-
-          rbind(coef.tab, anova.tab)
+        coef.tab <- rbind(coef.tab, anova.tab)
       }
-    }
 
       return(tibble::as_tibble(coef.tab))
     })

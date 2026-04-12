@@ -59,10 +59,10 @@ generate_alpha_volatility_test_long <- function(data.obj,
   alpha.obj <- prepared$alpha.obj
 
   # Extract relevant metadata for the analysis
-  meta_tab <-
-    data.obj$meta.dat %>% as.data.frame() %>% dplyr::select(all_of(c(
-      subject.var, group.var, time.var, adj.vars
-    )))
+  meta_tab <- mStat_prepare_alpha_meta_tab(
+    data.obj = data.obj,
+    vars = c(subject.var, group.var, time.var, adj.vars)
+  )
 
   mStat_validate_group_var_contract(
     meta.dat = meta_tab,
@@ -77,13 +77,10 @@ generate_alpha_volatility_test_long <- function(data.obj,
     context = "alpha volatility testing"
   )
 
-  # Inform the user about the importance of numeric time variable for volatility calculation
-  # This message ensures that the user understands the requirements for proper analysis
-  message(
-    "The volatility calculation in generate_alpha_volatility_test_long relies on a numeric time variable.\n",
-    "Please check that your time variable is coded as numeric.\n",
-    "If the time variable is not numeric, it may cause issues in computing the results of the volatility test.\n",
-    "You can ensure the time variable is numeric by mutating it in the metadata."
+  mStat_inform_numeric_time_requirement(
+    function_name = "generate_alpha_volatility_test_long",
+    analysis_label = "volatility analysis",
+    conversion_behavior = "preprocess"
   )
 
   # Convert the time variable to numeric
@@ -164,31 +161,22 @@ generate_alpha_volatility_test_long <- function(data.obj,
                        .groups = 'drop')
 
     # Prepare data for testing the association between volatility and the grouping variable
-    test_df <- volatility_df %>%
-      dplyr::left_join(meta_tab %>%
-                         dplyr::select(all_of(c(
-                           subject.var, group.var
-                         ))) %>%
-                         dplyr::distinct(),
-                       by = subject.var,
-                       relationship = "many-to-one")
+    test_df <- mStat_attach_subject_level_metadata(
+      df = volatility_df,
+      meta.dat = meta_tab,
+      subject.var = subject.var,
+      vars = c(group.var, adj.vars)
+    )
 
-    model_terms <- c(group.var, adj.vars)
-    model_terms <- model_terms[!is.null(model_terms)]
+    valid_terms <- mStat_resolve_variable_terms(
+      data = test_df,
+      terms = c(group.var, adj.vars)
+    )
 
-    valid_terms <- model_terms[vapply(model_terms, function(term) {
-      term_values <- test_df[[term]]
-      if (is.numeric(term_values)) {
-        return(stats::var(term_values, na.rm = TRUE) > 0)
-      }
-      length(unique(stats::na.omit(term_values))) > 1
-    }, logical(1))]
-
-    model_formula <- if (length(valid_terms) > 0) {
-      stats::as.formula(paste("volatility ~", paste(valid_terms, collapse = " + ")))
-    } else {
-      stats::as.formula("volatility ~ 1")
-    }
+    model_formula <- mStat_build_formula(
+      response = "volatility",
+      terms = valid_terms
+    )
 
     test_result <- stats::lm(model_formula, data = test_df)
     coef.tab <- extract_coef(test_result)

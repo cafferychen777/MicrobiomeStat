@@ -139,6 +139,7 @@ plot_taxa <- function(data.obj,
     subject.var = subject.var,
     time.var = time.var,
     group.var = group.var,
+    strata.var = strata.var,
     design_info = design_info
   )
 
@@ -152,6 +153,7 @@ if (!validation$is_valid && is_change) {
       subject.var = subject.var,
       time.var = time.var,
       group.var = group.var,
+      strata.var = strata.var,
       design_info = design_info
     )
     if (validation$is_valid) {
@@ -180,7 +182,7 @@ if (!validation$is_valid && is_change) {
     abund.filter = abund.filter,
     feature.select = feature.select,
     theme = theme,
-    change.type = change.type
+    change.type = if (is_change) change.type else NULL
   )
 
   # Add transform for boxplot
@@ -294,6 +296,7 @@ plot_alpha <- function(data.obj,
     subject.var = subject.var,
     time.var = time.var,
     group.var = group.var,
+    strata.var = strata.var,
     design_info = design_info
   )
 
@@ -306,6 +309,7 @@ plot_alpha <- function(data.obj,
       subject.var = subject.var,
       time.var = time.var,
       group.var = group.var,
+      strata.var = strata.var,
       design_info = design_info
     )
     if (validation$is_valid) {
@@ -446,6 +450,7 @@ plot_beta <- function(data.obj,
     subject.var = subject.var,
     time.var = time.var,
     group.var = group.var,
+    strata.var = strata.var,
     design_info = design_info
   )
 
@@ -507,6 +512,7 @@ plot_beta <- function(data.obj,
 #'   - "trend": Test for temporal trends (longitudinal)
 #'   - "volatility": Test for temporal instability (longitudinal)
 #'   - "association": Test for associations with continuous variables
+#'   - "per_time": Test at each time point separately
 #' @param adj.vars Character vector. Names of adjustment/covariate variables.
 #' @param feature.mt.method Multiple testing correction: "fdr", "bonferroni", or "none".
 #' @param feature.sig.level Significance threshold (default 0.05).
@@ -532,7 +538,7 @@ plot_beta <- function(data.obj,
 #'
 #' @export
 test_taxa <- function(data.obj,
-                      test.type = c("difference", "trend", "volatility", "association"),
+                      test.type = c("difference", "trend", "volatility", "association", "per_time"),
                       subject.var = NULL,
                       time.var = NULL,
                       group.var = NULL,

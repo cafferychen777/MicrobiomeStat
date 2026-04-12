@@ -139,8 +139,8 @@ pander::pander(mStat_results)
 ```{r object-pre-calculation, echo=FALSE, message=FALSE, results='asis'}
 
 if (!is.null(time.var) & !is.null(t.level)){
-  condition <- paste(time.var, '==', t.level, sep = ' ')
-  data.obj <- mStat_subset_data(data.obj, condition = condition)
+  subset_ids <- rownames(data.obj$meta.dat)[mStat_match_metadata_values(data.obj$meta.dat[[time.var]], t.level)]
+  data.obj <- mStat_subset_data(data.obj, samIDs = subset_ids)
 }
 
 original.data.obj <- data.obj
@@ -511,7 +511,7 @@ report_beta_significance <- function(data_frame, distance) {
   # Extracting rows related to group.var
   group_data <- data_frame[data_frame$Distance == distance & data_frame$Variable == group.var,]
 
-  for(row in 1:nrow(group_data)) {
+  for(row in seq_len(nrow(group_data))) {
 
     # Fetch the p-value
     p_val <- as.numeric(group_data[row, 'P.Value'])

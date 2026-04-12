@@ -60,9 +60,10 @@ generate_taxa_trend_volcano_long <-
            pdf.wid = 7,
            pdf.hei = 5) {
 
-    # Extract relevant metadata and add sample names as a column
-    meta_tab <- mStat_meta_with_sample(
-      data.obj$meta.dat %>% dplyr::select(all_of(c(group.var)))
+    # Extract relevant metadata
+    meta_tab <- mStat_prepare_meta_tab(
+      meta.dat = data.obj$meta.dat,
+      vars = list(group.var)
     )
 
     # Get the color palette for the plot
@@ -97,10 +98,7 @@ generate_taxa_trend_volcano_long <-
             sub_test.result <- sub_test.list[[group.level]]
             
             # Filter features if a specific set is provided
-            if (!is.null(features.plot)) {
-              sub_test.result <- sub_test.result %>% 
-                filter(Variable %in% features.plot)
-            }
+            sub_test.result <- mStat_filter_test_result_features(sub_test.result, features.plot)
 
             # Calculate the maximum absolute coefficient for symmetric x-axis
             max_abs_log2FC <-
@@ -155,10 +153,7 @@ generate_taxa_trend_volcano_long <-
         sub_test.result <- sub_test.list[[time.var]]
         
         # Filter features if a specific set is provided
-        if (!is.null(features.plot)) {
-          sub_test.result <- sub_test.result %>% 
-            filter(Variable %in% features.plot)
-        }
+        sub_test.result <- mStat_filter_test_result_features(sub_test.result, features.plot)
 
         # Calculate the maximum absolute coefficient for symmetric x-axis
         max_abs_log2FC <-

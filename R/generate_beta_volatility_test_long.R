@@ -70,23 +70,25 @@ generate_beta_volatility_test_long <-
       return()
     }
 
-    # Validate the input data object
-    data.obj <- mStat_validate_data(data.obj)
+    if (is.null(data.obj) && is.null(dist.obj)) {
+      stop("Either `data.obj` or `dist.obj` must be provided.", call. = FALSE)
+    }
 
-    # Inform the user about the importance of numeric time variable
-    message(
-      "The volatility test in 'generate_beta_volatility_test_long' relies on a numeric time variable.\n",
-      "Please ensure that your time variable is coded as numeric.\n",
-      "If the time variable is not numeric, it may cause issues in computing the results of the volatility test.\n",
-      "The time variable will be processed within the function if needed."
+    # Validate the input data object only when it is actually used.
+    if (!is.null(data.obj)) {
+      data.obj <- mStat_validate_data(data.obj)
+    }
+
+    mStat_inform_numeric_time_requirement(
+      function_name = "generate_beta_volatility_test_long",
+      analysis_label = "volatility analysis",
+      conversion_behavior = "coerce"
     )
 
     # If distance object is not provided, calculate it from the data object
     if (is.null(dist.obj)) {
-      # Extract relevant metadata
-      meta_tab <- data.obj$meta.dat %>% select(all_of(c(subject.var, time.var, group.var, adj.vars)))
       data.obj <- mStat_process_time_variable(data.obj, time.var)
-      meta_tab <- data.obj$meta.dat %>% select(all_of(c(subject.var, time.var, group.var, adj.vars)))
+      meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var, adj.vars)))
       # Calculate beta diversity
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
@@ -122,31 +124,14 @@ generate_beta_volatility_test_long <-
     # Perform volatility test for each distance metric
     test.list <- lapply(dist.name,function(dist.name){
 
-      # Convert distance matrix to long format
-      dist.df <- mStat_dist_to_tibble(dist.obj[[dist.name]], sample_col = "sample")
-      meta_tab <- mStat_meta_to_tibble(meta_tab, sample_col = "sample")
-
-      # Prepare data for volatility analysis
-      # This step calculates the distance between consecutive time points for each subject
-      long.df <- dist.df %>%
-        tidyr::gather(key = "sample2", value = "distance", -sample) %>%
-        dplyr::left_join(meta_tab, by = "sample") %>%
-        dplyr::left_join(meta_tab, by = c("sample2" = "sample"), suffix = c(".subject", ".sample")) %>%
-        filter(!!sym(paste0(subject.var, ".subject")) == !!sym(paste0(subject.var, ".sample"))) %>%
-        dplyr::group_by(!!sym(paste0(subject.var, ".subject"))) %>%
-        dplyr::mutate(min_time_level = min(!!sym(paste0(time.var, ".subject")))[1]) %>%
-        dplyr::arrange(!!sym(paste0(time.var, ".sample"))) %>%
-        dplyr::mutate(prev_time_level = dplyr::lag(!!sym(paste0(time.var, ".subject")))) %>%
-        filter(!!sym(paste0(time.var, ".sample")) == !!sym("prev_time_level")) %>%
-        filter(!!sym(paste0(time.var,".subject")) != !!sym(paste0(time.var,".sample"))) %>%
-        filter(!!sym(paste0(time.var, ".subject")) != !!sym("min_time_level")) %>%
-        dplyr::ungroup() %>%
-        select(!!sym(paste0(subject.var, ".subject")), !!sym(paste0(time.var, ".subject")), !!sym(paste0(time.var, ".sample")) ,distance) %>%
-        dplyr::rename(
-          !!sym(subject.var) := !!sym(paste0(subject.var, ".subject")),
-          !!sym(time.var) := !!sym(paste0(time.var, ".subject")),
-          !!sym(paste0(time.var, ".before")) := !!sym(paste0(time.var, ".sample"))
-        )
+      # Convert adjacent within-subject distances to long format using the
+      # subject-specific observed time order.
+      long.df <- mStat_prepare_beta_adjacent_long_data(
+        dist.matrix = dist.obj[[dist.name]],
+        meta.dat = meta_tab,
+        subject.var = subject.var,
+        time.var = time.var
+      )
 
       # Ensure time variables are numeric
       long.df[[time.var]] <- mStat_coerce_time_to_numeric(
@@ -175,42 +160,31 @@ generate_beta_volatility_test_long <-
         )
 
       # Join volatility data with group information
-      test_df <- volatility_df %>%
-        dplyr::left_join(meta_tab %>%
-                           select(all_of(c(subject.var, group.var))) %>%
-                           dplyr::distinct(), by = subject.var, relationship = "many-to-one")
+      test_df <- mStat_attach_subject_level_metadata(
+        df = volatility_df,
+        meta.dat = meta_tab,
+        subject.var = subject.var,
+        vars = c(group.var, adj.vars)
+      )
 
       # Test the association between volatility and group variable using linear regression
-      formula <- as.formula(paste("volatility ~", group.var))
-      test_result <- lm(formula, data = test_df)
+      valid_terms <- mStat_resolve_variable_terms(
+        data = test_df,
+        terms = c(group.var, adj.vars)
+      )
+      test_result <- lm(
+        mStat_build_formula(response = "volatility", terms = valid_terms),
+        data = test_df
+      )
 
       # Extract coefficients from the linear model
       coef.tab <- extract_coef(test_result)
 
-      # If group variable has more than one level, perform ANOVA
-      if (length(unique(test_df[[group.var]])) > 1) {
-        anova <- anova(test_result)
-        # Format ANOVA results to match coefficient table structure
-        anova.tab <- anova %>% as.data.frame() %>%
-          tibble::rownames_to_column("Term") %>%
-          dplyr::select(
-            Term,
-            Statistic = `F value`,
-            P.Value = `Pr(>F)`
-          ) %>%
-          dplyr::mutate(Estimate = NA, Std.Error = NA) %>%
-          tibble::as_tibble() %>%
-          dplyr::select(
-            Term,
-            Estimate,
-            Std.Error,
-            Statistic,
-            P.Value
-          )
-
-        # Combine coefficient table with ANOVA results
-        coef.tab <-
-          rbind(coef.tab, anova.tab)
+      if (group.var %in% valid_terms && length(unique(stats::na.omit(test_df[[group.var]]))) > 2) {
+        group_row <- mStat_extract_group_anova_row(anova(test_result), group.var)
+        if (!is.null(group_row)) {
+          coef.tab <- rbind(coef.tab, group_row)
+        }
       }
 
       return(tibble::as_tibble(coef.tab))

@@ -86,12 +86,13 @@ mStat_summarize_data_obj <-
 
     # Compute basic summary statistics for the feature table.
     # These statistics provide an overview of sequencing depth and data sparsity.
-    ave_reads_per_sample <-
-      sum(colSums(feature_tab)) / nrow(feature_tab)
-    min_reads <- min(colSums(feature_tab))
-    max_reads <- max(colSums(feature_tab))
-    total_reads <- sum(colSums(feature_tab))
-    median_reads_per_sample <- median(colSums(feature_tab))
+    num_samples <- ncol(feature_tab)
+    sample_reads <- colSums(feature_tab)
+    ave_reads_per_sample <- sum(sample_reads) / num_samples
+    min_reads <- min(sample_reads)
+    max_reads <- max(sample_reads)
+    total_reads <- sum(sample_reads)
+    median_reads_per_sample <- median(sample_reads)
     zero_count_prop <-
       length(which(feature_tab == 0)) / length(feature_tab)
     count_single_occurrence <-
@@ -105,12 +106,14 @@ mStat_summarize_data_obj <-
 
         # Create a histogram of sample counts over time, potentially grouped by a specified variable.
         # This visualization helps to understand the temporal distribution of samples.
-        if (!is.null(group.var) &&
-            group.var %in% colnames(data.obj$meta.dat)) {
+        has_group <- !is.null(group.var) &&
+          group.var %in% colnames(data.obj$meta.dat)
+
+        if (has_group) {
           # Create a grouped data frame for the histogram
           grouped_df <- data.obj$meta.dat %>%
             dplyr::select(all_of(c(time.var, group.var))) %>%
-            dplyr::group_by_at(vars(time.var, group.var)) %>%
+            dplyr::group_by(dplyr::across(all_of(c(time.var, group.var)))) %>%
             dplyr::summarise(SampleCount = dplyr::n(), .groups = "drop")
 
           palette <- mStat_get_palette(palette)
@@ -136,9 +139,8 @@ mStat_summarize_data_obj <-
           print(p1)
         } else {
           # Create and print a non-grouped histogram if no grouping variable is provided
-          time_table <- table(data.obj$meta.dat[[time.var]])
-          time_df <-
-            as.data.frame(table(data.obj$meta.dat[[time.var]]))
+          time_counts <- table(time_var_data)
+          time_df <- as.data.frame(time_counts)
           colnames(time_df) <- c("TimePoint", "SampleCount")
 
           print(
@@ -162,20 +164,33 @@ mStat_summarize_data_obj <-
 
         # Create a boxplot of sequencing depth over time
         # This visualization helps to identify potential confounding effects of sequencing depth
-        seq_depth <- colSums(feature_tab)
         seq_depth_df <- data.frame(
           TimePoint = data.obj$meta.dat[[time.var]],
-          SequencingDepth = seq_depth
+          SequencingDepth = sample_reads
         )
 
-        if (!is.null(group.var) && group.var %in% colnames(data.obj$meta.dat)) {
+        if (has_group) {
           seq_depth_df$Group <- data.obj$meta.dat[[group.var]]
         }
 
         seq_depth_df$TimePoint <- as.factor(seq_depth_df$TimePoint)
 
-        seq_depth_plot <- ggplot(seq_depth_df, aes(x = TimePoint, y = SequencingDepth, fill = Group)) +
-          geom_boxplot() +
+        if (has_group) {
+          seq_depth_plot <- ggplot(
+            seq_depth_df,
+            aes(x = TimePoint, y = SequencingDepth, fill = Group)
+          ) +
+            geom_boxplot() +
+            scale_fill_manual(values = palette, name = "Group")
+        } else {
+          seq_depth_plot <- ggplot(
+            seq_depth_df,
+            aes(x = TimePoint, y = SequencingDepth)
+          ) +
+            geom_boxplot(fill = "steelblue")
+        }
+
+        seq_depth_plot <- seq_depth_plot +
           theme_minimal() +
           theme(
             plot.title = element_text(hjust = 0.5, size = 8)
@@ -185,9 +200,6 @@ mStat_summarize_data_obj <-
             x = time.var,
             y = "Sequencing Depth"
           )
-        if (!is.null(group.var) && group.var %in% colnames(data.obj$meta.dat)) {
-          seq_depth_plot <- seq_depth_plot + scale_fill_manual(values = palette, name = "Group")
-        }
         print(seq_depth_plot)
       }
     }
@@ -237,8 +249,8 @@ mStat_summarize_data_obj <-
     }
 
     # Add feature annotation statistics if available
-    if (length(NA_props) > 0) {
-      for (i in 1:length(NA_props)) {
+    if ("feature.ann" %in% names(data.obj)) {
+      for (i in seq_along(NA_props)) {
         missing_annotation <- data.frame(
           Category = "Feature Annotations",
           Variable = paste(
@@ -274,33 +286,40 @@ mStat_summarize_data_obj <-
       if (time.var %in% colnames(data.obj$meta.dat)) {
         time_var_data <- data.obj$meta.dat[[time.var]]
 
-        if (is.numeric(time_var_data)) {
-          time_stats <- data.frame(
-            Category = "Time-Series Information",
-            Variable = c(
-              "Earliest sample time-point",
-              "Latest sample time-point"
-            ),
-            Value = c(min(time_var_data), max(time_var_data))
-          )
-        }
+        time_stats <- NULL
 
-        if (is.character(time_var_data) || is.factor(time_var_data)) {
+        if (is.numeric(time_var_data) || inherits(time_var_data, "Date") ||
+            inherits(time_var_data, "POSIXct") || inherits(time_var_data, "POSIXlt")) {
+          observed_time <- stats::na.omit(time_var_data)
+          if (length(observed_time) > 0) {
+            time_stats <- data.frame(
+              Category = "Time-Series Information",
+              Variable = c(
+                "Earliest sample time-point",
+                "Latest sample time-point"
+              ),
+              Value = c(min(observed_time), max(observed_time))
+            )
+          }
+        } else {
+          observed_time <- stats::na.omit(time_var_data)
           time_stats <- data.frame(
             Category = "Time-Series Information",
             Variable = "Number of unique time points",
-            Value = length(unique(time_var_data))
+            Value = length(unique(observed_time))
           )
         }
 
-        table1 <- rbind(table1, time_stats)
+        if (!is.null(time_stats)) {
+          table1 <- rbind(table1, time_stats)
+        }
 
         # Add sample count for each time point
         time_table <- table(data.obj$meta.dat[[time.var]])
         time_df <- as.data.frame(time_table)
         colnames(time_df) <- c("TimePoint", "SampleCount")
 
-        for (i in 1:nrow(time_df)) {
+        for (i in seq_len(nrow(time_df))) {
           distribution <- data.frame(
             Category = "Time-Series Information",
             Variable = paste("Sample count at time point:", time_df$TimePoint[i]),
@@ -312,7 +331,6 @@ mStat_summarize_data_obj <-
     }
 
     # Add basic sample and feature count statistics
-    num_samples <- ncol(feature_tab)
     num_features <- nrow(feature_tab)
     sample_feature_stats <- data.frame(
       Category = c("Basic Statistics", "Basic Statistics"),

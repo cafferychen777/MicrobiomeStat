@@ -28,9 +28,42 @@ get_sample_ids <- function(data.obj, var, values) {
   if (is.null(var) || is.null(values)) {
     return(rownames(data.obj$meta.dat))
   }
-  rownames(
-    data.obj$meta.dat %>%
-      dplyr::filter(!!rlang::sym(var) %in% values)
+
+  keep_rows <- mStat_match_metadata_values(data.obj$meta.dat[[var]], values)
+  rownames(data.obj$meta.dat)[keep_rows]
+}
+
+#' @noRd
+mStat_subset_by_meta_values <- function(data.obj,
+                                        var,
+                                        values,
+                                        prune.features = FALSE) {
+  samIDs <- get_sample_ids(data.obj, var, values)
+  mStat_subset_data(data.obj, samIDs = samIDs, prune.features = prune.features)
+}
+
+#' @noRd
+mStat_subset_analysis_inputs_by_meta_values <- function(data.obj,
+                                                        var,
+                                                        values,
+                                                        alpha.obj = NULL,
+                                                        dist.obj = NULL,
+                                                        pc.obj = NULL,
+                                                        prune.features = FALSE) {
+  subset_data.obj <- mStat_subset_by_meta_values(
+    data.obj = data.obj,
+    var = var,
+    values = values,
+    prune.features = prune.features
+  )
+  samIDs <- rownames(subset_data.obj$meta.dat)
+  subset_beta <- mStat_subset_beta_objects(dist.obj, pc.obj, samIDs)
+
+  list(
+    data.obj = subset_data.obj,
+    alpha.obj = if (is.null(alpha.obj)) NULL else mStat_subset_alpha(alpha.obj, samIDs = samIDs),
+    dist.obj = subset_beta$dist.obj,
+    pc.obj = subset_beta$pc.obj
   )
 }
 
@@ -42,6 +75,7 @@ get_sample_ids <- function(data.obj, var, values) {
 #' @inheritParams mStat_data_obj_doc
 #' @param samIDs Character/numeric/logical vector of sample IDs to keep.
 #' @param condition Character string with logical expression for filtering (e.g., "group == 'A'").
+#' @param prune.features Logical. When TRUE, drop feature rows that become all-zero after sample subsetting and prune aligned feature annotations, aggregated tables, and tree tips. Default FALSE keeps sample subsetting and feature pruning separate.
 #'
 #' @return A MicrobiomeStat data object with subsetted samples.
 #'
@@ -110,7 +144,7 @@ get_sample_ids <- function(data.obj, var, values) {
 #' @seealso \code{\link[dplyr]{filter}}, \code{\link[dplyr]{select}}
 #' @export
 #' @importFrom dplyr filter select
-mStat_subset_data <- function (data.obj, samIDs = NULL, condition = NULL) {
+mStat_subset_data <- function (data.obj, samIDs = NULL, condition = NULL, prune.features = FALSE) {
   data.obj <- mStat_validate_data(data.obj)
 
   original_samIDs <- rownames(data.obj$meta.dat)
@@ -151,34 +185,55 @@ mStat_subset_data <- function (data.obj, samIDs = NULL, condition = NULL) {
   message("Updated metadata to match the subsetted data.")
 
   excluded_samIDs <- setdiff(original_samIDs, samIDs)
-  message(paste("The following samples were excluded:", paste(excluded_samIDs, collapse = ", ")))
+  if (length(excluded_samIDs) == 0) {
+    message("No samples were excluded.")
+  } else {
+    message(length(excluded_samIDs), " samples were excluded.")
+  }
 
   if (!is.null(data.obj$feature.tab)) {
     data.obj$feature.tab <- data.obj$feature.tab[, samIDs, drop = FALSE]
-    data.obj$feature.tab <- data.obj$feature.tab[rowSums(data.obj$feature.tab) != 0, , drop = FALSE]
     message("Updated feature table to match the subsetted data.")
   }
 
-  if (!is.null(data.obj$feature.tab) & !is.null(data.obj$feature.ann)) {
-    data.obj$feature.ann <- data.obj$feature.ann[rownames(data.obj$feature.tab), , drop = FALSE]
-    message("Updated feature annotation to match the subsetted data.")
+  if (!is.null(data.obj$feature.ann)) {
+    message("Feature annotation remains aligned to the current feature set.")
   }
 
   if (!is.null(data.obj$feature.agg.list)) {
     data.obj$feature.agg.list <- lapply(data.obj$feature.agg.list, function(x) {
-      x <- as.matrix(x)
-      x <- x[, samIDs, drop = FALSE]
-      x[rowSums(x) != 0, , drop = FALSE]
+      x[, samIDs, drop = FALSE]
     })
 
     message("Updated feature aggregation list to match the subsetted data.")
   }
 
-  if (!is.null(data.obj$tree) && !is.null(data.obj$feature.tab)) {
-    absent <- setdiff(data.obj$tree$tip.label, rownames(data.obj$feature.tab))
-    if (length(absent) != 0) {
-      data.obj$tree <- ape::drop.tip(data.obj$tree, absent)
-      message("Updated phylogenetic tree to match the subsetted feature table.")
+  if (prune.features && !is.null(data.obj$feature.tab)) {
+    keep_features <- rowSums(data.obj$feature.tab) != 0
+    kept_feature_ids <- rownames(data.obj$feature.tab)[keep_features]
+    data.obj$feature.tab <- data.obj$feature.tab[keep_features, , drop = FALSE]
+    message("Pruned all-zero features after subsetting.")
+
+    if (!is.null(data.obj$feature.ann)) {
+      data.obj$feature.ann <- data.obj$feature.ann[kept_feature_ids, , drop = FALSE]
+      message("Updated feature annotation to match the pruned feature table.")
+    }
+
+    if (!is.null(data.obj$feature.agg.list)) {
+      data.obj$feature.agg.list <- lapply(data.obj$feature.agg.list, function(x) {
+        aligned_cols <- intersect(samIDs, colnames(x))
+        x <- x[, aligned_cols, drop = FALSE]
+        x[rowSums(x) != 0, , drop = FALSE]
+      })
+      message("Pruned aggregated feature tables after subsetting.")
+    }
+
+    if (!is.null(data.obj$tree)) {
+      absent <- setdiff(data.obj$tree$tip.label, kept_feature_ids)
+      if (length(absent) != 0) {
+        data.obj$tree <- ape::drop.tip(data.obj$tree, absent)
+        message("Updated phylogenetic tree to match the pruned feature table.")
+      }
     }
   }
 

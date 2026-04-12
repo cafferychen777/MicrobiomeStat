@@ -79,61 +79,26 @@ generate_beta_per_time_dotplot_long <- function(data.obj,
                                                 pdf.wid = 7,
                                                 pdf.hei = 5
 ){
-  # Process the time variable in the data object
-  # This ensures that the time variable is properly formatted and ordered
-  data.obj <- mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
-
-  # FIXED: Extract time levels from test.list to ensure consistency
-  # This ensures time_levels match the actual time points in test.list
-  time_levels <- names(test.list)
-  
-  # Convert to numeric and sort to ensure proper ordering, then back to character
-  if (all(grepl("^\\d+(\\.\\d+)?$", time_levels))) {
-    time_levels <- as.character(sort(as.numeric(time_levels)))
-  } else {
-    time_levels <- sort(time_levels)
-  }
+  # Order time levels using the shared time semantics helper.
+  ordered_test_entries <- mStat_order_named_time_entries(test.list)
+  time_levels <- names(ordered_test_entries)
+  test.list <- unname(ordered_test_entries)
+  names(test.list) <- time_levels
 
   # Get the appropriate theme for the plot
   # This allows for consistent styling across different plots
   theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
-  # Extract group names from the test list
-  # These names typically represent different comparison groups
-  group.names <- names(test.list[[1]])
+  # Extract group names from all time points.
+  # These names typically represent different comparison groups.
+  group.names <- mStat_collect_time_result_names(test.list)
 
-  # Process the test list to merge data across time points for each group
-  test.list <- lapply(group.names, function(group.names){
-    # Define a function to merge data from different time points
-    merge_time_points <- function(time_test_list, group_name) {
-      # Extract data for the current group from each time point
-      data_list <- lapply(time_test_list, function(time_point_data) {
-        return(time_point_data[[group_name]])
-      })
-
-      # FIXED: Record valid time point names before filtering
-      # This preserves the correct mapping to actual time points
-      valid_time_names <- names(data_list)[!sapply(data_list, is.null)]
-      data_list <- data_list[!sapply(data_list, is.null)]
-      
-      # FIXED: Manually add time point column instead of relying on .id
-      # This ensures correct time point labels instead of sequential indices
-      merged_data_list <- mapply(function(data, time_name) {
-        data[[time.var]] <- time_name
-        return(data)
-      }, data_list, valid_time_names, SIMPLIFY = FALSE)
-      
-      merged_data <- dplyr::bind_rows(merged_data_list)
-      return(merged_data)
-    }
-
-    # Apply the merge function to the current group
-    merged_data_genus <- merge_time_points(test.list, group.names)
-    return(merged_data_genus)
-  })
-
-  # Assign group names to the processed test list
-  names(test.list) <- group.names
+  # Process the test list to merge data across time points for each group.
+  test.list <- mStat_bind_time_results(
+    test.list = test.list,
+    result_names = group.names,
+    time.var = time.var
+  )
 
   # Define the variable name for p-values in the data
   p_val_var <- "P.Value"

@@ -94,13 +94,27 @@ generate_beta_change_per_time_test_long <-
       return()
     }
 
+    if (is.null(data.obj) && is.null(dist.obj)) {
+      stop("Either `data.obj` or `dist.obj` must be provided.", call. = FALSE)
+    }
+
+    if (!is.null(data.obj)) {
+      data.obj <- mStat_validate_data(data.obj)
+    }
+
     # Calculate beta diversity if not provided
     if (is.null(dist.obj)) {
+      mStat_validate_time_var_contract(
+        meta.dat = data.obj$meta.dat,
+        time.var = time.var,
+        context = "beta change per-time testing"
+      )
+
       # Process time variable to ensure proper ordering
       data.obj <-
         mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
       # Extract relevant metadata
-      meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(time.var, group.var)))
+      meta_tab <- data.obj$meta.dat %>% dplyr::select(all_of(c(subject.var, time.var, group.var)))
       # Calculate beta diversity
       dist.obj <-
         mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
@@ -123,104 +137,74 @@ generate_beta_change_per_time_test_long <-
       meta_tab <- mStat_extract_dist_metadata(
         dist.obj = dist.obj,
         dist.name = dist.name,
-        vars = c(time.var, group.var),
+        vars = c(subject.var, time.var, group.var),
         data.obj = data.obj
       )
     }
 
-    mStat_validate_group_var_contract(
+    mStat_validate_time_var_contract(
       meta.dat = meta_tab,
-      group.var = group.var,
+      time.var = time.var,
       context = "beta change per-time testing"
     )
 
+    mStat_validate_group_var_contract(
+      meta.dat = meta_tab,
+      group.var = group.var,
+      subject.var = subject.var,
+      context = "beta change per-time testing",
+      require_variation = FALSE
+    )
+
     # Determine the reference level for the grouping variable
-    reference_level <- levels(as.factor(meta_tab[,group.var]))[1]
+    reference_level <- .mStat_get_group_reference_level(
+      meta.dat = meta_tab,
+      group.var = group.var
+    )
 
-    # Set default baseline time point if not provided
-    if (is.null(t0.level)) {
-      if (is.numeric(meta_tab[, time.var])) {
-        t0.level <- sort(unique(meta_tab[, time.var]))[1]
-      } else {
-        t0.level <- levels(meta_tab[, time.var])[1]
-      }
-    }
-
-    # Set default follow-up time points if not provided
-    if (is.null(ts.levels)) {
-      if (is.numeric(meta_tab[, time.var])) {
-        ts.levels <- sort(unique(meta_tab[, time.var]))[-1]
-      } else {
-        ts.levels <- levels(meta_tab[, time.var])[-1]
-      }
-    }
-
-    # Combine baseline and follow-up time points
-    time.levels <- c(t0.level, ts.levels)
+    resolved_time <- mStat_resolve_followup_timepoints(
+      values = meta_tab[[time.var]],
+      time.var = time.var,
+      t0.level = t0.level,
+      ts.levels = ts.levels,
+      context = "beta change per-time testing"
+    )
+    t0.level <- resolved_time$t0.level
+    ts.levels <- resolved_time$ts.levels
 
     # Perform beta diversity change tests for each follow-up time point
-    test.list <- lapply(ts.levels, function(ts.level){
-      # Subset the data for the specific time level
-      subset.ids <- get_sample_ids(data.obj, time.var, c(t0.level, ts.level))
+    mStat_run_per_time_analysis(
+      time.levels = ts.levels,
+      context = "beta change per-time testing",
+      analysis_fn = function(ts.level) {
+        # Create subsets of data and distance objects
+        subset_inputs <- mStat_subset_analysis_inputs_by_meta_values(
+          data.obj = data.obj,
+          var = time.var,
+          values = c(t0.level, ts.level),
+          dist.obj = dist.obj,
+          prune.features = TRUE
+        )
+        subset_data.obj <- subset_inputs$data.obj
+        subset_dist.obj <- subset_inputs$dist.obj
 
-      # Create subsets of data and distance objects
-      subset_data.obj <- mStat_subset_data(data.obj, samIDs = subset.ids)
-      subset_dist.obj <- mStat_subset_dist(dist.obj, samIDs = subset.ids)
+        # Perform beta diversity change test for the current time point pair
+        subset.test.list <- generate_beta_change_test_pair(
+          data.obj = subset_data.obj,
+          dist.obj = subset_dist.obj,
+          time.var = time.var,
+          subject.var = subject.var,
+          group.var = group.var,
+          adj.vars = adj.vars,
+          change.base = t0.level,
+          dist.name = dist.name
+        )
 
-      # Perform beta diversity change test for the current time point pair
-      subset.test.list <- generate_beta_change_test_pair(
-        data.obj = subset_data.obj,
-        dist.obj = subset_dist.obj,
-        time.var = time.var,
-        subject.var = subject.var,
-        group.var = group.var,
-        adj.vars = adj.vars,
-        change.base = t0.level,
-        dist.name = dist.name
-      )
-
-      # Extract all terms from the test results
-      all_terms <- unique(unlist(lapply(subset.test.list, \(df) df$Term)))
-      all_terms <- setdiff(all_terms, "(Intercept)")
-      all_terms <- all_terms[grepl(paste0("^", group.var), all_terms)]
-
-      # Reorganize test results by term
-      new_list <- lapply(all_terms, \(term) {
-        alpha_dfs <- lapply(names(subset.test.list), \(alpha_name) {
-          df <- subset.test.list[[alpha_name]]
-          filtered_df <- filter(df, Term == term) %>%
-            select(-Term) %>%
-            dplyr::mutate(Term = alpha_name) %>%
-            dplyr::select(Term, everything())
-
-          if(nrow(filtered_df) == 0) {
-            return(NULL)
-          }
-
-          return(filtered_df)
-        })
-        do.call(rbind, alpha_dfs)
-      })
-
-      # Modify term names for better readability
-      all_terms <- lapply(all_terms, function(term) {
-        if (term != group.var) {
-          modified_term <- stringr::str_replace(term, paste0("^", group.var), "")
-          modified_term <- stringr::str_trim(modified_term)
-          paste(sprintf("%s vs %s", modified_term, reference_level), "(Reference)")
-        } else {
-          term
-        }
-      })
-
-      # Set names for the reorganized test results
-      new_subset_test_list <- setNames(new_list, all_terms)
-
-      return(new_subset_test_list)
-    })
-
-    # Set names for the test results list using follow-up time points
-    names(test.list) <- ts.levels
-
-    return(test.list)
+        mStat_restructure_group_term_results(
+          test.list = subset.test.list,
+          group.var = group.var,
+          reference_level = reference_level
+        )
+      }
+    )
   }

@@ -118,29 +118,26 @@ generate_taxa_boxplot_long <-
         !is.character(strata.var))
       stop("`strata.var` should be a character string or NULL.")
 
-    # Process time variable in the data object
-    data.obj <- mStat_process_time_variable(data.obj, time.var, t0.level, ts.levels)
+    context <- mStat_prepare_taxa_long_context(
+      data.obj = data.obj,
+      subject.var = subject.var,
+      time.var = time.var,
+      group.var = group.var,
+      strata.var = strata.var,
+      t0.level = t0.level,
+      ts.levels = ts.levels
+    )
+    data.obj <- context$data.obj
 
     # Extract metadata and select relevant variables
-    meta_tab <- data.obj$meta.dat %>%
-      as.data.frame() %>%
-      select(all_of(c(subject.var,group.var,time.var,strata.var)))
+    meta_tab <- context$meta_tab
 
     # Define aesthetic mapping function for line plots
-    line_aes_function <- if (!is.null(group.var)) {
-      aes(
-        x = !!sym(time.var),
-        y = value,
-        group = !!sym(subject.var),
-        color = !!sym(group.var)
-      )
-    } else {
-      aes(
-        x = !!sym(time.var),
-        y = value,
-        group = !!sym(subject.var)
-      )
-    }
+    line_aes_function <- aes(
+      x = !!sym(time.var),
+      y = value,
+      group = !!sym(subject.var)
+    )
 
     # Define aesthetic mapping function for box plots
     aes_function <- if (!is.null(group.var)) {
@@ -170,25 +167,26 @@ generate_taxa_boxplot_long <-
       abund.filter <- 0
     }
 
-    # Normalize count data if necessary
-    if (feature.dat.type == "count"){
-      message(
-        "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
-      )
-      data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
-    }
+    # Normalize count data if necessary.
+    analysis_data.obj <- mStat_normalize_count_data_if_needed(data.obj, feature.dat.type)
 
     # Generate plots for each taxonomic level
     plot_list <- lapply(feature.level, function(feature.level) {
 
       # Aggregate data by taxonomy if necessary
-      otu_tax_agg <- get_taxa_data(data.obj, feature.level, prev.filter, abund.filter)
-
-      # Select top k features if specified
-      if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
-      computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
-      features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
-      }
+      otu_tax_agg <- get_taxa_data(
+        analysis_data.obj,
+        feature.level,
+        prev.filter,
+        abund.filter
+      )
+      level_features.plot <- mStat_resolve_selected_features(
+        feature.dat = otu_tax_agg,
+        feature.level = feature.level,
+        features.plot = features.plot,
+        top.k.plot = top.k.plot,
+        top.k.func = top.k.func
+      )
 
       otu_tax_agg_merged <-
         mStat_prepare_taxa_long_data(
@@ -223,15 +221,15 @@ generate_taxa_boxplot_long <-
 
       # Count number of subjects and time points
       n_subjects <-
-        length(unique(otu_tax_agg_merged[[subject.var]]))
-      n_times <- length(unique(otu_tax_agg_merged[[time.var]]))
+        length(unique(stats::na.omit(otu_tax_agg_merged[[subject.var]])))
+      n_times <- length(unique(stats::na.omit(otu_tax_agg_merged[[time.var]])))
 
       sub_otu_tax_agg_merged <- otu_tax_agg_merged
 
       # Calculate average values if number of subjects or time points is large
       average_sub_otu_tax_agg_merged <- NULL
       if (n_times > 10 || n_subjects > 25) {
-        if (!is.null(group.var) & !is.null(strata.var)) {
+        if (!is.null(group.var) && !is.null(strata.var)) {
           average_sub_otu_tax_agg_merged <- sub_otu_tax_agg_merged %>%
             dplyr::group_by(
               !!sym(strata.var),
@@ -252,7 +250,7 @@ generate_taxa_boxplot_long <-
             dplyr::mutate(!!sym(subject.var) := "ALL")
         } else {
           average_sub_otu_tax_agg_merged <- sub_otu_tax_agg_merged %>%
-            dplyr::group_by(!!sym(time.var)) %>%
+            dplyr::group_by(!!sym(time.var), !!sym(feature.level)) %>%
             dplyr::summarise(dplyr::across(value, \(x) mean(x, na.rm = TRUE)), .groups = "drop") %>%
             dplyr::ungroup() %>%
             dplyr::mutate(!!sym(subject.var) := "ALL")
@@ -260,26 +258,28 @@ generate_taxa_boxplot_long <-
       }
 
       # Select features to plot
-      if (!is.null(features.plot)) {
-
-      } else {
-        if (length(taxa.levels) >= 6) {
-          features.plot <- taxa.levels[1:6]
-        } else {
-          features.plot <- taxa.levels
-        }
-      }
+      level_features.plot <- mStat_resolve_selected_features(
+        feature.level = feature.level,
+        features.plot = level_features.plot,
+        taxa.levels = taxa.levels,
+        fallback_n = 6
+      )
 
       # Get number of group levels if group variable is specified
       if (!is.null(group.var)){
-        group.levels <- sub_otu_tax_agg_merged %>% select(!!sym(group.var)) %>% pull() %>% unique() %>% length()
+        group.levels <- sub_otu_tax_agg_merged %>%
+          select(!!sym(group.var)) %>%
+          pull() %>%
+          stats::na.omit() %>%
+          unique() %>%
+          length()
       }
 
       # Create box plot
       boxplot <-
         ggplot(sub_otu_tax_agg_merged  %>%
                  dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var))) %>%
-                 filter(!!sym(feature.level) %in% features.plot),
+                 filter(!!sym(feature.level) %in% level_features.plot),
                aes_function) +
         stat_boxplot(geom = "errorbar",
                      position = position_dodge(width = 0.2),
@@ -295,20 +295,15 @@ generate_taxa_boxplot_long <-
           color = "black",
           linetype = "dashed",
           data = if (!is.null(average_sub_otu_tax_agg_merged))
-            average_sub_otu_tax_agg_merged   %>% dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var))) %>% filter(!!sym(feature.level) %in% features.plot)
+            average_sub_otu_tax_agg_merged   %>% dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var))) %>% filter(!!sym(feature.level) %in% level_features.plot)
           else
-            sub_otu_tax_agg_merged  %>% dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var))) %>% filter(!!sym(feature.level) %in% features.plot)
+            sub_otu_tax_agg_merged  %>% dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var))) %>% filter(!!sym(feature.level) %in% level_features.plot)
         ) +
         scale_fill_manual(values = col) +
-        {
-          if (feature.dat.type == "other"){
-            labs(x = time.var,
-                 y = "Abundance")
-          } else {
-            labs(x = time.var,
-                 y = paste("Relative Abundance(", transform, ")"))
-          }
-        } +
+        labs(
+          x = time.var,
+          y = mStat_get_taxa_value_ylabel(feature.dat.type, transform)
+        ) +
         theme_to_use +
         theme(
           panel.spacing.x = unit(0, "cm"),
@@ -328,19 +323,24 @@ generate_taxa_boxplot_long <-
           legend.title = ggplot2::element_text(size = 16)
         )
 
-      # Add facets if group or strata variables are specified
+      # Add facets if group or strata variables are specified.
       if (!is.null(group.var)) {
         if (is.null(strata.var)) {
           boxplot <-
             boxplot + ggh4x::facet_nested_wrap(as.formula(paste(
               "~", feature.level, "+", group.var
-            )), scales = "free_x", ncol = group.levels*4)
+            )), scales = "free_x", ncol = group.levels * 4)
         } else {
           boxplot <- boxplot + ggh4x::facet_nested_wrap(
             as.formula(paste('~', feature.level, '+', strata.var, '+', group.var)),
-            scales = "free_x", ncol = group.levels*4
+            scales = "free_x", ncol = group.levels * 4
           )
         }
+      } else if (!is.null(strata.var)) {
+        boxplot <- boxplot + ggh4x::facet_nested_wrap(
+          as.formula(paste('~', feature.level, '+', strata.var)),
+          scales = "free_x"
+        )
       }
 
       # Add jitter points if number of subjects or time points is large
@@ -397,20 +397,21 @@ generate_taxa_boxplot_long <-
         "abund_filter_",
         abund.filter
       )
-      if (!is.null(group.var)) {
-        pdf_name <- paste0(pdf_name, "_", "group_", group.var)
-      }
-      if (!is.null(strata.var)) {
-        pdf_name <- paste0(pdf_name, "_", "strata_", strata.var)
-      }
+      pdf_name <- mStat_append_pdf_group_suffixes(
+        pdf_name = pdf_name,
+        group.var = group.var,
+        strata.var = strata.var
+      )
       if (!is.null(file.ann)) {
         pdf_name <- paste0(pdf_name, "_", file.ann)
       }
       pdf_name <- paste0(pdf_name, "_", feature.level, ".pdf")
       # Create a multi-page PDF file
       pdf(pdf_name, width = pdf.wid, height = pdf.hei)
-      # Use lapply to print each ggplot object in the list to a new PDF page
-      lapply(plot_list, print)
+      # Print each ggplot object to a new PDF page
+      for (plot_obj in plot_list) {
+        print(plot_obj)
+      }
       # Close the PDF device
       dev.off()
     }

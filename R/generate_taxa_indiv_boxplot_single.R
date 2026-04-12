@@ -112,21 +112,32 @@ generate_taxa_indiv_boxplot_single <-
         !is.character(strata.var))
       stop("`strata.var` should be a character string or NULL.")
 
-    # Subset the data if time variable and level are provided
-    if (!is.null(time.var) & !is.null(t.level)) {
-      condition <- paste(time.var, "== '", t.level, "'", sep = "")
-      data.obj <- mStat_subset_data(data.obj, condition = condition)
-    }
+    context <- mStat_prepare_taxa_single_context(
+      data.obj = data.obj,
+      time.var = time.var,
+      t.level = t.level,
+      group.var = group.var,
+      strata.var = strata.var
+    )
+    data.obj <- context$data.obj
 
     # Select relevant variables from metadata (filter out NULL vars)
-    meta_tab <- select_meta_vars(data.obj$meta.dat, group.var, time.var, strata.var)
+    meta_tab <- context$meta_tab
+    placeholder_group <- mStat_ensure_group_placeholder(
+      meta_tab,
+      group.var = group.var,
+      value = "ALL",
+      column_name = "ALL"
+    )
+    meta_tab <- placeholder_group$df
+    resolved_group_var <- placeholder_group$group.var
 
     # Define aesthetic function for plotting
     # This function determines how the data will be mapped to visual properties in the plot
     aes_function <-  aes(
-      x = !!sym(group.var),
+      x = !!sym(resolved_group_var),
       y = value,
-      fill = !!sym(group.var)
+      fill = !!sym(resolved_group_var)
     )
 
     # Get color palette for the plot
@@ -142,64 +153,29 @@ generate_taxa_indiv_boxplot_single <-
       abund.filter <- 0
     }
 
-    # For "other" data type, check if data contains negative values
-    # If so, adjust abundance filter to handle negative values appropriately
-    if (feature.dat.type == "other") {
-      # Check if any feature table contains negative values
-      has_negative <- FALSE
-      if (!is.null(data.obj$feature.tab)) {
-        has_negative <- any(data.obj$feature.tab < 0, na.rm = TRUE)
-      }
-      if (!has_negative && !is.null(data.obj$feature.agg.list)) {
-        for (agg_table in data.obj$feature.agg.list) {
-          if (any(agg_table < 0, na.rm = TRUE)) {
-            has_negative <- TRUE
-            break
-          }
-        }
-      }
+    abund.filter <- mStat_adjust_other_abundance_filter(
+      data.obj = data.obj,
+      feature.dat.type = feature.dat.type,
+      abund.filter = abund.filter
+    )
 
-      if (has_negative) {
-        message("Note: Negative values detected in 'other' data type. Abundance filtering is disabled to preserve all features.")
-        abund.filter <- -Inf  # Set to negative infinity to include all features regardless of abundance
-      }
-    }
-
-    # Normalize count data if necessary
-    if (feature.dat.type == "count"){
-      message(
-        "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
-      )
-      data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
-    }
+    # Normalize count data if necessary.
+    analysis_data.obj <- mStat_normalize_count_data_if_needed(data.obj, feature.dat.type)
 
     # Generate plots for each taxonomic level
     plot_list_all <- lapply(feature.level, function(feature.level) {
 
       # Aggregate data by taxonomy if necessary
-      otu_tax_agg <- get_taxa_data(data.obj, feature.level, prev.filter, abund.filter)
+      otu_tax_agg <- get_taxa_data(analysis_data.obj, feature.level, prev.filter, abund.filter)
 
       # Determine features to plot for this specific taxonomic level
-      current_features_plot <- NULL
-
-      # Handle features.plot parameter (support both vector and list formats)
-      if (!is.null(features.plot)) {
-        if (is.list(features.plot)) {
-          # If features.plot is a list, extract features for current level
-          if (feature.level %in% names(features.plot)) {
-            current_features_plot <- features.plot[[feature.level]]
-          }
-        } else {
-          # If features.plot is a vector, use it for all levels (backward compatibility)
-          current_features_plot <- features.plot
-        }
-      }
-
-      # Select top k features if no specific features are provided
-      if (is.null(current_features_plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
-        computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
-        current_features_plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
-      }
+      current_features_plot <- mStat_resolve_selected_features(
+        feature.dat = otu_tax_agg,
+        feature.level = feature.level,
+        features.plot = if (is.list(features.plot)) features.plot[[feature.level]] else features.plot,
+        top.k.plot = top.k.plot,
+        top.k.func = top.k.func
+      )
 
       otu_tax_agg_merged <-
         mStat_prepare_taxa_long_data(
@@ -211,7 +187,7 @@ generate_taxa_indiv_boxplot_single <-
         select(all_of(c("sample",
                         feature.level,
                         time.var,
-                        group.var,
+                        resolved_group_var,
                         strata.var,
                         "value")))
 
@@ -230,33 +206,17 @@ generate_taxa_indiv_boxplot_single <-
       # Get unique taxa levels
       taxa.levels <-
         otu_tax_agg_merged %>% select(feature.level) %>% dplyr::distinct() %>% dplyr::pull()
+      taxa.levels <- mStat_resolve_selected_features(
+        feature.level = feature.level,
+        features.plot = current_features_plot,
+        taxa.levels = taxa.levels,
+        fallback_n = length(taxa.levels)
+      )
 
       # Count number of samples
       n_subjects <- length(unique(otu_tax_agg_merged[["sample"]]))
 
-      # Filter taxa levels if specified
-      if (!is.null(current_features_plot)){
-        taxa.levels <- taxa.levels[taxa.levels %in% current_features_plot]
-      }
-
-      # Determine the appropriate Y-axis label for "other" data type
-      # Check the overall aggregated data for negative values, not individual taxa
-      if (feature.dat.type == "other") {
-        overall_data_range <- range(otu_tax_agg_merged$value, na.rm = TRUE)
-        overall_has_negative <- any(otu_tax_agg_merged$value < 0, na.rm = TRUE)
-
-        # Intelligent label inference based on overall data characteristics
-        if (overall_has_negative && overall_data_range[1] > -15 && overall_data_range[2] < 15) {
-          global_y_label <- "Log-transformed Abundance"
-        } else if (overall_has_negative) {
-          global_y_label <- "Transformed Abundance"
-        } else if (all(otu_tax_agg_merged$value >= 0 &
-                       otu_tax_agg_merged$value <= 1, na.rm = TRUE)) {
-          global_y_label <- "Normalized Abundance (0-1)"
-        } else {
-          global_y_label <- "Abundance"
-        }
-      }
+      global_y_label <- mStat_get_taxa_value_ylabel(feature.dat.type, transform)
 
       # Generate individual plots for each taxon
       plot_list <- lapply(taxa.levels, function(tax) {
@@ -265,7 +225,7 @@ generate_taxa_indiv_boxplot_single <-
 
         # Remove outliers from the data before plotting
         sub_otu_tax_agg_merged <- sub_otu_tax_agg_merged %>%
-          dplyr::group_by(!!sym(group.var)) %>%
+          dplyr::group_by(!!sym(resolved_group_var)) %>%
           dplyr::mutate(
             Q1 = quantile(value, 0.25, na.rm = TRUE),
             Q3 = quantile(value, 0.75, na.rm = TRUE),
@@ -294,25 +254,15 @@ generate_taxa_indiv_boxplot_single <-
             width = 0.35,
             alpha = 0.6,
             size = 2,
-            aes(color = !!sym(group.var))
+            aes(color = !!sym(resolved_group_var))
           ) +
           scale_fill_manual(values = col) +
           scale_color_manual(values = col) +
-          {
-            if (feature.dat.type == "other"){
-              labs(
-                x = group.var,
-                y = global_y_label,  # Use the globally determined label
-                title = tax
-              )
-            } else {
-              labs(
-                x = group.var,  # Fixed: add X-axis label for consistency
-                y = paste("Relative Abundance (", transform, ")", sep = ""),
-                title = tax
-              )
-            }
-          } +
+          labs(
+            x = group.var,
+            y = global_y_label,
+            title = tax
+          ) +
           theme_to_use +
           theme(
             panel.spacing.x = unit(0, "cm"),
@@ -331,7 +281,7 @@ generate_taxa_indiv_boxplot_single <-
           )
 
         # Adjust x-axis labels if there are more than 2 groups
-        if(length(unique(data.obj$meta.dat[[group.var]])) > 2){
+        if(!is.null(group.var) && length(unique(stats::na.omit(data.obj$meta.dat[[group.var]]))) > 2){
           boxplot <- boxplot +
             scale_x_discrete(guide = guide_axis(n.dodge = 2))
         }
@@ -377,20 +327,21 @@ generate_taxa_indiv_boxplot_single <-
           "abund_filter_",
           abund.filter
         )
-        if (!is.null(group.var)) {
-          pdf_name <- paste0(pdf_name, "_", "group_", group.var)
-        }
-        if (!is.null(strata.var)) {
-          pdf_name <- paste0(pdf_name, "_", "strata_", strata.var)
-        }
+        pdf_name <- mStat_append_pdf_group_suffixes(
+          pdf_name = pdf_name,
+          group.var = group.var,
+          strata.var = strata.var
+        )
         if (!is.null(file.ann)) {
           pdf_name <- paste0(pdf_name, "_", file.ann)
         }
         pdf_name <- paste0(pdf_name,"_", feature.level, ".pdf")
         # Create a multi-page PDF file
         pdf(pdf_name, width = pdf.wid, height = pdf.hei)
-        # Use lapply to print each ggplot object in the list to a new PDF page
-        lapply(plot_list, print)
+        # Print each ggplot object to a new PDF page
+        for (plot_obj in plot_list) {
+          print(plot_obj)
+        }
         # Close the PDF device
         dev.off()
       }

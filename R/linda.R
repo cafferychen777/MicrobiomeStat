@@ -1,3 +1,13 @@
+#' @noRd
+.mStat_bind_lm_summary_coefs <- function(fit) {
+  coef_summary <- coef(summary(fit))
+  if (is.list(coef_summary)) {
+    do.call(rbind, coef_summary)
+  } else {
+    coef_summary
+  }
+}
+
 #' @title Linear (Lin) model for differential abundance (DA) analysis
 #'
 #' @description This function implements a simple, robust, and highly scalable approach to tackle
@@ -132,13 +142,13 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
 
   # Extract all variables from the formula
   allvars <- all.vars(as.formula(formula))
-  Z <- as.data.frame(meta.dat[, allvars])
+  Z <- as.data.frame(meta.dat[, allvars, drop = FALSE])
 
   ###############################################################################
   # Filter samples: remove samples with NA values in any of the variables
   keep.sam <- which(rowSums(is.na(Z)) == 0)
-  Y <- feature.dat[, keep.sam]
-  Z <- as.data.frame(Z[keep.sam, ])
+  Y <- feature.dat[, keep.sam, drop = FALSE]
+  Z <- as.data.frame(Z[keep.sam, , drop = FALSE])
   names(Z) <- allvars
 
   # Remove samples with zero total counts BEFORE computing proportions
@@ -158,10 +168,10 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
   }
 
   # Filter features based on prevalence, mean abundance, and maximum abundance
-  temp <- t(t(Y) / colSums(Y))
+  feature_props <- mStat_normalize_feature_matrix_by_sample_total(Y)
 
   # If feature data type is "other", reset all filters to 0
-  if (feature.dat.type == "other" & (max.abund.filter != 0 | mean.abund.filter != 0 | prev.filter != 0 )){
+  if (feature.dat.type == "other" && (max.abund.filter != 0 || mean.abund.filter != 0 || prev.filter != 0)){
     message("Note: Since feature.dat.type is set to 'other', all filters (max.abund.filter, mean.abund.filter, and prev.filter) are reset to 0.")
     max.abund.filter <- 0
     mean.abund.filter <- 0
@@ -169,15 +179,14 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
   }
 
   # Apply filters to features
-  keep.tax <- rowMeans(temp != 0) >= prev.filter & rowMeans(temp) >= mean.abund.filter & matrixStats::rowMaxs(temp) >= max.abund.filter
+  keep.tax <- rowMeans(feature_props != 0) >= prev.filter & rowMeans(feature_props) >= mean.abund.filter & matrixStats::rowMaxs(feature_props) >= max.abund.filter
   names(keep.tax) <- rownames(Y)
-  rm(temp)
   if (verbose) {
     message(
       sum(!keep.tax), " features are filtered!\n"
     )
   }
-  Y <- Y[keep.tax, ]
+  Y <- Y[keep.tax, , drop = FALSE]
 
   n <- ncol(Y)
   m <- nrow(Y)
@@ -192,8 +201,8 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
   # Remove samples with zero total counts after feature filtering
   if (any(colSums(Y) == 0)) {
     ind <- which(colSums(Y) > 0)
-    Y <- Y[, ind]
-    Z <- as.data.frame(Z[ind, ])
+    Y <- Y[, ind, drop = FALSE]
+    Z <- as.data.frame(Z[ind, , drop = FALSE])
     names(Z) <- allvars
     keep.sam <- keep.sam[ind]
     n <- ncol(Y)
@@ -205,9 +214,9 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
     )
   }
 
-  # Warn about features with less than 3 nonzero values
-  if (sum(rowSums(Y != 0) <= 2) != 0) {
-    warning(
+  # Report low-information features only in verbose mode
+  if (verbose && sum(rowSums(Y != 0) <= 2) != 0) {
+    message(
       "Some features have less than 3 nonzero values!\n",
       "They have virtually no statistical power. You may consider filtering them in the analysis!\n"
     )
@@ -325,7 +334,7 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
       lm(as.formula(paste0("W", formula)), Z),
       message = function(cond) invokeRestart("muffleMessage")
     )
-    res <- do.call(rbind, coef(summary(fit)))
+    res <- .mStat_bind_lm_summary_coefs(fit)
     df <- rep(n - ncol(model.matrix(fit)), m)
   } else {
     if (verbose) {
@@ -362,14 +371,14 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
   }
 
   # Extract and process results
-  res.intc <- res[which(rownames(res) == "(Intercept)"), ]
+  res.intc <- res[which(rownames(res) == "(Intercept)"), , drop = FALSE]
   rownames(res.intc) <- NULL
   baseMean <- 2^res.intc[, 1]
   baseMean <- baseMean / sum(baseMean) * 1e6
 
   # Function to process output for each variable
   output.fun <- function(x) {
-    res.voi <- res[which(rownames(res) == x), ]
+    res.voi <- res[which(rownames(res) == x), , drop = FALSE]
     rownames(res.voi) <- NULL
 
     if (random.effect) {
@@ -408,7 +417,7 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
   variables.n <- length(variables)
   bias <- rep(NA, variables.n)
   output <- list()
-  for (i in 1:variables.n) {
+  for (i in seq_len(variables.n)) {
     tmp <- output.fun(variables[i])
     output[[i]] <- tmp[[2]]
     bias[i] <- tmp[[1]]

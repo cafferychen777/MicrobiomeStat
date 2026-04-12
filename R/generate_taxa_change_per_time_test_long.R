@@ -135,49 +135,41 @@ generate_taxa_change_per_time_test_long <-
       }
     }
 
-    # If baseline time point is not specified, determine it from the data
-    if (is.null(t0.level)) {
-      if (is.numeric(meta_tab[, time.var])) {
-        t0.level <- sort(unique(meta_tab[, time.var]))[1]
-      } else {
-        t0.level <- levels(meta_tab[, time.var])[1]
+    resolved_time <- mStat_resolve_followup_timepoints(
+      values = meta_tab[[time.var]],
+      time.var = time.var,
+      t0.level = t0.level,
+      ts.levels = ts.levels,
+      context = "taxa change per-time testing"
+    )
+    t0.level <- resolved_time$t0.level
+    ts.levels <- resolved_time$ts.levels
+
+    # Perform the longitudinal analysis for each follow-up time point.
+    mStat_run_per_time_analysis(
+      time.levels = ts.levels,
+      context = "taxa change per-time testing",
+      analysis_fn = function(ts.level) {
+        subset_data.obj <- mStat_subset_analysis_inputs_by_meta_values(
+          data.obj = data.obj,
+          var = time.var,
+          values = c(t0.level, ts.level),
+          prune.features = TRUE
+        )$data.obj
+
+        generate_taxa_change_test_pair(
+          data.obj = subset_data.obj,
+          subject.var = subject.var,
+          time.var = time.var,
+          group.var = group.var,
+          adj.vars = adj.vars,
+          change.base = t0.level,
+          feature.change.func = feature.change.func,
+          feature.level = feature.level,
+          prev.filter = prev.filter,
+          abund.filter = abund.filter,
+          feature.dat.type = feature.dat.type
+        )
       }
-    }
-
-    # If follow-up time points are not specified, determine them from the data
-    if (is.null(ts.levels)) {
-      if (is.numeric(meta_tab[, time.var])) {
-        ts.levels <- sort(unique(meta_tab[, time.var]))[-1]
-      } else {
-        ts.levels <- levels(meta_tab[, time.var])[-1]
-      }
-    }
-
-    # Perform the longitudinal analysis for each follow-up time point
-    test_list <- lapply(ts.levels, function(ts.level){
-        # Subset the data to include only the baseline and current follow-up time point
-        subset.ids <- get_sample_ids(data.obj, time.var, c(t0.level, ts.level))
-        subset_data.obj <- mStat_subset_data(data.obj, samIDs = subset.ids)
-
-        # Perform the pairwise analysis between baseline and current follow-up time point
-        subset.test.list <- generate_taxa_change_test_pair(data.obj = subset_data.obj,
-                                       subject.var = subject.var,
-                                       time.var = time.var,
-                                       group.var = group.var,
-                                       adj.vars = adj.vars,
-                                       change.base = t0.level,
-                                       feature.change.func = feature.change.func,
-                                       feature.level = feature.level,
-                                       prev.filter = prev.filter,
-                                       abund.filter = abund.filter,
-                                       feature.dat.type = feature.dat.type)
-
-        return(subset.test.list)
-      })
-
-    # Name the results list with the follow-up time points for easy reference
-    names(test_list) <- ts.levels
-
-    # Return the complete list of test results for all follow-up time points
-    return(test_list)
+    )
   }

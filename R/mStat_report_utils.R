@@ -193,3 +193,21 @@ build_pdf_filename <- function(prefix, params, file.ann = NULL) {
 
   paste0(parts, ".pdf")
 }
+
+
+#' @param group.var Optional grouping variable to append to the filename
+#' @param strata.var Optional stratification variable to append to the filename
+#' @noRd
+mStat_append_pdf_group_suffixes <- function(pdf_name,
+                                            group.var = NULL,
+                                            strata.var = NULL) {
+  if (!is.null(group.var)) {
+    pdf_name <- paste0(pdf_name, "_group_", group.var)
+  }
+
+  if (!is.null(strata.var)) {
+    pdf_name <- paste0(pdf_name, "_strata_", strata.var)
+  }
+
+  pdf_name
+}

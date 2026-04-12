@@ -119,10 +119,9 @@ generate_taxa_change_boxplot_pair <-
       stop("`strata.var` should be a character string or NULL.")
 
     # Extract metadata
-    meta_tab <- mStat_meta_with_sample(
-      data.obj$meta.dat %>% as.data.frame() %>% select(all_of(c(
-        subject.var, time.var, group.var, strata.var
-      )))
+    meta_tab <- mStat_prepare_meta_tab(
+      meta.dat = data.obj$meta.dat,
+      vars = list(subject.var, time.var, group.var, strata.var)
     )
 
     # Get plot theme
@@ -131,21 +130,10 @@ generate_taxa_change_boxplot_pair <-
     # Get color palette
     col <- mStat_get_palette(palette)
 
-    # Set y-axis label based on feature data type and change function
-    ylab_label <- if (feature.dat.type != "other") {
-      if (is.function(feature.change.func)) {
-        paste0("Change in Relative Abundance", " (custom function)")
-      } else {
-        paste0("Change in Relative Abundance", " (", feature.change.func, ")")
-      }
-    }
-    else {
-      if (is.function(feature.change.func)) {
-        paste0("Change in Abundance", " (custom function)")
-      } else {
-        paste0("Change in Abundance", " (", feature.change.func, ")")
-      }
-    }
+    ylab_label <- mStat_get_taxa_change_ylabel(
+      feature.dat.type = feature.dat.type,
+      feature.change.func = feature.change.func
+    )
 
     # Adjust filtering parameters if necessary
     if (feature.dat.type == "other" || !is.null(features.plot) ||
@@ -154,25 +142,22 @@ generate_taxa_change_boxplot_pair <-
       abund.filter <- 0
     }
 
+    # Normalize count data if necessary.
+    analysis_data.obj <- mStat_normalize_count_data_if_needed(data.obj, feature.dat.type)
+
     # Generate plots for each taxonomic level
     plot_list <- lapply(feature.level, function(feature.level) {
 
-      # Normalize count data if necessary
-      if (feature.dat.type == "count"){
-        message(
-          "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
-        )
-        data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
-      }
-
       # Aggregate data by taxonomy if necessary
-      otu_tax_agg <- get_taxa_data(data.obj, feature.level, prev.filter, abund.filter)
+      otu_tax_agg <- get_taxa_data(analysis_data.obj, feature.level, prev.filter, abund.filter)
 
-      # Select top k features if specified
-      if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
-      computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
-      features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
-      }
+      current_features_plot <- mStat_resolve_selected_features(
+        feature.dat = otu_tax_agg,
+        feature.level = feature.level,
+        features.plot = features.plot,
+        top.k.plot = top.k.plot,
+        top.k.func = top.k.func
+      )
 
       otu_tax_agg_merged <-
         mStat_prepare_taxa_long_data(
@@ -193,72 +178,57 @@ generate_taxa_change_boxplot_pair <-
           )
         ))
 
-      pair_times <- mStat_resolve_pair_timepoints(
-        values = otu_tax_agg_merged[[time.var]],
+      pair_change <- mStat_prepare_taxa_pair_change_data(
+        long.df = otu_tax_agg_merged,
+        feature.level = feature.level,
+        subject.var = subject.var,
         time.var = time.var,
         change.base = change.base,
+        feature.change.func = feature.change.func,
         context = "taxa change boxplotting"
       )
-      change.base <- pair_times$change.base
-      change.after <- pair_times$change.after
-
-      # Split data into separate tibbles for each time point
-      split_data <- split(otu_tax_agg_merged, f = as.character(otu_tax_agg_merged[[time.var]]))
-
-      # Extract data for the base time point and the change time point
-      data_time_1 <- split_data[[change.base]]
-      data_time_2 <- split_data[[change.after]]
-
-      # Combine data from both time points
-      combined_data <- data_time_1 %>%
-        dplyr::inner_join(
-          data_time_2,
-          by = c(feature.level, subject.var),
-          suffix = c("_time_1", "_time_2")
-        )
-
-      # Calculate the change in abundance based on the specified function
-      combined_data <- combined_data %>%
-        dplyr::mutate(value_diff = compute_taxa_change(
-          value_after  = value_time_2,
-          value_before = value_time_1,
-          method       = feature.change.func,
-          feature_id   = .data[[feature.level]]
-        ))
+      combined_data <- pair_change$combined_data
+      change.after <- pair_change$change.after
 
       # Add metadata for the change time point
-      combined_data <-
-        combined_data %>% dplyr::left_join(meta_tab %>% filter(!!sym(time.var) == change.after), by = subject.var)
+      combined_data <- mStat_attach_pair_metadata(
+        df = combined_data,
+        meta_tab = meta_tab,
+        subject.var = subject.var,
+        time.var = time.var,
+        mode = "followup_time",
+        change.after = change.after
+      )
 
       # Get unique taxa levels
       taxa.levels <-
         combined_data %>% select(all_of(c(feature.level))) %>% dplyr::distinct() %>% dplyr::pull()
 
-      # Set default group if not provided
-      if (is.null(group.var)) {
-        group.var = "group"
-        combined_data$group <- "ALL"
-      }
+      placeholder_group <- mStat_ensure_group_placeholder(
+        combined_data,
+        group.var = group.var,
+        value = "ALL",
+        column_name = "ALL"
+      )
+      combined_data <- placeholder_group$df
+      resolved_group_var <- placeholder_group$group.var
 
       # Select features to plot
-      if (!is.null(features.plot)) {
-        taxa.levels <- taxa.levels[taxa.levels %in% features.plot]
-      } else {
-        if (length(taxa.levels) >= 5) {
-          taxa.levels <- taxa.levels[1:4]
-        } else {
-          taxa.levels <- taxa.levels
-        }
-      }
+      taxa.levels <- mStat_resolve_selected_features(
+        feature.level = feature.level,
+        features.plot = current_features_plot,
+        taxa.levels = taxa.levels,
+        fallback_n = 4
+      )
 
       # Create the boxplot
       boxplot <-
         ggplot(
           combined_data %>% filter(!!sym(feature.level) %in% taxa.levels),
           aes(
-            x = !!sym(group.var),
+            x = !!sym(resolved_group_var),
             y = value_diff,
-            fill = !!sym(group.var)
+            fill = !!sym(resolved_group_var)
           )
         ) +
         geom_jitter(width = 0.1,
@@ -271,7 +241,6 @@ generate_taxa_change_boxplot_pair <-
           position = position_dodge(width = 0.8),
           width = 0.1,
         ) +
-        scale_alpha_manual(values = c(0.5, 0.5)) +
         scale_fill_manual(values = col) +
         labs(x = group.var,
              y = ylab_label) +
@@ -311,8 +280,7 @@ generate_taxa_change_boxplot_pair <-
       }
 
       # Adjust theme if there's only one group
-      if (group.var == "group" &&
-          unique(combined_data$group)[1] == "ALL") {
+      if (is.null(group.var)) {
         boxplot <- boxplot +
           theme(
             legend.position = "none",
@@ -351,20 +319,21 @@ generate_taxa_change_boxplot_pair <-
         "abund_filter_",
         abund.filter
       )
-      if (!is.null(group.var)) {
-        pdf_name <- paste0(pdf_name, "_", "group_", group.var)
-      }
-      if (!is.null(strata.var)) {
-        pdf_name <- paste0(pdf_name, "_", "strata_", strata.var)
-      }
+      pdf_name <- mStat_append_pdf_group_suffixes(
+        pdf_name = pdf_name,
+        group.var = group.var,
+        strata.var = strata.var
+      )
       if (!is.null(file.ann)) {
         pdf_name <- paste0(pdf_name, "_", file.ann)
       }
       pdf_name <- paste0(pdf_name, ".pdf")
       # Create a multi-page PDF file
       pdf(pdf_name, width = pdf.wid, height = pdf.hei)
-      # Use lapply to print each ggplot object in the list to a new PDF page
-      lapply(plot_list, print)
+      # Print each ggplot object to a new PDF page
+      for (plot_obj in plot_list) {
+        print(plot_obj)
+      }
       # Close the PDF device
       dev.off()
     }

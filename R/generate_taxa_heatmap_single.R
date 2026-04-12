@@ -189,24 +189,16 @@ generate_taxa_heatmap_single <- function(data.obj,
   feature.dat.type <- match.arg(feature.dat.type)
 
   # Subset the data if time variable and level are provided
-  if (!is.null(time.var)) {
-    if (!is.null(t.level)) {
-      condition <- paste(time.var, "== '", t.level, "'", sep = "")
-      data.obj <- mStat_subset_data(data.obj, condition = condition)
-    }
+  if (!is.null(time.var) && !is.null(t.level)) {
+    data.obj <- mStat_subset_by_meta_values(data.obj, time.var, t.level)
   }
 
   # Select relevant variables from metadata
   meta_tab <- data.obj$meta.dat %>% select(all_of(
     c(time.var, group.var, strata.var, other.vars)))
 
-  # Define color palette for the heatmap
   col <- c("white", "#92c5de", "#0571b0", "#f4a582", "#ca0020")
-
-  # Create color mapping function
   my_col <- colorRampPalette(col)
-
-  # Set the number of colors for the heatmap
   n_colors <- 100
 
   # Set clustering options for columns and rows
@@ -220,48 +212,28 @@ generate_taxa_heatmap_single <- function(data.obj,
     abund.filter <- 0
   }
 
-  # For "other" data type, check if data contains negative values
-  # If so, adjust abundance filter to handle negative values appropriately
-  if (feature.dat.type == "other") {
-    # Check if any feature table contains negative values
-    has_negative <- FALSE
-    if (!is.null(data.obj$feature.tab)) {
-      has_negative <- any(data.obj$feature.tab < 0, na.rm = TRUE)
-    }
-    if (!has_negative && !is.null(data.obj$feature.agg.list)) {
-      for (agg_table in data.obj$feature.agg.list) {
-        if (any(agg_table < 0, na.rm = TRUE)) {
-          has_negative <- TRUE
-          break
-        }
-      }
-    }
+  abund.filter <- mStat_adjust_other_abundance_filter(
+    data.obj = data.obj,
+    feature.dat.type = feature.dat.type,
+    abund.filter = abund.filter
+  )
 
-    if (has_negative) {
-      message("Note: Negative values detected in 'other' data type. Abundance filtering is disabled to preserve all features.")
-      abund.filter <- -Inf  # Set to negative infinity to include all features regardless of abundance
-    }
-  }
-
-  # Normalize count data if necessary
-  if (feature.dat.type == "count"){
-    message(
-      "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
-    )
-    data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
-  }
+  # Normalize count data if necessary.
+  analysis_data.obj <- mStat_normalize_count_data_if_needed(data.obj, feature.dat.type)
 
   # Generate plots for each feature level
   plot_list <- lapply(feature.level, function(feature.level) {
 
     # Aggregate data by taxonomy if necessary
-    otu_tax_agg <- get_taxa_data(data.obj, feature.level, prev.filter, abund.filter)
+    otu_tax_agg <- get_taxa_data(analysis_data.obj, feature.level, prev.filter, abund.filter)
 
-    # Select top k features if specified
-    if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
-      computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
-      features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
-    }
+    current_features_plot <- mStat_resolve_selected_features(
+      feature.dat = otu_tax_agg,
+      feature.level = feature.level,
+      features.plot = features.plot,
+      top.k.plot = top.k.plot,
+      top.k.func = top.k.func
+    )
 
     # Convert counts to numeric
     otu_tax_agg_numeric <-
@@ -276,102 +248,75 @@ generate_taxa_heatmap_single <- function(data.obj,
         feature_in_column = TRUE
       )
 
-    # Sort samples by group and strata variables if provided
-    if (!is.null(group.var) & !is.null(strata.var)) {
-      meta_tab_sorted <-
-        meta_tab[order(meta_tab[[strata.var]], meta_tab[[group.var]]), ]
-      otu_tab_norm_sorted <-
-        otu_tab_norm[, rownames(meta_tab_sorted)]
-    } else if (!is.null(group.var) & is.null(strata.var)) {
-      meta_tab_sorted <- meta_tab[order(meta_tab[[group.var]]), ]
-      otu_tab_norm_sorted <-
-        otu_tab_norm[, rownames(meta_tab_sorted)]
+    if (!is.null(group.var) && !is.null(strata.var)) {
+      meta_tab_sorted <- meta_tab[order(meta_tab[[strata.var]], meta_tab[[group.var]]), , drop = FALSE]
+      otu_tab_norm_sorted <- otu_tab_norm[, rownames(meta_tab_sorted), drop = FALSE]
+    } else if (!is.null(group.var)) {
+      meta_tab_sorted <- meta_tab[order(meta_tab[[group.var]]), , drop = FALSE]
+      otu_tab_norm_sorted <- otu_tab_norm[, rownames(meta_tab_sorted), drop = FALSE]
+    } else if (!is.null(strata.var)) {
+      meta_tab_sorted <- meta_tab[order(meta_tab[[strata.var]]), , drop = FALSE]
+      otu_tab_norm_sorted <- otu_tab_norm[, rownames(meta_tab_sorted), drop = FALSE]
     } else {
+      meta_tab_sorted <- meta_tab
       otu_tab_norm_sorted <- otu_tab_norm
     }
 
-    # Calculate gaps for the heatmap
-    if (!is.null(strata.var)){
-      if (!is.numeric(meta_tab[[strata.var]])){
-        gaps <-
-          cumsum(table(meta_tab_sorted[[strata.var]]))[-length(table(meta_tab_sorted[[strata.var]]))]
-      }
-    } else if (!is.null(group.var)){
-      if (!is.numeric(meta_tab[[group.var]])) {
-        gaps <-
-          cumsum(table(meta_tab_sorted[[group.var]]))[-length(table(meta_tab_sorted[[group.var]]))]
-      }
+    if (!is.null(strata.var) && !is.numeric(meta_tab_sorted[[strata.var]])) {
+      gaps <- cumsum(table(meta_tab_sorted[[strata.var]]))[-length(table(meta_tab_sorted[[strata.var]]))]
+    } else if (!is.null(group.var) && !is.numeric(meta_tab_sorted[[group.var]])) {
+      gaps <- cumsum(table(meta_tab_sorted[[group.var]]))[-length(table(meta_tab_sorted[[group.var]]))]
     } else {
       gaps <- NULL
     }
 
-    # Prepare annotation for columns
-    annotation_col <-
-      meta_tab %>% select(all_of(c(other.vars, group.var, strata.var)))
-
-    if (ncol(annotation_col) == 0){
+    annotation_col <- meta_tab %>% select(all_of(c(other.vars, group.var, strata.var)))
+    if (ncol(annotation_col) == 0) {
       annotation_col <- NULL
     }
 
-    # Create title for the heatmap
-    heatmap_title <- NA
-    if (!is.null(time.var) & !is.null(t.level)) {
-      heatmap_title <- paste0("Time = ", t.level)
-    }
+    heatmap_title <- if (!is.null(time.var) && !is.null(t.level)) paste0("Time = ", t.level) else NA
 
     # Filter features to plot if specified
-    if (!is.null(features.plot)) {
+    if (!is.null(current_features_plot)) {
       otu_tab_norm_sorted <-
-        otu_tab_norm_sorted[rownames(otu_tab_norm_sorted) %in% features.plot,]
+        otu_tab_norm_sorted[rownames(otu_tab_norm_sorted) %in% current_features_plot, , drop = FALSE]
     }
 
-    # Get color palette
     color_vector <- mStat_get_palette(palette)
 
-    # Prepare annotation colors
-    if (!is.null(strata.var) & !is.null(group.var)){
-      # Check if variables are already factors to preserve their order
-      if (is.factor(annotation_col[[group.var]])) {
-        group_levels <- levels(annotation_col[[group.var]])
-      } else {
-        group_levels <- annotation_col %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
-      }
-      group_colors <- setNames(color_vector[1:length(group_levels)], group_levels)
-      
-      if (is.factor(annotation_col[[strata.var]])) {
-        strata_levels <- levels(annotation_col[[strata.var]])
-      } else {
-        strata_levels <- annotation_col %>% dplyr::select(all_of(c(strata.var))) %>% distinct() %>% pull()
-      }
-      strata_colors <- setNames(rev(color_vector)[1:length(strata_levels)], strata_levels)
-      annotation_colors_list <- setNames(
-        list(group_colors, strata_colors),
-        c(group.var, strata.var)
-      )
-    } else if (!is.null(group.var)){
-      # Check if variable is already a factor to preserve its order
-      if (is.factor(annotation_col[[group.var]])) {
-        group_levels <- levels(annotation_col[[group.var]])
-      } else {
-        group_levels <- annotation_col %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
-      }
-      group_colors <- setNames(color_vector[1:length(group_levels)], group_levels)
-      annotation_colors_list <- setNames(
-        list(group_colors),
-        c(group.var)
-      )
+    if (!is.null(strata.var) && !is.null(group.var)) {
+      group_levels <- if (is.factor(annotation_col[[group.var]])) levels(annotation_col[[group.var]]) else annotation_col %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
+      strata_levels <- if (is.factor(annotation_col[[strata.var]])) levels(annotation_col[[strata.var]]) else annotation_col %>% dplyr::select(all_of(c(strata.var))) %>% distinct() %>% pull()
+      group_colors <- setNames(color_vector[seq_along(group_levels)], group_levels)
+      strata_colors <- setNames(rev(color_vector)[seq_along(strata_levels)], strata_levels)
+      annotation_colors_list <- setNames(list(group_colors, strata_colors), c(group.var, strata.var))
+    } else if (!is.null(group.var)) {
+      group_levels <- if (is.factor(annotation_col[[group.var]])) levels(annotation_col[[group.var]]) else annotation_col %>% dplyr::select(all_of(c(group.var))) %>% distinct() %>% pull()
+      group_colors <- setNames(color_vector[seq_along(group_levels)], group_levels)
+      annotation_colors_list <- setNames(list(group_colors), c(group.var))
+    } else if (!is.null(strata.var)) {
+      strata_levels <- if (is.factor(annotation_col[[strata.var]])) levels(annotation_col[[strata.var]]) else annotation_col %>% dplyr::select(all_of(c(strata.var))) %>% distinct() %>% pull()
+      strata_colors <- setNames(rev(color_vector)[seq_along(strata_levels)], strata_levels)
+      annotation_colors_list <- setNames(list(strata_colors), c(strata.var))
     } else {
       annotation_colors_list <- NULL
     }
 
+    heatmap_gaps <- if (!is.null(gaps) && length(gaps) > 0 && ncol(otu_tab_norm_sorted) > 1) {
+      gaps
+    } else {
+      NULL
+    }
+
     # Generate the heatmap
     heatmap_plot <- pheatmap::pheatmap(
-      mat = otu_tab_norm_sorted[order(rowMeans(otu_tab_norm_sorted, na.rm = TRUE), decreasing = TRUE), ],
+      mat = otu_tab_norm_sorted[order(rowMeans(otu_tab_norm_sorted, na.rm = TRUE), decreasing = TRUE), , drop = FALSE],
       annotation_col = annotation_col,
       annotation_colors = annotation_colors_list,
       cluster_rows = cluster.rows,
       cluster_cols = cluster.cols,
-      gaps_col = gaps,
+      gaps_col = heatmap_gaps,
       color = my_col(n_colors),
       fontsize = base.size,
       main = heatmap_title,
@@ -402,12 +347,11 @@ generate_taxa_heatmap_single <- function(data.obj,
       if (!is.null(t.level)) {
         pdf_name <- paste0(pdf_name, "_", "t_level_", t.level)
       }
-      if (!is.null(group.var)) {
-        pdf_name <- paste0(pdf_name, "_", "group_", group.var)
-      }
-      if (!is.null(strata.var)) {
-        pdf_name <- paste0(pdf_name, "_", "strata_", strata.var)
-      }
+      pdf_name <- mStat_append_pdf_group_suffixes(
+        pdf_name = pdf_name,
+        group.var = group.var,
+        strata.var = strata.var
+      )
       if (!is.null(file.ann)) {
         pdf_name <- paste0(pdf_name, "_", file.ann)
       }

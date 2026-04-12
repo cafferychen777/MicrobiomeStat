@@ -105,19 +105,26 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
   fl <- mStat_capture_factor_levels(data.obj, group.var, strata.var)
   data.obj <- fl$data.obj
 
-  meta_tab <-
-    data.obj$meta.dat %>% select(all_of(c(
-      time.var, group.var, strata.var, subject.var
-    )))
+  meta_tab <- select_meta_vars(
+    data.obj$meta.dat,
+    time.var,
+    group.var,
+    strata.var,
+    subject.var
+  )
 
-  if (is.null(group.var)) {
-    group.var = "ALL"
-    meta_tab$ALL <- ""
-  }
+  placeholder_group <- mStat_ensure_group_placeholder(
+    meta_tab,
+    group.var = group.var,
+    value = "ALL",
+    column_name = "ALL"
+  )
+  meta_tab <- placeholder_group$df
+  resolved_group_var <- placeholder_group$group.var
 
   if (!is.null(strata.var)) {
     meta_tab <-
-      meta_tab %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(group.var), !!sym(strata.var), sep = .STRATA_SEP))
+      meta_tab %>% dplyr::mutate(!!sym(resolved_group_var) := interaction(!!sym(resolved_group_var), !!sym(strata.var), sep = .STRATA_SEP))
   }
 
   # Define the colors
@@ -137,21 +144,18 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
     abund.filter <- 0
   }
 
+  analysis_data.obj <- mStat_normalize_count_data_if_needed(data.obj, feature.dat.type)
+
   plot_list <- lapply(feature.level, function(feature.level) {
-    if (feature.dat.type == "count") {
-      message(
-        "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
-      )
-      data.obj <-
-        mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
-    }
+    otu_tax_agg <- get_taxa_data(analysis_data.obj, feature.level, prev.filter, abund.filter)
 
-    otu_tax_agg <- get_taxa_data(data.obj, feature.level, prev.filter, abund.filter)
-
-    if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
-      computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
-      features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
-    }
+    current_features_plot <- mStat_resolve_selected_features(
+      feature.dat = otu_tax_agg,
+      feature.level = feature.level,
+      features.plot = features.plot,
+      top.k.plot = top.k.plot,
+      top.k.func = top.k.func
+    )
 
     otu_tax_long <- mStat_prepare_taxa_long_data(
       feature.dat = otu_tax_agg,
@@ -164,7 +168,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
     otu_tab_norm_agg <- mStat_summarize_grouped_taxa_long(
       long.df = otu_tax_long,
       feature.level = feature.level,
-      group_vars = c(group.var, time.var, subject.var),
+      group_vars = c(resolved_group_var, time.var, subject.var),
       value_col = "count",
       mean_col = "mean_abundance",
       prevalence_col = "subject_prevalence"
@@ -182,14 +186,12 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
 
     # Convert data from long format to wide format, placing the mean_abundance values at different time points in different columns.
     otu_tab_norm_agg_wide <- otu_tab_norm_agg %>%
-      tidyr::spread(key = !!sym(time.var), value = mean_abundance) %>%
+      tidyr::pivot_wider(names_from = !!sym(time.var), values_from = mean_abundance) %>%
       dplyr::rename(
         time1_mean_abundance = all_of(change.base),
         time2_mean_abundance = all_of(change.after)
       )
 
-    # Calculate abundance change (fix: was passing time2 twice for custom func,
-    # and using fixed +0.00001 instead of per-taxon pseudocount for log fold change)
     otu_tab_norm_agg_wide <- otu_tab_norm_agg_wide %>%
       dplyr::mutate(abundance_change = compute_taxa_change(
         value_after  = time2_mean_abundance,
@@ -201,7 +203,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
     prevalence_time <- mStat_summarize_grouped_taxa_long(
       long.df = otu_tax_long,
       feature.level = feature.level,
-      group_vars = c(group.var, time.var),
+      group_vars = c(resolved_group_var, time.var),
       value_col = "count",
       mean_col = "avg_abundance",
       prevalence_col = "prevalence"
@@ -209,7 +211,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
       dplyr::select(-avg_abundance)
 
     prevalence_time_wide <- prevalence_time %>%
-      tidyr::spread(key = time.var, value = prevalence) %>%
+      tidyr::pivot_wider(names_from = time.var, values_from = prevalence) %>%
       dplyr::rename(time1_prevalence = change.base,
                     time2_prevalence = change.after)
 
@@ -224,11 +226,18 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
       ))
 
     otu_tab_norm_agg_wide <-
-      otu_tab_norm_agg_wide %>% dplyr::left_join(prevalence_time_wide, by = c(feature.level, group.var))
+      otu_tab_norm_agg_wide %>% dplyr::left_join(prevalence_time_wide, by = c(feature.level, resolved_group_var))
+
+    current_features_plot <- mStat_resolve_selected_features(
+      feature.level = feature.level,
+      features.plot = current_features_plot,
+      taxa.levels = otu_tab_norm_agg_wide[[feature.level]] %>% unique(),
+      fallback_n = 6
+    )
 
     if (!is.null(strata.var)) {
       otu_tab_norm_agg_wide <- otu_tab_norm_agg_wide %>%
-        dplyr::mutate(group_key = !!sym(group.var)) %>%
+        dplyr::mutate(group_key = !!sym(resolved_group_var)) %>%
         tidyr::separate(group_key,
                         into = c(paste0(group.var, "2"), strata.var),
                         sep = .STRATA_SEP)
@@ -236,9 +245,9 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
         otu_tab_norm_agg_wide, fl$levels, paste0(group.var, "2"), strata.var)
     }
 
-    if (!is.null(features.plot)) {
+    if (!is.null(current_features_plot)) {
       otu_tab_norm_agg_wide <-
-        otu_tab_norm_agg_wide %>% filter(!!sym(feature.level) %in% features.plot)
+        otu_tab_norm_agg_wide %>% filter(!!sym(feature.level) %in% current_features_plot)
     }
 
     prop_prev_data <- mStat_summarize_taxa_features(
@@ -248,10 +257,11 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
     )
 
     otu_tab_norm_agg_wide <- otu_tab_norm_agg_wide %>%
-      tidyr::gather(key = "Type",
-                    value = "change",
-                    abundance_change,
-                    prevalence_change) %>%
+      tidyr::pivot_longer(
+        cols = c(abundance_change, prevalence_change),
+        names_to = "Type",
+        values_to = "change"
+      ) %>%
       select(-all_of(
         c(
           "time1_mean_abundance",
@@ -269,30 +279,6 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
         )
       ) %>%
       select(-all_of(c("avg_abundance", "prevalence")))
-
-    adjust_size_range <- function(taxa.levels) {
-      if (taxa.levels <= 2) {
-        return(c(40, 57))
-      } else if (taxa.levels <= 4) {
-        return(c(35, 42))
-      } else if (taxa.levels <= 6) {
-        return(c(30, 37))
-      } else if (taxa.levels <= 8) {
-        return(c(25, 33))
-      } else if (taxa.levels < 10) {
-        return(c(20, 17))
-      } else if (taxa.levels < 20) {
-        return(c(10, 15))
-      } else if (taxa.levels < 30) {
-        return(c(8, 13))
-      } else if (taxa.levels < 40) {
-        return(c(6, 10))
-      } else if (taxa.levels < 50) {
-        return(c(4, 8))
-      } else {
-        return(c(1, 4))
-      }
-    }
 
     # Find the minimum and maximum values of abundance_change
     change_min <- min(otu_tab_norm_agg_wide$change)
@@ -320,13 +306,10 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
     taxa.levels <-
       otu_tab_norm_agg_wide %>% dplyr::ungroup() %>% select(all_of(c(feature.level))) %>% pull() %>% unique() %>% length()
 
-    otu_tab_norm_agg_wide <- otu_tab_norm_agg_wide  %>%
+    otu_tab_norm_agg_wide <- otu_tab_norm_agg_wide %>%
       select(-all_of(subject.var)) %>%
-      dplyr::group_by(!!sym(group.var),!!sym(feature.level)) %>%
-      dplyr::mutate(
-        change = mean(change)
-      ) %>%
-      dplyr::distinct()
+      dplyr::group_by(!!sym(resolved_group_var), !!sym(feature.level), Type, Base) %>%
+      dplyr::summarise(change = mean(change), .groups = "drop")
 
     # Add disease prevalence as the size of the points, and use the average abundance as the color of the points
     dotplot <-
@@ -334,7 +317,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
         otu_tab_norm_agg_wide,
         aes(
           x = !!sym(feature.level),
-          y = !!sym(group.var),
+          y = !!sym(resolved_group_var),
           size = Base,
           shape = Type,
           color = Type
@@ -346,9 +329,9 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
         position = position_dodge(0.9)
       ) +
       xlab(feature.level) +
-      ylab(group.var) +
+      ylab(if (is.null(group.var)) NULL else group.var) +
       scale_colour_manual(values = c("transparent", "black")) +
-      scale_size_continuous(range = adjust_size_range(taxa.levels)) +
+      scale_size_continuous(range = mStat_get_taxa_dotplot_size_range(taxa.levels)) +
       scale_fill_gradientn(
         colors = colors,
         values = c(
@@ -372,7 +355,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
           )
         } else {
           ggh4x::facet_nested(
-            rows = vars(!!sym(group.var)),
+            rows = vars(!!sym(resolved_group_var)),
             cols = vars(!!sym(feature.level)),
             scales = "free",
             switch = "y"
@@ -395,7 +378,7 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
         legend.direction = "vertical",
         legend.box = "vertical",
         strip.text.x = element_blank(),
-        strip.text.y = if (group.var == "ALL")
+        strip.text.y = if (is.null(group.var))
           element_blank()
         else
           element_text(size = base.size),
@@ -429,12 +412,11 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
         "abund_filter_",
         abund.filter
       )
-      if (!is.null(group.var)) {
-        pdf_name <- paste0(pdf_name, "_", "group_", group.var)
-      }
-      if (!is.null(strata.var)) {
-        pdf_name <- paste0(pdf_name, "_", "strata_", strata.var)
-      }
+      pdf_name <- mStat_append_pdf_group_suffixes(
+        pdf_name = pdf_name,
+        group.var = group.var,
+        strata.var = strata.var
+      )
       if (!is.null(file.ann)) {
         pdf_name <- paste0(pdf_name, "_", file.ann)
       }

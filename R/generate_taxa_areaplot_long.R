@@ -215,13 +215,9 @@ generate_taxa_areaplot_long <-
       pal <- palette
     }
 
-    # Normalize the data if it's in count format
-    if (feature.dat.type == "count"){
-      message(
-        "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
-      )
-      data.obj <- mStat_normalize_data(data.obj = data.obj, method = "TSS")$data.obj.norm
-    } else if (feature.dat.type == "other"){
+    # Normalize the data if it's in count format.
+    data.obj <- mStat_normalize_count_data_if_needed(data.obj, feature.dat.type)
+    if (feature.dat.type == "other"){
       stop("The 'other' type is suitable for situations where the user has analyzed the data using a method not provided in 'mStat_normalize_data' method, and the 'areaplot' is only applicable to raw data that has not undergone any processing or proportion data that adds up to 1. If you believe your data falls into these two categories, please modify 'feature.dat.type'.")
     }
 
@@ -229,11 +225,16 @@ generate_taxa_areaplot_long <-
     plot_list_all <- lapply(feature.level,function(feature.level){
 
       otu_tax_agg <- get_taxa_data(data.obj, feature.level)
-
-      # Subset features if specified (using %in% for robustness against NA or non-existent features)
-      if (!is.null(features.plot)){
-        otu_tax_agg <- otu_tax_agg[otu_tax_agg[[feature.level]] %in% features.plot,]
-      }
+      selected_features <- mStat_resolve_selected_features(
+        feature.dat = otu_tax_agg,
+        feature.level = feature.level,
+        features.plot = features.plot
+      )
+      otu_tax_agg <- mStat_filter_taxa_features(
+        feature.dat = otu_tax_agg,
+        feature.level = feature.level,
+        features.plot = selected_features
+      )
 
       otu_tab_norm <- mStat_as_taxa_composition_matrix(
         feature.dat = otu_tax_agg,
@@ -242,26 +243,16 @@ generate_taxa_areaplot_long <-
 
       meta_tab_sorted <- meta_tab[colnames(otu_tab_norm), ]
 
-      # Calculate the average relative abundance of each taxon
-      avg_abund <- rowMeans(otu_tab_norm)
-
-      # Replace taxon with "Other" for relative abundance below threshold
-      otu_tab_other <- otu_tab_norm %>%
-        as.data.frame() %>%
-        tibble::rownames_to_column(feature.level)
-
-      # Threshold the relative abundance below after feature.number
-      other.abund.cutoff <- sort(avg_abund, decreasing=TRUE)[feature.number]
-
-      if (!is.na(other.abund.cutoff)){
-        otu_tab_other[, feature.level][avg_abund < other.abund.cutoff] <- "Other"
-      }
-
-      # Convert data to long format
-      otu_tab_long <- otu_tab_other %>%
-        dplyr::group_by(!!sym(feature.level)) %>%
-        dplyr::summarize_all(sum) %>%
-        tidyr::gather(key = "sample", value = "value", -feature.level)
+      stack_levels <- mStat_prepare_stack_levels(
+        composition.mat = otu_tab_norm,
+        feature.level = feature.level,
+        feature.number = feature.number,
+        other_first = TRUE,
+        other_inclusive = FALSE
+      )
+      otu_tab_long <- stack_levels$long.df
+      new_levels <- stack_levels$new_levels
+      other.abund.cutoff <- stack_levels$other.abund.cutoff
 
       # Merge feature data with metadata
       merged_long_df <- otu_tab_long %>%
@@ -299,15 +290,17 @@ generate_taxa_areaplot_long <-
         dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = new_levels))
 
       # Modify the creation of df
-      df <- sorted_merged_long_df %>%
-        dplyr::group_by(sample) %>%
-        dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = new_levels)) %>%
-        dplyr::arrange(match(!!sym(feature.level), new_levels)) %>%
-        dplyr::mutate(cumulative_value = (1-cumsum(value))) %>%
-        dplyr::ungroup() %>%
-        dplyr::group_by(!!sym(feature.level)) %>%
-        dplyr::mutate(next_cumulative_value = dplyr::if_else(sample %in% last_sample_ids$last_sample_id, NA_real_, dplyr::lead(cumulative_value))) %>%
-        dplyr::ungroup()
+      df <- mStat_prepare_stacked_positions(
+        long.df = sorted_merged_long_df,
+        feature.level = feature.level,
+        id_var = "sample",
+        ordered_levels = new_levels,
+        terminal_ids = last_sample_ids$last_sample_id
+      )
+
+      if (!is.null(selected_features)) {
+        df <- df %>% dplyr::filter(!!sym(feature.level) %in% selected_features)
+      }
 
       # Update color palette
       color_pal <- setNames(pal[1:length(new_levels)], new_levels)
@@ -324,61 +317,39 @@ generate_taxa_areaplot_long <-
         stop("The variable is neither factor nor numeric.")
       }
 
-      if (!is.null(strata.var)){
-        if (!is.null(group.var)){
-          sorted_merged_long_df <- sorted_merged_long_df %>% dplyr::mutate(!!sym(group.var) := interaction(!!sym(group.var),!!sym(strata.var), sep = .STRATA_SEP))
-        } else {
-          group.var = ""
-          sorted_merged_long_df <- sorted_merged_long_df %>% dplyr::mutate(!!sym(group.var) := "")
-        }
-      } else {
-        if (!is.null(group.var)){
-        } else {
-          group.var = ""
-          sorted_merged_long_df <- sorted_merged_long_df %>% dplyr::mutate(!!sym(group.var) := "")
-        }
+      has_group <- !is.null(group.var)
+      placeholder_group <- mStat_ensure_group_placeholder(
+        sorted_merged_long_df,
+        group.var = group.var,
+        value = "ALL",
+        column_name = "ALL"
+      )
+      sorted_merged_long_df <- placeholder_group$df
+      resolved_group_var <- placeholder_group$group.var
+      if (!is.null(strata.var)) {
+        sorted_merged_long_df <- sorted_merged_long_df %>%
+          dplyr::mutate(!!sym(resolved_group_var) := interaction(!!sym(resolved_group_var), !!sym(strata.var), sep = .STRATA_SEP))
       }
 
-      # Modify the creation of df_average
-      df_average <- sorted_merged_long_df %>%
-        dplyr::group_by(!!sym(feature.level),!!sym(group.var),!!sym(time.var)) %>%
-        dplyr::summarise(mean_value  = mean(value)) %>%
-        dplyr::mutate(!!sym(feature.level) := factor(!!sym(feature.level), levels = new_levels)) %>%
-        dplyr::arrange(match(!!sym(feature.level), new_levels),!!sym(group.var),!!sym(time.var)) %>%
-        dplyr::group_by(!!sym(group.var),!!sym(time.var)) %>%
-        dplyr::mutate(cumulative_mean_value = (1-cumsum(mean_value))) %>%
-        dplyr::ungroup() %>%
-        dplyr::group_by(!!sym(feature.level)) %>%
-        dplyr::mutate(next_cumulative_mean_value = dplyr::if_else(!!sym(time.var) %in% last_time_ids, NA_real_, dplyr::lead(cumulative_mean_value))) %>%
-        dplyr::ungroup()
-
-      if (group.var == ""){
-        df_average <- df_average %>% dplyr::mutate(!!sym(group.var) := "")
-        df_average <- df_average %>%
-          dplyr::mutate(joint_factor = interaction(!!sym(time.var), ""))
-      } else {
-        df_average <- df_average %>%
-          dplyr::mutate(joint_factor = interaction(!!sym(time.var), !!sym(group.var)))
-      }
-
-      # Calculate x-axis offsets for labels
-      df_average <- df_average %>%
-        dplyr::mutate(x_offset = ifelse(cumulative_mean_value == 0, (bar_width + bar_spacing) / 2, -(bar_width + bar_spacing) / 2))
-
-      # Drop unused levels from joint_factor
-      df_average$joint_factor <- droplevels(df_average$joint_factor)
-
-      # Convert joint_factor to numeric for plotting
-      df_average$joint_factor_numeric <- match(df_average$joint_factor, levels(df_average$joint_factor))
-
-      # Extract labels for x-axis
-      labels <- sub("\\..*", "", levels(df_average$joint_factor))
+      average_stack <- mStat_prepare_average_stack_data(
+        long.df = sorted_merged_long_df,
+        feature.level = feature.level,
+        group.var = resolved_group_var,
+        time.var = time.var,
+        ordered_levels = new_levels,
+        terminal_time_values = last_time_ids,
+        bar_width = bar_width,
+        bar_spacing = bar_spacing
+      )
+      df_average <- average_stack$df
+      labels <- average_stack$labels
 
       # Separate group and strata variables and restore factor levels
       if(!is.null(strata.var)){
+        group_var_for_restore <- if (has_group) group.var else resolved_group_var
         df_average <- df_average %>%
-          tidyr::separate(!!sym(group.var), into = c(group.var, strata.var), sep = .STRATA_SEP)
-        df_average <- mStat_restore_factor_levels(df_average, fl$levels, group.var, strata.var)
+          tidyr::separate(!!sym(resolved_group_var), into = c(group_var_for_restore, strata.var), sep = .STRATA_SEP)
+        df_average <- mStat_restore_factor_levels(df_average, fl$levels, group_var_for_restore, strata.var)
       }
 
       # Create the main stacked area plot
@@ -389,16 +360,13 @@ generate_taxa_areaplot_long <-
         scale_y_continuous(expand = c(0, 0), labels = scales::percent) +
         scale_x_continuous(expand = c(0.01, 0.01), breaks = unique(df_average$joint_factor_numeric), labels = labels) +
         {
-          # Add faceting if group variable is present
-          if (!is.null(group.var)){
-            if (group.var == ""){
-            } else {
-              if (!is.null(strata.var)){
-                ggh4x::facet_nested(as.formula(paste(". ~", strata.var, "+", group.var)), drop = T, scale = "free", space = "free")
-              } else {
-                ggh4x::facet_nested(as.formula(paste(". ~", group.var)), drop = T, scale = "free", space = "free")
-              }
-            }
+          # Add faceting if group or strata variables are present
+          if (has_group && !is.null(strata.var)) {
+            ggh4x::facet_nested(as.formula(paste(". ~", strata.var, "+", group.var)), drop = T, scales = "free", space = "free")
+          } else if (has_group) {
+            ggh4x::facet_nested(as.formula(paste(". ~", group.var)), drop = T, scales = "free", space = "free")
+          } else if (!is.null(strata.var)) {
+            ggh4x::facet_nested(as.formula(paste(". ~", strata.var)), drop = T, scales = "free", space = "free")
           }
         } +
         labs(fill = feature.level, y = "", x = "") +
@@ -433,12 +401,11 @@ generate_taxa_areaplot_long <-
                            "feature_level_", feature.level,
                            "_",
                            "feature_number_", feature.number)
-        if (!is.null(group.var)) {
-          pdf_name <- paste0(pdf_name, "_", "group_", group.var)
-        }
-        if (!is.null(strata.var)) {
-          pdf_name <- paste0(pdf_name, "_", "strata_", strata.var)
-        }
+        pdf_name <- mStat_append_pdf_group_suffixes(
+          pdf_name = pdf_name,
+          group.var = if (has_group) group.var else NULL,
+          strata.var = strata.var
+        )
         if (!is.null(file.ann)) {
           pdf_name <- paste0(pdf_name, "_", file.ann)
         }

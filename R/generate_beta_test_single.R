@@ -111,21 +111,16 @@ generate_beta_test_single <- function(data.obj,
 
   # Calculate beta diversity indices if not provided
   # This step ensures we have the necessary distance matrices for the analysis
+  if (!is.null(time.var) && !is.null(t.level)) {
+    data.obj <- mStat_subset_by_meta_values(data.obj, time.var, t.level)
+  }
+
   if (is.null(dist.obj)) {
-    # If time variable and level are provided, subset the data to that specific time point
-    if (!is.null(time.var) && !is.null(t.level)) {
-      condition <- paste(time.var, "== '", t.level, "'", sep = "")
-      data.obj <- mStat_subset_data(data.obj, condition = condition)
-    }
     # Calculate beta diversity using the specified distance metrics
     dist.obj <- mStat_calculate_beta_diversity(data.obj, dist.name)
   } else {
     # If distance object is provided, use it but ensure it matches the current data
     message("Using provided dist.obj...")
-    if (!is.null(time.var) && !is.null(t.level)) {
-      condition <- paste(time.var, "== '", t.level, "'", sep = "")
-      data.obj <- mStat_subset_data(data.obj, condition = condition)
-    }
     dist.obj <- mStat_subset_dist(dist.obj, rownames(data.obj$meta.dat))
     # Check if all requested distances are available before filtering
     available_dists <- names(dist.obj)
@@ -143,16 +138,10 @@ generate_beta_test_single <- function(data.obj,
 
   # Create the formula for PermanovaG2
   # This formula will be used to specify the model for the PERMANOVA test
-  if (is.null(adj.vars)) {
-    # If no adjustment variables, use only the group variable
-    formula_str <- paste0("dist.obj ~ ", group.var)
-  } else {
-    # If adjustment variables are provided, include them in the formula
-    adj_vars_terms <- paste0(adj.vars, collapse = " + ")
-    formula_str <- paste0("dist.obj ~ ", adj_vars_terms, " + ", group.var)
-  }
-
-  formula <- as.formula(formula_str)
+  formula <- mStat_build_formula(
+    response = "dist.obj",
+    terms = c(adj.vars, group.var)
+  )
 
   # Ensure .Random.seed exists (PermanovaG2 requires it)
   # This initializes the RNG state if it hasn't been used yet

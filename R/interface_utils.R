@@ -172,23 +172,21 @@ mStat_scope_unified_context <- function(data.obj,
   }
 
   requested_time_values <- unique(mStat_design_time_values(design_info))
-  available_time_values <- as.character(mStat_order_time_values(data.obj$meta.dat[[time.var]]))
 
   if (length(requested_time_values) > 0) {
-    missing_time_values <- setdiff(requested_time_values, available_time_values)
-    if (length(missing_time_values) != 0) {
-      stop(
-        "Requested time.points not found in `", time.var, "`: ",
-        paste(missing_time_values, collapse = ", "),
-        ". Available values: ",
-        paste(available_time_values, collapse = ", "),
-        call. = FALSE
-      )
-    }
-
     scoped_meta <- data.obj$meta.dat[candidate_samIDs, , drop = FALSE]
+    resolved_time <- mStat_resolve_time_levels(
+      values = scoped_meta[[time.var]],
+      time.var = time.var,
+      requested_levels = requested_time_values,
+      context = "unified interface time scoping"
+    )
     candidate_samIDs <- rownames(
-      scoped_meta[scoped_meta[[time.var]] %in% requested_time_values, , drop = FALSE]
+      scoped_meta[
+        mStat_match_metadata_values(scoped_meta[[time.var]], resolved_time$kept_levels),
+        ,
+        drop = FALSE
+      ]
     )
   }
 
@@ -421,7 +419,8 @@ resolve_params <- function(args, target_func, design_info) {
   resolved$time.points <- NULL
 
   # Only add pdf = FALSE for plot functions (not test functions)
-  if (!grepl("_test_", target_func) && !grepl("_trend_", target_func) &&
+  if (is.null(resolved$pdf) &&
+      !grepl("_test_", target_func) && !grepl("_trend_", target_func) &&
       !grepl("_volatility_", target_func) && !grepl("_association_", target_func)) {
     resolved$pdf <- FALSE
   }
@@ -577,6 +576,7 @@ validate_inputs <- function(data.obj,
                             subject.var = NULL,
                             time.var = NULL,
                             group.var = NULL,
+                            strata.var = NULL,
                             design_info = NULL) {
   errors <- character()
   warnings <- character()
@@ -615,6 +615,10 @@ validate_inputs <- function(data.obj,
 
   if (!is.null(group.var) && !group.var %in% meta_cols) {
     errors <- c(errors, paste0("group.var '", group.var, "' not found in meta.dat"))
+  }
+
+  if (!is.null(strata.var) && !strata.var %in% meta_cols) {
+    errors <- c(errors, paste0("strata.var '", strata.var, "' not found in meta.dat"))
   }
 
   requires_group_var <-

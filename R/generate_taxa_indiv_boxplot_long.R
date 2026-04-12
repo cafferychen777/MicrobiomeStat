@@ -125,20 +125,11 @@ generate_taxa_indiv_boxplot_long <-
 
     # Define aesthetic functions for plotting
     # These functions determine how the data will be mapped to visual properties in the plot
-    line_aes_function <- if (!is.null(group.var)) {
-      aes(
-        x = !!sym(time.var),
-        y = value,
-        group = !!sym(subject.var),
-        color = !!sym(group.var)
-      )
-    } else {
-      aes(
-        x = !!sym(time.var),
-        y = value,
-        group = !!sym(subject.var)
-      )
-    }
+    line_aes_function <- aes(
+      x = !!sym(time.var),
+      y = value,
+      group = !!sym(subject.var)
+    )
 
     aes_function <- if (!is.null(group.var)) {
       aes(
@@ -167,13 +158,8 @@ generate_taxa_indiv_boxplot_long <-
       abund.filter <- 0
     }
 
-    # Normalize count data if necessary
-    if (feature.dat.type == "count"){
-      message(
-        "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'Rarefy-TSS' transformation."
-      )
-      data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
-    }
+    # Normalize count data if necessary.
+    data.obj <- mStat_normalize_count_data_if_needed(data.obj, feature.dat.type)
 
     # Generate plots for each taxonomic level
     plot_list_all <- lapply(feature.level, function(feature.level) {
@@ -181,11 +167,13 @@ generate_taxa_indiv_boxplot_long <-
       # Aggregate data by taxonomy if necessary
       otu_tax_agg <- get_taxa_data(data.obj, feature.level, prev.filter, abund.filter)
 
-      # Select top k features if specified
-      if (is.null(features.plot) && !is.null(top.k.plot) && !is.null(top.k.func)) {
-        computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
-        features.plot <- names(sort(computed_values, decreasing = TRUE)[1:top.k.plot])
-      }
+      current_features_plot <- mStat_resolve_selected_features(
+        feature.dat = otu_tax_agg,
+        feature.level = feature.level,
+        features.plot = features.plot,
+        top.k.plot = top.k.plot,
+        top.k.func = top.k.func
+      )
 
       otu_tax_agg_merged <-
         mStat_prepare_taxa_long_data(
@@ -215,13 +203,16 @@ generate_taxa_indiv_boxplot_long <-
         otu_tax_agg_merged %>% select(feature.level) %>% dplyr::distinct() %>% dplyr::pull()
 
       # Count number of subjects and time points
-      n_subjects <- length(unique(otu_tax_agg_merged[[subject.var]]))
-      n_times <- length(unique(otu_tax_agg_merged[[time.var]]))
+      n_subjects <- length(unique(stats::na.omit(otu_tax_agg_merged[[subject.var]])))
+      n_times <- length(unique(stats::na.omit(otu_tax_agg_merged[[time.var]])))
 
-      # Filter taxa levels if specified
-      if (!is.null(features.plot)){
-        taxa.levels <- taxa.levels[taxa.levels %in% features.plot]
-      }
+      current_features_plot <- mStat_resolve_selected_features(
+        feature.level = feature.level,
+        features.plot = current_features_plot,
+        taxa.levels = taxa.levels,
+        fallback_n = 6
+      )
+      taxa.levels <- current_features_plot
 
       # Generate individual plots for each taxon
       plot_list <- lapply(taxa.levels, function(tax) {
@@ -277,21 +268,11 @@ generate_taxa_indiv_boxplot_long <-
               dplyr::mutate(!!sym(time.var) := factor(!!sym(time.var)))
           ) +
           scale_fill_manual(values = col) +
-          {
-            if (feature.dat.type == "other"){
-              labs(
-                x = time.var,
-                y = "Abundance",
-                title = tax
-              )
-            } else {
-              labs(
-                x = time.var,
-                y = paste("Relative Abundance(", transform, ")"),
-                title = tax
-              )
-            }
-          } +
+          labs(
+            x = time.var,
+            y = mStat_get_taxa_value_ylabel(feature.dat.type, transform),
+            title = tax
+          ) +
           theme_to_use +
           theme(
             panel.spacing.x = unit(0, "cm"),
@@ -364,20 +345,21 @@ generate_taxa_indiv_boxplot_long <-
           "abund_filter_",
           abund.filter
         )
-        if (!is.null(group.var)) {
-          pdf_name <- paste0(pdf_name, "_", "group_", group.var)
-        }
-        if (!is.null(strata.var)) {
-          pdf_name <- paste0(pdf_name, "_", "strata_", strata.var)
-        }
+        pdf_name <- mStat_append_pdf_group_suffixes(
+          pdf_name = pdf_name,
+          group.var = group.var,
+          strata.var = strata.var
+        )
         if (!is.null(file.ann)) {
           pdf_name <- paste0(pdf_name, "_", file.ann)
         }
         pdf_name <- paste0(pdf_name,"_", feature.level, ".pdf")
         # Create a multi-page PDF file
         pdf(pdf_name, width = pdf.wid, height = pdf.hei)
-        # Use lapply to print each ggplot object in the list to a new PDF page
-        lapply(plot_list, print)
+        # Print each ggplot object to a new PDF page
+        for (plot_obj in plot_list) {
+          print(plot_obj)
+        }
         # Close the PDF device
         dev.off()
       }

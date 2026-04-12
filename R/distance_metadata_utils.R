@@ -321,13 +321,409 @@ mStat_dist_to_tibble <- function(dist.matrix, sample_col = "sample") {
 
 
 #' @keywords internal
-mStat_meta_to_tibble <- function(meta.dat, sample_col = "sample") {
-  meta.tbl <- as.data.frame(meta.dat, stringsAsFactors = FALSE)
-  if (sample_col %in% colnames(meta.tbl)) {
-    meta.tbl[[sample_col]] <- NULL
+mStat_align_dist_matrix_to_metadata <- function(dist.matrix,
+                                                meta.dat) {
+  dist.mat <- tryCatch(
+    as.matrix(dist.matrix),
+    error = function(e) {
+      stop(
+        "Failed to convert distance object to a matrix: ",
+        conditionMessage(e),
+        call. = FALSE
+      )
+    }
+  )
+
+  meta.tbl <- mStat_meta_with_sample(meta.dat, sample_col = "sample")
+  sample_ids <- meta.tbl[["sample"]]
+  if (anyNA(sample_ids) || anyDuplicated(sample_ids)) {
+    stop("Metadata must have unique, non-missing sample identifiers.", call. = FALSE)
   }
 
-  tibble::rownames_to_column(meta.tbl, var = sample_col)
+  missing_rows <- setdiff(sample_ids, rownames(dist.mat))
+  missing_cols <- setdiff(sample_ids, colnames(dist.mat))
+  if (length(missing_rows) > 0 || length(missing_cols) > 0) {
+    stop(
+      "Distance matrix labels do not match metadata rows.",
+      if (length(missing_rows) > 0) {
+        paste0(" Missing rows: ", paste(missing_rows, collapse = ", "), ".")
+      } else {
+        ""
+      },
+      if (length(missing_cols) > 0) {
+        paste0(" Missing columns: ", paste(missing_cols, collapse = ", "), ".")
+      } else {
+        ""
+      },
+      call. = FALSE
+    )
+  }
+
+  dist.mat[sample_ids, sample_ids, drop = FALSE]
+}
+
+
+#' @keywords internal
+mStat_prepare_subject_time_distance_long_data <- function(dist.matrix,
+                                                          meta.dat,
+                                                          subject.var,
+                                                          time.var,
+                                                          mode = c("baseline", "adjacent"),
+                                                          baseline_time = NULL,
+                                                          followup_time = NULL,
+                                                          sample_col = "sample") {
+  mode <- match.arg(mode)
+
+  meta.tbl <- mStat_meta_to_tibble(meta.dat, sample_col = sample_col)
+  dist.mat <- mStat_align_dist_matrix_to_metadata(dist.matrix, meta.dat)
+
+  if (!all(c(subject.var, time.var) %in% colnames(meta.tbl))) {
+    stop("`subject.var` and `time.var` must both be present in metadata.", call. = FALSE)
+  }
+
+  subject_groups <- split(meta.tbl, meta.tbl[[subject.var]])
+
+  long_parts <- lapply(subject_groups, function(subject_meta) {
+    if (nrow(subject_meta) == 0) {
+      return(NULL)
+    }
+
+    ordered_times <- mStat_order_time_labels(subject_meta[[time.var]])
+    sample_groups <- split(
+      as.character(subject_meta[[sample_col]]),
+      as.character(subject_meta[[time.var]])
+    )
+    subject_id <- subject_meta[[subject.var]][[1]]
+
+    if (mode == "baseline") {
+      resolved_baseline <- if (is.null(baseline_time)) {
+        ordered_times[[1]]
+      } else {
+        as.character(baseline_time)
+      }
+
+      if (!resolved_baseline %in% ordered_times) {
+        return(NULL)
+      }
+
+      target_times <- if (is.null(followup_time)) {
+        setdiff(ordered_times, resolved_baseline)
+      } else {
+        intersect(as.character(followup_time), ordered_times)
+      }
+
+      if (length(target_times) == 0) {
+        return(NULL)
+      }
+
+      baseline_samples <- sample_groups[[resolved_baseline]]
+
+      dplyr::bind_rows(lapply(target_times, function(target_time) {
+        target_samples <- sample_groups[[target_time]]
+        distance_values <- as.vector(dist.mat[target_samples, baseline_samples, drop = FALSE])
+
+        out <- data.frame(
+          rep(subject_id, length(distance_values)),
+          rep(target_time, length(distance_values)),
+          distance = distance_values,
+          stringsAsFactors = FALSE,
+          check.names = FALSE
+        )
+        colnames(out)[1:2] <- c(subject.var, time.var)
+        out
+      }))
+    } else {
+      if (length(ordered_times) < 2) {
+        return(NULL)
+      }
+
+      dplyr::bind_rows(lapply(seq_len(length(ordered_times) - 1L), function(i) {
+        time_before <- ordered_times[[i]]
+        time_after <- ordered_times[[i + 1L]]
+        before_samples <- sample_groups[[time_before]]
+        after_samples <- sample_groups[[time_after]]
+        distance_values <- as.vector(dist.mat[after_samples, before_samples, drop = FALSE])
+
+        out <- data.frame(
+          rep(subject_id, length(distance_values)),
+          rep(time_after, length(distance_values)),
+          rep(time_before, length(distance_values)),
+          distance = distance_values,
+          stringsAsFactors = FALSE,
+          check.names = FALSE
+        )
+        colnames(out)[1:3] <- c(subject.var, time.var, paste0(time.var, ".before"))
+        out
+      }))
+    }
+  })
+
+  dplyr::bind_rows(long_parts)
+}
+
+
+#' @keywords internal
+mStat_prepare_dist_group_time_long_data <- function(dist.matrix,
+                                                    meta.dat,
+                                                    group.var,
+                                                    time.var,
+                                                    strata.var = NULL,
+                                                    sample_col = "sample",
+                                                    pair_col = "sample2",
+                                                    distance_col = "Distance") {
+  meta.tbl <- mStat_meta_to_tibble(meta.dat, sample_col = sample_col)
+  dist.mat <- mStat_align_dist_matrix_to_metadata(dist.matrix, meta.dat)
+
+  dist_meta_lookup <- meta.tbl %>%
+    dplyr::select(
+      dplyr::all_of(sample_col),
+      Group = dplyr::all_of(group.var),
+      Time = dplyr::all_of(time.var),
+      dplyr::any_of(strata.var)
+    )
+
+  if (!is.null(strata.var)) {
+    colnames(dist_meta_lookup)[colnames(dist_meta_lookup) == strata.var] <- "Strata"
+  }
+
+  pair_index <- which(upper.tri(dist.mat), arr.ind = TRUE)
+  pair_df <- data.frame(
+    sample = rownames(dist.mat)[pair_index[, 1]],
+    pair = colnames(dist.mat)[pair_index[, 2]],
+    distance = dist.mat[pair_index],
+    stringsAsFactors = FALSE,
+    check.names = FALSE
+  )
+  colnames(pair_df) <- c(sample_col, pair_col, distance_col)
+
+  pair_df %>%
+    dplyr::left_join(dist_meta_lookup, by = sample_col) %>%
+    dplyr::left_join(
+      dist_meta_lookup,
+      by = stats::setNames(sample_col, pair_col),
+      suffix = c(".x", ".y")
+    )
+}
+
+
+#' @keywords internal
+mStat_prepare_beta_change_long_data <- function(dist.matrix,
+                                                meta.dat,
+                                                subject.var,
+                                                time.var,
+                                                change.base,
+                                                change.after = NULL,
+                                                sample_col = "sample") {
+  mStat_prepare_subject_time_distance_long_data(
+    dist.matrix = dist.matrix,
+    meta.dat = meta.dat,
+    subject.var = subject.var,
+    time.var = time.var,
+    mode = "baseline",
+    baseline_time = change.base,
+    followup_time = change.after,
+    sample_col = sample_col
+  )
+}
+
+
+#' @keywords internal
+mStat_attach_change_metadata <- function(change.df,
+                                         meta.dat,
+                                         by,
+                                         vars = NULL,
+                                         sample_col = "sample") {
+  if (length(vars) == 0 || is.null(vars)) {
+    return(change.df)
+  }
+
+  meta.tbl <- mStat_meta_to_tibble(meta.dat, sample_col = sample_col)
+  keep_cols <- unique(c(by, vars))
+
+  missing_cols <- setdiff(keep_cols, colnames(meta.tbl))
+  if (length(missing_cols) != 0) {
+    stop(
+      "Change metadata is missing the following columns: ",
+      paste(missing_cols, collapse = ", "),
+      call. = FALSE
+    )
+  }
+
+  meta.tbl <- meta.tbl %>%
+    dplyr::select(-dplyr::any_of(sample_col), dplyr::all_of(keep_cols)) %>%
+    dplyr::distinct()
+
+  dplyr::left_join(
+    change.df,
+    meta.tbl,
+    by = by,
+    relationship = "many-to-one"
+  )
+}
+
+
+#' @keywords internal
+mStat_prepare_subject_metadata <- function(meta.dat,
+                                           subject.var,
+                                           vars = NULL,
+                                           time.var = NULL,
+                                           time.value = NULL,
+                                           sample_col = "sample") {
+  if (length(vars) == 0 || is.null(vars)) {
+    return(NULL)
+  }
+
+  meta.tbl <- mStat_meta_to_tibble(meta.dat, sample_col = sample_col)
+  keep_cols <- unique(c(subject.var, vars, time.var))
+
+  missing_cols <- setdiff(keep_cols, colnames(meta.tbl))
+  if (length(missing_cols) != 0) {
+    stop(
+      "Subject metadata is missing the following columns: ",
+      paste(missing_cols, collapse = ", "),
+      call. = FALSE
+    )
+  }
+
+  if (!is.null(time.var) && !is.null(time.value)) {
+    meta.tbl <- meta.tbl[
+      mStat_match_metadata_values(meta.tbl[[time.var]], time.value),
+      ,
+      drop = FALSE
+    ]
+  }
+
+  selected_cols <- unique(c(subject.var, vars))
+
+  meta.tbl %>%
+    dplyr::select(dplyr::all_of(selected_cols)) %>%
+    dplyr::distinct(.data[[subject.var]], .keep_all = TRUE)
+}
+
+
+#' @keywords internal
+mStat_canonicalize_group_pair_labels <- function(group_x,
+                                                 group_y,
+                                                 sep = "-") {
+  if (length(group_x) != length(group_y)) {
+    stop("`group_x` and `group_y` must have the same length.", call. = FALSE)
+  }
+
+  vapply(seq_along(group_x), function(i) {
+    paste(sort(c(as.character(group_x[[i]]), as.character(group_y[[i]]))), collapse = sep)
+  }, character(1))
+}
+
+
+#' @keywords internal
+mStat_prepare_pc_pair_change_data <- function(long.df,
+                                              subject.var,
+                                              time.var,
+                                              change.base = NULL,
+                                              change.func,
+                                              context) {
+  pair_slices <- mStat_prepare_pair_time_slices(
+    df = long.df,
+    time.var = time.var,
+    change.base = change.base,
+    context = context
+  )
+
+  combined_data <- pair_slices$data_time_1 %>%
+    dplyr::inner_join(
+      pair_slices$data_time_2,
+      by = c("PC", subject.var),
+      suffix = c("_time_1", "_time_2"),
+      relationship = "one-to-one"
+    ) %>%
+    dplyr::mutate(
+      value_diff = compute_taxa_change(
+        value_after = value_time_2,
+        value_before = value_time_1,
+        method = change.func,
+        verbose = FALSE
+      )
+    )
+
+  list(
+    combined_data = combined_data,
+    change.base = pair_slices$change.base,
+    change.after = pair_slices$change.after
+  )
+}
+
+
+#' @keywords internal
+mStat_prepare_beta_trend_long_data <- function(dist.matrix,
+                                               meta.dat,
+                                               subject.var,
+                                               time.var,
+                                               vars = NULL,
+                                               sample_col = "sample") {
+  long.df <- mStat_prepare_subject_time_distance_long_data(
+    dist.matrix = dist.matrix,
+    meta.dat = meta.dat,
+    subject.var = subject.var,
+    time.var = time.var,
+    mode = "baseline",
+    sample_col = sample_col
+  )
+
+  mStat_attach_change_metadata(
+    change.df = long.df,
+    meta.dat = meta.dat,
+    by = c(subject.var, time.var),
+    vars = vars,
+    sample_col = sample_col
+  )
+}
+
+
+#' @keywords internal
+mStat_prepare_beta_adjacent_long_data <- function(dist.matrix,
+                                                  meta.dat,
+                                                  subject.var,
+                                                  time.var,
+                                                  vars = NULL,
+                                                  sample_col = "sample") {
+  long.df <- mStat_prepare_subject_time_distance_long_data(
+    dist.matrix = dist.matrix,
+    meta.dat = meta.dat,
+    subject.var = subject.var,
+    time.var = time.var,
+    mode = "adjacent",
+    sample_col = sample_col
+  )
+
+  mStat_attach_change_metadata(
+    change.df = long.df,
+    meta.dat = meta.dat,
+    by = c(subject.var, time.var),
+    vars = vars,
+    sample_col = sample_col
+  )
+}
+
+
+#' @keywords internal
+mStat_meta_to_tibble <- function(meta.dat, sample_col = "sample") {
+  meta.df <- as.data.frame(
+    meta.dat,
+    stringsAsFactors = FALSE,
+    check.names = FALSE
+  )
+
+  row_ids <- rownames(meta.df)
+  has_explicit_rownames <- !is.null(row_ids) && !identical(row_ids, as.character(seq_len(nrow(meta.df))))
+
+  if (!sample_col %in% colnames(meta.df) || has_explicit_rownames) {
+    meta.df[[sample_col]] <- row_ids
+  }
+
+  meta.df <- meta.df[, c(sample_col, setdiff(colnames(meta.df), sample_col)), drop = FALSE]
+  rownames(meta.df) <- NULL
+
+  tibble::as_tibble(meta.df)
 }
 
 

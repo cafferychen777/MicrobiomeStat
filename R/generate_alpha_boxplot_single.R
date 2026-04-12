@@ -156,11 +156,9 @@ generate_alpha_boxplot_single <- function (data.obj,
     join = "inner"
   )
 
-  # Create a default group if not specified
-  if (is.null(group.var)) {
-    alpha_df <- alpha_df %>% dplyr::mutate("ALL" = "ALL")
-    group.var <- "ALL"
-  }
+  placeholder_group <- mStat_ensure_group_placeholder(alpha_df, group.var = group.var)
+  alpha_df <- placeholder_group$df
+  resolved_group_var <- placeholder_group$group.var
 
   # Set up the theme for plotting
   theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
@@ -170,13 +168,10 @@ generate_alpha_boxplot_single <- function (data.obj,
 
   # Create a plot for each alpha diversity index
   plot_list <- lapply(alpha.name, function(index) {
-    # Define aesthetic mapping
-    # Note: group.var is guaranteed to be non-NULL (set to "ALL" if not provided)
-    # Note: index is guaranteed to exist in alpha_df (validated earlier)
     aes_function <- aes(
-      x = !!sym(group.var),
+      x = !!sym(resolved_group_var),
       y = !!sym(index),
-      fill = !!sym(group.var)
+      fill = !!sym(resolved_group_var)
     )
 
     # Adjust for covariates if specified
@@ -245,22 +240,20 @@ generate_alpha_boxplot_single <- function (data.obj,
       scale_fill_manual(values = col) +
       # Add faceting if strata variable is provided
       {
-        if (!is.null(strata.var) & !is.null(group.var)) {
+        if (!is.null(strata.var) && !is.null(group.var)) {
           ggh4x::facet_nested(
-            as.formula(paste(". ~", strata.var, "+", group.var)),
+            as.formula(paste(". ~", strata.var, "+", resolved_group_var)),
             drop = T,
-            scale = "free",
+            scales = "free",
             space = "free"
           )
-        } else {
-          if (group.var != "ALL") {
-            ggh4x::facet_nested(
-              as.formula(paste(". ~", group.var)),
-              drop = T,
-              scale = "free",
-              space = "free"
-            )
-          }
+        } else if (!is.null(group.var)) {
+          ggh4x::facet_nested(
+            as.formula(paste(". ~", resolved_group_var)),
+            drop = T,
+            scales = "free",
+            space = "free"
+          )
         }
       } +
       # Add labels and title
@@ -287,7 +280,7 @@ generate_alpha_boxplot_single <- function (data.obj,
         legend.title = ggplot2::element_text(size = 16),
         plot.title = element_text(hjust = 0.5, size = 20)
       ) + {
-        if (group.var == "ALL") {
+        if (is.null(group.var)) {
           guides(fill = "none")
         }
       }

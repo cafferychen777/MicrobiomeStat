@@ -174,10 +174,10 @@ generate_alpha_spaghettiplot_long <-
     alpha.obj <- prepared$alpha.obj
 
     # Extract relevant metadata for the analysis
-    meta_tab <-
-      data.obj$meta.dat %>% as.data.frame() %>% dplyr::select(all_of(c(
-        subject.var, group.var, time.var, strata.var, adj.vars
-      )))
+    meta_tab <- mStat_prepare_alpha_meta_tab(
+      data.obj = data.obj,
+      vars = c(subject.var, group.var, time.var, strata.var, adj.vars)
+    )
 
     # Combine alpha diversity data with metadata
     # This step creates a comprehensive dataset for visualization
@@ -188,11 +188,9 @@ generate_alpha_spaghettiplot_long <-
       join = "inner"
     )
 
-    # If no group variable is specified, create a single group for all samples
-    if (is.null(group.var)){
-      alpha.df <- alpha.df %>% dplyr::mutate("ALL" = "ALL")
-      group.var <- "ALL"
-    }
+    placeholder_group <- mStat_ensure_group_placeholder(alpha.df, group.var = group.var)
+    alpha.df <- placeholder_group$df
+    resolved_group_var <- placeholder_group$group.var
 
     # Select the appropriate theme based on user input or default to "bw"
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
@@ -203,7 +201,7 @@ generate_alpha_spaghettiplot_long <-
     # Create a plot for each alpha diversity index
     plot_list <- lapply(alpha.name, function(index) {
       # Subset data for the current alpha diversity index
-      sub_alpha.df <- alpha.df %>% dplyr::select(all_of(c(index,subject.var, time.var, group.var, strata.var, adj.vars)))
+      sub_alpha.df <- alpha.df %>% dplyr::select(all_of(c(index, subject.var, time.var, resolved_group_var, strata.var, adj.vars)))
 
       # Adjust alpha diversity for covariates if specified
       # This step helps to control for potential confounding factors
@@ -241,38 +239,26 @@ generate_alpha_spaghettiplot_long <-
       # Calculate mean alpha diversity for each time point and group
       if (is.null(strata.var)) {
         sub_alpha.df.mean <- sub_alpha.df %>%
-          dplyr::group_by(!!sym(time.var), !!sym(group.var)) %>%
-          dplyr::summarize(mean_alpha = mean(!!sym(index), na.rm = TRUE))
-        sub_alpha.df <-
-          dplyr::left_join(sub_alpha.df, sub_alpha.df.mean, by = c(time.var, group.var))
+          dplyr::group_by(!!sym(time.var), !!sym(resolved_group_var)) %>%
+          dplyr::summarize(mean_alpha = mean(!!sym(index), na.rm = TRUE), .groups = "drop")
       } else {
         sub_alpha.df.mean <- sub_alpha.df %>%
-          dplyr::group_by(!!sym(time.var), !!sym(group.var), !!sym(strata.var)) %>%
-          dplyr::summarize(mean_alpha = mean(!!sym(index), na.rm = TRUE))
-        sub_alpha.df <-
-          dplyr::left_join(sub_alpha.df, sub_alpha.df.mean, by = c(time.var, group.var, strata.var))
+          dplyr::group_by(!!sym(time.var), !!sym(resolved_group_var), !!sym(strata.var)) %>%
+          dplyr::summarize(mean_alpha = mean(!!sym(index), na.rm = TRUE), .groups = "drop")
       }
 
-      # Set the baseline time point if not specified
-      if (is.null(t0.level)) {
-        if (is.numeric(meta_tab[, time.var])) {
-          t0.level <- sort(unique(meta_tab[, time.var]))[1]
-        } else {
-          t0.level <- levels(meta_tab[, time.var])[1]
-        }
-      }
-
-      # Set the subsequent time points if not specified
-      if (is.null(ts.levels)) {
-        if (is.numeric(meta_tab[, time.var])) {
-          ts.levels <- sort(unique(meta_tab[, time.var]))[-1]
-        } else {
-          ts.levels <- levels(meta_tab[, time.var])[-1]
-        }
-      }
+      resolved_time <- mStat_resolve_followup_timepoints(
+        values = meta_tab[[time.var]],
+        time.var = time.var,
+        t0.level = t0.level,
+        ts.levels = ts.levels,
+        context = "alpha spaghettiplot"
+      )
+      t0.level <- resolved_time$t0.level
+      ts.levels <- resolved_time$ts.levels
 
       # Create a vector of all time points
-      time.points <- c(t0.level, ts.levels)
+      time.points <- resolved_time$kept_levels
 
       # Select a subset of time points to display if there are more than 80
       # This improves readability of the plot without affecting the underlying data
@@ -299,32 +285,32 @@ generate_alpha_spaghettiplot_long <-
       plot <- ggplot() +
         geom_point(
           data = sub_alpha.df,
-          aes_string(
-            x = time.var,
-            y = index,
-            group = subject.var,
-            color = group.var
+          aes(
+            x = .data[[time.var]],
+            y = .data[[index]],
+            group = .data[[subject.var]],
+            color = .data[[resolved_group_var]]
           ),
           alpha = 0.5,
           size = 3
         ) +
         geom_line(
-          data = sub_alpha.df,
-          aes_string(
-            x = time.var,
-            y = "mean_alpha",
-            group = group.var,
-            color = group.var
+          data = sub_alpha.df.mean,
+          aes(
+            x = .data[[time.var]],
+            y = .data[["mean_alpha"]],
+            group = .data[[resolved_group_var]],
+            color = .data[[resolved_group_var]]
           ),
           size = 2
         ) +
         geom_point(
-          data = sub_alpha.df,
-          aes_string(
-            x = time.var,
-            y = "mean_alpha",
-            group = group.var,
-            color = group.var
+          data = sub_alpha.df.mean,
+          aes(
+            x = .data[[time.var]],
+            y = .data[["mean_alpha"]],
+            group = .data[[resolved_group_var]],
+            color = .data[[resolved_group_var]]
           ),
           size = 5
         ) +
@@ -353,7 +339,7 @@ generate_alpha_spaghettiplot_long <-
       if (!is.null(strata.var)) {
         plot <- plot + ggh4x::facet_nested(
           cols = vars(!!sym(strata.var)),
-          scale = "free",
+          scales = "free",
           space = "free"
         )
       }

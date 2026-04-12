@@ -68,6 +68,62 @@ test_that("mStat_subset_data preserves requested sample order across metadata an
   expect_identical(colnames(subsetted$feature.tab), c("s2", "s1"))
 })
 
+test_that("mStat_subset_data keeps feature rows by default and prunes only on request", {
+  data.obj <- list(
+    feature.tab = matrix(
+      c(
+        5, 0,
+        0, 4
+      ),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(c("f1", "f2"), c("s1", "s2"))
+    ),
+    meta.dat = data.frame(
+      group = c("A", "B"),
+      row.names = c("s1", "s2"),
+      stringsAsFactors = FALSE
+    ),
+    feature.ann = matrix(
+      c("Phylum1", "Phylum2"),
+      ncol = 1,
+      dimnames = list(c("f1", "f2"), "Phylum")
+    ),
+    feature.agg.list = list(
+      Genus = matrix(
+        c(
+          5, 0,
+          0, 4
+        ),
+        nrow = 2,
+        byrow = TRUE,
+        dimnames = list(c("g1", "g2"), c("s1", "s2"))
+      )
+    ),
+    tree = structure(
+      list(
+        edge = matrix(c(3L, 1L, 3L, 2L), ncol = 2, byrow = TRUE),
+        tip.label = c("f1", "f2"),
+        Nnode = 1L
+      ),
+      class = "phylo"
+    )
+  )
+
+  kept <- suppressMessages(mStat_subset_data(data.obj, samIDs = "s1"))
+  pruned <- suppressMessages(mStat_subset_data(data.obj, samIDs = "s1", prune.features = TRUE))
+
+  expect_identical(rownames(kept$feature.tab), c("f1", "f2"))
+  expect_identical(rownames(kept$feature.ann), c("f1", "f2"))
+  expect_identical(rownames(kept$feature.agg.list$Genus), c("g1", "g2"))
+  expect_identical(kept$tree$tip.label, c("f1", "f2"))
+
+  expect_identical(rownames(pruned$feature.tab), "f1")
+  expect_identical(rownames(pruned$feature.ann), "f1")
+  expect_identical(rownames(pruned$feature.agg.list$Genus), "g1")
+  expect_identical(pruned$tree$tip.label, "f1")
+})
+
 test_that("mStat_subset_alpha resolves numeric indices against row names", {
   alpha.obj <- list(
     shannon = data.frame(
@@ -101,6 +157,37 @@ test_that("mStat_process_time_variable keeps non-numeric character labels intact
 
   expect_identical(rownames(processed$meta.dat), c("s1", "s2"))
   expect_identical(levels(processed$meta.dat$tp), c("baseline", "followup"))
+  expect_true(is.ordered(processed$meta.dat$tp))
+})
+
+test_that("mStat_process_time_variable fails on missing requested levels and orders numeric-like labels naturally", {
+  data.obj <- list(
+    feature.tab = matrix(
+      c(10, 20, 30,
+        5, 6, 7),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(c("f1", "f2"), c("s1", "s2", "s3"))
+    ),
+    meta.dat = data.frame(
+      tp = c("T10", "T2", "T1"),
+      row.names = c("s1", "s2", "s3"),
+      stringsAsFactors = FALSE
+    )
+  )
+
+  processed <- suppressMessages(mStat_process_time_variable(data.obj, "tp"))
+  expect_identical(levels(processed$meta.dat$tp), c("T1", "T2", "T10"))
+
+  expect_error(
+    mStat_process_time_variable(data.obj, "tp", t0.level = "missing", ts.levels = "T2"),
+    "Requested time levels not found"
+  )
+
+  expect_message(
+    mStat_process_time_variable(data.obj, "tp", t0.level = "T1", ts.levels = "T2"),
+    "Subsetting `tp` for time processing excluded these observed levels: T10"
+  )
 })
 
 test_that("detect_study_design orders numeric-like and natural character times consistently", {
@@ -137,6 +224,55 @@ test_that("mStat_coerce_time_to_numeric uses labels instead of factor codes", {
   expect_error(
     mStat_coerce_time_to_numeric(c("baseline", "followup"), "time"),
     "must be numeric or coercible to numeric"
+  )
+})
+
+
+test_that("mStat_inform_numeric_time_requirement standardizes numeric-time guidance", {
+  expect_message(
+    mStat_inform_numeric_time_requirement(
+      function_name = "demo_fun",
+      analysis_label = "trend analysis",
+      conversion_behavior = "coerce"
+    ),
+    "`demo_fun` uses a numeric time scale for trend analysis"
+  )
+
+  expect_message(
+    mStat_inform_numeric_time_requirement(
+      function_name = "demo_fun",
+      analysis_label = "volatility analysis",
+      conversion_behavior = "preprocess"
+    ),
+    "convert it in metadata before calling this function"
+  )
+})
+
+test_that("mStat_coerce_time_to_numeric supports Date values and ISO date labels", {
+  visit_dates <- as.Date(c("2024-01-01", "2024-01-10", "2024-01-20"))
+
+  expect_equal(
+    mStat_coerce_time_to_numeric(visit_dates, "visit"),
+    as.numeric(visit_dates)
+  )
+
+  expect_equal(
+    mStat_coerce_time_to_numeric(factor(as.character(visit_dates)), "visit"),
+    as.numeric(visit_dates)
+  )
+})
+
+test_that("get_sample_ids matches Date metadata against character labels", {
+  data.obj <- list(
+    meta.dat = data.frame(
+      visit = as.Date(c("2024-01-01", "2024-01-10", "2024-01-20")),
+      row.names = c("s1", "s2", "s3")
+    )
+  )
+
+  expect_identical(
+    get_sample_ids(data.obj, "visit", "2024-01-10"),
+    "s2"
   )
 })
 
@@ -272,6 +408,16 @@ test_that("mStat_filter ignores NA values and preserves matrix shape", {
   expect_identical(rownames(filtered), "f1")
   expect_identical(colnames(filtered), c("s1", "s2", "s3"))
   expect_equal(dim(filtered), c(1L, 3L))
+})
+
+
+test_that("mStat_filter uses row-wise summaries instead of reshaping through as.table", {
+  package_root <- normalizePath(file.path(test_path(), "..", ".."), mustWork = TRUE)
+  filter_src <- paste(readLines(file.path(package_root, "R/mStat_filter.R"), warn = FALSE), collapse = "\n")
+
+  expect_match(filter_src, "rowMeans")
+  expect_match(filter_src, "rowSums")
+  expect_no_match(filter_src, "as\\.table")
 })
 
 test_that("mStat_remove_feature returns the input object when level is missing or unmatched", {

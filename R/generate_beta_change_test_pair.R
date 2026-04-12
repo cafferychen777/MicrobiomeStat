@@ -82,7 +82,7 @@ generate_beta_change_test_pair <-
       meta_vars <- c(meta_vars, adj.vars)
     }
 
-    if (is.null(dist.obj) & !is.null(data.obj)) {
+    if (is.null(dist.obj) && !is.null(data.obj)) {
       dist.obj <- mStat_calculate_beta_diversity(data.obj = data.obj, dist.name = dist.name)
     } else {
       prepared_context <- mStat_prepare_precomputed_beta_context(
@@ -109,7 +109,10 @@ generate_beta_change_test_pair <-
     )
 
     # Initialize variable to store time-varying information
-    time_varying_info <- NULL
+    time_varying_info <- list(
+      time_varying_vars = character(),
+      non_time_varying_vars = character()
+    )
 
     # Handle time-varying covariates
     if (!is.null(adj.vars)){
@@ -134,102 +137,59 @@ generate_beta_change_test_pair <-
     # Perform analysis for each distance metric
     test.list <- lapply(dist.name, function(dist.name){
 
-      # Convert distance matrix to long format
-      dist.df <- mStat_dist_to_tibble(dist.obj[[dist.name]], sample_col = "sample")
+      long.df <- mStat_prepare_beta_change_long_data(
+        dist.matrix = dist.obj[[dist.name]],
+        meta.dat = meta_tab,
+        subject.var = subject.var,
+        time.var = time.var,
+        change.base = change.base,
+        change.after = change.after
+      )
 
-      # Prepare data for analysis
-      long.df <- dist.df %>%
-        tidyr::gather(key = "sample2", value = "distance", -sample) %>%
-        dplyr::left_join(meta_tab, by = "sample") %>%
-        dplyr::left_join(meta_tab, by = c("sample2" = "sample"), suffix = c(".subject", ".sample")) %>%
-        # Filter for within-subject comparisons
-        filter(!!sym(paste0(subject.var, ".subject")) == !!sym(paste0(subject.var, ".sample"))) %>%
-        dplyr::group_by(!!sym(paste0(subject.var, ".subject"))) %>%
-        # Filter for baseline and follow-up time points
-        filter(!!sym(paste0(time.var,".sample")) == change.base) %>%
-        filter(!!sym(paste0(time.var,".subject")) == change.after) %>%
-        dplyr::ungroup() %>%
-        dplyr::select(!!sym(paste0(subject.var, ".subject")), !!sym(paste0(time.var, ".subject")), distance) %>%
-        dplyr::rename(!!sym(subject.var) := !!sym(paste0(subject.var, ".subject")), !!sym(time.var) := !!sym(paste0(time.var, ".subject")))
+      long.df <- mStat_attach_change_metadata(
+        change.df = long.df,
+        meta.dat = meta_tab,
+        by = c(subject.var, time.var),
+        vars = c(group.var, time_varying_info$time_varying_vars)
+      )
 
-      # Join with metadata
-      long.df <- long.df %>% dplyr::left_join(meta_tab %>% dplyr::select(-any_of(c(time.var, "sample"))) %>% dplyr::distinct(), by = subject.var)
-
-      # CRITICAL FIX: Check group levels AFTER data processing and BEFORE fitting model
       predictors <- c(time_varying_info$time_varying_vars, group.var)
-      predictors <- predictors[!is.null(predictors)]
-      
-      # Check if group variable still has multiple levels after filtering
+
       if (!is.null(group.var) && group.var %in% names(long.df)) {
-        remaining_group_levels <- unique(long.df[[group.var]])
-        remaining_group_levels <- remaining_group_levels[!is.na(remaining_group_levels)]
-        
+        remaining_group_levels <- unique(stats::na.omit(long.df[[group.var]]))
         if (length(remaining_group_levels) < 2) {
-          warning("After data filtering, group variable '", group.var, "' has only ", 
-                  length(remaining_group_levels), " level(s): ", 
-                  paste(remaining_group_levels, collapse = ", "), 
-                  ". Removing from model and proceeding with coefficient estimates only.")
-          # Remove group variable from predictors
-          predictors <- predictors[predictors != group.var]
+          warning(
+            "After data filtering, group variable '", group.var, "' has only ",
+            length(remaining_group_levels), " level(s): ",
+            paste(remaining_group_levels, collapse = ", "),
+            ". Removing it from the model."
+          )
+          predictors <- setdiff(predictors, group.var)
         }
       }
-      
-      # Create formula for linear model
-      if (length(predictors) > 0) {
-        formula <- stats::as.formula(paste0("distance", "~", paste(predictors, collapse = "+")))
-      } else {
-        formula <- stats::as.formula("distance ~ 1")  # Intercept-only model
-      }
 
-      # Fit linear model
-      lm.model <- lm(formula, data = long.df)
+      valid_terms <- mStat_resolve_variable_terms(
+        data = long.df,
+        terms = predictors
+      )
+      model_formula <- mStat_build_formula(
+        response = "distance",
+        terms = valid_terms
+      )
 
-      # Extract model summary
-      summary <- summary(lm.model)
+      lm.model <- stats::lm(model_formula, data = long.df)
+      coef.tab <- extract_coef(lm.model)
 
-      # Create coefficient table
-      coef.tab <- summary$coefficients %>%
-        as.data.frame() %>%
-        tibble::rownames_to_column("Term") %>%
-        dplyr::select(
-                Term,
-                Estimate,
-                Std.Error = `Std. Error`,
-                Statistic = `t value`,
-                P.Value = `Pr(>|t|)`) %>%
-        tibble::as_tibble()
-
-      # CRITICAL FIX: Only perform ANOVA if group variable is in the final model
-      # Check if group variable is actually included in the fitted model
-      if (!is.null(group.var) && group.var %in% attr(lm.model$terms, "term.labels")) {
-        # Group variable is in the model, safe to perform ANOVA
-        anova <- anova(lm.model)
-        # Create ANOVA table
-        anova.tab <- anova %>%
-          as.data.frame() %>%
-          tibble::rownames_to_column("Term") %>%
-          dplyr::select(Term,
-                        Statistic = `F value`,
-                        P.Value = `Pr(>F)`) %>%
-          dplyr::mutate(Estimate = NA, Std.Error = NA) %>%
-          tibble::as_tibble() %>%
-          dplyr::select(
-            Term,
-            Estimate,
-            Std.Error,
-            Statistic,
-            P.Value
-          )
-
-        # Combine coefficient and ANOVA tables
-        coef.tab <-
-          rbind(coef.tab, anova.tab)
+      if (group.var %in% valid_terms && length(unique(stats::na.omit(long.df[[group.var]]))) > 2) {
+        group_row <- mStat_extract_group_anova_row(stats::anova(lm.model), group.var)
+        if (!is.null(group_row)) {
+          coef.tab <- rbind(coef.tab, group_row)
+        }
       }
 
       return(coef.tab)
     })
 
-    # Assign names to the elements of test.list
     names(test.list) <- dist.name
 
     return(test.list)

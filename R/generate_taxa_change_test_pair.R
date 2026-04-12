@@ -152,17 +152,10 @@ generate_taxa_change_test_pair <-
     # Set the reference level for the grouping variable
     reference_level <- group_level[1]
 
-    # Construct the formula for the linear model
-    formula_str <- paste("value ~", group.var)
-
-    # Add adjustment variables to the formula if provided
-    if (!is.null(adj.vars)) {
-      formula_str <-
-        paste(formula_str, "+", paste(adj.vars, collapse = " + "))
-    }
-
-    # Convert the formula string to a formula object
-    formula <- as.formula(formula_str)
+    formula <- mStat_build_formula(
+      response = "value",
+      terms = c(group.var, adj.vars)
+    )
 
     # Adjust filters for 'other' data type
     if (feature.dat.type == "other") {
@@ -170,14 +163,8 @@ generate_taxa_change_test_pair <-
       abund.filter <- 0
     }
 
-    # Normalize count data if necessary
-    if (feature.dat.type == "count") {
-      message(
-        "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
-      )
-      data.obj <-
-        mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
-    }
+    # Normalize count data if necessary.
+    data.obj <- mStat_normalize_count_data_if_needed(data.obj, feature.dat.type)
 
     # Perform analysis for each feature level
     test.list <- lapply(feature.level, function(feature.level) {
@@ -222,72 +209,46 @@ generate_taxa_change_test_pair <-
       }
       # "other": no preprocessing — respect user's pre-processed data
 
-      # Convert the filtered data from wide to long format
-      otu_tax_long <- otu_tax_agg_filter %>%
-        tidyr::gather(key = "sample", value = "value", -feature.level)
+      merged_data <- mStat_prepare_taxa_long_data(
+        feature.dat = otu_tax_agg_filter,
+        feature.level = feature.level,
+        value_col = "value",
+        meta.dat = meta_tab,
+        feature_in_column = TRUE,
+        join = "inner"
+      )
 
-      # Merge the long-format data with metadata
-      merged_data <- otu_tax_long %>%
-        dplyr::inner_join(meta_tab %>% tibble::rownames_to_column("sample"), by = "sample")
-
-      pair_times <- mStat_resolve_pair_timepoints(
-        values = merged_data[[time.var]],
+      pair_change <- mStat_prepare_taxa_pair_change_data(
+        long.df = merged_data,
+        feature.level = feature.level,
+        subject.var = subject.var,
         time.var = time.var,
         change.base = change.base,
+        feature.change.func = feature.change.func,
         context = "taxa change testing"
       )
-      change.base <- pair_times$change.base
-      change.after <- pair_times$change.after
-
-      # Split the data into separate time points
-      split_data <- split(merged_data, f = as.character(merged_data[[time.var]]))
-
-      # Extract data for the baseline and follow-up time points
-      data_time_1 <- split_data[[change.base]]
-      data_time_2 <- split_data[[change.after]]
-
-      # Join the baseline and follow-up data
-      combined_data <- data_time_1 %>%
-        dplyr::inner_join(
-          data_time_2,
-          by = c(feature.level, subject.var),
-          suffix = c("_time_1", "_time_2")
-        )
-
-      # Calculate the change in feature values based on the specified method
-      # (fix: previously had no zero handling for log fold change, producing -Inf)
-      combined_data <- combined_data %>%
-        dplyr::mutate(value_diff = compute_taxa_change(
-          value_after  = value_time_2,
-          value_before = value_time_1,
-          method       = feature.change.func,
-          feature_id   = .data[[feature.level]]
-        ))
+      combined_data <- pair_change$combined_data
 
       message("Note: For repeated measurements of the same subject at the same time point, the average will be taken.")
 
       # Create a matrix of value differences
       value_diff_matrix <- combined_data %>%
-        select(feature.level, !!sym(subject.var), value_diff) %>%
+        select(all_of(feature.level), !!sym(subject.var), value_diff) %>%
         dplyr::group_by(!!sym(feature.level), !!sym(subject.var)) %>%
-        dplyr::summarise(value_diff = mean(value_diff, na.rm = TRUE)) %>%
-        tidyr::spread(key = !!sym(subject.var), value = value_diff) %>%
+        dplyr::summarise(value_diff = mean(value_diff, na.rm = TRUE), .groups = "drop") %>%
+        tidyr::pivot_wider(names_from = !!sym(subject.var), values_from = value_diff) %>%
         tibble::column_to_rownames(var = feature.level) %>%
         as.matrix()
 
       # Prepare metadata for analysis
-      unique_meta_tab <- meta_tab %>%
-        filter(!!sym(subject.var) %in% colnames(value_diff_matrix)) %>%
-        select(all_of(c(subject.var, group.var, adj.vars))) %>%
-        dplyr::distinct(!!sym(subject.var), .keep_all = TRUE) %>% tibble::as_tibble()
-
-      cols_order <- colnames(na.omit(value_diff_matrix))
-
-      unique_meta_tab <-
-        unique_meta_tab %>% tibble::column_to_rownames(subject.var)
-
-      sorted_unique_meta_tab <- unique_meta_tab %>%
-        dplyr::slice(match(cols_order, rownames(unique_meta_tab)))
+      aligned_subjects <- mStat_align_subject_metadata_to_matrix(
+        value_matrix = value_diff_matrix[, colnames(na.omit(value_diff_matrix)), drop = FALSE],
+        meta_tab = meta_tab,
+        subject.var = subject.var,
+        keep_vars = c(group.var, adj.vars)
+      )
+      value_diff_matrix <- aligned_subjects$value_matrix
+      subject_meta <- aligned_subjects$sorted_meta
 
       # Calculate average abundance and prevalence for each feature
       prop_prev_data <- mStat_summarize_taxa_features(
@@ -300,18 +261,22 @@ generate_taxa_change_test_pair <-
       value_diff_long <- value_diff_matrix %>%
         as.data.frame() %>%
         tibble::rownames_to_column(feature.level) %>%
-        tidyr::gather(key = !!sym(subject.var), value = "value", -feature.level)
+        tidyr::pivot_longer(
+          cols = -all_of(feature.level),
+          names_to = subject.var,
+          values_to = "value"
+        )
 
       # Perform statistical tests for each feature
       sub_test.list <-
         lapply(value_diff_long %>% select(all_of(feature.level)) %>% pull() %>% unique(), function(taxon) {
           # Prepare data for the current feature
-          test_df <- value_diff_long %>%
-            dplyr::filter(!!sym(feature.level) == taxon) %>%
-            dplyr::left_join(sorted_unique_meta_tab %>%
-                               as.data.frame() %>%
-                               tibble::rownames_to_column(subject.var),
-                             by = subject.var)
+          test_df <- mStat_attach_subject_level_metadata(
+            df = value_diff_long %>% dplyr::filter(!!sym(feature.level) == taxon),
+            meta.dat = subject_meta,
+            subject.var = subject.var,
+            vars = c(group.var, adj.vars)
+          )
 
           # Fit the linear model
           test_result <- lm(formula, data = test_df)
@@ -320,7 +285,7 @@ generate_taxa_change_test_pair <-
           coef.tab <- extract_coef(test_result)
 
           # Perform ANOVA if the grouping variable has more than two levels
-          if (length(unique(test_df[[group.var]])) > 2) {
+          if (length(unique(stats::na.omit(test_df[[group.var]]))) > 2) {
             anova <- anova(test_result)
             anova.tab <- anova %>%
               as.data.frame() %>%
@@ -357,8 +322,9 @@ generate_taxa_change_test_pair <-
         unique()
 
       # Extract unique terms related to the grouping variable
+      group_prefix_pattern <- paste0("^", mStat_escape_regex(group.var))
       unique_terms <-
-        grep(paste0("^", group.var, "$|^", group.var, ".*"),
+        grep(paste0(group_prefix_pattern, "$|", group_prefix_pattern, ".*"),
              unique(unlist(
                lapply(sub_test.list, function(df)
                  unique(df$Term))
@@ -399,9 +365,9 @@ generate_taxa_change_test_pair <-
       # Modify result names to include reference level information
       new_names <- sapply(names(result_list), function(name) {
 
-        if (grepl(paste0("^", group.var), name) &&
-            !grepl(paste0("^", group.var, "$"), name)) {
-          sub_name <- sub(paste0(group.var), "", name)
+        if (grepl(group_prefix_pattern, name) &&
+            !grepl(paste0(group_prefix_pattern, "$"), name)) {
+          sub_name <- sub(group_prefix_pattern, "", name)
           return(paste(sub_name, "vs", reference_level, "(Reference)"))
         }
         return(name)

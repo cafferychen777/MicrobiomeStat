@@ -80,6 +80,10 @@ generate_beta_pc_trend_test_long <- function(data.obj = NULL,
     return()
   }
 
+  if (is.null(data.obj) && is.null(dist.obj)) {
+    stop("Either `data.obj` or `dist.obj` must be provided.", call. = FALSE)
+  }
+
   # If distance object is not provided, calculate it from the data object
   if (is.null(dist.obj)) {
     # Extract relevant metadata
@@ -113,12 +117,10 @@ generate_beta_pc_trend_test_long <- function(data.obj = NULL,
     )
   }
 
-  # Inform the user about the importance of numeric time variable
-  message(
-    "The trend test in 'generate_beta_trend_test_long' relies on a numeric time variable.\n",
-    "Please ensure that your time variable is coded as numeric.\n",
-    "If the time variable is not numeric, it may cause issues in computing the results of the trend test.\n",
-    "The time variable will be processed within the function if needed."
+  mStat_inform_numeric_time_requirement(
+    function_name = "generate_beta_pc_trend_test_long",
+    analysis_label = "trend analysis",
+    conversion_behavior = "coerce"
   )
 
   # If principal component object is not provided, calculate it using MDS
@@ -172,8 +174,8 @@ generate_beta_pc_trend_test_long <- function(data.obj = NULL,
       )
 
       coef.tab <- extract_coef(model)
-      if (!is.null(group.var) && length(unique(sub_df[[group.var]])) > 2) {
-        anova_result <- anova(model, type = "III")
+      if (!is.null(group.var) && length(unique(stats::na.omit(sub_df[[group.var]]))) > 2) {
+        anova_result <- mStat_compute_group_anova(model)
         group_row <- mStat_extract_group_anova_row(anova_result, group.var)
         if (!is.null(group_row)) {
           coef.tab <- rbind(coef.tab, group_row)

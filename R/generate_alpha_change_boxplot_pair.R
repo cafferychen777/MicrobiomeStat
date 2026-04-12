@@ -145,10 +145,6 @@ generate_alpha_change_boxplot_pair <-
            pdf.hei = 8.5,
            ...) {
 
-    # This function generates boxplots to visualize changes in alpha diversity 
-    # between two time points, with options for grouping and stratification.
-
-    # Check if alpha diversity indices are specified. If not, exit the function.
     if (is.null(alpha.name)){
       return()
     }
@@ -162,15 +158,11 @@ generate_alpha_change_boxplot_pair <-
     data.obj <- prepared$data.obj
     alpha.obj <- prepared$alpha.obj
 
-    # Extract relevant metadata.
-    # This step prepares the metadata for merging with the alpha diversity data.
-    meta_tab <-
-      data.obj$meta.dat %>% as.data.frame() %>% dplyr::select(all_of(c(
-        subject.var, group.var, time.var, strata.var, adj.vars
-      )))
+    meta_tab <- mStat_prepare_alpha_meta_tab(
+      data.obj = data.obj,
+      vars = c(subject.var, group.var, time.var, strata.var, adj.vars)
+    )
 
-    # Combine alpha diversity and metadata.
-    # This creates a comprehensive dataset for our analysis.
     alpha_df <- mStat_prepare_alpha_data(
       alpha.obj = alpha.obj,
       meta.dat = meta_tab,
@@ -178,55 +170,40 @@ generate_alpha_change_boxplot_pair <-
       join = "inner"
     )
 
-    pair_times <- mStat_resolve_pair_timepoints(
-      values = alpha_df[[time.var]],
+    pair_change <- mStat_prepare_alpha_pair_change_data(
+      alpha.df = alpha_df,
+      alpha.name = alpha.name,
+      subject.var = subject.var,
       time.var = time.var,
       change.base = change.base,
-      context = "alpha change plotting"
+      change.func = alpha.change.func,
+      context = "alpha change plotting",
+      join_vars = subject.var
     )
-    change.base <- pair_times$change.base
-    change.after <- pair_times$change.after
+    combined_alpha <- pair_change$combined_alpha
+    change.base <- pair_change$change.base
+    change.after <- pair_change$change.after
 
-    # Split alpha diversity data by time points.
-    # This separates the data into baseline and follow-up measurements.
-    alpha_split <- split(alpha_df, f = as.character(alpha_df[[time.var]]))
+    combined_alpha <- mStat_attach_pair_metadata(
+      df = combined_alpha,
+      meta_tab = meta_tab,
+      subject.var = subject.var,
+      time.var = time.var,
+      mode = "followup_time",
+      change.after = change.after
+    )
 
-    alpha_time_1 <- alpha_split[[change.base]]
-    alpha_time_2 <- alpha_split[[change.after]]
+    placeholder_group <- mStat_ensure_group_placeholder(
+      combined_alpha,
+      group.var = group.var,
+      value = "All",
+      column_name = "group"
+    )
+    combined_alpha <- placeholder_group$df
+    resolved_group_var <- placeholder_group$group.var
 
-    # Combine alpha diversity data from two time points.
-    # This step pairs the baseline and follow-up measurements for each subject.
-    combined_alpha <- alpha_time_1 %>%
-      dplyr::inner_join(
-        alpha_time_2,
-        by = c(subject.var, group.var),
-        suffix = c("_time_1", "_time_2")
-      )
-
-    # Calculate change in alpha diversity.
-    # This is the core statistical operation of the function.
-    diff_columns <- lapply(alpha.name, function(index) {
-      diff_col_name <- paste0(index, "_diff")
-      col_after  <- paste0(index, "_time_2")
-      col_before <- paste0(index, "_time_1")
-
-      combined_alpha %>%
-        dplyr::mutate(!!diff_col_name := compute_alpha_change(
-          value_after  = !!sym(col_after),
-          value_before = !!sym(col_before),
-          method       = alpha.change.func
-        )) %>%
-        dplyr::select(all_of(diff_col_name))
-    })
-
-    # Bind the calculated differences to the combined_alpha dataframe.
-    # This step integrates the change calculations with the rest of our data.
-    combined_alpha <- dplyr::bind_cols(combined_alpha, diff_columns)
-
-    # Set up color palette for plotting.
     col <- mStat_get_palette(palette)
 
-    # Set up faceting formula
     facet_formula <-
       if (!is.null(strata.var)) {
         paste(". ~", strata.var)
@@ -234,41 +211,8 @@ generate_alpha_change_boxplot_pair <-
         ". ~ 1"
       }
 
-    # Handle grouping variable
-    if (is.null(group.var)) {
-      combined_alpha$group <- "All"
-    } else{
-      combined_alpha <-
-        combined_alpha %>% dplyr::left_join(alpha_df %>% dplyr::select(all_of(c(
-          subject.var, group.var
-        )))
-        ,
-        by = c(subject.var, group.var)) %>% dplyr::rename(group = group.var)
-    }
-
-    # Add strata variable if specified
-    if (!is.null(strata.var)) {
-      combined_alpha <-
-        combined_alpha %>% dplyr::left_join(alpha_time_1 %>% dplyr::select(all_of(c(
-          subject.var, strata.var
-        )))
-        , by = c(subject.var))
-    }
-
-    # Add adjustment variables if specified
-    if (!is.null(adj.vars) &&
-        (is.null(strata.var) || strata.var != adj.vars)) {
-      combined_alpha <-
-        combined_alpha %>% dplyr::left_join(alpha_time_1 %>% dplyr::select(all_of(c(
-          subject.var, adj.vars
-        )))
-        , by = c(subject.var))
-    }
-
-    # Set up theme
     theme_to_use <- mStat_get_theme(theme.choice, custom.theme)
 
-    # Set up y-axis label
     ylab_label <- if (is.function(alpha.change.func)) {
       base_label <-
         paste0("Change from ", change.base, " (custom function)")
@@ -285,42 +229,27 @@ generate_alpha_change_boxplot_pair <-
       ylab_label <- base_label
     }
 
-    # Create plots for each alpha diversity index
     plot_list <- lapply(alpha.name, function(index) {
-      # Adjust for covariates if specified
       if (!is.null(adj.vars)) {
-        # Convert non-numerical covariates to factors
         data_subset <- combined_alpha %>%
           dplyr::select(all_of(adj.vars)) %>%
           dplyr::mutate(dplyr::across(where(~ is.character(.) & !is.factor(.)), factor))
 
-        # Create a model matrix and set contrasts for non-numeric covariates
         M <- model.matrix(
           ~ 0 + .,
           data = data_subset,
           contrasts.arg = lapply(data_subset, stats::contrasts, contrasts = FALSE)
         )
 
-        # Center the covariates
-        # Centering helps in interpreting the intercept as the expected value
-        # when all covariates are at their mean
         M_centered <- scale(M, scale = FALSE)
 
-        # Fit the regression model
-        # This step performs a linear regression of the alpha diversity change
-        # on the centered covariates
         fit <-
           lm(combined_alpha[[paste0(index, "_diff")]] ~ M_centered)
 
-        # Calculate the adjusted alpha diversity change
-        # The adjusted value is the sum of the intercept (expected value when
-        # all covariates are at their mean) and the residuals (unexplained variation)
         adjusted_value <- fit$coefficients[1] + residuals(fit)
 
-        # Update the alpha diversity change value in combined_alpha
         combined_alpha[[paste0(index, "_diff")]] <- adjusted_value
 
-        # Display message indicating alpha diversity change has been adjusted for specific covariates
         message(
           "Alpha diversity Change has been adjusted for the following covariates: ",
           paste(adj.vars, collapse = ", "),
@@ -328,13 +257,11 @@ generate_alpha_change_boxplot_pair <-
         )
       }
 
-      # Create the plot
-      # This step generates the boxplot visualization of alpha diversity changes
       plot <-
         ggplot(combined_alpha, aes(
-          x = group,
+          x = !!sym(resolved_group_var),
           y = !!sym(paste0(index, "_diff")),
-          fill = group
+          fill = !!sym(resolved_group_var)
         )) +
         stat_boxplot(geom = "errorbar",
                      position = position_dodge(width = 0.2),
@@ -363,19 +290,16 @@ generate_alpha_change_boxplot_pair <-
           legend.title = ggplot2::element_text(size = 16)
         )
 
-      # Adjust plot based on grouping
-      # This step finalizes the plot appearance based on the data structure
-      if (any(unique(combined_alpha$group) == "All")) {
+      if (is.null(group.var)) {
         plot <- plot +
           theme(
             axis.text.x = element_blank(),
             axis.title.x = element_blank(),
             legend.position = "none"
           )
-      } else if (is.null(strata.var)) {
-        # No additional modifications needed
       }
-      else {
+
+      if (!is.null(strata.var)) {
         plot <- plot +
           facet_wrap(as.formula(facet_formula), scales = "fixed")
       }
@@ -383,21 +307,17 @@ generate_alpha_change_boxplot_pair <-
       return(plot)
     })
 
-    # Set label for change function
-    # This is used in file naming when saving plots
     change_func_label <- if (is.function(alpha.change.func)) {
       "custom_function"
     } else {
       alpha.change.func
     }
 
-    # Save the plots as PDF files if requested
     if (pdf) {
       lapply(seq_along(plot_list), function(i) {
         plot <- plot_list[[i]]
         alpha_index <- alpha.name[i]
 
-        # Construct PDF file name
         pdf_name <- paste0(
           "alpha_change_boxplot_pair_",
           alpha_index,
@@ -429,7 +349,6 @@ generate_alpha_change_boxplot_pair <-
 
         pdf_name <- paste0(pdf_name, ".pdf")
 
-        # Save plot as PDF
         ggsave(
           filename = pdf_name,
           plot = plot,
@@ -440,7 +359,6 @@ generate_alpha_change_boxplot_pair <-
       })
     }
 
-    # Name the plots in the list
     names(plot_list) <- alpha.name
 
     return(plot_list)

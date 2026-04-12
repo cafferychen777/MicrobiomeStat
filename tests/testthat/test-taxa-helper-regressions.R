@@ -252,6 +252,310 @@ test_that("mStat_format_linda_feature_results fails fast on malformed inputs", {
   )
 })
 
+test_that("shared metadata-value scoper preserves typed time matching", {
+  data.obj <- list(
+    feature.tab = matrix(
+      c(1, 2, 3, 4),
+      nrow = 2,
+      dimnames = list(c("tax1", "tax2"), c("s1", "s2"))
+    ),
+    meta.dat = data.frame(
+      time = factor(c("T1", "T2"), levels = c("T1", "T2")),
+      row.names = c("s1", "s2"),
+      stringsAsFactors = FALSE
+    )
+  )
+
+  subset.obj <- mStat_subset_by_meta_values(data.obj, "time", "T2")
+
+  expect_equal(colnames(subset.obj$feature.tab), "s2")
+  expect_equal(rownames(subset.obj$meta.dat), "s2")
+})
+
+test_that("package spaghetti plots no longer use aes_string", {
+  package_root <- normalizePath(file.path(test_path(), "..", ".."), mustWork = TRUE)
+  helper_paths <- c(
+    "R/generate_alpha_spaghettiplot_long.R",
+    "R/generate_taxa_spaghettiplot_long.R",
+    "R/generate_taxa_indiv_spaghettiplot_long.R",
+    "R/generate_beta_pc_spaghettiplot_long.R",
+    "R/generate_beta_change_spaghettiplot_long.R"
+  )
+
+  for (path in helper_paths) {
+    contents <- paste(readLines(file.path(package_root, path), warn = FALSE), collapse = "\n")
+    expect_no_match(contents, "aes_string")
+  }
+})
+
+test_that("single taxa context helper scopes and injects subject ids consistently", {
+  data.obj <- list(
+    feature.tab = matrix(
+      c(1, 2, 3, 4),
+      nrow = 2,
+      dimnames = list(c("tax1", "tax2"), c("s1", "s2"))
+    ),
+    meta.dat = data.frame(
+      time = c("T1", "T2"),
+      group = c("A", "B"),
+      row.names = c("s1", "s2"),
+      stringsAsFactors = FALSE
+    )
+  )
+
+  context <- mStat_prepare_taxa_single_context(
+    data.obj = data.obj,
+    time.var = "time",
+    t.level = "T2",
+    group.var = "group",
+    add_subject_id = TRUE
+  )
+
+  expect_equal(colnames(context$data.obj$feature.tab), "s2")
+  expect_equal(context$subject.var, "subject.id")
+  expect_named(context$meta_tab, c("subject.id", "group", "time"))
+  expect_equal(context$meta_tab$subject.id, "s2")
+})
+
+test_that("long taxa context helper centralizes time processing and metadata selection", {
+  data.obj <- list(
+    feature.tab = matrix(
+      c(1, 2, 3, 4, 5, 6),
+      nrow = 2,
+      dimnames = list(c("tax1", "tax2"), c("s1", "s2", "s3"))
+    ),
+    meta.dat = data.frame(
+      subject = c("u1", "u1", "u2"),
+      time = c("T1", "T2", "T3"),
+      group = c("A", "A", "B"),
+      row.names = c("s1", "s2", "s3"),
+      stringsAsFactors = FALSE
+    )
+  )
+
+  context <- mStat_prepare_taxa_long_context(
+    data.obj = data.obj,
+    subject.var = "subject",
+    time.var = "time",
+    group.var = "group",
+    t0.level = "T1",
+    ts.levels = "T2"
+  )
+
+  expect_equal(colnames(context$data.obj$feature.tab), c("s1", "s2"))
+  expect_named(context$meta_tab, c("subject", "group", "time"))
+})
+
+test_that("pair taxa change helper computes aligned change once", {
+  long.df <- tibble::tibble(
+    Genus = c("tax1", "tax1", "tax2", "tax2"),
+    subject = c("u1", "u1", "u1", "u1"),
+    time = c("T1", "T2", "T1", "T2"),
+    value = c(2, 6, 4, 1)
+  )
+
+  pair_change <- mStat_prepare_taxa_pair_change_data(
+    long.df = long.df,
+    feature.level = "Genus",
+    subject.var = "subject",
+    time.var = "time",
+    change.base = "T1",
+    feature.change.func = "absolute change",
+    context = "test"
+  )
+
+  expect_equal(pair_change$change.base, "T1")
+  expect_equal(pair_change$change.after, "T2")
+  expect_equal(pair_change$combined_data$value_diff, c(4, -3))
+})
+
+test_that("pair metadata helper supports follow-up and subject joins", {
+  df <- tibble::tibble(subject = c("u1", "u2"), value_diff = c(1, 2))
+  meta_tab <- tibble::tibble(
+    subject = c("u1", "u1", "u2", "u2"),
+    time = c("T1", "T2", "T1", "T2"),
+    group = c("A0", "A1", "B0", "B1")
+  )
+
+  followup <- mStat_attach_pair_metadata(
+    df = df,
+    meta_tab = meta_tab,
+    subject.var = "subject",
+    time.var = "time",
+    mode = "followup_time",
+    change.after = "T2"
+  )
+  subject_only <- mStat_attach_pair_metadata(
+    df = df,
+    meta_tab = meta_tab,
+    subject.var = "subject",
+    time.var = "time",
+    mode = "subject"
+  )
+
+  expect_equal(followup$group, c("A1", "B1"))
+  expect_false("time" %in% names(subject_only))
+})
+
+test_that("matrix metadata alignment follows matrix column order", {
+  value_matrix <- matrix(
+    c(1, 2, 3, 4),
+    nrow = 2,
+    dimnames = list(c("tax1", "tax2"), c("u2", "u1"))
+  )
+  meta_tab <- tibble::tibble(
+    subject = c("u1", "u2"),
+    group = c("A", "B")
+  )
+
+  aligned <- mStat_align_subject_metadata_to_matrix(
+    value_matrix = value_matrix,
+    meta_tab = meta_tab,
+    subject.var = "subject",
+    keep_vars = "group"
+  )
+
+  expect_equal(colnames(aligned$value_matrix), c("u2", "u1"))
+  expect_equal(rownames(aligned$sorted_meta), c("u2", "u1"))
+})
+
+test_that("feature selection helper preserves explicit, top-k, and fallback selection", {
+  feature.dat <- data.frame(
+    Genus = c("tax1", "tax2", "tax3"),
+    s1 = c(10, 1, 5),
+    s2 = c(8, 2, 4),
+    check.names = FALSE
+  )
+
+  explicit <- mStat_resolve_selected_features(
+    feature.level = "Genus",
+    features.plot = c("tax3", "tax1"),
+    taxa.levels = c("tax1", "tax2", "tax3")
+  )
+  topk <- mStat_resolve_selected_features(
+    feature.dat = feature.dat,
+    feature.level = "Genus",
+    top.k.plot = 2,
+    top.k.func = "mean"
+  )
+  fallback <- mStat_resolve_selected_features(
+    feature.level = "Genus",
+    taxa.levels = c("tax1", "tax2", "tax3"),
+    fallback_n = 2
+  )
+
+  expect_equal(explicit, c("tax3", "tax1"))
+  expect_length(topk, 2)
+  expect_equal(fallback, c("tax1", "tax2"))
+})
+
+test_that("group placeholder helper creates a stable synthetic group column", {
+  df <- tibble::tibble(time = c("T1", "T2"), value = c(1, 2))
+  placeholder <- mStat_ensure_group_placeholder(df, group.var = NULL, value = "ALL", column_name = "ALL")
+
+  expect_equal(placeholder$group.var, "ALL")
+  expect_equal(placeholder$df$ALL, c("ALL", "ALL"))
+})
+
+
+test_that("targeted long beta helpers no longer mutate group.var placeholders inline", {
+  package_root <- normalizePath(file.path(test_path(), "..", ".."), mustWork = TRUE)
+  helper_paths <- c(
+    "R/generate_beta_change_spaghettiplot_long.R",
+    "R/generate_beta_pc_spaghettiplot_long.R",
+    "R/generate_beta_pc_change_boxplot_pair.R",
+    "R/generate_taxa_change_boxplot_pair.R"
+  )
+
+  for (path in helper_paths) {
+    lines <- readLines(file.path(package_root, path), warn = FALSE)
+    code_lines <- lines[!grepl("^\\s*#", lines)]
+    contents <- paste(code_lines, collapse = "\n")
+    expect_no_match(contents, "group\\.var\\s*(<-|=)\\s*\\\"(ALL|group)\\\"")
+  }
+})
+
+
+test_that("remaining pair helpers prefer shared join helpers and modern pivot verbs", {
+  package_root <- normalizePath(file.path(test_path(), "..", ".."), mustWork = TRUE)
+  beta_ord_single <- paste(readLines(file.path(package_root, "R/generate_beta_ordination_single.R"), warn = FALSE), collapse = "\n")
+  beta_pc_change_pair <- paste(readLines(file.path(package_root, "R/generate_beta_pc_change_boxplot_pair.R"), warn = FALSE), collapse = "\n")
+  taxa_change_test_pair <- paste(readLines(file.path(package_root, "R/generate_taxa_change_test_pair.R"), warn = FALSE), collapse = "\n")
+  taxa_change_dotplot_pair <- paste(readLines(file.path(package_root, "R/generate_taxa_change_dotplot_pair.R"), warn = FALSE), collapse = "\n")
+
+  expect_match(beta_ord_single, "mStat_prepare_pc_long_data")
+  expect_match(beta_pc_change_pair, "mStat_attach_pair_metadata")
+  expect_match(taxa_change_test_pair, "mStat_attach_subject_level_metadata")
+  expect_match(taxa_change_dotplot_pair, "pivot_wider")
+  expect_match(taxa_change_dotplot_pair, "pivot_longer")
+  expect_match(
+    paste(readLines(file.path(package_root, "R/generate_taxa_change_heatmap_pair.R"), warn = FALSE), collapse = "\n"),
+    "mStat_attach_subject_level_metadata"
+  )
+  expect_match(
+    paste(readLines(file.path(package_root, "R/generate_taxa_change_heatmap_long.R"), warn = FALSE), collapse = "\n"),
+    "mStat_prepare_change_heatmap_long_matrix"
+  )
+  expect_no_match(taxa_change_test_pair, "tidyr::spread")
+  expect_no_match(taxa_change_test_pair, "tidyr::gather")
+  expect_no_match(taxa_change_dotplot_pair, "tidyr::spread")
+  expect_no_match(taxa_change_dotplot_pair, "tidyr::gather")
+  expect_no_match(
+    paste(readLines(file.path(package_root, "R/generate_taxa_change_heatmap_long.R"), warn = FALSE), collapse = "\n"),
+    "tidyr::spread"
+  )
+})
+
+test_that("mean summary helper computes grouped means with optional transform", {
+  long.df <- tibble::tibble(
+    Genus = c("tax1", "tax1", "tax2", "tax2"),
+    group = c("A", "A", "B", "B"),
+    time = c("T1", "T2", "T1", "T2"),
+    value = c(4, 9, 1, 16)
+  )
+
+  summary.df <- mStat_summarize_mean_by_groups(
+    long.df = long.df,
+    feature.level = "Genus",
+    group_vars = c("group", "time"),
+    value_col = "value",
+    mean_col = "mean_value",
+    mean_transform = sqrt
+  )
+
+  expect_named(summary.df, c("Genus", "group", "time", "mean_value"))
+  expect_equal(summary.df$mean_value[summary.df$Genus == "tax1" & summary.df$time == "T1"], 2)
+})
+
+test_that("mean summary helper ignores missing values consistently", {
+  long.df <- tibble::tibble(
+    Genus = c("tax1", "tax1"),
+    time = c("T1", "T1"),
+    value = c(1, NA_real_)
+  )
+
+  summary.df <- mStat_summarize_mean_by_groups(
+    long.df = long.df,
+    feature.level = "Genus",
+    group_vars = "time",
+    value_col = "value",
+    mean_col = "mean_value"
+  )
+
+  expect_equal(summary.df$mean_value, 1)
+})
+
+test_that("test result feature filter helper preserves all rows when no filter is set", {
+  result.df <- tibble::tibble(Variable = c("tax1", "tax2"), value = c(1, 2))
+  expect_equal(mStat_filter_test_result_features(result.df), result.df)
+})
+
+test_that("test result feature filter helper filters by requested variables", {
+  result.df <- tibble::tibble(Variable = c("tax1", "tax2"), value = c(1, 2))
+  filtered <- mStat_filter_test_result_features(result.df, features.plot = "tax2")
+  expect_equal(filtered$Variable, "tax2")
+})
+
 
 test_that("generate_taxa_per_time_test_long analyzes sparse per-time longitudinal slices", {
   sample_ids <- paste0("s", 1:6)
@@ -920,4 +1224,49 @@ test_that("change heatmap long keeps top-k selection scoped per feature level", 
   expect_identical(names(result), c("original", "Genus"))
   expect_s3_class(result$original, "ggplot")
   expect_s3_class(result$Genus, "ggplot")
+})
+
+test_that("generate_taxa_association_test_long keeps per-level sample filtering local", {
+  sample_ids <- paste0("s", 1:8)
+  data.obj <- list(
+    feature.tab = matrix(
+      c(
+        0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.0,
+        0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.0,
+        0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.6,
+        0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.5
+      ),
+      nrow = 4,
+      byrow = TRUE,
+      dimnames = list(paste0("f", 1:4), sample_ids)
+    ),
+    feature.ann = data.frame(
+      Family = c("fam1", "fam1", "fam2", "fam2"),
+      row.names = paste0("f", 1:4),
+      stringsAsFactors = FALSE
+    ),
+    meta.dat = data.frame(
+      subject = rep(paste0("id", 1:4), each = 2),
+      group = rep(c("A", "A", "B", "B"), each = 2),
+      row.names = sample_ids,
+      stringsAsFactors = FALSE
+    ),
+    feature.agg.list = list()
+  )
+
+  result <- suppressWarnings(
+    generate_taxa_association_test_long(
+      data.obj = data.obj,
+      subject.var = "subject",
+      group.var = "group",
+      feature.level = c("original", "Family"),
+      feature.dat.type = "proportion",
+      prev.filter = 0,
+      abund.filter = 0.3
+    )
+  )
+
+  expect_named(result, c("original", "Family"))
+  expect_true(length(result$original) > 0)
+  expect_true(length(result$Family) > 0)
 })

@@ -17,7 +17,10 @@ perform_lm_analysis <- function(feature.dat,
 
   # Get reference level only if categorical
   if (is_categorical) {
-    reference_level <- levels(as.factor(meta.dat[, group.var]))[1]
+    reference_level <- .mStat_get_group_reference_level(
+      meta.dat = meta.dat,
+      group.var = group.var
+    )
     # Get group levels (excluding reference)
     group_levels <- levels(as.factor(meta.dat[, group.var]))
     comparison_levels <- group_levels[group_levels != reference_level]
@@ -51,7 +54,8 @@ perform_lm_analysis <- function(feature.dat,
 
       # Extract coefficients for group variable
       coef_table <- lm_summary$coefficients
-      group_coefs <- coef_table[grep(paste0("^", group.var), rownames(coef_table)), , drop = FALSE]
+      group_prefix_pattern <- paste0("^", mStat_escape_regex(group.var))
+      group_coefs <- coef_table[grep(group_prefix_pattern, rownames(coef_table)), , drop = FALSE]
 
       if (nrow(group_coefs) > 0) {
         for (j in 1:nrow(group_coefs)) {
@@ -59,7 +63,7 @@ perform_lm_analysis <- function(feature.dat,
 
           if (is_categorical) {
             # For categorical variables, extract group value from coefficient name
-            group_value <- gsub(paste0("^", group.var), "", coef_name)
+            group_value <- gsub(group_prefix_pattern, "", coef_name)
           } else {
             # For continuous variables, use the variable name itself
             group_value <- group.var
@@ -275,19 +279,17 @@ generate_taxa_test_single <- function(data.obj,
   # Validate the input data object
   data.obj <- mStat_validate_data(data.obj)
 
-  # Subset the data if a specific time point is specified
-  if (!is.null(time.var)) {
-    if (!is.null(t.level)) {
-      # Create a condition string for subsetting
-      condition <- paste(time.var, "== '", t.level, "'", sep = "")
-      # Subset the data object based on the condition
-      data.obj <- mStat_subset_data(data.obj, condition = condition)
-    }
-  }
+  context <- mStat_prepare_taxa_single_context(
+    data.obj = data.obj,
+    time.var = time.var,
+    t.level = t.level,
+    group.var = group.var
+  )
+  data.obj <- context$data.obj
 
   # Extract relevant variables from the metadata
   meta_tab <-
-    data.obj$meta.dat %>% select(all_of(c(time.var, group.var, adj.vars)))
+    select_meta_vars(data.obj$meta.dat, time.var, group.var, adj.vars)
 
   # Set reference level for group variable if it is categorical
   if (is.factor(meta_tab[[group.var]]) || is.character(meta_tab[[group.var]])) {
@@ -336,28 +338,11 @@ generate_taxa_test_single <- function(data.obj,
     abund.filter <- 0
   }
 
-  # For "other" data type, check if data contains negative values
-  # If so, adjust abundance filter to handle negative values appropriately
-  if (feature.dat.type == "other") {
-    # Check if any feature table contains negative values
-    has_negative <- FALSE
-    if (!is.null(data.obj$feature.tab)) {
-      has_negative <- any(data.obj$feature.tab < 0, na.rm = TRUE)
-    }
-    if (!has_negative && !is.null(data.obj$feature.agg.list)) {
-      for (agg_table in data.obj$feature.agg.list) {
-        if (any(agg_table < 0, na.rm = TRUE)) {
-          has_negative <- TRUE
-          break
-        }
-      }
-    }
-
-    if (has_negative) {
-      message("Note: Negative values detected in 'other' data type. Abundance filtering is disabled to preserve all features.")
-      abund.filter <- -Inf  # Set to negative infinity to include all features regardless of abundance
-    }
-  }
+  abund.filter <- mStat_adjust_other_abundance_filter(
+    data.obj = data.obj,
+    feature.dat.type = feature.dat.type,
+    abund.filter = abund.filter
+  )
 
   # Note: Normalization is handled internally by the LinDA function
   # We skip pre-normalization to preserve pre-computed feature.agg.list
@@ -370,130 +355,94 @@ generate_taxa_test_single <- function(data.obj,
 
   # Perform differential abundance testing for each specified taxonomic level
   test.list <- lapply(feature.level, function(feature.level) {
-    # Aggregate data to the specified taxonomic level if necessary
+    # Aggregate data to the specified taxonomic level if necessary.
     otu_tax_agg_filter <- get_taxa_data(data.obj, feature.level, prev.filter, abund.filter, feature.col = FALSE)
+    meta_tab_level <- meta_tab
 
-    # Add a check before running linda
+    # Add a check before running linda.
     if (nrow(otu_tax_agg_filter) == 0 || ncol(otu_tax_agg_filter) == 0) {
       warning("No features remain after filtering. Consider using less stringent filter thresholds.")
       return(list())
     }
 
-    # Add this check before linda analysis
+    # Remove samples with zero total abundance for this feature level only.
     if (any(colSums(otu_tax_agg_filter) == 0)) {
-      keep_samples <- colSums(otu_tax_agg_filter) > 0
-      if (sum(keep_samples) == 0) {
+      pruned_inputs <- .mStat_prune_zero_total_samples(
+        feature.dat = otu_tax_agg_filter,
+        meta.dat = meta_tab_level
+      )
+      if (is.null(pruned_inputs)) {
         warning("No samples remain after filtering.")
         return(list())
       }
-      otu_tax_agg_filter <- otu_tax_agg_filter[, keep_samples]
-      allvars <- names(meta_tab)
-      meta_tab <- as.data.frame(meta_tab[keep_samples, ])
-      names(meta_tab) <- allvars
+      otu_tax_agg_filter <- pruned_inputs$feature.dat
+      meta_tab_level <- pruned_inputs$meta.dat
     }
 
-    # Choose analysis method based on feature data type
+    # Choose analysis method based on feature data type.
     if (feature.dat.type == "other") {
-      # Use linear models for "other" data type (e.g., log-transformed data)
+      # Use linear models for "other" data type (e.g., log-transformed data).
       lm.results <- perform_lm_analysis(
         feature.dat = otu_tax_agg_filter,
-        meta.dat = meta_tab,
+        meta.dat = meta_tab_level,
         formula = formula,
         group.var = group.var,
         p.adj.method = p.adj.method,
         alpha = feature.sig.level
       )
     } else {
-      # Perform LinDA (Linear models for Differential Abundance) analysis
-      # Muffle linda's own "all filtered" warning; we emit our own below
-      linda_args <- c(
-        list(
-          feature.dat = otu_tax_agg_filter,
-          meta.dat = meta_tab,
-          formula = paste("~", formula),
-          feature.dat.type = feature.dat.type,
-          prev.filter = prev.filter,
-          mean.abund.filter = abund.filter,
-          p.adj.method = p.adj.method,
-          alpha = feature.sig.level
+      # Perform LinDA (Linear models for Differential Abundance) analysis.
+      # Muffle linda's own "all filtered" warning; we emit our own below.
+      linda.obj <- .mStat_run_linda(
+        feature.dat = otu_tax_agg_filter,
+        meta.dat = meta_tab_level,
+        formula = formula,
+        feature.dat.type = feature.dat.type,
+        prev.filter = prev.filter,
+        mean.abund.filter = abund.filter,
+        extra_args = c(
+          list(
+            p.adj.method = p.adj.method,
+            alpha = feature.sig.level
+          ),
+          extra_args
         ),
-        extra_args
-      )
-      linda.obj <- withCallingHandlers(
-        do.call(linda, linda_args),
-        warning = function(w) {
-          if (grepl("All features were filtered out", conditionMessage(w)))
-            invokeRestart("muffleWarning")
-        }
+        muffle_all_filtered_warning = TRUE
       )
     }
 
-    # Check if linda returned empty results (all features filtered internally)
+    # Check if linda returned empty results (all features filtered internally).
     if (feature.dat.type != "other" && length(linda.obj$output) == 0) {
       warning("No features remain after filtering. Consider using less stringent filter thresholds.")
       return(list())
     }
 
-    # Determine the reference level for the group variable (only for categorical variables)
-    if (!is.null(group.var)) {
-      if (is.factor(meta_tab[, group.var]) || is.character(meta_tab[, group.var])) {
-        # Only get reference level for categorical variables
-        reference_level <- levels(as.factor(meta_tab[, group.var]))[1]
-      } else {
-        # For continuous variables, no reference level
-        reference_level <- NULL
-      }
-    }
+    reference_level <- .mStat_get_group_reference_level(
+      meta.dat = meta_tab_level,
+      group.var = group.var
+    )
+    group_is_categorical <- !is.null(reference_level)
 
-    # Set the analysis object based on the method used
+    # Set the analysis object based on the method used.
     if (feature.dat.type == "other") {
       analysis.obj <- lm.results
     } else {
       analysis.obj <- linda.obj
     }
 
-    # Calculate mean abundance and prevalence for each feature
+    # Calculate mean abundance and prevalence for each feature.
     prop_prev_data <- mStat_summarize_taxa_features(
       feature.dat = otu_tax_agg_filter,
       feature.level = feature.level
     )
 
-    # Function to extract relevant data frames from LinDA output
-    extract_data_frames <-
-      function(linda_object, group_var = NULL, reference_level = NULL) {
-        result_list <- list()
-
-        # Find data frames related to the group variable
-        matching_dfs <-
-          grep(paste0(group_var), names(linda_object$output), value = TRUE)
-
-        for (df_name in matching_dfs) {
-          group_prefix <- paste0(group_var)
-
-          # Extract the group value from the data frame name
-          group_value <- unlist(strsplit(df_name, split = ":"))[1]
-          group_value <-
-            gsub(pattern = group_prefix,
-                 replacement = "",
-                 x = group_value)
-
-          # Store the data frame with a descriptive name
-          if (!is.null(reference_level) && reference_level != "") {
-            # For categorical variables, show comparison vs reference
-            result_list[[paste0(group_value, " vs ", reference_level, " (Reference)")]] <-
-              linda_object$output[[df_name]]
-          } else {
-            # For continuous variables, just use the variable name
-            result_list[[group_var]] <- linda_object$output[[df_name]]
-          }
-        }
-
-        return(result_list)
-      }
-
-    # Extract relevant data frames from analysis output
-    sub_test.list <-
-      extract_data_frames(linda_object = analysis.obj, group_var = group.var, reference_level = reference_level)
+    # Extract relevant data frames from analysis output.
+    sub_test.list <- .mStat_extract_pair_linda_outputs(
+      linda_output = analysis.obj$output,
+      group_var = group.var,
+      time_var = NULL,
+      reference_level = if (group_is_categorical) reference_level else NULL
+    )
 
     # Process each data frame in the list
     sub_test.list <- lapply(sub_test.list, function(df) {

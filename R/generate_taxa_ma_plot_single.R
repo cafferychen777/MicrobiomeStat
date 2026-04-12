@@ -96,12 +96,10 @@ generate_taxa_ma_plot_single <- function(data.obj,
       }
       
       # Filter features if specified
-      if (!is.null(features.plot)) {
-        df <- df[df$Variable %in% features.plot, ]
-        if (nrow(df) == 0) {
-          message(paste0("None of the specified features found for ", level, " at ", group.level, "."))
-          return(NULL)
-        }
+      df <- mStat_filter_test_result_features(df, features.plot)
+      if (nrow(df) == 0) {
+        message(paste0("None of the specified features found for ", level, " at ", group.level, "."))
+        return(NULL)
       }
       
       # Determine p-value column based on multiple testing method

@@ -112,17 +112,21 @@ generate_taxa_change_scatterplot_pair <-
 
     data.obj <- mStat_validate_data(data.obj)
 
-    meta_tab <-
-      data.obj$meta.dat %>% as.data.frame() %>% select(all_of(c(
-        time.var, group.var, strata.var, subject.var
-      )))
+    meta_tab <- mStat_prepare_meta_tab(
+      meta.dat = data.obj$meta.dat,
+      vars = list(time.var, group.var, strata.var, subject.var)
+    )
 
     has_strata <- !is.null(strata.var)
 
-    if (is.null(group.var)) {
-      group.var = "ALL"
-      meta_tab$ALL <- ""
-    }
+    placeholder_group <- mStat_ensure_group_placeholder(
+      meta_tab,
+      group.var = group.var,
+      value = "ALL",
+      column_name = "ALL"
+    )
+    meta_tab <- placeholder_group$df
+    resolved_group_var <- placeholder_group$group.var
 
     if (!has_strata) {
       strata.var = "ALL2"
@@ -148,23 +152,19 @@ generate_taxa_change_scatterplot_pair <-
       abund.filter <- 0
     }
 
-    if (feature.dat.type == "count"){
-      message(
-        "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
-      )
-      data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
-    }
+    analysis_data.obj <- mStat_normalize_count_data_if_needed(data.obj, feature.dat.type)
 
     plot_list <- lapply(feature.level, function(feature.level) {
 
-      otu_tax_agg <- get_taxa_data(data.obj, feature.level, prev.filter, abund.filter)
+      otu_tax_agg <- get_taxa_data(analysis_data.obj, feature.level, prev.filter, abund.filter)
 
-      selected_features <- features.plot
-      if (is.null(selected_features) && !is.null(top.k.plot) && !is.null(top.k.func)) {
-        computed_values <- compute_function(top.k.func, otu_tax_agg, feature.level)
-        top_k_n <- min(top.k.plot, length(computed_values))
-        selected_features <- names(sort(computed_values, decreasing = TRUE)[seq_len(top_k_n)])
-      }
+      selected_features <- mStat_resolve_selected_features(
+        feature.dat = otu_tax_agg,
+        feature.level = feature.level,
+        features.plot = features.plot,
+        top.k.plot = top.k.plot,
+        top.k.func = top.k.func
+      )
 
       otu_tab_norm_agg <- mStat_prepare_taxa_long_data(
         feature.dat = otu_tax_agg,
@@ -174,15 +174,6 @@ generate_taxa_change_scatterplot_pair <-
         join = "inner"
       )
 
-      pair_times <- mStat_resolve_pair_timepoints(
-        values = otu_tab_norm_agg[[time.var]],
-        time.var = time.var,
-        change.base = change.base,
-        context = "taxa change scatter plotting"
-      )
-      change.base <- pair_times$change.base
-      change.after <- pair_times$change.after
-
       taxa.levels <-
         otu_tab_norm_agg %>% select(all_of(feature.level)) %>% dplyr::distinct() %>% dplyr::pull()
 
@@ -190,56 +181,48 @@ generate_taxa_change_scatterplot_pair <-
         dplyr::group_by(!!sym(feature.level), !!sym(subject.var), !!sym(time.var)) %>%
         dplyr::summarise(count = mean(count, na.rm = TRUE), .groups = "drop")
 
-      # First, divide the data into two subsets, one for change.base and one for change.after
-      df_t0 <- subject_time_abundance %>% filter(!!sym(time.var) == change.base)
-      df_ts <- subject_time_abundance %>% filter(!!sym(time.var) == change.after)
+      pair_change <- mStat_prepare_taxa_pair_change_data(
+        long.df = subject_time_abundance %>% dplyr::rename(value = count),
+        feature.level = feature.level,
+        subject.var = subject.var,
+        time.var = time.var,
+        change.base = change.base,
+        feature.change.func = feature.change.func,
+        context = "taxa change scatter plotting"
+      )
+      df <- pair_change$combined_data %>%
+        dplyr::transmute(
+          !!feature.level := .data[[feature.level]],
+          !!subject.var := .data[[subject.var]],
+          !!time.var := .data[[paste0(time.var, "_time_2")]],
+          !!paste0(time.var, "_t0") := .data[[paste0(time.var, "_time_1")]],
+          count_ts = .data[["value_time_2"]],
+          count_t0 = .data[["value_time_1"]],
+          new_count = .data[["value_diff"]]
+        ) %>%
+        mStat_attach_pair_metadata(
+          meta_tab = meta_tab,
+          subject.var = subject.var,
+          time.var = time.var,
+          mode = "subject"
+        )
 
-      # Then, merge two time points by feature and subject
-      df <- dplyr::inner_join(df_ts, df_t0, by = c(feature.level, subject.var), suffix = c("_ts", "_t0"))
+      ylab_label <- mStat_get_taxa_change_ylabel(
+        feature.dat.type = feature.dat.type,
+        feature.change.func = feature.change.func
+      )
 
-      # Calculate the change in abundance based on the specified function
-      df <- df %>%
-        dplyr::mutate(new_count = compute_taxa_change(
-          value_after  = count_ts,
-          value_before = count_t0,
-          method       = feature.change.func,
-          feature_id   = .data[[feature.level]]
-        ))
-
-      meta_subject <- meta_tab %>%
-        select(-all_of(time.var)) %>%
-        dplyr::distinct(!!sym(subject.var), .keep_all = TRUE)
-
-      df <- df %>% dplyr::left_join(meta_subject, by = c(subject.var))
-
-      df <- df %>% setNames(ifelse(names(.) == paste0(time.var,"_ts"), time.var, names(.)))
-
-      ylab_label <- if (feature.dat.type != "other") {
-        if (is.function(feature.change.func)) {
-          paste0("Change in Relative Abundance", " (custom function)")
-        } else {
-          paste0("Change in Relative Abundance", " (", feature.change.func, ")")
-        }
-      } else {
-        if (is.function(feature.change.func)) {
-          paste0("Change in Abundance", " (custom function)")
-        } else {
-          paste0("Change in Abundance", " (", feature.change.func, ")")
-        }
-      }
-
-      if (is.null(selected_features)) {
-        if (length(taxa.levels) >= 5) {
-          selected_features <- taxa.levels[1:4]
-        } else {
-          selected_features <- taxa.levels
-        }
-      }
+      selected_features <- mStat_resolve_selected_features(
+        feature.level = feature.level,
+        features.plot = selected_features,
+        taxa.levels = taxa.levels,
+        fallback_n = 4
+      )
 
         scatterplot <-
           ggplot(df %>% filter(!!sym(feature.level) %in% selected_features),
                  aes(
-                   x = !!sym(group.var),
+                   x = !!sym(resolved_group_var),
                    y = new_count,
                    fill = !!sym(strata.var),
                    color = !!sym(strata.var),  # Add this line to tidyr::separate color by strata.var
@@ -276,7 +259,7 @@ generate_taxa_change_scatterplot_pair <-
           ggh4x::facet_nested_wrap(as.formula(paste(".~",feature.level)), scales = "fixed")
 
 
-        if (group.var == "ALL"){
+        if (is.null(group.var)){
           scatterplot <- scatterplot + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), axis.title.x = element_blank())
         }
 
@@ -286,7 +269,7 @@ generate_taxa_change_scatterplot_pair <-
           )
         }
 
-        if (is.numeric(df[[group.var]]) && group.var != "ALL") {
+        if (!is.null(group.var) && is.numeric(df[[resolved_group_var]])) {
           scatterplot <- scatterplot + xlab(group.var)
         }
 
@@ -310,12 +293,11 @@ generate_taxa_change_scatterplot_pair <-
             "abund_filter_",
             abund.filter
           )
-          if (!is.null(group.var)) {
-            pdf_name <- paste0(pdf_name, "_", "group_", group.var)
-          }
-          if (!is.null(strata.var)) {
-            pdf_name <- paste0(pdf_name, "_", "strata_", strata.var)
-          }
+          pdf_name <- mStat_append_pdf_group_suffixes(
+            pdf_name = pdf_name,
+            group.var = group.var,
+            strata.var = strata.var
+          )
           if (!is.null(file.ann)) {
             pdf_name <- paste0(pdf_name, "_", file.ann)
           }

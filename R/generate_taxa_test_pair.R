@@ -1,78 +1,3 @@
-#' @noRd
-.mStat_build_taxa_linda_formula <- function(group.var = NULL,
-                                            adj.vars = NULL,
-                                            time.var = NULL,
-                                            subject.var = NULL,
-                                            random_slopes = TRUE) {
-  adj.vars_str <- if (!is.null(adj.vars)) paste(adj.vars, collapse = " + ") else NULL
-
-  if (is.null(time.var)) {
-    if (is.null(group.var)) {
-      fixed_effects <- if (!is.null(adj.vars_str)) adj.vars_str else "1"
-    } else if (!is.null(adj.vars_str)) {
-      fixed_effects <- paste(adj.vars_str, "+", group.var)
-    } else {
-      fixed_effects <- group.var
-    }
-    random_effects <- paste("(1 |", subject.var, ")")
-  } else {
-    if (is.null(group.var)) {
-      fixed_effects <- if (!is.null(adj.vars_str)) paste(adj.vars_str, "+", time.var) else time.var
-    } else if (!is.null(adj.vars_str)) {
-      fixed_effects <- paste(adj.vars_str, "+", group.var, "*", time.var)
-    } else {
-      fixed_effects <- paste(group.var, "*", time.var)
-    }
-
-    random_effects <- if (random_slopes) {
-      paste("(1 +", time.var, "|", subject.var, ")")
-    } else {
-      paste("(1 |", subject.var, ")")
-    }
-  }
-
-  paste(fixed_effects, random_effects, sep = " + ")
-}
-
-#' @noRd
-.mStat_extract_pair_linda_outputs <- function(linda_output,
-                                              group_var = NULL,
-                                              time_var = NULL,
-                                              reference_level = NULL) {
-  result_list <- list()
-  output_names <- names(linda_output)
-
-  if (is.null(group_var)) {
-    for (df_name in output_names) {
-      result_list[[df_name]] <- linda_output[[df_name]]
-    }
-    return(result_list)
-  }
-
-  matching_dfs <- grep(paste0("^", group_var), output_names, value = TRUE)
-  for (df_name in matching_dfs) {
-    group_value <- strsplit(df_name, split = ":", fixed = TRUE)[[1]][1]
-    group_value <- sub(paste0("^", group_var), "", group_value)
-
-    base_label <- if (nzchar(group_value)) {
-      paste0(group_value, " vs ", reference_level, " (Reference)")
-    } else {
-      group_var
-    }
-
-    is_interaction <- !is.null(time_var) && grepl(paste0(":", time_var), df_name, fixed = TRUE)
-    label <- if (is_interaction) {
-      paste0(base_label, " [Interaction]")
-    } else {
-      paste0(base_label, " [Main Effect]")
-    }
-
-    result_list[[label]] <- linda_output[[df_name]]
-  }
-
-  result_list
-}
-
 #' @title Paired/Longitudinal Taxa Differential Abundance Test
 #' @description Performs differential abundance analysis for paired or longitudinal data using
 #'   linear mixed-effects models via LinDA, accounting for subject-level correlations.
@@ -184,15 +109,8 @@ generate_taxa_test_pair <-
       random_slopes = FALSE
     )
 
-    analysis_data.obj <- data.obj
-    analysis_feature.dat.type <- feature.dat.type
-    if (feature.dat.type == "count") {
-      message(
-        "Your data is in raw format ('Raw'). Normalization is crucial for further analyses. Now, 'mStat_normalize_data' function is automatically applying 'TSS' transformation."
-      )
-      analysis_data.obj <- mStat_normalize_data(data.obj, method = "TSS")$data.obj.norm
-      analysis_feature.dat.type <- "proportion"
-    }
+    analysis_data.obj <- mStat_normalize_count_data_if_needed(data.obj, feature.dat.type)
+    analysis_feature.dat.type <- if (feature.dat.type == "count") "proportion" else feature.dat.type
 
     # Perform analysis for each taxonomic level
     test.list <- lapply(feature.level, function(feature.level) {
@@ -206,53 +124,35 @@ generate_taxa_test_pair <-
       )
       meta_tab_level <- meta_tab
 
-      # Add this check before linda analysis
       if (any(colSums(otu_tax_agg_filter) == 0)) {
-        keep_samples <- colSums(otu_tax_agg_filter) > 0
-        otu_tax_agg_filter <- otu_tax_agg_filter[, keep_samples]
-        meta_tab_level <- meta_tab_level[keep_samples, , drop = FALSE]
+        pruned_inputs <- .mStat_prune_zero_total_samples(
+          feature.dat = otu_tax_agg_filter,
+          meta.dat = meta_tab_level
+        )
+        otu_tax_agg_filter <- pruned_inputs$feature.dat
+        meta_tab_level <- pruned_inputs$meta.dat
       }
 
-      # Perform linear mixed model analysis using LInDA
-      # If the original model fails, a simpler model is used as a fallback
-      linda.obj <- tryCatch({
-        do.call(
-          linda,
-          c(
-            list(
-              feature.dat = otu_tax_agg_filter,
-              meta.dat = meta_tab_level,
-              formula = paste("~", formula),
-              feature.dat.type = analysis_feature.dat.type,
-              p.adj.method = p.adj.method,
-              alpha = feature.sig.level
-            ),
-            extra_args
-          )
+      linda.obj <- .mStat_run_linda(
+        feature.dat = otu_tax_agg_filter,
+        meta.dat = meta_tab_level,
+        formula = formula,
+        fallback_formula = formula_corrected,
+        fallback_message = "Due to the above error, a simpler model will be used for fitting.",
+        feature.dat.type = analysis_feature.dat.type,
+        extra_args = c(
+          list(
+            p.adj.method = p.adj.method,
+            alpha = feature.sig.level
+          ),
+          extra_args
         )
-      }, error = function(e) {
-        message("Error in linda: ", e)
-        message("Due to the above error, a simpler model will be used for fitting.")
-        do.call(
-          linda,
-          c(
-            list(
-              feature.dat = otu_tax_agg_filter,
-              meta.dat = meta_tab_level,
-              formula = paste("~", formula_corrected),
-              feature.dat.type = analysis_feature.dat.type,
-              p.adj.method = p.adj.method,
-              alpha = feature.sig.level
-            ),
-            extra_args
-          )
-        )
-      })
+      )
 
-      # Determine reference level for group comparisons
-      if (!is.null(group.var)){
-        reference_level <- levels(as.factor(meta_tab_level[,group.var]))[1]
-      }
+      reference_level <- .mStat_get_group_reference_level(
+        meta.dat = meta_tab_level,
+        group.var = group.var
+      )
 
       # Calculate average abundance and prevalence for each feature
       prop_prev_data <- mStat_summarize_taxa_features(
