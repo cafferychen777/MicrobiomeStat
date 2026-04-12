@@ -369,7 +369,7 @@ generate_beta_ordination_long <-
                                       y = y_start,
                                       xend = x_end,
                                       yend = y_end,
-                                      color = time_color_value),
+                                      color = .data[["time_color_value"]]),
                                   arrow = ggplot2::arrow(length = unit(0.25, "cm"), type = "open"),
                                   size = 1.5)
           }
