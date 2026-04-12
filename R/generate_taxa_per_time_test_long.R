@@ -105,7 +105,7 @@ generate_taxa_per_time_test_long <-
     feature.dat.type <- match.arg(feature.dat.type)
 
     # Generate the fixed-effects formula for each per-time analysis
-    formula <- paste(attr(terms(mStat_build_formula(".response", c(group.var, adj.vars))), "term.labels"), collapse = " + ")
+    formula <- paste(attr(stats::terms(mStat_build_formula(".response", c(group.var, adj.vars))), "term.labels"), collapse = " + ")
     if (!nzchar(formula)) {
       formula <- "1"
     }

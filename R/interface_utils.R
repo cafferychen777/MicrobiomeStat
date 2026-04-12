@@ -565,6 +565,7 @@ route_function <- function(category, plot_type, design, is_change = FALSE) {
 #' @param subject.var Subject variable
 #' @param time.var Time variable
 #' @param group.var Group variable
+#' @param strata.var Stratification variable
 #' @param design_info Study design info
 #'
 #' @return List with is_valid (logical), errors (character vector), warnings (character vector)

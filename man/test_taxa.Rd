@@ -6,7 +6,7 @@
 \usage{
 test_taxa(
   data.obj,
-  test.type = c("difference", "trend", "volatility", "association"),
+  test.type = c("difference", "trend", "volatility", "association", "per_time"),
   subject.var = NULL,
   time.var = NULL,
   group.var = NULL,
@@ -29,7 +29,8 @@ and optionally feature.ann, tree, and feature.agg.list.}
 - "difference": Test for group differences (cross-sectional or paired)
 - "trend": Test for temporal trends (longitudinal)
 - "volatility": Test for temporal instability (longitudinal)
-- "association": Test for associations with continuous variables}
+- "association": Test for associations with continuous variables
+- "per_time": Test at each time point separately}
 
 \item{subject.var}{Character. Name of the subject/sample ID variable in meta.dat.
 Required for longitudinal and paired designs.}

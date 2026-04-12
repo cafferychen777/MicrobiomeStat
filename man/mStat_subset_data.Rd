@@ -4,7 +4,12 @@
 \alias{mStat_subset_data}
 \title{Subset Data Object by Sample IDs}
 \usage{
-mStat_subset_data(data.obj, samIDs = NULL, condition = NULL)
+mStat_subset_data(
+  data.obj,
+  samIDs = NULL,
+  condition = NULL,
+  prune.features = FALSE
+)
 }
 \arguments{
 \item{data.obj}{A MicrobiomeStat data object, which is a list containing
@@ -28,6 +33,8 @@ Data objects can be created using converters like
 \item{samIDs}{Character/numeric/logical vector of sample IDs to keep.}
 
 \item{condition}{Character string with logical expression for filtering (e.g., "group == 'A'").}
+
+\item{prune.features}{Logical. When TRUE, drop feature rows that become all-zero after sample subsetting and prune aligned feature annotations, aggregated tables, and tree tips. Default FALSE keeps sample subsetting and feature pruning separate.}
 }
 \value{
 A MicrobiomeStat data object with subsetted samples.

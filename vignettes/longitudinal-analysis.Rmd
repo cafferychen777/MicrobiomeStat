@@ -25,7 +25,7 @@ Longitudinal microbiome studies track microbial communities over time, providing
 
 ## Setup
 
-```{r setup}
+```{r setup, include=FALSE, eval=TRUE}
 library(MicrobiomeStat)
 library(ggplot2)
 ```
@@ -133,24 +133,31 @@ generate_beta_ordination_long(
 
 ### Change Analysis
 
-Analyze changes in beta diversity from baseline:
+Analyze changes in beta diversity from baseline to a single follow-up time point. This plotting function is designed for paired data with one baseline and one follow-up per subject, so we demonstrate it on the paired example dataset:
 
 ```{r beta-change}
-# PC-based change analysis
-pc.obj <- mStat_calculate_PC(
-  dist.obj = dist.obj,
+data(subset_pairs.obj)
+
+dist.change.obj <- mStat_calculate_beta_diversity(
+  data.obj = subset_pairs.obj,
+  dist.name = "BC"
+)
+
+pc.change.obj <- mStat_calculate_PC(
+  dist.obj = dist.change.obj,
   method = "mds",
   k = 2,
   dist.name = "BC"
 )
 
 generate_beta_pc_change_boxplot_pair(
-  data.obj = ecam.obj,
-  pc.obj = pc.obj,
-  subject.var = "subject.id",
-  time.var = "month_num",
-  group.var = "delivery",
-  change.base = "0",
+  data.obj = subset_pairs.obj,
+  dist.obj = dist.change.obj,
+  pc.obj = pc.change.obj,
+  subject.var = "MouseID",
+  time.var = "Antibiotic",
+  group.var = "Sex",
+  change.base = "Baseline",
   dist.name = "BC",
   pc.ind = 1
 )
@@ -188,56 +195,46 @@ generate_taxa_heatmap_long(
   group.var = "delivery",
   strata.var = "diet",
   feature.level = "Family",
-  feature.number = 20,
-  feature.mt.method = "mean",
-  feature.mt.cutoff = 0.001
+  top.k.plot = 20,
+  top.k.func = mean,
+  abund.filter = 0.001
 )
 ```
 
 ## Differential Abundance Testing
 
-### LinDA for Longitudinal Data
+### Longitudinal Association Testing
 
-```{r linda}
-# Aggregate to genus level
-genus.obj <- mStat_aggregate_by_taxonomy(
-  ecam.obj,
-  feature.level = "Genus"
-)
-
-# Perform differential abundance testing
-da.test <- generate_taxa_test_single(
-  data.obj = genus.obj,
-  group.var = "delivery",
-  adj.vars = "diet",
-  feature.level = "Genus",
-  feature.mt.method = "mean",
-  feature.mt.cutoff = 0.001
-)
-
-# Visualize results with volcano plot
-generate_taxa_volcano_single(
-  data.obj = genus.obj,
-  group.var = "delivery",
-  test.list = da.test,
-  feature.level = "Genus"
-)
-```
-
-### Temporal Association Testing
-
-```{r temporal-association}
-# Test associations with time
+```{r taxa-association}
+# Test longitudinal associations at the genus level
 assoc.test <- generate_taxa_association_test_long(
   data.obj = ecam.obj,
   subject.var = "subject.id",
   group.var = "delivery",
-  feature.level = "Family",
-  feature.dat.type = "count"
+  adj.vars = "diet",
+  feature.level = "Genus",
+  feature.dat.type = "proportion"
 )
 
-# View top associations
-head(assoc.test$Family, 10)
+# View the top associations for the delivery comparison
+head(assoc.test$Genus[[1]], 10)
+```
+
+### Temporal Trend Testing
+
+```{r taxa-trend}
+# Test taxa-specific temporal trends
+trend.taxa.test <- generate_taxa_trend_test_long(
+  data.obj = ecam.obj,
+  subject.var = "subject.id",
+  time.var = "month_num",
+  group.var = "delivery",
+  feature.level = "Genus",
+  feature.dat.type = "proportion"
+)
+
+# View the top taxa with group-associated temporal trends
+head(trend.taxa.test$Genus[[1]], 10)
 ```
 
 ## Automated Reporting
@@ -277,11 +274,11 @@ cat("Subjects with complete data:",
 Identify and adjust for time-varying covariates:
 
 ```{r time-varying}
-# Identify time-varying variables
+# Check whether candidate adjustment variables vary within subjects
 time.varying <- mStat_identify_time_varying_vars(
   meta.dat = ecam.obj$meta.dat,
-  subject.var = "subject.id",
-  time.var = "month_num"
+  adj.vars = c("delivery", "diet", "sex"),
+  subject.var = "subject.id"
 )
 
 print(time.varying)

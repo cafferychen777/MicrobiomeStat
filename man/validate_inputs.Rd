@@ -11,6 +11,7 @@ validate_inputs(
   subject.var = NULL,
   time.var = NULL,
   group.var = NULL,
+  strata.var = NULL,
   design_info = NULL
 )
 }
@@ -26,6 +27,8 @@ validate_inputs(
 \item{time.var}{Time variable}
 
 \item{group.var}{Group variable}
+
+\item{strata.var}{Stratification variable}
 
 \item{design_info}{Study design info}
 }
