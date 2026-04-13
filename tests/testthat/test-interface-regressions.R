@@ -272,6 +272,34 @@ test_that("change metadata casts join keys to match long-form distances", {
   expect_equal(attached$diet, c("A", "B", "A"))
 })
 
+test_that("change metadata matches POSIX keys without forcing UTC reinterpretation", {
+  change.df <- tibble::tibble(
+    subject = c("u1", "u2"),
+    visit = as.POSIXct(
+      c("2024-01-01 08:30:00", "2024-01-02 08:30:00"),
+      tz = "America/New_York"
+    ),
+    distance = c(0.1, 0.2)
+  )
+
+  meta.dat <- data.frame(
+    subject = c("u1", "u2"),
+    visit = c("2024-01-01 08:30:00", "2024-01-02 08:30:00"),
+    group = c("A", "B"),
+    row.names = c("sample-1", "sample-2"),
+    stringsAsFactors = FALSE
+  )
+
+  attached <- mStat_attach_change_metadata(
+    change.df = change.df,
+    meta.dat = meta.dat,
+    by = c("subject", "visit"),
+    vars = "group"
+  )
+
+  expect_identical(attached$group, c("A", "B"))
+})
+
 test_that("plot_taxa fallback clears stale change.type before dispatch", {
   ns <- asNamespace("MicrobiomeStat")
   original_validate_inputs <- get("validate_inputs", envir = ns)

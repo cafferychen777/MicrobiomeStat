@@ -276,6 +276,76 @@ test_that("get_sample_ids matches Date metadata against character labels", {
   )
 })
 
+test_that("get_sample_ids matches POSIXct midnight metadata against date labels", {
+  data.obj <- list(
+    meta.dat = data.frame(
+      visit = as.POSIXct(
+        c("2024-01-01 00:00:00", "2024-01-10 00:00:00", "2024-01-20 00:00:00"),
+        tz = "UTC"
+      ),
+      row.names = c("s1", "s2", "s3")
+    )
+  )
+
+  expect_identical(
+    get_sample_ids(data.obj, "visit", "2024-01-10"),
+    "s2"
+  )
+})
+
+test_that("get_sample_ids preserves POSIXct time zone semantics when matching labels", {
+  data.obj <- list(
+    meta.dat = data.frame(
+      visit = as.POSIXct(
+        c("2024-01-01 08:30:00", "2024-01-10 08:30:00", "2024-01-20 08:30:00"),
+        tz = "America/New_York"
+      ),
+      row.names = c("s1", "s2", "s3")
+    )
+  )
+
+  expect_identical(
+    get_sample_ids(data.obj, "visit", "2024-01-10 08:30:00"),
+    "s2"
+  )
+})
+
+test_that("generate_alpha_test_pair accepts POSIXct change.base values", {
+  sample_ids <- c("s1", "s2", "s3", "s4")
+  data.obj <- list(
+    feature.tab = matrix(
+      c(5, 6, 7, 8),
+      nrow = 1,
+      dimnames = list("f1", sample_ids)
+    ),
+    meta.dat = data.frame(
+      subject = c("u1", "u1", "u2", "u2"),
+      visit = as.POSIXct(
+        c("2024-01-01 08:30:00", "2024-01-10 08:30:00", "2024-01-01 08:30:00", "2024-01-10 08:30:00"),
+        tz = "America/New_York"
+      ),
+      row.names = sample_ids
+    )
+  )
+  alpha.obj <- list(
+    shannon = data.frame(shannon = c(1, 2, 3, 4), row.names = sample_ids)
+  )
+
+  result <- suppressWarnings(
+    generate_alpha_test_pair(
+      data.obj = data.obj,
+      alpha.obj = alpha.obj,
+      alpha.name = "shannon",
+      subject.var = "subject",
+      time.var = "visit",
+      change.base = as.POSIXct("2024-01-01 08:30:00", tz = "America/New_York")
+    )
+  )
+
+  expect_true("shannon" %in% names(result))
+  expect_s3_class(result$shannon, "tbl_df")
+})
+
 test_that("mStat_subset_PC resolves numeric indices from points and preserves eig", {
   dist.obj <- list(
     BC = stats::dist(

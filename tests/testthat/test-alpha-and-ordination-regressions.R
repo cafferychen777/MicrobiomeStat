@@ -407,3 +407,70 @@ test_that("ordination axis labels are robust when eigenvalues include negatives"
   expect_s3_class(plot_single$BC, "ggplot")
   expect_s3_class(plot_pair$BC, "ggplot")
 })
+
+test_that("generate_beta_ordination_pair orders character time labels by time semantics", {
+  sample_ids <- c("s1", "s2", "s3", "s4")
+  data.obj <- list(
+    feature.tab = matrix(
+      c(1, 2, 3, 4),
+      nrow = 1,
+      dimnames = list("f1", sample_ids)
+    ),
+    meta.dat = data.frame(
+      subject = c("u1", "u1", "u2", "u2"),
+      time = c("10", "2", "10", "2"),
+      group = c("A", "A", "B", "B"),
+      row.names = sample_ids,
+      stringsAsFactors = FALSE
+    )
+  )
+  dist.obj <- list(
+    BC = stats::dist(
+      matrix(
+        c(0, 0,
+          1, 0,
+          0, 1,
+          1, 1),
+        ncol = 2,
+        byrow = TRUE,
+        dimnames = list(sample_ids, c("x", "y"))
+      )
+    )
+  )
+  pc.obj <- list(
+    BC = list(
+      points = matrix(
+        c(10, 0,
+          2, 0,
+          11, 0,
+          3, 0),
+        ncol = 2,
+        byrow = TRUE,
+        dimnames = list(sample_ids, c("PC1", "PC2"))
+      ),
+      eig = c(1, 1)
+    )
+  )
+
+  plot_pair <- suppressWarnings(
+    generate_beta_ordination_pair(
+      data.obj = data.obj,
+      dist.obj = dist.obj,
+      pc.obj = pc.obj,
+      subject.var = "subject",
+      time.var = "time",
+      group.var = "group",
+      dist.name = "BC",
+      pdf = FALSE
+    )
+  )
+
+  built <- ggplot_build(plot_pair$BC)
+  segment_layers <- built$data[vapply(built$data, function(layer) {
+    all(c("x", "xend", "y", "yend") %in% names(layer))
+  }, logical(1))]
+
+  subject_segments <- unique(segment_layers[[1]][, c("x", "xend")])
+  expect_equal(subject_segments$x, c(2, 10, 3, 11))
+  expect_equal(subject_segments$xend, c(10, NA, 11, NA))
+})

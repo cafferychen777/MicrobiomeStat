@@ -695,6 +695,101 @@ test_that("unified and legacy time scoping share the same missing-level contract
   )
 })
 
+test_that("unified context scopes POSIXct midnight time labels without parse errors", {
+  sample_ids <- c("s1", "s2", "s3", "s4")
+  data.obj <- list(
+    feature.tab = matrix(
+      c(5, 6, 7, 8),
+      nrow = 1,
+      dimnames = list("f1", sample_ids)
+    ),
+    meta.dat = data.frame(
+      subject = c("u1", "u1", "u2", "u2"),
+      visit = as.POSIXct(
+        c("2024-01-01 00:00:00", "2024-01-10 00:00:00", "2024-01-01 00:00:00", "2024-01-10 00:00:00"),
+        tz = "UTC"
+      ),
+      row.names = sample_ids
+    )
+  )
+
+  design_info <- list(
+    design = "pair",
+    t0.level = "2024-01-01",
+    ts.levels = "2024-01-10",
+    t.level = NULL
+  )
+
+  scoped <- mStat_scope_unified_context(data.obj, design_info, time.var = "visit")
+
+  expect_identical(rownames(scoped$data.obj$meta.dat), sample_ids)
+})
+
+test_that("unified context preserves POSIXct time zone semantics when scoping labels", {
+  sample_ids <- c("s1", "s2", "s3", "s4")
+  data.obj <- list(
+    feature.tab = matrix(
+      c(5, 6, 7, 8),
+      nrow = 1,
+      dimnames = list("f1", sample_ids)
+    ),
+    meta.dat = data.frame(
+      subject = c("u1", "u1", "u2", "u2"),
+      visit = as.POSIXct(
+        c("2024-01-01 08:30:00", "2024-01-10 08:30:00", "2024-01-01 08:30:00", "2024-01-10 08:30:00"),
+        tz = "America/New_York"
+      ),
+      row.names = sample_ids
+    )
+  )
+
+  design_info <- list(
+    design = "pair",
+    t0.level = "2024-01-01 08:30:00",
+    ts.levels = "2024-01-10 08:30:00",
+    t.level = NULL
+  )
+
+  scoped <- mStat_scope_unified_context(data.obj, design_info, time.var = "visit")
+
+  expect_identical(rownames(scoped$data.obj$meta.dat), sample_ids)
+})
+
+test_that("generate_taxa_barplot_pair uses semantic terminal time for character labels", {
+  sample_ids <- paste0("s", 1:6)
+  data.obj <- list(
+    feature.tab = matrix(
+      c(1, 2, 3, 4, 5, 6,
+        6, 5, 4, 3, 2, 1),
+      nrow = 2,
+      byrow = TRUE,
+      dimnames = list(c("f1", "f2"), sample_ids)
+    ),
+    meta.dat = data.frame(
+      subject = rep(c("u1", "u2"), each = 3),
+      time = c("T1", "T2", "T10", "T1", "T2", "T10"),
+      row.names = sample_ids,
+      stringsAsFactors = FALSE
+    )
+  )
+
+  plots <- suppressWarnings(
+    generate_taxa_barplot_pair(
+      data.obj = data.obj,
+      subject.var = "subject",
+      time.var = "time",
+      feature.level = "original",
+      pdf = FALSE
+    )
+  )
+
+  average_plot <- plots$original$average
+  built <- ggplot_build(average_plot)
+  x_labels <- built$layout$panel_params[[1]]$x$get_labels()
+
+  expect_identical(x_labels, c("T1", "T2", "T10"))
+})
+
 test_that("beta change helpers keep one follow-up row per subject and attach follow-up metadata", {
   meta_tab <- data.frame(
     subject = c("id1", "id1", "id2", "id2"),

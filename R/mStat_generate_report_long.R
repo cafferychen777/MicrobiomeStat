@@ -116,7 +116,7 @@
 #'   feature.box.axis.transform = "sqrt",
 #'   theme.choice = "bw",
 #'   base.size = 20,
-#'   output.file = "/Users/apple/Research/MicrobiomeStat/result/per_time_test_report.pdf",
+#'   output.file = file.path(tempdir(), "per_time_test_report.pdf"),
 #'   output.format = "pdf"
 #' )
 #'
@@ -148,16 +148,16 @@
 #'   feature.box.axis.transform = "sqrt",
 #'   theme.choice = "bw",
 #'   base.size = 20,
-#'   output.file = "/Users/apple/Research/MicrobiomeStat/result/per_time_test_report.html",
+#'   output.file = file.path(tempdir(), "per_time_test_report.html"),
 #'   output.format = "html"
 #' )
 #' data(ecam.obj)
 #' mStat_generate_report_long(
 #'   data.obj = ecam.obj,
-#'   group.var = "antiexposedall",
+#'   group.var = "delivery",
 #'   strata.var = NULL,
-#'   test.adj.vars = "delivery",
-#'   vis.adj.vars = "delivery",
+#'   test.adj.vars = "diet",
+#'   vis.adj.vars = "diet",
 #'   subject.var = "subject.id",
 #'   time.var = "month_num",
 #'   t0.level = NULL,
@@ -180,15 +180,15 @@
 #'   feature.box.axis.transform = "sqrt",
 #'   theme.choice = "bw",
 #'   base.size = 20,
-#'   output.file = "/Users/apple/Research/MicrobiomeStat/result/ecam_obj_report_long.pdf"
+#'   output.file = file.path(tempdir(), "ecam_obj_report_long.pdf")
 #' )
 #'
 #' mStat_generate_report_long(
 #'   data.obj = ecam.obj,
-#'   group.var = "antiexposedall",
+#'   group.var = "delivery",
 #'   strata.var = NULL,
-#'   test.adj.vars = "delivery",
-#'   vis.adj.vars = "delivery",
+#'   test.adj.vars = "diet",
+#'   vis.adj.vars = "diet",
 #'   subject.var = "subject.id",
 #'   time.var = "month_num",
 #'   t0.level = NULL,
@@ -211,7 +211,7 @@
 #'   feature.box.axis.transform = "sqrt",
 #'   theme.choice = "bw",
 #'   base.size = 20,
-#'   output.file = "/Users/apple/Research/MicrobiomeStat/result/ecam_obj_report_long.html",
+#'   output.file = file.path(tempdir(), "ecam_obj_report_long.html"),
 #'   output.format = "html"
 #' )
 #' }

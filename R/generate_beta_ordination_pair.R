@@ -179,11 +179,15 @@ generate_beta_ordination_pair <-
       # Calculate end points for arrows
       # This creates the visual effect of change over time for each subject
       df <- df %>%
-        dplyr::arrange(!!sym(subject.var),!!sym(time.var)) %>% 
+        dplyr::mutate(
+          .time_order = match(as.character(.data[[time.var]]), mStat_order_time_labels(.data[[time.var]]))
+        ) %>%
+        dplyr::arrange(!!sym(subject.var), .data[[".time_order"]]) %>%
         dplyr::group_by(!!sym(subject.var)) %>%
         dplyr::mutate(x_end = dplyr::lead(PC1),
                       y_end = dplyr::lead(PC2)) %>%
-        dplyr::ungroup()
+        dplyr::ungroup() %>%
+        dplyr::select(-.data[[".time_order"]])
 
       # Create a dataset with all points for each facet
       # This allows for comparison across strata while maintaining context

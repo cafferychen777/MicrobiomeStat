@@ -90,19 +90,30 @@ mStat_match_metadata_values <- function(values,
 
   if (inherits(values, "POSIXt")) {
     if (!inherits(target_values, "POSIXt")) {
-      target_values <- suppressWarnings(
-        as.POSIXct(
-          target_values,
-          tz = "UTC",
-          tryFormats = c(
-            "%Y-%m-%d %H:%M:%OS",
-            "%Y-%m-%d %H:%M",
-            "%Y-%m-%dT%H:%M:%OS",
-            "%Y-%m-%dT%H:%M",
-            "%Y/%m/%d %H:%M:%OS",
-            "%Y/%m/%d %H:%M"
+      parse_tz <- attr(values, "tzone")
+      parse_tz <- parse_tz[!is.na(parse_tz) & nzchar(parse_tz)]
+      parse_tz <- if (length(parse_tz) > 0) parse_tz[[1]] else ""
+      target_values_chr <- as.character(target_values)
+      target_values <- tryCatch(
+        suppressWarnings(
+          as.POSIXct(
+            target_values_chr,
+            tz = parse_tz,
+            tryFormats = c(
+              "%Y-%m-%d %H:%M:%OS",
+              "%Y-%m-%d %H:%M",
+              "%Y-%m-%dT%H:%M:%OS",
+              "%Y-%m-%dT%H:%M",
+              "%Y/%m/%d %H:%M:%OS",
+              "%Y/%m/%d %H:%M",
+              "%Y-%m-%d",
+              "%Y/%m/%d"
+            )
           )
-        )
+        ),
+        error = function(...) {
+          rep(as.POSIXct(NA_character_, tz = if (nzchar(parse_tz)) parse_tz else "UTC"), length(target_values_chr))
+        }
       )
     }
     target_values <- target_values[!is.na(target_values)]

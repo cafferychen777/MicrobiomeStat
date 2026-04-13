@@ -154,8 +154,15 @@ generate_alpha_test_pair <-
     # Change the base level for time.var if change.base is specified
     # This allows for flexibility in choosing the reference time point
     if (!is.null(change.base) && !is.null(time.var)) {
-      if (change.base %in% meta_tab[[time.var]]) {
-        meta_tab[[time.var]] <- relevel(as.factor(meta_tab[[time.var]]), ref = change.base)
+      ordered_time_levels <- mStat_order_time_labels(meta_tab[[time.var]])
+      change.base_label <- as.character(change.base)[[1]]
+
+      if (change.base_label %in% ordered_time_levels) {
+        meta_tab[[time.var]] <- factor(
+          as.character(meta_tab[[time.var]]),
+          levels = c(change.base_label, ordered_time_levels[ordered_time_levels != change.base_label]),
+          ordered = TRUE
+        )
       } else {
         stop("Specified change.base is not a level in the time.var column.", call. = FALSE)
       }

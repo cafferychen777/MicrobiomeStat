@@ -569,7 +569,32 @@ mStat_attach_change_metadata <- function(change.df,
         as.Date(y_col, tryFormats = c("%Y-%m-%d", "%Y/%m/%d"))
       )
     } else if (inherits(x_col, "POSIXt")) {
-      meta.tbl[[join_col]] <- suppressWarnings(as.POSIXct(y_col, tz = "UTC"))
+      parse_tz <- attr(x_col, "tzone")
+      parse_tz <- parse_tz[!is.na(parse_tz) & nzchar(parse_tz)]
+      parse_tz <- if (length(parse_tz) > 0) parse_tz[[1]] else ""
+      meta.tbl[[join_col]] <- tryCatch(
+        suppressWarnings(
+          as.POSIXct(
+            as.character(y_col),
+            tz = parse_tz,
+            tryFormats = c(
+              "%Y-%m-%d %H:%M:%OS",
+              "%Y-%m-%d %H:%M",
+              "%Y-%m-%dT%H:%M:%OS",
+              "%Y-%m-%dT%H:%M:%OSZ",
+              "%Y-%m-%dT%H:%M:%OS%z",
+              "%Y-%m-%dT%H:%M",
+              "%Y/%m/%d %H:%M:%OS",
+              "%Y/%m/%d %H:%M",
+              "%Y-%m-%d",
+              "%Y/%m/%d"
+            )
+          )
+        ),
+        error = function(...) {
+          rep(as.POSIXct(NA_character_, tz = if (nzchar(parse_tz)) parse_tz else "UTC"), length(y_col))
+        }
+      )
     } else {
       meta.tbl[[join_col]] <- as.character(y_col)
       change.df[[join_col]] <- as.character(x_col)

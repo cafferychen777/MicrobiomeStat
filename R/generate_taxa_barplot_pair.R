@@ -193,8 +193,20 @@ generate_taxa_barplot_pair <-
                             tibble::rownames_to_column("sample"), by = "sample")
 
       # Sort the data by subject and time
+      ordered_time_levels <- mStat_order_time_labels(merged_long_df[[time.var]])
       sorted_merged_long_df <- merged_long_df %>%
-        dplyr::arrange(!!sym(subject.var),!!sym(time.var))
+        dplyr::mutate(
+          .time_order = match(as.character(.data[[time.var]]), ordered_time_levels)
+        ) %>%
+        dplyr::arrange(!!sym(subject.var), .data[[".time_order"]]) %>%
+        dplyr::select(-.data[[".time_order"]]) %>%
+        dplyr::mutate(
+          !!sym(time.var) := factor(
+            as.character(.data[[time.var]]),
+            levels = ordered_time_levels,
+            ordered = TRUE
+          )
+        )
 
       # Identify the last sample for each subject
       last_sample_ids <- sorted_merged_long_df %>%
@@ -381,8 +393,7 @@ generate_taxa_barplot_pair <-
               panel.grid.minor=element_blank())
 
       # Prepare data for the average barplot
-      last_time_ids <- sorted_merged_long_df %>%
-        select(!!sym(time.var)) %>% dplyr::pull() %>% as.factor() %>% levels() %>% dplyr::last()
+      last_time_ids <- utils::tail(ordered_time_levels, 1)
 
       # Handle grouping and stratification for average plot
       placeholder_group <- mStat_ensure_group_placeholder(

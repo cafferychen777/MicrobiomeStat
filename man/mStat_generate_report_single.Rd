@@ -231,7 +231,7 @@ mStat_generate_report_single(
   base.size = 20,
   feature.mt.method = "none",
   feature.sig.level = 0.2,
-  output.file = "/Users/apple/Research/MicrobiomeStat/result/peerj32.obj_report.pdf",
+  output.file = file.path(tempdir(), "peerj32.obj_report.pdf"),
   output.format = c("pdf")
 )
 mStat_generate_report_single(
@@ -255,7 +255,7 @@ mStat_generate_report_single(
   base.size = 20,
   feature.mt.method = "none",
   feature.sig.level = 0.2,
-  output.file = "/Users/apple/Research/MicrobiomeStat/result/peerj32.obj_report.html",
+  output.file = file.path(tempdir(), "peerj32.obj_report.html"),
   output.format = c("html")
 )
 data(subset_T2D.obj)
@@ -280,7 +280,7 @@ mStat_generate_report_single(
   base.size = 20,
   feature.mt.method = "none",
   feature.sig.level = 0.2,
-  output.file = "/Users/apple/Research/MicrobiomeStat/result/subset_T2D.obj_report.pdf"
+  output.file = file.path(tempdir(), "subset_T2D.obj_report.pdf")
 )
 mStat_generate_report_single(
   data.obj = subset_T2D.obj,
@@ -303,7 +303,7 @@ mStat_generate_report_single(
   base.size = 20,
   feature.mt.method = "none",
   feature.sig.level = 0.2,
-  output.file = "/Users/apple/Research/MicrobiomeStat/result/subset_T2D.obj_report.html",
+  output.file = file.path(tempdir(), "subset_T2D.obj_report.html"),
   output.format = c("html")
 )
 mStat_generate_report_single(
@@ -327,7 +327,7 @@ mStat_generate_report_single(
   base.size = 20,
   feature.mt.method = "none",
   feature.sig.level = 0.2,
-  output.file = "/Users/apple/Research/MicrobiomeStat/result/report.pdf"
+  output.file = file.path(tempdir(), "report.pdf")
 )
 mStat_generate_report_single(
   data.obj = subset_T2D.obj,
@@ -350,7 +350,7 @@ mStat_generate_report_single(
   base.size = 20,
   feature.mt.method = "none",
   feature.sig.level = 0.2,
-  output.file = "/Users/apple/Research/MicrobiomeStat/result/report.pdf"
+  output.file = file.path(tempdir(), "report.pdf")
 )
 data(ecam.obj)
 mStat_generate_report_single(
@@ -374,7 +374,7 @@ mStat_generate_report_single(
   base.size = 20,
   feature.mt.method = "none",
   feature.sig.level = 0.2,
-  output.file = "/Users/apple/Research/MicrobiomeStat/result/ecam.obj_report.pdf"
+  output.file = file.path(tempdir(), "ecam.obj_report.pdf")
 )
 mStat_generate_report_single(
   data.obj = ecam.obj,
@@ -397,7 +397,7 @@ mStat_generate_report_single(
   base.size = 20,
   feature.mt.method = "none",
   feature.sig.level = 0.2,
-  output.file = "/Users/apple/Research/MicrobiomeStat/result/ecam.obj_report.html",
+  output.file = file.path(tempdir(), "ecam.obj_report.html"),
   output.format = c("html")
 )
 }

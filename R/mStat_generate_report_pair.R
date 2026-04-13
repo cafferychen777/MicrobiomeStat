@@ -54,7 +54,7 @@
 #'   feature.sig.level = 0.1,
 #'   theme.choice = "bw",
 #'   base.size = 18,
-#'   output.file = "/Users/apple/Research/MicrobiomeStat/result/pair_peerj32.obj_report.pdf",
+#'   output.file = file.path(tempdir(), "pair_peerj32.obj_report.pdf"),
 #'   output.format = "pdf"
 #' )
 #' mStat_generate_report_pair(
@@ -78,7 +78,7 @@
 #'   feature.sig.level = 0.1,
 #'   theme.choice = "bw",
 #'   base.size = 18,
-#'   output.file = "/Users/apple/Research/MicrobiomeStat/result/pair_peerj32.obj_report.html",
+#'   output.file = file.path(tempdir(), "pair_peerj32.obj_report.html"),
 #'   output.format = "html"
 #' )
 #' mStat_generate_report_pair(
@@ -102,7 +102,7 @@
 #'   feature.sig.level = 0.1,
 #'   theme.choice = "bw",
 #'   base.size = 18,
-#'   output.file = "/Users/apple/MicrobiomeStat/report.pdf"
+#'   output.file = file.path(tempdir(), "report.pdf")
 #' )
 #' data(peerj32.obj)
 #' mStat_generate_report_pair(
@@ -129,7 +129,7 @@
 #'   feature.sig.level = 0.1,
 #'   theme.choice = "bw",
 #'   base.size = 18,
-#'   output.file = "/Users/apple/MicrobiomeStat/report.pdf")
+#'   output.file = file.path(tempdir(), "report.pdf"))
 #'
 #' data(subset_pairs.obj)
 #' mStat_generate_report_pair(
@@ -156,7 +156,7 @@
 #'   feature.sig.level = 0.1,
 #'   theme.choice = "bw",
 #'   base.size = 18,
-#'   output.file = "/Users/apple/MicrobiomeStat/report.pdf"
+#'   output.file = file.path(tempdir(), "report.pdf")
 #' )
 #'
 #' }
@@ -186,7 +186,7 @@ mStat_generate_report_pair <- function(data.obj,
                                        feature.dat.type = c("count", "proportion", "other"),
                                        feature.analysis.rarafy = TRUE,
                                        feature.change.func = "relative change",
-                                       feature.mt.method = c("fdr"),
+                                       feature.mt.method = c("fdr", "none"),
                                        feature.sig.level = 0.1,
                                        feature.box.axis.transform = c("sqrt"),
                                        base.size = 16,
