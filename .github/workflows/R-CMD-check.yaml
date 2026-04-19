@@ -28,9 +28,10 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
+      NOT_CRAN: true
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: r-lib/actions/setup-pandoc@v2
 
@@ -40,69 +41,13 @@ jobs:
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
 
-      - name: Install system dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libbz2-dev liblzma-dev libzstd-dev libhdf5-dev libssl-dev libcurl4-openssl-dev libxml2-dev
-          
-      # Skip using r-lib/actions/setup-r-dependencies and use a direct approach instead
-      - name: Install dependencies directly
-        run: |
-          # Create a custom .Rprofile
-          echo 'options(repos = c(CRAN = "https://cloud.r-project.org"))' > ~/.Rprofile
-          echo 'options(Ncpus = 2)' >> ~/.Rprofile
-          echo 'options(install.packages.check.source = "no")' >> ~/.Rprofile
-          
-          # Create a custom .Renviron
-          echo '_R_CHECK_FORCE_SUGGESTS_=false' > ~/.Renviron
-          echo 'NOT_CRAN=true' >> ~/.Renviron
-          
-          # Install build/check toolchain and their transitive deps
-          Rscript -e 'install.packages(c("BiocManager", "remotes", "rcmdcheck", "testthat", "knitr", "rmarkdown"))'
-
-          # Install Bioconductor packages (Imports + Suggests that live on Bioc)
-          Rscript -e 'BiocManager::install(c("ggtree", "ggtreeExtra", "tidytree", "GUniFrac", "Biostrings", "biomformat", "metagenomeSeq", "edgeR"), ask = FALSE, update = FALSE)'
-
-          # Install all Depends + Imports + LinkingTo + Suggests so R CMD check has no missing-package NOTEs
-          Rscript -e 'remotes::install_deps(dependencies = TRUE)'
-          
-      - name: Create dummy rhdf5filters package (Unix/macOS)
-        if: runner.os != 'Windows'
-        run: |
-            mkdir -p /tmp/dummy-rhdf5filters/R
-            echo 'dummy <- function() { return(TRUE) }' > /tmp/dummy-rhdf5filters/R/dummy.R
-            cat > /tmp/dummy-rhdf5filters/DESCRIPTION << 'EOF'
-            Package: rhdf5filters
-            Version: 1.0.0
-            Title: Dummy Package
-            Description: A dummy package to satisfy dependency.
-            Author: Dummy
-            Maintainer: Dummy <dummy@example.com>
-            License: GPL-3
-            EOF
-            echo 'export(dummy)' > /tmp/dummy-rhdf5filters/NAMESPACE
-            R CMD INSTALL /tmp/dummy-rhdf5filters
-            
-      - name: Create dummy rhdf5filters package (Windows)
-        if: runner.os == 'Windows'
-        shell: cmd
-        run: |
-          mkdir %TEMP%\dummy-rhdf5filters\R
-          echo dummy ^<- function() { return(TRUE) } > %TEMP%\dummy-rhdf5filters\R\dummy.R
-          (
-          echo Package: rhdf5filters
-          echo Version: 1.0.0
-          echo Title: Dummy Package
-          echo Description: A dummy package to satisfy dependency.
-          echo Author: Dummy
-          echo Maintainer: Dummy ^<dummy@example.com^>
-          echo License: GPL-3
-          ) > %TEMP%\dummy-rhdf5filters\DESCRIPTION
-          echo export(dummy) > %TEMP%\dummy-rhdf5filters\NAMESPACE
-          R CMD INSTALL %TEMP%\dummy-rhdf5filters
+      # Keep dependency resolution in one place; .github/pkg.lock handles skipped transitive packages.
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
 
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
-          args: 'c("--no-build-vignettes", "--no-manual", "--no-examples")' 
+          args: 'c("--no-build-vignettes", "--no-manual", "--no-examples")'
