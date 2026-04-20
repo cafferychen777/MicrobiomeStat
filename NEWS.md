@@ -1,3 +1,22 @@
+# MicrobiomeStat 1.5.0
+
+## New Features
+
+* Added a unified analysis interface and expanded data handling options, including explicit support for `"other"` feature data flows and consistent feature-level requirements across analysis paths.
+* Added `linda2()` with detection-depth weighting and tree-guided smoothing support, and exported it for direct package use.
+* Added `ref.level` support to taxa differential testing helpers so reference groups can be chosen explicitly instead of relying on factor ordering.
+
+## Statistical and Workflow Fixes
+
+* Fixed time semantics, metadata alignment, and interface contract regressions across single, paired, and longitudinal workflows.
+* Fixed multiple plotting and report-generation regressions so examples, reports, and exported figures remain runnable and consistent with package defaults.
+* Fixed remaining R CMD check and dependency handling issues, including a cleanup of GitHub Actions dependency resolution for package checks.
+
+## Internal Improvements
+
+* Refactored taxa helpers, filter handling, and report-section generators to reduce duplication and make plotting/report code paths more consistent.
+* Centralized documentation templates and regenerated Rd files to keep exported interfaces aligned with implementation changes.
+
 # MicrobiomeStat 1.4.4
 
 ## New Features
