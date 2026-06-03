@@ -121,17 +121,38 @@ generate_beta_test_single <- function(data.obj,
   } else {
     # If distance object is provided, use it but ensure it matches the current data
     message("Using provided dist.obj...")
-    dist.obj <- mStat_subset_dist(dist.obj, rownames(data.obj$meta.dat))
     # Check if all requested distances are available before filtering
     available_dists <- names(dist.obj)
     missing_dists <- setdiff(dist.name, available_dists)
     if (length(missing_dists) > 0) {
-      stop(paste("The following distances are not available in dist.obj:", 
+      stop(paste("The following distances are not available in dist.obj:",
                  paste(missing_dists, collapse = ", ")))
     }
     # Filter dist.obj to only include the distances specified in dist.name
     dist.obj <- dist.obj[dist.name]
   }
+
+  # GUniFrac::PermanovaG2 / vegan::adonis2 pair each distance matrix with the
+  # `data` rows by POSITION, not by sample name, and silently mishandle NA
+  # predictors. Restrict the metadata and every distance matrix to the same
+  # complete-case samples, in a consistent order, so the F/R2/p-values are
+  # computed on correctly paired data regardless of the incoming meta.dat row
+  # order. (Previously only the provided-dist.obj branch realigned, so a freshly
+  # computed distance with an unsorted meta.dat could be silently misaligned.)
+  analysis_vars <- c(adj.vars, group.var)
+  analysis_vars <- analysis_vars[!is.na(analysis_vars) & nzchar(analysis_vars)]
+  keep_samples <- rownames(data.obj$meta.dat)
+  if (length(analysis_vars) > 0) {
+    complete_idx <- stats::complete.cases(
+      data.obj$meta.dat[, analysis_vars, drop = FALSE]
+    )
+    keep_samples <- keep_samples[complete_idx]
+  }
+  if (length(keep_samples) == 0) {
+    stop("No samples with complete data for the requested group/adjustment variables.", call. = FALSE)
+  }
+  data.obj$meta.dat <- data.obj$meta.dat[keep_samples, , drop = FALSE]
+  dist.obj <- mStat_subset_dist(dist.obj, keep_samples)
 
   # Prepare for PERMANOVA analysis
   message("Running PermanovaG2 for all distances...")
