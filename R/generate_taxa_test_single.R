@@ -107,7 +107,13 @@ perform_lm_analysis <- function(feature.dat,
       df$reject <- df$padj <= alpha
       df$baseMean <- NA  # Not applicable for linear models
       df$stat <- df$log2FoldChange / df$lfcSE
-      df$df <- nrow(meta.dat) - length(all.vars(as.formula(paste("~", formula)))) - 1
+      # Residual degrees of freedom must account for the design-matrix rank: a
+      # k-level factor contributes k - 1 columns, not 1. Counting variables with
+      # all.vars() overstates df for any multi-level factor predictor. Derive it
+      # from the actual model matrix instead. (The reported p-values come from
+      # lm's summary and were already correct; only this df column was wrong.)
+      df$df <- nrow(meta.dat) -
+        ncol(stats::model.matrix(stats::as.formula(paste("~", formula)), data = meta.dat))
 
       # Set rownames
       rownames(df) <- df$feature
