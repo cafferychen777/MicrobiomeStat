@@ -198,13 +198,19 @@ generate_taxa_change_test_pair <-
         message("Zero-handling: Per-taxon half-minimum pseudocount calculated across ALL samples and time points combined. ",
                 "This ensures unbiased change calculations by using the same pseudocount at both time points.")
 
-        # Apply winsorization to limit extreme values
-        otu_tax_agg_filter[, -1] <- apply(otu_tax_agg_filter[, -1], 2, function(x) {
+        # Apply winsorization to limit extreme values.
+        # Winsorize each taxon (row) across samples so that outlier samples for a
+        # given taxon are capped; winsorizing across taxa within a sample (MARGIN = 2)
+        # would mix unrelated taxa and distort each sample's composition. This matches
+        # the per-taxon convention used by winsor_feature_table() and the per-taxon
+        # pseudocount imputation applied above. t() keeps the assignment orientation
+        # consistent with otu_tax_agg_filter[, -1] (taxa in rows, samples in columns).
+        otu_tax_agg_filter[, -1] <- t(apply(otu_tax_agg_filter[, -1], 1, function(x) {
           qt <- quantile(x, probs = c((1 - winsor.qt) / 2, 1 - (1 - winsor.qt) / 2))
           x[x < qt[1]] <- qt[1]
           x[x > qt[2]] <- qt[2]
           return(x)
-        })
+        }))
 
       }
       # "other": no preprocessing — respect user's pre-processed data
@@ -241,8 +247,15 @@ generate_taxa_change_test_pair <-
         as.matrix()
 
       # Prepare metadata for analysis
+      # Keep only subjects (columns) that have a complete set of change scores.
+      # value_diff_matrix is taxa (rows) x subjects (columns); selecting complete
+      # columns retains subjects with no missing change values. (na.omit() on a
+      # matrix drops rows, so the previous colnames(na.omit(...)) returned every
+      # subject whenever any taxon row was complete, and none when every taxon had
+      # an NA -- never the intended per-subject filter.)
+      complete_subjects <- colSums(is.na(value_diff_matrix)) == 0
       aligned_subjects <- mStat_align_subject_metadata_to_matrix(
-        value_matrix = value_diff_matrix[, colnames(na.omit(value_diff_matrix)), drop = FALSE],
+        value_matrix = value_diff_matrix[, complete_subjects, drop = FALSE],
         meta_tab = meta_tab,
         subject.var = subject.var,
         keep_vars = c(group.var, adj.vars)

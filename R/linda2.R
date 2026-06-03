@@ -268,7 +268,7 @@ get_tree_smoothing_info <- function(phy.tree, tax.names,
 #' @param mean.abund.filter A real value; taxa with mean abundance less than mean.abund.filter are excluded. Default is 0 (no taxa will be excluded).
 #' @param max.abund.filter A real value; taxa with max abundance less than max.abund.filter are excluded. Default is 0 (no taxa will be excluded).
 #' @param is.winsor Boolean. If TRUE (default), the Winsorization process will be conducted for the feature table.
-#' @param outlier.pct A real value between 0 and 1; Winsorization cutoff (percentile) for the feature table, e.g., 0.03. Default is NULL. If NULL, Winsorization process will not be conducted.
+#' @param outlier.pct A real value between 0 and 1; Winsorization cutoff (percentile) for the feature table, e.g., 0.03. Default is 0.03. If NULL, the Winsorization process will be skipped even when is.winsor is TRUE.
 #' @param adaptive Boolean. Default is TRUE. If TRUE, the parameter imputation will be treated as FALSE no matter what it is actually set to be. Then the significant correlations between the sequencing depth and explanatory variables will be tested via the linear regression between the log of the sequencing depths and formula. If any p-value is smaller than or equal to corr.cut, the imputation approach will be used; otherwise, the pseudo-count approach will be used.
 #' @param zero.handling Character. Specifies the method to handle zeros in the feature table. Options are "pseudo-count" or "imputation" (default is "pseudo-count"). If "imputation", zeros in the feature table will be imputed using the formula in the referenced paper. If "pseudo-count", a small constant (pseudo.cnt) will be added to each value in the feature table.
 #' @param pseudo.cnt A positive real value. Default is 0.5. If zero.handling is set to "pseudo-count", this constant will be added to each value in the feature table.
@@ -656,7 +656,7 @@ linda2 <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.
   Z[, ind] <- scale(Z[, ind])
 
   # Apply Winsorization to handle outliers if specified
-  if (is.winsor) {
+  if (is.winsor && !is.null(outlier.pct)) {
     Y <- winsor_feature_table(Y, 1 - outlier.pct, feature.dat.type)
   }
 
@@ -712,12 +712,12 @@ linda2 <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.
           if (verbose) {
             message("Imputation approach is used.")
           }
-          zero.handling <- "Imputation"
+          zero.handling <- "imputation"
         } else {
           if (verbose) {
             message("Pseudo-count approach is used.")
           }
-          zero.handling <- "Pseudo-count"
+          zero.handling <- "pseudo-count"
         }
       }
       if (zero.handling == "imputation") {
