@@ -144,6 +144,20 @@ generate_alpha_per_time_test_long <- function(data.obj,
       subset_data.obj <- subset_inputs$data.obj
       subset_alpha.obj <- subset_inputs$alpha.obj
 
+      # Pin the group reference level to the global one so the within-timepoint
+      # lm uses the same baseline that mStat_restructure_group_term_results
+      # applies as the label. Without this, lm falls back to the first level
+      # present in the subset, which can differ from `reference_level` when a
+      # timepoint is missing the global reference group, mislabelling the
+      # contrast. Only relevel when the reference level is actually present.
+      if (!is.null(reference_level) &&
+          reference_level %in% as.character(subset_data.obj$meta.dat[[group.var]])) {
+        subset_data.obj$meta.dat[[group.var]] <- stats::relevel(
+          factor(subset_data.obj$meta.dat[[group.var]]),
+          ref = reference_level
+        )
+      }
+
       subset_meta_tab <- mStat_prepare_alpha_meta_tab(
         data.obj = subset_data.obj,
         vars = c(group.var, time.var, adj.vars)

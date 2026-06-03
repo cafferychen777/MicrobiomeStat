@@ -113,6 +113,21 @@ generate_beta_test_single <- function(data.obj,
   # This step ensures we have the necessary distance matrices for the analysis
   if (!is.null(time.var) && !is.null(t.level)) {
     data.obj <- mStat_subset_by_meta_values(data.obj, time.var, t.level)
+  } else if (!is.null(time.var) && is.null(t.level) &&
+             length(unique(data.obj$meta.dat[[time.var]])) > 1) {
+    # PERMANOVA permutes samples as exchangeable units. Pooling multiple
+    # timepoints without scoping to one (t.level = NULL) treats repeated
+    # measurements of the same subject as independent observations, which
+    # violates exchangeability and inflates the Type-I error rate. Warn rather
+    # than silently returning an anti-conservative test.
+    warning(
+      "time.var '", time.var, "' has multiple levels but t.level is NULL: ",
+      "PERMANOVA will pool all timepoints and treat repeated measures as ",
+      "independent, which inflates the Type-I error rate. Specify t.level to ",
+      "restrict the test to a single timepoint, or supply cross-sectional ",
+      "(one-row-per-subject) data.",
+      call. = FALSE
+    )
   }
 
   if (is.null(dist.obj)) {
