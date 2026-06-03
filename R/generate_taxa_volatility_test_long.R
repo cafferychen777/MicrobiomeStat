@@ -193,7 +193,9 @@ generate_taxa_volatility_test_long <- function(data.obj,
 
         valid_terms <- mStat_resolve_variable_terms(
           data = test_df,
-          terms = c(group.var, adj.vars)
+          # group.var last so the sequential (Type-I) anova() F-test for the group
+          # term equals SS(group | adj.vars), the covariate-adjusted omnibus test.
+          terms = c(adj.vars, group.var)
         )
 
         model_formula <- mStat_build_formula(

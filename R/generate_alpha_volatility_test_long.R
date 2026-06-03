@@ -112,6 +112,19 @@ generate_alpha_volatility_test_long <- function(data.obj,
         dplyr::select(all_of(adj.vars)) %>%
         dplyr::mutate(dplyr::across(where(is.character) & !is.factor, factor))
 
+      # Guard against missing covariate values. model.matrix() / lm() drop NA rows
+      # by default, which would make the residual vector shorter than alpha_df and
+      # misalign (or error on) the assignment back into alpha_df[[index]], silently
+      # corrupting the per-subject volatility computed below. This mirrors the
+      # explicit check in mStat_calculate_adjusted_alpha_diversity().
+      if (anyNA(data_subset)) {
+        stop(
+          "Adjustment variables contain missing values. Please remove or impute ",
+          "missing covariates before adjusting alpha diversity.",
+          call. = FALSE
+        )
+      }
+
       factor_terms <- names(data_subset)[vapply(data_subset, is.factor, logical(1))]
       contrasts_arg <- if (length(factor_terms) > 0) {
         lapply(data_subset[factor_terms], stats::contrasts, contrasts = FALSE)
@@ -170,7 +183,10 @@ generate_alpha_volatility_test_long <- function(data.obj,
 
     valid_terms <- mStat_resolve_variable_terms(
       data = test_df,
-      terms = c(group.var, adj.vars)
+      # group.var is placed last so that the sequential (Type-I) anova() F-test
+      # for the group term equals SS(group | adj.vars), i.e. the covariate-adjusted
+      # omnibus test. There is no interaction here, so this matches Type-II/III.
+      terms = c(adj.vars, group.var)
     )
 
     model_formula <- mStat_build_formula(

@@ -170,7 +170,9 @@ generate_beta_volatility_test_long <-
       # Test the association between volatility and group variable using linear regression
       valid_terms <- mStat_resolve_variable_terms(
         data = test_df,
-        terms = c(group.var, adj.vars)
+        # group.var last so the sequential (Type-I) anova() F-test for the group
+        # term equals SS(group | adj.vars), the covariate-adjusted omnibus test.
+        terms = c(adj.vars, group.var)
       )
       test_result <- lm(
         mStat_build_formula(response = "volatility", terms = valid_terms),

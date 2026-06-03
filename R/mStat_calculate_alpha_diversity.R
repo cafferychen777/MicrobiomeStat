@@ -54,6 +54,22 @@ mStat_calculate_alpha_diversity <- function(x, alpha.name, tree = NULL) {
     warning("It appears the data may not have been rarefied. Please verify.")
   }
 
+  # Chao1 and ACE are richness estimators defined only for integer abundance
+  # counts: they are functions of the numbers of singletons/doubletons (and rare
+  # species). Applying them to normalized/relative-abundance data yields
+  # statistically meaningless estimates, so require integer counts here.
+  if (any(c("chao1", "ace") %in% alpha.name)) {
+    finite_x <- x[is.finite(x)]
+    if (length(finite_x) > 0 && !isTRUE(all.equal(finite_x, round(finite_x)))) {
+      stop(
+        "Chao1 and ACE require integer count data, but non-integer values were ",
+        "detected. These estimators are based on singleton/doubleton counts and ",
+        "are not defined for normalized or relative-abundance data. Provide raw ",
+        "counts, or remove 'chao1'/'ace' from alpha.name."
+      )
+    }
+  }
+
   x_transpose <- t(x)
 
   alpha.obj <- lapply(alpha.name, function(index) {

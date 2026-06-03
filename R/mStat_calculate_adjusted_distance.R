@@ -108,7 +108,6 @@ mStat_calculate_adjusted_distance <- function (data.obj,
     }
 
     mds_coordinates <- mds_coordinates[, positive_axes, drop = FALSE]
-    axis_weights <- sqrt(mds_result$eig[seq_len(ncol(mds_result$points))][positive_axes])
 
     res_matrix <- matrix(NA_real_, nrow = nrow(mds_coordinates), ncol = ncol(mds_coordinates))
     rownames(res_matrix) <- rownames(mds_coordinates)
@@ -124,8 +123,14 @@ mStat_calculate_adjusted_distance <- function (data.obj,
       res_matrix[, i] <- stats::residuals(model_fit)
     }
 
-    weighted_coordinates <- sweep(res_matrix, 2, axis_weights, `*`)
-    D.adj <- stats::dist(weighted_coordinates)
+    # stats::cmdscale() returns principal coordinates already scaled by sqrt(eig)
+    # (i.e. dist(points) reconstructs the original distance), so the residualized
+    # coordinates inherit that scaling. Re-multiplying by sqrt(eig) here would
+    # weight axis i by eig_i instead of sqrt(eig_i), squaring the eigenvalue
+    # weighting and over-emphasizing the leading axes. Taking dist() of the
+    # residuals directly correctly reduces to the original distance when the
+    # adjustment covariates explain nothing.
+    D.adj <- stats::dist(res_matrix)
     mStat_attach_dist_metadata(D.adj, data.obj$meta.dat)
   })
 
