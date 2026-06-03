@@ -47,11 +47,11 @@ mStat_convert_phyloseq_to_data_obj <- function (phylo.obj) {
 
     data.obj$feature.tab <- otu_matrix
 
-    data.obj$feature.tab <- data.obj$feature.tab[rowSums(data.obj$feature.tab) > 0, ]
+    data.obj$feature.tab <- data.obj$feature.tab[rowSums(data.obj$feature.tab) > 0, , drop = FALSE]
   }
 
   if (!is.null(phylo.obj@sam_data)) {
-    data.obj$meta.dat <- data.frame(phylo.obj@sam_data, stringsAsFactors = FALSE)
+    data.obj$meta.dat <- data.frame(phylo.obj@sam_data, stringsAsFactors = FALSE, check.names = FALSE)
 
     if ("sample" %in% colnames(data.obj$meta.dat)) {
       data.obj$meta.dat <- data.obj$meta.dat[, setdiff(colnames(data.obj$meta.dat), "sample"), drop = FALSE]

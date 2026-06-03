@@ -141,6 +141,12 @@ mStat_compute_tmm_scale_factors <- function(otu_tab) {
 #'     \item "DESeq": DESeq normalization
 #'     \item "TMM": Trimmed Mean of M-values (requires edgeR)
 #'   }
+#' @param depth Target rarefaction depth for the "Rarefy" and "Rarefy-TSS"
+#'   methods. If NULL (default), the smallest per-sample total count is used.
+#'   Ignored by the non-rarefaction methods.
+#' @param seed Integer seed used to make rarefaction subsampling reproducible
+#'   for the "Rarefy" and "Rarefy-TSS" methods. The global RNG state is restored
+#'   afterwards, so the caller's random stream is not affected. Default is 123.
 #'
 #' @return A list with normalized data object and scale factors.
 #'
@@ -184,7 +190,8 @@ mStat_compute_tmm_scale_factors <- function(otu_tab) {
 mStat_normalize_data <-
   function(data.obj,
            method = c("Rarefy-TSS", "Rarefy", "TSS", "GMPR", "CSS", "DESeq", "TMM"),
-           depth = NULL) {
+           depth = NULL,
+           seed = 123) {
     # Validate input data structure
     # Ensuring the input is a list is crucial for maintaining the expected data format
     if (!is.list(data.obj)) {
@@ -223,8 +230,13 @@ mStat_normalize_data <-
       if (all(round(colSums(otu_tab), 5) == 1)) {
         rarefied_otu_tab <- as.matrix(otu_tab)
       } else {
-        # Perform rarefaction using vegan package
-        rarefied_otu_tab <- t(vegan::rrarefy(t(otu_tab), sample = depth))
+        # Perform rarefaction using vegan package. rrarefy() draws a random
+        # subsample, so wrap it in a local seed to make the result reproducible
+        # by default while leaving the caller's global RNG stream untouched.
+        rarefied_otu_tab <- mStat_with_local_seed(
+          seed,
+          t(vegan::rrarefy(t(otu_tab), sample = depth))
+        )
       }
 
       # Apply TSS normalization (convert to relative abundance) for Rarefy-TSS only

@@ -7,7 +7,8 @@
 mStat_normalize_data(
   data.obj,
   method = c("Rarefy-TSS", "Rarefy", "TSS", "GMPR", "CSS", "DESeq", "TMM"),
-  depth = NULL
+  depth = NULL,
+  seed = 123
 )
 }
 \arguments{
@@ -42,6 +43,10 @@ Data objects can be created using converters like
 
 \item{depth}{Numeric value or NULL. Rarefaction depth for rarefaction
 workflows. If NULL, uses the minimum sample depth.}
+
+\item{seed}{Integer seed used to make rarefaction subsampling reproducible
+for the "Rarefy" and "Rarefy-TSS" methods. The global RNG state is restored
+afterwards, so the caller's random stream is not affected. Default is 123.}
 }
 \value{
 A list with normalized data object and scale factors.
