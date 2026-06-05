@@ -164,12 +164,12 @@ generate_taxa_change_test_pair <-
     }
 
     # Normalize count data if necessary.
-    data.obj <- mStat_normalize_count_data_if_needed(data.obj, feature.dat.type)
+    analysis_data.obj <- mStat_normalize_count_data_if_needed(data.obj, feature.dat.type)
 
     # Perform analysis for each feature level
     test.list <- lapply(feature.level, function(feature.level) {
       # Aggregate data by taxonomy if necessary
-      otu_tax_agg_filter <- get_taxa_data(data.obj, feature.level, prev.filter, abund.filter)
+      otu_tax_agg_filter <- get_taxa_data(analysis_data.obj, feature.level, prev.filter, abund.filter)
 
       # Perform data imputation and winsorization for count or proportion data
       if (feature.dat.type %in% c("count", "proportion")) {

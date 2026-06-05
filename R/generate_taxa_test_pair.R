@@ -129,6 +129,10 @@ generate_taxa_test_pair <-
           feature.dat = otu_tax_agg_filter,
           meta.dat = meta_tab_level
         )
+        if (is.null(pruned_inputs)) {
+          warning("No samples remain after filtering.")
+          return(list())
+        }
         otu_tax_agg_filter <- pruned_inputs$feature.dat
         meta_tab_level <- pruned_inputs$meta.dat
       }

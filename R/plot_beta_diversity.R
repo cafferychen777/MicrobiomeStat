@@ -122,7 +122,7 @@ plot_beta_diversity <- function (dist.obj,
 
   data.obj$meta.dat <- meta.dat
 
-  if (is.null(time.var) | length(time.point.plot) == 1) {
+  if (is.null(time.var) || length(time.point.plot) == 1) {
     # Plot single time point or all samples if the time variable is not specified
     if (plot.type == "PCoA") {
       p <- generate_beta_ordination_single(
@@ -139,7 +139,7 @@ plot_beta_diversity <- function (dist.obj,
         pdf = FALSE
       )
     }
-  } else if (!is.null(time.var) & length(time.point.plot) == 2) {
+  } else if (!is.null(time.var) && length(time.point.plot) == 2) {
     # Plot two time points and sample pair
     if (is.null(subject.var)) {
       message("Subject variable not specified!")
@@ -191,7 +191,7 @@ plot_beta_diversity <- function (dist.obj,
         return()
       }
     }
-  } else if (!is.null(time.var) & length(time.point.plot) > 2) {
+  } else if (!is.null(time.var) && length(time.point.plot) > 2) {
     # Plot more than two time points, which are truly longitudinal
     if (is.null(subject.var)) {
       message("Subject variable not specified!")

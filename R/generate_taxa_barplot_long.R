@@ -271,9 +271,6 @@ generate_taxa_barplot_long <-
 
       meta_tab_sorted <- meta_tab[colnames(otu_tab_norm), ]
 
-      # Calculate the average relative abundance of each taxon
-      avg_abund <- rowMeans(otu_tab_norm)
-
       stack_levels <- mStat_prepare_stack_levels(
         composition.mat = otu_tab_norm,
         feature.level = feature.level,

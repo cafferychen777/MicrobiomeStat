@@ -458,11 +458,6 @@ generate_taxa_change_heatmap_pair <- function(data.obj,
 
     gg_average_heatmap_plot <- as.ggplot(average_heatmap_plot)
 
-    # Convert feature.change.func to string if it's a custom function
-    if (is.function(feature.change.func)) {
-      feature.change.func = "custom function"
-    }
-
     # Save individual heatmap as PDF if specified
     if (pdf) {
       pdf_name <- paste0(

@@ -44,7 +44,7 @@ mStat_calculate_PC <- function(dist.obj, method = c('mds'), k = 2, dist.name = N
     stop("dist.obj is missing the following requested distance matrices: ", paste(missing_dist, collapse = ", "))
   }
 
-  calculate_single_method <- function(m, dist_matrix, k, perplexity = NULL) {
+  calculate_single_method <- function(m, dist_matrix, k) {
     if (m == 'mds') {
       message("Calculating MDS...")
       return(stats::cmdscale(dist_matrix, eig = TRUE, k = k))

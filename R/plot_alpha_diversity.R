@@ -155,7 +155,7 @@ plot_alpha_diversity <- function (alpha.obj,
   # The function adapts to various study designs based on time variables and number of time points
   # This flexibility allows for comprehensive analysis of different experimental setups
 
-  if (is.null(time.var) | length(time.point.plot) == 1) {
+  if (is.null(time.var) || length(time.point.plot) == 1) {
     # Scenario 1: Cross-sectional data or single time point analysis
     # This scenario is applicable for studies comparing groups at a single time point or ignoring time effects
 
@@ -187,7 +187,7 @@ plot_alpha_diversity <- function (alpha.obj,
       ))
       return()
     }
-  } else if (!is.null(time.var) & length(time.point.plot) == 2) {
+  } else if (!is.null(time.var) && length(time.point.plot) == 2) {
     # Scenario 2: Paired data with two time points
     # This scenario is ideal for before-after studies or studies with baseline and follow-up measurements
     # It allows for the analysis of changes in alpha diversity over time
@@ -274,7 +274,7 @@ plot_alpha_diversity <- function (alpha.obj,
         return()
       }
     }
-  } else if (!is.null(time.var) & length(time.point.plot) > 2) {
+  } else if (!is.null(time.var) && length(time.point.plot) > 2) {
     # Scenario 3: Longitudinal data with more than two time points
     # This scenario is suitable for studies with multiple follow-up measurements
     # It allows for the analysis of alpha diversity trends over extended periods

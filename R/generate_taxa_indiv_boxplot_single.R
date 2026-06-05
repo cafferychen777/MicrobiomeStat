@@ -339,7 +339,7 @@ generate_taxa_indiv_boxplot_single <-
         if (!is.null(file.ann)) {
           pdf_name <- paste0(pdf_name, "_", file.ann)
         }
-        pdf_name <- paste0(pdf_name,"_", feature.level, ".pdf")
+        pdf_name <- paste0(pdf_name, ".pdf")
         # Create a multi-page PDF file
         pdf(pdf_name, width = pdf.wid, height = pdf.hei)
         # Print each ggplot object to a new PDF page

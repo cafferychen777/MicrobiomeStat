@@ -536,13 +536,13 @@ plot_feature_diversity <- function (data.obj,
       # Create a new row for "other" and remove the lumped taxa
       if (length(taxa_to_lump) > 0) {
         other_row <- colSums(original_feature.tab[taxa_to_lump, , drop = FALSE])
-        feature.tab <- original_feature.tab[!rownames(original_feature.tab) %in% taxa_to_lump, ]
+        feature.tab <- original_feature.tab[!rownames(original_feature.tab) %in% taxa_to_lump, , drop = FALSE]
         feature.tab <- rbind(feature.tab, other = other_row)
 
         # Update feature annotation
         if (!is.null(data.obj$feature.ann)) {
           other_ann <- rep("Other", ncol(data.obj$feature.ann))
-          data.obj$feature.ann <- rbind(data.obj$feature.ann[!rownames(data.obj$feature.ann) %in% taxa_to_lump, ], other = other_ann)
+          data.obj$feature.ann <- rbind(data.obj$feature.ann[!rownames(data.obj$feature.ann) %in% taxa_to_lump, , drop = FALSE], other = other_ann)
         }
       }
 
@@ -558,15 +558,15 @@ plot_feature_diversity <- function (data.obj,
     # Process the data
     data.obj <- lump_low_abundance_taxa(data.obj, prop.to.lump, feature.level)
 
-    if (!plot.other & renormalize) {
+    if (!plot.other && renormalize) {
       data.obj <- mStat_remove_feature(data.obj, "Other", feature.level)
       data.obj <- mStat_normalize_data(data.obj, "TSS")$data.obj.norm
       feature.dat.type <- "proportion"
-    } else if (!plot.other & !renormalize) {
+    } else if (!plot.other && !renormalize) {
       data.obj <- mStat_remove_feature(data.obj, "Other", feature.level)
     }
 
-    if (is.null(time.var) | length(time.point.plot) == 1) {
+    if (is.null(time.var) || length(time.point.plot) == 1) {
       if (plot.scheme == "combined") {
         if (plot.type == "barplot") {
           p <- generate_taxa_barplot_single(
@@ -853,7 +853,7 @@ plot_feature_diversity <- function (data.obj,
           }
         }
       }
-    } else if (!is.null(time.var) & length(time.point.plot) > 2) {
+    } else if (!is.null(time.var) && length(time.point.plot) > 2) {
       # Plot more than two time points, which are truly longitudinal
       if (is.null(subject.var)) {
         message("Subject variable not specified!")

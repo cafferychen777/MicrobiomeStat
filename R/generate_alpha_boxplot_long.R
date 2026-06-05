@@ -208,8 +208,11 @@ generate_alpha_boxplot_long <- function (data.obj,
     if (!is.null(adj.vars)) {
       data_subset <- alpha_df %>%
         dplyr::select(all_of(adj.vars)) %>%
-        dplyr::mutate(dplyr::across(where(is.character) &
-                                      !is.factor, factor))
+        dplyr::mutate(dplyr::across(where(~ is.character(.) & !is.factor(.)), factor))
+
+      complete_rows <- stats::complete.cases(data_subset)
+      data_subset <- data_subset[complete_rows, , drop = FALSE]
+      response <- alpha_df[[index]][complete_rows]
 
       M <-
         model.matrix(
@@ -222,13 +225,14 @@ generate_alpha_boxplot_long <- function (data.obj,
       M_centered <- scale(M, scale = FALSE)
 
       # Fit regression model
-      fit <- lm(alpha_df[[index]] ~ M_centered)
+      fit <- lm(response ~ M_centered)
 
       # Compute the adjusted value
       adjusted_value <- fit$coefficients[1] + residuals(fit)
 
-      # Update the alpha_df
-      alpha_df[[index]] <- adjusted_value
+      # Update the alpha_df; set NA for rows with missing covariates
+      alpha_df[[index]] <- NA_real_
+      alpha_df[[index]][complete_rows] <- adjusted_value
 
       message(
         "Alpha diversity has been adjusted for the following covariates: ",
@@ -387,13 +391,11 @@ generate_alpha_boxplot_long <- function (data.obj,
         time.var
       )
 
-      if (!is.null(group.var)) {
-        pdf_name <- paste0(pdf_name, "_", "group_", group.var)
-      }
-
-      if (!is.null(strata.var)) {
-        pdf_name <- paste0(pdf_name, "_", "strata_", strata.var)
-      }
+      pdf_name <- mStat_append_pdf_group_suffixes(
+        pdf_name = pdf_name,
+        group.var = group.var,
+        strata.var = strata.var
+      )
 
       if (!is.null(file.ann)) {
         pdf_name <- paste0(pdf_name, "_", file.ann)

@@ -51,7 +51,7 @@ mStat_convert_DGEList_to_data_obj <- function (dge.obj) {
     # Remove features (rows) with zero counts across all samples
     # This step helps to reduce the dimensionality of the data and focus on informative features
     # It's particularly important in RNA-seq analysis to remove genes with no expression
-    data.obj$feature.tab <- data.obj$feature.tab[rowSums(data.obj$feature.tab) > 0, ]
+    data.obj$feature.tab <- data.obj$feature.tab[rowSums(data.obj$feature.tab) > 0, , drop = FALSE]
   }
 
   # Extract and process the sample metadata

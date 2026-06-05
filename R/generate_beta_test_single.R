@@ -236,8 +236,7 @@ generate_beta_test_single <- function(data.obj,
   # Format aov.tab for better readability
   # This step combines results from all distance metrics and formats the output
   aov_tab <- dplyr::bind_rows(permanova.results$aov.tab) %>%
-    dplyr::mutate(dplyr::across(where(is.numeric),
-                                ~ ifelse(is.na(.), "NA", round(., 3))))
+    dplyr::mutate(dplyr::across(where(is.numeric), ~ round(., 3)))
 
   aov_tab <- aov_tab %>% dplyr::select(Distance, everything())
 

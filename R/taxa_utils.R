@@ -43,7 +43,7 @@ get_taxa_data <- function(data.obj,
                           feature.col = TRUE) {
 
   # Step 1: Aggregate if needed (idempotent, cached in data.obj$feature.agg.list)
-  if (is.null(data.obj$feature.agg.list[[feature.level]]) &
+  if (is.null(data.obj$feature.agg.list[[feature.level]]) &&
       feature.level != "original") {
     data.obj <-
       mStat_aggregate_by_taxonomy(data.obj = data.obj,
@@ -881,6 +881,11 @@ mStat_prepare_taxa_clr_long_data <- function(feature.dat,
   transformed_samples <- lapply(sample_ids, function(sample_id) {
     sample_values <- feature.mat[, sample_id]
     positive_values <- sample_values[sample_values > 0 & is.finite(sample_values)]
+
+    if (length(positive_values) == 0) {
+      # All values are zero or non-finite; return zeros (no CLR possible)
+      return(rep(0, length(sample_values)))
+    }
 
     pseudocount <- min(positive_values, na.rm = TRUE) / 2
     imputed_values <- ifelse(sample_values == 0, pseudocount, sample_values)

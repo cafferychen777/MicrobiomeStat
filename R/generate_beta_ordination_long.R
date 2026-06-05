@@ -437,12 +437,11 @@ generate_beta_ordination_long <-
           "dist.name_",
           dist.name
         )
-        if (!is.null(group.var)) {
-          pdf_name <- paste0(pdf_name, "_", "group_", group.var)
-        }
-        if (!is.null(strata.var)) {
-          pdf_name <- paste0(pdf_name, "_", "strata_", strata.var)
-        }
+        pdf_name <- mStat_append_pdf_group_suffixes(
+          pdf_name = pdf_name,
+          group.var = group.var,
+          strata.var = strata.var
+        )
         if (!is.null(file.ann)) {
           pdf_name <- paste0(pdf_name, "_", file.ann)
         }

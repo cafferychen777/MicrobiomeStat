@@ -162,13 +162,13 @@ generate_taxa_heatmap_pair <- function(data.obj,
   }
 
   # Normalize count data if necessary.
-  data.obj <- mStat_normalize_count_data_if_needed(data.obj, feature.dat.type)
+  analysis_data.obj <- mStat_normalize_count_data_if_needed(data.obj, feature.dat.type)
 
   # Create a list to store plots for each taxonomic level
   plot_list <- lapply(feature.level, function(feature.level) {
 
     # Aggregate data by taxonomy if necessary
-    otu_tax_agg <- get_taxa_data(data.obj, feature.level, prev.filter, abund.filter)
+    otu_tax_agg <- get_taxa_data(analysis_data.obj, feature.level, prev.filter, abund.filter)
 
     current_features_plot <- mStat_resolve_selected_features(
       feature.dat = otu_tax_agg,
@@ -457,12 +457,6 @@ generate_taxa_heatmap_pair <- function(data.obj,
         "time_",
         time.var,
         "_",
-        "group_",
-        group.var,
-        "_",
-        "strata_",
-        strata.var,
-        "_",
         "feature_level_",
         feature.level,
         "_",
@@ -471,6 +465,11 @@ generate_taxa_heatmap_pair <- function(data.obj,
         "_",
         "abund_filter_",
         abund.filter
+      )
+      pdf_name <- mStat_append_pdf_group_suffixes(
+        pdf_name = pdf_name,
+        group.var = group.var,
+        strata.var = strata.var
       )
       if (!is.null(file.ann)) {
         pdf_name <- paste0(pdf_name, "_", file.ann)

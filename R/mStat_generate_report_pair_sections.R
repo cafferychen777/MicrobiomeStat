@@ -515,7 +515,7 @@ report_significance <- function(data_frame, group.var) {
         cat(sprintf(
             '\\n An ANOVA test of the null hypothesis of no trend difference among the %s groups produces a p-value of %.3f.\\n\\n',
             length(group_levels),
-            p_val_group_var
+            p_val_group_var_time_var
         ))
 
     } else {
@@ -736,7 +736,7 @@ beta_ordination_stratified_results
 
 ### 3.1.2 Beta diversity change boxplot
 
-```{r beta-diversity-change-boxplot, message=FALSE, fig.align='center', results='hide', results='asis', fig.width=8, fig.height=3}
+```{r beta-diversity-change-boxplot, message=FALSE, fig.align='center', results='asis', fig.width=8, fig.height=3}
 beta_change_boxplot_results <- generate_beta_change_boxplot_pair(
                                                       data.obj = data.obj,
                                                       dist.obj = dist.obj,
@@ -756,7 +756,7 @@ beta_change_boxplot_results <- generate_beta_change_boxplot_pair(
                                                       pdf.hei = pdf.hei)
 ```
 
-```{r beta-diversity-change-boxplot-print, message=FALSE, fig.align='center', results='hide', results=result.output, fig.width=8, fig.height=3, echo = FALSE}
+```{r beta-diversity-change-boxplot-print, message=FALSE, fig.align='center', results=result.output, fig.width=8, fig.height=3, echo = FALSE}
 cat(sprintf('\\n Beta change represents the distance of each subject from their change.base.\\n\\n'))
 beta_change_boxplot_results
 ```
@@ -791,7 +791,7 @@ pc_boxplot_longitudinal_results
 
 ### 3.1.4 Beta diversity PC change boxplot
 
-```{r pc-change-boxplot-pairs, message=FALSE, fig.align='center', results='hide', results=result.output, fig.width=8, fig.height=3}
+```{r pc-change-boxplot-pairs, message=FALSE, fig.align='center', results=result.output, fig.width=8, fig.height=3}
 pc_change_boxplot_pairs <- generate_beta_pc_change_boxplot_pair(
   data.obj = data.obj,
   dist.obj = dist.obj,
@@ -1179,7 +1179,7 @@ taxa_indiv_boxplot_results_sig_features <- generate_taxa_indiv_boxplot_long(
                                    theme.choice = theme.choice,
                                    custom.theme = custom.theme,
                                    palette = palette,
-                                   pdf = TRUE,
+                                   pdf = pdf,
                                    file.ann = file.ann,
                                    pdf.wid = pdf.wid,
                                    pdf.hei = pdf.hei)
@@ -1221,7 +1221,7 @@ taxa_indiv_boxplot_results <- generate_taxa_indiv_boxplot_long(
                                    theme.choice = theme.choice,
                                    custom.theme = custom.theme,
                                    palette = palette,
-                                   pdf = TRUE,
+                                   pdf = pdf,
                                    file.ann = file.ann,
                                    pdf.wid = pdf.wid,
                                    pdf.hei = pdf.hei)

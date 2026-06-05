@@ -1,3 +1,27 @@
+# MicrobiomeStat 1.5.1
+
+## Bug Fixes
+
+* Fixed incorrect `where()` syntax in `dplyr::across()` calls — `where(is.character) & !is.factor` is not a valid tidyselect expression; corrected to `where(~ is.character(.) & !is.factor(.))` in four alpha diversity files.
+* Fixed `.data$` pronoun used in base R subsetting in `generate_taxa_cladogram_single.R`, which caused significance filtering to silently fail.
+* Fixed `interface_utils.R` so that `generate_taxa_test_pair` is correctly recognized as a function requiring `change.base`.
+* Fixed `missing(feature.level)` check in `linda()` to avoid error when the argument is explicitly passed as NULL.
+* Fixed `mStat_rarefy_data.R` to use rowname matching instead of positional indexing when subsetting `feature.ann` after rarefaction.
+* Fixed missing `drop = FALSE` on matrix subsetting in `plot_feature_diversity.R` and `mStat_subset_dist.R` that could collapse results to vectors.
+* Fixed `mStat_subset_data.R` to use short-circuit `&&` instead of vectorized `&` in a scalar conditional.
+* Fixed `mStat_calculate_beta_diversity.R` to use `warning()` instead of `message("Warning: ...")` for capitalization mismatches.
+* Fixed `knitr` chunk option typo (`result` → `results`) in 9 places across report section generators.
+* Fixed hardcoded `pdf = TRUE` → `pdf = pdf` in report section generators to respect the caller's parameter.
+* Fixed `describe_change_method()` context from `'alpha'` to `'taxa'` in the taxa change heatmap report section.
+* Removed duplicate section header in `mStat_generate_report_long_sections.R`.
+
+## Code Quality
+
+* Replaced single `&`/`|` with short-circuit `&&`/`||` in scalar if-conditions across 9 files.
+* Standardized PDF file naming across 12 beta and 3 alpha files to use the centralized `mStat_append_pdf_group_suffixes()` helper instead of manual `paste0` with inline NULL checks.
+* Fixed `data.obj <-` → `analysis_data.obj <-` normalization assignment pattern in 6 taxa files that were passing the original data object instead of the normalized one to downstream analysis.
+* Removed dead code: unused variables (`midpoint`, `midpoints`, `avg_abund`, `Time_choices`, `result`), a no-op `else { p <- p }` branch, an unused `perplexity` parameter, and a dead `feature.change.func` string conversion.
+
 # MicrobiomeStat 1.5.0
 
 ## New Features

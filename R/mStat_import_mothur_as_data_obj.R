@@ -39,7 +39,7 @@ mStat_import_mothur_as_data_obj <- function(mothur_list_file = NULL, mothur_grou
                                             mothur_constaxonomy_file = NULL, parseFunction = parse_taxonomy_default)
 {
   data.obj <- list()
-  if (!is.null(mothur_group_file) & !is.null(mothur_list_file)) {
+  if (!is.null(mothur_group_file) && !is.null(mothur_list_file)) {
     groupOTU = import_mothur_otu_table(mothur_list_file = mothur_list_file,
                                        mothur_group_file = mothur_group_file, cutoff = cutoff)
     data.obj$feature.tab <- groupOTU
@@ -332,7 +332,7 @@ read_tree <- function (treefile, errorIfNULL = FALSE, ...)
     if (is.null(tree))
       try(tree <- ape::read.tree(treefile, ...), TRUE)
   }
-  if (errorIfNULL & is.null(tree)) {
+  if (errorIfNULL && is.null(tree)) {
     stop("tree file could not be read.\nPlease retry with valid tree.")
   }
 

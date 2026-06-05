@@ -387,10 +387,10 @@ generate_taxa_cladogram_single <- function(
         # Apply cutoff based on the multiple testing method
         if (feature.mt.method == "none") {
           # Use raw p-values if no multiple testing correction
-          inputframe_linked$Coefficient[inputframe_linked$.data$taxonomic_level == level_i & inputframe_linked$P.Value > tmp_cut_off] <- 0
+          inputframe_linked$Coefficient[inputframe_linked$taxonomic_level == level_i & inputframe_linked$P.Value > tmp_cut_off] <- 0
         } else if (feature.mt.method == "fdr") {
           # Use FDR-adjusted p-values for multiple testing correction
-          inputframe_linked$Coefficient[inputframe_linked$.data$taxonomic_level == level_i & inputframe_linked$Adjusted.P.Value > tmp_cut_off] <- 0
+          inputframe_linked$Coefficient[inputframe_linked$taxonomic_level == level_i & inputframe_linked$Adjusted.P.Value > tmp_cut_off] <- 0
         }
       }
       # Propagate filtering to higher taxonomic levels
@@ -400,7 +400,7 @@ generate_taxa_cladogram_single <- function(
           dplyr::filter(.data$taxonomic_level == {{lower_i}} & .data$Coefficient != 0) %>%
           dplyr::pull(level_i) %>%
           unique()
-        inputframe_linked$Coefficient[inputframe_linked$.data$taxonomic_level == level_i & (!inputframe_linked[[level_i]] %in% keep_level_i)] <- 0
+        inputframe_linked$Coefficient[inputframe_linked$taxonomic_level == level_i & (!inputframe_linked[[level_i]] %in% keep_level_i)] <- 0
       }
     }
     inputframe_linked

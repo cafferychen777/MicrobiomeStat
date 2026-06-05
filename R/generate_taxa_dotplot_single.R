@@ -172,9 +172,6 @@ generate_taxa_dotplot_single <- function(data.obj,
     otu_tab_norm_agg <-
       otu_tab_norm_agg %>% dplyr::left_join(prevalence_all, feature.level)
 
-    # Calculate the midpoint of mean abundance for color scaling
-    midpoint <- quantile(otu_tab_norm_agg$mean_abundance, 0.5)
-
     # Handle strata variable if present
     if (!is.null(strata.var)){
       otu_tab_norm_agg <- otu_tab_norm_agg %>%

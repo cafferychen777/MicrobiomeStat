@@ -400,7 +400,7 @@ resolve_params <- function(args, target_func, design_info) {
   } else if (design_info$design %in% c("pair", "long")) {
     # Pair-specific change functions use change.base instead of t0.level/ts.levels
     uses_change_base <- grepl("_pair$", target_func) &&
-                        (grepl("change", target_func) || grepl("alpha_test_pair", target_func))
+                        (grepl("change", target_func) || grepl("_test_pair$", target_func))
 
     # Functions that don't need t0.level/ts.levels at all (trend/volatility tests)
     no_time_params <- grepl("_trend_test_", target_func) ||

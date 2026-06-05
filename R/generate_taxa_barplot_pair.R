@@ -295,9 +295,8 @@ generate_taxa_barplot_pair <-
       # Ensure we have pairs of values (one for each time point per subject)
       if (length(unique_values) %% 2 == 0) {
         # Even number of values - can create pairs
-        midpoints <- (unique_values[seq(1, length(unique_values) - 1, by = 2)] +
-                      unique_values[seq(2, length(unique_values), by = 2)]) / 2
-        result <- midpoints
+        result <- (unique_values[seq(1, length(unique_values) - 1, by = 2)] +
+                   unique_values[seq(2, length(unique_values), by = 2)]) / 2
       } else {
         # Odd number of values - handle this case
         warning("Odd number of time points detected. Some subjects may have missing time points.")

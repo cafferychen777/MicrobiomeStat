@@ -152,13 +152,13 @@ generate_taxa_indiv_change_boxplot_pair <-
     }
 
     # Normalize count data if necessary.
-    data.obj <- mStat_normalize_count_data_if_needed(data.obj, feature.dat.type)
+    analysis_data.obj <- mStat_normalize_count_data_if_needed(data.obj, feature.dat.type)
 
     # Process each feature level
     plot_list_all <- lapply(feature.level, function(feature.level) {
 
       # Aggregate data by taxonomy if necessary
-      otu_tax_agg <- get_taxa_data(data.obj, feature.level, prev.filter, abund.filter)
+      otu_tax_agg <- get_taxa_data(analysis_data.obj, feature.level, prev.filter, abund.filter)
 
       current_features_plot <- mStat_resolve_selected_features(
         feature.dat = otu_tax_agg,

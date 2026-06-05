@@ -176,10 +176,14 @@ generate_alpha_boxplot_single <- function (data.obj,
 
     # Adjust for covariates if specified
     if (!is.null(adj.vars)) {
-      # Prepare data for adjustment
+      # Prepare data for adjustment; drop rows with NA in covariates
       data_subset <- alpha_df %>%
         dplyr::select(all_of(adj.vars)) %>%
-        dplyr::mutate(dplyr::across(where(is.character) & !is.factor, factor))
+        dplyr::mutate(dplyr::across(where(~ is.character(.) & !is.factor(.)), factor))
+
+      complete_rows <- stats::complete.cases(data_subset)
+      data_subset <- data_subset[complete_rows, , drop = FALSE]
+      response <- alpha_df[[index]][complete_rows]
 
       # Create model matrix
       # This step converts categorical variables into dummy variables
@@ -195,17 +199,16 @@ generate_alpha_boxplot_single <- function (data.obj,
       M_centered <- scale(M, scale = FALSE)
 
       # Fit regression model
-      # This step performs a linear regression of the alpha diversity index
-      # on the centered covariates
-      fit <- lm(alpha_df[[index]] ~ M_centered)
+      fit <- lm(response ~ M_centered)
 
       # Calculate adjusted alpha diversity
       # The adjusted value is the sum of the intercept (expected value when
       # all covariates are at their mean) and the residuals (unexplained variation)
       adjusted_value <- fit$coefficients[1] + residuals(fit)
 
-      # Update alpha diversity values
-      alpha_df[[index]] <- adjusted_value
+      # Update alpha diversity values; set NA for rows with missing covariates
+      alpha_df[[index]] <- NA_real_
+      alpha_df[[index]][complete_rows] <- adjusted_value
 
       # Inform user about adjustment
       message(
@@ -303,13 +306,11 @@ generate_alpha_boxplot_single <- function (data.obj,
         time.var
       )
 
-      if (!is.null(group.var)) {
-        pdf_name <- paste0(pdf_name, "_", "group_", group.var)
-      }
-
-      if (!is.null(strata.var)) {
-        pdf_name <- paste0(pdf_name, "_", "strata_", strata.var)
-      }
+      pdf_name <- mStat_append_pdf_group_suffixes(
+        pdf_name = pdf_name,
+        group.var = group.var,
+        strata.var = strata.var
+      )
 
       if (!is.null(file.ann)) {
         pdf_name <- paste0(pdf_name, "_", file.ann)

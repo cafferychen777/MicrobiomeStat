@@ -102,7 +102,7 @@ mStat_subset_dist <- function (dist.obj, samIDs) {
     if(!is.na.null(x)){
       dist.meta <- attr(x, "metadata")
       x <- as.matrix(x)
-      x <- x[samIDs, samIDs]
+      x <- x[samIDs, samIDs, drop = FALSE]
       x <- mStat_attach_dist_metadata(as.dist(x), dist.meta)
     }
     # Return the processed matrix

@@ -341,8 +341,6 @@ generate_beta_change_boxplot_long <-
           scales = "free",
           nrow = length(unique(stats::na.omit(meta_tab[[strata.var]])))
         )
-      } else {
-        p <- p
       }
 
       # Save the plot as a PDF if requested
@@ -356,12 +354,11 @@ generate_beta_change_boxplot_long <-
                            "_",
                            "t0_level_", t0.level)
 
-        if (!is.null(group.var)) {
-          pdf_name <- paste0(pdf_name, "_", "group_", group.var)
-        }
-        if (!is.null(strata.var)) {
-          pdf_name <- paste0(pdf_name, "_", "strata_", strata.var)
-        }
+        pdf_name <- mStat_append_pdf_group_suffixes(
+          pdf_name = pdf_name,
+          group.var = group.var,
+          strata.var = strata.var
+        )
         if (!is.null(file.ann)) {
           pdf_name <- paste0(pdf_name, "_", file.ann)
         }

@@ -110,7 +110,7 @@ generate_alpha_volatility_test_long <- function(data.obj,
       # Create a model matrix for the adjustment variables
       data_subset <- alpha_df %>%
         dplyr::select(all_of(adj.vars)) %>%
-        dplyr::mutate(dplyr::across(where(is.character) & !is.factor, factor))
+        dplyr::mutate(dplyr::across(where(~ is.character(.) & !is.factor(.)), factor))
 
       # Guard against missing covariate values. model.matrix() / lm() drop NA rows
       # by default, which would make the residual vector shorter than alpha_df and

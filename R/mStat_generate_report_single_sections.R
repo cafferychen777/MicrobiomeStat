@@ -138,7 +138,7 @@ pander::pander(mStat_results)
 
 ```{r object-pre-calculation, echo=FALSE, message=FALSE, results='asis'}
 
-if (!is.null(time.var) & !is.null(t.level)){
+if (!is.null(time.var) && !is.null(t.level)){
   subset_ids <- rownames(data.obj$meta.dat)[mStat_match_metadata_values(data.obj$meta.dat[[time.var]], t.level)]
   data.obj <- mStat_subset_data(data.obj, samIDs = subset_ids)
 }
@@ -227,7 +227,7 @@ taxa_barplot_results <- generate_taxa_barplot_single(data.obj = data.obj,
                                                      pdf.hei = pdf.hei)
 ```
 
-```{r taxa-barplot-average-print, echo=FALSE, message=FALSE, result = result.output, fig.align='center', fig.width = 25, fig.height = 15, warning = FALSE}
+```{r taxa-barplot-average-print, echo=FALSE, message=FALSE, results = result.output, fig.align='center', fig.width = 25, fig.height = 15, warning = FALSE}
 cat('The following plots display the average proportions for each group, and stratum. \\n\\n')
 indiv_list <- lapply(taxa_barplot_results, function(x) x$indiv)
 
@@ -236,14 +236,14 @@ average_list <- lapply(taxa_barplot_results, function(x) x$average)
 average_list
 ```
 
-```{r taxa-barplot-indiv-print, echo=FALSE, message=FALSE, result = result.output, fig.align='center', fig.width = 25, fig.height = 15, warning = FALSE}
+```{r taxa-barplot-indiv-print, echo=FALSE, message=FALSE, results = result.output, fig.align='center', fig.width = 25, fig.height = 15, warning = FALSE}
 cat('The following plots display the individual proportions for each group, and stratum. \\n\\n')
 indiv_list
 ```
 
 ### 1.3.2 Feature dotplot
 
-```{r taxa-dotplot-generation, message=FALSE, result = result.output, fig.align='center', fig.width = 20, fig.height = 8, warning = FALSE}
+```{r taxa-dotplot-generation, message=FALSE, results = result.output, fig.align='center', fig.width = 20, fig.height = 8, warning = FALSE}
 taxa_dotplot_results <- generate_taxa_dotplot_single(data.obj = data.obj,
                                                      time.var = time.var,
                                                      t.level = t.level,
@@ -292,7 +292,7 @@ taxa_heatmap_results <- generate_taxa_heatmap_single(data.obj = data.obj,
                                                      pdf.hei = pdf.hei)
 ```
 
-```{r taxa-heatmap-indiv-print, echo=FALSE, message=FALSE, result = result.output, fig.align='center', fig.width = 20, fig.height = 12, warning = FALSE}
+```{r taxa-heatmap-indiv-print, echo=FALSE, message=FALSE, results = result.output, fig.align='center', fig.width = 20, fig.height = 12, warning = FALSE}
 cat('The following plots display the individual proportions for each sample. \\n\\n')
 taxa_heatmap_results
 ```
@@ -311,7 +311,7 @@ generate_single_report_section_alpha <- function() {
 
 ### 2.1.1 Alpha diversity boxplot
 
-```{r alpha-boxplot-generation, message=FALSE, warning = FALSE, fig.align='center', fig.width = 16, fig.height = 8, result = result.output}
+```{r alpha-boxplot-generation, message=FALSE, warning = FALSE, fig.align='center', fig.width = 16, fig.height = 8, results = result.output}
 alpha_boxplot_results <- generate_alpha_boxplot_single(data.obj = data.obj,
                                                        alpha.obj = alpha.obj,
                                                        alpha.name = alpha.name,
@@ -434,7 +434,7 @@ generate_single_report_section_beta <- function() {
 
 ### 3.1.1 Beta diversity ordinationplot
 
-```{r beta-ordination-generation, message=FALSE, fig.align='center', warning = FALSE, fig.width = 10, fig.height = 8, result = result.output}
+```{r beta-ordination-generation, message=FALSE, fig.align='center', warning = FALSE, fig.width = 10, fig.height = 8, results = result.output}
 beta_ordination_results <- generate_beta_ordination_single(data.obj = data.obj,
                                                            time.var = time.var,
                                                            t.level = t.level,
@@ -615,7 +615,7 @@ taxa_test_results <- generate_taxa_test_single(data.obj = data.obj,
 cat(sprintf('In this analysis, we utilized the LinDA linear model to investigate potential differences in abundance. Specifically, we tested the effect of variables %s for different taxa, while adjusting for other covariates.\\n\\n', group.var))
 ```
 
-```{r taxa-cladogram, message=FALSE, warning=FALSE, fig.align='center', fig.width=12, fig.height=12, result = result.output}
+```{r taxa-cladogram, message=FALSE, warning=FALSE, fig.align='center', fig.width=12, fig.height=12, results = result.output}
 cladogram_plots <- generate_taxa_cladogram_single(
   data.obj = data.obj,
   test.list = taxa_test_results,
@@ -630,7 +630,7 @@ cladogram_plots
 
 ```
 
-```{r taxa-volcano , message = FALSE, warning = FALSE, fig.align = 'center', fig.width = 6.5, fig.height = 6.5, result = result.output}
+```{r taxa-volcano , message = FALSE, warning = FALSE, fig.align = 'center', fig.width = 6.5, fig.height = 6.5, results = result.output}
 volcano_plots <- generate_taxa_volcano_single(
                                   data.obj = data.obj,
                                   group.var = group.var,
@@ -771,7 +771,7 @@ if (length(significant_vars) != 0) {
 }
 ```
 
-```{r taxa-boxplot-single-print, echo=FALSE, message=FALSE, result = result.output, fig.align='center', fig.width = 8, fig.height = 4, warning = FALSE}
+```{r taxa-boxplot-single-print, echo=FALSE, message=FALSE, results = result.output, fig.align='center', fig.width = 8, fig.height = 4, warning = FALSE}
 if (length(significant_vars) != 0){
 taxa_indiv_boxplot_results_sig_features
 }

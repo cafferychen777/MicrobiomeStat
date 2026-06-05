@@ -70,8 +70,10 @@ mStat_rarefy_data <- function(data.obj, depth = NULL) {
     # Update the data object with the filtered rarefied feature table
     data.obj <- update_data_obj_count(data.obj, rarefied_otu_tab)
     # Remove corresponding rows from the feature annotations if they exist
+    # Use rowname matching instead of numeric indices for safety
     if(!is.null(data.obj$feature.ann)) {
-      data.obj$feature.ann <- data.obj$feature.ann[-zero_row_indices, , drop = FALSE]
+      kept_features <- rownames(rarefied_otu_tab)
+      data.obj$feature.ann <- data.obj$feature.ann[intersect(kept_features, rownames(data.obj$feature.ann)), , drop = FALSE]
     }
     # Inform the user about the removed features
     message(paste("Removed ", length(zero_row_indices), " rows from the feature table and feature annotations due to all-zero counts after rarefaction. The removed rows are: ", paste0(zero_row_indices, collapse = ", "), "."))

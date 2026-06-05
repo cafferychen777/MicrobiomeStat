@@ -206,8 +206,6 @@ if (feature.analysis.rarafy) {
 
 ```
 
-## 1.3 Data visualization (overall)
-
 ### 1.3.1 Feature areaplot
 
 ```{r taxa-areaplot-longitudinal-generation, message=FALSE, fig.align=\'center\', fig.width = 20, fig.height = 8, warning = FALSE}
@@ -313,7 +311,7 @@ taxa_change_heatmap_long_results <- generate_taxa_change_heatmap_long(
 ```
 
 ```{r taxa-change-heatmap-longitudinal-print, echo=FALSE, message=FALSE, results=result.output, fig.align=\'center\', fig.width = 20, fig.height = 15, warning = FALSE}
-cat(describe_change_method(feature.change.func, context = \'alpha\'))
+cat(describe_change_method(feature.change.func, context = \'taxa\'))
 
 cat(\'The following plots display the average changes for each time point, group, and stratum. \\n\\n\')
 taxa_change_heatmap_long_results
@@ -1156,7 +1154,7 @@ taxa_indiv_boxplot_results_sig_features <- generate_taxa_indiv_boxplot_long(
                                    theme.choice = theme.choice,
                                    custom.theme = custom.theme,
                                    palette = palette,
-                                   pdf = TRUE,
+                                   pdf = pdf,
                                    file.ann = file.ann,
                                    pdf.wid = pdf.wid,
                                    pdf.hei = pdf.hei)
@@ -1196,7 +1194,7 @@ taxa_indiv_boxplot_results <- generate_taxa_indiv_boxplot_long(
                                    theme.choice = theme.choice,
                                    custom.theme = custom.theme,
                                    palette = palette,
-                                   pdf = TRUE,
+                                   pdf = pdf,
                                    file.ann = file.ann,
                                    pdf.wid = pdf.wid,
                                    pdf.hei = pdf.hei)
@@ -1275,7 +1273,7 @@ taxa_indiv_spaghettiplot_results_sig_features <- generate_taxa_indiv_spaghettipl
                                    theme.choice = theme.choice,
                                    custom.theme = custom.theme,
                                    palette = palette,
-                                   pdf = TRUE,
+                                   pdf = pdf,
                                    file.ann = file.ann,
                                    pdf.wid = pdf.wid,
                                    pdf.hei = pdf.hei)
@@ -1311,7 +1309,7 @@ taxa_indiv_spaghettiplot_results_sig_features
 #                                    theme.choice = theme.choice,
 #                                    custom.theme = custom.theme,
 #                                    palette = palette,
-#                                    pdf = TRUE,
+#                                    pdf = pdf,
 #                                    file.ann = file.ann,
 #                                    pdf.wid = pdf.wid,
 #                                    pdf.hei = pdf.hei)

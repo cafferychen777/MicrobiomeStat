@@ -172,10 +172,6 @@ generate_beta_ordination_pair <-
           y_end = NA
         )
 
-      # Get unique time points
-      Time_choices <-
-        df %>% dplyr::select(all_of(time.var)) %>% dplyr::pull() %>% unique()
-
       # Calculate end points for arrows
       # This creates the visual effect of change over time for each subject
       df <- df %>%
@@ -290,12 +286,11 @@ generate_beta_ordination_pair <-
           "dist.name_",
           dist.name
         )
-        if (!is.null(group.var)) {
-          pdf_name <- paste0(pdf_name, "_", "group_", group.var)
-        }
-        if (!is.null(strata.var)) {
-          pdf_name <- paste0(pdf_name, "_", "strata_", strata.var)
-        }
+        pdf_name <- mStat_append_pdf_group_suffixes(
+          pdf_name = pdf_name,
+          group.var = group.var,
+          strata.var = strata.var
+        )
         if (!is.null(file.ann)) {
           pdf_name <- paste0(pdf_name, "_", file.ann)
         }

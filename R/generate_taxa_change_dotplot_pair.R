@@ -212,8 +212,8 @@ generate_taxa_change_dotplot_pair <- function(data.obj,
 
     prevalence_time_wide <- prevalence_time %>%
       tidyr::pivot_wider(names_from = time.var, values_from = prevalence) %>%
-      dplyr::rename(time1_prevalence = change.base,
-                    time2_prevalence = change.after)
+      dplyr::rename(time1_prevalence = all_of(change.base),
+                    time2_prevalence = all_of(change.after))
 
     # Compute the difference in prevalence at different time points
     prevalence_time_wide <- prevalence_time_wide %>%

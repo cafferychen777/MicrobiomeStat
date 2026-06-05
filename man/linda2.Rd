@@ -55,7 +55,7 @@ If "other", all filters (max.abund.filter, mean.abund.filter, and prev.filter) w
 
 \item{is.winsor}{Boolean. If TRUE (default), the Winsorization process will be conducted for the feature table.}
 
-\item{outlier.pct}{A real value between 0 and 1; Winsorization cutoff (percentile) for the feature table, e.g., 0.03. Default is NULL. If NULL, Winsorization process will not be conducted.}
+\item{outlier.pct}{A real value between 0 and 1; Winsorization cutoff (percentile) for the feature table, e.g., 0.03. Default is 0.03. If NULL, the Winsorization process will be skipped even when is.winsor is TRUE.}
 
 \item{adaptive}{Boolean. Default is TRUE. If TRUE, the parameter imputation will be treated as FALSE no matter what it is actually set to be. Then the significant correlations between the sequencing depth and explanatory variables will be tested via the linear regression between the log of the sequencing depths and formula. If any p-value is smaller than or equal to corr.cut, the imputation approach will be used; otherwise, the pseudo-count approach will be used.}
 

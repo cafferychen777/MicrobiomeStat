@@ -41,8 +41,9 @@ Data objects can be created using converters like
   \item "TMM": Trimmed Mean of M-values (requires edgeR)
 }}
 
-\item{depth}{Numeric value or NULL. Rarefaction depth for rarefaction
-workflows. If NULL, uses the minimum sample depth.}
+\item{depth}{Target rarefaction depth for the "Rarefy" and "Rarefy-TSS"
+methods. If NULL (default), the smallest per-sample total count is used.
+Ignored by the non-rarefaction methods.}
 
 \item{seed}{Integer seed used to make rarefaction subsampling reproducible
 for the "Rarefy" and "Rarefy-TSS" methods. The global RNG state is restored

@@ -216,7 +216,7 @@ generate_taxa_areaplot_long <-
     }
 
     # Normalize the data if it's in count format.
-    data.obj <- mStat_normalize_count_data_if_needed(data.obj, feature.dat.type)
+    analysis_data.obj <- mStat_normalize_count_data_if_needed(data.obj, feature.dat.type)
     if (feature.dat.type == "other"){
       stop("The 'other' type is suitable for situations where the user has analyzed the data using a method not provided in 'mStat_normalize_data' method, and the 'areaplot' is only applicable to raw data that has not undergone any processing or proportion data that adds up to 1. If you believe your data falls into these two categories, please modify 'feature.dat.type'.")
     }
@@ -224,7 +224,7 @@ generate_taxa_areaplot_long <-
     # Generate plots for each feature level
     plot_list_all <- lapply(feature.level,function(feature.level){
 
-      otu_tax_agg <- get_taxa_data(data.obj, feature.level)
+      otu_tax_agg <- get_taxa_data(analysis_data.obj, feature.level)
       selected_features <- mStat_resolve_selected_features(
         feature.dat = otu_tax_agg,
         feature.level = feature.level,
@@ -392,7 +392,7 @@ generate_taxa_areaplot_long <-
 
       # Save the plot as a PDF if requested
       if (pdf) {
-        pdf_name <- paste0("taxa_areaplot_pair",
+        pdf_name <- paste0("taxa_areaplot_long",
                            "_",
                            "subject_", subject.var,
                            "_",

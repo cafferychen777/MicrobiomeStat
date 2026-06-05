@@ -369,13 +369,6 @@ generate_taxa_barplot_single <-
 
       df$joint_factor <- as.numeric(df$joint_factor)
 
-      # Calculate midpoints for x-axis labels
-      unique_values <- unique(df$joint_factor)
-      result <- numeric(length(unique_values) %/% 2)
-      midpoints <- (unique_values[seq(1, length(unique_values) - 1, by = 2)] +
-                      unique_values[seq(2, length(unique_values), by = 2)]) / 2
-      result <- midpoints
-
       # Sort features by their overall mean abundance
       df_sorted <- df %>%
         dplyr::group_by(!!sym(feature.level)) %>%

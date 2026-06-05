@@ -210,7 +210,7 @@ generate_alpha_spaghettiplot_long <-
         # Convert non-numeric covariates to factors
         data_subset <- sub_alpha.df %>%
           dplyr::select(all_of(adj.vars)) %>%
-          dplyr::mutate(dplyr::across(where(is.character) & !is.factor, factor))
+          dplyr::mutate(dplyr::across(where(~ is.character(.) & !is.factor(.)), factor))
 
         # Create a model matrix for non-numeric covariates
         M <- model.matrix(
@@ -355,15 +355,14 @@ generate_alpha_spaghettiplot_long <-
           subject.var,
           "_",
           "time_",
-          time.var,
-          "_",
-          "group_",
-          group.var
+          time.var
         )
 
-        if (!is.null(strata.var)) {
-          pdf_name <- paste0(pdf_name, "_", "strata_", strata.var)
-        }
+        pdf_name <- mStat_append_pdf_group_suffixes(
+          pdf_name = pdf_name,
+          group.var = group.var,
+          strata.var = strata.var
+        )
 
         if (!is.null(file.ann)) {
           pdf_name <- paste0(pdf_name, "_", file.ann)

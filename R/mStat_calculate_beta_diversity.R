@@ -67,7 +67,7 @@ mStat_calculate_beta_diversity <- function(data.obj,
       # If the metric is not correctly capitalized, add it to the list for warning
       if (metric != correct_metric) {
         invalid_metrics <- c(invalid_metrics, metric)
-        message(paste0("Warning: '", metric, "' is not correctly capitalized. Using '", correct_metric, "' instead."))
+        warning(paste0("'", metric, "' is not correctly capitalized. Using '", correct_metric, "' instead."))
       }
       
       # Add the correctly capitalized metric to the new list

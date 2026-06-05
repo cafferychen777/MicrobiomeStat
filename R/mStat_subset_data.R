@@ -149,7 +149,7 @@ mStat_subset_data <- function (data.obj, samIDs = NULL, condition = NULL, prune.
 
   original_samIDs <- rownames(data.obj$meta.dat)
 
-  if (!is.null(samIDs) & !is.null(condition)) {
+  if (!is.null(samIDs) && !is.null(condition)) {
     stop("Only one of 'samIDs' and 'condition' should be provided.")
   }
 

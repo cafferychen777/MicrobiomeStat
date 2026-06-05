@@ -297,7 +297,9 @@ linda <- function(feature.dat, meta.dat, phyloseq.obj = NULL, formula, feature.d
     if (any(Y == 0)) {
       # Apply half-minimum approach for zero values in proportion data
       Y <- t(apply(Y, 1, function(x) {
-        x[x == 0] <- 0.5 * min(x[x != 0])
+        if (any(x != 0)) {
+          x[x == 0] <- 0.5 * min(x[x != 0])
+        }
         return(x)
       }))
       colnames(Y) <- samp.name
