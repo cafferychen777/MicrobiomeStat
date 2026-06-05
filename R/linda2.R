@@ -40,25 +40,6 @@
 # - Nyholt DR (2004). A simple correction for multiple testing. Am J Hum Genet.
 ################################################################################
 
-#' @noRd
-mStat_with_local_seed <- function(seed, expr) {
-  has_seed <- exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
-  if (has_seed) {
-    old_seed <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
-  }
-
-  on.exit({
-    if (has_seed) {
-      assign(".Random.seed", old_seed, envir = .GlobalEnv)
-    } else if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
-      rm(".Random.seed", envir = .GlobalEnv)
-    }
-  }, add = TRUE)
-
-  set.seed(seed)
-  force(expr)
-}
-
 #' Compute Tree-Guided Smoothing Information (Sparse Optimized)
 #'
 #' Internal function that constructs a local KNN smoothing matrix from a
